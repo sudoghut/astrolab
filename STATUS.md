@@ -26,6 +26,6 @@ M4 的 DR3 部分已完成并经过独立审稿（referee）。下一步：在 G
 2. **Atlas 导航**：天空视图和尺度视图，研究以足迹（footprint）形式出现在图上。需要先写 004 号或之后编号的计划。
 3. **技能（skills）**：已有 `referee` 和 `server-side-query`；待抽出的有新建研究、文献核实、DR4 发布日运行手册。
 
-## 待用户决定
+## 仓库
 
-- 是否初始化 git 版本库？是否推送到 GitHub？
+- 公开仓库：https://github.com/sudoghut/astrolab（MIT 许可证，分支 `main`）。
