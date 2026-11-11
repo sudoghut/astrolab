@@ -1,0 +1,50 @@
+/* Shared base styles for the Atlas and study pages. Pages may add their own. */
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --text: #1d1d1f;
+  --muted: #6b6b70;
+  --line: #e4e2dc;
+  --accent: #2f5d8a;
+  --established: #2e7d4f;
+  --tension: #b5651d;
+  --hint: #8a6d00;
+  --contested: #8e3b8a;
+  --refuted: #9b2c2c;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111214; --surface: #1a1b1e; --text: #e8e8ea; --muted: #9a9aa2; --line: #2c2d31;
+    --accent: #7fb0e0; --established: #6cc495; --tension: #e0a060; --hint: #d8c050;
+    --contested: #d08ad0; --refuted: #e07a7a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111214; --surface: #1a1b1e; --text: #e8e8ea; --muted: #9a9aa2; --line: #2c2d31;
+  --accent: #7fb0e0; --established: #6cc495; --tension: #e0a060; --hint: #d8c050;
+  --contested: #d08ad0; --refuted: #e07a7a;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 var(--sans); }
+main { max-width: 1080px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 26px; margin: 4px 0 6px; letter-spacing: -0.01em; }
+h2 { font-size: 17px; margin: 32px 0 10px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre { font-family: var(--mono); font-size: 13px; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; }
+.muted { color: var(--muted); }
+.crumb { color: var(--muted); font-size: 13px; margin: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.stat .v { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat .k { color: var(--muted); font-size: 13px; }
+.tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.g-established { color: var(--established); } .g-tension { color: var(--tension); }
+.g-hint { color: var(--hint); } .g-contested { color: var(--contested); } .g-refuted { color: var(--refuted); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 500; }
+.scroll { overflow-x: auto; }

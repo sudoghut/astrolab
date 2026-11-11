@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gaia 10 pc Census</title>
+<link rel="stylesheet" href="../../../atlas/web/base.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"></script>
+<style>
+  .plots { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; margin-top: 12px; }
+  .plot { height: 420px; }
+  @media (max-width: 760px) { .plots { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 000 · smoke test</p>
+  <h1>Gaia DR3: the 10 pc neighbourhood</h1>
+  <p class="muted">Pipeline check. Nearby sources with parallax &gt; 100 mas (quality-cut), plus an all-sky density of G &lt; 11 stars aggregated on the Gaia server into 768 HEALPix pixels.</p>
+
+  <div class="grid" id="stats"></div>
+
+  <div class="plots">
+    <div class="card"><div id="hr" class="plot"></div></div>
+    <div class="card"><div id="sky" class="plot"></div></div>
+  </div>
+
+  <h2>Nearest objects</h2>
+  <div class="card scroll"><table id="near"></table></div>
+</main>
+<script>
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const layoutBase = () => ({
+  paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+  font: { color: css('--text'), size: 12 }, margin: { l: 50, r: 10, t: 36, b: 44 },
+});
+const get = n => fetch(`../results/${n}.json`).then(r => r.json());
+
+Promise.all([get('summary'), get('nearby'), get('density_healpix3')]).then(([s, nb, d]) => {
+  const stats = [
+    ['raw rows (ϖ > 100 mas)', s.raw_rows],
+    ['after quality cut', s.after_quality_cut],
+    ['within 5 pc', s.within_5pc],
+    ['median v_tan (km/s)', s.median_v_tan_kms],
+    ['G < 11 stars aggregated', s.bright_stars_G_lt_11.toLocaleString()],
+  ];
+  document.getElementById('stats').innerHTML = stats.map(([k, v]) =>
+    `<div class="card stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
+
+  Plotly.newPlot('hr', [{
+    x: nb.bp_rp, y: nb.abs_g, mode: 'markers', type: 'scatter',
+    marker: { size: 6, color: nb.dist_pc, colorscale: 'Viridis', colorbar: { title: 'pc', thickness: 10 } },
+    text: nb.source_id.map((id, i) => `Gaia DR3 ${id}<br>${nb.dist_pc[i].toFixed(2)} pc`), hoverinfo: 'text',
+  }], { ...layoutBase(), title: 'Colour–magnitude diagram',
+        xaxis: { title: 'BP − RP', gridcolor: css('--line') },
+        yaxis: { title: 'M_G', autorange: 'reversed', gridcolor: css('--line') } },
+  { responsive: true, displayModeBar: false });
+
+  const lon = d.ra.map(r => (r > 180 ? r - 360 : r));
+  Plotly.newPlot('sky', [{
+    type: 'scattergeo', lon: lon.map(x => -x), lat: d.dec, mode: 'markers',
+    marker: { size: 7, color: d.n.map(Math.log10), colorscale: 'Cividis',
+              colorbar: { title: 'log N', thickness: 10 } },
+    text: d.n.map((n, i) => `RA ${d.ra[i].toFixed(1)}°, Dec ${d.dec[i].toFixed(1)}°<br>${n} stars`), hoverinfo: 'text',
+  }], { ...layoutBase(), title: `Bright-star density (HEALPix level ${d.level}, equatorial)`,
+        geo: { projection: { type: 'mollweide' }, showland: false, showcoastlines: false, showframe: true,
+               bgcolor: 'rgba(0,0,0,0)', framecolor: css('--line'),
+               lonaxis: { showgrid: true, gridcolor: css('--line') }, lataxis: { showgrid: true, gridcolor: css('--line') } } },
+  { responsive: true, displayModeBar: false });
+
+  const rows = nb.source_id.slice(0, 25).map((id, i) =>
+    `<tr><td>${id}</td><td>${nb.dist_pc[i].toFixed(3)}</td><td>${nb.phot_g_mean_mag[i]?.toFixed(2) ?? ''}</td>
+     <td>${nb.bp_rp[i]?.toFixed(2) ?? ''}</td><td>${nb.v_tan_kms[i].toFixed(1)}</td></tr>`).join('');
+  document.getElementById('near').innerHTML =
+    '<tr><th>Gaia DR3 source_id</th><th>d (pc)</th><th>G</th><th>BP−RP</th><th>v_tan (km/s)</th></tr>' + rows;
+}).catch(e => {
+  document.querySelector('main').insertAdjacentHTML('beforeend',
+    `<p class="muted">Results missing. Run <code>python -m astrolab run 000</code>. (${e})</p>`);
+});
+</script>
+</body>
+</html>

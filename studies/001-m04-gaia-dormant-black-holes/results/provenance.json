@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-11-11T14:34:19+00:00",
+  "inputs": [
+    {
+      "source": "tap:gaia",
+      "request": "SELECT source_id, nss_solution_type, ra, ra_error, dec, dec_error, parallax, parallax_error, pmra, pmra_error, pmdec, pmdec_error, a_thiele_innes, a_thiele_innes_error, b_thiele_innes, b_thiele_innes_error, f_thiele_innes, f_thiele_innes_error, g_thiele_innes, g_thiele_innes_error, c_thiele_innes, c_thiele_innes_error, h_thiele_innes, h_thiele_innes_error, center_of_mass_velocity, center_of_mass_velocity_error, eccentricity, eccentricity_error, period, period_error, t_periastron, t_periastron_error, bit_index, corr_vec, significance, goodness_of_fit FROM gaiadr3.nss_two_body_orbit WHERE source_id IN (4373465352415301632, 5870569352746779008, 4318465066420528000)",
+      "release": "Gaia DR3",
+      "retrieved_at": "2026-11-11T14:24:07+00:00",
+      "sha256": "137c104ee249fba76be6ef9b39f1227895d5e690400b577a4aa649562b4e5bb1",
+      "rows": 2,
+      "bytes": 23074,
+      "cache_key": "e4122d479482fdab839ebc8d",
+      "label": "BH NSS solutions"
+    },
+    {
+      "source": "tap:gaia",
+      "request": "SELECT source_id, ra, dec, l, b, parallax, phot_g_mean_mag, bp_rp FROM gaiadr3.gaia_source WHERE source_id IN (4373465352415301632, 5870569352746779008, 4318465066420528000)",
+      "release": "Gaia DR3",
+      "retrieved_at": "2026-11-11T14:24:21+00:00",
+      "sha256": "5a395c030a5a5f39e5a31fc646f240be9639eb71e2606e70f9aa5c46384ad67d",
+      "rows": 3,
+      "bytes": 5082,
+      "cache_key": "de3d22056b7eb9e6ec728db3",
+      "label": "BH positions"
+    },
+    {
+      "source": "tap:gaia",
+      "request": "SELECT q.source_id, q.nss_solution_type, q.period, q.period_error, q.eccentricity, q.parallax, q.parallax_error, q.significance, q.goodness_of_fit, q.flags, q.a0_mas, q.f_m, g.ra, g.dec, g.l, g.b, g.phot_g_mean_mag, g.bp_rp, g.ruwe, ap.mass_flame, ap.mass_flame_lower, ap.mass_flame_upper, ap.radius_flame FROM (SELECT q2.source_id, q2.nss_solution_type, q2.period, q2.period_error, q2.eccentricity, q2.parallax, q2.parallax_error, q2.significance, q2.goodness_of_fit, q2.flags, q2.a0_mas, POWER(q2.a0_mas/q2.parallax, 3)/POWER(q2.period/365.25, 2) AS f_m FROM (SELECT q1.source_id, q1.nss_solution_type, q1.period, q1.period_error, q1.eccentricity, q1.parallax, q1.parallax_error, q1.significance, q1.goodness_of_fit, q1.flags, SQRT(0.5*(q1.ta*q1.ta+q1.tb*q1.tb+q1.tf*q1.tf+q1.tg*q1.tg)+SQRT(POWER(0.5*(q1.ta*q1.ta+q1.tb*q1.tb+q1.tf*q1.tf+q1.tg*q1.tg),2)-POWER((q1.ta*q1.tg-q1.tb*q1.tf),2))) AS a0_mas FROM (SELECT source_id, nss_solution_type, period, period_error, eccentricity, parallax, parallax_error, significance, goodness_of_fit, flags, a_thiele_innes AS ta, b_thiele_innes AS tb, f_thiele_innes AS tf, COALESCE(g_thiele_innes, -a_thiele_innes*f_thiele_innes/b_thiele_innes) AS tg FROM gaiadr3.nss_two_body_orbit WHERE nss_solution_type IN ('Orbital', 'AstroSpectroSB1', 'OrbitalTargetedSearch', 'OrbitalTargetedSearchValidated', 'OrbitalAlternative', 'OrbitalAlternativeValidated') AND parallax > 0 AND parallax/parallax_error > 5.0) AS q1) AS q2) AS q JOIN gaiadr3.gaia_source AS g ON g.source_id = q.source_id LEFT OUTER JOIN gaiadr3.astrophysical_parameters AS ap ON ap.source_id = q.source_id WHERE q.f_m > 0.25",
+      "release": "Gaia DR3",
+      "retrieved_at": "2026-11-11T14:24:33+00:00",
+      "sha256": "7996114cd205d2fb69bd10e1d8eaac3352b76465dd1390297cea2a50e8e3d2b1",
+      "rows": 3343,
+      "bytes": 514314,
+      "cache_key": "3514edd8b96d1736318654e0",
+      "label": "screen f_M>0.25"
+    },
+    {
+      "source": "tap:gaia",
+      "request": "SELECT o.source_id, o.nss_solution_type, o.a_thiele_innes, o.b_thiele_innes, o.f_thiele_innes, o.g_thiele_innes, o.eccentricity, o.period, o.parallax, g.rv_amplitude_robust, g.rv_nb_transits FROM gaiadr3.nss_two_body_orbit AS o JOIN gaiadr3.gaia_source AS g ON g.source_id = o.source_id WHERE o.source_id IN (220123911510053248, 277067932245646080, 390766191993582592, 431527050848381824, 438715314264827008, 464409732777473408, 465093354131112960, 532748671109982848, 632497706010874240, 824344003814438528, 1007185297091149824, 1028887114002082432, 1058875159778407808, 1350295047363872512, 1434445448240677376, 1533365584518328576, 1538284425878995712, 1594082579405063168, 1694708646628402048, 1748573755634891136, 1801110822095134848, 1871419337958702720, 1898938018049398912, 1971412013460732928, 2018177545831527808, 2020124643487024640, 2024006087019202688, 2025967959366721664, 2084247641915567872, 2086226492267197824, 2164564290565627008, 2165818043058152576, 2168144330479387008, 2183428714641582976, 2224573745414713984, 2245423750054837888, 2278534305772981504, 2397135910639986304, 2426116249713980416, 2852726284550996352, 2922618184286613248, 2995961897685517312, 3105826332188487808, 3316050687674598656, 3457836839541875968, 3494029910469026432, 3509370326763016704, 3640889032890567040, 3664684869697065984, 4120113993460940288, 4228818619184855680, 4276147784410778240, 4299244434901041024, 4373465352415301632, 4377306079673970816, 4379087597747205120, 4467000291193143808, 4491401821468887552, 4512141806233079680, 4519469364057123328, 4637171465304969216, 4922744974687373440, 5136025521527939072, 5238699738399933952, 5272116340604356736, 5296919570584886016, 5306169796288922496, 5312973707356934016, 5317417422272682368, 5353676837544003200, 5356232897165970432, 5406907085973524224, 5411617531222963200, 5416364152972856960, 5450468362262342784, 5530442371304582912, 5535060526299103360, 5542831389148064640, 5544150395092057216, 5580526947012630912, 5587198332599812992, 5591318172608607232, 5595854104759609728, 5616598899870232704, 5820382041374661888, 5864517743830498176, 5865270084642593024, 5870569352746779008, 5874582462751803776, 5877686693317092224, 5882914875430922496, 5891667915709442688, 5928370816455687808, 5929746958324419200, 5931154500665666816, 5959603097090964992, 5968984130270654208, 5991734159714775296, 5999921810471833216, 6026372005837171072, 6058017496664039168, 6061644029573174528, 6152161045132019712, 6194754235805432192, 6281177228434199296, 6328149636482597888, 6481502062263141504, 6802561484797464832)",
+      "release": "Gaia DR3",
+      "retrieved_at": "2026-11-11T14:33:55+00:00",
+      "sha256": "cfecb3453ec6a9188842dcea16310a567419451fa11f3d2c0a10868bb0ac605b",
+      "rows": 112,
+      "bytes": 15597,
+      "cache_key": "75254a6b3c2e1f6eb4de30af",
+      "label": "vetting inputs"
+    },
+    {
+      "source": "tap:gaia",
+      "request": "SELECT q.source_id, q.nss_solution_type, q.f_m, q.parallax, q.parallax_error, q.period FROM (SELECT q2.source_id, q2.nss_solution_type, q2.period, q2.period_error, q2.eccentricity, q2.parallax, q2.parallax_error, q2.significance, q2.goodness_of_fit, q2.flags, q2.a0_mas, POWER(q2.a0_mas/q2.parallax, 3)/POWER(q2.period/365.25, 2) AS f_m FROM (SELECT q1.source_id, q1.nss_solution_type, q1.period, q1.period_error, q1.eccentricity, q1.parallax, q1.parallax_error, q1.significance, q1.goodness_of_fit, q1.flags, SQRT(0.5*(q1.ta*q1.ta+q1.tb*q1.tb+q1.tf*q1.tf+q1.tg*q1.tg)+SQRT(POWER(0.5*(q1.ta*q1.ta+q1.tb*q1.tb+q1.tf*q1.tf+q1.tg*q1.tg),2)-POWER((q1.ta*q1.tg-q1.tb*q1.tf),2))) AS a0_mas FROM (SELECT source_id, nss_solution_type, period, period_error, eccentricity, parallax, parallax_error, significance, goodness_of_fit, flags, a_thiele_innes AS ta, b_thiele_innes AS tb, f_thiele_innes AS tf, COALESCE(g_thiele_innes, -a_thiele_innes*f_thiele_innes/b_thiele_innes) AS tg FROM gaiadr3.nss_two_body_orbit WHERE nss_solution_type IN ('Orbital', 'AstroSpectroSB1', 'OrbitalTargetedSearch', 'OrbitalTargetedSearchValidated', 'OrbitalAlternative', 'OrbitalAlternativeValidated') AND parallax > 0 AND parallax/parallax_error > 0.0) AS q1) AS q2) AS q WHERE q.source_id IN (2995961897685517312, 6481502062263141504, 5820382041374661888, 1871419337958702720, 5530442371304582912, 5136025521527939072, 4922744974687373440, 1434445448240677376, 3494029910469026432, 1694708646628402048, 4637171465304969216, 5580526947012630912, 1350295047363872512, 2426116249713980416, 6328149636482597888, 1058875159778407808, 1801110822095134848, 2397135910639986304, 1028887114002082432, 465093354131112960, 1007185297091149824)",
+      "release": "Gaia DR3",
+      "retrieved_at": "2026-11-11T14:24:36+00:00",
+      "sha256": "4765b87d88229b47c4058a7c12a3b2a8f6adb387cf240366f5fe468a3cd9d83c",
+      "rows": 21,
+      "bytes": 4916,
+      "cache_key": "ca0bffc412e76984f6ed1971",
+      "label": "NS candidates f_M"
+    }
+  ]
+}

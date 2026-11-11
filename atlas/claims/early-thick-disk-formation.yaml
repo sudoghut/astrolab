@@ -1,0 +1,19 @@
+id: early-thick-disk-formation
+title: "The Milky Way's thick disk began forming ~13 Gyr ago"
+statement: >
+  Precise ages of ~250,000 subgiants (LAMOST x Gaia) show the old disk started
+  forming ~13 Gyr ago, ~2 Gyr before the inner halo finished assembling, with a
+  star-formation peak ~11 Gyr ago around the Gaia-Sausage-Enceladus merger.
+level: L3
+grade: established
+sources:
+  - cite: "Xiang & Rix 2022, Nature 603, 599"
+    arxiv: "2203.12110"
+reproduction:
+  status: not-started
+  study: null
+  quantities:
+    - {name: "thick disk onset", paper: "~13 Gyr ago", ours: null}
+open_questions:
+  - "Robustness of the onset epoch to the isochrone grid."
+notes: "Milestone M5. Updated catalog: 320,028 subgiants (NADC DOI 10.12149/101467); download only the needed columns."

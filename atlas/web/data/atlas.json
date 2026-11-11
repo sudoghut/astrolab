@@ -1,0 +1,432 @@
+{
+ "generated_at": "2026-11-11T14:36:40+00:00",
+ "levels": [
+  "L0",
+  "L1",
+  "L2",
+  "L3",
+  "L4",
+  "X"
+ ],
+ "claims": [
+  {
+   "id": "desi-dr2-bao-evolving-dark-energy",
+   "title": "DESI DR2 BAO: hint of evolving dark energy",
+   "statement": "DESI DR2 BAO combined with CMB and type Ia supernovae prefers w0waCDM (w0 > -1, wa < 0) over LambdaCDM at 2.8-4.2 sigma depending on the SN sample.\n",
+   "level": "L0",
+   "grade": "hint",
+   "sources": [
+    {
+     "cite": "DESI Collaboration (Abdul-Karim et al.) 2025, PRD 112, 083515",
+     "arxiv": "2503.14738"
+    },
+    {
+     "cite": "DESI Collaboration 2025 (DR1), JCAP 02 (2025) 021",
+     "arxiv": "2404.03002"
+    }
+   ],
+   "reproduction": {
+    "status": "not-started",
+    "study": null,
+    "quantities": [
+     {
+      "name": "Omega_m (BAO only, LCDM)",
+      "paper": "0.2975 +/- 0.0086",
+      "ours": null
+     },
+     {
+      "name": "w0 (DESI+CMB+DES-SN5YR)",
+      "paper": "-0.752 +/- 0.057",
+      "ours": null
+     },
+     {
+      "name": "wa (DESI+CMB+DES-SN5YR)",
+      "paper": "-0.86 +0.23/-0.20",
+      "ours": null
+     },
+     {
+      "name": "preference over LCDM (DESI+CMB+DES-SN5YR)",
+      "paper": "4.2 sigma",
+      "ours": null
+     }
+    ]
+   },
+   "depends_on": [],
+   "updates": [
+    "2026: DES-Dovekie SN recalibration lowers the DES-SN combination from 4.2 to ~3.2 sigma (Popovic et al., arXiv:2511.07517).",
+    "2026-07: DESI DR2 Lya full-shape gives 2.7 sigma (DESI+CMB) and 3.2 sigma (with SNe) (arXiv:2607.27410)."
+   ],
+   "open_questions": [
+    "How much of the preference comes from the w0-wa parametrisation versus binned w(z) or Gaussian-process reconstructions?",
+    "Leave-one-tracer-out and leave-one-SN-sample-out sensitivity of the signal."
+   ],
+   "notes": "Verified against arXiv abstracts in plan 002 (cosmology agent report, 2026-11-11). Milestone M1."
+  },
+  {
+   "id": "early-thick-disk-formation",
+   "title": "The Milky Way's thick disk began forming ~13 Gyr ago",
+   "statement": "Precise ages of ~250,000 subgiants (LAMOST x Gaia) show the old disk started forming ~13 Gyr ago, ~2 Gyr before the inner halo finished assembling, with a star-formation peak ~11 Gyr ago around the Gaia-Sausage-Enceladus merger.\n",
+   "level": "L3",
+   "grade": "established",
+   "sources": [
+    {
+     "cite": "Xiang & Rix 2022, Nature 603, 599",
+     "arxiv": "2203.12110"
+    }
+   ],
+   "reproduction": {
+    "status": "not-started",
+    "study": null,
+    "quantities": [
+     {
+      "name": "thick disk onset",
+      "paper": "~13 Gyr ago",
+      "ours": null
+     }
+    ]
+   },
+   "open_questions": [
+    "Robustness of the onset epoch to the isochrone grid."
+   ],
+   "notes": "Milestone M5. Updated catalog: 320,028 subgiants (NADC DOI 10.12149/101467); download only the needed columns."
+  },
+  {
+   "id": "gaia-dormant-black-holes",
+   "title": "Dormant stellar-mass black holes found by Gaia astrometry",
+   "statement": "Gaia astrometric orbits plus RV follow-up reveal non-interacting black holes orbiting normal stars: BH1 (9.6 Msun), BH2 (8.9 Msun) and BH3 (32.7 Msun).\n",
+   "level": "L4",
+   "grade": "established",
+   "sources": [
+    {
+     "cite": "El-Badry et al. 2023, MNRAS 518, 1057 (Gaia BH1)",
+     "arxiv": "2209.06833"
+    },
+    {
+     "cite": "El-Badry et al. 2023, MNRAS 521, 4323 (Gaia BH2)",
+     "arxiv": "2302.07880"
+    },
+    {
+     "cite": "Gaia Collaboration, Panuzzo et al. 2024, A&A 686, L2 (Gaia BH3)",
+     "arxiv": "2404.10486"
+    }
+   ],
+   "reproduction": {
+    "status": "partial",
+    "study": "001-m04-gaia-dormant-black-holes",
+    "quantities": [
+     {
+      "name": "M_BH (BH1)",
+      "paper": "9.62 +/- 0.18 Msun",
+      "ours": "13.3 +2.9/-2.3 Msun (DR3 astrometry only, +1.4 sigma)"
+     },
+     {
+      "name": "M_BH (BH1), astrometry-only solution",
+      "paper": "12.8 +/- 2.0 Msun; a0 3.00 +/- 0.22 mas",
+      "ours": "13.3 Msun (+0.23 sigma); a0 3.02 mas (+0.09 sigma)"
+     },
+     {
+      "name": "M_BH (BH2)",
+      "paper": "8.9 +/- 0.3 Msun",
+      "ours": "8.52 +0.61/-0.56 Msun (DR3 astrometry only, -0.6 sigma)"
+     },
+     {
+      "name": "M_BH (BH3)",
+      "paper": "32.70 +/- 0.82 Msun",
+      "ours": null,
+      "note": "no DR3 orbit; paper table or DR4"
+     },
+     {
+      "name": "El-Badry+24 NS candidates recovered by server-side screen",
+      "paper": "21",
+      "ours": "21/21"
+     }
+    ]
+   },
+   "open_questions": [
+    "Systematic DR4 screen of NSS orbits for dark companions > 3 Msun on release day (2026-12-02).",
+    "Does the NS-BH mass gap survive DR4 orbits?"
+   ],
+   "notes": "Milestone M4 (priority 1: Gaia DR4 window)."
+  },
+  {
+   "id": "gwtc4-bbh-mass-spectrum",
+   "title": "Binary black hole mass spectrum features (GWTC-4.0)",
+   "statement": "The BBH primary-mass distribution steepens above ~35 Msun with overdensities near ~10 and ~35 Msun (and a possible ~20 Msun feature); GW231123 lies in or across the pair-instability gap.\n",
+   "level": "X",
+   "grade": "established",
+   "sources": [
+    {
+     "cite": "LVK 2025, GWTC-4.0 population, ApJL 1005, L51",
+     "arxiv": "2508.18083"
+    },
+    {
+     "cite": "LVK 2025, GW231123, ApJL 993, L25",
+     "arxiv": "2507.08219"
+    }
+   ],
+   "reproduction": {
+    "status": "not-started",
+    "study": null,
+    "quantities": [
+     {
+      "name": "BBH local merger rate",
+      "paper": "13-26 Gpc^-3 yr^-1",
+      "ours": null
+     }
+    ]
+   },
+   "open_questions": [
+    "Robustness of the 35 Msun feature to pairing-function choices, using released summaries only."
+   ],
+   "notes": "Milestone M10. The population data release is 35 GB; use only the small files and the GWOSC event table. The ~20 Msun feature is only a hint."
+  },
+  {
+   "id": "hubble-tension",
+   "title": "Hubble tension: local distance ladder vs early universe",
+   "statement": "Cepheid-calibrated distance-ladder H0 (~73 km/s/Mpc) exceeds the CMB-inferred LCDM value (~67-68) at >5 sigma; TRGB/JAGB calibrations (CCHP) give ~70.\n",
+   "level": "L2",
+   "grade": "tension",
+   "sources": [
+    {
+     "cite": "Riess et al. 2022, ApJL (SH0ES)",
+     "arxiv": "2112.04510"
+    },
+    {
+     "cite": "Freedman et al. 2025, ApJ 985, 182 (CCHP)",
+     "arxiv": "2408.06153"
+    },
+    {
+     "cite": "Riess et al. 2024/25, JWST validates HST distances",
+     "arxiv": "2408.11770"
+    }
+   ],
+   "reproduction": {
+    "status": "not-started",
+    "study": null,
+    "quantities": [
+     {
+      "name": "H0 SH0ES 2022",
+      "paper": "73.04 +/- 1.04",
+      "ours": null
+     },
+     {
+      "name": "H0 CCHP TRGB",
+      "paper": "70.39 +/- 1.22 (stat) +/- 1.33 (sys)",
+      "ours": null,
+      "verified": "S"
+     }
+    ]
+   },
+   "open_questions": [
+    "Is the CCHP-SH0ES difference a calibrator-host selection effect?"
+   ],
+   "notes": "Milestone M2."
+  },
+  {
+   "id": "jwst-z14-galaxies",
+   "title": "Spectroscopically confirmed galaxies at z ~ 14 and the bright-galaxy excess",
+   "statement": "JWST spectroscopy confirms luminous galaxies at z = 14.32 (JADES-GS-z14-0) and z = 14.44 (MoM-z14); the bright-end UV luminosity function at z > 10 exceeds pre-JWST model predictions.\n",
+   "level": "L1",
+   "grade": "established",
+   "sources": [
+    {
+     "cite": "Carniani et al. 2024, Nature 633, 318",
+     "arxiv": "2405.18485"
+    },
+    {
+     "cite": "Naidu et al. 2026, OJAp 9",
+     "arxiv": "2505.11263"
+    },
+    {
+     "cite": "Harikane et al. 2025, ApJ",
+     "arxiv": "2406.18352"
+    }
+   ],
+   "reproduction": {
+    "status": "not-started",
+    "study": null,
+    "quantities": [
+     {
+      "name": "z_spec MoM-z14",
+      "paper": "14.44 +/- 0.02",
+      "ours": null,
+      "verified": "S"
+     }
+    ]
+   },
+   "open_questions": [
+    "Minimal UV burstiness / star-formation efficiency needed at z ~ 12-15."
+   ],
+   "notes": "Milestone M8. Detection is established; the interpretation of the excess is contested."
+  },
+  {
+   "id": "milky-way-declining-rotation-curve",
+   "title": "Declining outer rotation curve of the Milky Way",
+   "statement": "Gaia DR3-based rotation curves decline beyond ~15-20 kpc (about 30 km/s from 19.5 to 26.5 kpc), implying a lighter Galaxy (~2e11 Msun); the Keplerian interpretation is disputed.\n",
+   "level": "L3",
+   "grade": "contested",
+   "sources": [
+    {
+     "cite": "Jiao et al. 2023, A&A 678, A208",
+     "arxiv": "2309.00048"
+    },
+    {
+     "cite": "Ou, Eilers, Necib & Frebel 2024, MNRAS 528, 693",
+     "arxiv": "2303.12838"
+    }
+   ],
+   "reproduction": {
+    "status": "not-started",
+    "study": null,
+    "quantities": [
+     {
+      "name": "M_total (Jiao 2023)",
+      "paper": "2.06 +0.24/-0.13 e11 Msun",
+      "ours": null
+     }
+    ]
+   },
+   "open_questions": [
+    "Joint propagation of Jeans-modelling systematics (cross-term, disequilibrium, disk scale length)."
+   ],
+   "notes": "Milestone M6."
+  },
+  {
+   "id": "nanohertz-gw-background",
+   "title": "Nanohertz gravitational-wave background from pulsar timing arrays",
+   "statement": "NANOGrav, EPTA, PPTA and CPTA find a common red process with Hellings-Downs correlations at ~2-4.6 sigma, consistent with a GW background of amplitude ~2.4e-15 at f = 1/yr.\n",
+   "level": "X",
+   "grade": "hint",
+   "sources": [
+    {
+     "cite": "Agazie et al. 2023, ApJL 951, L8 (NANOGrav 15-yr)",
+     "arxiv": "2306.16213"
+    },
+    {
+     "cite": "Antoniadis et al. 2023, A&A 678, A50 (EPTA DR2)",
+     "arxiv": "2306.16214"
+    }
+   ],
+   "reproduction": {
+    "status": "not-started",
+    "study": null,
+    "quantities": [
+     {
+      "name": "A_GWB (NANOGrav)",
+      "paper": "2.4 +0.7/-0.6 e-15",
+      "ours": null,
+      "verified": "S"
+     }
+    ]
+   },
+   "open_questions": [
+    "Is the SMBHB amplitude consistent with galaxy-merger and BH mass-function priors?"
+   ],
+   "notes": "Milestone M9. Grade 'hint' here means strong evidence below 5 sigma. Use the NANOGrav KDE free-spectrum release (Zenodo 10344086, v1.1.0)."
+  },
+  {
+   "id": "s8-tension",
+   "title": "S8 tension between weak lensing and the CMB",
+   "statement": "Low-redshift probes of clustering amplitude (S8) were lower than the CMB-inferred value; by 2025-26 KiDS-Legacy is consistent with the CMB while DES Y6 remains ~2.6 sigma low.\n",
+   "level": "L0",
+   "grade": "contested",
+   "sources": [
+    {
+     "cite": "Wright et al. 2025, A&A 703, A158 (KiDS-Legacy)",
+     "arxiv": "2503.19441"
+    },
+    {
+     "cite": "DES Collaboration 2026, DES Y6 3x2pt",
+     "arxiv": "2601.14559"
+    }
+   ],
+   "reproduction": {
+    "status": "not-started",
+    "study": null,
+    "quantities": [
+     {
+      "name": "S8 DES Y6",
+      "paper": "0.789 +/- 0.012",
+      "ours": null
+     },
+     {
+      "name": "S8 KiDS-Legacy",
+      "paper": "0.815 +0.016/-0.021",
+      "ours": null,
+      "verified": "S"
+     }
+    ]
+   },
+   "open_questions": [
+    "Same-prior, same-S8-definition meta-comparison across probes."
+   ],
+   "notes": "Milestone M3."
+  },
+  {
+   "id": "wide-binary-gravity-test",
+   "title": "Wide binaries as a test of gravity at low acceleration",
+   "statement": "Gaia DR3 wide-binary relative velocities test MOND vs Newton below a0; large clean samples favour Newtonian gravity, while small high-precision samples are claimed to show a MOND-like boost.\n",
+   "level": "L4",
+   "grade": "contested",
+   "sources": [
+    {
+     "cite": "Chae 2023, ApJ 952, 128",
+     "arxiv": "2305.04613"
+    },
+    {
+     "cite": "Banik et al. 2024, MNRAS 527, 4573",
+     "arxiv": "2311.03436"
+    },
+    {
+     "cite": "Cookson, Banik, El-Badry et al. 2026, MNRAS",
+     "arxiv": "2602.24035"
+    }
+   ],
+   "reproduction": {
+    "status": "not-started",
+    "study": null,
+    "quantities": [
+     {
+      "name": "alpha_grav (Banik 2024)",
+      "paper": "-0.021 +0.065/-0.045",
+      "ours": null
+     },
+     {
+      "name": "g_obs/g_N (Chae 2023)",
+      "paper": "1.43 +/- 0.06",
+      "ours": null
+     }
+    ]
+   },
+   "open_questions": [
+    "Blind quality-ladder reanalysis reproducing both groups' cuts in one pipeline.",
+    "Hidden close binaries flagged with DR4 epoch astrometry."
+   ],
+   "notes": "Milestone M7. Do not download the 1.8 GB El-Badry catalog; rebuild the sample server-side."
+  }
+ ],
+ "studies": [
+  {
+   "id": "000-smoke-test_gaia-dr3-10pc-census",
+   "title": "Smoke test: Gaia DR3 census of the 10 pc neighbourhood",
+   "level": "L3",
+   "status": "active",
+   "question": "Does the pipeline (guarded TAP, cache, provenance, server-side aggregation, web page) work end to end?",
+   "claims": [],
+   "has_web": true,
+   "last_run": true
+  },
+  {
+   "id": "001-m04-gaia-dormant-black-holes",
+   "title": "M4: Gaia dormant black holes - DR3 reproduction and DR4-ready screen",
+   "level": "L4",
+   "status": "reproduced",
+   "question": "Can DR3 NSS astrometric orbits alone reproduce Gaia BH1/BH2 masses, and can a server-side screen recover known dormant compact objects, ready for DR4?",
+   "claims": [
+    "gaia-dormant-black-holes"
+   ],
+   "has_web": true,
+   "last_run": true
+  }
+ ]
+}

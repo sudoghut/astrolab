@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-11-11T14:04:02+00:00",
+  "inputs": [
+    {
+      "source": "tap:gaia",
+      "request": "SELECT source_id, ra, dec, l, b, parallax, parallax_over_error, pmra, pmdec, radial_velocity, phot_g_mean_mag, bp_rp, ruwe FROM gaiadr3.gaia_source WHERE parallax > 100",
+      "release": "Gaia DR3",
+      "retrieved_at": "2026-11-11T14:03:32+00:00",
+      "sha256": "36d9ec2715eccf7d19459e51a662031b439ab1e94af29ab2e9f5160af46cf644",
+      "rows": 315,
+      "bytes": 38495,
+      "cache_key": "60d3e0a06c612a3d7e28f2e6",
+      "label": "parallax>100mas"
+    },
+    {
+      "source": "tap:gaia",
+      "request": "SELECT GAIA_HEALPIX_INDEX(3, source_id) AS hpx, COUNT(*) AS n FROM gaiadr3.gaia_source WHERE phot_g_mean_mag < 11 GROUP BY hpx",
+      "release": "Gaia DR3",
+      "retrieved_at": "2026-11-11T14:03:49+00:00",
+      "sha256": "f69f39e75b71057988e124cfc0df4aa5efa0309e097f2b425ed6d908a40b4e81",
+      "rows": 768,
+      "bytes": 9410,
+      "cache_key": "b211c369341e029bd242c93c",
+      "label": "healpix3 density G<11"
+    }
+  ]
+}

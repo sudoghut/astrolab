@@ -1,0 +1,8 @@
+title: "{{TITLE}}"
+id: "{{ID}}"
+level: {{LEVEL}}              # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
+status: planned               # planned | active | reproduced | concluded | paused | abandoned
+created: {{DATE}}
+question: "TODO: one-sentence research question"
+claims: []                    # claim ids in atlas/claims/ this study reproduces or tests
+milestone: null               # roadmap milestone id, e.g. M1

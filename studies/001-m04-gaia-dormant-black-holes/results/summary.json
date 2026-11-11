@@ -1,0 +1,93 @@
+{
+ "release": "dr3",
+ "R1_BH1": {
+  "m2": [
+   10.976201622304227,
+   13.26984187763846,
+   16.148461611906686
+  ],
+  "deviation_sigma": 1.4079080102000845,
+  "pass_2sigma": true,
+  "period_dr3_d": 185.7656578920495
+ },
+ "R2_BH2": {
+  "m2": [
+   7.956896762660265,
+   8.521125604779229,
+   9.131326667320787
+  ],
+  "deviation_sigma": -0.5745658386107906,
+  "pass_2sigma": true,
+  "period_dr3_d": 1352.2889370485916
+ },
+ "S1_rows": 3343,
+ "S1_rows_ok": true,
+ "S1_published_m1": {
+  "Gaia BH1": {
+   "m2_published_m1": 12.766056615384867,
+   "pass": true
+  },
+  "Gaia BH2": {
+   "m2_published_m1": 8.513140459128829,
+   "pass": true
+  }
+ },
+ "S1_pass": true,
+ "S2_ns_recall": "21/21",
+ "S2_pass": true,
+ "S2_weakest_ns_f_m": 0.4113646452251478,
+ "S3_candidates_m2_gt_3": 87,
+ "S3_known": 2,
+ "S3_unflagged_unknown_preregistered_labels": 5,
+ "S3_flag_counts": {
+  "giant": 56,
+  "low-significance": 34,
+  "plx-snr<20": 26,
+  "no-FLAME-mass": 14,
+  "none": 5,
+  "e>0.8": 4
+ },
+ "S3_labels_on_known_bh": {
+  "4373465352415301632": "low-significance",
+  "5870569352746779008": "giant"
+ },
+ "D1_dr4_query_ok": true,
+ "astrometric_solutions_total": 169227,
+ "rows_dropped_null_a0": 0,
+ "post_hoc": {
+  "note": "Added 2026-11-11 after referee review; not pre-registered.",
+  "R1b_bh1_vs_dr3_only_paper": {
+   "a0_ours": 3.02072479951189,
+   "a0_paper": [
+    3.0,
+    0.22
+   ],
+   "a0_dev_sigma": 0.0942036341449545,
+   "m2_ours": 13.26984187763846,
+   "m2_paper": [
+    12.8,
+    2.0
+   ],
+   "m2_dev_sigma": 0.23492093881922926
+  },
+  "controls_vetoed": [],
+  "controls_checked": 23,
+  "sources_with_multiple_solutions_among_vetted": [
+   "1594082579405063168",
+   "1971412013460732928",
+   "5353676837544003200",
+   "6026372005837171072"
+  ],
+  "candidates_vetoed_type": 27,
+  "candidates_vetoed_rv": 6,
+  "literature_refuted_in_list": 4,
+  "survivors_not_known_not_vetoed_not_refuted": 51,
+  "survivors_by_label": {
+   "giant": 22,
+   "giant,low-significance": 21,
+   "giant,low-significance,plx-snr<20": 5,
+   "low-significance,e>0.8": 2,
+   "giant,plx-snr<20": 1
+  }
+ }
+}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<link rel="stylesheet" href="../../../atlas/web/base.css">
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / {{ID}}</p>
+  <h1>{{TITLE}}</h1>
+  <p class="muted">Replace this page freely: design whatever this question needs (visualization, interactive analysis, several pages). It does not have to follow the Atlas. Data comes from <code>../results/*.json</code>.</p>
+  <pre id="out">loading…</pre>
+</main>
+<script>
+fetch('../results/summary.json')
+  .then(r => r.json())
+  .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
+  .catch(e => { document.getElementById('out').textContent = 'Run the study first: ' + e; });
+</script>
+</body>
+</html>

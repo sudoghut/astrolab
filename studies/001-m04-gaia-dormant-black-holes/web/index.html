@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gaia Dormant Black Holes</title>
+<link rel="stylesheet" href="../../../atlas/web/base.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"></script>
+<style>
+  .two { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+  .plot { height: 300px; }
+  .plot-big { height: 520px; }
+  .verdict { font-weight: 600; }
+  .ok { color: var(--established); } .bad { color: var(--refuted); } .warn { color: var(--tension); }
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 13.5px; margin: 8px 0 10px; }
+  .controls label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+  .controls input[type=range] { width: 160px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.known td { font-weight: 600; }
+  .qc { font: 11.5px var(--mono); color: var(--muted); }
+  .note { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+  .banner { border-left: 3px solid var(--tension); padding: 8px 12px; background: var(--surface); margin: 12px 0; font-size: 14px; }
+  @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / L4 / M4</p>
+  <h1>Dormant black holes in Gaia astrometric orbits</h1>
+  <p class="muted">Reproducing Gaia BH1 and BH2 from DR3 non-single-star orbits alone, and a fully server-side screen of all
+    169,227 DR3 astrometric orbits for massive dark companions, built to rerun on Gaia DR4.</p>
+  <div class="banner">Gaia DR4 is released <strong>2026-12-02</strong> (archive offline from 2026-11-25). The screen is parameterised by release.</div>
+
+  <h2>Pre-registered criteria</h2>
+  <div class="card scroll"><table id="criteria"></table></div>
+
+  <h2>Reproduction: companion mass from DR3 astrometry alone</h2>
+  <div class="two" id="repro"></div>
+  <p class="note">Histograms: Monte Carlo over the full DR3 covariance of (parallax, A, B, F, G, P) and the published luminous-star mass.
+    Band: published mass ±1σ (joint astrometry + RV fits).</p>
+
+  <h2>Screen: astrometric mass function vs period</h2>
+  <div class="controls">
+    <label>Assumed M<sub>1</sub> for mass lines <input type="range" id="m1" min="0.3" max="2.5" step="0.05" value="1"> <span id="m1v">1.00</span> M☉</label>
+  </div>
+  <div class="card"><div id="screen" class="plot-big"></div></div>
+  <p class="note">3,343 solutions with f<sub>M</sub> &gt; 0.25 M☉ and parallax S/N &gt; 5 (computed on the Gaia server).
+    Horizontal lines: f<sub>M</sub> for a dark companion of the given mass around the assumed M<sub>1</sub>.</p>
+
+  <h2>Candidates with M<sub>2</sub> &gt; 3 M☉</h2>
+  <div class="controls" id="filters"></div>
+  <div class="card scroll"><table id="cands"></table></div>
+  <p class="note">M<sub>2</sub> uses Gaia FLAME mass for M<sub>1</sub> (1 M☉ if missing). Quality labels (qc) were pre-registered except where marked post-hoc.
+    A large M<sub>2</sub> here is a lead, not a discovery: spurious orbits and triples can mimic it.</p>
+
+  <h2>Recall: El-Badry et al. (2024) neutron-star candidates</h2>
+  <div class="card scroll"><table id="ns"></table></div>
+</main>
+<script>
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const base = () => ({ paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+  font: { color: css('--text'), size: 12 }, margin: { l: 56, r: 12, t: 30, b: 46 } });
+const ax = (t, extra = {}) => ({ title: t, gridcolor: css('--line'), zerolinecolor: css('--line'), ...extra });
+const get = n => fetch(`../results/${n}.json`).then(r => r.json());
+const f2 = (x, d = 2) => (x == null ? '' : Number(x).toFixed(d));
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// solve M2^3 = f (M1+M2)^2  -> f(M2) for lines
+const fOf = (m2, m1) => m2 ** 3 / (m1 + m2) ** 2;
+
+Promise.all([get('summary'), get('reproduction'), get('screen_points'), get('bh_candidates'), get('ns_recall')])
+.then(([s, rep, pts, cand, ns]) => {
+  // criteria
+  const crit = [
+    ['R1', 'BH1 mass within 2σ of 9.62 ± 0.18 M☉', s.R1_BH1.pass_2sigma, `M2 = ${f2(s.R1_BH1.m2[1])} (${f2(s.R1_BH1.m2[0])}–${f2(s.R1_BH1.m2[2])}); ${f2(s.R1_BH1.deviation_sigma)}σ`],
+    ['R2', 'BH2 mass within 2σ of 8.9 ± 0.3 M☉', s.R2_BH2.pass_2sigma, `M2 = ${f2(s.R2_BH2.m2[1])} (${f2(s.R2_BH2.m2[0])}–${f2(s.R2_BH2.m2[2])}); ${f2(s.R2_BH2.deviation_sigma)}σ`],
+    ['S1', 'Screen < 50k rows; BH1 & BH2 recovered', s.S1_rows_ok && s.S1_known_bh_in_candidates['Gaia BH1'] && s.S1_known_bh_in_candidates['Gaia BH2'], `${s.S1_rows.toLocaleString()} rows`],
+    ['S2', '≥ 19/21 NS candidates pass pre-selection', s.S2_pass, s.S2_ns_recall],
+    ['S3', 'Candidates M2 > 3 M☉ (exploratory)', null, `${s.S3_candidates_m2_gt_3} total, ${s.S3_known} known, ${s.S3_unflagged_unknown_preregistered_labels} without pre-registered labels — but those labels also hit BH1 (low-significance) and BH2 (giant)`],
+    ['D1', 'DR4 query generated', s.D1_dr4_query_ok, 'results/dr4_screen_query.json; schema to confirm on release day'],
+  ];
+  const ph = s.post_hoc;
+  crit.push(
+    ['R1b*', 'BH1 vs published DR3-only solution (|Δ| < 0.5σ)', Math.abs(ph.R1b_bh1_vs_dr3_only_paper.m2_dev_sigma) < 0.5 && Math.abs(ph.R1b_bh1_vs_dr3_only_paper.a0_dev_sigma) < 0.5,
+      `a0 ${f2(ph.R1b_bh1_vs_dr3_only_paper.a0_ours)} vs 3.00±0.22 mas; M2 ${f2(ph.R1b_bh1_vs_dr3_only_paper.m2_ours, 1)} vs 12.8±2.0 M☉`],
+    ['V*', 'Post-hoc vetoes keep all positive controls', ph.controls_vetoed.length === 0,
+      `${ph.controls_checked} controls (BH1, BH2, 21 NS), 0 vetoed; vetoed candidates: ${ph.candidates_vetoed_type} by solution type, ${ph.candidates_vetoed_rv} by RV amplitude`],
+    ['S3*', 'Unknown candidates surviving vetoes and literature', null,
+      `${ph.survivors_not_known_not_vetoed_not_refuted}, all giants or low-significance — none is an unlabelled main-sequence host`]);
+  document.getElementById('criteria').innerHTML = '<tr><th></th><th>criterion</th><th>verdict</th><th>result</th></tr>' +
+    crit.map(([k, d, ok, r]) => `<tr><td><strong>${k}</strong></td><td>${d}</td>
+      <td class="verdict ${ok === null ? 'warn' : ok ? 'ok' : 'bad'}">${ok === null ? 'report' : ok ? 'pass' : 'fail'}</td><td>${r}</td></tr>`).join('');
+
+  // reproduction histograms
+  const box = document.getElementById('repro');
+  rep.filter(r => r.status === 'computed').forEach((r, i) => {
+    const id = 'h' + i;
+    box.insertAdjacentHTML('beforeend', `<div class="card"><strong>${esc(r.name)}</strong>
+      <span class="muted"> · ${esc(r.solution_type)} · P<sub>DR3</sub> = ${f2(r.period_dr3_d, 1)} d (paper ${f2(r.p_paper_d, 1)})</span>
+      <div id="${id}" class="plot"></div></div>`);
+    const e = r.m2_hist.edges, c = r.m2_hist.counts;
+    const mids = c.map((_, k) => (e[k] + e[k + 1]) / 2);
+    Plotly.newPlot(id, [{ x: mids, y: c, type: 'bar', marker: { color: css('--accent') }, name: 'ours', hovertemplate: '%{x:.2f} M☉<extra></extra>' }],
+      { ...base(), showlegend: false, bargap: 0,
+        xaxis: ax('M₂ [M☉]'), yaxis: ax('MC samples'),
+        shapes: [{ type: 'rect', xref: 'x', yref: 'paper', x0: r.m2_paper - r.m2_paper_err, x1: r.m2_paper + r.m2_paper_err, y0: 0, y1: 1,
+                   fillcolor: css('--established'), opacity: 0.25, line: { width: 0 } },
+                 { type: 'line', xref: 'x', yref: 'paper', x0: r.m2_paper, x1: r.m2_paper, y0: 0, y1: 1, line: { color: css('--established'), width: 2 } }],
+        annotations: [{ x: r.m2_paper, y: 1, xref: 'x', yref: 'paper', text: 'paper', showarrow: false, yanchor: 'bottom', font: { color: css('--established') } }] },
+      { responsive: true, displayModeBar: false });
+  });
+  rep.filter(r => r.status !== 'computed').forEach(r => box.insertAdjacentHTML('beforeend',
+    `<div class="card"><strong>${esc(r.name)}</strong><p class="muted">${esc(r.status)}. Published M₂ = ${r.m2_paper} ± ${r.m2_paper_err} M☉ — rerun on DR4.</p></div>`));
+
+  // screen scatter
+  const types = [...new Set(pts.nss_solution_type)];
+  const palette = [css('--accent'), css('--tension'), css('--contested'), css('--hint'), css('--muted'), css('--established')];
+  const nsIds = new Set(ns.rows.gaia_dr3);
+  const known = new Set(cand.source_id.filter((_, i) => cand.known[i]));
+  const traces = types.map((t, k) => {
+    const idx = pts.nss_solution_type.map((x, i) => x === t ? i : -1).filter(i => i >= 0);
+    return { x: idx.map(i => pts.period[i]), y: idx.map(i => pts.f_m[i]), mode: 'markers', type: 'scattergl', name: t,
+      marker: { size: 4, color: palette[k % palette.length], opacity: 0.55 },
+      text: idx.map(i => `Gaia DR3 ${pts.source_id[i]}<br>${t}<br>P = ${f2(pts.period[i], 1)} d, f = ${f2(pts.f_m[i], 3)}<br>M₂(FLAME M₁) = ${f2(pts.m2[i])}`),
+      hoverinfo: 'text' };
+  });
+  const pick = pred => pts.source_id.map((id, i) => pred(id) ? i : -1).filter(i => i >= 0);
+  const nsI = pick(id => nsIds.has(id)), kI = pick(id => known.has(id));
+  traces.push({ x: nsI.map(i => pts.period[i]), y: nsI.map(i => pts.f_m[i]), mode: 'markers', type: 'scatter', name: 'NS candidates (El-Badry+24)',
+    marker: { size: 9, symbol: 'diamond-open', color: css('--text'), line: { width: 1.5 } }, hoverinfo: 'skip' });
+  traces.push({ x: kI.map(i => pts.period[i]), y: kI.map(i => pts.f_m[i]), mode: 'markers+text', type: 'scatter', name: 'Gaia BH1 / BH2',
+    text: kI.map(i => cand.source_id.indexOf(pts.source_id[i]) >= 0 ? (pts.source_id[i].startsWith('4373') ? 'BH1' : 'BH2') : ''),
+    textposition: 'top center', marker: { size: 13, symbol: 'star', color: css('--refuted') }, hoverinfo: 'skip' });
+  const lines = m1 => [1.4, 3, 10].map(m2 => ({ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: fOf(m2, m1), y1: fOf(m2, m1),
+    line: { color: css('--muted'), dash: 'dot', width: 1 } }));
+  const labels = m1 => [1.4, 3, 10].map(m2 => ({ xref: 'paper', x: 1, y: Math.log10(fOf(m2, m1)), text: `M₂ = ${m2}`, showarrow: false,
+    xanchor: 'right', yanchor: 'bottom', font: { size: 11, color: css('--muted') } }));
+  const lay = m1 => ({ ...base(), legend: { orientation: 'h', y: -0.15 },
+    xaxis: ax('Orbital period [d]', { type: 'log' }), yaxis: ax('Astrometric mass function f_M [M☉]', { type: 'log' }),
+    shapes: lines(m1), annotations: labels(m1) });
+  Plotly.newPlot('screen', traces, lay(1), { responsive: true, displayModeBar: false });
+  const slider = document.getElementById('m1');
+  slider.addEventListener('input', () => {
+    const m1 = +slider.value; document.getElementById('m1v').textContent = m1.toFixed(2);
+    Plotly.relayout('screen', { shapes: lines(m1), annotations: labels(m1) });
+  });
+
+  // candidate table: pre-registered qc labels + post-hoc vetoes + literature verdicts
+  const candLabels = cand.source_id.map((_, i) => {
+    const L = (cand.qc[i] || '').split(',').filter(Boolean);
+    if (cand.veto_type[i]) L.push('veto: unvalidated type*');
+    if (cand.veto_rv[i]) L.push('veto: RV amplitude*');
+    if (cand.literature[i] === 'refuted') L.push('literature: refuted');
+    return L;
+  });
+  const allQc = [...new Set(candLabels.flat())].sort();
+  const hidden = new Set();
+  const fbox = document.getElementById('filters');
+  fbox.innerHTML = 'Hide rows labelled: ' + allQc.map(q => `<label><input type="checkbox" data-q="${q}"> ${q}</label>`).join('') +
+    '<span class="muted">(* post-hoc, added after referee review)</span>';
+  const render = () => {
+    const rows = cand.source_id.map((_, i) => i).filter(i => !candLabels[i].some(q => hidden.has(q)));
+    document.getElementById('cands').innerHTML =
+      `<tr><th>Gaia DR3 source_id</th><th>type</th><th class="num">P [d]</th><th class="num">e</th><th class="num">ϖ [mas]</th>
+       <th class="num">signif.</th><th class="num">f_M</th><th class="num">M₁</th><th class="num">M₂</th><th class="num">M_G</th>
+       <th class="num">RV range obs / pred [km/s]</th><th>labels</th></tr>` +
+      rows.map(i => `<tr class="${cand.known[i] ? 'known' : ''}"><td>${cand.source_id[i]}${cand.known[i] ? ' ★' : ''}</td><td>${esc(cand.nss_solution_type[i])}</td>
+        <td class="num">${f2(cand.period[i], 1)}</td><td class="num">${f2(cand.eccentricity[i])}</td><td class="num">${f2(cand.parallax[i], 3)}</td>
+        <td class="num">${f2(cand.significance[i], 1)}</td><td class="num">${f2(cand.f_m[i], 2)}</td><td class="num">${f2(cand.m1_used[i])}</td>
+        <td class="num">${f2(cand.m2[i], 1)}</td><td class="num">${f2(cand.abs_g[i])}</td>
+        <td class="num">${cand.rv_amplitude_robust[i] == null ? '–' : f2(cand.rv_amplitude_robust[i], 0)} / ${f2(cand.rv_range_pred[i], 0)}</td>
+        <td class="qc">${esc(candLabels[i].join(', '))}</td></tr>`).join('') +
+      `<tr><td colspan="12" class="muted">${rows.length} of ${cand.source_id.length} shown · ★ = known (BH1, BH2)</td></tr>`;
+  };
+  fbox.addEventListener('change', e => { const q = e.target.dataset.q; e.target.checked ? hidden.add(q) : hidden.delete(q); render(); });
+  render();
+
+  // NS recall
+  const r = ns.rows;
+  document.getElementById('ns').innerHTML =
+    '<tr><th>name</th><th>Gaia DR3</th><th class="num">M₂ paper</th><th class="num">P paper [d]</th><th>DR3 type</th><th class="num">f_M (ours)</th><th>in screen</th></tr>' +
+    r.name.map((n, i) => `<tr><td>${esc(n)}</td><td>${r.gaia_dr3[i]}</td><td class="num">${f2(r.m2[i])}</td><td class="num">${f2(r.period_d[i], 1)}</td>
+      <td>${esc(r.nss_solution_type[i])}</td><td class="num">${f2(r.f_m[i], 3)}</td>
+      <td class="${r.in_screen[i] ? 'ok' : 'bad'}">${r.in_screen[i] ? 'yes' : 'no'}</td></tr>`).join('');
+}).catch(e => {
+  document.querySelector('main').insertAdjacentHTML('beforeend', `<p class="muted">Results missing — run <code>python -m astrolab run 001</code>. (${e})</p>`);
+});
+</script>
+</body>
+</html>

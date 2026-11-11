@@ -1,0 +1,20 @@
+title: "M4: Gaia dormant black holes - DR3 reproduction and DR4-ready screen"
+id: "001-m04-gaia-dormant-black-holes"
+level: L4
+status: reproduced
+created: 2026-11-11
+question: "Can DR3 NSS astrometric orbits alone reproduce Gaia BH1/BH2 masses, and can a server-side screen recover known dormant compact objects, ready for DR4?"
+claims: [gaia-dormant-black-holes]
+milestone: M4
+deadline: 2026-11-25   # Gaia archive offline before DR4 (2026-12-02)
+
+# Where this study sits on the Atlas (for the sky / scale views, plan to follow).
+footprint:
+  scale: {min_pc: 100, max_pc: 3000, note: "Galactic, solar neighbourhood to a few kpc"}
+  sky:
+    mode: all-sky-screen + targets
+    targets:                     # coordinates are resolved from Gaia in results/targets.json
+      - {name: "Gaia BH1", gaia_dr3: 4373465352415301632}
+      - {name: "Gaia BH2", gaia_dr3: 5870569352746779008}
+      - {name: "Gaia BH3", gaia_dr3: 4318465066420528000}
+  data: [gaiadr3.nss_two_body_orbit, gaiadr3.gaia_source, gaiadr3.astrophysical_parameters]

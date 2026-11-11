@@ -1,0 +1,219 @@
+{
+ "note": "POST-HOC vetoes (2026-11-11, after referee). Positive controls must not be vetoed.",
+ "rules": {
+  "veto_type": [
+   "OrbitalAlternative",
+   "OrbitalTargetedSearch"
+  ],
+  "veto_rv": "rv_amplitude_robust < 0.5 x predicted min-to-max RV"
+ },
+ "rows": [
+  {
+   "source_id": "5136025521527939072",
+   "role": "NS candidate",
+   "type": "AstroSpectroSB1",
+   "rv_amplitude_robust": 44.66072082519531,
+   "rv_range_pred": 44.952972382290575,
+   "rv_ratio": 0.9934987267446992,
+   "vetoed": false
+  },
+  {
+   "source_id": "465093354131112960",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 45.42232428669958,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "1694708646628402048",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 36.97825038392992,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "1801110822095134848",
+   "role": "NS candidate",
+   "type": "AstroSpectroSB1",
+   "rv_amplitude_robust": 47.46125793457031,
+   "rv_range_pred": 34.40055216339099,
+   "rv_ratio": 1.3796655852832067,
+   "vetoed": false
+  },
+  {
+   "source_id": "5530442371304582912",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 34.96263094354803,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "2995961897685517312",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 46.90582586728737,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "5580526947012630912",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 18.381470114525506,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "2397135910639986304",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 38.96045681353808,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "1434445448240677376",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 33.13812296586468,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "1007185297091149824",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 52.108638228640224,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "6328149636482597888",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 47.23793910804651,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "4637171465304969216",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 31.725979511399917,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "4922744974687373440",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 75.14529262945425,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "2426116249713980416",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 25.50034196407413,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "3494029910469026432",
+   "role": "NS candidate",
+   "type": "AstroSpectroSB1",
+   "rv_amplitude_robust": 41.16781997680664,
+   "rv_range_pred": 37.85671697156309,
+   "rv_ratio": 1.087464082205828,
+   "vetoed": false
+  },
+  {
+   "source_id": "4373465352415301632",
+   "role": "Gaia BH1",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 163.014249071591,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "1058875159778407808",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 41.96009191915397,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "1871419337958702720",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 33.46111682952737,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "5820382041374661888",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 54.30549914669241,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "1028887114002082432",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 36.37764288318121,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "6481502062263141504",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 43.282390192936646,
+   "rv_ratio": null,
+   "vetoed": false
+  },
+  {
+   "source_id": "5870569352746779008",
+   "role": "Gaia BH2",
+   "type": "AstroSpectroSB1",
+   "rv_amplitude_robust": 36.96407699584961,
+   "rv_range_pred": 49.38403306041058,
+   "rv_ratio": 0.7485025969959184,
+   "vetoed": false
+  },
+  {
+   "source_id": "1350295047363872512",
+   "role": "NS candidate",
+   "type": "Orbital",
+   "rv_amplitude_robust": null,
+   "rv_range_pred": 32.7544064415621,
+   "rv_ratio": null,
+   "vetoed": false
+  }
+ ]
+}

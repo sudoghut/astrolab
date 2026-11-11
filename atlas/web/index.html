@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Astrolab Atlas</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .level { display: grid; grid-template-columns: 150px 1fr; gap: 16px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .level-name .code { font: 600 13px var(--mono); color: var(--accent); }
+  .level-name .desc { font-size: 13px; color: var(--muted); }
+  .items { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .item h3 { font-size: 15px; margin: 0 0 4px; }
+  .item p { margin: 4px 0; font-size: 13.5px; }
+  .item .meta { font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .empty { color: var(--muted); font-size: 13px; font-style: italic; }
+  .kind { font: 11px var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  @media (max-width: 640px) { .level { grid-template-columns: 1fr; gap: 6px; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb">astrolab</p>
+  <h1>Atlas of the Universe, by scale</h1>
+  <p class="muted">Coarse map first, detail on demand. Each level lists the landmark claims we track and the studies that reproduce or test them.</p>
+  <div id="atlas"><p class="muted">loading… (run <code>python -m astrolab serve</code>)</p></div>
+  <p class="muted" id="gen"></p>
+</main>
+<script>
+const LEVELS = {
+  L0: ['Cosmic background', 'Cosmological parameters, expansion history, CMB'],
+  L1: ['Large-scale structure', 'BAO, galaxy clustering, high-redshift galaxies'],
+  L2: ['Local universe', 'Local Group, distance ladder, H0'],
+  L3: ['Milky Way', 'Structure, kinematics, assembly history, dark matter'],
+  L4: ['Stars & planets', 'Stars, binaries, compact objects, exoplanets'],
+  X:  ['Cross-cutting', 'Time domain, gravitational waves, transients'],
+};
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function claimCard(c) {
+  const r = c.reproduction || {};
+  const src = (c.sources || []).map(s => s.arxiv ? `<a href="https://arxiv.org/abs/${esc(s.arxiv)}">${esc(s.cite)}</a>` : esc(s.cite)).join('; ');
+  const study = r.study ? ` · <a href="../../studies/${esc(r.study)}/web/">study</a>` : '';
+  return `<div class="card item"><span class="kind">claim</span><h3>${esc(c.title)}</h3>
+    <p>${esc(c.statement)}</p>
+    <div class="meta"><span class="tag g-${esc(c.grade)}">${esc(c.grade)}</span><span>repro: ${esc(r.status)}</span>${study}</div>
+    <p class="muted" style="font-size:12px">${src}</p></div>`;
+}
+function studyCard(s) {
+  const link = s.has_web ? `<a href="../../studies/${esc(s.id)}/web/">open page</a>` : '';
+  return `<div class="card item"><span class="kind">study</span><h3>${esc(s.title)}</h3>
+    <p>${esc(s.question)}</p><div class="meta"><span>${esc(s.status)}</span><span>${esc(s.id)}</span>${link}</div></div>`;
+}
+
+fetch('data/atlas.json').then(r => r.json()).then(d => {
+  document.getElementById('atlas').innerHTML = d.levels.map(L => {
+    const cl = d.claims.filter(c => c.level === L), st = d.studies.filter(s => s.level === L);
+    const items = cl.map(claimCard).concat(st.map(studyCard)).join('') || '<p class="empty">nothing mapped yet</p>';
+    return `<section class="level"><div class="level-name"><div class="code">${L}</div><strong>${LEVELS[L][0]}</strong>
+      <div class="desc">${LEVELS[L][1]}</div></div><div class="items">${items}</div></section>`;
+  }).join('');
+  document.getElementById('gen').textContent = 'generated ' + d.generated_at;
+}).catch(e => {
+  document.getElementById('atlas').innerHTML = '<p class="muted">Could not load data/atlas.json. Run <code>python -m astrolab serve</code>.</p>';
+});
+</script>
+</body>
+</html>

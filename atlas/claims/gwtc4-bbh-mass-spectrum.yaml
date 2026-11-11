@@ -1,0 +1,21 @@
+id: gwtc4-bbh-mass-spectrum
+title: "Binary black hole mass spectrum features (GWTC-4.0)"
+statement: >
+  The BBH primary-mass distribution steepens above ~35 Msun with overdensities
+  near ~10 and ~35 Msun (and a possible ~20 Msun feature); GW231123 lies in or
+  across the pair-instability gap.
+level: X
+grade: established
+sources:
+  - cite: "LVK 2025, GWTC-4.0 population, ApJL 1005, L51"
+    arxiv: "2508.18083"
+  - cite: "LVK 2025, GW231123, ApJL 993, L25"
+    arxiv: "2507.08219"
+reproduction:
+  status: not-started
+  study: null
+  quantities:
+    - {name: "BBH local merger rate", paper: "13-26 Gpc^-3 yr^-1", ours: null}
+open_questions:
+  - "Robustness of the 35 Msun feature to pairing-function choices, using released summaries only."
+notes: "Milestone M10. The population data release is 35 GB; use only the small files and the GWOSC event table. The ~20 Msun feature is only a hint."

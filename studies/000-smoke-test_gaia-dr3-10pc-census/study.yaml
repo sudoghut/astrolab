@@ -1,0 +1,8 @@
+title: "Smoke test: Gaia DR3 census of the 10 pc neighbourhood"
+id: "000-smoke-test_gaia-dr3-10pc-census"
+level: L3
+status: active
+created: 2026-11-11
+question: "Does the pipeline (guarded TAP, cache, provenance, server-side aggregation, web page) work end to end?"
+claims: []
+milestone: null

@@ -1,0 +1,27 @@
+id: gaia-dormant-black-holes
+title: "Dormant stellar-mass black holes found by Gaia astrometry"
+statement: >
+  Gaia astrometric orbits plus RV follow-up reveal non-interacting black holes
+  orbiting normal stars: BH1 (9.6 Msun), BH2 (8.9 Msun) and BH3 (32.7 Msun).
+level: L4
+grade: established
+sources:
+  - cite: "El-Badry et al. 2023, MNRAS 518, 1057 (Gaia BH1)"
+    arxiv: "2209.06833"
+  - cite: "El-Badry et al. 2023, MNRAS 521, 4323 (Gaia BH2)"
+    arxiv: "2302.07880"
+  - cite: "Gaia Collaboration, Panuzzo et al. 2024, A&A 686, L2 (Gaia BH3)"
+    arxiv: "2404.10486"
+reproduction:
+  status: partial         # BH1, BH2 reproduced from DR3 (referee-reviewed); BH3 needs DR4
+  study: 001-m04-gaia-dormant-black-holes
+  quantities:
+    - {name: "M_BH (BH1)", paper: "9.62 +/- 0.18 Msun", ours: "13.3 +2.9/-2.3 Msun (DR3 astrometry only, +1.4 sigma)"}
+    - {name: "M_BH (BH1), astrometry-only solution", paper: "12.8 +/- 2.0 Msun; a0 3.00 +/- 0.22 mas", ours: "13.3 Msun (+0.23 sigma); a0 3.02 mas (+0.09 sigma)"}
+    - {name: "M_BH (BH2)", paper: "8.9 +/- 0.3 Msun", ours: "8.52 +0.61/-0.56 Msun (DR3 astrometry only, -0.6 sigma)"}
+    - {name: "M_BH (BH3)", paper: "32.70 +/- 0.82 Msun", ours: null, note: "no DR3 orbit; paper table or DR4"}
+    - {name: "El-Badry+24 NS candidates recovered by server-side screen", paper: "21", ours: "21/21"}
+open_questions:
+  - "Systematic DR4 screen of NSS orbits for dark companions > 3 Msun on release day (2026-12-02)."
+  - "Does the NS-BH mass gap survive DR4 orbits?"
+notes: "Milestone M4 (priority 1: Gaia DR4 window)."

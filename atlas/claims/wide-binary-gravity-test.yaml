@@ -1,0 +1,25 @@
+id: wide-binary-gravity-test
+title: "Wide binaries as a test of gravity at low acceleration"
+statement: >
+  Gaia DR3 wide-binary relative velocities test MOND vs Newton below a0; large
+  clean samples favour Newtonian gravity, while small high-precision samples
+  are claimed to show a MOND-like boost.
+level: L4
+grade: contested
+sources:
+  - cite: "Chae 2023, ApJ 952, 128"
+    arxiv: "2305.04613"
+  - cite: "Banik et al. 2024, MNRAS 527, 4573"
+    arxiv: "2311.03436"
+  - cite: "Cookson, Banik, El-Badry et al. 2026, MNRAS"
+    arxiv: "2602.24035"
+reproduction:
+  status: not-started
+  study: null
+  quantities:
+    - {name: "alpha_grav (Banik 2024)", paper: "-0.021 +0.065/-0.045", ours: null}
+    - {name: "g_obs/g_N (Chae 2023)", paper: "1.43 +/- 0.06", ours: null}
+open_questions:
+  - "Blind quality-ladder reanalysis reproducing both groups' cuts in one pipeline."
+  - "Hidden close binaries flagged with DR4 epoch astrometry."
+notes: "Milestone M7. Do not download the 1.8 GB El-Badry catalog; rebuild the sample server-side."

@@ -1,0 +1,23 @@
+id: jwst-z14-galaxies
+title: "Spectroscopically confirmed galaxies at z ~ 14 and the bright-galaxy excess"
+statement: >
+  JWST spectroscopy confirms luminous galaxies at z = 14.32 (JADES-GS-z14-0) and
+  z = 14.44 (MoM-z14); the bright-end UV luminosity function at z > 10 exceeds
+  pre-JWST model predictions.
+level: L1
+grade: established
+sources:
+  - cite: "Carniani et al. 2024, Nature 633, 318"
+    arxiv: "2405.18485"
+  - cite: "Naidu et al. 2026, OJAp 9"
+    arxiv: "2505.11263"
+  - cite: "Harikane et al. 2025, ApJ"
+    arxiv: "2406.18352"
+reproduction:
+  status: not-started
+  study: null
+  quantities:
+    - {name: "z_spec MoM-z14", paper: "14.44 +/- 0.02", ours: null, verified: S}
+open_questions:
+  - "Minimal UV burstiness / star-formation efficiency needed at z ~ 12-15."
+notes: "Milestone M8. Detection is established; the interpretation of the excess is contested."

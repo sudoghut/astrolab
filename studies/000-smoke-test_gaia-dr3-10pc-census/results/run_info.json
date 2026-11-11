@@ -1,0 +1,10 @@
+{
+ "study": "000-smoke-test_gaia-dr3-10pc-census",
+ "finished_at": "2026-11-11T14:04:02+00:00",
+ "seconds": 0.12,
+ "outputs": [
+  "density_healpix3.json",
+  "nearby.json",
+  "summary.json"
+ ]
+}

@@ -1,0 +1,21 @@
+id: s8-tension
+title: "S8 tension between weak lensing and the CMB"
+statement: >
+  Low-redshift probes of clustering amplitude (S8) were lower than the CMB-inferred
+  value; by 2025-26 KiDS-Legacy is consistent with the CMB while DES Y6 remains ~2.6 sigma low.
+level: L0
+grade: contested
+sources:
+  - cite: "Wright et al. 2025, A&A 703, A158 (KiDS-Legacy)"
+    arxiv: "2503.19441"
+  - cite: "DES Collaboration 2026, DES Y6 3x2pt"
+    arxiv: "2601.14559"
+reproduction:
+  status: not-started
+  study: null
+  quantities:
+    - {name: "S8 DES Y6", paper: "0.789 +/- 0.012", ours: null}
+    - {name: "S8 KiDS-Legacy", paper: "0.815 +0.016/-0.021", ours: null, verified: S}
+open_questions:
+  - "Same-prior, same-S8-definition meta-comparison across probes."
+notes: "Milestone M3."

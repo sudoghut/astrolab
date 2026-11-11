@@ -1,0 +1,35 @@
+{
+ "raw_rows": 315,
+ "after_quality_cut": 238,
+ "within_5pc": 39,
+ "nearest_5": [
+  {
+   "source_id": "5853498713190525696",
+   "dist_pc": 1.302,
+   "G": 8.98
+  },
+  {
+   "source_id": "4472832130942575872",
+   "dist_pc": 1.828,
+   "G": 8.19
+  },
+  {
+   "source_id": "3864972938605115520",
+   "dist_pc": 2.409,
+   "G": 11.04
+  },
+  {
+   "source_id": "762815470562110464",
+   "dist_pc": 2.546,
+   "G": 6.55
+  },
+  {
+   "source_id": "4075141768785646848",
+   "dist_pc": 2.976,
+   "G": 9.13
+  }
+ ],
+ "median_v_tan_kms": 34.4,
+ "bright_stars_G_lt_11": 1247240,
+ "density_pixels": 768
+}

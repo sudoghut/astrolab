@@ -1,0 +1,28 @@
+id: desi-dr2-bao-evolving-dark-energy
+title: "DESI DR2 BAO: hint of evolving dark energy"
+statement: >
+  DESI DR2 BAO combined with CMB and type Ia supernovae prefers w0waCDM
+  (w0 > -1, wa < 0) over LambdaCDM at 2.8-4.2 sigma depending on the SN sample.
+level: L0
+grade: hint
+sources:
+  - cite: "DESI Collaboration (Abdul-Karim et al.) 2025, PRD 112, 083515"
+    arxiv: "2503.14738"
+  - cite: "DESI Collaboration 2025 (DR1), JCAP 02 (2025) 021"
+    arxiv: "2404.03002"
+reproduction:
+  status: not-started
+  study: null
+  quantities:
+    - {name: "Omega_m (BAO only, LCDM)", paper: "0.2975 +/- 0.0086", ours: null}
+    - {name: "w0 (DESI+CMB+DES-SN5YR)", paper: "-0.752 +/- 0.057", ours: null}
+    - {name: "wa (DESI+CMB+DES-SN5YR)", paper: "-0.86 +0.23/-0.20", ours: null}
+    - {name: "preference over LCDM (DESI+CMB+DES-SN5YR)", paper: "4.2 sigma", ours: null}
+depends_on: []
+updates:
+  - "2026: DES-Dovekie SN recalibration lowers the DES-SN combination from 4.2 to ~3.2 sigma (Popovic et al., arXiv:2511.07517)."
+  - "2026-07: DESI DR2 Lya full-shape gives 2.7 sigma (DESI+CMB) and 3.2 sigma (with SNe) (arXiv:2607.27410)."
+open_questions:
+  - "How much of the preference comes from the w0-wa parametrisation versus binned w(z) or Gaussian-process reconstructions?"
+  - "Leave-one-tracer-out and leave-one-SN-sample-out sensitivity of the signal."
+notes: "Verified against arXiv abstracts in plan 002 (cosmology agent report, 2026-11-11). Milestone M1."

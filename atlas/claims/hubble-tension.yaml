@@ -1,0 +1,23 @@
+id: hubble-tension
+title: "Hubble tension: local distance ladder vs early universe"
+statement: >
+  Cepheid-calibrated distance-ladder H0 (~73 km/s/Mpc) exceeds the CMB-inferred
+  LCDM value (~67-68) at >5 sigma; TRGB/JAGB calibrations (CCHP) give ~70.
+level: L2
+grade: tension
+sources:
+  - cite: "Riess et al. 2022, ApJL (SH0ES)"
+    arxiv: "2112.04510"
+  - cite: "Freedman et al. 2025, ApJ 985, 182 (CCHP)"
+    arxiv: "2408.06153"
+  - cite: "Riess et al. 2024/25, JWST validates HST distances"
+    arxiv: "2408.11770"
+reproduction:
+  status: not-started
+  study: null
+  quantities:
+    - {name: "H0 SH0ES 2022", paper: "73.04 +/- 1.04", ours: null}
+    - {name: "H0 CCHP TRGB", paper: "70.39 +/- 1.22 (stat) +/- 1.33 (sys)", ours: null, verified: S}
+open_questions:
+  - "Is the CCHP-SH0ES difference a calibrator-host selection effect?"
+notes: "Milestone M2."

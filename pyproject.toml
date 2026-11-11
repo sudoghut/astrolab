@@ -1,0 +1,28 @@
+[project]
+name = "astrolab"
+version = "0.1.0"
+description = "Agent-driven, laptop-scale astronomy research environment"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "scipy",
+    "pandas",
+    "pyarrow",
+    "astropy>=6",
+    "pyvo>=1.5",
+    "astropy-healpix>=1.0",
+    "emcee>=3",
+    "platformdirs",
+    "pyyaml",
+    "requests",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests", "studies"]
+python_files = ["test_*.py"]
+markers = [
+    "network: test needs internet access (deselect with -m 'not network')",
+]
+addopts = "-q --import-mode=importlib -p no:freezegun"
+norecursedirs = [".*", "_*", "web", "results", "__pycache__"]

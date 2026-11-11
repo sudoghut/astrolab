@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+.venv/
+# Data never lives in the project folder: the cache is in the system cache dir.
+*.fits
+*.fits.gz
+*.h5
+*.hdf5
+*.npz
+# Large intermediate files inside studies (results/ keeps small JSON only)
+studies/*/scratch/
+CLAUDE.local.md

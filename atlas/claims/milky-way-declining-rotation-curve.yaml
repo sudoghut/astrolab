@@ -1,0 +1,21 @@
+id: milky-way-declining-rotation-curve
+title: "Declining outer rotation curve of the Milky Way"
+statement: >
+  Gaia DR3-based rotation curves decline beyond ~15-20 kpc (about 30 km/s from
+  19.5 to 26.5 kpc), implying a lighter Galaxy (~2e11 Msun); the Keplerian
+  interpretation is disputed.
+level: L3
+grade: contested
+sources:
+  - cite: "Jiao et al. 2023, A&A 678, A208"
+    arxiv: "2309.00048"
+  - cite: "Ou, Eilers, Necib & Frebel 2024, MNRAS 528, 693"
+    arxiv: "2303.12838"
+reproduction:
+  status: not-started
+  study: null
+  quantities:
+    - {name: "M_total (Jiao 2023)", paper: "2.06 +0.24/-0.13 e11 Msun", ours: null}
+open_questions:
+  - "Joint propagation of Jeans-modelling systematics (cross-term, disequilibrium, disk scale length)."
+notes: "Milestone M6."

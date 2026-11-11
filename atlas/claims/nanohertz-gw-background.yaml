@@ -1,0 +1,21 @@
+id: nanohertz-gw-background
+title: "Nanohertz gravitational-wave background from pulsar timing arrays"
+statement: >
+  NANOGrav, EPTA, PPTA and CPTA find a common red process with Hellings-Downs
+  correlations at ~2-4.6 sigma, consistent with a GW background of amplitude
+  ~2.4e-15 at f = 1/yr.
+level: X
+grade: hint
+sources:
+  - cite: "Agazie et al. 2023, ApJL 951, L8 (NANOGrav 15-yr)"
+    arxiv: "2306.16213"
+  - cite: "Antoniadis et al. 2023, A&A 678, A50 (EPTA DR2)"
+    arxiv: "2306.16214"
+reproduction:
+  status: not-started
+  study: null
+  quantities:
+    - {name: "A_GWB (NANOGrav)", paper: "2.4 +0.7/-0.6 e-15", ours: null, verified: S}
+open_questions:
+  - "Is the SMBHB amplitude consistent with galaxy-merger and BH mass-function priors?"
+notes: "Milestone M9. Grade 'hint' here means strong evidence below 5 sigma. Use the NANOGrav KDE free-spectrum release (Zenodo 10344086, v1.1.0)."

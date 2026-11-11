@@ -1,0 +1,15 @@
+{
+ "source": "El-Badry et al. 2023a (Gaia BH1), MNRAS 518, 1057, arXiv:2209.06833, Appendix E / Table E1 (read 2026-11-11 from arXiv PDF text)",
+ "columns": ["gaia_dr3", "verdict", "note"],
+ "rows": [
+  ["3640889032890567040", "refuted", "Poor GoF and implausibly high companion mass; ruled out by low rv_amplitude_robust."],
+  ["4467000291193143808", "refuted", "Period 1647 d much longer than the DR3 baseline; implausibly high mass; poor GoF."],
+  ["4373465352415301632", "confirmed", "Gaia BH1 (subject of the paper)."],
+  ["6281177228434199296", "refuted", "Ruled out by RV follow-up; low rv_amplitude_robust also makes the astrometric solution implausible."],
+  ["5870569352746779008", "confirmed", "Most plausible other candidate; later confirmed as Gaia BH2 (El-Badry et al. 2023b)."],
+  ["3664684869697065984", "refuted", "Ruled out by APOGEE RVs."]
+ ],
+ "dr3_only_reference": {
+  "Gaia BH1": {"a0_mas": [3.00, 0.22], "m2": [12.8, 2.0], "note": "Table 2, 'parameters of the orbit (astrometry only)'"}
+ }
+}
