@@ -35,8 +35,8 @@ Solar neighbourhood the Galaxy's own pull (the external field effect) caps MOND'
 well beyond r_M should orbit about 20% faster than Newton predicts, and no faster.
 
 Since 2023 the test has been contested. Chae (C23) reported gravity about 1.4 times stronger than
-Newtonian at low acceleration (g_obs/g_N = 1.43 ± 0.06 at g_N ≈ 10^−10.15 m/s²; about 10σ when two
-deviations in the same direction are combined); Banik et al. (B24) excluded MOND
+Newtonian at low acceleration (g_obs/g_N = 1.43 ± 0.06 at g_N ≈ 10^−10.15 m/s²; the paper's "10σ" combines
+this with a smaller deviation, δ = 0.034 ± 0.007, at g_N ≈ 10^−8.91 m/s², both in the same direction); Banik et al. (B24) excluded MOND
 at 16σ from about 8,600 binaries within 250 pc. C26 asks why careful groups disagree, writes a
 quality checklist, and applies it to the cleanest sample they can build.
 
@@ -86,7 +86,9 @@ r_sky/r_M range.
 
 **Step 3 — the measurement.** The pairs are split into six bins of r_sky/r_M (bin medians 0.073,
 0.153, 0.348, 0.744, 1.419, 3.079; Table 2; edges not given). In each bin the median ṽ is taken,
-with uncertainty "MAD/√N" (§4.2.1; MAD is the median absolute deviation). The medians are flat; Figure 8 draws
+with uncertainty "MAD/√N" (§4.2.1; MAD is the median absolute deviation). §4.1.5 also defines a
+Gaussian-equivalent σ = 1.4826 MAD; §4.2.1 does not say whether its MAD is the raw or the scaled one,
+so which formula fed Table 3 is unresolved. The medians are flat; Figure 8 draws
 the fitted Newtonian normalisation at 0.489.
 
 **Step 4 — the comparison.** A χ² fit of each model, with the normalisation free, gives (Table 3):
@@ -101,8 +103,9 @@ the fitted Newtonian normalisation at 0.489.
 The preference is the likelihood ratio exp(Δχ²/2). Back of the envelope: a 20% step on a median
 of 0.49 is 0.10. The bins are very unequal: Figure 8 shows 368, 228, 144, 99, 33 and 28 pairs
 (read from the figure image), so the two outer bins, where the step should be, have error bars of
-about ±0.06–0.075 and each shows a 0.10 step at only about 1.4–1.7σ; the constraint comes from all
-bins together, with the inner bins fixing the shared normalisation.
+about ±0.06–0.075, so an expected MOND offset of 0.10 in either of them alone would be only about
+1.4–1.7σ (an illustration of the expected sensitivity, not a measured residual); the constraint
+comes from all bins together, with the inner bins fixing the shared normalisation.
 
 **Step 5 — robustness (§7.2–7.3).** Extending to 150 pc makes MOND 12× more likely; adding the ipd cut at
 150 pc restores Newton (88×). Dropping the perspective correction raises the outer-bin median ṽ by
@@ -194,7 +197,7 @@ about 900 in Figure 8's bins) is unexplained.
 |---|---|---|---|
 | `stat_flat`: the median ṽ shows no 20% step | STAT | stated 2602.24035: "does not exhibit the 20% enhancement expected from MOND and is consistent with Newtonian gravity across all separations" | Abstract |
 | `stat_lr`: Δχ² is about 12–16 | STAT | stated 2602.24035: "The $\Delta\chi^{2}$ of about $12-16$ implies a likelihood ratio" | §5, Table 3 |
-| `gap_err`: the per-bin median errors are not underestimated | GAP | reconstructed: the paper uses MAD/√N (§4.2.1); the standard error of a median is 1/(2 f(m) √N), about 1.4–2.1 MAD/√N for plausible shapes (1.86 for a Gaussian; Kendall and Stuart) | — |
+| `gap_err`: the per-bin median errors are not underestimated | GAP | reconstructed: the paper gives the median's uncertainty as MAD/√N (§4.2.1) and defines σ = 1.4826 MAD (§4.1.5) without saying which entered Table 3; the asymptotic standard error of a median is 1/(2 f(m) √N) (Cramér 1946, Mathematical Methods of Statistics, §28.5), which for a Gaussian is 1.86 MAD/√N, or 1.2533 times 1.4826 MAD/√N; under either reading the paper does not show its errors are calibrated for the actual ṽ distribution | — |
 | `mod_lr`: calibrated errors and a large Δχ² give a valid likelihood ratio | MOD | implied: likelihood-ratio reasoning (Wasserman 2004, ch. 10) | — |
 | `mod_rule`: flat, unbiased data with a valid, large likelihood ratio disfavour the step model | MOD | implied: likelihood-ratio reasoning (Wasserman 2004, ch. 10) | — |
 
@@ -300,7 +303,7 @@ velocity columns are fetched only after the study's pre-registration is committe
 
 宽双星（wide binaries）是相隔数千个天文单位（AU, astronomical unit，日地距离）互相绕转的两颗恒星。间距超过几千 AU 时，它们之间的加速度低于 a0，正好落在 MOND 与牛顿引力分歧的区域，而且不牵涉暗物质。对一个太阳质量的双星，分界点即 MOND 半径（MOND radius）r_M = √(GM/a0)，约 7,000 AU。在太阳附近，银河系本身的引力（外场效应（external field effect））限制了 MOND 的增强：远在 r_M 之外的双星，轨道速度应比牛顿预期快约 20%，不会更快。
 
-2023 年以来这一检验争议不断。Chae（C23）报告低加速度下的引力约为牛顿的 1.4 倍（在 g_N ≈ 10^−10.15 m/s² 处 g_obs/g_N = 1.43 ± 0.06；与另一处同方向的偏差合起来约 10σ）；Banik 等（B24）用 250 pc 以内约 8,600 对双星以 16σ 排除 MOND。C26 追问为什么认真的团队会得出相反结论，写出一份质量清单，并用它建立尽可能干净的样本。
+2023 年以来这一检验争议不断。Chae（C23）报告低加速度下的引力约为牛顿的 1.4 倍（在 g_N ≈ 10^−10.15 m/s² 处 g_obs/g_N = 1.43 ± 0.06；论文的"10σ"是把它与 g_N ≈ 10^−8.91 m/s² 处较小的偏差 δ = 0.034 ± 0.007 合起来，两者方向相同）；Banik 等（B24）用 250 pc 以内约 8,600 对双星以 16σ 排除 MOND。C26 追问为什么认真的团队会得出相反结论，写出一份质量清单，并用它建立尽可能干净的样本。
 
 #### 1.2 数据
 
@@ -322,7 +325,7 @@ C26 的样本（全部来自 Gaia DR3；C26 第 3–4 节，C24 第 2 节）：
 
 **第 2 步——样本。** 加上全部切割后，C26 表 3 给出 ṽ ≤ 2.5 时 N = 1421 对，最干净的变体（ṽ ≤ 1.5 且 ipd_frac_multi_peak = 0，即图像参数测定中出现多峰的比例（image parameter determination multi-peak fraction），Gaia 用它标记边缘可分辨的伴星）为 1216 对。他们图 8 中印出的各箱数目（368、228、144、99、33、28，这些数字只出现在图中）加起来为 900，论文没有说明它与 1421 的差别。可能的解释：图 8 用的是不同的切割或样本，或者六个箱没有覆盖全部 r_sky/r_M 范围。
 
-**第 3 步——测量。** 双星按 r_sky/r_M 分成六个箱（各箱中位数 0.073、0.153、0.348、0.744、1.419、3.079；表 2；没有给出边界）。每箱取 ṽ 的中位数，误差为"MAD/√N"（第 4.2.1 节；MAD 是中位数绝对偏差（median absolute deviation））。各箱中位数平坦；图 8 把拟合的牛顿归一化画在 0.489。
+**第 3 步——测量。** 双星按 r_sky/r_M 分成六个箱（各箱中位数 0.073、0.153、0.348、0.744、1.419、3.079；表 2；没有给出边界）。每箱取 ṽ 的中位数，误差为"MAD/√N"（第 4.2.1 节；MAD 是中位数绝对偏差（median absolute deviation））。第 4.1.5 节还定义了高斯等效的 σ = 1.4826 MAD；第 4.2.1 节没有说它的 MAD 是原始的还是乘过系数的，所以表 3 用的是哪个公式没有定论。各箱中位数平坦；图 8 把拟合的牛顿归一化画在 0.489。
 
 **第 4 步——比较。** 每个模型在归一化自由时做 χ² 拟合，得到（表 3）：
 
@@ -333,7 +336,7 @@ C26 的样本（全部来自 Gaia DR3；C26 第 3–4 节，C24 第 2 节）：
 | ṽ ≤ 1.5 | 1408 | 1.92 | 15.49 | 883× |
 | ṽ ≤ 1.5 且 ipd = 0 | 1216 | 1.46 | 16.09 | 1501× |
 
-偏好倍数是似然比（likelihood ratio）exp(Δχ²/2)。粗估：在 0.49 的中位数上升高 20% 就是 0.10。各箱的双星数很不均匀：图 8 中为 368、228、144、99、33、28 对（从图上读出），所以最该出现台阶的两个外侧箱误差约 ±0.06–0.075，各自只能以约 1.4–1.7σ 看出 0.10 的台阶；约束来自所有箱的合力，内侧几箱确定共同的归一化（normalisation）。
+偏好倍数是似然比（likelihood ratio）exp(Δχ²/2)。粗估：在 0.49 的中位数上升高 20% 就是 0.10。各箱的双星数很不均匀：图 8 中为 368、228、144、99、33、28 对（从图上读出），所以最该出现台阶的两个外侧箱误差约 ±0.06–0.075，预期的 0.10 的 MOND 偏移在其中任何一箱单独只有约 1.4–1.7σ（这是对预期灵敏度的示意，不是测得的残差）；约束来自所有箱的合力，内侧几箱确定共同的归一化（normalisation）。
 
 **第 5 步——稳健性（第 7.2–7.3 节）。** 扩展到 150 pc 时 MOND 受偏好约 12 倍；在 150 pc 加上 ipd 切割后牛顿恢复受偏好（88 倍）。不做透视修正会使外侧箱的中位数 ṽ 升高约 0.15（第 7.2 节）。C26 把这些解读为能模仿 MOND 的污染与投影效应。
 
@@ -394,7 +397,7 @@ E. （标准的似然比推理）⇒ 牛顿的可能性最高为 MOND 的 1500 �
 |---|---|---|---|
 | `stat_flat`：中位数 ṽ 没有 20% 的台阶 | STAT | stated 2602.24035："does not exhibit the 20% enhancement expected from MOND and is consistent with Newtonian gravity across all separations" | 摘要 |
 | `stat_lr`：Δχ² 约为 12–16 | STAT | stated 2602.24035："The $\Delta\chi^{2}$ of about $12-16$ implies a likelihood ratio" | 第 5 节，表 3 |
-| `gap_err`：各箱中位数的误差没有被低估 | GAP | reconstructed：论文用 MAD/√N（第 4.2.1 节）；中位数的标准误为 1/(2 f(m) √N)，对合理的形状约为 1.4–2.1 MAD/√N（高斯为 1.86；Kendall 与 Stuart） | — |
+| `gap_err`：各箱中位数的误差没有被低估 | GAP | reconstructed：论文把中位数的误差写成 MAD/√N（第 4.2.1 节），又定义了 σ = 1.4826 MAD（第 4.1.5 节），没有说表 3 用的是哪个；中位数的渐近标准误为 1/(2 f(m) √N)（Cramér 1946，Mathematical Methods of Statistics，第 28.5 节），对高斯分布为 1.86 MAD/√N，即 1.4826 MAD/√N 的 1.2533 倍；无论哪种读法，论文都没有说明它的误差对实际的 ṽ 分布是标定正确的 | — |
 | `mod_lr`：误差标定正确且 Δχ² 大时，似然比是有效的 | MOD | implied：似然比推理（Wasserman 2004，第 10 章） | — |
 | `mod_rule`：平坦、无偏的数据加上有效且大的似然比不支持台阶模型 | MOD | implied：似然比推理（Wasserman 2004，第 10 章） | — |
 
