@@ -6,9 +6,6 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-010** 补做：按论文立项流程为 M4 补写 Wiki 文章与 Lean 论证拆解 · 登记 2026-11-14 · 分支 feat/m4-wiki-lean-retrofit · 计划 [009](design/009-plan_m04-retrofit-wiki-article-and-lean-argument.md) · 来源 T-009
-  - 备注：T-002 要等到 12-02 DR4 发布，所以先做本条；DR4 结果出来后按同步规则更新 Wiki 第三部分。
-
 ## 下一步（Next）
 
 按优先级排序，最重要的在最上面。
