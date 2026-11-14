@@ -158,10 +158,18 @@ def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rto
 
     L = np.asarray(L, dtype=float)
     y = np.asarray(y, dtype=float)
+    if L.ndim != 2:
+        raise ValueError(f"L must be 2-D, got shape {L.shape}")
     n, p = L.shape
     if y.shape != (n,):
         raise ValueError(f"y has shape {y.shape}, expected ({n},)")
+    if not (np.all(np.isfinite(L)) and np.all(np.isfinite(y))):
+        raise ValueError("L and y must be finite")
     kept = np.flatnonzero(np.any(L != 0.0, axis=0))
+    if kept.size == 0:
+        raise ValueError("L has no non-zero column: nothing to fit")
+    if kept.size >= n:
+        raise ValueError(f"{kept.size} parameters for {n} rows: no degrees of freedom")
     Lk = L[:, kept]
     if c_factor is None:
         if C is None:
@@ -169,7 +177,12 @@ def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rto
         C = np.asarray(C, dtype=float)
         if C.shape != (n, n):
             raise ValueError(f"C has shape {C.shape}, expected ({n}, {n})")
-        c_factor = linalg.cho_factor(C, lower=True)
+        if not np.all(np.isfinite(C)):
+            raise ValueError("C must be finite")
+        try:
+            c_factor = linalg.cho_factor(C, lower=True)
+        except linalg.LinAlgError as exc:
+            raise ValueError(f"C is not positive definite: {exc}") from exc
     elif c_factor[0].shape != (n, n):
         raise ValueError(f"c_factor has shape {c_factor[0].shape}, expected ({n}, {n})")
     W = linalg.cho_solve(c_factor, Lk)                     # C^-1 L
