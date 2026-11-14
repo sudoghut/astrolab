@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gaia 10 pc Census</title>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.0/plotly.min.js"></script>
 <style>
   .plots { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; margin-top: 12px; }
   .plot { height: 420px; }
@@ -34,7 +34,11 @@ const layoutBase = () => ({
   paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
   font: { color: css('--text'), size: 12 }, margin: { l: 50, r: 10, t: 36, b: 44 },
 });
-const get = n => fetch(`../results/${n}.json`).then(r => r.json());
+class MissingResult extends Error {}
+const get = n => fetch(`../results/${n}.json`).then(r => {
+  if (!r.ok) throw new MissingResult(`results/${n}.json: HTTP ${r.status}`);
+  return r.json();
+});
 
 Promise.all([get('summary'), get('nearby'), get('density_healpix3')]).then(([s, nb, d]) => {
   const stats = [
@@ -74,8 +78,10 @@ Promise.all([get('summary'), get('nearby'), get('density_healpix3')]).then(([s, 
   document.getElementById('near').innerHTML =
     '<tr><th>Gaia DR3 source_id</th><th>d (pc)</th><th>G</th><th>BP−RP</th><th>v_tan (km/s)</th></tr>' + rows;
 }).catch(e => {
-  document.querySelector('main').insertAdjacentHTML('beforeend',
-    `<p class="muted">Results missing. Run <code>python -m astrolab run 000</code>. (${e})</p>`);
+  const msg = e instanceof MissingResult
+    ? `Results missing — run <code>python -m astrolab run 000</code>. (${e.message})`
+    : `Page error while rendering results: ${e}. See the browser console.`;
+  document.querySelector('main').insertAdjacentHTML('beforeend', `<p class="muted">${msg}</p>`);
 });
 </script>
 </body>

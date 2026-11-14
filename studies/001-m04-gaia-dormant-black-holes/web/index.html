@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gaia Dormant Black Holes</title>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.0/plotly.min.js"></script>
 <style>
   .two { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
   .plot { height: 300px; }
@@ -61,7 +61,11 @@ const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).
 const base = () => ({ paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
   font: { color: css('--text'), size: 12 }, margin: { l: 56, r: 12, t: 30, b: 46 } });
 const ax = (t, extra = {}) => ({ title: t, gridcolor: css('--line'), zerolinecolor: css('--line'), ...extra });
-const get = n => fetch(`../results/${n}.json`).then(r => r.json());
+class MissingResult extends Error {}
+const get = n => fetch(`../results/${n}.json`).then(r => {
+  if (!r.ok) throw new MissingResult(`results/${n}.json: HTTP ${r.status}`);
+  return r.json();
+});
 const f2 = (x, d = 2) => (x == null ? '' : Number(x).toFixed(d));
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // solve M2^3 = f (M1+M2)^2  -> f(M2) for lines
@@ -73,7 +77,8 @@ Promise.all([get('summary'), get('reproduction'), get('screen_points'), get('bh_
   const crit = [
     ['R1', 'BH1 mass within 2σ of 9.62 ± 0.18 M☉', s.R1_BH1.pass_2sigma, `M2 = ${f2(s.R1_BH1.m2[1])} (${f2(s.R1_BH1.m2[0])}–${f2(s.R1_BH1.m2[2])}); ${f2(s.R1_BH1.deviation_sigma)}σ`],
     ['R2', 'BH2 mass within 2σ of 8.9 ± 0.3 M☉', s.R2_BH2.pass_2sigma, `M2 = ${f2(s.R2_BH2.m2[1])} (${f2(s.R2_BH2.m2[0])}–${f2(s.R2_BH2.m2[2])}); ${f2(s.R2_BH2.deviation_sigma)}σ`],
-    ['S1', 'Screen < 50k rows; BH1 & BH2 recovered', s.S1_rows_ok && s.S1_known_bh_in_candidates['Gaia BH1'] && s.S1_known_bh_in_candidates['Gaia BH2'], `${s.S1_rows.toLocaleString()} rows`],
+    ['S1', 'Screen < 50k rows; BH1 & BH2 M₂ > 3 M☉ with published M₁', s.S1_pass,
+      `${s.S1_rows.toLocaleString()} rows; M₂ = ${f2(s.S1_published_m1['Gaia BH1'].m2_published_m1, 1)} (BH1), ${f2(s.S1_published_m1['Gaia BH2'].m2_published_m1, 1)} (BH2)`],
     ['S2', '≥ 19/21 NS candidates pass pre-selection', s.S2_pass, s.S2_ns_recall],
     ['S3', 'Candidates M2 > 3 M☉ (exploratory)', null, `${s.S3_candidates_m2_gt_3} total, ${s.S3_known} known, ${s.S3_unflagged_unknown_preregistered_labels} without pre-registered labels — but those labels also hit BH1 (low-significance) and BH2 (giant)`],
     ['D1', 'DR4 query generated', s.D1_dr4_query_ok, 'results/dr4_screen_query.json; schema to confirm on release day'],
@@ -182,7 +187,10 @@ Promise.all([get('summary'), get('reproduction'), get('screen_points'), get('bh_
       <td>${esc(r.nss_solution_type[i])}</td><td class="num">${f2(r.f_m[i], 3)}</td>
       <td class="${r.in_screen[i] ? 'ok' : 'bad'}">${r.in_screen[i] ? 'yes' : 'no'}</td></tr>`).join('');
 }).catch(e => {
-  document.querySelector('main').insertAdjacentHTML('beforeend', `<p class="muted">Results missing — run <code>python -m astrolab run 001</code>. (${e})</p>`);
+  const msg = e instanceof MissingResult
+    ? `Results missing — run <code>python -m astrolab run 001</code>. (${e.message})`
+    : `Page error while rendering results: ${e}. See the browser console.`;
+  document.querySelector('main').insertAdjacentHTML('beforeend', `<p class="muted">${msg}</p>`);
 });
 </script>
 </body>
