@@ -9,3 +9,7 @@
 - 标题中不要出现 ` · ` 或 ` — `；`python -m pytest` 会检查格式。
 
 本机制建立（2026-11-14）之前完成的工作见 `git log` 与 `design/` 各计划的执行记录，不补登。
+
+## 2026-11
+
+- [x] **T-001** 建立待办清单与完成日志机制 · 完成 2026-11-14 · PR #4 · 计划 [006](design/006-plan_todo-list-and-done-log-mechanism.md) — 新增 `TODO.md`、`DONE.md`、`AGENTS.md` 规则与格式检查测试 `tests/test_todo.py`

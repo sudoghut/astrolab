@@ -6,7 +6,7 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-001** 建立待办清单与完成日志机制 · 登记 2026-11-14 · 分支 `feat/todo-list-mechanism` · 计划 [006](design/006-plan_todo-list-and-done-log-mechanism.md)
+（暂无）
 
 ## 下一步（Next）
 
