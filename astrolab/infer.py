@@ -137,3 +137,57 @@ def run_emcee(log_prob, p0, nwalkers: int = 32, nsteps: int = 4000, seed: int = 
     flat = chain.reshape(-1, p0.size)
     return {"samples": flat, "tau": tau, "n_over_tau": float((nsteps - burn) / np.max(tau)),
             "acceptance": float(np.mean(sampler.acceptance_fraction))}
+
+
+def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rtol: float = 1e-12):
+    """Generalised least squares for y = L q + e, e ~ N(0, C) (Riess et al. 2022 Eq. 6):
+    q = (L^T C^-1 L)^-1 L^T C^-1 y, cov(q) = (L^T C^-1 L)^-1. Solved with Cholesky factors,
+    never an explicit inverse of C.
+
+    All-zero columns of L (e.g. the distance of a host whose rows were removed) are dropped; their
+    entries in ``q``/``sigma`` are NaN and ``kept`` lists the columns that were fitted. The reduced
+    system must have full column rank (ValueError otherwise). Pass ``c_factor`` (the result of
+    ``scipy.linalg.cho_factor(C, lower=True)``) to reuse a factorisation; then ``C`` may be None.
+
+    Returns dict: q, sigma (NaN for dropped columns), cov (kept x kept), kept, chi2, dof, and, with
+    ``return_estimator``, ``A`` (kept x n_rows, q_kept = A y) for exact linear error propagation.
+    """
+    from scipy import linalg
+
+    L = np.asarray(L, dtype=float)
+    y = np.asarray(y, dtype=float)
+    n, p = L.shape
+    if y.shape != (n,):
+        raise ValueError(f"y has shape {y.shape}, expected ({n},)")
+    kept = np.flatnonzero(np.any(L != 0.0, axis=0))
+    Lk = L[:, kept]
+    if c_factor is None:
+        if C is None:
+            raise ValueError("give C or c_factor")
+        C = np.asarray(C, dtype=float)
+        if C.shape != (n, n):
+            raise ValueError(f"C has shape {C.shape}, expected ({n}, {n})")
+        c_factor = linalg.cho_factor(C, lower=True)
+    W = linalg.cho_solve(c_factor, Lk)                     # C^-1 L
+    F = Lk.T @ W                                           # Fisher matrix
+    F = 0.5 * (F + F.T)
+    d = np.sqrt(np.diag(F))
+    if np.any(d == 0):
+        raise ValueError("degenerate column in L")
+    ev = np.linalg.eigvalsh(F / np.outer(d, d))
+    if ev[0] <= rank_rtol * ev[-1]:
+        raise ValueError(f"L^T C^-1 L is rank deficient (min/max eigenvalue {ev[0] / ev[-1]:.2e})")
+    f_factor = linalg.cho_factor(F, lower=True)
+    cov = linalg.cho_solve(f_factor, np.eye(len(kept)))
+    cov = 0.5 * (cov + cov.T)
+    qk = cov @ (W.T @ y)
+    r = y - Lk @ qk
+    chi2 = float(r @ linalg.cho_solve(c_factor, r))
+    q = np.full(p, np.nan)
+    sig = np.full(p, np.nan)
+    q[kept] = qk
+    sig[kept] = np.sqrt(np.diag(cov))
+    out = {"q": q, "sigma": sig, "cov": cov, "kept": kept, "chi2": chi2, "dof": int(n - len(kept))}
+    if return_estimator:
+        out["A"] = cov @ W.T
+    return out
