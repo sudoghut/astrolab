@@ -56,10 +56,14 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
   reliability, decided from the documentation, written into `log.md` and into `PARAMS` with a date
   before the vetting query is fetched. Changing this formal parameter is a change to this
   pre-registration and is recorded as such.
-- *Resolution*: a DR3 source_id "resolves" if it is present in DR4 `gaia_source`, or, if DR4
-  publishes a DR3-DR4 cross-match (neighbourhood) table, if that table maps it to a DR4 source;
-  the mapped DR4 id is then used. A source that does not resolve is reported as `unresolved` and is
-  never counted as a scientific outcome.
+- *Resolution*: a DR3 source_id "resolves" if it is present in DR4 `gaia_source` and passes the
+  identity check, or else, if DR4 publishes a DR3-DR4 cross-match (neighbourhood) table, if that
+  table maps it to a DR4 source (the neighbour with the smallest angular distance; a tie, or a
+  failed identity check, means no match); the mapped DR4 id is then used. Identity check: against
+  the DR3 position and G magnitude archived for all 79 ids (`results/dr3/reference_ids.json`),
+  with the DR3 position moved to the DR4 reference epoch using the DR4 proper motion, the offset
+  is < 2 arcsec and |G_DR4 - G_DR3| < 0.3 mag. A source that does not resolve is reported as
+  `unresolved` and is never counted as a scientific outcome.
 - *Primary solution (R-sel)*, applied per source everywhere (targets, controls, survivors, new
   candidates): among the source's solutions of astrometric type, prefer validated over
   non-validated; among those prefer `AstroSpectroSB1`, then `Orbital`, then the other types; ties
@@ -68,12 +72,16 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
 - *Vetoes*: (i) type veto: the primary solution is of a non-validated type; (ii) RV veto: DR4
   `rv_amplitude_robust` < `PARAMS["rv_ratio_min"]` (0.5) x the min-to-max RV range predicted from
   the primary orbit (2K with cos i = (AG - BF)/a0^2, as in section 5). On DR4 the RV veto applies
-  only if P < 2000 d (shorter than the ~66-month DR4 baseline, so the observed epochs can cover the
-  full RV range) and the column exists; otherwise it is "not applicable", never a veto. If DR4
-  renames the column, its documented successor with the same definition is used; if there is
-  none, the RV veto is not applicable.
-- *Uncertainties*: if the DR4 `corr_vec` parameter order cannot be confirmed (run-book step 1.5),
-  R1-R3 are "not evaluable" and only central values are reported.
+  only if P < 1000 d (at least two orbits within the ~66-month DR4 baseline) and e < 0.8 (a
+  short periastron spike can fall between sparse RV epochs), and the column exists; otherwise it
+  is "not applicable", never a veto. Even within these limits, a sparsely sampled orbit can show a
+  smaller range than predicted, so an RV veto is evidence, not proof. If DR4 renames the column,
+  its documented successor with the same definition is used, decided and logged in `log.md`
+  before the vetting query (like the type list); if there is none, the RV veto is not applicable.
+- *Uncertainties*: the DR4 entry of `RELEASES` in `run.py` has `covariance_trusted = False` until
+  the `corr_vec` parameter order is confirmed on release day (run-book step 1.5) and the change is
+  logged; while it is False, R1-R3 are "not evaluable" and only central values are reported.
+  `RELEASES` is part of this pre-registration: any other change to it is recorded as such.
 
 **R1-DR4, R2-DR4.** Same rule as on DR3 (|M2_ours - M2_paper| < 2 sigma_combined), using the
 primary DR4 solution of BH1 and BH2 with the M1 values of section 2. No DR4 solution or unresolved:
@@ -93,8 +101,11 @@ solution is a0/a1), so no method offset is expected; their astrometry-only solut
 0.8 Msun higher. R3 is therefore a check of consistency between NSS 4.1 and the final DR4
 pipeline, not an independent measurement.
 
-**S1-DR4.** The DR4 screen returns < 50,000 rows, and BH1, BH2 (and BH3 if it has a solution)
-have M2 > 3 Msun with their published M1 on their primary solution.
+**S1-DR4.** The DR4 screen returns < 50,000 rows (counted on the server first; at >= 50,000 S1-DR4
+fails, the screen is not fetched, and the screen-dependent items S2-DR4 and S3-DR4 are "not
+evaluable" while the rest is still computed), and each of BH1, BH2, BH3 that resolves and has a
+DR4 solution has M2 > 3 Msun with its published M1 on its primary solution; a missing target is
+listed as "not evaluable" for this part.
 
 **S2-DR4.** Of the 21 El-Badry et al. (2024) candidates, N_eval are those that resolve and have a
 DR4 solution of astrometric type; a candidate passes if its primary solution is in the DR4 screen
@@ -104,16 +115,20 @@ recall (how many of the 21 have any DR4 solution) is reported separately. As on 
 weak (the weakest DR3 f_M was 0.41 against a 0.25 cut).
 
 **V-DR4 (vetoes on controls).** Controls: BH1, BH2, BH3 and the 21 NS candidates. A control is
-vetoed if its primary solution is vetoed by (i) or (ii). Pass: no control is vetoed. Controls
-without a DR4 solution or unresolved are listed and not counted. A vetoed control means the veto
-rules fail on DR4; they are reported and not retuned.
+vetoed if its primary solution is vetoed by (i) or (ii). Controls without a DR4 solution or
+unresolved are listed and not counted; N_ctrl is the number counted. Pass: N_ctrl >= 15 and no
+counted control is vetoed; N_ctrl < 15: "not evaluable". The number of counted controls to which
+the RV veto applies is reported with it (on DR3 it was 4 of 23): below 5 the RV half of the test
+is reported as weak. A vetoed control means the veto rules fail on DR4; they are reported and not
+retuned.
 
 **F-DR4 (the 51 DR3 survivors).** Each of the 51 DR3 candidates that were not known, not vetoed
 and not refuted gets exactly one label, the first that applies:
 1. `unresolved` (see Resolution);
 2. `solution-gone`: no DR4 solution of astrometric type;
 3. `type-vetoed`: the primary solution is of a non-validated type;
-4. `insufficient`: parallax <= 0, parallax S/N <= 5, or a missing period, period error or a0;
+4. `insufficient`: the primary solution's parallax <= 0 or parallax S/N <= 5, or a missing
+   period, period error or a0;
 5. `rv-vetoed`: the RV veto applies and fires;
 6. `mass-below`: M2 <= 3 Msun with M1 = DR4 FLAME `mass_flame` if present, else the DR3 `m1_used`;
 7. `period-changed`: |P_DR4 - P_DR3| >= 3 sqrt(sigma_P,DR3^2 + sigma_P,DR4^2);
@@ -123,7 +138,9 @@ aliases) and a0_DR4/a0_DR3. For P_DR3 > ~1000 d (beyond the DR3 baseline) the pe
 The counts per label are the result. No discovery claim: `persists` means "still a candidate".
 
 **S3-DR4 (new candidates, exploratory).** DR4 sources with M2 > 3 Msun (FLAME M1, fallback 1 Msun)
-that were not DR3 candidates are counted, given the quality labels and vetoes above, and checked
+that were not among the 87 DR3 rows with M2 > 3 Msun are counted; their primary solution is chosen
+among all their DR4 solutions (fetched for these sources, not only the screen rows), and they are
+given the quality labels and vetoes above, and checked
 against literature published after DR3 (including the Gaia DR4 release papers). No prior
 expectation and no discovery claim.
 
@@ -147,7 +164,7 @@ function is evaluated on the server.
 | Resolution of DR3 ids | DR4 `gaia_source` (and the DR3-DR4 cross-match table if published) | 79 unique DR3 source_ids (3 BHs, 21 NS, 6 literature-labelled, 51 survivors; BH1 and BH2 appear twice) | < 200 rows |
 | Target, control and survivor solutions | DR4 `nss_two_body_orbit` JOIN `gaia_source` LEFT JOIN `astrophysical_parameters` | the resolved ids | < 500 rows |
 | Screen | same query as DR3 on the DR4 schema | same cuts | counted on release day; DR3 gave 3,343. Above 50,000: S1-DR4 fails and is recorded first (run-book step 2) |
-| DR3 reference values | `results/dr3/` (archived DR3 run: periods and their errors, a0, M1 used) | committed files | < 1 MB |
+| DR3 reference values | `results/dr3/` (archived DR3 run: periods and their errors, a0, M1 used; `reference_ids.json` with DR3 position, proper motion and G of the 79 ids, fetched in the DR3 rerun before 2026-11-25) | committed files | < 1 MB |
 
 The release-day count and its size estimate (rows x ~300 bytes) are written into this table
 before the screen is fetched. Result files stay under 1 MB (AGENTS.md section 1): the screen
@@ -203,6 +220,9 @@ Post-hoc additions (after the referee review, NOT pre-registered; marked * on th
 - After vetoes and literature: **51 unknown candidates remain, all giants and/or low-significance
   solutions; no unlabelled main-sequence host survives.** No discovery is claimed.
 - 4 vetted sources carry more than one NSS solution; joins now use (source_id, nss_solution_type).
+- *Note 2026-11-14 (design plan 008):* from now on a control counts as vetoed if its primary
+  solution (R-sel, DR4 addendum to section 2) is vetoed, on DR3 as on DR4, instead of any of its
+  rows. On DR3 this changes no number: no control row was vetoed and BH1/BH2 have one solution each.
 - 0 rows are lost to NULL a0 in the server-side computation.
 
 ## 6. Referee notes (independent subagent, 2026-11-11)
