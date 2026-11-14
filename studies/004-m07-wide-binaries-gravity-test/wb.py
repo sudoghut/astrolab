@@ -217,18 +217,29 @@ def bin_medians(vt, b, nbins):
     return np.array([np.median(vt[b == k]) if np.any(b == k) else np.nan for k in range(nbins)])
 
 
-def bootstrap_cov(vt, b, nbins, n_boot, seed):
+def bootstrap_cov(vt, b, nbins, n_boot, seed, min_count=15, max_redraw_frac=0.05):
+    """Covariance of the bin medians over whole-sample bootstrap resamples (README section 2).
+
+    A replicate with fewer than min_count pairs in any bin is redrawn. Returns (cov, redraw_fraction,
+    valid) with valid False when more than max_redraw_frac of the draws were redrawn.
+    """
     rng = np.random.default_rng(seed)
     n = len(vt)
     meds = []
+    draws = 0
     while len(meds) < n_boot:
+        draws += 1
         idx = rng.integers(0, n, n)
         bb = b[idx]
-        if any(not np.any(bb == k) for k in range(nbins)):
-            continue                      # redraw a replicate with an empty bin
+        if min(int(np.sum(bb == k)) for k in range(nbins)) < min_count:
+            if draws > 50 * n_boot:
+                break
+            continue
         meds.append(bin_medians(vt[idx], bb, nbins))
+    frac = 1.0 - len(meds) / draws
     meds = np.array(meds)
-    return np.cov(meds, rowvar=False)
+    cov = np.cov(meds, rowvar=False) if len(meds) > 1 else np.full((nbins, nbins), np.nan)
+    return cov, frac, bool(frac <= max_redraw_frac and len(meds) == n_boot)
 
 
 def mad_errors(vt, b, nbins, scale=1.0):

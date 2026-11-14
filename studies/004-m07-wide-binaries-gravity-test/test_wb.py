@@ -144,5 +144,11 @@ def test_bootstrap_cov_shape():
     rng = np.random.default_rng(4)
     vt = rng.rayleigh(0.5, 600)
     b = rng.integers(0, 6, 600)
-    c = wb.bootstrap_cov(vt, b, 6, 200, 0)
-    assert c.shape == (6, 6) and np.all(np.diag(c) > 0)
+    c, frac, ok = wb.bootstrap_cov(vt, b, 6, 200, 0)
+    assert c.shape == (6, 6) and np.all(np.diag(c) > 0) and ok and frac == 0.0
+    # a sparse bin forces redraws and invalidates the covariance
+    b2 = b.copy()
+    b2[:] = rng.integers(0, 5, 600)
+    b2[:16] = 5
+    c2, frac2, ok2 = wb.bootstrap_cov(vt, b2, 6, 200, 0)
+    assert frac2 > 0.05 and not ok2
