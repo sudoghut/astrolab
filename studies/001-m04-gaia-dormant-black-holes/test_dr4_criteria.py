@@ -64,7 +64,7 @@ def build(tmp_path):
 def test_dr4_criteria_on_synthetic_release(tmp_path):
     d, res, sol, recs, screen = build(tmp_path)
     params = dict(run.PARAMS, release="dr4")
-    out, f_rows, new_rows = run.dr4_criteria(params, run.RELEASES["dr4"], res, sol, recs, screen, 2, d, sol, len(sol))
+    out, f_rows, new_rows = run.dr4_criteria(params, run.release_constants("dr4"), res, sol, recs, screen, 2, d, sol, len(sol))
 
     labels = {r["source_id"]: r["label"] for r in f_rows}
     assert labels == {"9000000000000000001": "persists", "9000000000000000003": "type-vetoed",
@@ -85,9 +85,9 @@ def test_dr4_criteria_on_synthetic_release(tmp_path):
 def test_dr4_criteria_s3_stop_rule_and_no_screen(tmp_path):
     d, res, sol, recs, screen = build(tmp_path)
     params = dict(run.PARAMS, release="dr4")
-    out, _, new_rows = run.dr4_criteria(params, run.RELEASES["dr4"], res, sol, recs, screen, 2, d, None, 60000)
+    out, _, new_rows = run.dr4_criteria(params, run.release_constants("dr4"), res, sol, recs, screen, 2, d, None, 60000)
     assert out["S3"]["verdict"] == "not evaluable" and len(new_rows) == 0
-    out, _, _ = run.dr4_criteria(params, run.RELEASES["dr4"], res, sol, recs, None, 60000, d, None, 0)
+    out, _, _ = run.dr4_criteria(params, run.release_constants("dr4"), res, sol, recs, None, 60000, d, None, 0)
     assert out["S1"]["verdict"] == "fail" and out["S3"]["verdict"] == "not evaluable"
     assert out["S2"]["verdict"] == "pass"                                                 # independent of the screen
 
@@ -127,7 +127,7 @@ def test_fetch_solutions_keeps_same_type_solutions_and_blanks_doubled_flame():
     assert (df.source_id == NEW).sum() == 2                      # both Orbital solutions kept for R-sel
     b = df[df.source_id == BH1]
     assert len(b) == 1 and np.isnan(b.mass_flame.iloc[0]) and df.attrs["ambiguous_flame_sources"] == 1
-    prim = sel.primary_solutions(df, run.PARAMS["unvalidated_types"], run.ASTROMETRIC_TYPES)
+    prim = sel.primary_solutions(df, run.PARAMS["unvalidated_types"], run.ASTROMETRIC_TYPES["dr4"])
     assert prim[prim.source_id == NEW].period.iloc[0] == 300.0   # R-sel, not row order
 
 
@@ -183,57 +183,57 @@ def _res_one_unresolved():
 def test_neighbourhood_metadata_cases(tmp_path):
     import json as _json
     import pytest
+    nbs = run.RELEASES["dr4"]["neighbourhood"]
+
+    class Ctx(FakeCtx):
+        def log(self, m):
+            pass
+
+    # declared none: no lookup at all
+    assert run.check_neighbourhood(Ctx({}), "gaiadr4", "Gaia DR4", None) is None
+    # metadata unavailable: stop
+    with pytest.raises(SystemExit, match="metadata unavailable"):
+        run.check_neighbourhood(Ctx({"tap_schema.tables": pd.DataFrame({"table_name": []})}), "gaiadr4", "Gaia DR4", nbs)
+    # configured table not listed (e.g. a different name): stop, never a silent fallback
+    with pytest.raises(SystemExit, match="not in TAP_SCHEMA"):
+        run.check_neighbourhood(Ctx({"tap_schema.tables": pd.DataFrame({"table_name": ["gaiadr4.gaia_source"]})}),
+                                "gaiadr4", "Gaia DR4", nbs)
+    # listed but columns differ: stop
+    with pytest.raises(SystemExit, match="lacks"):
+        run.check_neighbourhood(Ctx({"tap_schema.tables": pd.DataFrame({"table_name": ["gaiadr4.dr3_neighbourhood"]}),
+                                     "tap_schema.columns": pd.DataFrame({"column_name": ["a", "b", "angular_distance"]})}),
+                                "gaiadr4", "Gaia DR4", nbs)
+    # listed and matching (qualified, upper-case names)
+    ok = run.check_neighbourhood(Ctx({"tap_schema.tables": pd.DataFrame({"table_name": ["gaiadr4.dr3_neighbourhood"]}),
+                                      "tap_schema.columns": pd.DataFrame({"column_name": [
+                                          "gaiadr4.dr3_neighbourhood.DR3_SOURCE_ID", "DR4_SOURCE_ID", "ANGULAR_DISTANCE"]})}),
+                                 "gaiadr4", "Gaia DR4", nbs)
+    assert ok == nbs
+
     d = tmp_path / "dr3"
     d.mkdir()
     (d / "reference_ids.json").write_text(_json.dumps({"source_id": [str(NEW)], "ra": [10.0], "dec": [0.0],
                                                        "phot_g_mean_mag": [12.0]}), encoding="utf-8")
     empty_gs = pd.DataFrame({"source_id": pd.Series(dtype="int64"), "ra": [], "dec": [], "pmra": [], "pmdec": [],
                              "phot_g_mean_mag": []})
-    rel = run.RELEASES["dr4"]
-
-    class Ctx(FakeCtx):
-        def log(self, m):
-            pass
-
-    # metadata unavailable: stop
-    ctx = Ctx({"FROM gaiadr4.gaia_source": empty_gs, "tap_schema.tables": pd.DataFrame({"table_name": []})})
-    with pytest.raises(SystemExit, match="metadata unavailable"):
-        run.resolve_dr3_ids(ctx, "gaiadr4", "Gaia DR4", rel, d)
-    # table genuinely absent: direct only
-    ctx = Ctx({"FROM gaiadr4.gaia_source": empty_gs,
-               "tap_schema.tables": pd.DataFrame({"table_name": ["gaiadr4.gaia_source"]})})
-    res = run.resolve_dr3_ids(ctx, "gaiadr4", "Gaia DR4", rel, d)
-    assert "not published" in res.attrs["neighbourhood"] and res.dr4_id.isna().all()
-    # table listed, columns do not match the spec: stop
-    ctx = Ctx({"FROM gaiadr4.gaia_source": empty_gs,
-               "tap_schema.tables": pd.DataFrame({"table_name": ["gaiadr4.dr3_neighbourhood"]}),
-               "tap_schema.columns": pd.DataFrame({"column_name": ["dr3_id", "dr4_id", "angular_distance"]})})
-    with pytest.raises(SystemExit, match="lacks"):
-        run.resolve_dr3_ids(ctx, "gaiadr4", "Gaia DR4", rel, d)
-    # table listed and matching (qualified, upper-case names): fallback used
+    rel = run.release_constants("dr4")
+    res = run.resolve_dr3_ids(Ctx({"FROM gaiadr4.gaia_source": empty_gs}), "gaiadr4", "Gaia DR4", rel, d, None)
+    assert "direct-id resolution only" in res.attrs["neighbourhood"] and res.dr4_id.isna().all()
     nb = pd.DataFrame({"old_id": [NEW], "new_id": [NEW + 2], "dist": [50.0]})
     found_new = pd.DataFrame({"source_id": [NEW + 2], "ra": [10.0], "dec": [0.0], "pmra": [0.0], "pmdec": [0.0],
                               "phot_g_mean_mag": [12.0]})
-    ctx = Ctx({"FROM gaiadr4.dr3_neighbourhood": nb, f"IN ({NEW + 2})": found_new,
-               "FROM gaiadr4.gaia_source": empty_gs,
-               "tap_schema.tables": pd.DataFrame({"table_name": ["gaiadr4.dr3_neighbourhood"]}),
-               "tap_schema.columns": pd.DataFrame({"column_name": ["gaiadr4.dr3_neighbourhood.DR3_SOURCE_ID",
-                                                                   "DR4_SOURCE_ID", "ANGULAR_DISTANCE"]})})
-    res = run.resolve_dr3_ids(ctx, "gaiadr4", "Gaia DR4", rel, d)
+    ctx = Ctx({"FROM gaiadr4.dr3_neighbourhood": nb, f"IN ({NEW + 2})": found_new, "FROM gaiadr4.gaia_source": empty_gs})
+    res = run.resolve_dr3_ids(ctx, "gaiadr4", "Gaia DR4", rel, d, nbs)
     assert int(res.dr4_id.iloc[0]) == NEW + 2 and res.reason.iloc[0] == "neighbourhood"
+    assert not any("tap_schema" in q for q in ctx.queries)     # no metadata lookups after source-level data
 
 
-def test_rv_successor_column_is_used_and_renamed():
-    import pytest
-    rows = [(f"gaiadr4.{tb}", c) for tb, cols in run.CORE_COLUMNS.items() for c in cols]
-    rows += [("gaiadr4.gaia_source", "rv_amplitude_new")]
-    meta = pd.DataFrame(rows, columns=["table_name", "column_name"])
-    have = run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4", "rv_amplitude_new")
-    assert "rv_amplitude_robust" in have
-    with pytest.raises(SystemExit, match="not in TAP_SCHEMA"):   # configured name absent (e.g. a typo): stop
-        run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4", "rv_amplitude_typo")
-    none = run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4", None)
-    assert "rv_amplitude_robust" not in none                       # explicit None: RV veto not applicable
-    ctx = FakeCtx({"nss_two_body_orbit": pd.DataFrame([solution(NEW)])})
-    run.fetch_solutions(ctx, "gaiadr4", "Gaia DR4", [NEW], "x", have, "rv_amplitude_new")
-    assert "g.rv_amplitude_new AS rv_amplitude_robust" in ctx.queries[0]
+def test_dr3_types_unaffected_by_dr4_setting():
+    import screen
+    old = screen.ASTROMETRIC_TYPES["dr4"]
+    try:
+        screen.ASTROMETRIC_TYPES["dr4"] = ("Orbital",)
+        assert "'OrbitalAlternative'" in screen.mass_function_subquery("dr3")
+        assert "'OrbitalAlternative'" not in screen.mass_function_subquery("dr4")
+    finally:
+        screen.ASTROMETRIC_TYPES["dr4"] = old

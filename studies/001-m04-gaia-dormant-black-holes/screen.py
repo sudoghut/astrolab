@@ -11,11 +11,14 @@ The mass function is evaluated on the Gaia server in nested subqueries
 Kept separate from run.py so it can be inspected or run on DR4 release day.
 """
 
-ASTROMETRIC_TYPES = (
+_DR3_TYPES = (
     "Orbital", "AstroSpectroSB1",
     "OrbitalTargetedSearch", "OrbitalTargetedSearchValidated",
     "OrbitalAlternative", "OrbitalAlternativeValidated",
 )
+# Per release, so setting DR4's list on release day never changes a DR3 query. DR4: set on release day by
+# the mechanical rule (types whose tally shows Thiele-Innes constants), under the information barrier.
+ASTROMETRIC_TYPES = {"dr3": _DR3_TYPES, "dr4": _DR3_TYPES}
 
 SCHEMAS = {"dr3": "gaiadr3", "dr4": "gaiadr4"}  # dr4 schema name: confirm via TAP_SCHEMA on release day
 
@@ -24,7 +27,7 @@ _COLS = "source_id, nss_solution_type, period, period_error, eccentricity, paral
 
 def mass_function_subquery(release="dr3", plx_snr_min=5.0) -> str:
     s = SCHEMAS[release]
-    types = ", ".join(f"'{t}'" for t in ASTROMETRIC_TYPES)
+    types = ", ".join(f"'{t}'" for t in ASTROMETRIC_TYPES[release])
     q1 = (
         f"SELECT {_COLS}, a_thiele_innes AS ta, b_thiele_innes AS tb, f_thiele_innes AS tf, "
         f"COALESCE(g_thiele_innes, -a_thiele_innes*f_thiele_innes/b_thiele_innes) AS tg "

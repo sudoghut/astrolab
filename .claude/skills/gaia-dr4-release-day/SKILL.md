@@ -53,15 +53,16 @@ is reported as such. Each is a one-line edit:
 |---|---|---|
 | DR4 schema name | `dr4_query.py schemas` | `screen.SCHEMAS["dr4"]` |
 | Tables exist | `dr4_query.py tables <schema>` (names come back schema-qualified) | stop if `nss_two_body_orbit`, `gaia_source` or `astrophysical_parameters` is missing |
-| Astrometric types (mechanical rule) | `dr4_query.py types <schema>`: aggregate counts only; types with `n_thiele_innes > 0` | `screen.ASTROMETRIC_TYPES` = exactly that list |
-| Non-validated types | DR4 data model / release papers (not the data) | `PARAMS["unvalidated_types"]` (a formal parameter: dated) |
+| Astrometric types (mechanical rule) | `dr4_query.py types <schema>`: aggregate counts only; types with `n_thiele_innes > 0` | `screen.ASTROMETRIC_TYPES["dr4"]` = exactly that list (per release: DR3 queries are unaffected) |
+| Non-validated types | DR4 data model / release papers (not the data) | `PARAMS["unvalidated_types"]` (a formal parameter: dated). It is one value for whichever release runs; the DR3 value is kept in `results/dr3/summary.json` `params` |
 | `corr_vec` order | DR4 data model or a DPAC `nsstools` release for DR4 | `RELEASES["dr4"]["covariance_trusted"]` = True only if confirmed; otherwise False (R1-R3 "not evaluable"). A new fitted-parameter set or order needs an `astrolab/orbits.py` change: core library, own review |
 | RV amplitude column | `dr4_query.py columns <schema>.gaia_source` and the data model | `RELEASES["dr4"]["rv_amplitude_column"]`: keep, a documented successor, or `None` (RV veto not applicable). A configured name missing from TAP_SCHEMA stops the run |
-| DR3-DR4 cross-match table | `dr4_query.py tables`, `columns` | `RELEASES["dr4"]["neighbourhood"]` (table, old/new id columns, distance column and its unit). Not published: leave it; the run uses direct ids and says so. Published with different names: correct the spec (the run stops on a mismatch) |
+| DR3-DR4 cross-match table | `dr4_query.py tables`, `columns` | `RELEASES["dr4"]["neighbourhood"]` (table, old/new id columns, distance column and its unit), or `None` if DR4 publishes no such table (then direct ids only). Before any source-level query the run checks it against TAP_SCHEMA and stops if the configured table is not listed or lacks the columns, so a wrong name cannot silently drop the fallback |
 | DR4 reference epoch | data model | `RELEASES["dr4"]["epoch_gap_yr"]` = epoch - 2016.0 |
 
-The run itself checks TAP_SCHEMA first (`run.available_columns`): it stops if any column its queries
-need is missing, before fetching source-level data. FLAME columns may be missing (they count as absent).
+The run itself checks TAP_SCHEMA first (`run.available_columns`, `run.check_neighbourhood`): it stops
+if any column its queries need, the configured RV column or the configured cross-match table is
+missing, before fetching source-level data. FLAME columns may be missing (they count as absent).
 `dr4_query.py resolve` fetches source-level positions: run it only after these decisions are
 committed (step 3).
 
@@ -80,8 +81,10 @@ AGENTS.md section 1.6.
    not DR3 or the target exists); commit `results/dr3/`. The run refuses to overwrite an
    un-archived or newer DR3 run (guard).
 2. `PARAMS["release"] = "dr4"` in `run.py` (a formal parameter: dated note in `log.md`).
-3. `dr4_query.py resolve <schema>`: the same resolution as `run.py` (direct id + identity check).
-   Unresolved ids are listed with reasons; they are cross-match problems, never science results.
+3. `dr4_query.py resolve <schema>`: direct ids with the identity check only (`run.py` adds the
+   cross-match-table fallback for the ids that fail, so the run may resolve more). Unresolved ids are
+   cross-match problems, never science results. **Step-1 settings are not changed in response to
+   this output or to the run's resolution**; if one must change, it is a reported post-hoc change.
 
 ## 4. Run and check
 
@@ -106,7 +109,10 @@ No discovery claim comes out of this run. `persists` means "still a candidate".
 | Symptom | First response |
 |---|---|
 | 503 / timeouts | Expected under load; `astrolab.fetch` retries and falls back to async. Wait. |
-| SystemExit "TAP_SCHEMA lists no ..." / "lacks ..." / "not in TAP_SCHEMA" | A step-1 decision is wrong or missing: fix it from metadata, log it, rerun. Nothing was written. |
+| SystemExit "TAP_SCHEMA lists no ..." / "lacks ..." / "not in TAP_SCHEMA" | A step-1 decision is wrong or missing: fix it from metadata, log it, rerun. Nothing was written, and these stops come before any source-level query; if source-level data had already been seen (e.g. step 3.3), report the fix as post-hoc. |
+| SystemExit "screen returned N distinct rows, server count n" | Server inconsistency or an unexpected join: report it; do not narrow or rewrite the screen ad hoc (that would be a post-hoc selection). |
+| SystemExit "no DR3 results to compare with" | `results/dr3/` missing or not DR3: restore it from git (step 3.1). |
+| SystemExit "S3 ids exceed the two id files" | Cannot happen below the 50,000-row screen bound: a bug, fix and review. |
 | SystemExit "results/ holds the dr3 run, not archived" / "older" | Step 3.1 (archive, or re-archive after removing a stale `results/dr3/`). |
 | `covariance_error` in `reproduction.json` | New solution type or `corr_vec` layout: R1-R3 are "not evaluable"; extending `orbits.py` is a core-library change with its own review. |
 | SystemExit "result files over ... bytes" | Nothing written; the caps cover the pre-registered bounds, so this is a bug: fix it and have it reviewed. |

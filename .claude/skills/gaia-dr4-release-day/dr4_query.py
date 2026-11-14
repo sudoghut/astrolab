@@ -14,8 +14,9 @@ Commands (<schema> is a TAP schema such as gaiadr4; <release> is a key of screen
   count    <release>           server-side row count of the M4 screen (cuts from run.PARAMS) and of
                                all astrometric orbits
   ids                          print the DR3 ids the DR4 run resolves (no network)
-  resolve  <schema>            the pre-registered resolution (selection.resolve_ids, as run.py) of
-                               those ids in <schema>.gaia_source, with reasons
+  resolve  <schema>            direct-id resolution with the identity check (selection.resolve_ids)
+                               of those ids in <schema>.gaia_source, with reasons; run.py adds the
+                               cross-match-table fallback for the ids that fail
   archive  <release>           copy results/*.json to results/<release>/ (no network); refuses if
                                results/ is not that release or the target exists
 
