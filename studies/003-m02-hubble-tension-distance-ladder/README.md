@@ -137,7 +137,10 @@ exactly one host column. R22 section 4.8 uses "77 sets in all for 42 SNe Ia" (se
 sets per SN), so 77 such rows are expected, not 42. Hubble-flow SN rows: non-zeros in columns 42
 and 46 and in no host column (R22: 277 SNe; the count is reported, and nothing depends on it, since
 these rows are kept in every subsystem). Single-non-zero constraint rows (expected 5: two in
-column 38, one each in columns 37, 39, 45). The rest are Cepheid rows.
+column 38, one each in columns 37, 39, 45). The rest are Cepheid rows: rows with a non-zero in
+column 38 and in no column 42; those with a host column are SN-host Cepheids, expected
+2150 ± 37 (R22 Table 3 "fit" total; the allowance is check (iv)'s ±1 per host on average), and the
+count is asserted.
 
 **Host identification (structural checks; all required).** (i) 77 calibrator rows, every host
 column 0–36 having at least one; (ii) within each host, every SN row's y is within
@@ -153,15 +156,19 @@ host's own SNe). (iv) Each host's Cepheid row count (rows with a non-zero in tha
 in column 38) within 2 of R22 Table 3's "fit" count (e.g. M101 259, N1448 73, N5643 251; 2150 in
 all), typed into `run.py` from the rendered table (the PDF text layer misaligns its columns), with
 an assertion that the typed counts sum to 2150; the allowance covers the public file not being
-exactly the printed fit. (v) **Swap test**, run only after (i)–(iv) pass under the labelling of this
-section (if they fail, the fit-validity rule applies: not evaluable): for every pair of host
-columns, swap their labels and re-apply (ii)–(iv); if the swapped labelling also passes all of
-them, that pair is ambiguous. A pair with exactly one CCHP host changes the CCHP set and makes
-R2's host step, R3 and R4 **not evaluable**. A pair of two CCHP hosts leaves the set unchanged
-and affects only R3's per-host Δμ table and its χ² (reported with that caveat). A pair of two
-non-CCHP hosts affects nothing (R4 treats non-CCHP hosts alike). The test covers pairwise swaps
-only, not longer cycles; the count fingerprint makes those unlikely. Reported: the worst host for
-each check and the list of ambiguous pairs.
+exactly the printed fit. (v) **Uniqueness of the labelling (global assignment)**, run only after
+(i)–(iv) pass under the labelling of this section (if they fail, the fit-validity rule applies:
+not evaluable). Checks (ii)–(iv) each compare one column with one Table 3/6 host, so they define
+a bipartite compatibility graph between the 37 columns and the 37 hosts. The labelling of this
+section is one perfect matching in it. For every compatible off-diagonal edge (column j, host h),
+we test with `scipy.optimize.linear_sum_assignment` (cost 0 for compatible edges, 1 otherwise;
+edge (j, h) forced) whether another perfect matching of cost 0 exists. Every alternative matching
+is found this way, whatever its cycle length. If an alternative exists that changes which
+columns are CCHP hosts, R2's host step, R3 and R4 are **not evaluable**. If the alternatives only
+permute CCHP hosts among themselves, only R3's per-host Δμ table and its χ² are affected
+(reported with that caveat). If they only permute non-CCHP hosts, nothing is affected (R4 treats
+non-CCHP hosts alike). Reported: the worst host for each check and every compatible off-diagonal
+edge.
 
 **Anchor rule (NGC 4258 only; R22 section 6.2: drop the other anchors' geometric distances, keep
 their Cepheids).** Drop the LMC detached-eclipsing-binary row (only non-zero in column 39, y = 0)
@@ -194,8 +201,13 @@ Cov(z) (C for the y rows, the t block, and the cross term). Both are linear in z
 and the CCHP-side H0 with the t-block zero-point terms removed.
 
 **R4.** Random host subsets as in section 2, on the NGC 4258-only system, one GLS per draw.
-Runtime estimate: each draw factorises a C sub-block of roughly 1500–2500 rows (0.05–0.2 s), so
-10,000 draws take roughly 10–30 min; the subsystem's row indices are precomputed per host. An
+Runtime, measured before any data on this machine with `infer.gls` on synthetic dense matrices
+(sub-block extraction included): 0.021 s at 1500 rows, 0.046 s at 2000, 0.081 s at 2500. A draw
+has about 980 anchor Cepheid rows, ten hosts' Cepheids (about 600), 277 Hubble-flow rows and the
+constraint rows, so about 1900 rows and 0.05 s: 10,000 draws take about 8 min. Guard
+(pre-registered): the first 100 draws are timed; if the projection for all draws exceeds 60 min,
+`r4_draws` drops to the largest multiple of 1000 that fits in 60 min (at least 2000), and the
+change is recorded in the results. The subsystem's row indices are precomputed per host. An
 exploration that changes `r4_draws` reruns all draws.
 
 **Parameters (`PARAMS` in `run.py`, saved with the results):** `cchp_hosts`, `r4_draws` (10,000),

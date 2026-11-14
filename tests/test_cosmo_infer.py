@@ -199,6 +199,24 @@ def test_gls_subset_shift_variance_is_exact():
     assert var == pytest.approx(sub["sigma"][-1] ** 2 - full["sigma"][-1] ** 2, rel=1e-8)
 
 
+def test_gls_rejects_degenerate_inputs():
+    L, y, C = _gls_problem(seed=7)
+    with pytest.raises(ValueError, match="no non-zero column"):
+        infer.gls(np.zeros_like(L), y, C)
+    with pytest.raises(ValueError, match="2-D"):
+        infer.gls(L[:, 0], y, C)
+    with pytest.raises(ValueError, match="finite"):
+        infer.gls(L, np.where(np.arange(len(y)) == 3, np.nan, y), C)
+    Cnan = C.copy()
+    Cnan[0, 0] = np.inf
+    with pytest.raises(ValueError, match="finite"):
+        infer.gls(L, y, Cnan)
+    with pytest.raises(ValueError, match="positive definite"):
+        infer.gls(L, y, C - 10.0 * np.eye(len(y)))
+    with pytest.raises(ValueError, match="degrees of freedom"):
+        infer.gls(L[:5], y[:5], C[:5, :5])
+
+
 def test_gls_checks_factor_shape():
     from scipy import linalg
     L, y, C = _gls_problem(seed=6)
