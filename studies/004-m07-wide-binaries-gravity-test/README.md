@@ -50,8 +50,11 @@ r_sky/r_M, concluding that "Newtonian gravity is up to 1500× more likely than M
 **Fit validity.** Each bin must hold at least 15 pairs; otherwise the highest bin is merged inward
 with its neighbour until it holds at least 15 (its x_j is then the merged median, and the degrees of
 freedom become n_bins − 1, also for the Newtonian p-value). No other merging or edge change is
-allowed once counts are seen. A bootstrap replicate with an empty bin is redrawn. The bootstrap covariance must be finite; if its condition
-number exceeds 10⁸, its diagonal is used instead, flagged.
+allowed once counts are seen. The 15-pair minimum applies to every bootstrap replicate too: a
+replicate with fewer than 15 pairs in any (merged) bin is redrawn; if more than 5% of draws are
+redrawn, the fit is reported as invalid. The bootstrap covariance must be finite; if its condition
+number exceeds 10⁸, its diagonal is used instead, flagged; if any diagonal entry is not strictly
+positive, the fit is invalid and no verdict is given.
 
 **R1 (reproduction; main sample = C26's "ṽ ≤ 2.5" row).**
 - N within ±20% of 1421 (main) and of 1216 (ṽ ≤ 1.5 and ipd_frac_multi_peak = 0) →
@@ -100,12 +103,13 @@ variants). Neighbours for degrouping follow C24's reading (§2.2.2: C25 "allows 
 companion stars through the selection process for the purposes of deselecting potential triple
 systems"; §2.3: "Where any star appeared in more than one pair, all such matching pairs were
 rejected"): a neighbour is any star of the C25 set (parallax_over_error > 40, any photometry, no
-RUWE or RV requirement) with parallax + 3·parallax_error > 6.6667 mas, under the same projected and
-parallax rules as a pair.
+RUWE or RV requirement) with parallax + 3·parallax_error > 6.6667 mas, under the same projected rule (≤ 0.5 pc at the
+two stars' weighted parallax) and the same pairwise 3σ parallax rule, applied between the parent
+star and each candidate neighbour.
 
 | Query | Content | Selection (server side) | Est. rows / size |
 |---|---|---|---|
-| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, a flag whether radial_velocity is not null, FLAME mass | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined; proper-motion difference × distance < 10 km/s (computed in WHERE, not returned; ṽ ≤ 2.5 implies v_sky ≲ 4 km/s even at 1 kAU and 3 M☉, so this cap cannot touch the main sample; A1 is not rerun with other caps and no counts against the cap are looked at before the commit) | trial: 2,209 in one 15° strip with \|δ\| < 60° at a 5 km/s cap; the 10 km/s cap may give a few times more chance pairs: ≤ 200,000 rows in total, each strip query with max_rows = 50,000 (the default cap; a strip that overflows is split), ~300–400 B per row, ≤ 80 MB in total, ≤ 10 MB per query |
+| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, a flag whether radial_velocity is not null, FLAME mass | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); proper-motion difference × distance < 10 km/s (computed in WHERE, not returned; ṽ ≤ 2.5 implies v_sky ≲ 4 km/s even at 1 kAU and 3 M☉, so this cap cannot touch the main sample; A1 is not rerun with other caps and no counts against the cap are looked at before the commit) | trial: 2,209 in one 15° strip with \|δ\| < 60° at a 5 km/s cap; the 10 km/s cap may give a few times more chance pairs: ≤ 200,000 rows in total, each strip query with max_rows = 50,000 (the default cap; a strip that overflows is split), ~300–400 B per row, ≤ 80 MB in total, ≤ 10 MB per query |
 | A2 neighbour counts | per parent star: source_id, number of relaxed neighbours, and the smallest neighbour source_id | neighbours as defined above (no velocity condition); only stars with n ≥ 1 returned | ≤ 50,000 rows per strip (max_rows = 50,000, split if it overflows), ~5 MB in total |
 | B1 velocities (after the pre-registration commit) | the A1 pairs with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | A1's WHERE plus velocity-free cuts: r_sky ≤ 30 kAU at the weighted parallax and radial_velocity not null for both stars | ≤ 50,000 rows in total, ≤ 20 MB |
 
@@ -119,8 +123,13 @@ same strip plus a margin of 1.2° in declination at every boundary and, in right
 ≥ 34 mas (d < 29 pc) are queried separately with star b restricted to parallax + 3σ > 28 mas
 (counted first, since an unrestricted star b failed on the server).
 Each pair is kept once (canonical source_id_a < source_id_b; duplicates from the margins dropped);
-this logic has an offline test. If any query's count shows it cannot fit, the run stops and the
-user is asked. The cache (`%LOCALAPPDATA%`, ~30 MB) must not be cleared until the study is closed.
+this logic has an offline test. **Count first.** Before each A1, A2 and B1 query (every strip, the near-star query and every R3
+or R4 variant that needs its own query), `run.py` runs the same FROM/WHERE as a server-side
+`COUNT(*)` (through `ctx.count`), converts it to bytes at 400 B per A1/B1 row and 40 B per A2 row,
+and fetches only if the query fits under 50,000 rows and 50 MiB and the cumulative estimate stays
+under the 200 MB study budget; a strip over 50,000 rows is split in two in right ascension and
+counted again. If the cumulative estimate would exceed the budget, the run stops and the user is
+asked. The cache (`%LOCALAPPDATA%`, ~30 MB) must not be cleared until the study is closed.
 Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-24).
 
 ## 4. Method
@@ -136,16 +145,22 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
    before any mass is computed, recorded in `PARAMS`) and M_G = G + 5 log10(ϖ̄/100) (ϖ̄, the pair's
    weighted parallax in mas, for both stars; C26 uses d_h); add 0.05 M☉ when M⋆ < 0.7 M☉.
    M = M⋆,1 + M⋆,2.
-4. **Velocity (C24 Eqs. 2–8, C26 §4.1.6).** v_sky from the proper-motion difference at the common
-   distance with the perspective correction from the primary's (brighter star's) radial velocity, as
-   in C24 Eqs. 2–6 (C26 speaks of the "systemic RV"; the mean-RV version is an R3 variant);
-   σ(ṽ) by the Jacobian propagation of C24 Appendix A (parallax and proper-motion errors and their
-   correlations; stars independent).
+4. **Velocity (C24 Eqs. 2–8, C26 §4.1.6).** The primary's (brighter star's) space velocity is
+   built from its pmra, pmdec, the common parallax ϖ̄ and its radial velocity; its components along
+   the secondary's local east and north unit vectors are the expected proper-motion terms, and
+   v_sky = |(κ/ϖ̄)·(μ_α*,2, μ_δ,2) − (expected terms)| with κ = 4.740470464 (C24 Eqs. 2–6; C26
+   speaks of the "systemic RV"; the mean-RV version is an R3 variant). σ(v_sky), and σ(ṽ) =
+   σ(v_sky)/v_c, by the Jacobian of C24 Appendix A over each star's (ϖ, μ_α*, μ_δ) with Gaia's
+   parallax_error, pmra_error, pmdec_error, parallax_pmra_corr, parallax_pmdec_corr and
+   pmra_pmdec_corr; positions are treated as exact (their errors are sub-mas and enter only through
+   the small perspective term), the two stars are independent, and the radial-velocity error and
+   the mass error are neglected, as in C24 and C26.
 5. **Cuts (main sample, C26).** d < 130 pc; 1 ≤ r_sky ≤ 30 kAU; RUWE < 1.25 (both); both on the HR
    band: 0.5 < BP−RP < 3.5, 4 < M_G < 14, and 3.3(BP−RP) + c < M_G < 3.3(BP−RP) + c + 0.8 (slope
    3.3, height 0.8 mag; C26 §3.2.4). The band's position cannot be read from C26, so c is set by a
-   velocity-free rule from the A1 stars: take all A1 stars with non-null BP−RP, RUWE < 1.25, pair
-   weighted parallax ϖ̄ > 7.6923 mas (130 pc) and |BP−RP − 1.8| < 0.05; c = median(M_G − 3.3·(BP−RP)) − 0.4, so the band is centred on
+   velocity-free rule from the A1 stars: take the deduplicated set of A1 stars (each source_id once,
+   using its own parallax for M_G) with non-null BP−RP, RUWE < 1.25, own parallax > 7.6923 mas
+   (130 pc) and |BP−RP − 1.8| < 0.05; c = median(M_G − 3.3·(BP−RP)) − 0.4, so the band is centred on
    the K-star locus. The numeric c is committed (dated) after A1 and before B1; the R3 variant uses
    c ± 0.2. Both stars with radial velocities and |ΔRV| < 10 km/s; σ(ṽ) < 0.1; ṽ ≤ 2.5.
 6. **Statistics.** Section 2 definitions; bootstrap covariance; GLS fits for A.
