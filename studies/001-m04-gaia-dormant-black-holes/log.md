@@ -46,7 +46,7 @@
 
 **网页**：`web/index.html` 按 `summary.release` 显示 DR3 或 DR4 的判据；`results/dr3/` 存在时提供 DR4/DR3 切换。
 
-**双闸审查（dual-gate review）**：环节 1、2 已通过；环节 3 的结论见计划 008 的执行记录。
+**双闸审查（dual-gate review）**：三个环节都已通过，过程见计划 008 的执行记录。
 
 ## 2026-11-11
 
