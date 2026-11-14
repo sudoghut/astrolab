@@ -38,6 +38,7 @@
   if (u && s && u !== s && isBackForward()) u = null;
   var lang = u || s || 'en';
   if (u) writeStore(u);
+  syncUrl();  // drop a stale (back/forward) or non-canonical ?lang= so a refresh keeps `lang`
 
   var style = document.createElement('style');
   style.textContent =
@@ -50,16 +51,25 @@
     'html[data-lang="zh"] body { font-family: var(--sans, system-ui, sans-serif), "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }';
   (document.head || root).appendChild(style);
 
-  var titleEn = null;
+  var titleEn = null;  // the page's own English <title>, captured once
   var button = null;
+
+  function captureTitle(final) {
+    if (titleEn !== null) return;
+    var el = document.querySelector('title');
+    if (el) titleEn = el.textContent;
+    else if (final) titleEn = '';  // page has no <title>
+  }
 
   function apply() {
     root.setAttribute('data-lang', lang);
     root.setAttribute('lang', lang === 'zh' ? 'zh-CN' : 'en');
-    if (titleEn === null && document.title) titleEn = document.title;
-    var tz = root.getAttribute('data-title-zh');
-    if (lang === 'zh' && tz) document.title = tz;
-    else if (titleEn !== null) document.title = titleEn;
+    // Touch document.title only after the original is captured: setting it earlier would
+    // create a <title> element ahead of the page's own one.
+    if (titleEn !== null) {
+      var tz = root.getAttribute('data-title-zh');
+      document.title = lang === 'zh' && tz ? tz : titleEn;
+    }
     if (button) {
       // The button speaks the language it switches to.
       button.textContent = lang === 'zh' ? 'EN' : '中文';
@@ -118,9 +128,11 @@
     button.className = 'i18n-toggle';
     button.addEventListener('click', function () { setLang(lang === 'zh' ? 'en' : 'zh'); });
     document.body.insertBefore(button, document.body.firstChild);  // first tab stop
+    captureTitle(true);
     apply();
   }
 
+  captureTitle(false);
   apply();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);
   else mount();
