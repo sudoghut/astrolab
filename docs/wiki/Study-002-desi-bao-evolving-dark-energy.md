@@ -212,7 +212,7 @@ prior at the lower end".
 |---|---|---|---|
 | `mod_nested`: ΛCDM is w0waCDM with w0 = −1, wa = 0 | MOD | stated 2503.14738: "$\Lambda$ CDM is nested within $w_{0}w_{a}$ CDM, corresponding to $w_{0}=-1$ , $w_{a}=0$" | §VII |
 | `mod_gauss`: the errors are Gaussian (working assumption) | MOD | stated 2503.14738: "assuming that errors are Gaussian and correctly estimated" | §VII |
-| `gap_regular`: under ΛCDM, Δχ²_MAP of this fit is calibrated by χ²(2) (assumed) | GAP | reconstructed: Wilks 1938 (1938AnMS....9...60W) gives this only asymptotically, for a smooth likelihood with the null point away from boundaries; only the last is checkable here (the ΛCDM point is inside the prior box), smoothness and the large-sample approximation are unverified; the paper neither discusses nor simulates it | — |
+| `gap_regular`: the regularity conditions hold under which Wilks' theorem calibrates Δχ²_MAP of this fit by χ²(2) (assumed) | GAP | reconstructed: Wilks 1938 (1938AnMS....9...60W) gives this only asymptotically, for a smooth likelihood with the null point away from boundaries; only the last is checkable here (the ΛCDM point is inside the prior box), smoothness and the large-sample approximation are unverified; the paper neither discusses nor simulates it | — (Wilks 1938 is background) |
 | `mod_wilks`: nested + Gaussian + regular + no systematics → Δχ²_MAP ~ χ²(2 dof) | MOD | stated 2503.14738: "implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated" | §VII |
 | `mod_sig`: Wilks + Δχ² ≤ −12.5 → 3.1σ | MOD | stated 2503.14738: "corresponding to a 3.1 $\sigma$ preference for evolving dark energy" | §VII.1 (via Eq. 22, §VII) |
 
@@ -375,7 +375,7 @@ DR2 给出 7 个红移区间（论文表 4），有效红移（effective redshif
 
 #### 1.3 逐步讲解
 
-**第 1 步——只用 BAO，在 ΛCDM 中。** 只拟合 DESI 的距离，得到物质密度 Ωm = 0.2975 ± 0.0086、h·r_d = 101.54 ± 0.73 Mpc（式 17）。拟合很好："结果可以很好地由平直 ΛCDM 模型描述"。
+**第 1 步——只用 BAO，在 ΛCDM 中。** 只拟合 DESI 的距离，得到物质密度 Ωm = 0.2975 ± 0.0086、h·r_d = 101.54 ± 0.73 Mpc（式 17）。拟合很好："结果可以很好地由平直（flat）ΛCDM 模型描述"。
 
 **第 2 步——与 CMB 的张力（tension）。** CMB 在 ΛCDM 中偏好 Ωm = 0.3169 ± 0.0065（表 5）。两者在 (Ωm, h·r_d) 平面上相差 2.3σ（论文称为"温和的"；不含 CMB 透镜时为 2.0σ）。只看 Ωm 的粗估：(0.3169 − 0.2975)/√(0.0086² + 0.0065²) = 0.0194/0.0108 ≈ 1.8σ；2.3σ 用了两个参数及其相关性。
 
@@ -471,7 +471,7 @@ have d : v.dchi2 ≥ 125 := p .stat_dchi2   -- Sec. VII.1, Table 6
 |---|---|---|---|
 | `mod_nested`：ΛCDM 是 w0 = −1、wa = 0 的 w0waCDM | MOD | stated 2503.14738："$\Lambda$ CDM is nested within $w_{0}w_{a}$ CDM, corresponding to $w_{0}=-1$ , $w_{a}=0$" | §VII |
 | `mod_gauss`：误差是高斯的（工作假设） | MOD | stated 2503.14738："assuming that errors are Gaussian and correctly estimated" | §VII |
-| `gap_regular`：在 ΛCDM 下，这一拟合的 Δχ²_MAP 按 χ²(2) 校准（假设） | GAP | reconstructed：Wilks 1938（1938AnMS....9...60W）只在渐近意义下、对光滑且零假设（null hypothesis）点远离边界的似然给出这一点；这里只能核对最后一条（ΛCDM 点在先验范围内部），光滑性（正则性，regularity）与大样本近似是否适用都没有验证；论文既没有讨论也没有模拟 | — |
+| `gap_regular`：使威尔克斯定理把这一拟合的 Δχ²_MAP 按 χ²(2) 校准的正则性条件成立（假设） | GAP | reconstructed：Wilks 1938（1938AnMS....9...60W）只在渐近意义下、对光滑且零假设（null hypothesis）点远离边界的似然给出这一点；这里只能核对最后一条（ΛCDM 点在先验范围内部），光滑性（正则性，regularity）与大样本近似是否适用都没有验证；论文既没有讨论也没有模拟 | —（Wilks 1938 为背景文献） |
 | `mod_wilks`：嵌套 + 高斯 + 正则 + 无系统误差 → Δχ²_MAP 服从 χ²（2 个自由度） | MOD | stated 2503.14738："implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated" | §VII |
 | `mod_sig`：威尔克斯 + Δχ² ≤ −12.5 → 3.1σ | MOD | stated 2503.14738："corresponding to a 3.1 $\sigma$ preference for evolving dark energy" | §VII.1（经 §VII 的式 22） |
 
