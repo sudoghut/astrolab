@@ -6,14 +6,13 @@
 
 ## 进行中（Doing）
 
-（暂无）
+- [ ] **T-003** 技能：DR4 发布日运行手册（run-book） · 登记 2026-11-14 · 截止 2026-12-01 · 分支 skill/dr4-release-day-runbook
+  - 计划：把 T-002 的步骤、表名确认与失败时的回退写成 `.claude/skills/<name>/SKILL.md`，赶在发布日之前。
 
 ## 下一步（Next）
 
 按优先级排序，最重要的在最上面。
 
-- [ ] **T-003** 技能：DR4 发布日运行手册（run-book） · 登记 2026-11-14 · 截止 2026-12-01
-  - 计划：把 T-002 的步骤、表名确认与失败时的回退写成 `.claude/skills/<name>/SKILL.md`，赶在发布日之前。
 - [ ] **T-002** M4：Gaia DR4 发布日运行 · 登记 2026-11-14 · 截止 2026-12-02 · 前置 T-003
   - 计划：按 `studies/001-m04-gaia-dormant-black-holes/README.md` 第 7 节执行：1. 用 `TAP_SCHEMA` 确认 DR4 表名；2. 以 `release="dr4"` 对全部 DR4 轨道解运行筛选与否决规则（veto）；3. 用 DR4 历元天体测量与视向速度检验 DR3 剩下的 51 个候选。Gaia 数据库 2026-11-25 至 12-02 下线，期间不做 DR3 查询。
 - [ ] **T-004** M1：DESI BAO 复现，引入 `cosmo` 与 `infer` 模块 · 登记 2026-11-14
