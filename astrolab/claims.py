@@ -99,9 +99,18 @@ def _num(x: Any) -> float | None:
         return None
     try:
         v = float(x)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return None
     return v if math.isfinite(v) else None
+
+
+def _text_ok(x: Any) -> bool:
+    """Optional free text emitted to the page: absent or a string."""
+    return x is None or isinstance(x, str)
+
+
+def _name_ok(x: Any) -> bool:
+    return isinstance(x, str) and bool(x.strip())
 
 
 def _coord_ok(t: dict[str, Any]) -> bool:
@@ -124,6 +133,8 @@ def footprint_errors(meta: dict[str, Any]) -> list[str]:
             errs.append("footprint.scale needs finite numeric min_pc and max_pc")
         elif not (0 < lo < hi):
             errs.append("footprint.scale needs 0 < min_pc < max_pc")
+        if isinstance(sc, dict) and not _text_ok(sc.get("note")):
+            errs.append("footprint.scale.note must be text")
     sky = fp.get("sky")
     if sky is not None:
         if not isinstance(sky, dict):
@@ -136,11 +147,14 @@ def footprint_errors(meta: dict[str, Any]) -> list[str]:
             errs.append("footprint.sky.mode: 'none' cannot be combined with other modes")
         if len(set(modes)) != len(modes):
             errs.append("footprint.sky.mode: repeated mode")
-        if "survey" in modes and not (sky.get("survey") or {}).get("name"):
+        sv = sky.get("survey")
+        if sv is not None and not (isinstance(sv, dict) and _name_ok(sv.get("name")) and _text_ok(sv.get("note"))):
+            errs.append("footprint.sky.survey must be a mapping with a text name (and optional text note)")
+        elif "survey" in modes and sv is None:
             errs.append("footprint.sky.mode includes survey: give survey.name")
         tg = sky.get("targets")
         if "targets" in modes:
-            if not isinstance(tg, list) or not tg or not all(isinstance(t, dict) and t.get("name") for t in tg):
+            if not isinstance(tg, list) or not tg or not all(isinstance(t, dict) and _name_ok(t.get("name")) for t in tg):
                 return errs + ["footprint.sky.mode includes targets: give a list of targets with a name (and ra, dec)"]
             for t in tg:
                 if ("ra" in t) != ("dec" in t):
