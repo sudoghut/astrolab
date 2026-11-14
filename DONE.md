@@ -12,6 +12,7 @@
 
 ## 2026-11
 
+- [x] **T-012** M2：哈勃张力（SH0ES、CCHP、H0DN）的距离阶梯复现与跨论文元分析 · 完成 2026-11-14 · PR #12 · 计划 [012](design/012-plan_m02-hubble-tension-distance-ladder-gls-and-host-selection.md) — 研究 003 已结束：对 SH0ES 公开矩阵的 GLS 复现 R22 印出的基线（73.04，χ²/自由度 1.031；作者的 lstsq 文件是另一个拟合）；锚点一步复现；L 的列不按表 6 排列，预注册的宿主一步、R3、R4 不可评估，数据之后修订标注后宿主一步为 −0.073 ± 0.033 mag（−2.2σ，按随机子样本的离散约 1.7σ，边缘显著，后续检验 T-023），同宿主上造父变星与 TRGB 一致（d = +0.010 ± 0.048 mag），CCHP 的选择位于随机子样本第 5.7 百分位；Wiki 文章与 Lean 论证（`gap_rule` 为补上的推理规则）；新增 `infer.gls`
 - [x] **T-005** Atlas 导航：天空视图与尺度视图，研究以足迹（footprint）形式出现在图上 · 完成 2026-11-14 · PR #11 · 计划 [011](design/011-plan_atlas-sky-and-scale-views-from-study-footprints.md) — `study.yaml` 的足迹模式（校验、坐标解析、银道坐标换算）进入 `atlas.json`；Atlas 增加尺度视图（对数距离轴）与天空视图（银道莫尔韦德投影），页面内 SVG、双语；研究 000–002 有了足迹
 - [x] **T-004** M1：DESI BAO 复现，引入 `cosmo` 与 `infer` 模块 · 完成 2026-11-14 · PR #10 · 计划 [010](design/010-plan_m01-desi-dr2-bao-evolving-dark-energy-cosmo-infer.md) — 研究 002 已复现：只用 BAO 的 Ωm、h·r_d 与不含 CMB 的三个 Δχ²（−4.65、−4.86、−10.03）复现；压缩 CMB 先验的 Δχ² 只在 ωbc 不含 ων 的解读下复现（−8.01 对 −6.59，有条件复现），分歧可能落在 θ* 标定误差之内（T-022）；Wiki 文章与 Lean 论证（`explicit_insufficient`：威尔克斯校准为缺口）；新增核心模块 `cosmo`、`infer`
 - [x] **T-010** 补做：按论文立项流程为 M4 补写 Wiki 文章与 Lean 论证拆解 · 完成 2026-11-14 · PR #9 · 计划 [009](design/009-plan_m04-retrofit-wiki-article-and-lean-argument.md) — 双语 Wiki 文章 `Study-001-gaia-dormant-black-holes`（第三部分为事后补写）与 Lean 论证（`argument/`）：论文明说的前提不足（`stated_insufficient`），加上标准知识仍有缺口（`explicit_insufficient`：BH3 论文没有排除三个以上致密天体，`gap_few3`）；BH1 质量的三条路径使 8 个前提多余；经独立审稿修订（按系统设定质量阈值、BH3 的白矮星一步）

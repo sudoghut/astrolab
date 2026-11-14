@@ -20,12 +20,15 @@ M4 的 DR3 部分已完成并经过独立审稿（referee）。接下来的工�
 
 2026-11-14：Atlas 增加尺度视图与天空视图（计划 011）：研究按 `study.yaml` 的足迹（footprint）出现在对数距离轴与银道全天图上。
 
+2026-11-14：M2 研究 003（哈勃张力与校准宿主的选择，计划 012）已结束：GLS 复现 R22 的基线；把阶梯限于 CCHP 的 10 个宿主时 H0 降低 −0.073 ± 0.033 mag（数据之后修订的宿主标注；计入宿主之间的离散后只是边缘显著，T-023），同宿主上造父变星与 TRGB 一致。新增 `infer.gls`。
+
 ## 研究
 
 | 研究 | 层级 | 状态 | 说明 |
 |---|---|---|---|
 | `000-smoke-test_gaia-dr3-10pc-census` | L3 | active | 冒烟测试（smoke test），管线端到端可用 |
 | `002-m01-desi-bao-evolving-dark-energy` | L0 | reproduced | 只用 BAO 与不含 CMB 的组合已复现；压缩 CMB 先验为有条件复现（解读 B），先验 ωbc 约定未定（T-022） |
+| `003-m02-hubble-tension-distance-ladder` | L2 | concluded | GLS 复现 R22 基线；宿主选择使 H0 降低（修订标注，边缘显著，T-023）；同宿主造父变星与 TRGB 一致 |
 | `001-m04-gaia-dormant-black-holes` | L4 | reproduced（DR3） | BH1、BH2 只用 DR3 复现成立；服务器端筛选与否决规则已在正样本上验证；按数据发布参数化，DR4 判据已预注册（计划 008），发布日按技能 `gaia-dr4-release-day` 运行 |
 
 ## 时间点
