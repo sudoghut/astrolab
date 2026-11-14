@@ -12,8 +12,8 @@ The chain (the conclusion is deliberately weak: "entirely consistent with"):
   on the same hosts, HST Cepheid and JWST distances agree (TRGB and JAGB within errors)
   for every subsample, the JWST-inferred H0 (the paper's own calibration of the CCHP distances)
       is consistent with the HST expectation (at or within 1 sigma)
-  GAP: the CCHP program's published H0 differs from those recomputed values only by analysis
-      choices that do not affect the comparison
+  GAP: the CCHP JWST program, about which the conclusion speaks, is represented by those
+      recomputed values (its own published H0 differs, e.g. 69.29 against 70.1)
   -> the CCHP-vs-HST difference (about 2.5) is entirely consistent with sample selection
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
@@ -33,9 +33,9 @@ inductive Prov where
 
 /-- The atoms of the argument. -/
 structure Vocab where
-  /-- H0 from the full HST sample (42 SNe Ia, 4 anchors), tenths of km/s/Mpc. -/
+  /-- Reported central value of H0 from the full HST sample (42 SNe Ia, 4 anchors), tenths of km/s/Mpc. -/
   h_full : Nat
-  /-- H0 from HST Cepheids on the 10 CCHP-selected hosts (11 SNe Ia), NGC 4258 anchor, tenths. -/
+  /-- Reported central value of H0 from HST Cepheids on the 10 CCHP-selected hosts (11 SNe Ia), NGC 4258 anchor, tenths. -/
   h_sel : Nat
   /-- Choosing the CCHP hosts and anchor is expected to lower H0 by about 2 km/s/Mpc. -/
   ExpDrop : Prop
@@ -43,7 +43,7 @@ structure Vocab where
   AgreeSameHost : Prop
   /-- For every subsample, the H0 from the JWST distances, as recalibrated by the paper (Table 4), is consistent with the HST expectation on the same SNe (at or within 1 sigma, Sec. III.3). -/
   ResidSmall : Prop
-  /-- The CCHP program's published H0 differs from the paper's recalibrated JWST values only by analysis choices that do not affect the comparison. -/
+  /-- The CCHP JWST program, about which the conclusion speaks, is represented by the paper's recalibrated JWST values (its own published H0 differs only by analysis choices that do not affect the comparison). -/
   SameQuantity : Prop
   /-- The CCHP-vs-HST difference is entirely consistent with differences in sample selection. -/
   ConsSel : Prop
@@ -76,9 +76,9 @@ def prov : Field → Prov
   | .mod_cons => .implied
 
 def prem : Field → Vocab → Prop
-  | .stat_full, v => v.h_full ≥ 731
+  | .stat_full, v => v.h_full ≥ 732
   | .stat_sel, v => v.h_sel ≤ 712
-  | .mod_drop, v => v.h_full ≥ 731 → v.h_sel ≤ 712 → v.ExpDrop
+  | .mod_drop, v => v.h_full ≥ 732 → v.h_sel ≤ 712 → v.ExpDrop
   | .stat_agree, v => v.AgreeSameHost
   | .stat_resid, v => v.ResidSmall
   | .gap_same, v => v.SameQuantity
@@ -104,44 +104,44 @@ theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
   fun h => h ⟨0, 0, False, False, False, False, False⟩
 
 theorem consistent : ∃ v, Premises v :=
-  ⟨⟨731, 712, True, True, True, True, True⟩, by intro f; cases f <;> simp [prem]⟩
+  ⟨⟨732, 712, True, True, True, True, True⟩, by intro f; cases f <;> simp [prem]⟩
 
 theorem alone_insufficient : ∀ g, ¬ ∀ v, prem g v → Conclusion v := by
   intro g h
   cases g
   case mod_drop => exact h ⟨0, 999, False, False, False, False, False⟩ (by simp [prem])
   case mod_cons => exact h ⟨0, 999, False, False, False, False, False⟩ (by simp [prem])
-  all_goals exact h ⟨731, 712, False, True, True, True, False⟩ (by simp [prem])
+  all_goals exact h ⟨732, 712, False, True, True, True, False⟩ (by simp [prem])
 
 theorem stat_full_needed : ¬ ∀ v, Without .stat_full v → Conclusion v := fun h =>
   h ⟨0, 712, False, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_sel_needed : ¬ ∀ v, Without .stat_sel v → Conclusion v := fun h =>
-  h ⟨731, 999, False, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨732, 999, False, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem mod_drop_needed : ¬ ∀ v, Without .mod_drop v → Conclusion v := fun h =>
-  h ⟨731, 712, False, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨732, 712, False, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_agree_needed : ¬ ∀ v, Without .stat_agree v → Conclusion v := fun h =>
-  h ⟨731, 712, True, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨732, 712, True, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_resid_needed : ¬ ∀ v, Without .stat_resid v → Conclusion v := fun h =>
-  h ⟨731, 712, True, True, False, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨732, 712, True, True, False, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem gap_same_needed : ¬ ∀ v, Without .gap_same v → Conclusion v := fun h =>
-  h ⟨731, 712, True, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨732, 712, True, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem mod_cons_needed : ¬ ∀ v, Without .mod_cons v → Conclusion v := fun h =>
-  h ⟨731, 712, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨732, 712, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 /-- What the paper writes is not enough: the bridge to CCHP's published values (gap_same) and the
 rule to "consistent" (mod_cons) are not stated. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
-  h ⟨731, 712, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨732, 712, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
 /-- Even with standard knowledge the chain has a gap: that the paper's recalibrated JWST values
 stand for the CCHP program's own published H0 (gap_same). -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
-  h ⟨731, 712, True, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨732, 712, True, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
 end Argument
