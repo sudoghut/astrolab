@@ -46,8 +46,8 @@ unknowns q (the distance of each host, Cepheid calibration terms, the SN Ia lumi
 The Chicago-Carnegie Hubble Program (CCHP; Freedman et al. 2025) uses other stars as rung 2: the
 tip of the red giant branch (TRGB) and carbon stars (JAGB). With the James Webb Space Telescope
 (JWST) it observed 10 of the SN hosts (11 SNe Ia) and found lower values, 70.39 ± 1.22 (stat) ±
-1.33 (sys) from 24 calibrators in total, and 68.81 (CSP SNe) or 69.29 (Pantheon+ SNe) from the 11
-JWST calibrators alone.
+1.33 (sys) from 24 calibrators in total, and, from the JWST TRGB distances to the 11 JWST-observed calibrators alone, 68.81 (with CSP
+Hubble-flow SNe) or 69.29 (with Pantheon+ SNe).
 
 #### 1.3 Step by step
 
@@ -157,10 +157,10 @@ offset of a few percent cannot be excluded. The check has low power.
 |---|---|---|---|
 | `stat_resid`: for every subsample the recalibrated JWST H0 is consistent with the HST expectation | STAT | stated 2408.11770: "we find the values inferred using JWST are consistent with expectations for every subsample" (next sentence: at or within 1σ of these smaller uncertainties) | §III.3, Table 4 |
 | `gap_same`: the CCHP JWST program, about which the conclusion speaks, is represented by those recalibrated values | GAP | reconstructed: the paper adopts CCHP's distances "at face-value" and derives H0 itself; CCHP's published values differ (69.29 vs 70.1 for Pantheon+ TRGB) and the paper does not show that the difference is immaterial | — |
-| `mod_cons`: expected drop + agreement + within-1σ + same quantity → consistent | MOD | implied: meaning of "consistent" (no significant residual; Taylor 1997) | — |
+| `gap_rule`: expected drop + agreement + within-1σ + same quantity → consistent | GAP | reconstructed: our reading of the paper's inference; the paper states only the conclusion, and a textbook definition of consistency within errors (Taylor 1997) covers only the last comparison | — |
 
 ```lean
-exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3, III.3; GAP
+exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3, III.3; GAP
 ```
 
 **Rival explanations.**
@@ -173,28 +173,31 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 
 #### 2.4 What the Lean check found
 
-1. **`explicit_insufficient`**: even with standard knowledge the chain has one gap, `gap_same`.
+1. **`explicit_insufficient`**: even with standard knowledge the chain has two gaps. The first is
+   `gap_rule`, our own reading of how the paper gets from its facts to "consistent with selection"
+   (the paper states the conclusion, not the rule; no textbook supplies it). The second, `gap_same`,
+   is substantive:
    The within-1σ comparisons the paper states are made on its own recalibration of the CCHP
    distances; the conclusion is about the CCHP program's published H0. That the two can be
    exchanged is neither stated nor standard knowledge (CCHP's Pantheon+ TRGB value is 69.29,
    Table 4's 70.1). The countermodel sets `SameQuantity := False`. This repo can probe this step
    (descriptively): R3 reproduces CCHP's 69.29 in R22's framework and compares it with the Cepheid ladder on
    the same hosts.
-2. **`stated_insufficient`**: besides the gap, the rule from the facts to "consistent" (`mod_cons`)
-   is left implicit; the conclusion itself is weak ("entirely consistent with").
-   What this does and does not show: `mod_cons` is a modelling assumption that we supply — our
+2. **`stated_insufficient`**: for the same two reasons; the conclusion itself is weak ("entirely
+   consistent with").
+   What this does and does not show: `gap_rule` is a modelling assumption that we supply — our
    reading of what "consistent with selection" means (the expected shift, agreement on the same
    hosts, a within-1σ comparison, about the right quantity). Lean does not derive that rule; it
    shows which inputs the rule needs and that one of them (`gap_same`) is not supplied by the paper
    or by standard knowledge. A different reading of "consistent" would be a different encoding.
-3. **Every premise is needed** (seven `_needed` theorems): a single route. `gap_same` is the only
-   reconstructed premise, which is why `explicit_insufficient` hinges on it.
+3. **Every premise is needed** (seven `_needed` theorems): a single route. Both reconstructed
+   premises are needed; `gap_same` is the one with empirical content, which R3 can probe.
 4. **Consistency** (`consistent`) holds trivially: no premise is negative.
 5. **Weak points** (ours): the gap above; the 71.2 is an approximation on newer data; "consistent" is backed by
    low-power checks (≈ 0.05–0.10 mag in distance, ≈ 1.5 km/s/Mpc in H0); "consistent with" is not
    "caused by". The study (part 3) tests the first directly.
 6. **Limits**: Lean checks the structure under our encoding, not the astrophysics. In particular the
-   atoms are uninterpreted: `mod_cons` asserts that the selection shift, the same-host agreement and
+   atoms are uninterpreted: `gap_rule` asserts that the selection shift, the same-host agreement and
    the within-1σ comparison together imply "consistent"; whether the numbers behind those atoms
    really support them is checked by reading the paper and, for the shift, by the study (R2), not by
    Lean.
@@ -204,7 +207,7 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
 | R1 · the SH0ES baseline | testable now | GLS fit of R22's y, L, C | C 46.5 MiB (Git LFS FITS), L 0.66 MB, y 17 kB, lstsq 0.7 kB; total about 47.2 MiB (below the 200 MB study budget) | primary: reproduce the authors' `lstsq_results.txt` (47 parameters); secondary: 73.04 ± 1.01 (tolerances in README §2) | pending |
-| R2 · stage A–B: anchor and host shifts | testable now | refit with NGC 4258 only (drop the other anchors' geometric rows), then restrict to the CCHP hosts; shifts in 5 log H0 with exact linear error propagation | same | anchor shift vs R22's −0.0158 mag; host shift: null "no shift", four-outcome table vs the paper's −0.0405 mag (README §2) | pending |
+| R2 · stage A–B: anchor and host shifts | testable now | refit with NGC 4258 only (drop the other anchors' geometric rows), then restrict to the CCHP hosts; shifts in 5 log H0 with exact linear error propagation | same | anchor shift vs R22's −0.0158 mag; host shift: null "no shift", four-outcome table vs −0.0405 mag (our conversion of the paper's 72.54 → 71.2 to 5 log H0; README §2) | pending |
 | R3 · stages C and E (`gap_same`): same hosts, Cepheid vs TRGB | explorable (descriptive by default) | joint linear estimator with CCHP's JWST TRGB distances; reproduce 69.29 first | CCHP Table 3 (paper) | descriptive unless the full CCHP error budget can be mapped before data; see README §8 | pending |
 | R4 · is the CCHP choice unusual? | explorable (descriptive) | random 10-host subsets of the 37 hosts, ΔH0 percentile (the paper did an 8-SN version for JAGB, Fig. 6: ~5%) | same | none — exploration only, see README §8 | pending |
 | Cross-paper comparison | explorable (descriptive) | pairwise differences for independent pairs only (ladder vs CMB, TDCOSMO vs others) | paper numbers | none — see README §8 | pending |
@@ -224,7 +227,7 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 - 2026-11-14: first version: parts 1–3, written before implementation (T-012, plan 012); revised after
   review (gate 1: TRGB agreement included; the within-1σ comparison is stated by the paper; Fig. 6;
   GAP `gap_same`: the recalibrated JWST values versus CCHP's published H0, so `explicit_insufficient`;
-  gate 2: reported central value 73.2, and the limits of what Lean shows about `mod_cons`).
+  gate 2: reported central value 73.2, and the limits of what Lean shows about `gap_rule`).
 
 ---
 
@@ -242,7 +245,7 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 
 SH0ES（Supernovae and H0 for the Equation of State of dark energy）团队（Riess 等 2022，"R22"）用了 37 个曾出现 42 颗 Ia 型超新星的星系中的造父变星、三个锚点，以及哈勃流中 277 颗 Ia 型超新星（0.0233 < z < 0.15）。全部数据可以写成一个线性方程组 y = L q：约 3500 个星等 y、方程矩阵（design matrix）L、协方差矩阵（covariance matrix）C 与 47 个未知数 q（每个宿主星系（host galaxy）的距离、造父变星的标定项、超新星光度 M_B，以及最后一个 5 log H0）。R22 公开了 y、L 和 C，本项目可以重新拟合。
 
-芝加哥—卡内基哈勃计划（CCHP, Chicago-Carnegie Hubble Program；Freedman 等 2025）在第二级用别的恒星：红巨星支顶端（TRGB, tip of the red giant branch）与碳星（JAGB, J-region asymptotic giant branch）。它用詹姆斯·韦布空间望远镜（JWST）观测了 10 个超新星宿主星系（11 颗 Ia 型超新星），得到较低的数值：全部 24 颗校准超新星给出 70.39 ± 1.22（统计）± 1.33（系统），只用 11 颗 JWST 校准超新星给出 68.81（CSP 超新星）或 69.29（Pantheon+ 超新星）。
+芝加哥—卡内基哈勃计划（CCHP, Chicago-Carnegie Hubble Program；Freedman 等 2025）在第二级用别的恒星：红巨星支顶端（TRGB, tip of the red giant branch）与碳星（JAGB, J-region asymptotic giant branch）。它用詹姆斯·韦布空间望远镜（JWST）观测了 10 个超新星宿主星系（11 颗 Ia 型超新星），得到较低的数值：全部 24 颗校准超新星给出 70.39 ± 1.22（统计）± 1.33（系统），只用 JWST 观测的 11 颗校准超新星的 TRGB 距离给出 68.81（哈勃流用 CSP 超新星）或 69.29（用 Pantheon+ 超新星）。
 
 #### 1.3 逐步讲解
 
@@ -311,10 +314,10 @@ have d : v.ExpDrop := p .mod_drop (p .stat_full) (p .stat_sel)   -- Sec. III.2
 |---|---|---|---|
 | `stat_resid`：对每个子样本，重新标定的 JWST H0 与 HST 预期相容 | STAT | stated 2408.11770："we find the values inferred using JWST are consistent with expectations for every subsample"（下一句：在这些较小误差的 1σ 以内） | §III.3，表 4 |
 | `gap_same`：结论所说的 CCHP JWST 计划由这些重新标定的数值代表 | GAP | reconstructed：论文按原值采用 CCHP 的距离并自己推出 H0；CCHP 发表的数值不同（Pantheon+ TRGB 69.29 对 70.1），论文没有说明这一差别无关紧要 | — |
-| `mod_cons`：预期的移动 + 一致 + 1σ 以内 + 同一个量 → 相容 | MOD | implied："相容"的含义（没有显著的剩余；Taylor 1997） | — |
+| `gap_rule`：预期的移动 + 一致 + 1σ 以内 + 同一个量 → 相容 | GAP | reconstructed：我们对论文推理的理解；论文只写出结论，教科书中"误差内相容"的定义（Taylor 1997）只涵盖最后一项比较 | — |
 
 ```lean
-exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3, III.3; GAP
+exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3, III.3; GAP
 ```
 
 **其他解释。**
@@ -327,19 +330,19 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 
 #### 2.4 Lean 检查的发现
 
-1. **`explicit_insufficient`**：即使加上标准知识，链条仍有一处缺口 `gap_same`。论文写明的 1σ 以内的比较，是在它自己对 CCHP 距离的重新标定上做的；而结论针对的是 CCHP 计划发表的 H0。两者可以互换，论文没有写，也不是标准知识（CCHP 的 Pantheon+ TRGB 为 69.29，表 4 为 70.1）。反例模型令 `SameQuantity := False`。本项目可以（描述性地）探索这一步：R3 在 R22 的框架内复现 CCHP 的 69.29，并与同一批宿主上的造父变星阶梯比较。
-2. **`stated_insufficient`**：除了这一缺口，由这些事实到"相容"的规则（`mod_cons`）也没有写出；结论本身很弱（"完全相容"）。这能说明什么、不能说明什么：`mod_cons` 是我们提供的建模假设——我们对"与选择相容"含义的理解（预期的移动、同宿主的一致、1σ 以内的比较、针对正确的量）。Lean 并不推出这一规则；它表明这一规则需要哪些输入，以及其中一个（`gap_same`）论文与标准知识都没有提供。对"相容"的另一种理解会是另一种编码。
-3. **每个前提都是必要的**（7 个 `_needed` 定理）：只有一条路径。`gap_same` 是唯一的补上前提，所以 `explicit_insufficient` 取决于它。
+1. **`explicit_insufficient`**：即使加上标准知识，链条仍有两处缺口。一是 `gap_rule`，即我们对论文如何由这些事实推到"与选择相容"的理解（论文只写出结论，没有写出规则，也没有教科书提供它）。二是 `gap_same`，它有实质内容：论文写明的 1σ 以内的比较，是在它自己对 CCHP 距离的重新标定上做的；而结论针对的是 CCHP 计划发表的 H0。两者可以互换，论文没有写，也不是标准知识（CCHP 的 Pantheon+ TRGB 为 69.29，表 4 为 70.1）。反例模型令 `SameQuantity := False`。本项目可以（描述性地）探索这一步：R3 在 R22 的框架内复现 CCHP 的 69.29，并与同一批宿主上的造父变星阶梯比较。
+2. **`stated_insufficient`**：原因相同；结论本身很弱（"完全相容"）。这能说明什么、不能说明什么：`gap_rule` 是我们提供的建模假设——我们对"与选择相容"含义的理解（预期的移动、同宿主的一致、1σ 以内的比较、针对正确的量）。Lean 并不推出这一规则；它表明这一规则需要哪些输入，以及其中一个（`gap_same`）论文与标准知识都没有提供。对"相容"的另一种理解会是另一种编码。
+3. **每个前提都是必要的**（7 个 `_needed` 定理）：只有一条路径。两个补上的前提都必要；有经验内容、可由 R3 探索的是 `gap_same`。
 4. **相容性**（`consistent`）是平凡成立的：没有否定形式的前提。
 5. **薄弱点**（我们的判断）：上述缺口；71.2 是在较新数据上的近似；"相容"依靠检验力不高的核对（距离约 0.05–0.10 mag，H0 约 1.5 km/s/Mpc）；"相容"不等于"由其造成"。研究（第三部分）直接检验第一点。
-6. **局限**：Lean 检查的是我们编码下的结构，不是天体物理。特别是原子没有解释：`mod_cons` 断言选择造成的移动、同宿主的一致与 1σ 以内的比较合起来推出"相容"；这些原子背后的数字是否真的支持它们，由阅读论文以及（对移动量而言）研究的 R2 来检查，而不是 Lean。
+6. **局限**：Lean 检查的是我们编码下的结构，不是天体物理。特别是原子没有解释：`gap_rule` 断言选择造成的移动、同宿主的一致与 1σ 以内的比较合起来推出"相容"；这些原子背后的数字是否真的支持它们，由阅读论文以及（对移动量而言）研究的 R2 来检查，而不是 Lean。
 
 ### 第三部分 · astrolab 能检验或探索的环节
 
 | 环节 / 论断 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
 | R1 · SH0ES 的基线 | 现在可检验 | 对 R22 的 y、L、C 做广义最小二乘（GLS, generalised least squares）拟合 | C 46.5 MiB（Git LFS 的 FITS），L 0.66 MB，y 17 kB，lstsq 0.7 kB；合计约 47.2 MiB（低于研究预算 200 MB） | 主要：复现作者的 `lstsq_results.txt`（47 个参数）；次要：73.04 ± 1.01（容差见 README 第 2 节） | 待定 |
-| R2 · 环节 A–B：锚点与宿主的移动 | 现在可检验 | 只用 NGC 4258（去掉其他锚点的几何约束行）重拟，再限于 CCHP 宿主；在 5 log H0 中用精确的线性误差传播 | 同上 | 锚点移动对 R22 的 −0.0158 mag；宿主移动：零假设（null hypothesis）"无移动"，四种结果的判定表，对该文的 −0.0405 mag（README 第 2 节） | 待定 |
+| R2 · 环节 A–B：锚点与宿主的移动 | 现在可检验 | 只用 NGC 4258（去掉其他锚点的几何约束行）重拟，再限于 CCHP 宿主；在 5 log H0 中用精确的线性误差传播 | 同上 | 锚点移动对 R22 的 −0.0158 mag；宿主移动：零假设（null hypothesis）"无移动"，四种结果的判定表，对 −0.0405 mag（我们把该文的 72.54 → 71.2 换算到 5 log H0；README 第 2 节） | 待定 |
 | R3 · 环节 C 与 E（`gap_same`）：同宿主上造父变星对 TRGB | 可探索（默认只作描述） | 与 CCHP 的 JWST TRGB 距离做联合线性估计；先复现 69.29 | CCHP 表 3（论文） | 只有在取数前能写出 CCHP 完整的误差预算时才作检验，否则只作描述；见 README 第 8 节 | 待定 |
 | R4 · CCHP 的选择是否不寻常 | 可探索（只作描述） | 37 个宿主中随机 10 个的子样本，ΔH0 的百分位（percentile）（论文对 JAGB 做过 8 颗超新星的版本，图 6：约 5%） | 同上 | 无——只作探索，见 README 第 8 节 | 待定 |
 | 跨论文比较 | 可探索（只作描述） | 只对近似独立的组合给出两两之差（距离阶梯对 CMB、TDCOSMO 对其他） | 论文数字 | 无——见 README 第 8 节 | 待定 |
@@ -356,4 +359,4 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 
 ### 研究进展
 
-- 2026-11-14：第一版：第一至三部分，在实现之前写成（T-012，计划 012）；按审查修订（闸门 1：补上 TRGB 的一致性；1σ 以内的比较论文自己写明；图 6；GAP `gap_same`：重新标定的 JWST 数值与 CCHP 发表的 H0，因而 `explicit_insufficient`；闸门 2：报告的中心值 73.2，以及 Lean 对 `mod_cons` 能说明什么）。
+- 2026-11-14：第一版：第一至三部分，在实现之前写成（T-012，计划 012）；按审查修订（闸门 1：补上 TRGB 的一致性；1σ 以内的比较论文自己写明；图 6；GAP `gap_same`：重新标定的 JWST 数值与 CCHP 发表的 H0，因而 `explicit_insufficient`；闸门 2：报告的中心值 73.2，以及 Lean 对 `gap_rule` 能说明什么）。
