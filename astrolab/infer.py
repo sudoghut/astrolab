@@ -146,7 +146,7 @@ def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rto
 
     All-zero columns of L (e.g. the distance of a host whose rows were removed) are dropped; their
     entries in ``q``/``sigma`` are NaN and ``kept`` lists the columns that were fitted. The reduced
-    system must have full column rank (ValueError otherwise). Pass ``c_factor`` (the result of
+    system must have full column rank (ValueError otherwise). Pass ``c_factor`` (it must be the unmodified result of
     ``scipy.linalg.cho_factor(C, lower=True)``) to reuse a factorisation; then ``C`` may be None.
 
     Returns dict: q, sigma (NaN for dropped columns), cov (kept x kept), kept, chi2, dof, and, with
@@ -183,8 +183,14 @@ def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rto
             c_factor = linalg.cho_factor(C, lower=True)
         except linalg.LinAlgError as exc:
             raise ValueError(f"C is not positive definite: {exc}") from exc
-    elif c_factor[0].shape != (n, n):
-        raise ValueError(f"c_factor has shape {c_factor[0].shape}, expected ({n}, {n})")
+    else:
+        if not (isinstance(c_factor, tuple) and len(c_factor) == 2):
+            raise ValueError("c_factor must be the (matrix, lower) tuple from scipy.linalg.cho_factor")
+        if c_factor[0].shape != (n, n):
+            raise ValueError(f"c_factor has shape {c_factor[0].shape}, expected ({n}, {n})")
+        dg = np.diag(c_factor[0])
+        if not (np.all(np.isfinite(dg)) and np.all(dg > 0)):
+            raise ValueError("c_factor has a non-finite or non-positive diagonal")
     W = linalg.cho_solve(c_factor, Lk)                     # C^-1 L
     F = Lk.T @ W                                           # Fisher matrix
     F = 0.5 * (F + F.T)
