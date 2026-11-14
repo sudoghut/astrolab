@@ -16,6 +16,18 @@
   .item .meta { font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .empty { color: var(--muted); font-size: 13px; font-style: italic; }
   .kind { font: 11px var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .views { display: inline-flex; gap: 6px; margin: 10px 0 4px; }
+  .views button { font: inherit; font-size: 13px; padding: 3px 12px; border: 1px solid var(--line); background: var(--surface);
+                  color: var(--text); border-radius: 4px; cursor: pointer; }
+  .views button[aria-pressed=true] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  svg.chart { width: 100%; height: auto; display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  svg.chart text { fill: var(--text); font: 12px var(--sans); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+  svg.chart .axis, svg.chart .grid { stroke: var(--line); fill: none; }
+  svg.chart .tick { fill: var(--muted); font-size: 11px; }
+  svg.chart .lvl { font: 600 12px var(--mono); fill: var(--accent); }
+  svg.chart a:hover text { text-decoration: underline; }
+  .legend { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+  .legend li { margin: 2px 0; }
   @media (max-width: 640px) { .level { grid-template-columns: 1fr; gap: 6px; } }
 </style>
 </head>
@@ -23,14 +35,15 @@
 <main>
   <p class="crumb">astrolab</p>
   <h1><span class="en">Atlas of the Universe, by scale</span><span class="zh">宇宙图谱：按尺度排列</span></h1>
-  <p class="muted"><span class="en">Coarse map first, detail on demand. Each level lists the landmark claims we track and the studies that reproduce or test them.</span><span class="zh">先看粗略全图，需要时再看细节。每个尺度列出我们跟踪的标志性结论，以及复现或检验它们的研究。</span></p>
+  <p class="muted"><span class="en">Coarse map first, detail on demand. Each level lists the landmark claims we track and the studies that reproduce or test them. The scale and sky views place each study by its footprint.</span><span class="zh">先看粗略全图，需要时再看细节。每个尺度列出我们跟踪的标志性结论，以及复现或检验它们的研究。尺度视图与天空视图按足迹（footprint）标出每个研究的位置。</span></p>
+  <div class="views" id="views" role="group"></div>
   <div id="atlas"><p class="muted"><span class="en">loading… (run <code>python -m astrolab serve</code>)</span><span class="zh">加载中……（请运行 <code>python -m astrolab serve</code>）</span></p></div>
   <p class="muted" id="gen"></p>
 </main>
 <script>
 // English-only fallback if i18n.js failed to load, so the page still renders.
 const i18nApi = window.i18n || { L: en => en, t: en => en, onLangChange() {} };
-const { L } = i18nApi;
+const { L, t } = i18nApi;
 const LEVELS = {
   L0: [['Cosmic background', '宇宙背景'], ['Cosmological parameters, expansion history, CMB', '宇宙学参数、膨胀历史、宇宙微波背景']],
   L1: [['Large-scale structure', '大尺度结构'], ['BAO, galaxy clustering, high-redshift galaxies', '重子声学振荡、星系成团、高红移星系']],
@@ -45,7 +58,9 @@ const STATUS_ZH = { planned: '计划中', active: '进行中', reproduced: '已�
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // Bilingual text from a data object: field + field_zh (falls back to English).
 const both = (o, f) => L(esc(o[f]), o[f + '_zh'] ? esc(o[f + '_zh']) : null);
+const plain = (o, f) => t(String(o[f] ?? ''), o[f + '_zh'] ? String(o[f + '_zh']) : String(o[f] ?? ''));
 const word = (v, zh) => L(esc(v), zh[v] ? esc(zh[v]) : null);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim() || '#888';
 
 function claimCard(c) {
   const r = c.reproduction || {};
@@ -62,18 +77,151 @@ function studyCard(s) {
     <p>${both(s, 'question')}</p><div class="meta"><span>${word(s.status, STATUS_ZH)}</span><span>${esc(s.id)}</span>${link}</div></div>`;
 }
 
-fetch('data/atlas.json').then(r => r.json()).then(d => {
-  document.getElementById('atlas').innerHTML = d.levels.map(lv => {
+// ---------------------------------------------------------------- list view
+function renderList(d) {
+  return d.levels.map(lv => {
     const cl = d.claims.filter(c => c.level === lv), st = d.studies.filter(s => s.level === lv);
     const items = cl.map(claimCard).concat(st.map(studyCard)).join('') || `<p class="empty">${L('nothing mapped yet', '暂无内容')}</p>`;
     const [name, desc] = LEVELS[lv];
     return `<section class="level"><div class="level-name"><div class="code">${lv}</div><strong>${L(...name)}</strong>
       <div class="desc">${L(...desc)}</div></div><div class="items">${items}</div></section>`;
   }).join('');
-  document.getElementById('gen').innerHTML = L('generated ', '生成于 ') + esc(d.generated_at);
-}).catch(e => {
+}
+
+// ---------------------------------------------------------------- scale view
+// Log10 distance in parsecs. Claims take the range of their study, else the level default.
+const XMIN = -6.5, XMAX = 10.6, W = 1000, PADL = 54, PADR = 16;
+const xpos = v => PADL + (Math.min(Math.max(v, XMIN), XMAX) - XMIN) / (XMAX - XMIN) * (W - PADL - PADR);
+const MARKS = [[-5.31, ['1 AU', '1 天文单位']], [0, ['1 pc', '1 pc']], [4.3, ['Milky Way disc (~20 kpc)', '银河系盘（约 20 kpc）']],
+               [6, ['1 Mpc', '1 Mpc']], [9, ['1 Gpc', '1 Gpc']], [10.15, ['CMB (~14 Gpc)', 'CMB（约 14 Gpc）']]];
+function renderScale(d) {
+  const byStudy = Object.fromEntries(d.studies.map(s => [s.id, s]));
+  const rows = [];
+  for (const lv of d.levels) {
+    const items = [];
+    for (const s of d.studies.filter(s => s.level === lv))
+      items.push({kind: 'study', label: plain(s, 'title'), href: s.has_web ? `../../studies/${s.id}/web/` : null,
+                  sc: s.footprint.scale, color: css('--accent'), note: s.footprint.scale.note});
+    for (const c of d.claims.filter(c => c.level === lv)) {
+      const st = byStudy[(c.reproduction || {}).study];
+      const sc = st ? st.footprint.scale : {log10_min: d.level_scale_log10[lv][0], log10_max: d.level_scale_log10[lv][1], default: true};
+      items.push({kind: 'claim', label: plain(c, 'title'), href: st && st.has_web ? `../../studies/${st.id}/web/` : null,
+                  sc, color: css('--' + c.grade), note: null});
+    }
+    rows.push({lv, items});
+  }
+  const RH = 20, HEAD = 22;
+  let y = 34, body = '';
+  for (const r of rows) {
+    body += `<text class="lvl" x="6" y="${y + 14}">${r.lv}</text><text x="${PADL}" y="${y + 14}" class="tick">${esc(t(...LEVELS[r.lv][0]))}</text>`;
+    y += HEAD;
+    if (!r.items.length) { body += `<text x="${PADL}" y="${y + 13}" class="tick">${esc(t('nothing mapped yet', '暂无内容'))}</text>`; y += RH; }
+    for (const it of r.items) {
+      const x0 = xpos(it.sc.log10_min), x1 = Math.max(xpos(it.sc.log10_max), x0 + 4);
+      const dash = it.sc.default ? 'stroke-dasharray="5 4"' : '';
+      const fill = it.kind === 'study' ? it.color : 'none';
+      const tip = `${it.label} (${it.kind === 'study' ? t('study', '研究') : t('claim', '结论')}); 10^${it.sc.log10_min.toFixed(1)}–10^${it.sc.log10_max.toFixed(1)} pc${it.sc.default ? ' (' + t('level default', '层级默认范围') + ')' : ''}${it.note ? '; ' + it.note : ''}`;
+      // label right of the bar, else left of it, else inside the bar (bars spanning the axis)
+      let labelX = x1 + 6, anchor = 'start';
+      if (x1 + 6 > W - 260) { if (x0 - 6 > PADL + 260) { labelX = x0 - 6; anchor = 'end'; } else { labelX = x0 + 6; } }
+      const label = it.label.length > 60 ? it.label.slice(0, 58) + '…' : it.label;
+      let g = `<g><title>${esc(tip)}</title><rect x="${x0}" y="${y + 4}" width="${x1 - x0}" height="10" rx="3" fill="${fill}" fill-opacity="0.35" stroke="${it.color}" ${dash}/>
+        <text x="${labelX}" y="${y + 13}" text-anchor="${anchor}">${esc(label)}</text></g>`;
+      if (it.href) g = `<a href="${esc(it.href)}">${g}</a>`;
+      body += g; y += RH;
+    }
+    y += 6;
+  }
+  let axis = `<line class="axis" x1="${PADL}" y1="24" x2="${W - PADR}" y2="24"/>`;
+  for (let k = Math.ceil(XMIN); k <= Math.floor(XMAX); k++) {
+    axis += `<line class="grid" x1="${xpos(k)}" y1="24" x2="${xpos(k)}" y2="${y}" stroke-dasharray="1 4"/>`;
+    if (k % 2 === 0) axis += `<text class="tick" x="${xpos(k)}" y="18" text-anchor="middle">10${k < 0 ? '⁻' : ''}${String(Math.abs(k)).split('').map(c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[c]).join('')}</text>`;
+  }
+  MARKS.forEach(([v, lab], i) => {
+    const right = xpos(v) > W - 160;
+    axis += `<line x1="${xpos(v)}" y1="24" x2="${xpos(v)}" y2="${y}" stroke="${css('--muted')}" stroke-opacity="0.35"/><text class="tick" x="${xpos(v) + (right ? -3 : 3)}" y="${y + 12 + (i % 2) * 12}" text-anchor="${right ? 'end' : 'start'}">${esc(t(...lab))}</text>`;
+  });
+  const svg = `<svg class="chart" viewBox="0 0 ${W} ${y + 34}" role="img" aria-label="${esc(t('Scale view', '尺度视图'))}">${axis}${body}</svg>`;
+  const legend = `<ul class="legend"><li>${L('Horizontal axis: distance in parsecs (log). Filled bars: studies, by their footprint. Outlined bars: claims, coloured by grade, at the range of their study.', '横轴：距离（秒差距，对数）。实心条：研究，按足迹。空心条：结论，按等级着色，取其研究的范围。')}</li>
+    <li>${L('Dashed: no footprint yet, the level default range is shown.', '虚线：尚无足迹，显示层级默认范围。')}</li></ul>`;
+  return svg + legend;
+}
+
+// ---------------------------------------------------------------- sky view
+// Mollweide projection in Galactic coordinates; longitude increases to the left (l = 0 at the centre).
+const SW = 1000, R = 168, SH = Math.ceil(2 * Math.SQRT2 * R) + 24, CX = SW / 2, CY = SH / 2;
+function moll(l, b) {
+  let lam = ((l + 180) % 360 + 360) % 360 - 180;            // [-180, 180)
+  const phi = b * Math.PI / 180;
+  let th = phi;
+  if (Math.abs(Math.abs(phi) - Math.PI / 2) < 1e-9) th = phi;
+  else for (let i = 0; i < 50; i++) {
+    const f = 2 * th + Math.sin(2 * th) - Math.PI * Math.sin(phi);
+    const d = 2 + 2 * Math.cos(2 * th); if (Math.abs(d) < 1e-12) break;
+    const dt = f / d; th -= dt; if (Math.abs(dt) < 1e-10) break;
+  }
+  const x = -2 * Math.SQRT2 / Math.PI * (lam * Math.PI / 180) * Math.cos(th);
+  const y = Math.SQRT2 * Math.sin(th);
+  return [CX + R * x, CY - R * y];
+}
+function path(pts) { return 'M' + pts.map(p => p.map(v => v.toFixed(1)).join(',')).join('L'); }
+function renderSky(d) {
+  let g = `<ellipse cx="${CX}" cy="${CY}" rx="${2 * Math.SQRT2 * R}" ry="${Math.SQRT2 * R}" fill="none" stroke="${css('--line')}"/>`;
+  for (let b = -60; b <= 60; b += 30) {
+    const pts = []; for (let l = -180; l <= 180; l += 2) pts.push(moll(l + 0.0001, b));
+    g += `<path class="grid" d="${path(pts)}" ${b === 0 ? `stroke="${css('--muted')}" stroke-opacity="0.6"` : ''}/>`;
+  }
+  for (let l = -150; l <= 180; l += 30) {
+    const pts = []; for (let b = -90; b <= 90; b += 2) pts.push(moll(l === 180 ? 179.999 : l, b));
+    g += `<path class="grid" d="${path(pts)}"/>`;
+  }
+  for (const l of [0, 90, 180, 270]) { const [x, y] = moll(l === 180 ? 179.99 : l, 0); g += `<text class="tick" x="${x + 3}" y="${y - 4}">${l}°</text>`; }
+  const allsky = [], surveys = [], unresolved = [];
+  let k = 0;
+  for (const s of d.studies) {
+    const fp = s.footprint.sky; const title = plain(s, 'title');
+    const href = s.has_web ? `../../studies/${s.id}/web/` : null;
+    if (fp.modes.includes('all-sky')) allsky.push([title, href]);
+    if (fp.modes.includes('survey') && fp.survey) surveys.push([title, href, fp.survey]);
+    for (const tg of fp.targets) {
+      if (tg.l === null || tg.l === undefined) { unresolved.push([title, tg.name]); continue; }
+      const [x, y] = moll(tg.l, tg.b);
+      let dot = `<g><title>${esc(tg.name)} — ${esc(title)}; l = ${tg.l.toFixed(1)}°, b = ${tg.b.toFixed(1)}°</title>
+        <circle cx="${x}" cy="${y}" r="5" fill="${css('--refuted')}" stroke="${css('--surface')}"/><text x="${x + 7}" y="${y + 4 + (k % 2) * 11}">${esc(tg.name)}</text></g>`;
+      if (href) dot = `<a href="${esc(href)}">${dot}</a>`;
+      g += dot; k++;
+    }
+  }
+  const svg = `<svg class="chart" viewBox="0 0 ${SW} ${SH + 10}" role="img" aria-label="${esc(t('Sky view, Galactic coordinates', '天空视图，银道坐标'))}">${g}</svg>`;
+  const link = ([title, href]) => href ? `<a href="${esc(href)}">${esc(title)}</a>` : esc(title);
+  const items = [];
+  items.push(`<li>${L('Mollweide projection, Galactic coordinates; the equator is the Galactic plane, l = 0 (Galactic centre) in the middle, l increasing to the left. Red points: targets of studies.', '莫尔韦德投影，银道坐标；赤道是银道面，中心为 l = 0（银心），l 向左增大。红点：研究的目标天体。')}</li>`);
+  if (allsky.length) items.push(`<li>${L('All-sky footprint', '全天足迹')}: ${allsky.map(link).join('; ')}</li>`);
+  for (const [title, href, sv] of surveys) items.push(`<li>${L('Survey region (not drawn)', '巡天区域（未画出边界）')}: ${esc(sv.name)}${sv.note ? ' — ' + esc(sv.note) : ''} (${link([title, href])})</li>`);
+  for (const [title, name] of unresolved) items.push(`<li>${L('Target without coordinates (run the study)', '缺坐标的目标（请先运行研究）')}: ${esc(name)} (${esc(title)})</li>`);
+  const without = d.studies.filter(s => !s.footprint.sky.modes.length).map(s => esc(plain(s, 'title')));
+  if (without.length) items.push(`<li>${L('No sky footprint', '没有天空足迹')}: ${without.join('; ')}</li>`);
+  return svg + `<ul class="legend">${items.join('')}</ul>`;
+}
+
+// ---------------------------------------------------------------- views
+const VIEWS = { list: [['List', '列表'], renderList], scale: [['Scale', '尺度'], renderScale], sky: [['Sky', '天空'], renderSky] };
+let DATA = null, VIEW = 'list';
+try { const v = localStorage.getItem('atlas-view'); if (v && VIEWS[v]) VIEW = v; } catch (e) {}
+function render() {
+  if (!DATA) return;
+  document.getElementById('views').innerHTML = Object.entries(VIEWS).map(([k, [lab]]) =>
+    `<button type="button" data-view="${k}" aria-pressed="${k === VIEW}">${L(...lab)}</button>`).join('');
+  document.querySelectorAll('#views button').forEach(b => b.addEventListener('click', () => {
+    VIEW = b.dataset.view; try { localStorage.setItem('atlas-view', VIEW); } catch (e) {} render();
+  }));
+  document.getElementById('atlas').innerHTML = VIEWS[VIEW][1](DATA);
+  document.getElementById('gen').innerHTML = L('generated ', '生成于 ') + esc(DATA.generated_at);
+}
+fetch('data/atlas.json').then(r => r.json()).then(d => { DATA = d; render(); }).catch(e => {
   document.getElementById('atlas').innerHTML = `<p class="muted">${L('Could not load data/atlas.json. Run <code>python -m astrolab serve</code>.', '无法加载 data/atlas.json。请运行 <code>python -m astrolab serve</code>。')}</p>`;
 });
+i18nApi.onLangChange(render);
 </script>
 </body>
 </html>
