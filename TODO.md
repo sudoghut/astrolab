@@ -6,7 +6,8 @@
 
 ## 进行中（Doing）
 
-（暂无）
+- [ ] **T-010** 补做：按论文立项流程为 M4 补写 Wiki 文章与 Lean 论证拆解 · 登记 2026-11-14 · 分支 feat/m4-wiki-lean-retrofit · 计划 [009](design/009-plan_m04-retrofit-wiki-article-and-lean-argument.md) · 来源 T-009
+  - 备注：T-002 要等到 12-02 DR4 发布，所以先做本条；DR4 结果出来后按同步规则更新 Wiki 第三部分。
 
 ## 下一步（Next）
 
@@ -14,8 +15,7 @@
 
 - [ ] **T-002** M4：Gaia DR4 发布日运行 · 登记 2026-11-14 · 截止 2026-12-02 · 前置 T-003、T-011
   - 计划：按技能 `gaia-dr4-release-day` 执行（确认模式与解类型、先计数、存档 DR3 结果、`PARAMS["release"] = "dr4"`、`--refresh` 运行），判据见研究 `README.md` 第 2–4 节的 DR4 附录（R1–R3、S1/S2-DR4、V-DR4、51 个幸存候选的 F-DR4 标签、S3-DR4）。Gaia 数据库 2026-11-25 至 12-02 下线，期间不做 DR3 查询。
-- [ ] **T-010** 补做：按论文立项流程为 M4 补写 Wiki 文章与 Lean 论证拆解 · 登记 2026-11-14 · 来源 T-009
-  - 计划：按 `paper-study` 技能的"为已实现的研究补写"做：论文为 arXiv:2209.06833（BH1）、2302.07880（BH2）、2405.00089（中子星候选）、2404.10486（BH3，DR4 附录引入）；补 `argument/`、`README.md` 第 8 节、`study.yaml` 的 `papers`/`wiki` 字段；Wiki 第三部分标"实现后补写（事后，post hoc）"。`000-smoke-test` 是工程检查，不依据论文，不适用本流程。排在 T-002 之后，以便第三部分写进 DR4 的结果。
+  - 备注：DR4 运行后 `results/` 不再有 DR3 的 `post_hoc.R1b_*`，届时把 `argument/Argument.lean` 中 `num_astro1` 的绑定路径改为 `results/dr3/summary.json`（来源 T-010）。
 - [ ] **T-004** M1：DESI BAO 复现，引入 `cosmo` 与 `infer` 模块 · 登记 2026-11-14
   - 计划：复杂任务。先把 ROADMAP 中 M1 的 [S]/[U] 项核实为 [V]，再写 design 计划（编号取当时最大值加 1），然后新建研究。
 - [ ] **T-005** Atlas 导航：天空视图与尺度视图，研究以足迹（footprint）形式出现在图上 · 登记 2026-11-14
