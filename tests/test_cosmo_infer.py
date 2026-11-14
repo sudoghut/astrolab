@@ -190,3 +190,17 @@ def test_gls_subset_shift_variance_is_exact():
     deltas = ys @ a
     assert deltas.var() == pytest.approx(var, rel=0.05)
     assert var > 0
+    # a is the right vector: it maps y to the difference of the two estimates ...
+    y = ys[0]
+    q_sub = infer.gls(L[rows], y[rows], C[np.ix_(rows, rows)])["q"][-1]
+    q_full = infer.gls(L, y, C)["q"][-1]
+    assert a @ y == pytest.approx(q_sub - q_full, abs=1e-10)
+    # ... and for nested GLS with the same C, Var(difference) = Var(sub) - Var(full)
+    assert var == pytest.approx(sub["sigma"][-1] ** 2 - full["sigma"][-1] ** 2, rel=1e-8)
+
+
+def test_gls_checks_factor_shape():
+    from scipy import linalg
+    L, y, C = _gls_problem(seed=6)
+    with pytest.raises(ValueError, match="c_factor"):
+        infer.gls(L[:-1], y[:-1], c_factor=linalg.cho_factor(C, lower=True))
