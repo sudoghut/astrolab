@@ -12,11 +12,11 @@ papers: ["2209.06833", "2302.07880", "2405.00089", "2404.10486"]
 wiki: Study-001-gaia-dormant-black-holes
 deadline: 2026-11-25   # Gaia archive offline before DR4 (2026-12-02)
 
-# Where this study sits on the Atlas (for the sky / scale views, plan to follow).
+# Where this study sits on the Atlas (sky and scale views; schema in design plan 011).
 footprint:
   scale: {min_pc: 100, max_pc: 3000, note: "Galactic, solar neighbourhood to a few kpc"}
   sky:
-    mode: all-sky-screen + targets
+    mode: all-sky + targets      # all-sky NSS screen plus three targets
     targets:                     # coordinates are resolved from Gaia in results/targets.json
       - {name: "Gaia BH1", gaia_dr3: 4373465352415301632}
       - {name: "Gaia BH2", gaia_dr3: 5870569352746779008}

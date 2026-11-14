@@ -10,3 +10,12 @@ claims: []                    # claim ids in atlas/claims/ this study reproduces
 milestone: null               # roadmap milestone id, e.g. M1
 papers: []                    # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
 wiki: null                    # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3
+
+# Where this study sits on the Atlas (optional; schema in design plan 011). Remove or fill.
+# footprint:
+#   scale: {min_pc: 1.0, max_pc: 1000.0, note: "distance range the study probes"}
+#   sky:
+#     mode: all-sky | survey | targets | none    # combine with ' + ', e.g. "survey + targets"
+#     survey: {name: "...", note: "..."}
+#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS
+#   data: [...]
