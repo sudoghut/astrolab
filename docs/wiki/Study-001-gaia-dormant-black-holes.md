@@ -326,8 +326,8 @@ Baym 1996) would let two neutron stars exceed 5 Msun, so BH1's RV-only route dep
 | `mod_few2` (hedged: "difficult to assemble") | MOD | stated 2302.07880: "such a configuration would be difficult to assemble and would rapidly become unstable" | §4 |
 | `mod_ns2` | MOD | stated 2302.07880: "is too large to be a neutron star or white dwarf, or any plausible combination of white dwarfs, neutron stars, and faint stars" | §7 item 4 |
 | `gap_few3`: at most two objects (BH3) | GAP | reconstructed: the BH3 paper does not discuss three or more compact objects (the argument exists in BH1 §8.2) | — |
-| `mod_ns3`: … → neither one nor two neutron stars | MOD | stated 2404.10486: "The estimated mass is also too large for one neutron star or two neutron stars in a close orbit" | §3 |
-| `lit_wd3`: no luminous star, no neutron stars, at most two, ≥ 30 Msun → black hole (white dwarfs, white dwarf + neutron star) | LIT | implied: Chandrasekhar 1931; Özel and Freire 2016 | — |
+| `mod_ns3`: no luminous star, at most two, ≥ 30 Msun → neither one nor two neutron stars | MOD | stated 2404.10486: "The estimated mass is also too large for one neutron star or two neutron stars in a close orbit" | §3 |
+| `lit_wd3`: no luminous star, no neutron stars, at most two, ≥ 30 Msun → black hole (one or two white dwarfs, white dwarf + neutron star) | LIT | implied: Chandrasekhar 1931; Özel and Freire 2016 | — |
 
 **Rival explanations.**
 
@@ -644,8 +644,8 @@ have n1 : v.NoStar1 := p .mod_other1 (p .obs_faint1) s1   -- Sec. 5.1.1
 | `mod_few2`（留有余地："difficult to assemble"） | MOD | stated 2302.07880："such a configuration would be difficult to assemble and would rapidly become unstable" | §4 |
 | `mod_ns2` | MOD | stated 2302.07880："is too large to be a neutron star or white dwarf, or any plausible combination of white dwarfs, neutron stars, and faint stars" | §7 第 4 条 |
 | `gap_few3`：至多两个天体（BH3） | GAP | reconstructed：BH3 论文没有讨论三个以上致密天体（这一论证见 BH1 §8.2） | — |
-| `mod_ns3`：…… → 既不是一颗也不是两颗中子星 | MOD | stated 2404.10486："The estimated mass is also too large for one neutron star or two neutron stars in a close orbit" | §3 |
-| `lit_wd3`：没有发光恒星、没有中子星、至多两个、≥ 30 M☉ → 黑洞（白矮星、白矮星加中子星） | LIT | implied：Chandrasekhar 1931；Özel 与 Freire 2016 | — |
+| `mod_ns3`：没有发光恒星、至多两个、≥ 30 M☉ → 既不是一颗也不是两颗中子星 | MOD | stated 2404.10486："The estimated mass is also too large for one neutron star or two neutron stars in a close orbit" | §3 |
+| `lit_wd3`：没有发光恒星、没有中子星、至多两个、≥ 30 M☉ → 黑洞（一颗或两颗白矮星、白矮星加中子星） | LIT | implied：Chandrasekhar 1931；Özel 与 Freire 2016 | — |
 
 **其他解释。**
 
