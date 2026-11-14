@@ -6,8 +6,7 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-011** M4：DR4 前的准备，把研究改成按数据发布参数化并预注册 DR4 判据 · 登记 2026-11-14 · 截止 2026-11-24 · 分支 feat/m4-release-parameterise · 计划 [008](design/008-plan_m04-release-parameterisation-and-dr4-pre-registration.md) · 来源 T-003
-  - 备注：三个环节（计划与 DR4 预注册、代码、网页与文档）各过双闸审查；环节 2 的 DR3 重跑要发新查询，须在 11-25 数据库下线前完成。
+（暂无）
 
 ## 下一步（Next）
 

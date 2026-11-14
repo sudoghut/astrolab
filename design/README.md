@@ -33,7 +33,7 @@ NNN-<类型>_<核心内容>.md
 | 005 | plan | [GitHub Wiki 双语科普综述：近五年天文学（2021–2026）](005-plan_wiki-article-plain-language-review-of-astronomy-2021-2026.md) | 完成 |
 | 006 | plan | [待办清单（to-do list）与完成日志（done log）机制](006-plan_todo-list-and-done-log-mechanism.md) | 完成 |
 | 007 | plan | [从论文立项的研究流程：Wiki 文章、Lean 论证拆解与对话式探索](007-plan_paper-to-study-workflow-wiki-article-lean-argument-and-chat-exploration.md) | 完成 |
-| 008 | plan | [M4 按数据发布参数化与 DR4 预注册](008-plan_m04-release-parameterisation-and-dr4-pre-registration.md) | 进行中 |
+| 008 | plan | [M4 按数据发布参数化与 DR4 预注册](008-plan_m04-release-parameterisation-and-dr4-pre-registration.md) | 完成 |
 
 ## 术语约定
 
