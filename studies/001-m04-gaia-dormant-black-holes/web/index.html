@@ -72,7 +72,14 @@ const STATUS_ZH = { 'no Gaia DR3 orbital solution': 'DR3 中没有轨道解（BH
                     'not applicable to this release': '本发布不适用', 'no new candidates': '没有新候选',
                     'screen not fetched (S1-DR4 row bound)': '未取筛选结果（S1-DR4 行数上限）' };
 // Known prose-like data strings in both languages (unknown ones are shown as they are in both modes).
-const tr = x => L(esc(x), esc(STATUS_ZH[x] ?? x));
+// Run-time reasons carry numbers: translate by prefix, keeping the number part.
+const PREFIX_ZH = [['screen not fetched: ', '未取筛选结果：'], ['all-solutions count ', '全部解的行数 ']];
+const zhOf = x => {
+  if (STATUS_ZH[x] !== undefined) return STATUS_ZH[x];
+  const hit = PREFIX_ZH.find(([en]) => String(x).startsWith(en));
+  return hit ? hit[1] + String(x).slice(hit[0].length) : x;
+};
+const tr = x => L(esc(x), esc(zhOf(x)));
 let cleanups = [];
 let gen = 0;                 // render generation: callbacks of a superseded render do nothing
 const current = { types: 0 };  // state the (once-registered) language handlers read
@@ -323,7 +330,8 @@ function nsTable(ns, R) {
 
 // ------------------------------------------------------------------------------------------
 // Which results to show: results/ (current run) and, once archived, results/dr3/ (DR3 reproduction).
-const showError = e => {
+const showError = (e, my) => {
+  if (my !== undefined && my !== gen) return;   // error of a superseded render
   const msg = e instanceof MissingResult
     ? L('Results missing — run <code>python -m astrolab run 001</code>.', '缺少结果文件——请运行 <code>python -m astrolab run 001</code>。') + ` (${esc(e.message)})`
     : L('Page error while rendering results:', '渲染结果时页面出错：') + ` ${esc(e)}. ` + L('See the browser console.', '详见浏览器控制台。');
@@ -352,7 +360,8 @@ Promise.all([tryGet('../results/', 'release'), tryGet('../results/dr3/', 'releas
       const k = e.target.dataset.k; if (k === undefined) return;
       sw.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k)));
       current.types = 0;
-      render(views[+k].dir, views[+k].rel).catch(showError);
+      const my = gen + 1;
+      render(views[+k].dir, views[+k].rel).catch(e => showError(e, my));
     });
   }
   return render(views[0].dir, views[0].rel);
