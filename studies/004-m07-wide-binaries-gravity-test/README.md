@@ -67,8 +67,9 @@ positive, the fit is invalid and no verdict is given.
   0.489; which error formula (MAD/√N or 1.4826 MAD/√N) reproduces Figure 8's error bars.
 
 **R2 (the test of C26's conclusion and of `gap_err`).** Primary errors: bootstrap over pairs —
-2000 resamples of the whole sample with replacement (seed 0), each re-binned; the covariance of
-the six bin medians is used in both fits. Verdicts on the main sample (ṽ ≤ 2.5), fixed here:
+2000 resamples of the whole sample with replacement (seed 0), each re-binned with the same final
+(possibly merged) bins; the covariance of the n_bins bin medians is used in both fits, and every
+degree-of-freedom count uses n_bins − 1. Verdicts on the main sample (ṽ ≤ 2.5), fixed here:
 
 | Condition on L (primary errors) | Verdict |
 |---|---|
@@ -84,7 +85,9 @@ Newtonian χ² and its p-value (5 degrees of freedom).
 **R3 (descriptive).** Each variant changes one choice from the main sample: no perspective
 correction; no HR cut; HR constant c ± 0.2 mag; d < 150 pc; d < 200 pc (needs its own A/B queries beyond the 150 pc parent cut; run only if their counts fit, otherwise reported as not run); parallax S/N > 100
 (catalogue C10); ipd = 0 at 130 pc and at 150 pc; no degrouping; degrouping with relaxed neighbours
-(parallax_over_error > 5, needs an extra count query, run only if it fits); perspective correction
+(any star with parallax_over_error > 5 and phot_g_mean_flux_over_error > 5, C24's download filter;
+a required variant: its A2-relaxed count query is run first, and it is fetched if it fits the budget,
+otherwise reported as not run with its count); perspective correction
 from the inverse-variance-weighted mean RV of both stars instead of the primary's; ṽ ≤ 1.5 and ≤ 2. All are reported together in one table with
 L (primary errors), compared with C26's quantitative statements (150 pc: MOND 12×; 150 pc with
 ipd = 0: Newton 88×; no projection correction raises the outer-bin median by about 0.15). No
@@ -110,10 +113,11 @@ star and each candidate neighbour.
 | Query | Content | Selection (server side) | Est. rows / size |
 |---|---|---|---|
 | A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, a flag whether radial_velocity is not null, FLAME mass | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); proper-motion difference × distance < 10 km/s (computed in WHERE, not returned; ṽ ≤ 2.5 implies v_sky ≲ 4 km/s even at 1 kAU and 3 M☉, so this cap cannot touch the main sample; A1 is not rerun with other caps and no counts against the cap are looked at before the commit) | trial: 2,209 in one 15° strip with \|δ\| < 60° at a 5 km/s cap; the 10 km/s cap may give a few times more chance pairs: ≤ 200,000 rows in total, each strip query with max_rows = 50,000 (the default cap; a strip that overflows is split), ~300–400 B per row, ≤ 80 MB in total, ≤ 10 MB per query |
-| A2 neighbour counts | per parent star: source_id, number of relaxed neighbours, and the smallest neighbour source_id | neighbours as defined above (no velocity condition); only stars with n ≥ 1 returned | ≤ 50,000 rows per strip (max_rows = 50,000, split if it overflows), ~5 MB in total |
+| A2 neighbour counts | per parent star: source_id, number of relaxed neighbours, and the smallest neighbour source_id | neighbours as defined above (no velocity condition); only stars with n ≥ 1 returned | ≤ 50,000 rows per strip (max_rows = 50,000, split if it overflows); at most one row per parent star, so ≤ 824,463 rows and ≤ 33 MB in total at 40 B per row (likely ≤ 200,000 rows, ≤ 8 MB) |
 | B1 velocities (after the pre-registration commit) | the A1 pairs with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | A1's WHERE plus velocity-free cuts: r_sky ≤ 30 kAU at the weighted parallax and radial_velocity not null for both stars | ≤ 50,000 rows in total, ≤ 20 MB |
 
-Total at most about 105 MB (A1 ≤ 80, A2 ~5, B1 ≤ 20; more likely 25–40 MB), under the 200 MB study budget; no single query near 50 MB (each is split
+Total at most about 135 MB (A1 ≤ 80, A2 ≤ 33, B1 ≤ 20; more likely 25–45 MB), plus the relaxed-neighbour
+A2 variant counted first, under the 200 MB study budget; no single query near 50 MB (each is split
 into strips). Strips (half-open in α and δ, so that every parent star with parallax < 34 mas belongs to exactly one region and gets its A2 count from exactly one query; checked by an offline test): star a in 24 right-ascension strips of 15° for |δ| ≤ 60°, 8 strips of 45° for
 60° < |δ| ≤ 80° (each hemisphere), and one query per polar cap (|δ| > 80°); star b restricted to the
 same strip plus a margin of 1.2° in declination at every boundary and, in right ascension, 2.2°
@@ -161,7 +165,8 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
    velocity-free rule from the A1 stars: take the deduplicated set of A1 stars (each source_id once,
    using its own parallax for M_G) with non-null BP−RP, RUWE < 1.25, own parallax > 7.6923 mas
    (130 pc) and |BP−RP − 1.8| < 0.05; c = median(M_G − 3.3·(BP−RP)) − 0.4, so the band is centred on
-   the K-star locus. The numeric c is committed (dated) after A1 and before B1; the R3 variant uses
+   the K-star locus. If fewer than 30 stars qualify, the window widens once to |BP−RP − 1.8| < 0.15;
+   if still fewer than 30, the main sample is not evaluable and R1–R2 are reported as not run. The numeric c is committed (dated) after A1 and before B1; the R3 variant uses
    c ± 0.2. Both stars with radial velocities and |ΔRV| < 10 km/s; σ(ṽ) < 0.1; ṽ ≤ 2.5.
 6. **Statistics.** Section 2 definitions; bootstrap covariance; GLS fits for A.
 7. **Parameters (`PARAMS` in run.py, saved with the results):** a0, bins, bootstrap count and seed,
