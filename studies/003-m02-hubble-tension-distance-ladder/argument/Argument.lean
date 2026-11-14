@@ -9,13 +9,12 @@ The chain (the conclusion is deliberately weak: "entirely consistent with"):
   full HST sample (42 SNe Ia, 4 anchors): H0 = 73.2
   the same HST Cepheid ladder on the CCHP-selected hosts, NGC 4258 anchor: H0 = 71.2
       -> choosing those hosts and that anchor is expected to lower H0 by about 2
-  observed: CCHP JWST program lower than the full HST sample by about 2.5
-  on the same CCHP hosts, JWST JAGB and HST Cepheid distances agree within errors
-  -> the leftover (about 0.5) is within the subsample uncertainty (about 2)
-  -> the 2.5 difference is entirely consistent with differences in sample selection
+  on the same hosts, HST Cepheid and JWST distances agree (TRGB and JAGB within errors)
+  for every subsample, the JWST-inferred H0 is within 1 sigma of the HST expectation
+  -> the CCHP-vs-HST difference (about 2.5) is entirely consistent with sample selection
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
-H0 values and differences are in tenths of km/s/Mpc (Nat): 73.2 is 732, 2.5 is 25.
+H0 values are in tenths of km/s/Mpc (Nat): 73.2 is 732.
 Quotes follow the arXiv HTML text (v2), with math in its LaTeX source form.
 -/
 
@@ -35,52 +34,46 @@ structure Vocab where
   h_full : Nat
   /-- H0 from HST Cepheids on the 10 CCHP-selected hosts (11 SNe Ia), NGC 4258 anchor, tenths. -/
   h_sel : Nat
-  /-- Observed H0 difference between the CCHP JWST program and the full HST sample, tenths. -/
-  h_gap : Nat
   /-- Choosing the CCHP hosts and anchor is expected to lower H0 by about 2 km/s/Mpc. -/
   ExpDrop : Prop
-  /-- On the CCHP JWST sample, JWST JAGB and HST Cepheid distances agree within their errors. -/
-  AgreeJAGB : Prop
-  /-- The part of the observed difference not expected from selection is within the subsample uncertainty. -/
+  /-- On the same hosts, HST Cepheid and JWST (Cepheid, TRGB, JAGB) distances agree within errors. -/
+  AgreeSameHost : Prop
+  /-- For every subsample, the JWST-inferred H0 is within 1 sigma of the HST expectation (same SNe). -/
   ResidSmall : Prop
-  /-- The observed difference is entirely consistent with differences in sample selection. -/
+  /-- The CCHP-vs-HST difference is entirely consistent with differences in sample selection. -/
   ConsSel : Prop
 
 /-- The premises. -/
 inductive Field where
   /-- STAT [stated 2408.11770: "is not yet competitive with the HST set (42 SNe Ia and 4 anchors), which yields 73.2 $\pm$ 0.9"] Abstract -/
   | stat_full
-  /-- STAT [stated 2408.11770: "a corresponding value of H ${}_{0}=71.2$"] Sec. III.2 (HST Cepheids on the CCHP-selected hosts) -/
+  /-- STAT [stated 2408.11770: "a corresponding value of H ${}_{0}=71.2$"] Sec. III.2 (HST Cepheids on the CCHP-selected hosts, NGC 4258 anchor) -/
   | stat_sel
-  /-- STAT [stated 2408.11770: "We show that $\Delta$ H ${}_{0}\sim$ 2.5"] Abstract (CCHP JWST program versus the full HST sample; about 2.5, encoded as at most 3.0) -/
-  | stat_gap
   /-- MOD [stated 2408.11770: "thus 2.0 $\,\rm km\,s^{-1}\,Mpc^{-1}$ lower than the full HST sample—simply due to the choice of SN hosts and anchor"] Sec. III.2 -/
   | mod_drop
-  /-- STAT [stated 2408.11770: "For comparisons between JWST JAGB and HST Cepheids, we measure a difference with the CCHP JWST sample of $0.047\pm 0.066$ mag"] Sec. III -/
+  /-- STAT [stated 2408.11770: "The HST Cepheid and JWST distance measurements themselves are in good agreement"] Fig. 5 caption (Sec. II.3, Table 2: TRGB 0.032 and JAGB 0.047 mag, uncertainties 0.05-0.07 mag) -/
   | stat_agree
-  /-- MOD [implied] a leftover of at most about 1 km/s/Mpc (observed about 2.5 minus expected about 2.0) is within the uncertainty of an 11-SN subsample H0 (about 2 km/s/Mpc, the paper Table 4); comparison of a difference with its standard error (e.g. Taylor 1997, An Introduction to Error Analysis) -/
-  | mod_resid
-  /-- MOD [implied] inference rule: if the selection is expected to produce the shift, the same-host distances agree, and the leftover is within errors, the observed difference is consistent with selection (consistency means no part is significant beyond errors; same textbook) -/
+  /-- STAT [stated 2408.11770: "we find the values inferred using JWST are consistent with expectations for every subsample"] Sec. III.3 (at or within 1 sigma of the differential uncertainties, Table 4) -/
+  | stat_resid
+  /-- MOD [implied] inference rule: if the selection is expected to produce the shift, the same-host distances agree, and the measured values agree with the expectation within errors, the observed difference is consistent with selection (consistency means no part is significant beyond errors; e.g. Taylor 1997, An Introduction to Error Analysis) -/
   | mod_cons
   deriving DecidableEq, Repr
 
 def prov : Field → Prov
   | .stat_full => .stated
   | .stat_sel => .stated
-  | .stat_gap => .stated
   | .mod_drop => .stated
   | .stat_agree => .stated
-  | .mod_resid => .implied
+  | .stat_resid => .stated
   | .mod_cons => .implied
 
 def prem : Field → Vocab → Prop
   | .stat_full, v => v.h_full ≥ 731
   | .stat_sel, v => v.h_sel ≤ 712
-  | .stat_gap, v => v.h_gap ≤ 30
   | .mod_drop, v => v.h_full ≥ 731 → v.h_sel ≤ 712 → v.ExpDrop
-  | .stat_agree, v => v.AgreeJAGB
-  | .mod_resid, v => v.h_gap ≤ 30 → v.ExpDrop → v.ResidSmall
-  | .mod_cons, v => v.ExpDrop → v.AgreeJAGB → v.ResidSmall → v.ConsSel
+  | .stat_agree, v => v.AgreeSameHost
+  | .stat_resid, v => v.ResidSmall
+  | .mod_cons, v => v.ExpDrop → v.AgreeSameHost → v.ResidSmall → v.ConsSel
 
 /-- [stated 2408.11770: "between the CCHP JWST program and the full HST sample is entirely consistent with differences in sample selection"] Abstract -/
 def Conclusion (v : Vocab) : Prop := v.ConsSel
@@ -96,51 +89,46 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have d : v.ExpDrop := p .mod_drop (p .stat_full) (p .stat_sel)   -- Sec. III.2
-  have r : v.ResidSmall := p .mod_resid (p .stat_gap) d             -- Abstract, Table 4
-  exact p .mod_cons d (p .stat_agree) r                             -- Abstract
+  exact p .mod_cons d (p .stat_agree) (p .stat_resid)               -- Sec. II.3, III.3, Abstract
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
-  fun h => h ⟨0, 0, 0, False, False, False, False⟩
+  fun h => h ⟨0, 0, False, False, False, False⟩
 
 theorem consistent : ∃ v, Premises v :=
-  ⟨⟨731, 712, 25, True, True, True, True⟩, by intro f; cases f <;> simp [prem]⟩
+  ⟨⟨731, 712, True, True, True, True⟩, by intro f; cases f <;> simp [prem]⟩
 
 theorem alone_insufficient : ∀ g, ¬ ∀ v, prem g v → Conclusion v := by
   intro g h
   cases g
-  case mod_drop => exact h ⟨0, 999, 99, False, False, False, False⟩ (by simp [prem])
-  case mod_resid => exact h ⟨0, 999, 99, False, False, False, False⟩ (by simp [prem])
-  case mod_cons => exact h ⟨0, 999, 99, False, False, False, False⟩ (by simp [prem])
-  all_goals exact h ⟨731, 712, 25, False, True, False, False⟩ (by simp [prem])
+  case mod_drop => exact h ⟨0, 999, False, False, False, False⟩ (by simp [prem])
+  case mod_cons => exact h ⟨0, 999, False, False, False, False⟩ (by simp [prem])
+  all_goals exact h ⟨731, 712, False, True, True, False⟩ (by simp [prem])
 
 theorem stat_full_needed : ¬ ∀ v, Without .stat_full v → Conclusion v := fun h =>
-  h ⟨0, 712, 25, False, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨0, 712, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_sel_needed : ¬ ∀ v, Without .stat_sel v → Conclusion v := fun h =>
-  h ⟨731, 999, 25, False, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
-
-theorem stat_gap_needed : ¬ ∀ v, Without .stat_gap v → Conclusion v := fun h =>
-  h ⟨731, 712, 99, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨731, 999, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem mod_drop_needed : ¬ ∀ v, Without .mod_drop v → Conclusion v := fun h =>
-  h ⟨731, 712, 25, False, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨731, 712, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_agree_needed : ¬ ∀ v, Without .stat_agree v → Conclusion v := fun h =>
-  h ⟨731, 712, 25, True, False, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨731, 712, True, False, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-theorem mod_resid_needed : ¬ ∀ v, Without .mod_resid v → Conclusion v := fun h =>
-  h ⟨731, 712, 25, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+theorem stat_resid_needed : ¬ ∀ v, Without .stat_resid v → Conclusion v := fun h =>
+  h ⟨731, 712, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem mod_cons_needed : ¬ ∀ v, Without .mod_cons v → Conclusion v := fun h =>
-  h ⟨731, 712, 25, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨731, 712, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-/-- What the paper writes is not enough: the comparison of the leftover with the subsample
-uncertainty and the rule from that to "consistent" are left implicit. -/
+/-- What the paper writes is not enough: the rule from the three facts to "consistent" is left
+implicit. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
-  h ⟨731, 712, 25, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨731, 712, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
 /-- With standard knowledge the chain closes: no reconstructed premise is needed. The conclusion
-is a weak one ("consistent with"), which an absence of significant residuals suffices for. -/
+is a weak one ("consistent with"), backed by low-power checks. -/
 theorem explicit_sufficient : ∀ v, Explicit v → Conclusion v := fun v p =>
   final v (fun f => p f (by cases f <;> decide))
 
