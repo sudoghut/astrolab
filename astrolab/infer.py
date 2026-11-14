@@ -33,38 +33,66 @@ def sigma_from_dchi2(dchi2: float, dof: int = 2) -> float:
     return float(stats.norm.isf(p / 2.0))
 
 
-def minimize_multistart(fun, bounds, n_starts: int = 20, seed: int = 0, constraints=(),
-                        start_ok=None, x0_extra=()):
-    """Bounded multi-start minimisation (SLSQP, then Nelder-Mead polish inside the bounds).
+PENALTY = 1e30
 
-    fun: f(x) -> float; bounds: list of (lo, hi); constraints: scipy 'ineq' dicts;
-    start_ok: optional predicate for random starts (e.g. w0 + wa < 0).
-    Returns (x_best, f_best, all_results) where all_results lists (f, x) per start.
+
+def minimize_multistart(fun, bounds, n_starts: int = 20, seed: int = 0, constraint=None,
+                        x0_extra=(), agree_tol: float = 0.01, n_polish: int = 2,
+                        xatol: float = 1e-7, fatol: float = 1e-6, maxfev: int = 4000):
+    """Bounded multi-start minimisation that is robust to bad parameter scaling and NaNs.
+
+    The search runs in unit-scaled coordinates u in [0, 1]^n (x = lo + (hi - lo) u) with the
+    derivative-free Nelder-Mead method; points outside the box, points violating
+    ``constraint(x) >= 0`` (e.g. -(w0 + wa)) and non-finite objective values get a large penalty,
+    so they can never be returned as the optimum. Each start is polished by ``n_polish`` restarts
+    from its own end point. ``x0_extra`` are added as starts (e.g. the nested-model optimum).
+
+    Returns a dict: x, f, n_agree (starts within ``agree_tol`` of the best f), n_ok (finite starts),
+    and all (sorted list of (f, x)).
     """
-    rng = np.random.default_rng(seed)
     lo = np.array([b[0] for b in bounds], dtype=float)
     hi = np.array([b[1] for b in bounds], dtype=float)
-    starts = [np.asarray(x, dtype=float) for x in x0_extra]
-    while len(starts) < n_starts + len(x0_extra):
-        x = lo + (hi - lo) * rng.random(len(bounds))
-        if start_ok is None or start_ok(x):
-            starts.append(x)
-    results = []
-    for x0 in starts:
+    span = hi - lo
+
+    def feasible(x):
+        return constraint is None or constraint(x) >= 0.0
+
+    def g(u):
+        if np.any(u < 0.0) or np.any(u > 1.0):
+            return PENALTY
+        x = lo + span * u
+        if not feasible(x):
+            return PENALTY
         try:
-            r = optimize.minimize(fun, x0, method="SLSQP", bounds=bounds, constraints=constraints,
-                                  options={"maxiter": 500, "ftol": 1e-10})
-            x = np.clip(r.x, lo, hi)
-            fx = float(fun(x))
-            if constraints and any(c["fun"](x) < -1e-9 for c in constraints):
-                continue
-            results.append((fx, x))
-        except (ValueError, FloatingPointError):
-            continue
+            with np.errstate(invalid="ignore", divide="ignore", over="ignore"):
+                f = float(fun(x))
+        except (ValueError, FloatingPointError, ZeroDivisionError, OverflowError):
+            return PENALTY
+        return f if np.isfinite(f) else PENALTY
+
+    rng = np.random.default_rng(seed)
+    starts = [(np.asarray(x, dtype=float) - lo) / span for x in x0_extra]
+    tries = 0
+    while len(starts) < n_starts + len(x0_extra) and tries < 1000 * n_starts:
+        tries += 1
+        u = rng.random(len(bounds))
+        if g(u) < PENALTY:
+            starts.append(u)
+    results = []
+    opts = {"xatol": xatol, "fatol": fatol, "maxfev": maxfev, "adaptive": True}
+    for u0 in starts:
+        u0 = np.clip(u0, 0.0, 1.0)
+        r = optimize.minimize(g, u0, method="Nelder-Mead", options=opts)
+        for _ in range(n_polish):
+            r = optimize.minimize(g, r.x, method="Nelder-Mead", options=opts)
+        if r.fun < PENALTY:
+            results.append((float(r.fun), lo + span * r.x))
     if not results:
-        raise RuntimeError("no successful start")
+        raise RuntimeError("no start reached a finite, feasible point")
     results.sort(key=lambda t: t[0])
-    return results[0][1], results[0][0], results
+    best_f, best_x = results[0]
+    n_agree = sum(1 for f, _ in results if f - best_f <= agree_tol)
+    return {"x": best_x, "f": best_f, "n_agree": n_agree, "n_ok": len(results), "all": results}
 
 
 def run_emcee(log_prob, p0, nwalkers: int = 32, nsteps: int = 4000, seed: int = 0,
@@ -76,11 +104,14 @@ def run_emcee(log_prob, p0, nwalkers: int = 32, nsteps: int = 4000, seed: int = 
     rng = np.random.default_rng(seed)
     p0 = np.asarray(p0, dtype=float)
     start = p0 + scatter * np.abs(p0 + 1e-3) * rng.standard_normal((nwalkers, p0.size))
+    if not all(np.isfinite(log_prob(w)) for w in start):
+        raise ValueError("initial walkers have non-finite log_prob; start closer to the optimum")
     sampler = emcee.EnsembleSampler(nwalkers, p0.size, log_prob)
     sampler.random_state = np.random.RandomState(seed).get_state()
     sampler.run_mcmc(start, nsteps, progress=False)
-    tau = sampler.get_autocorr_time(quiet=True)
     burn = int(burn_frac * nsteps)
-    flat = sampler.get_chain(discard=burn, flat=True)
-    return {"samples": flat, "tau": tau, "n_over_tau": float(nsteps / np.max(tau)),
+    chain = sampler.get_chain(discard=burn)
+    tau = emcee.autocorr.integrated_time(chain, quiet=True)
+    flat = chain.reshape(-1, p0.size)
+    return {"samples": flat, "tau": tau, "n_over_tau": float((nsteps - burn) / np.max(tau)),
             "acceptance": float(np.mean(sampler.acceptance_fraction))}
