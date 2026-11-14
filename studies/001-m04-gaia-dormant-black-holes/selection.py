@@ -184,6 +184,44 @@ def resolve_ids(reference: pd.DataFrame, found: pd.DataFrame, epoch_gap_yr: floa
     })
 
 
+def apply_neighbourhood(res: pd.DataFrame, reference: pd.DataFrame, nb: pd.DataFrame, found_new: pd.DataFrame,
+                        epoch_gap_yr: float, tie_arcsec=0.1) -> pd.DataFrame:
+    """Cross-match fallback for ids the direct lookup did not resolve (README DR4 addendum, Resolution).
+
+    nb: columns old_id, new_id, dist_arcsec (the release's DR3-DR4 neighbourhood table, converted).
+    found_new: DR4 gaia_source rows (source_id, ra, dec, pmra, pmdec, phot_g_mean_mag) of the new ids.
+    Nearest neighbour; two within tie_arcsec of the same distance, or a failed identity check: no match.
+    """
+    out = res.copy()
+    ref_by = {int(r.source_id): r._asdict() for r in reference.itertuples(index=False)}
+    new_by = {int(r.source_id): r._asdict() for r in found_new.itertuples(index=False)}
+    nb = nb.assign(old_id=nb.old_id.astype("int64"), new_id=nb.new_id.astype("int64"))
+    dr4 = list(out.dr4_id)
+    reason = list(out.reason)
+    for k, r in enumerate(out.itertuples(index=False)):
+        if not pd.isna(r.dr4_id):
+            continue
+        cand = nb[nb.old_id == int(r.dr3_id)].sort_values(["dist_arcsec", "new_id"], kind="mergesort")
+        if cand.empty:
+            continue
+        if len(cand) > 1 and cand.dist_arcsec.iloc[1] - cand.dist_arcsec.iloc[0] <= tie_arcsec:
+            reason[k] = "neighbourhood-ambiguous"
+            continue
+        new_id = int(cand.new_id.iloc[0])
+        new = new_by.get(new_id)
+        if new is None:
+            reason[k] = "neighbourhood-not-found"
+            continue
+        ok, why = identity_check(ref_by[int(r.dr3_id)], new, epoch_gap_yr)
+        if ok:
+            dr4[k], reason[k] = new_id, "neighbourhood"
+        else:
+            reason[k] = f"neighbourhood-{why}"
+    out["dr4_id"] = pd.array([None if pd.isna(x) else int(x) for x in dr4], dtype="Int64")
+    out["reason"] = reason
+    return out
+
+
 # ---------------------------------------------------------------------------------------------
 # DR4 criteria
 

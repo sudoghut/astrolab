@@ -306,3 +306,19 @@ def test_rsel_requires_thiele_innes_columns():
     df = pd.DataFrame([sol()]).drop(columns=["g_thiele_innes"])
     with pytest.raises(ValueError, match="g_thiele_innes"):
         sel.primary_solutions(df, UNVAL, AST)
+
+
+def test_neighbourhood_fallback_nearest_tie_and_identity():
+    ref = pd.DataFrame({"source_id": [1, 2, 3, 4], "ra": [10.0] * 4, "dec": [0.0] * 4, "phot_g_mean_mag": [12.0] * 4})
+    res = pd.DataFrame({"dr3_id": pd.array([1, 2, 3, 4], dtype="int64"),
+                        "dr4_id": pd.array([1, None, None, None], dtype="Int64"),
+                        "reason": ["", "not-found", "not-found", "offset"]})
+    nb = pd.DataFrame({"old_id": [2, 2, 3, 3, 4], "new_id": [20, 21, 30, 31, 40],
+                       "dist_arcsec": [0.05, 0.9, 0.30, 0.35, 0.1]})
+    found = pd.DataFrame({"source_id": [20, 21, 30, 31, 40], "ra": [10.0, 10.0, 10.0, 10.0, 10.1],
+                          "dec": [0.0] * 5, "pmra": [0.0] * 5, "pmdec": [0.0] * 5, "phot_g_mean_mag": [12.0] * 5})
+    out = sel.apply_neighbourhood(res, ref, nb, found, 1.5).set_index("dr3_id")
+    assert out.loc[1, "dr4_id"] == 1                                                # direct match untouched
+    assert out.loc[2, "dr4_id"] == 20 and out.loc[2, "reason"] == "neighbourhood"   # nearest neighbour
+    assert pd.isna(out.loc[3, "dr4_id"]) and out.loc[3, "reason"] == "neighbourhood-ambiguous"
+    assert pd.isna(out.loc[4, "dr4_id"]) and out.loc[4, "reason"] == "neighbourhood-offset"

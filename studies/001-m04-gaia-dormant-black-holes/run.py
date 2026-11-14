@@ -32,8 +32,13 @@ RELEASES = {
     # Set on release day from metadata/documentation only, before any source-level DR4 data are
     # fetched (information barrier): covariance_trusted (corr_vec order), epoch_gap_yr (DR4
     # reference epoch - 2016.0).
+    # neighbourhood: the DR3-DR4 cross-match table, assumed by analogy with DR3's dr2_neighbourhood
+    # (angular_distance in mas); confirmed or corrected from TAP_SCHEMA on release day (barrier).
+    # If TAP_SCHEMA does not list it, resolution is direct-id only (recorded in the summary).
     "dr4": {"label": "Gaia DR4", "rv_veto": {"max_period_d": 1000.0, "max_ecc": 0.8},
-            "covariance_trusted": False, "epoch_gap_yr": 1.5},
+            "covariance_trusted": False, "epoch_gap_yr": 1.5,
+            "neighbourhood": {"table": "dr3_neighbourhood", "old": "dr3_source_id", "new": "dr4_source_id",
+                              "distance": "angular_distance", "distance_to_arcsec": 0.001}},
 }
 
 # Published values (verified against arXiv full text: plan 003; BH3 plan 008)
@@ -339,7 +344,36 @@ def resolve_dr3_ids(ctx, schema, label, rel, ref_dir):
                       f"WHERE source_id IN ({_ids(c)})", label="DR3 id resolution", release=label,
                       max_rows=len(c) + 10) for c in _chunks(ref.source_id)]
     found = pd.concat(frames, ignore_index=True)
-    return sel.resolve_ids(ref, found, rel["epoch_gap_yr"])
+    res = sel.resolve_ids(ref, found, rel["epoch_gap_yr"])
+    res.attrs["neighbourhood"] = "not used"
+    nbs = rel.get("neighbourhood")
+    failed = [int(i) for i in res.dr3_id[res.dr4_id.isna()]]
+    if not nbs or not failed:
+        return res
+    meta = ctx.tap(f"SELECT column_name FROM tap_schema.columns WHERE table_name = '{schema}.{nbs['table']}'",
+                   label="neighbourhood table (TAP_SCHEMA)", release=label, max_rows=200)
+    cols = {str(c).lower() for c in meta.column_name}
+    if not {nbs["old"], nbs["new"], nbs["distance"]} <= cols:
+        note = f"{schema}.{nbs['table']} not listed: direct-id resolution only"
+        ctx.log(note)
+        res.attrs["neighbourhood"] = note
+        return res
+    nb = pd.concat([ctx.tap(f"SELECT {nbs['old']} AS old_id, {nbs['new']} AS new_id, {nbs['distance']} AS dist "
+                            f"FROM {schema}.{nbs['table']} WHERE {nbs['old']} IN ({_ids(c)})",
+                            label="DR3-DR4 neighbourhood", release=label, max_rows=50 * len(c))
+                    for c in _chunks(failed)], ignore_index=True)
+    nb["dist_arcsec"] = nb.dist.astype(float) * nbs["distance_to_arcsec"]
+    new_ids = sorted(set(nb.new_id.astype("int64")))
+    if new_ids:
+        found_new = pd.concat([ctx.tap(f"SELECT source_id, ra, dec, pmra, pmdec, phot_g_mean_mag FROM "
+                                       f"{schema}.gaia_source WHERE source_id IN ({_ids(c)})",
+                                       label="neighbourhood ids", release=label, max_rows=len(c) + 10)
+                               for c in _chunks(new_ids)], ignore_index=True)
+    else:
+        found_new = found.iloc[:0]
+    res = sel.apply_neighbourhood(res, ref, nb, found_new, rel["epoch_gap_yr"])
+    res.attrs["neighbourhood"] = f"{schema}.{nbs['table']}: {int((res.reason == 'neighbourhood').sum())} matched"
+    return res
 
 
 def dr4_criteria(params, rel, res, sol_all, target_recs, screen_df, screen_n, ref_dir, s3_sol, s3_count):
@@ -448,6 +482,7 @@ def dr4_criteria(params, rel, res, sol_all, target_recs, screen_df, screen_n, re
 
     return {"R": r, "S1": s1, "S2": s2, "V": v, "F": f, "S3": s3,
             "resolution": {"n": len(res), "unresolved": int(res.dr4_id.isna().sum()),
+                           "neighbourhood": res.attrs.get("neighbourhood", "not used"),
                            "reasons": res[res.dr4_id.isna()].reason.value_counts().to_dict()}}, f_rows, new_rows
 
 

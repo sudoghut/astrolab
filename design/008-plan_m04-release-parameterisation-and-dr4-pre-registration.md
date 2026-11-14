@@ -76,7 +76,7 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
   - DR3 中 BH3 没有轨道解，所以 `controls_checked` 在 DR3 仍是 23，新增的 `controls_without_solution` 为 `[BH3]`。
 - DR3 运行时，`main()` 保持 DR3 的全部输出与判据。
 - DR4 运行时（`release != "dr3"`），`main()` 额外计算 DR4 附录中的各项：
-  - **编号解析（resolution）**：一次 `IN (...)` 查询 DR4 `gaia_source`（含 ra、dec、自行、G），按 README 的规则做身份核对，`unresolved` 记下原因。若 DR4 发布 DR3–DR4 交叉匹配表（neighbourhood table），按表回退的代码在发布日表名与列确定后再写，并单独过审查；在此之前只有"直接编号 + 身份核对"一条路径；
+  - **编号解析（resolution）**：一次 `IN (...)` 查询 DR4 `gaia_source`（含 ra、dec、自行、G），按 README 的规则做身份核对，`unresolved` 记下原因。若 DR4 发布 DR3–DR4 交叉匹配表（neighbourhood table），对直接查找未解析的编号按表回退（最近邻居；并列或身份核对失败则不匹配）。表名与列名参照 DR3 的 `dr2_neighbourhood` 写在 `RELEASES["dr4"]["neighbourhood"]`，发布日从 TAP_SCHEMA 确认或更正（信息隔离之内）；TAP_SCHEMA 没有列出该表时只用直接编号，并在摘要中注明（闸门 2 第 3 轮后提前实现，原计划推迟到发布日）；
   - **判据**：R1–R3、S1-DR4、S2-DR4、V-DR4，以及 F-DR4 的 51 个标签；
   - **新候选**（new candidates）S3-DR4：对有 M2 > 3 筛选行的源，另发一个"全部解"查询，按编号分块（每块 ≤ 500 个），列包括解类型、Thiele-Innes 常数、周期及误差、偏心率、视差及误差、`significance`、`goodness_of_fit`、`gaia_source` 的 RV 列与 FLAME 质量，在全部解中选主解。不复用 `vet`（它缺这些列，且 `max_rows` 只有 2,000）；先在服务器端计数（同一编号列表上的 `COUNT(*)`），超过 50,000 行时 S3-DR4 记为"不可评估"，不取数，也不事后收窄选择，研究的 200 MB 预算因此不会被这一步突破；
   - S2-DR4 用目标、对照与幸存候选的解查询（README 第 3 节附录的第三行）中 21 个中子星候选的主解判断是否满足筛选条件，不依赖筛选结果；
@@ -270,3 +270,6 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
   - 归档的 DR3 周期误差缺失时，`math.hypot` 会报错，或者让源落入 `persists`。已改为判为 `insufficient`，README 加注日期说明。
 
   次要意见采纳：R-sel 缺少 Thiele-Innes 列时报错，不再退回按行序选择。
+- 2026-11-14 · 环节 2 闸门 2 第 3 轮：
+  - 1 个严重问题，成立：README 预注册了交叉匹配表的回退，代码却没有实现（原计划推迟到发布日）。已提前实现为纯函数 `selection.apply_neighbourhood` 并加测试；表的规格写在 `RELEASES`，发布日从 TAP_SCHEMA 确认。
+  - 次要意见"S1 中有编号但无解的目标会崩溃"不成立：这种目标的值是 None，在 `np.isfinite` 之前就被排除了；`test_dr4_criteria` 中 BH3 正是这种情况，测试通过。
