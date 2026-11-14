@@ -54,7 +54,8 @@ is not evaluable. Evaluable means: every final bin holds at least 15 pairs and a
 remain; otherwise no verdict is given. All degrees of freedom are n_bins − 1 with the final n_bins,
 including the Newtonian p-value. No other merging or edge change is allowed once counts are seen. The 15-pair minimum applies to every bootstrap replicate too: a
 replicate with fewer than 15 pairs in any (merged) bin is redrawn; if more than 5% of draws are
-redrawn, the fit is reported as invalid. The bootstrap covariance must be finite; if its condition
+redrawn, the fit is reported as invalid. The resulting covariance is therefore conditional on the
+fixed final bins and this occupancy rule, not an unconditional bootstrap estimate. The bootstrap covariance must be finite; if its condition
 number exceeds 10⁸, its diagonal is used instead, flagged; if any diagonal entry is not strictly
 positive, the fit is invalid and no verdict is given.
 
@@ -108,21 +109,20 @@ counted 2026-11-14; C24's own download stopped at 7 mas, 143 pc, but 150 pc is n
 variants). Neighbours for degrouping follow C24's reading (§2.2.2: C25 "allows more potential faint
 companion stars through the selection process for the purposes of deselecting potential triple
 systems"; §2.3: "Where any star appeared in more than one pair, all such matching pairs were
-rejected"): a neighbour is any star of the C25 set (parallax_over_error > 40, any photometry, no
-RUWE or RV requirement) with parallax + 3·parallax_error > 6.6667 mas, under the same projected rule (≤ 0.5 pc at the
+rejected"): a neighbour is any star of the C25 set (parallax_over_error > 40 and
+phot_g_mean_flux_over_error > 5, as in C24 §2.2.2; BP/RP unrestricted; no RUWE or RV requirement) with parallax + 3·parallax_error > 6.6667 mas, under the same projected rule (≤ 0.5 pc at the
 two stars' weighted parallax) and the same pairwise 3σ parallax rule, applied between the parent
 star and each candidate neighbour.
 
 | Query | Content | Selection (server side) | Est. rows / size |
 |---|---|---|---|
-| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, a flag whether radial_velocity is not null, FLAME mass | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); proper-motion difference × distance < 15 km/s (computed in WHERE, not returned). This cap is a query-size safeguard against chance pairs, not a C24/C26 selection cut (C24 has no velocity cut at pair finding; C26's own velocity-related cuts are ΔRV < 10 km/s, σ(ṽ) < 0.1 and ṽ ≤ 2.5, applied later in section 4); A1 is not rerun with other caps and no counts against the cap are looked at before the commit. Bound: the HR band (M_G > 4) limits each star to ≤ 10^{0.0725(4.67−4)} ≈ 1.12 M☉ by the mass rule (FLAME masses for such dwarfs stay below ~1.3 M☉), so M ≤ 2.6 M☉; at r_sky ≥ 1 kAU, v_c ≤ 1.53 km/s and ṽ ≤ 2.5 gives a corrected v_sky ≤ 3.8 km/s; the uncorrected proper-motion difference used in the cap differs from it by at most |v_sys|·θ ≤ |v_sys|·0.5 pc/d, ≤ 10 km/s only if |v_sys| > 200 km/s at d = 10 pc (or > 2,600 km/s at 130 pc). So the cap can exclude only main-sample pairs with |v_sys| > 200 km/s within ~12 pc | trial: 2,209 in one 15° strip with \|δ\| < 60° at a 5 km/s cap; the 10 km/s cap may give a few times more chance pairs: ≤ 200,000 rows in total, each strip query with max_rows = 50,000 (the default cap; a strip that overflows is split), ~300–400 B per row, ≤ 80 MB in total, ≤ 10 MB per query |
+| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, a flag whether radial_velocity is not null, FLAME mass | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); proper-motion difference × distance < 15 km/s (computed in WHERE, not returned). This cap is a query-size safeguard against chance pairs, not a C24/C26 selection cut (C24 has no velocity cut at pair finding; C26's own velocity-related cuts are ΔRV < 10 km/s, σ(ṽ) < 0.1 and ṽ ≤ 2.5, applied later in section 4); A1 is not rerun with other caps and no counts against the cap are looked at before the commit. Bound: the HR band (M_G > 4) limits each star to ≤ 10^{0.0725(4.67−4)} ≈ 1.12 M☉ by the mass rule (FLAME masses for such dwarfs stay below ~1.3 M☉), so M ≤ 2.6 M☉; at r_sky ≥ 1 kAU, v_c ≤ 1.53 km/s and ṽ ≤ 2.5 gives a corrected v_sky ≤ 3.8 km/s; the uncorrected proper-motion difference used in the cap differs from it by at most |v_sys|·θ ≤ |v_sys|·0.5 pc/d, ≤ 10 km/s only if |v_sys| > 200 km/s at d = 10 pc (or > 2,600 km/s at 130 pc). So, by this estimate, exclusion of main-sample pairs is possible only for |v_sys| of order 200 km/s or more within ~12 pc (the exact perspective term depends on the direction of the systemic motion; the cap's possible selection effect is listed as a limitation in section 4) | trial: 2,209 in one 15° strip with \|δ\| < 60° at a 5 km/s cap; the 10 km/s cap may give a few times more chance pairs: ≤ 200,000 rows in total, each strip query with max_rows = 50,000 (the default cap; a strip that overflows is split), ~300–400 B per row, ≤ 80 MB in total, ≤ 10 MB per query |
 | A2 neighbour counts | per parent star: source_id, number of relaxed neighbours, and the smallest neighbour source_id | neighbours as defined above (no velocity condition); only stars with n ≥ 1 returned | ≤ 50,000 rows per strip (max_rows = 50,000, split if it overflows); at most one row per parent star, so ≤ 824,463 rows and ≤ 33 MB in total at 40 B per row (likely ≤ 200,000 rows, ≤ 8 MB) |
 | B1 velocities (after the pre-registration commit) | the A1 pairs with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | A1's WHERE plus velocity-free cuts: r_sky ≤ 30 kAU at the weighted parallax and radial_velocity not null for both stars | ≤ 50,000 rows in total, ≤ 20 MB |
 
 Total at most about 135 MB (A1 ≤ 80, A2 ≤ 33, B1 ≤ 20; more likely 25–45 MB), plus the relaxed-neighbour
 A2 variant counted first, under the 200 MB study budget; no single query near 50 MB (each is split
-into strips). Strips (half-open in α and δ, so that every parent star with parallax < 34 mas belongs to exactly one region and gets its A2 count from exactly one query; checked by an offline test): star a in 24 right-ascension strips of 15° for |δ| ≤ 60°, 8 strips of 45° for
-60° < |δ| ≤ 80° (each hemisphere), and one query per polar cap (|δ| > 80°); star b restricted to the
+into strips). Strips (half-open in α and δ, so that every parent star with parallax < 34 mas belongs to exactly one region and gets its A2 count from exactly one query; checked by an offline test): star a in regions of 5° in α × 30° in δ for |δ| ≤ 60° (288 regions; smaller than first planned because the archive kills longer joins under load, dated 2026-11-14, before any data), 15° in α for 60° < |δ| ≤ 80° (24 per hemisphere), and one query per polar cap (|δ| > 80°), 338 regions in all; star b restricted to the
 same strip plus a margin of 1.2° in declination at every boundary and, in right ascension, 2.2°
 (|δ| ≤ 60°), 7° (60–80°) and all right ascensions (caps). The search radius is 0.5 pc = 103.1 kAU,
 1.031° at ϖ = 36 mas; the exact half-width in right ascension is asin(sin θ / cos δ) (2.06° at
@@ -181,7 +181,8 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
 **Blinding fallback.** If the pre-registration commit misses 2026-11-24, B1 is still fetched before
 the archive goes offline, and the study is labelled "unblinded" throughout.
 
-**Systematics and limits.** Our pair finding (projected 0.5 pc with parallax consistency) is our
+**Systematics and limits.** The 15 km/s query cap could, in rare geometries (very nearby pairs with
+large systemic velocity), remove a main-sample pair; this is not checked against velocities. Our pair finding (projected 0.5 pc with parallax consistency) is our
 reading of C24's "within 0.5 pc of one another", which does not say whether the distance is 2D or
 3D; the HR band's exact position and C26's bin edges are not published; FLAME masses exist for
 only part of the sample; the sample-size discrepancy inside C26 (1421 vs 900) means R1's size

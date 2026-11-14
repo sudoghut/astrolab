@@ -17,22 +17,28 @@ PC_AU = 206264.806
 
 
 # ---------------------------------------------------------------- sky strips
-def strip_plan(margin_ra_low=2.2, margin_ra_mid=7.0, margin_dec=1.2):
-    """Star-a regions (non-overlapping, covering the sphere) with the star-b search box.
+def strip_plan(margin_ra_low=2.2, margin_ra_mid=7.0, margin_dec=1.2, ra_step_low=5.0,
+               dec_bands_low=(-60.0, -30.0, 0.0, 30.0, 60.0), ra_step_mid=15.0):
+    """Star-a regions (half-open, partitioning the sphere) with the star-b search box.
 
-    Returns a list of dicts: ra0, ra1, dec0, dec1 for star a, and bra0, bra1, bdec0, bdec1 for star b
-    (b's RA range may wrap: bra0 > bra1 means two intervals; full RA is bra0=0, bra1=360).
+    |dec| <= 60: RA steps of ra_step_low within the given declination bands; 60-80: RA steps of
+    ra_step_mid; caps |dec| > 80: one region each. Star b: the region plus margin_dec in declination
+    and margin_ra_* in RA (all RA for caps). Returns a list of dicts: ra0, ra1, dec0, dec1 (star a)
+    and bra0, bra1, bdec0, bdec1 (star b; bra0 > bra1 means the RA interval wraps through 0).
     """
     out = []
-    for i in range(24):
-        ra0, ra1 = 15.0 * i, 15.0 * (i + 1)
-        out.append(dict(ra0=ra0, ra1=ra1, dec0=-60.0, dec1=60.0,
-                        bra0=(ra0 - margin_ra_low) % 360, bra1=(ra1 + margin_ra_low) % 360,
-                        bdec0=-60.0 - margin_dec, bdec1=60.0 + margin_dec))
+    nlow = int(round(360.0 / ra_step_low))
+    for lo, hi in zip(dec_bands_low[:-1], dec_bands_low[1:]):
+        for i in range(nlow):
+            ra0, ra1 = ra_step_low * i, ra_step_low * (i + 1)
+            out.append(dict(ra0=ra0, ra1=ra1, dec0=lo, dec1=hi,
+                            bra0=(ra0 - margin_ra_low) % 360, bra1=(ra1 + margin_ra_low) % 360,
+                            bdec0=lo - margin_dec, bdec1=hi + margin_dec))
+    nmid = int(round(360.0 / ra_step_mid))
     for sgn in (1, -1):
         lo, hi = (60.0, 80.0) if sgn > 0 else (-80.0, -60.0)
-        for i in range(8):
-            ra0, ra1 = 45.0 * i, 45.0 * (i + 1)
+        for i in range(nmid):
+            ra0, ra1 = ra_step_mid * i, ra_step_mid * (i + 1)
             out.append(dict(ra0=ra0, ra1=ra1, dec0=lo, dec1=hi,
                             bra0=(ra0 - margin_ra_mid) % 360, bra1=(ra1 + margin_ra_mid) % 360,
                             bdec0=lo - margin_dec, bdec1=hi + margin_dec))
