@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-14T21:26:05+00:00",
+ "generated_at": "2026-11-14T21:42:21+00:00",
  "levels": [
   "L0",
   "L1",
@@ -259,7 +259,7 @@
     ]
    },
    "open_questions": [
-    "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run. The 2.2 sigma uses C-propagated errors; random 10-host subsets show 1.33 times more scatter, placing the CCHP set at the 4.7th-5.7th percentile, about 1.7 sigma empirically (the subset spread is itself uncertain).)"
+    "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003, post-data host labelling: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run. The 2.2 sigma uses C-propagated errors; random 10-host subsets show 1.33 times more scatter, placing the CCHP set at the 4.7th-5.7th percentile, about 1.7 sigma empirically (the subset spread is itself uncertain).)"
    ],
    "notes": "Milestone M2."
   },

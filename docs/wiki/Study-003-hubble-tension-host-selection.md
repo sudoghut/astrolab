@@ -7,11 +7,11 @@ Subsample Explains Differences in JWST Estimates of Local H0", ApJ (accepted), a
 context: Riess et al. 2022 (R22), ApJL, doi:10.3847/2041-8213/ac5c5b, arXiv:2112.04510; Freedman et
 al. 2025 (CCHP), arXiv:2408.06153. Study:
 [`studies/003-m02-hubble-tension-distance-ladder`](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder).
-Status: planned. Last updated: 2026-11-14 (see the changelog at the end). The source of this page
+Status: active (results in; referee pending). Last updated: 2026-11-14 (see the changelog at the end). The source of this page
 lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：哈勃张力：校准星系的选择能否解释 JWST 给出的较低数值？状态：计划中。论文：Riess 等 2024，arXiv:2408.11770（ApJ 已接收）；背景：Riess 等 2022（R22），ApJL，doi:10.3847/2041-8213/ac5c5b，arXiv:2112.04510；Freedman 等 2025（CCHP），arXiv:2408.06153。研究：[`studies/003-m02-hubble-tension-distance-ladder`](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：哈勃张力：校准星系的选择能否解释 JWST 给出的较低数值？状态：进行中（已有结果，待独立审稿）。论文：Riess 等 2024，arXiv:2408.11770（ApJ 已接收）；背景：Riess 等 2022（R22），ApJL，doi:10.3847/2041-8213/ac5c5b，arXiv:2112.04510；Freedman 等 2025（CCHP），arXiv:2408.06153。研究：[`studies/003-m02-hubble-tension-distance-ladder`](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -205,11 +205,40 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
-| R1 · the SH0ES baseline | testable now | GLS fit of R22's y, L, C | C 46.5 MiB (Git LFS FITS), L 0.66 MB, y 17 kB, lstsq 0.7 kB; total about 47.2 MiB (below the 200 MB study budget) | primary: reproduce the authors' `lstsq_results.txt` (47 parameters); secondary: 73.04 ± 1.01 (tolerances in README §2) | pending |
-| R2 · stage A–B: anchor and host shifts | testable now | refit with NGC 4258 only (drop the other anchors' geometric rows), then restrict to the CCHP hosts; shifts in 5 log H0 with exact linear error propagation | same | anchor shift vs R22's −0.0158 mag; host shift: null "no shift", four-outcome table vs −0.0405 mag (our conversion of the paper's 72.54 → 71.2 to 5 log H0; README §2) | pending |
-| R3 · stages C and E: same hosts, Cepheid vs TRGB | explorable (descriptive by default) | joint linear estimator with CCHP's JWST TRGB distances; first reproduce CCHP's TRGB + Pantheon+ value 69.29 (not the paper's recalibrated Table 4 value 70.1) | CCHP Table 3 (paper) | descriptive unless the full CCHP error budget can be mapped before data; see README §8 | pending |
-| R4 · is the CCHP choice unusual? | explorable (descriptive) | random 10-host subsets of the 37 hosts, ΔH0 percentile (the paper did an 8-SN version for JAGB, Fig. 6: ~5%) | same | none — exploration only, see README §8 | pending |
-| Cross-paper comparison | explorable (descriptive) | pairwise differences for independent pairs only (ladder vs CMB, TDCOSMO vs others) | paper numbers | none — see README §8 | pending |
+| R1 · the SH0ES baseline | testable now | GLS fit of R22's y, L, C | C 46.5 MiB (Git LFS FITS), L 0.66 MB, y 17 kB, lstsq 0.7 kB; total about 47.2 MiB (below the 200 MB study budget) | primary: reproduce the authors' `lstsq_results.txt` (47 parameters); secondary: 73.04 ± 1.01 (tolerances in README §2) | not reproduced against the file (it is a different fit, about 73.3); our fit matches the printed baseline, 73.04, χ²/dof 1.031 |
+| R2 · stage A–B: anchor and host shifts | testable now | refit with NGC 4258 only (drop the other anchors' geometric rows), then restrict to the CCHP hosts; shifts in 5 log H0 with exact linear error propagation | same | anchor shift vs R22's −0.0158 mag; host shift: null "no shift", four-outcome table vs −0.0405 mag (our conversion of the paper's 72.54 → 71.2 to 5 log H0; README §2) | anchor shift reproduced (−0.0184, σ 0.0461); host shift −0.073 ± 0.033 mag (−2.2σ) under a post-data host labelling, pre-registered verdict "not evaluable"; see 3.1 |
+| R3 · stages C and E: same hosts, Cepheid vs TRGB | explorable (descriptive by default) | joint linear estimator with CCHP's JWST TRGB distances; first reproduce CCHP's TRGB + Pantheon+ value 69.29 (not the paper's recalibrated Table 4 value 70.1) | CCHP Table 3 (paper) | descriptive unless the full CCHP error budget can be mapped before data; see README §8 | CCHP side 69.70 against 69.29 (matched); same hosts: d = +0.010 ± 0.048 mag |
+| R4 · is the CCHP choice unusual? | explorable (descriptive) | random 10-host subsets of the 37 hosts, ΔH0 percentile (the paper did an 8-SN version for JAGB, Fig. 6: ~5%) | same | none — exploration only, see README §8 | CCHP choice at the 5.7th percentile (4.7th in Δ/σ) |
+| Cross-paper comparison | explorable (descriptive) | pairwise differences for independent pairs only (ladder vs CMB, TDCOSMO vs others) | paper numbers | none — see README §8 | ladder vs CMB-only 5.3σ; TDCOSMO vs ladder −0.4σ; TDCOSMO vs CMB-only 1.3σ |
+
+
+#### 3.1 Results (after implementation)
+
+The table above keeps the plan as written before implementation; the "Result" column and this
+section were added after the run (study README section 5; [web page](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder/web)).
+
+- **The public matrices reproduce R22's printed fit** (H0 = 73.04, χ²/dof 1.031). The authors'
+  `lstsq_results.txt`, our pre-registered primary target, is a different fit (about 73.3).
+- **A deviation from the pre-registration.** The columns of the public equation matrix are not in
+  the order of R22's host table, so the pre-registered host identification failed and the host
+  step (R2), R3 and R4 are, as pre-registered, *not evaluable*. After the first run we relabelled
+  the columns using only supernova magnitudes, Cepheid counts and host distances; the CCHP set is
+  then unique. Everything below rests on that post-data labelling.
+- **The host step (stage A–B).** Restricting the NGC 4258-only ladder to the 10 CCHP hosts moves
+  5 log H0 by −0.073 ± 0.033 mag (H0 72.4 → 70.0), −2.2σ with the covariance-propagated error.
+  That passes the pre-registered "significant, and the size the paper reports" row, but our shift
+  is 1.8 times the paper's −1.3 km/s/Mpc and agrees only within a wide tolerance. Random 10-host
+  subsets scatter more than the covariance predicts (the ratio Δ/σ spreads by 1.33), and on that
+  empirical scale the CCHP choice is about 1.7σ low (4.7th–5.7th percentile): a low but not
+  exceptional draw.
+- **Same hosts, two indicators (stages C and E).** Putting CCHP's JWST TRGB distances in place
+  of the Cepheids on the same 10 hosts gives 69.70, close to CCHP's own 69.29; the SH0ES and CCHP
+  ladders on those hosts differ by +0.010 ± 0.048 mag (0.3 km/s/Mpc), and no host deviates by
+  more than 1.2σ.
+- **What this means for the argument.** The inputs of `gap_rule` that this repo can recompute
+  hold in R22's data: the selected hosts give a lower H0 than the full sample, and on those hosts
+  Cepheids and TRGB agree. The rule itself (that this makes the difference "entirely" a matter of
+  selection) is not tested, and the selection effect is about 2σ, not overwhelming.
 
 ### Glossary
 
@@ -223,6 +252,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 ### Changelog
 
+- 2026-11-14: results added after implementation (Part 3 "Result" column and section 3.1): R22's printed fit reproduced; host step −0.073 ± 0.033 mag under a post-data host labelling (pre-registered verdict: not evaluable); same-host Cepheid–TRGB agreement; the CCHP choice is a low but ordinary draw.
 - 2026-11-14: first version: parts 1–3, written before implementation (T-012, plan 012); revised after
   review (gate 1: TRGB agreement included; the within-1σ comparison is stated by the paper; Fig. 6;
   GAP `stat_f24`: the recalibrated JWST values versus CCHP's published H0, so `explicit_insufficient`;
@@ -342,11 +372,22 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 | 环节 / 论断 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
-| R1 · SH0ES 的基线 | 现在可检验 | 对 R22 的 y、L、C 做广义最小二乘（GLS, generalised least squares）拟合 | C 46.5 MiB（Git LFS 的 FITS），L 0.66 MB，y 17 kB，lstsq 0.7 kB；合计约 47.2 MiB（低于研究预算 200 MB） | 主要：复现作者的 `lstsq_results.txt`（47 个参数）；次要：73.04 ± 1.01（容差见 README 第 2 节） | 待定 |
-| R2 · 环节 A–B：锚点与宿主的移动 | 现在可检验 | 只用 NGC 4258（去掉其他锚点的几何约束行）重拟，再限于 CCHP 宿主；在 5 log H0 中用精确的线性误差传播（linear error propagation） | 同上 | 锚点移动对 R22 的 −0.0158 mag；宿主移动：零假设（null hypothesis）"无移动"，四种结果的判定表，对 −0.0405 mag（我们把该文的 72.54 → 71.2 换算到 5 log H0；README 第 2 节） | 待定 |
-| R3 · 环节 C 与 E：同宿主上造父变星对 TRGB | 可探索（默认只作描述） | 与 CCHP 的 JWST TRGB 距离做联合线性估计；先复现 CCHP 的 TRGB + Pantheon+ 数值 69.29（不是论文重新标定的表 4 数值 70.1） | CCHP 表 3（论文） | 只有在取数前能写出 CCHP 完整的误差预算时才作检验，否则只作描述；见 README 第 8 节 | 待定 |
-| R4 · CCHP 的选择是否不寻常 | 可探索（只作描述） | 37 个宿主中随机 10 个的子样本，ΔH0 的百分位（percentile）（论文对 JAGB 做过 8 颗超新星的版本，图 6：约 5%） | 同上 | 无——只作探索，见 README 第 8 节 | 待定 |
-| 跨论文比较 | 可探索（只作描述） | 只对近似独立的组合给出两两之差（距离阶梯对 CMB、TDCOSMO 对其他） | 论文数字 | 无——见 README 第 8 节 | 待定 |
+| R1 · SH0ES 的基线 | 现在可检验 | 对 R22 的 y、L、C 做广义最小二乘（GLS, generalised least squares）拟合 | C 46.5 MiB（Git LFS 的 FITS），L 0.66 MB，y 17 kB，lstsq 0.7 kB；合计约 47.2 MiB（低于研究预算 200 MB） | 主要：复现作者的 `lstsq_results.txt`（47 个参数）；次要：73.04 ± 1.01（容差见 README 第 2 节） | 对作者文件未复现（那是另一个拟合，约 73.3）；我们的拟合与印出的基线一致，73.04，χ²/自由度 1.031 |
+| R2 · 环节 A–B：锚点与宿主的移动 | 现在可检验 | 只用 NGC 4258（去掉其他锚点的几何约束行）重拟，再限于 CCHP 宿主；在 5 log H0 中用精确的线性误差传播（linear error propagation） | 同上 | 锚点移动对 R22 的 −0.0158 mag；宿主移动：零假设（null hypothesis）"无移动"，四种结果的判定表，对 −0.0405 mag（我们把该文的 72.54 → 71.2 换算到 5 log H0；README 第 2 节） | 锚点移动复现（−0.0184，σ 0.0461）；宿主移动在数据之后的宿主标注下为 −0.073 ± 0.033 mag（−2.2σ），预注册判定为"不可评估"；见 3.1 |
+| R3 · 环节 C 与 E：同宿主上造父变星对 TRGB | 可探索（默认只作描述） | 与 CCHP 的 JWST TRGB 距离做联合线性估计；先复现 CCHP 的 TRGB + Pantheon+ 数值 69.29（不是论文重新标定的表 4 数值 70.1） | CCHP 表 3（论文） | 只有在取数前能写出 CCHP 完整的误差预算时才作检验，否则只作描述；见 README 第 8 节 | CCHP 一侧 69.70 对 69.29（一致）；同宿主 d = +0.010 ± 0.048 mag |
+| R4 · CCHP 的选择是否不寻常 | 可探索（只作描述） | 37 个宿主中随机 10 个的子样本，ΔH0 的百分位（percentile）（论文对 JAGB 做过 8 颗超新星的版本，图 6：约 5%） | 同上 | 无——只作探索，见 README 第 8 节 | CCHP 的选择位于第 5.7 百分位（按 Δ/σ 为第 4.7） |
+| 跨论文比较 | 可探索（只作描述） | 只对近似独立的组合给出两两之差（距离阶梯对 CMB、TDCOSMO 对其他） | 论文数字 | 无——见 README 第 8 节 | 距离阶梯对只用 CMB 5.3σ；TDCOSMO 对距离阶梯 −0.4σ；TDCOSMO 对只用 CMB 1.3σ |
+
+
+#### 3.1 结果（实现之后）
+
+上表保留实现之前写下的计划；"结果"一栏与本节在运行之后加入（研究 README 第 5 节；[网页](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder/web)）。
+
+- **公开矩阵复现了 R22 印出的拟合**（H0 = 73.04，χ²/自由度 1.031）。我们预注册的主要目标，即作者的 `lstsq_results.txt`，是另一个拟合（约 73.3）。
+- **偏离预注册。** 公开的方程矩阵的列不是按 R22 宿主表的顺序排列的，所以预注册的宿主识别失败，宿主一步（R2）、R3 与 R4 按预注册为*不可评估*。第一次运行之后，我们只用超新星星等、造父变星数目与宿主距离重新标注各列；这样 CCHP 宿主集合是唯一确定的。下面的结果都依赖这一数据之后的标注。
+- **宿主一步（环节 A–B）。** 把只用 NGC 4258 的阶梯限于 10 个 CCHP 宿主，5 log H0 移动 −0.073 ± 0.033 mag（H0 72.4 → 70.0），按协方差传播的误差为 −2.2σ。这符合预注册判定表中"显著，且大小与该文一致"一行，但我们的移动是论文的 −1.3 km/s/Mpc 的 1.8 倍，只在宽的容差内一致。随机 10 宿主子样本的离散大于协方差的预期（Δ/σ 的离散为 1.33），在这一经验尺度上 CCHP 的选择约低 1.7σ（第 4.7–5.7 百分位）：偏低，但不算异常。
+- **同样的宿主、两种指示器（环节 C 与 E）。** 在同样 10 个宿主上用 CCHP 的 JWST TRGB 距离代替造父变星，得到 69.70，与 CCHP 自己的 69.29 接近；这些宿主上 SH0ES 与 CCHP 两个阶梯相差 +0.010 ± 0.048 mag（0.3 km/s/Mpc），没有宿主偏离超过 1.2σ。
+- **对论证的意义。** 本项目能重算的 `gap_rule` 输入在 R22 的数据中成立：选出的宿主给出比全样本低的 H0，而在这些宿主上造父变星与 TRGB 一致。规则本身（因此差异"完全"是选择造成的）没有被检验，而选择效应约为 2σ，并不压倒性。
 
 ### 术语表
 
@@ -360,4 +401,5 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 ### 研究进展
 
+- 2026-11-14：实现之后加入结果（第三部分"结果"一栏与 3.1 节）：复现 R22 印出的拟合；在数据之后的宿主标注下宿主移动为 −0.073 ± 0.033 mag（预注册判定：不可评估）；同宿主上造父变星与 TRGB 一致；CCHP 的选择偏低但不异常。
 - 2026-11-14：第一版：第一至三部分，在实现之前写成（T-012，计划 012）；按审查修订（闸门 1：补上 TRGB 的一致性；1σ 以内的比较论文自己写明；图 6；GAP `stat_f24`：重新标定的 JWST 数值与 CCHP 发表的 H0，因而 `explicit_insufficient`；闸门 2：报告的中心值 73.2，以及 Lean 对 `gap_rule` 能说明什么）。

@@ -253,7 +253,8 @@ M_B = −19.269); the 0.02 mag "matched" tolerance in R3 is the guard for this d
 > labellings are broken by the smallest summed |μ_fit − μ_Ceph(a)|/σ(a) (implemented as a tiny
 > cost, far below 1, added to every compatible edge). The relabelling uses only SN magnitudes, Cepheid counts and host
 > distances, never an H0 result. Results under it are reported separately and labelled
-> "amended (post-data labelling)"; criteria and tolerances are unchanged. (The shift printed by
+> "amended (post-data labelling)". The decision criteria and tolerances of section 2 are unchanged;
+> the identification check (ii) is changed as described. (The shift printed by
 > the first run under the wrong labelling is meaningless and is not used.)
 
 ## 5. Results
@@ -267,7 +268,7 @@ passed; page: [`web/index.html`](web/index.html); numbers in `results/*.json`).
 | R1 secondary: R22 printed baseline | 5 log H0 = 9.3179 ± 0.0299 (H0 73.04); χ²/dof = 3552.8/3445 = 1.031 | 9.318 (73.04); 1.03 | matches |
 | R2 anchor step | −0.0184 mag; σ(5 log H0) 0.0461 | −0.0158 ± 0.005; 0.0461 ± 15% | **reproduced** |
 | R2 host step, pre-registered labelling | — | — | **not evaluable** (host identification) |
-| R2 host step, amended labelling | Δ_h = −0.0730 ± 0.0331 mag (−2.21σ); H0 72.42 → 70.03 | −0.0405 ± (2σ + 0.02) | significantly lowers H0, by the size the paper reports (**amended, post-data**) |
+| R2 host step, amended labelling | Δ_h = −0.0730 ± 0.0331 mag (−2.21σ); H0 72.42 → 70.03 | −0.0405 ± (2σ + 0.02) | significantly lowers H0, by the size the paper reports — **amended, post-data** (labelling and check (ii) changed); 2.2σ with C-propagated errors, about 1.7σ on the random-subset scale (itself uncertain) |
 | R3 CCHP-side H0, same 10 hosts (amended) | 69.70 (Δ = +0.013 mag) | 69.29 ± 0.02 mag | matched |
 | R3 d = SH0ES − CCHP, same hosts (amended) | +0.010 ± 0.048 mag (≈ +0.3 km/s/Mpc); per-host χ² 5.1 / 10 | — | descriptive |
 | R4 percentile of the CCHP host shift (amended) | 5.7th of 10,000 draws (spread σ = 0.046 mag); 4.7th in Δ/σ | 5th–95th | consistent with random-subset fluctuations |

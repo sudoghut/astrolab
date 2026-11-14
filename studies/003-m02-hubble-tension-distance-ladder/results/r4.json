@@ -2,7 +2,7 @@
  "status": "evaluated",
  "draws_requested": 10000,
  "labelling_mode": "amended (post-data labelling)",
- "seconds_per_draw": 0.07179182299878448,
+ "seconds_per_draw": 0.07273232099832967,
  "draws": 10000,
  "cchp_shift": -0.07301718705151927,
  "percentile": 5.680000000000001,

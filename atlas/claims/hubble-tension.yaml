@@ -23,5 +23,5 @@ reproduction:
     - {name: "H0 CCHP TRGB, 11 JWST calibrators, Pantheon+", paper: "69.29", ours: "69.70 (same hosts in the R22 GLS)"}
     - {name: "H0 CCHP TRGB", paper: "70.39 +/- 1.22 (stat) +/- 1.33 (sys)", ours: null, verified: S}
 open_questions:
-  - "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run. The 2.2 sigma uses C-propagated errors; random 10-host subsets show 1.33 times more scatter, placing the CCHP set at the 4.7th-5.7th percentile, about 1.7 sigma empirically (the subset spread is itself uncertain).)"
+  - "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003, post-data host labelling: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run. The 2.2 sigma uses C-propagated errors; random 10-host subsets show 1.33 times more scatter, placing the CCHP set at the 4.7th-5.7th percentile, about 1.7 sigma empirically (the subset spread is itself uncertain).)"
 notes: "Milestone M2."
