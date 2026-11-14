@@ -322,3 +322,15 @@ def test_neighbourhood_fallback_nearest_tie_and_identity():
     assert out.loc[2, "dr4_id"] == 20 and out.loc[2, "reason"] == "neighbourhood"   # nearest neighbour
     assert pd.isna(out.loc[3, "dr4_id"]) and out.loc[3, "reason"] == "neighbourhood-ambiguous"
     assert pd.isna(out.loc[4, "dr4_id"]) and out.loc[4, "reason"] == "neighbourhood-offset"
+
+
+def test_neighbourhood_collision_resolves_neither():
+    ref = pd.DataFrame({"source_id": [1, 2, 3], "ra": [10.0] * 3, "dec": [0.0] * 3, "phot_g_mean_mag": [12.0] * 3})
+    res = pd.DataFrame({"dr3_id": pd.array([1, 2, 3], dtype="int64"),
+                        "dr4_id": pd.array([None, None, 3], dtype="Int64"), "reason": ["not-found"] * 2 + [""]})
+    nb = pd.DataFrame({"old_id": [1, 2], "new_id": [9, 9], "dist_arcsec": [0.1, 0.2]})
+    found = pd.DataFrame({"source_id": [9], "ra": [10.0], "dec": [0.0], "pmra": [0.0], "pmdec": [0.0],
+                          "phot_g_mean_mag": [12.0]})
+    out = sel.apply_neighbourhood(res, ref, nb, found, 1.5).set_index("dr3_id")
+    assert out.dr4_id.isna().tolist() == [True, True, False]
+    assert out.loc[1, "reason"] == out.loc[2, "reason"] == "neighbourhood-collision"

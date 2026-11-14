@@ -477,7 +477,15 @@ def dr4_criteria(params, rel, res, sol_all, target_recs, screen_df, screen_n, re
     cand3 = _rows(json.loads((ref_dir / "bh_candidates.json").read_text(encoding="utf-8")))
     cand3["source_id"] = cand3.source_id.astype("int64")
     surv = cand3[~cand3.known.astype(bool) & ~cand3.vetoed.astype(bool) & (cand3.literature != "refuted")]
-    surv = surv.drop_duplicates("source_id")
+    # One DR3 reference row per survivor (on DR3 each has exactly one); if several, the R-sel order on the
+    # archived columns decides, never the file order, and the number of such sources is reported.
+    n_multi = int(surv.source_id.duplicated().sum())
+    surv = surv.assign(_v=surv.nss_solution_type.isin(list(unval)).astype(int),
+                       _t=surv.nss_solution_type.map(lambda t: sel.TYPE_RANK.get(t, 2)),
+                       _s=-surv.significance.astype(float).fillna(-np.inf),
+                       _n=surv.nss_solution_type.astype(str), _p=surv.period.astype(float).fillna(np.inf))
+    surv = (surv.sort_values(["source_id", "_v", "_t", "_s", "_n", "_p"], kind="mergesort")
+                .drop_duplicates("source_id").drop(columns=["_v", "_t", "_s", "_n", "_p"]))
     f_rows = []
     for ref in surv.to_dict("records"):
         resolved, p = primary_of(ref["source_id"])
@@ -496,7 +504,8 @@ def dr4_criteria(params, rel, res, sol_all, target_recs, screen_df, screen_n, re
     labels = pd.Series([x["label"] for x in f_rows], dtype=object)
     f = {"n": len(f_rows), "counts": {k: int((labels == k).sum()) for k in sel.LABELS},
          "n_rv_applicable": int(sum(x.get("rv_veto_applicable", False) for x in f_rows)),
-         "n_period_dr3_gt_1000d": int((surv.period > 1000).sum())}
+         "n_period_dr3_gt_1000d": int((surv.period > 1000).sum()),
+         "dr3_sources_with_several_survivor_rows": n_multi}
 
     # S3-DR4 (new candidates; primary among all solutions)
     new_rows = pd.DataFrame()
