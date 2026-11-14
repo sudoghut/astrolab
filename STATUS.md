@@ -16,13 +16,14 @@ M4 的 DR3 部分已完成并经过独立审稿（referee）。接下来的工�
 
 2026-11-14：为 M4 补写 Wiki 文章 `Study-001-gaia-dormant-black-holes` 与 Lean 论证拆解（计划 009）：加上标准知识后论证仍有一处缺口（BH3 论文没有排除三个以上致密天体）。
 
-2026-11-14：M1 研究 002（DESI DR2 BAO 与演化暗能量，计划 010）已复现：只用 BAO 的 Ωm 与 h·r_d、不含 CMB 的三个 Δχ² 复现；压缩 CMB 先验的 Δχ² 只在一种参数约定下复现（有条件复现，约定待 CAMB 核对，T-022）。新增核心模块 `cosmo`、`infer`。
+2026-11-14：M1 研究 002（DESI DR2 BAO 与演化暗能量，计划 010）已复现：只用 BAO 的 Ωm 与 h·r_d、不含 CMB 的三个 Δχ² 复现；压缩 CMB 先验的 Δχ² 只在一种参数约定下复现（有条件复现；它是否依赖这一约定待 CAMB 核对，T-022）。新增核心模块 `cosmo`、`infer`。
 
 ## 研究
 
 | 研究 | 层级 | 状态 | 说明 |
 |---|---|---|---|
 | `000-smoke-test_gaia-dr3-10pc-census` | L3 | active | 冒烟测试（smoke test），管线端到端可用 |
+| `002-m01-desi-bao-evolving-dark-energy` | L0 | reproduced | 只用 BAO 与不含 CMB 的组合已复现；压缩 CMB 先验为有条件复现（解读 B），先验 ωbc 约定未定（T-022） |
 | `001-m04-gaia-dormant-black-holes` | L4 | reproduced（DR3） | BH1、BH2 只用 DR3 复现成立；服务器端筛选与否决规则已在正样本上验证；按数据发布参数化，DR4 判据已预注册（计划 008），发布日按技能 `gaia-dr4-release-day` 运行 |
 
 ## 时间点

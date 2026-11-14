@@ -193,7 +193,7 @@ the paper):
 | 4 | Wilks calibration untested anywhere (all σ from χ²(2)) | yes | Open question (section 7): null-hypothesis mocks; this is the wiki's GAP `gap_regular`. |
 | 5 | Extra start for DESI alone uses the paper's 68% upper limit wa = −1.34, not a posterior mean | yes | Harmless (a start only); noted here. |
 | 6 | N_eff = walkers × steps / τ is optimistic for emcee | yes | R1 margin is large (MC error 0.02σ vs 0.05σ limit); accepted. |
-| 7 | 10 Pantheon+ calibrators survive zHD > 0.01; Cobaya likely keeps them too (match −4.86 vs −4.9) | partly (count verified; Cobaya not checked offline) | Accepted; same cut as pre-registered. |
+| 7 | 10 Pantheon+ calibrators survive zHD > 0.01; Cobaya likely keeps them too (match −4.86 vs −4.9) | partly (count verified; Cobaya not checked offline) | Accepted limitation: Cobaya's exact cut was not verified; we keep the pre-registered cut. |
 | 8 | K-check fits used 10 starts, not ≥ 20 | yes | Fixed (20 starts) and rerun. |
 | 9 | Lean: `mod_sig` generalises one quoted value by monotonicity of Eq. 22; `Challenged` is named from "not trivially dismissed"; `gap_regular` could mention prior truncation | yes | Docstrings and wiki notes added; no change of verdicts. |
 
