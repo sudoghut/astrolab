@@ -286,6 +286,23 @@ Triage of the referee report (verified = checked by us against code, results or 
 | 9 | D1 not evaluated; 169,227 hard-coded | yes | Fixed: D1 field + full DR4 query; count now from the server. |
 | 10 | ADQL SQRT without clip could drop rows | yes | Measured: 0 rows dropped; kept as a test. |
 
+### 6b. Argument referee (Lean argument and wiki article, 2026-11-14, T-010)
+
+An independent subagent saw the three papers, `argument/Argument.lean` and the citation-type-content table
+from `tests/test_lean_arguments.py`, not our article. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | One shared threshold "mass >= 5 Msun" made the BH2 and BH3 quotes (about 8.9 and 32.7 Msun companions) carry a claim about masses they do not discuss; BH1's abstract says "> 5" | yes | Per-system thresholds: BH1 `> 5`, BH2 `>= 8.0`, BH3 `>= 30` Msun; NUM binding now `> 5.0`. |
+| 2 | `mod_ns3` was stronger than its quote: the BH3 sentence excludes neutron stars only, not white dwarfs | yes | `mod_ns3` now concludes `NoNS3`; new `lit_wd3` (LIT [implied], Chandrasekhar limit) takes it to BH3. |
+| 3 | `mod_fit3` [stated] covers the method, not the step from an estimate to a bound | yes | `mod_fit3` is [implied], like `mod_fit1`/`mod_fit2`. |
+| 4 | "Redundant" BH1 mass routes all rest on the same follow-up RVs | yes | Article says redundancy is robustness to dropping one premise, not to a problem in the RV data. |
+| 5 | `num_astro1` is redundant and binds a median of a low-significance DR3 solution | yes | Stated in the article; no Lean verdict depends on it. |
+| 6 | Minor wording (`Faint2` scope, BH3 conclusion quote, `lit_ns1` neutron-star maximum 2.3-2.5 Msun) | yes | Fixed. |
+
+Verdicts after the fixes: `explicit_insufficient` (GAP `gap_few3`), `stated_insufficient`, 8 BH1 mass-route
+premises redundant.
+
 ## 7. Open questions
 
 - DR4 release day (2026-12-02): confirm schema via TAP_SCHEMA, run the screen and the vetoes, and
