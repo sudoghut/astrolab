@@ -96,6 +96,8 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
   only (the DR4 data model or a DPAC `nsstools` release for DR4), and the change is logged, before
   the first formal DR4 run; while it is False, R1-R3 are "not evaluable" and only central values
   are reported. If it is changed after any formal DR4 run, that earlier run is reported as well.
+  After the barrier, a `corr_vec` length check on BH1 may only set it back to False (reported),
+  never to True.
   `RELEASES` is part of this pre-registration: any other change to it is recorded as such.
 
 **R1-DR4, R2-DR4.** Same rule as on DR3 (|M2_ours - M2_paper| < 2 sigma_combined), using the
