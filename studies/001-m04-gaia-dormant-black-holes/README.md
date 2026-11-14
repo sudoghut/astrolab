@@ -49,8 +49,16 @@ changed and keep being checked against the archived DR3 results in `results/dr3/
 criteria are computed by `run.py` (design plan 008), not by hand on the day.
 
 **Definitions used below.**
-- *Astrometric types*: `ASTROMETRIC_TYPES` in `screen.py` as confirmed on release day from the DR4
-  type tally (run-book step 1.4), and logged in `log.md` before any DR4 data are fetched.
+- *Information barrier*: the three release-day decisions below (astrometric types, non-validated
+  types, `covariance_trusted`) are made from metadata and documentation only (TAP_SCHEMA, the
+  server-side type tally, the DR4 data model and release papers) and logged in `log.md`, with the
+  `PARAMS` / `RELEASES` / `screen.py` change committed, before any source-level DR4 data (targets,
+  controls, survivors, screen) are fetched. They cannot be revisited after such data are seen
+  without being reported as a post-hoc change.
+- *Astrometric types*: mechanically, the DR4 solution types for which the server-side tally
+  `SELECT nss_solution_type, COUNT(*), COUNT(a_thiele_innes) ... GROUP BY nss_solution_type` shows
+  Thiele-Innes constants (COUNT(a_thiele_innes) > 0); `ASTROMETRIC_TYPES` in `screen.py` is set to
+  exactly this list (run-book step 1.4).
 - *Non-validated types*: `PARAMS["unvalidated_types"]`. For DR4 these are the solution types the
   DR4 documentation (data model or release papers) describes as not validated or of lower
   reliability, decided from the documentation, written into `log.md` and into `PARAMS` with a date
@@ -112,7 +120,8 @@ fails, the screen is not fetched, and the screen-dependent item S3-DR4 is "not e
 the rest is still computed; a tightened screen run afterwards is post-hoc and its S3 numbers are
 never read as the pre-registered result), and each of BH1, BH2, BH3 that resolves and has a
 DR4 solution has M2 > 3 Msun with its published M1 on its primary solution; a missing target is
-listed as "not evaluable" for this part.
+listed as "not evaluable" for this part. At least 2 of the 3 targets must be evaluable for this
+part to pass; with fewer, S1-DR4 is "not evaluable" (never a pass for lack of data).
 
 **S2-DR4.** Of the 21 El-Badry et al. (2024) candidates, N_eval are those that resolve and have a
 DR4 solution of astrometric type; a candidate passes if its primary solution meets the screen
