@@ -98,9 +98,11 @@ def test_claim_validation_catches_errors():
     good = {**bad, "_file": "y.yaml", "level": "L3", "grade": "hint", "sources": [{"cite": "c"}],
             "reproduction": {"status": "not-started"}, "title_zh": "标题", "statement_zh": "陈述"}
     assert claims.validate(good) == []
-    assert claims.validate({**good, "title_zh": "TODO: 中文标题"}) == ["'title_zh' must be a non-empty Chinese string"]
+    assert claims.validate({**good, "title_zh": "TODO: 中文标题"}) == \
+        ["'title_zh' is still the template placeholder; fill in the Chinese text"]
+    assert claims.validate({**good, "statement_zh": "   "}) == ["'statement_zh' must be a non-empty Chinese string"]
 
 
 def test_studies_have_chinese_fields():
     for s in study.discover():
-        assert claims.zh_errors(s.meta, ("title_zh", "question_zh")) == [], s.id
+        assert claims.zh_errors(s.meta, claims.STUDY_ZH_FIELDS) == [], s.id

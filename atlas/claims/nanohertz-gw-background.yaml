@@ -5,7 +5,7 @@ statement: >
   NANOGrav, EPTA, PPTA and CPTA find a common red process with Hellings-Downs
   correlations at ~2-4.6 sigma, consistent with a GW background of amplitude
   ~2.4e-15 at f = 1/yr.
-statement_zh: "NANOGrav、EPTA、PPTA 和 CPTA 发现了具有 Hellings-Downs 相关性的共同红噪声过程，显著性约 2–4.6σ，与 f = 1/年 处振幅约 2.4×10⁻¹⁵ 的引力波背景一致。"
+statement_zh: "NANOGrav、EPTA、PPTA 和 CPTA 发现了具有 Hellings-Downs 相关性的共同红噪声过程，显著性约 2–4.6σ，与 f = 1/yr 处振幅约 2.4×10⁻¹⁵ 的引力波背景一致。"
 level: X
 grade: hint
 sources:

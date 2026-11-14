@@ -96,7 +96,7 @@ LRU 指最近最少使用（Least Recently Used）的清理策略。
     - 纯文本场合（`textContent`、属性、`<option>`、图表标题与悬停文字）用 `i18n.t(en, zh)`，并在 `i18n.onLangChange(fn)` 中更新。
     - 中文页面标题写在 `<html data-title-zh="…">`。
   - 测试会检查每个 `web/` 下的 `.html` 是否引用了 `i18n.js`。
-  - 中文字段：结论条目（claims）加 `title_zh`、`statement_zh`，`study.yaml` 加 `title_zh`、`question_zh`。新建结论或研究时必须同时填写；`claims check` 与测试会检查它们是非空字符串。网页在中文模式下显示中文字段。
+  - 中文字段：结论条目（claims）加 `title_zh`、`statement_zh`，`study.yaml` 加 `title_zh`、`question_zh`。新建结论或研究时必须同时填写；`python -m astrolab claims check` 与测试会检查它们含有中文、且不是模板占位符（`TODO…`）。网页在中文模式下显示中文字段。
   - 天体名称、星表编号、数值、单位、文献引用、代码与命令不翻译。
 - **引用前先核实**：路线图中标为 [S] 或 [U] 的条目，动手前要提升到 [V]，即对照原文核实。
 - **及时抽出技能（skills）**：某个研究动作第二次出现，或者步骤多、容易做错时，就把它写成技能，放在 `.claude/skills/<name>/SKILL.md`。

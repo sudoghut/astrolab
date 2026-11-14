@@ -1,7 +1,8 @@
 /* Shared English / Chinese switch for every astrolab page (AGENTS.md, bilingual rule).
  *
- * Load synchronously in <head>:  <script src=".../atlas/web/i18n.js"></script>
+ * Load synchronously in <head>, AFTER <title>:  <script src=".../atlas/web/i18n.js"></script>
  * Self-contained: injects its own hide rules and toggle button, no base.css needed.
+ * L() does not escape: pass already-escaped HTML (esc() any text that comes from data files).
  *
  *   Static text:      <span class="en">Hello</span><span class="zh">你好</span>
  *   Generated HTML:   i18n.L('Hello', '你好')      -> both spans, CSS shows one
@@ -27,18 +28,26 @@
   function writeStore(v) {
     try { localStorage.setItem(KEY, v); } catch (e) { /* private mode etc. */ }
   }
-  var u = readUrl(), s = readStore();
-  var lang = LANGS.indexOf(u) >= 0 ? u : LANGS.indexOf(s) >= 0 ? s : 'en';
-  if (LANGS.indexOf(u) >= 0) writeStore(u);
+  function norm(v) { v = (v || '').toLowerCase(); return v.indexOf('zh') === 0 ? 'zh' : v === 'en' ? 'en' : null; }
+  function isBackForward() {
+    try { var n = performance.getEntriesByType('navigation')[0]; return !!n && n.type === 'back_forward'; }
+    catch (e) { return false; }
+  }
+  var u = norm(readUrl()), s = norm(readStore());
+  // A URL from history (Back/Forward) may be stale; the stored choice is the newer one.
+  if (u && s && u !== s && isBackForward()) u = null;
+  var lang = u || s || 'en';
+  if (u) writeStore(u);
 
   var style = document.createElement('style');
   style.textContent =
     'html[data-lang="en"] .zh, html[data-lang="zh"] .en { display: none !important; }' +
-    '.i18n-toggle { position: fixed; top: 10px; right: 12px; z-index: 1000; font: 600 13px system-ui, sans-serif;' +
+    '.i18n-toggle { position: absolute; top: 10px; right: 12px; z-index: 1000; font: 600 13px system-ui, sans-serif;' +
     ' padding: 4px 10px; border-radius: 999px; cursor: pointer; border: 1px solid currentColor;' +
     ' background: var(--surface, #fff); color: var(--accent, #2f5d8a); }' +
     '.i18n-toggle:hover { filter: brightness(1.1); }' +
-    'html[data-lang="zh"] body { font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }';
+    '@media print { .i18n-toggle { display: none; } }' +
+    'html[data-lang="zh"] body { font-family: var(--sans, system-ui, sans-serif), "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }';
   (document.head || root).appendChild(style);
 
   var titleEn = null;
@@ -49,11 +58,13 @@
     root.setAttribute('lang', lang === 'zh' ? 'zh-CN' : 'en');
     if (titleEn === null && document.title) titleEn = document.title;
     var tz = root.getAttribute('data-title-zh');
-    if (titleEn !== null) document.title = lang === 'zh' && tz ? tz : titleEn;
+    if (lang === 'zh' && tz) document.title = tz;
+    else if (titleEn !== null) document.title = titleEn;
     if (button) {
+      // The button speaks the language it switches to.
       button.textContent = lang === 'zh' ? 'EN' : '中文';
-      button.setAttribute('aria-label', lang === 'zh' ? 'Switch to English' : '切换到中文');
-      button.title = button.getAttribute('aria-label');
+      button.lang = lang === 'zh' ? 'en' : 'zh-CN';
+      button.title = lang === 'zh' ? 'EN: switch to English' : '中文：切换到中文';
     }
   }
 
@@ -79,9 +90,9 @@
   }
 
   // Carry the language across internal relative links, so it survives even without storage.
-  document.addEventListener('click', function (ev) {
+  function carry(ev) {
     var a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
-    if (!a || a.target === '_blank') return;
+    if (!a) return;
     var href = a.getAttribute('href');
     if (!href || /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(href)) return;  // external, mailto, anchors
     try {
@@ -90,7 +101,15 @@
       url.searchParams.set('lang', lang);
       a.href = url.toString();
     } catch (e) { /* ignore */ }
-  }, true);
+  }
+  document.addEventListener('click', carry, true);
+  document.addEventListener('auxclick', carry, true);   // middle-click / new tab
+  document.addEventListener('contextmenu', carry, true); // "open in new tab" from the menu
+
+  // Back/forward cache restores the page without rerunning this script; another tab may
+  // also have switched language. Follow the stored choice in both cases.
+  window.addEventListener('pageshow', function (ev) { if (ev.persisted) setLang(norm(readStore()) || lang); });
+  window.addEventListener('storage', function (ev) { if (ev.key === KEY) setLang(norm(ev.newValue) || lang); });
 
   function mount() {
     if (button || !document.body) return;
@@ -98,7 +117,7 @@
     button.type = 'button';
     button.className = 'i18n-toggle';
     button.addEventListener('click', function () { setLang(lang === 'zh' ? 'en' : 'zh'); });
-    document.body.appendChild(button);
+    document.body.insertBefore(button, document.body.firstChild);  // first tab stop
     apply();
   }
 
