@@ -159,8 +159,8 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 - 改为在服务器端用 ADQL 自连接（self-join），重建 130–200 pc 以内的干净样本，约 5–20 MB。
 
 **方法**
-- 对缩放后的相对速度分布（scaled relative velocity distribution）做前向建模。
-- 模型中包含三体系统（triples）、近距双星（close binaries）和偶然成对（chance alignments）等污染成分。
+- 计划 013：按 Cookson et al. 2026 的质量清单重建干净样本，比较 r_sky/r_M 各箱中缩放相对速度（scaled relative velocity）ṽ 的中位数是"平的牛顿线"还是"MOND 台阶"。
+- 对 ṽ 分布做含三体系统（triples）、近距双星（close binaries）和偶然成对（chance alignments）等污染成分的前向建模（Banik et al. 2024 的做法）不在计划 013 的范围内，留作后续。
 
 **开放问题**
 - 在同一条管线中复现双方的样本切割，做盲化（blind）的"质量阶梯（quality ladder）"再分析。
