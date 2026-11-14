@@ -176,7 +176,8 @@ Every fit passed the pre-registered validity checks (converged; at least 3 start
   enough for reading A to pass. Nor is reading B cleanly "the paper's convention": the text defines
   ωbc = ωb + ωc, but Eq. 2 normalises ωbc to 0.1432, which equals Planck's ωm including the
   0.06 eV neutrino. We therefore do not conclude which convention DESI's prior uses; a CAMB check of
-  θ* at the fit points (T-022, needs the user's consent to install CAMB) would settle it.
+  θ* at the fit points (T-022, needs the user's consent to install CAMB) would show whether R2
+  depends on the convention at all; only a primary source can say which convention DESI used.
 
 ## 6. Referee notes (independent subagent, 2026-11-14)
 
@@ -203,10 +204,13 @@ sections 1-4 unchanged since commit 88cdacb, before the data were first used).
 
 - The ωbc convention of the compressed prior (Eq. 35): which quantity does the paper's code compare
   with it? A primary source (the authors' Cobaya configuration or the definition in the
-  compression paper, ref. [111]) or a CAMB check of θ* at the fit points (T-022) would settle R2.
+  compression paper, ref. [111]) would say which convention DESI used; a CAMB check of θ* at the fit points (T-022; installing CAMB
+  needs the user's consent, which README section 4 did not plan) would show whether R2 depends on it.
 - Wilks calibration (wiki `gap_regular`): simulate the Δχ² distribution under the ΛCDM best fit
   for DESI + compressed CMB and compare with χ²(2).
 - Leave-one-tracer-out sensitivity of Δχ² (`drop_z`), and DES-Dovekie as a third SN sample.
+- Prior edge: the DESI-alone w0waCDM MAP sits at wa = −2.72, near the wa = −3 prior bound, so its
+  Δχ² and its Wilks calibration depend on the prior box (same box as the paper).
 
 ## 8. Exploring via chat
 
