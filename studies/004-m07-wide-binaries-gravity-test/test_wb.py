@@ -122,9 +122,10 @@ def test_vsky_sigma_matches_monte_carlo():
 
 
 def test_merge_and_bins():
-    assert wb.merge_outer([100, 80, 50, 20, 10, 4], 15) == [0, 1, 2, 3, 3, 3]
-    assert wb.merge_outer([100, 80, 50, 20, 12, 4], 15) == [0, 1, 2, 3, 4, 4]
-    assert wb.merge_outer([100, 80, 50, 20, 30, 28], 15) == [0, 1, 2, 3, 4, 5]
+    assert wb.merge_outer([100, 80, 50, 20, 10, 4], 15) == ([0, 1, 2, 3, 3, 3], True)
+    assert wb.merge_outer([100, 80, 50, 20, 12, 4], 15) == ([0, 1, 2, 3, 4, 4], True)
+    assert wb.merge_outer([100, 80, 50, 20, 30, 28], 15) == ([0, 1, 2, 3, 4, 5], True)
+    assert wb.merge_outer([10, 3], 15)[1] is False
     assert list(wb.bin_index([0.05, 0.2, 3.0], [0.1057, 0.2307, 0.5088, 1.0275, 2.0902])) == [0, 1, 5]
 
 
@@ -152,3 +153,10 @@ def test_bootstrap_cov_shape():
     b2[:16] = 5
     c2, frac2, ok2 = wb.bootstrap_cov(vt, b2, 6, 200, 0)
     assert frac2 > 0.05 and not ok2
+
+
+def test_gls_invalid_diagonal():
+    A, chi2, diag, ok = wb.gls_scale_fit(np.ones(3), np.ones(3), np.diag([1.0, 0.0, 1.0]))
+    assert not ok and np.isnan(chi2)
+    r = wb.compare_models(np.ones(3), np.array([0.1, 1.0, 3.0]), np.diag([1.0, -1.0, 1.0]))
+    assert not r["valid"] and np.isnan(r["L"])

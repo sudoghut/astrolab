@@ -199,7 +199,8 @@ def bin_index(x, edges):
 
 
 def merge_outer(counts, min_count):
-    """Merge the highest bin inward until it holds min_count; returns a mapping old bin -> new bin."""
+    """Merge the highest bin inward until it holds min_count; returns (mapping old bin -> new bin,
+    evaluable). Not evaluable if fewer than two bins remain or the merged bin is still short."""
     counts = list(counts)
     n = len(counts)
     mapping = list(range(n))
@@ -210,7 +211,8 @@ def merge_outer(counts, min_count):
         total += counts[top]
     for b in range(top, n):
         mapping[b] = top
-    return mapping
+    evaluable = total >= min_count and top >= 1 and all(c >= min_count for c in counts[:top])
+    return mapping, evaluable
 
 
 def bin_medians(vt, b, nbins):
@@ -251,7 +253,11 @@ def mad_errors(vt, b, nbins, scale=1.0):
 
 
 def gls_scale_fit(y, shape, cov, cond_max=1e8):
-    """Fit y = A * shape with covariance cov; returns (A, chi2, used_diagonal)."""
+    """Fit y = A * shape with covariance cov; returns (A, chi2, used_diagonal, valid).
+
+    An ill-conditioned or non-finite covariance falls back to its diagonal; the fit is invalid
+    (A and chi2 NaN) unless the usable diagonal is finite and strictly positive (README section 2).
+    """
     y = np.asarray(y, float)
     s = np.asarray(shape, float)
     cov = np.asarray(cov, float)
@@ -259,18 +265,24 @@ def gls_scale_fit(y, shape, cov, cond_max=1e8):
     if not np.all(np.isfinite(cov)) or np.linalg.cond(cov) > cond_max:
         cov = np.diag(np.diag(cov))
         diag = True
+    d = np.diag(cov)
+    if not (np.all(np.isfinite(d)) and np.all(d > 0) and np.all(np.isfinite(y))):
+        return float("nan"), float("nan"), diag, False
     ci = np.linalg.inv(cov)
     A = float(s @ ci @ y / (s @ ci @ s))
     r = y - A * s
-    return A, float(r @ ci @ r), diag
+    return A, float(r @ ci @ r), diag, True
 
 
 def compare_models(medians, x_bins, cov, a0=1.2e-10, gne_over_a0=1.184):
-    """Newton (flat) vs MOND (A * b(x)); each with its own normalisation. Returns dict."""
+    """Newton (flat) vs MOND (A * b(x)); each with its own normalisation. Returns dict with 'valid'."""
     flat = np.ones_like(medians)
     shape = mond_boost(x_bins, a0, gne_over_a0)
-    An, cn, dn = gls_scale_fit(medians, flat, cov)
-    Am, cm, dm = gls_scale_fit(medians, shape, cov)
-    d = cm - cn
+    An, cn, dn, vn = gls_scale_fit(medians, flat, cov)
+    Am, cm, dm, vm = gls_scale_fit(medians, shape, cov)
+    valid = bool(vn and vm)
+    d = cm - cn if valid else float("nan")
     return {"A_newton": An, "chi2_newton": cn, "A_mond": Am, "chi2_mond": cm, "dchi2": d,
-            "ln_L": d / 2.0, "L": float(math.exp(min(d / 2.0, 700.0))), "used_diagonal": bool(dn or dm)}
+            "ln_L": d / 2.0 if valid else float("nan"),
+            "L": float(math.exp(min(d / 2.0, 700.0))) if valid else float("nan"),
+            "used_diagonal": bool(dn or dm), "valid": valid}

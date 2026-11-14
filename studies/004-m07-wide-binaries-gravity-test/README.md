@@ -50,17 +50,19 @@ r_sky/r_M, concluding that "Newtonian gravity is up to 1500× more likely than M
 **Fit validity.** Each bin must hold at least 15 pairs; otherwise the highest bin is merged inward
 with its neighbour until it holds at least 15 (its x_j is then the merged median, and the degrees of
 freedom become n_bins − 1, also for the Newtonian p-value). No other merging or edge change is
-allowed once counts are seen. The 15-pair minimum applies to every bootstrap replicate too: a
+allowed once counts are seen. If the whole sample cannot reach 15 pairs in a bin even after
+merging (fewer than two bins left), the fit is not evaluable and no verdict is given. The 15-pair minimum applies to every bootstrap replicate too: a
 replicate with fewer than 15 pairs in any (merged) bin is redrawn; if more than 5% of draws are
 redrawn, the fit is reported as invalid. The bootstrap covariance must be finite; if its condition
 number exceeds 10⁸, its diagonal is used instead, flagged; if any diagonal entry is not strictly
 positive, the fit is invalid and no verdict is given.
 
 **R1 (reproduction; main sample = C26's "ṽ ≤ 2.5" row).**
-- N within ±20% of 1421 (main) and of 1216 (ṽ ≤ 1.5 and ipd_frac_multi_peak = 0) →
-  **reproduced sample size**; otherwise **different sample** (R2 is still computed but labelled
-  "different sample; not a reproduction", and a diagnostic chain switching cuts on one at a time is
-  reported).
+- Main sample: N within ±20% of 1421 → **reproduced sample size**; otherwise **different sample**
+  (R2 is still computed but labelled "different sample; not a reproduction", and a diagnostic chain
+  switching cuts on one at a time is reported).
+- The cleanest variant (ṽ ≤ 1.5 and ipd_frac_multi_peak = 0) is compared with C26's 1216 as a
+  diagnostic only (no pass/fail).
 - Diagnostics only (no pass/fail): per-bin medians against C26 Figure 8 (read from the image),
   per-bin counts against 368, 228, 144, 99, 33, 28 (and N against their sum, 900, given C26's own
   1421-versus-900 inconsistency); the fitted Newtonian normalisation against
@@ -112,7 +114,7 @@ star and each candidate neighbour.
 
 | Query | Content | Selection (server side) | Est. rows / size |
 |---|---|---|---|
-| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, a flag whether radial_velocity is not null, FLAME mass | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); proper-motion difference × distance < 10 km/s (computed in WHERE, not returned; ṽ ≤ 2.5 implies v_sky ≲ 4 km/s even at 1 kAU and 3 M☉, so this cap cannot touch the main sample; A1 is not rerun with other caps and no counts against the cap are looked at before the commit) | trial: 2,209 in one 15° strip with \|δ\| < 60° at a 5 km/s cap; the 10 km/s cap may give a few times more chance pairs: ≤ 200,000 rows in total, each strip query with max_rows = 50,000 (the default cap; a strip that overflows is split), ~300–400 B per row, ≤ 80 MB in total, ≤ 10 MB per query |
+| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, a flag whether radial_velocity is not null, FLAME mass | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); proper-motion difference × distance < 10 km/s (computed in WHERE, not returned; A1 is not rerun with other caps and no counts against the cap are looked at before the commit). Cap 15 km/s. Bound: the HR band (M_G > 4) limits each star to ≤ 10^{0.0725(4.67−4)} ≈ 1.12 M☉ by the mass rule (FLAME masses for such dwarfs stay below ~1.3 M☉), so M ≤ 2.6 M☉; at r_sky ≥ 1 kAU, v_c ≤ 1.53 km/s and ṽ ≤ 2.5 gives a corrected v_sky ≤ 3.8 km/s; the uncorrected proper-motion difference used in the cap differs from it by at most |v_sys|·θ ≤ |v_sys|·0.5 pc/d, ≤ 10 km/s only if |v_sys| > 200 km/s at d = 10 pc (or > 2,600 km/s at 130 pc). So the cap can exclude only main-sample pairs with |v_sys| > 200 km/s within ~12 pc | trial: 2,209 in one 15° strip with \|δ\| < 60° at a 5 km/s cap; the 10 km/s cap may give a few times more chance pairs: ≤ 200,000 rows in total, each strip query with max_rows = 50,000 (the default cap; a strip that overflows is split), ~300–400 B per row, ≤ 80 MB in total, ≤ 10 MB per query |
 | A2 neighbour counts | per parent star: source_id, number of relaxed neighbours, and the smallest neighbour source_id | neighbours as defined above (no velocity condition); only stars with n ≥ 1 returned | ≤ 50,000 rows per strip (max_rows = 50,000, split if it overflows); at most one row per parent star, so ≤ 824,463 rows and ≤ 33 MB in total at 40 B per row (likely ≤ 200,000 rows, ≤ 8 MB) |
 | B1 velocities (after the pre-registration commit) | the A1 pairs with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | A1's WHERE plus velocity-free cuts: r_sky ≤ 30 kAU at the weighted parallax and radial_velocity not null for both stars | ≤ 50,000 rows in total, ≤ 20 MB |
 
@@ -127,7 +129,9 @@ same strip plus a margin of 1.2° in declination at every boundary and, in right
 ≥ 34 mas (d < 29 pc) are queried separately with star b restricted to parallax + 3σ > 28 mas
 (counted first, since an unrestricted star b failed on the server).
 Each pair is kept once (canonical source_id_a < source_id_b; duplicates from the margins dropped);
-this logic has an offline test. **Count first.** Before each A1, A2 and B1 query (every strip, the near-star query and every R3
+this logic has an offline test. **Units.** Parallaxes are in mas, distances in pc (d = 1000/ϖ), r_sky in AU from d and the angle.
+
+**Count first.** Before each A1, A2 and B1 query (every strip, the near-star query and every R3
 or R4 variant that needs its own query), `run.py` runs the same FROM/WHERE as a server-side
 `COUNT(*)` (through `ctx.count`), converts it to bytes at 400 B per A1/B1 row and 40 B per A2 row,
 and fetches only if the query fits under 50,000 rows and 50 MiB and the cumulative estimate stays
