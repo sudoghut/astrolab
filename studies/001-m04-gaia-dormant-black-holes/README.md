@@ -49,8 +49,8 @@ changed and keep being checked against the archived DR3 results in `results/dr3/
 criteria are computed by `run.py` (design plan 008), not by hand on the day.
 
 **Definitions used below.**
-- *Information barrier*: the three release-day decisions below (astrometric types, non-validated
-  types, `covariance_trusted`) are made from metadata and documentation only (TAP_SCHEMA, the
+- *Information barrier*: the release-day decisions below (astrometric types, non-validated types,
+  `covariance_trusted`, and the DR4 reference epoch used for `epoch_gap_yr`) are made from metadata and documentation only (TAP_SCHEMA, the
   server-side type tally, an aggregate query that returns only counts per type, the DR4 data model
   and release papers; no source-level row or value is inspected) and logged in `log.md`, with the
   `PARAMS` / `RELEASES` / `screen.py` change committed, before any source-level DR4 data (targets,
@@ -192,7 +192,7 @@ function is evaluated on the server.
 |---|---|---|---|
 | DR4 schema, tables, columns, solution types | `TAP_SCHEMA`; GROUP BY on `nss_two_body_orbit` | metadata | < 1,000 rows each |
 | Resolution of DR3 ids | DR4 `gaia_source` (and the DR3-DR4 cross-match table if published) | 109 unique DR3 source_ids (87 DR3 rows with M2 > 3 incl. BH1, BH2 and the 51 survivors; 21 NS; BH3; literature-labelled) | < 300 rows |
-| All solutions of S3-DR4 candidates | DR4 `nss_two_body_orbit` JOIN `gaia_source` LEFT JOIN `astrophysical_parameters`, by id in chunks of <= 500 | sources with a screen row of M2 > 3 | counted on the server first; expected a few x 10^3 rows. Stop rule: above 50,000 rows (~15 MB at ~300 bytes/row) S3-DR4 is "not evaluable" and nothing is fetched; no post-hoc narrowing. Bounded anyway by the screen (< 50,000 rows) times the solutions per source |
+| All solutions of the screen candidates (S3-DR4, and the veto columns of the DR4 candidate table) | DR4 `nss_two_body_orbit` JOIN `gaia_source` LEFT JOIN `astrophysical_parameters`, by id in chunks of <= 500 | sources with a screen row of M2 > 3 not already fetched as targets, controls or resolved ids | counted on the server first; expected a few x 10^3 rows. Stop rule: above 50,000 rows (~15 MB at ~300 bytes/row) S3-DR4 is "not evaluable" and nothing is fetched; no post-hoc narrowing. Bounded anyway by the screen (< 50,000 rows) times the solutions per source |
 | Target, control and survivor solutions | DR4 `nss_two_body_orbit` JOIN `gaia_source` LEFT JOIN `astrophysical_parameters` | the resolved ids | < 500 rows |
 | Screen | same query as DR3 on the DR4 schema | same cuts | counted on release day; DR3 gave 3,343. Above 50,000: S1-DR4 fails and is recorded first (run-book step 2) |
 | DR3 reference values | `results/dr3/` (archived DR3 run: periods and their errors, a0, M1 used; `reference_ids.json` with DR3 position and G of the 109 ids, fetched in the DR3 rerun before 2026-11-25) | committed files | < 1 MB |

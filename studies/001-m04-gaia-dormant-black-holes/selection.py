@@ -122,7 +122,7 @@ def in_screen_cuts(row, astrometric_types, plx_snr_min, fm_min) -> bool:
     if row["nss_solution_type"] not in set(astrometric_types):
         return False
     plx, plx_err = row["parallax"], row["parallax_error"]
-    if not (np.isfinite(plx) and np.isfinite(plx_err) and plx > 0 and plx / plx_err > plx_snr_min):
+    if not (np.isfinite(plx) and np.isfinite(plx_err) and plx > 0 and plx_err > 0 and plx / plx_err > plx_snr_min):
         return False
     _, _, fm = solution_m2(pd.DataFrame([row]), 1.0)
     return bool(np.isfinite(fm[0]) and fm[0] > fm_min)
@@ -139,7 +139,8 @@ def identity_check(ref: dict, new: dict, epoch_gap_yr: float, max_offset_arcsec=
     pmra, pmdec = new.get("pmra"), new.get("pmdec")
     dra_pm = (pmra if pmra is not None and np.isfinite(pmra) else 0.0) * epoch_gap_yr / 1000.0   # arcsec
     ddec_pm = (pmdec if pmdec is not None and np.isfinite(pmdec) else 0.0) * epoch_gap_yr / 1000.0
-    dra = (new["ra"] - ref["ra"]) * math.cos(math.radians(ref["dec"])) * 3600 - dra_pm
+    dra_deg = (new["ra"] - ref["ra"] + 180.0) % 360.0 - 180.0          # wrap at 0/360
+    dra = dra_deg * math.cos(math.radians(ref["dec"])) * 3600 - dra_pm
     ddec = (new["dec"] - ref["dec"]) * 3600 - ddec_pm
     if not math.hypot(dra, ddec) < max_offset_arcsec:
         return False, "offset"
@@ -161,9 +162,13 @@ def resolve_ids(reference: pd.DataFrame, found: pd.DataFrame, epoch_gap_yr: floa
             continue
         ok, why = identity_check(r._asdict(), new, epoch_gap_yr)
         rows.append((sid, sid if ok else None, why))
-    out = pd.DataFrame(rows, columns=["dr3_id", "dr4_id", "reason"])
-    out["dr4_id"] = out.dr4_id.astype("Int64")
-    return out
+    # Build the id columns as exact integers: a None among 19-digit ids would otherwise make pandas
+    # go through float64 and silently corrupt every id (> 2**53).
+    return pd.DataFrame({
+        "dr3_id": pd.array([r[0] for r in rows], dtype="int64"),
+        "dr4_id": pd.array([r[1] for r in rows], dtype="Int64"),
+        "reason": [r[2] for r in rows],
+    })
 
 
 # ---------------------------------------------------------------------------------------------
@@ -189,9 +194,13 @@ def v_dr4(control_primaries: pd.DataFrame, n_controls: int, n_min=15, rv_weak_be
 
 
 def s1_targets(target_m2: dict, m2_min: float, n_min=2) -> dict:
-    """target_m2: name -> M2 (float) or None when not evaluable."""
-    ev = {k: v for k, v in target_m2.items() if v is not None and np.isfinite(v)}
-    ok = all(v > m2_min for v in ev.values())
+    """target_m2: name -> M2, or None when the target is missing (unresolved / no solution).
+
+    A target that has a solution but a non-finite M2 (e.g. parallax <= 0) is evaluable and fails:
+    only a missing target is "not evaluable" (README S1-DR4).
+    """
+    ev = {k: v for k, v in target_m2.items() if v is not None}
+    ok = all(np.isfinite(v) and v > m2_min for v in ev.values())
     verdict = "not evaluable" if len(ev) < n_min else ("pass" if ok else "fail")
     return {"m2": target_m2, "n_evaluable": len(ev), "verdict": verdict}
 
@@ -213,7 +222,7 @@ def label_survivor(resolved: bool, primary, ref: dict, unvalidated_types, plx_sn
         return x is None or not np.isfinite(x)
 
     plx, plx_err = primary["parallax"], primary["parallax_error"]
-    if (bad(plx) or bad(plx_err) or plx <= 0 or plx / plx_err <= plx_snr_min
+    if (bad(plx) or bad(plx_err) or plx <= 0 or plx_err <= 0 or plx / plx_err <= plx_snr_min
             or bad(primary["period"]) or bad(primary["period_error"]) or bad(primary["a0_mas"])):
         return "insufficient"
     if bool(primary["veto_rv"]):
@@ -224,6 +233,12 @@ def label_survivor(resolved: bool, primary, ref: dict, unvalidated_types, plx_sn
     if not abs(primary["period"] - ref["period"]) < 3 * sig:
         return "period-changed"
     return "persists"
+
+
+def possible_alias(period_ratio, rel_tol=0.1) -> bool:
+    """P_DR4/P_DR3 within 10 per cent of 1/2 or 2 (reported only; not used for labels)."""
+    r = float(period_ratio)
+    return bool(np.isfinite(r) and (abs(r / 0.5 - 1) < rel_tol or abs(r / 2.0 - 1) < rel_tol))
 
 
 def m1_for(primary, fallback: float) -> float:

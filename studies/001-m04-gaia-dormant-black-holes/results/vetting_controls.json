@@ -1,4 +1,5 @@
 {
+ "release": "dr3",
  "note": "Vetoes validated on positive controls (post-hoc 2026-11-11; per primary solution from 2026-11-14).",
  "rules": {
   "veto_type": [
@@ -11,6 +12,7 @@
  "rows": [
   {
    "source_id": "465093354131112960",
+   "dr3_id": "465093354131112960",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -20,6 +22,7 @@
   },
   {
    "source_id": "1007185297091149824",
+   "dr3_id": "1007185297091149824",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -29,6 +32,7 @@
   },
   {
    "source_id": "1028887114002082432",
+   "dr3_id": "1028887114002082432",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -38,6 +42,7 @@
   },
   {
    "source_id": "1058875159778407808",
+   "dr3_id": "1058875159778407808",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -47,6 +52,7 @@
   },
   {
    "source_id": "1350295047363872512",
+   "dr3_id": "1350295047363872512",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -56,6 +62,7 @@
   },
   {
    "source_id": "1434445448240677376",
+   "dr3_id": "1434445448240677376",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -65,6 +72,7 @@
   },
   {
    "source_id": "1694708646628402048",
+   "dr3_id": "1694708646628402048",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -74,6 +82,7 @@
   },
   {
    "source_id": "1801110822095134848",
+   "dr3_id": "1801110822095134848",
    "role": "NS candidate",
    "type": "AstroSpectroSB1",
    "rv_amplitude_robust": 47.46125793457031,
@@ -83,6 +92,7 @@
   },
   {
    "source_id": "1871419337958702720",
+   "dr3_id": "1871419337958702720",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -92,6 +102,7 @@
   },
   {
    "source_id": "2397135910639986304",
+   "dr3_id": "2397135910639986304",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -101,6 +112,7 @@
   },
   {
    "source_id": "2426116249713980416",
+   "dr3_id": "2426116249713980416",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -110,6 +122,7 @@
   },
   {
    "source_id": "2995961897685517312",
+   "dr3_id": "2995961897685517312",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -119,6 +132,7 @@
   },
   {
    "source_id": "3494029910469026432",
+   "dr3_id": "3494029910469026432",
    "role": "NS candidate",
    "type": "AstroSpectroSB1",
    "rv_amplitude_robust": 41.16781997680664,
@@ -128,6 +142,7 @@
   },
   {
    "source_id": "4373465352415301632",
+   "dr3_id": "4373465352415301632",
    "role": "Gaia BH1",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -137,6 +152,7 @@
   },
   {
    "source_id": "4637171465304969216",
+   "dr3_id": "4637171465304969216",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -146,6 +162,7 @@
   },
   {
    "source_id": "4922744974687373440",
+   "dr3_id": "4922744974687373440",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -155,6 +172,7 @@
   },
   {
    "source_id": "5136025521527939072",
+   "dr3_id": "5136025521527939072",
    "role": "NS candidate",
    "type": "AstroSpectroSB1",
    "rv_amplitude_robust": 44.66072082519531,
@@ -164,6 +182,7 @@
   },
   {
    "source_id": "5530442371304582912",
+   "dr3_id": "5530442371304582912",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -173,6 +192,7 @@
   },
   {
    "source_id": "5580526947012630912",
+   "dr3_id": "5580526947012630912",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -182,6 +202,7 @@
   },
   {
    "source_id": "5820382041374661888",
+   "dr3_id": "5820382041374661888",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -191,6 +212,7 @@
   },
   {
    "source_id": "5870569352746779008",
+   "dr3_id": "5870569352746779008",
    "role": "Gaia BH2",
    "type": "AstroSpectroSB1",
    "rv_amplitude_robust": 36.96407699584961,
@@ -200,6 +222,7 @@
   },
   {
    "source_id": "6328149636482597888",
+   "dr3_id": "6328149636482597888",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,
@@ -209,6 +232,7 @@
   },
   {
    "source_id": "6481502062263141504",
+   "dr3_id": "6481502062263141504",
    "role": "NS candidate",
    "type": "Orbital",
    "rv_amplitude_robust": null,

@@ -1,0 +1,95 @@
+"""Offline test of run.dr4_criteria (the DR4 glue) on synthetic DR4-shaped data (design plan 008)."""
+import importlib.util
+import json
+import sys
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE))
+_spec = importlib.util.spec_from_file_location("m04_run_for_tests", HERE / "run.py")
+run = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(run)
+import selection as sel  # noqa: E402
+
+BH1, BH2, BH3 = (run.TARGETS[n]["gaia_dr3"] for n in ("Gaia BH1", "Gaia BH2", "Gaia BH3"))
+
+
+def solution(sid, **kw):
+    s = dict(source_id=sid, nss_solution_type="Orbital", significance=40.0, goodness_of_fit=0.2, period=300.0,
+             period_error=1.0, parallax=2.0, parallax_error=0.05, eccentricity=0.2, a_thiele_innes=5.0,
+             b_thiele_innes=0.5, f_thiele_innes=-0.5, g_thiele_innes=5.0, rv_amplitude_robust=np.nan,
+             mass_flame=1.0, radius_flame=1.0, phot_g_mean_mag=12.0, bp_rp=0.8)
+    s.update(kw)
+    return s
+
+
+def build(tmp_path):
+    ns, _ = run.ns_table()
+    ns_ids = [int(i) for i in ns.gaia_dr3]
+    surv = [101, 102, 103, 104]            # DR3 survivors
+    ref = pd.DataFrame({
+        "source_id": [str(i) for i in surv] + [str(BH1)],
+        "known": [False] * 4 + [True], "vetoed": [False] * 5, "literature": [""] * 5,
+        "period": [300.0, 300.0, 300.0, 300.0, 185.6], "period_error": [2.0] * 5,
+        "m1_used": [1.0] * 5, "a0_mas": [1.0] * 5})
+    d = tmp_path / "dr3"
+    d.mkdir()
+    (d / "bh_candidates.json").write_text(ref.to_json(orient="columns"), encoding="utf-8")
+
+    ids = [BH1, BH2, BH3] + ns_ids + surv
+    dr4 = {i: i for i in ids}
+    dr4[104] = None                        # 104 does not resolve
+    res = pd.DataFrame({"dr3_id": pd.array(ids, dtype="int64"), "dr4_id": pd.array([dr4[i] for i in ids], dtype="Int64"),
+                        "reason": ["" if dr4[i] else "offset" for i in ids]})
+
+    rows = [solution(BH1), solution(BH2, nss_solution_type="AstroSpectroSB1")]       # BH3: no solution
+    rows += [solution(i) for i in ns_ids[:18]]                                         # 3 NS without solution
+    rows += [solution(101),                                                            # persists
+             solution(102, nss_solution_type="OrbitalAlternative"),                    # type-vetoed
+             solution(103, period=400.0)]                                              # period-changed
+    rows += [solution(555, a_thiele_innes=20.0, g_thiele_innes=20.0)]                  # new S3 candidate
+    sol = sel.apply_vetoes(pd.DataFrame(rows), run.PARAMS["unvalidated_types"], 0.5, run.RELEASES["dr4"]["rv_veto"])
+    _, a0, fm = sel.solution_m2(sol, 1.0)
+    sol["a0_mas"], sol["f_m"] = a0, fm
+    screen = pd.DataFrame({"source_id": [101, 555], "m2": [5.0, 40.0]})
+    recs = [{"name": n, "status": "computed", "evaluable": False} for n in run.TARGETS]
+    return d, res, sol, recs, screen
+
+
+def test_dr4_criteria_on_synthetic_release(tmp_path):
+    d, res, sol, recs, screen = build(tmp_path)
+    params = dict(run.PARAMS, release="dr4")
+    out, f_rows, new_rows = run.dr4_criteria(params, run.RELEASES["dr4"], res, sol, recs, screen, 2, d, sol, len(sol))
+
+    labels = {r["source_id"]: r["label"] for r in f_rows}
+    assert labels == {"101": "persists", "102": "type-vetoed", "103": "period-changed", "104": "unresolved"}
+    assert out["F"]["n"] == 4 and sum(out["F"]["counts"].values()) == 4
+
+    assert out["S1"]["n_evaluable"] == 2 and out["S1"]["verdict"] == "pass"          # BH3 missing: not counted
+    assert out["S2"]["n_eval"] == 18 and out["S2"]["catalogue_recall"] == "18/21"
+    assert out["S2"]["verdict"] == "pass"
+    assert out["V"]["n_counted"] == 20 and out["V"]["verdict"] == "pass"
+    assert str(BH3) in out["V"]["without_solution_or_unresolved"]
+    assert all(r["verdict"] == "not evaluable" for r in out["R"].values())
+    assert out["S3"]["n_new"] == 1 and out["S3"]["ids"] == ["555"] and len(new_rows) == 1
+    assert out["resolution"]["unresolved"] == 1
+
+
+def test_dr4_criteria_s3_stop_rule_and_no_screen(tmp_path):
+    d, res, sol, recs, screen = build(tmp_path)
+    params = dict(run.PARAMS, release="dr4")
+    out, _, new_rows = run.dr4_criteria(params, run.RELEASES["dr4"], res, sol, recs, screen, 2, d, None, 60000)
+    assert out["S3"]["verdict"] == "not evaluable" and len(new_rows) == 0
+    out, _, _ = run.dr4_criteria(params, run.RELEASES["dr4"], res, sol, recs, None, 60000, d, None, 0)
+    assert out["S1"]["verdict"] == "fail" and out["S3"]["verdict"] == "not evaluable"
+    assert out["S2"]["verdict"] == "pass"                                                 # independent of the screen
+
+
+def test_outputs_list_covers_every_saved_name():
+    import re
+    src = (HERE / "run.py").read_text(encoding="utf-8")
+    assigned = set(re.findall(r'(?<![A-Za-z_])out\["([a-z0-9_]+)"\]', src))
+    assert assigned <= set(run.OUTPUTS)
