@@ -38,52 +38,94 @@ spurious (quality flags) / unexplained. No discovery claim is made in this study
 
 **D1 (DR4 readiness).** The same code produces valid ADQL for `release="dr4"` (schema
 `gaiadr4`) and runs end to end for `release="dr3"`.
+*Note 2026-11-14 (design plan 008):* the check now uses the schema mapped to `dr4` in
+`screen.SCHEMAS` (`gaiadr4` unless release day shows otherwise) instead of the literal name; the
+meaning of D1 is unchanged. D1 is a DR3-run criterion and is "not applicable" on the DR4 run.
 
 ### DR4 addendum to section 2 (2026-11-14, written before the DR4 release; pre-registration)
 
-Evaluated on the DR4 run only (`PARAMS["release"] = "dr4"`); the DR3 criteria above stay as they
-are and keep being checked against the archived DR3 results.
+Evaluated on the DR4 run only (`PARAMS["release"] = "dr4"`). The DR3 criteria above are not
+changed and keep being checked against the archived DR3 results in `results/dr3/`. All DR4
+criteria are computed by `run.py` (design plan 008), not by hand on the day.
 
-**R-sel (which solution).** If a target has more than one solution of an astrometric type, all are
-computed and reported; the criteria use the one chosen by: drop `unvalidated_types`; prefer
-`AstroSpectroSB1`, then `Orbital`, then the other types; ties by the highest `significance`.
+**Definitions used below.**
+- *Astrometric types*: `ASTROMETRIC_TYPES` in `screen.py` as confirmed on release day from the DR4
+  type tally (run-book step 1.4), and logged in `log.md` before any DR4 data are fetched.
+- *Non-validated types*: `PARAMS["unvalidated_types"]`. For DR4 these are the solution types the
+  DR4 documentation (data model or release papers) describes as not validated or of lower
+  reliability, decided from the documentation, written into `log.md` and into `PARAMS` with a date
+  before the vetting query is fetched. Changing this formal parameter is a change to this
+  pre-registration and is recorded as such.
+- *Resolution*: a DR3 source_id "resolves" if it is present in DR4 `gaia_source`, or, if DR4
+  publishes a DR3-DR4 cross-match (neighbourhood) table, if that table maps it to a DR4 source;
+  the mapped DR4 id is then used. A source that does not resolve is reported as `unresolved` and is
+  never counted as a scientific outcome.
+- *Primary solution (R-sel)*, applied per source everywhere (targets, controls, survivors, new
+  candidates): among the source's solutions of astrometric type, prefer validated over
+  non-validated; among those prefer `AstroSpectroSB1`, then `Orbital`, then the other types; ties
+  by the highest `significance`, then the smallest |`goodness_of_fit`|. All solutions are saved; the
+  criteria use the primary.
+- *Vetoes*: (i) type veto: the primary solution is of a non-validated type; (ii) RV veto: DR4
+  `rv_amplitude_robust` < `PARAMS["rv_ratio_min"]` (0.5) x the min-to-max RV range predicted from
+  the primary orbit (2K with cos i = (AG - BF)/a0^2, as in section 5). On DR4 the RV veto applies
+  only if P < 2000 d (shorter than the ~66-month DR4 baseline, so the observed epochs can cover the
+  full RV range) and the column exists; otherwise it is "not applicable", never a veto. If DR4
+  renames the column, its documented successor with the same definition is used; if there is
+  none, the RV veto is not applicable.
+- *Uncertainties*: if the DR4 `corr_vec` parameter order cannot be confirmed (run-book step 1.5),
+  R1-R3 are "not evaluable" and only central values are reported.
 
-**R3 (BH3).** If DR4 has an astrometric orbital solution for 4318465066420528000, M1 =
-0.76 +/- 0.05 Msun (Gaia Collaboration, Panuzzo et al. 2024, arXiv:2404.10486v2, Table 3) gives M2
-consistent with the published 32.70 +/- 0.82 Msun: |M2_ours - 32.70| < 2 sigma_combined.
-*Expectation noted in advance:* the published value comes from a pre-release run (NSS 4.1) with a
-combined astrometric + RV solution and f_M from a1 (their f_M = 31.23 +/- 0.81 Msun); the paper's
-astrometry-only solution gives f_M = 32.03 +/- 0.64 Msun, so our a0/parallax mass may sit
-somewhat above 32.70, and DR4's final pipeline differs from NSS 4.1. No DR4 solution: R3 is
-reported as "not evaluable", not as a failure.
+**R1-DR4, R2-DR4.** Same rule as on DR3 (|M2_ours - M2_paper| < 2 sigma_combined), using the
+primary DR4 solution of BH1 and BH2 with the M1 values of section 2. No DR4 solution or unresolved:
+"not evaluable". R1b (comparison with the published DR3-only solution) is a DR3-only check and is
+not evaluated on DR4.
 
-**R1, R2 on DR4.** Same rule as on DR3 (2 sigma_combined against the published masses), now with
-DR4 solutions; reported next to the DR3 values.
+**R3 (BH3).** If BH3 (4318465066420528000) resolves and has a DR4 solution of astrometric type,
+M1 = 0.76 +/- 0.05 Msun (Gaia Collaboration, Panuzzo et al. 2024, arXiv:2404.10486v2, Table 3)
+gives M2 consistent with the published 32.70 +/- 0.82 Msun: |M2_ours - 32.70| < 2 sigma_combined.
+No DR4 solution: "not evaluable", not a failure.
+*Expectation noted in advance:* the published mass comes from a pre-release run (NSS 4.1) of the
+same pipeline on the same ~66 months of data, with a combined astrometric + RV (`AstroSpectroSB1`)
+solution: f_M = 31.23 +/- 0.81 Msun, P = 4253.1 +/- 98.5 d. For an `AstroSpectroSB1` solution our
+f_M = (a0/parallax)^3 / P^2 is the same quantity as their a1-based f_M (the parallax of that
+solution is a0/a1), so no method offset is expected; their astrometry-only solution has f_M =
+32.03 +/- 0.64 Msun, mostly because of its shorter period (4194.7 d), and would give M2 about
+0.8 Msun higher. R3 is therefore a check of consistency between NSS 4.1 and the final DR4
+pipeline, not an independent measurement.
 
 **S1-DR4.** The DR4 screen returns < 50,000 rows, and BH1, BH2 (and BH3 if it has a solution)
-have M2 > 3 Msun with their published M1.
+have M2 > 3 Msun with their published M1 on their primary solution.
 
-**S2-DR4.** At least 19 of the 21 El-Badry et al. (2024) candidates pass `f_M > 0.25 Msun` on DR4.
-Only candidates whose DR3 source_id resolves in DR4 `gaia_source` and that have a DR4 astrometric
-solution are counted; the others are listed separately (cross-match or no solution) and the
-denominator is stated.
+**S2-DR4.** Of the 21 El-Badry et al. (2024) candidates, N_eval are those that resolve and have a
+DR4 solution of astrometric type; a candidate passes if its primary solution is in the DR4 screen
+(astrometric type, parallax S/N > 5, f_M > 0.25 Msun; the same meaning as `in_screen` on DR3).
+Pass: N_eval >= 15 and passed >= ceil(0.9 N_eval). N_eval < 15: "not evaluable". The catalogue
+recall (how many of the 21 have any DR4 solution) is reported separately. As on DR3, this test is
+weak (the weakest DR3 f_M was 0.41 against a 0.25 cut).
 
-**V-DR4 (vetoes).** No positive control (BH1, BH2, BH3, the 21 NS candidates) is vetoed. The type
-veto uses the DR4 names of the non-validated families, decided from the DR4 type tally and written
-into `log.md` before the run. A vetoed control means the veto rules fail on DR4; they are not
-retuned.
+**V-DR4 (vetoes on controls).** Controls: BH1, BH2, BH3 and the 21 NS candidates. A control is
+vetoed if its primary solution is vetoed by (i) or (ii). Pass: no control is vetoed. Controls
+without a DR4 solution or unresolved are listed and not counted. A vetoed control means the veto
+rules fail on DR4; they are reported and not retuned.
 
 **F-DR4 (the 51 DR3 survivors).** Each of the 51 DR3 candidates that were not known, not vetoed
-and not refuted gets exactly one label from DR4, in this order:
-1. `unresolved`: its DR3 source_id is not in DR4 `gaia_source` (cross-match problem, not a result);
-2. `solution-gone`: no DR4 astrometric solution;
-3. `rv-vetoed`: DR4 `rv_amplitude_robust` < `rv_ratio_min` x the RV range predicted from the DR4 orbit;
-4. `type-vetoed`: the DR4 solution is of a non-validated type;
-5. `persists`: |P_DR4 - P_DR3| < 3 sqrt(sigma_P,DR3^2 + sigma_P,DR4^2) and M2 > 3 Msun with FLAME M1
-   (fallback 1 Msun);
-6. `changed`: anything else.
-The counts per label are reported. No discovery claim is made: `persists` means "still a
-candidate".
+and not refuted gets exactly one label, the first that applies:
+1. `unresolved` (see Resolution);
+2. `solution-gone`: no DR4 solution of astrometric type;
+3. `type-vetoed`: the primary solution is of a non-validated type;
+4. `insufficient`: parallax <= 0, parallax S/N <= 5, or a missing period, period error or a0;
+5. `rv-vetoed`: the RV veto applies and fires;
+6. `mass-below`: M2 <= 3 Msun with M1 = DR4 FLAME `mass_flame` if present, else the DR3 `m1_used`;
+7. `period-changed`: |P_DR4 - P_DR3| >= 3 sqrt(sigma_P,DR3^2 + sigma_P,DR4^2);
+8. `persists`: none of the above.
+Also reported, not used for labels: P_DR4/P_DR3 (values near 0.5 or 2 flagged as possible
+aliases) and a0_DR4/a0_DR3. For P_DR3 > ~1000 d (beyond the DR3 baseline) the period test is weak.
+The counts per label are the result. No discovery claim: `persists` means "still a candidate".
+
+**S3-DR4 (new candidates, exploratory).** DR4 sources with M2 > 3 Msun (FLAME M1, fallback 1 Msun)
+that were not DR3 candidates are counted, given the quality labels and vetoes above, and checked
+against literature published after DR3 (including the Gaia DR4 release papers). No prior
+expectation and no discovery claim.
 
 ## 3. Data (with size estimate)
 
@@ -101,13 +143,15 @@ function is evaluated on the server.
 
 | Input | Source | Selection | Est. rows / size |
 |---|---|---|---|
-| DR4 schema, tables, columns, solution types | `TAP_SCHEMA`, GROUP BY on `nss_two_body_orbit` | metadata | < 1,000 rows each |
-| Target and control solutions | DR4 `nss_two_body_orbit` | 3 BHs + 21 NS candidates by source_id | < 100 rows |
+| DR4 schema, tables, columns, solution types | `TAP_SCHEMA`; GROUP BY on `nss_two_body_orbit` | metadata | < 1,000 rows each |
+| Resolution of DR3 ids | DR4 `gaia_source` (and the DR3-DR4 cross-match table if published) | 79 unique DR3 source_ids (3 BHs, 21 NS, 6 literature-labelled, 51 survivors; BH1 and BH2 appear twice) | < 200 rows |
+| Target, control and survivor solutions | DR4 `nss_two_body_orbit` JOIN `gaia_source` LEFT JOIN `astrophysical_parameters` | the resolved ids | < 500 rows |
 | Screen | same query as DR3 on the DR4 schema | same cuts | counted on release day; DR3 gave 3,343. Above 50,000: S1-DR4 fails and is recorded first (run-book step 2) |
-| Id resolution and survivor follow-up | DR4 `gaia_source` LEFT JOIN `nss_two_body_orbit` | 79 unique DR3 source_ids (3 BHs, 21 NS, 6 literature-labelled, 51 survivors; BH1 and BH2 appear twice) | < 200 rows |
+| DR3 reference values | `results/dr3/` (archived DR3 run: periods and their errors, a0, M1 used) | committed files | < 1 MB |
 
 The release-day count and its size estimate (rows x ~300 bytes) are written into this table
-before the screen is fetched.
+before the screen is fetched. Result files stay under 1 MB (AGENTS.md section 1): the screen
+points are thinned in `run.py` when the screen is large (design plan 008, section 2.4).
 
 ## 4. Method
 
@@ -125,11 +169,12 @@ before the screen is fetched.
 
 ### DR4 addendum to section 4 (2026-11-14, before the DR4 release)
 
-- Method unchanged; the release is the parameter `PARAMS["release"]` (design plan 008).
-- The DR4 run starts only after the DR3 results are archived in `results/dr3/`; `run.py` refuses a
-  formal non-DR3 run otherwise.
-- The DR4 type names for `ASTROMETRIC_TYPES` and `unvalidated_types`, and the `corr_vec` order, are
-  confirmed on release day (run-book steps 1.4-1.5) before any criterion is evaluated.
+- Method unchanged; the release is the parameter `PARAMS["release"]` (design plan 008). The vetoes
+  and the solution choice used on DR4 are defined in the section 2 addendum.
+- A formal run refuses to overwrite results of another release that are not archived in
+  `results/<release>/` (both directions).
+- DR4 type names, the non-validated types and the `corr_vec` order are confirmed on release day
+  (run-book steps 1.4-1.5) and logged before any criterion is evaluated.
 
 ## 5. Results (2026-11-11)
 
