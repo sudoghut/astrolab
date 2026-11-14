@@ -29,7 +29,9 @@ def primary_solutions(sol: pd.DataFrame, unvalidated_types, astrometric_types) -
     """One row per source_id, chosen by R-sel; never depends on row order.
 
     Order: validated before non-validated; AstroSpectroSB1, Orbital, others; highest significance;
-    smallest |goodness_of_fit|; lexicographically smallest type; smallest period; missing values last.
+    smallest |goodness_of_fit|; lexicographically smallest type; smallest period; then the Thiele-Innes
+    constants A, B, F, G ascending (rows equal on all of these are the same solution and are collapsed
+    upstream); missing values last.
     Only solutions of astrometric type are eligible.
     """
     if sol.empty:
@@ -44,7 +46,12 @@ def primary_solutions(sol: pd.DataFrame, unvalidated_types, astrometric_types) -
     s["_k4"] = s.goodness_of_fit.astype(float).abs().fillna(big) if "goodness_of_fit" in s else 0.0
     s["_k5"] = s.nss_solution_type.astype(str)
     s["_k6"] = s.period.astype(float).fillna(big)
-    s = s.sort_values(["source_id", "_k1", "_k2", "_k3", "_k4", "_k5", "_k6"], kind="mergesort")
+    ti = []
+    for i, c in enumerate(("a_thiele_innes", "b_thiele_innes", "f_thiele_innes", "g_thiele_innes")):
+        if c in s:
+            s[f"_k7{i}"] = s[c].astype(float).fillna(big)
+            ti.append(f"_k7{i}")
+    s = s.sort_values(["source_id", "_k1", "_k2", "_k3", "_k4", "_k5", "_k6"] + ti, kind="mergesort")
     out = s.drop_duplicates("source_id", keep="first")
     return out.drop(columns=[c for c in out if c.startswith("_k")]).reset_index(drop=True)
 
@@ -152,10 +159,15 @@ def identity_check(ref: dict, new: dict, epoch_gap_yr: float, max_offset_arcsec=
 
 def resolve_ids(reference: pd.DataFrame, found: pd.DataFrame, epoch_gap_yr: float) -> pd.DataFrame:
     """Direct-id resolution with the identity check. Columns: dr3_id, dr4_id (or <NA>), reason."""
+    ids = found.source_id.astype("int64")
+    dup = set(ids[ids.duplicated(keep=False)].tolist())
     by_id = {int(r.source_id): r._asdict() for r in found.itertuples(index=False)}
     rows = []
     for r in reference.itertuples(index=False):
         sid = int(r.source_id)
+        if sid in dup:   # several rows for one id: ambiguous, never chosen by row order
+            rows.append((sid, None, "ambiguous"))
+            continue
         new = by_id.get(sid)
         if new is None:
             rows.append((sid, None, "not-found"))

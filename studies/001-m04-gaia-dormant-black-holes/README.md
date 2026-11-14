@@ -74,7 +74,8 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
   literature-labelled sources; `results/dr3/reference_ids.json`), with the DR3 position moved to the
   DR4 reference epoch using the DR4 proper motion (no propagation if DR4 has none), the offset is
   < 2 arcsec and |G_DR4 - G_DR3| < 0.3 mag. A source that does not resolve is reported as
-  `unresolved`, with the reason (not found / offset / magnitude), and is never counted as a
+  `unresolved`, with the reason (not found / ambiguous: several rows for the id / offset / magnitude),
+  and is never counted as a
   scientific outcome. Large-amplitude variable giants can fail the magnitude check; this errs
   towards `unresolved`, and the count is reported.
 - *Missing data* (note 2026-11-14, design plan 008, before the release): a FLAME value that is
@@ -86,7 +87,8 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
   candidates): among the source's solutions of astrometric type, prefer validated over
   non-validated; among those prefer `AstroSpectroSB1`, then `Orbital`, then the other types; ties
   by the highest `significance`, then the smallest |`goodness_of_fit`|, then the lexicographically
-  smallest `nss_solution_type`, then the smallest `period` (missing values sort last), so the choice
+  smallest `nss_solution_type`, then the smallest `period`, then the Thiele-Innes constants A, B, F,
+  G ascending (missing values sort last; rows equal on all of these are one solution), so the choice
   never depends on row order. All solutions are saved; the
   criteria use the primary.
 - *Vetoes*: (i) type veto: the primary solution is of a non-validated type; (ii) RV veto: DR4
@@ -94,7 +96,8 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
   the primary orbit (2K with cos i = (AG - BF)/a0^2, as in section 5). On DR4 the RV veto applies
   only if P < 1000 d (at least two orbits within the ~66-month DR4 baseline) and e < 0.8 (a
   short periastron spike can fall between sparse RV epochs), and the column exists; otherwise it
-  is "not applicable", never a veto. Even within these limits, a sparsely sampled orbit can show a
+  is "not applicable", never a veto. A missing eccentricity means a pseudo-circular solution, for which Gaia fixes
+  e = 0 (note 2026-11-14, before the release; the DR3 code already used e = 0 in this case). Even within these limits, a sparsely sampled orbit can show a
   smaller range than predicted, so an RV veto is evidence, not proof. If DR4 renames the column,
   its documented successor with the same definition is used, decided and logged in `log.md`
   before the vetting query (like the type list); if there is none, the RV veto is not applicable.

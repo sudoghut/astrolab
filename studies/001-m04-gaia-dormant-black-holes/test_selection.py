@@ -280,3 +280,18 @@ def test_resolve_ids_keeps_19_digit_ids_exact_with_unresolved_present():
                           "pmdec": [0.0] * 2, "phot_g_mean_mag": [12.0] * 2})
     r = sel.resolve_ids(ref, found, 1.5)
     assert [int(x) for x in r.dr4_id.dropna()] == big[:2] and r.dr4_id.isna().sum() == 1
+
+
+def test_rsel_full_tie_broken_by_thiele_innes_not_row_order():
+    a = sol(a_thiele_innes=2.0)
+    b = sol(a_thiele_innes=1.0)
+    for rows in ([a, b], [b, a]):
+        assert sel.primary_solutions(pd.DataFrame(rows), UNVAL, AST).a_thiele_innes.tolist() == [1.0]
+
+
+def test_resolve_ids_duplicate_rows_are_ambiguous():
+    ref = pd.DataFrame({"source_id": [7], "ra": [10.0], "dec": [0.0], "phot_g_mean_mag": [12.0]})
+    found = pd.DataFrame({"source_id": [7, 7], "ra": [10.0, 10.0], "dec": [0.0, 0.0], "pmra": [0.0, 0.0],
+                          "pmdec": [0.0, 0.0], "phot_g_mean_mag": [12.0, 15.0]})
+    r = sel.resolve_ids(ref, found, 1.5)
+    assert r.dr4_id.isna().all() and r.reason.tolist() == ["ambiguous"]
