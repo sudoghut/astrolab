@@ -62,8 +62,8 @@ inductive Field where
   | stat_resid
   /-- GAP [reconstructed] the Table 4 JWST values are the paper's own calibration of the CCHP distances (F24 adopted at face value, H0 from MB0 with Pantheon+); CCHP's own published values differ (e.g. its Pantheon+ TRGB 69.29 versus Table 4's 70.1), and the paper does not show that the difference is immaterial to the comparison -/
   | gap_same
-  /-- MOD [implied] inference rule: if the selection is expected to produce the shift, the same-host distances agree, the measured values agree with the expectation within errors, and they are the quantity the conclusion is about, the observed difference is consistent with selection (consistency means no part is significant beyond errors; e.g. Taylor 1997, An Introduction to Error Analysis) -/
-  | mod_cons
+  /-- GAP [reconstructed] our reading of the paper's inference: an expected selection shift, agreement on the same hosts, a within-1 sigma comparison, and the right quantity together make the difference entirely consistent with selection; the paper states the conclusion but not this rule, and no textbook supplies it (a standard definition of consistency within errors, e.g. Taylor 1997, covers only the last comparison) -/
+  | gap_rule
   deriving DecidableEq, Repr
 
 def prov : Field → Prov
@@ -73,7 +73,7 @@ def prov : Field → Prov
   | .stat_agree => .stated
   | .stat_resid => .stated
   | .gap_same => .reconstructed
-  | .mod_cons => .implied
+  | .gap_rule => .reconstructed
 
 def prem : Field → Vocab → Prop
   | .stat_full, v => v.h_full ≥ 732
@@ -82,7 +82,7 @@ def prem : Field → Vocab → Prop
   | .stat_agree, v => v.AgreeSameHost
   | .stat_resid, v => v.ResidSmall
   | .gap_same, v => v.SameQuantity
-  | .mod_cons, v => v.ExpDrop → v.AgreeSameHost → v.ResidSmall → v.SameQuantity → v.ConsSel
+  | .gap_rule, v => v.ExpDrop → v.AgreeSameHost → v.ResidSmall → v.SameQuantity → v.ConsSel
 
 /-- [stated 2408.11770: "between the CCHP JWST program and the full HST sample is entirely consistent with differences in sample selection"] Abstract -/
 def Conclusion (v : Vocab) : Prop := v.ConsSel
@@ -98,7 +98,7 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have d : v.ExpDrop := p .mod_drop (p .stat_full) (p .stat_sel)   -- Sec. III.2
-  exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3, III.3; GAP
+  exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3, III.3; GAP
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
   fun h => h ⟨0, 0, False, False, False, False, False⟩
@@ -110,7 +110,7 @@ theorem alone_insufficient : ∀ g, ¬ ∀ v, prem g v → Conclusion v := by
   intro g h
   cases g
   case mod_drop => exact h ⟨0, 999, False, False, False, False, False⟩ (by simp [prem])
-  case mod_cons => exact h ⟨0, 999, False, False, False, False, False⟩ (by simp [prem])
+  case gap_rule => exact h ⟨0, 999, False, False, False, False, False⟩ (by simp [prem])
   all_goals exact h ⟨732, 712, False, True, True, True, False⟩ (by simp [prem])
 
 theorem stat_full_needed : ¬ ∀ v, Without .stat_full v → Conclusion v := fun h =>
@@ -131,16 +131,16 @@ theorem stat_resid_needed : ¬ ∀ v, Without .stat_resid v → Conclusion v := 
 theorem gap_same_needed : ¬ ∀ v, Without .gap_same v → Conclusion v := fun h =>
   h ⟨732, 712, True, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-theorem mod_cons_needed : ¬ ∀ v, Without .mod_cons v → Conclusion v := fun h =>
+theorem gap_rule_needed : ¬ ∀ v, Without .gap_rule v → Conclusion v := fun h =>
   h ⟨732, 712, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 /-- What the paper writes is not enough: the bridge to CCHP's published values (gap_same) and the
-rule to "consistent" (mod_cons) are not stated. -/
+rule to "consistent" (gap_rule, our reading) are not stated. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   h ⟨732, 712, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
-/-- Even with standard knowledge the chain has a gap: that the paper's recalibrated JWST values
-stand for the CCHP program's own published H0 (gap_same). -/
+/-- Even with standard knowledge the chain has gaps: that the paper's recalibrated JWST values stand
+for the CCHP program (gap_same), and the inference rule itself (gap_rule, our reading). -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
   h ⟨732, 712, True, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
