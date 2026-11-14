@@ -13,7 +13,7 @@ import pandas as pd
 
 from astrolab import orbits
 from astrolab.results import to_jsonable
-from screen import ASTROMETRIC_TYPES, SCHEMAS, mass_function_subquery, screen_adql, screen_from_where
+from screen import ASTROMETRIC_TYPES, FLAME_COLS, SCHEMAS, mass_function_subquery, screen_adql, screen_from_where
 import selection as sel
 
 # Knobs (AGENTS.md section 2). Read inside main(); saved with the results.
@@ -53,7 +53,12 @@ ERR_PARAMS = ["ra", "dec", "parallax", "pmra", "pmdec", "a_thiele_innes", "b_thi
 # Optional per-row columns: if a release lacks one, it is fetched as missing (README DR4 addendum:
 # no RV column -> RV veto not applicable; no FLAME mass -> counts as absent).
 OPTIONAL_COLUMNS = {"gaia_source": ["rv_amplitude_robust", "rv_nb_transits"],
-                    "astrophysical_parameters": ["mass_flame", "radius_flame"]}
+                    "astrophysical_parameters": list(FLAME_COLS)}
+# Columns that must exist; if TAP_SCHEMA does not list them, the metadata lookup failed: stop.
+CORE_COLUMNS = {"gaia_source": "source_id", "astrophysical_parameters": "source_id"}
+# Orbit columns identifying one solution (a LEFT JOIN that doubles a row repeats these exactly).
+SOLUTION_KEY = ["source_id", "nss_solution_type", "period", "a_thiele_innes", "b_thiele_innes",
+                "f_thiele_innes", "g_thiele_innes"]
 
 # Every result file this study writes; a run writes all of them (placeholders where not applicable),
 # so results/ never mixes files of two releases.
@@ -136,6 +141,10 @@ def available_columns(ctx, schema, label):
     meta = ctx.tap(f"SELECT table_name, column_name FROM tap_schema.columns WHERE table_name IN ({names})",
                    label="optional columns (TAP_SCHEMA)", release=label, max_rows=2000)
     have = {(str(t).split(".")[-1], str(c).lower()) for t, c in zip(meta.table_name, meta.column_name)}
+    missing_core = [f"{t}.{c}" for t, c in CORE_COLUMNS.items() if (t, c) not in have]
+    if missing_core:
+        raise SystemExit(f"TAP_SCHEMA lists no {missing_core} for schema {schema}: the metadata lookup failed "
+                         f"(table renamed or table_name format differs). Fix before running; nothing written.")
     return {c for t, cols in OPTIONAL_COLUMNS.items() for c in cols if (t, c) in have}
 
 
@@ -161,14 +170,29 @@ def fetch_solutions(ctx, schema, label, ids, what, optional=None):
             f"{ap_join}WHERE o.source_id IN ({_ids(chunk)})",
             label=f"{what} solutions", release=label, max_rows=SCREEN_ROWS_MAX))
     df = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    if df.empty:   # typed empty frame: a later concat must not turn 19-digit ids into float64
+        df = pd.DataFrame({c: pd.Series(dtype="int64" if c == "source_id" else "object" if c == "nss_solution_type"
+                                        else "float64") for c in SOLUTION_KEY + ["significance", "goodness_of_fit",
+                                                                                 "parallax", "parallax_error",
+                                                                                 "period_error", "eccentricity"]})
     for c in OPTIONAL_COLUMNS["gaia_source"] + OPTIONAL_COLUMNS["astrophysical_parameters"]:
         if c not in df:
             df[c] = np.nan
-    if not df.empty:
-        df["source_id"] = df.source_id.astype("int64")
-        df = df.drop_duplicates(["source_id", "nss_solution_type"]).reset_index(drop=True)
+    df["source_id"] = df.source_id.astype("int64")
+    # A doubled LEFT JOIN row (several FLAME rows per source) repeats the solution: keep one, and treat
+    # its FLAME values as absent (ambiguous). Distinct solutions, even of the same type, all stay:
+    # R-sel chooses between them, never the server's row order (README DR4 addendum).
+    dup = df.duplicated(SOLUTION_KEY, keep=False)
+    if dup.any():
+        for c in OPTIONAL_COLUMNS["astrophysical_parameters"]:
+            df.loc[dup, c] = np.nan
+        df = df.drop_duplicates(SOLUTION_KEY).reset_index(drop=True)
+    df.attrs["ambiguous_flame_sources"] = int(dup.sum())
+    if len(df):
         _, a0, fm = sel.solution_m2(df, 1.0)
         df["a0_mas"], df["f_m"] = a0, fm
+    else:
+        df["a0_mas"], df["f_m"] = pd.Series(dtype=float), pd.Series(dtype=float)
     return df
 
 
@@ -268,8 +292,9 @@ def reproduce_targets(ctx, params, rel, id_map, sol, positions):
         if rel["covariance_trusted"]:
             try:
                 mc = orbits.sample_companion_mass(row, t["m1"], t["m1_err"], n=20000, seed=42)
-            except ValueError as e:   # corr_vec length, unfitted G, unknown type: not evaluable
-                rec["covariance_error"] = str(e)
+            except (ValueError, KeyError, np.linalg.LinAlgError) as e:
+                # corr_vec length, unfitted G, unknown type, missing field, non-PSD covariance
+                rec["covariance_error"] = f"{type(e).__name__}: {e}"
         if mc is not None:
             q = lambda a: np.percentile(a, [16, 50, 84])
             m2_lo, m2, m2_hi = q(mc["m2"])
@@ -405,7 +430,7 @@ def dr4_criteria(params, rel, res, sol_all, target_recs, screen_df, screen_n, re
               "n_vetoed": int(new_rows.vetoed.sum()) if len(new_rows) else 0,
               "known_targets_among_new": [str(i) for i in new_rows.source_id[new_rows.known_target]]
               if len(new_rows) else [],
-              "ids": [str(i) for i in new_ids], "n_all_solutions": s3_count}
+              "ids": [str(i) for i in new_ids], "n_candidate_solutions_counted": s3_count}
 
     return {"R": r, "S1": s1, "S2": s2, "V": v, "F": f, "S3": s3,
             "resolution": {"n": len(res), "unresolved": int(res.dr4_id.isna().sum()),
@@ -441,7 +466,7 @@ def main(ctx):
         res = resolve_dr3_ids(ctx, schema, label, rel, ref_dir)
         dmap = {int(r.dr3_id): (None if pd.isna(r.dr4_id) else int(r.dr4_id)) for r in res.itertuples()}
     id_map = {name: dmap.get(int(sid)) for name, sid in controls.items()}
-    flame = optional is None or {"mass_flame", "radius_flame"} <= optional
+    flame = True if optional is None else [c for c in FLAME_COLS if c in optional]
 
     sc, screen_n = run_screen(ctx, params, schema, label, release, flame=flame)
     cand = sc[sc.m2 > params["m2_bh_min"]].sort_values("m2", ascending=False) if sc is not None else None
@@ -454,13 +479,15 @@ def main(ctx):
     if res is not None:
         want |= {int(i) for i in res.dr4_id.dropna()}
     sol = fetch_solutions(ctx, schema, label, want, "vetting", optional)
+    ambiguous_flame = sol.attrs.get("ambiguous_flame_sources", 0)
     s3_sol, s3_count = None, 0
     if release != "dr3" and cand is not None:
         extra = set(cand.source_id.astype("int64")) - set(sol.source_id if not sol.empty else [])
         s3_count = count_solutions(ctx, schema, extra) if extra else 0
         if s3_count <= SCREEN_ROWS_MAX:
             more = fetch_solutions(ctx, schema, label, extra, "screen candidates", optional) if extra else sol.iloc[:0]
-            sol = pd.concat([sol, more], ignore_index=True).drop_duplicates(["source_id", "nss_solution_type"])
+            ambiguous_flame += more.attrs.get("ambiguous_flame_sources", 0)
+            sol = pd.concat([sol, more], ignore_index=True) if len(more) else sol   # extra excludes ids in sol
             s3_sol = True
     sol = sel.apply_vetoes(sol, unval, params["rv_ratio_min"], rel["rv_veto"])
     if s3_sol is True:
@@ -490,7 +517,11 @@ def main(ctx):
     }
 
     summary = {"release": release, "params": params, "astrometric_types": list(ASTROMETRIC_TYPES),
-               "release_constants": rel, "optional_columns": sorted(optional) if optional is not None else "all"}
+               "release_constants": rel, "optional_columns": sorted(optional) if optional is not None else "all",
+               "ambiguous_flame_sources": int(ambiguous_flame),
+               "sources_with_same_type_solutions": [str(i) for i, n in
+                                                    sol.groupby(["source_id", "nss_solution_type"]).size().items()
+                                                    if n > 1] if len(sol) else []}
     screen_desc = {}
     if sc is None:
         why = f"screen not fetched: {screen_n} rows >= {SCREEN_ROWS_MAX} (S1 fails)"
@@ -502,7 +533,8 @@ def main(ctx):
         cand["literature"] = cand.source_id.map(lambda i: lit.get(int(i), ""))
         vcols = ["source_id", "nss_solution_type", "rv_amplitude_robust", "rv_range_pred", "rv_ratio", "veto_type",
                  "veto_rv", "vetoed"]
-        cand = cand.merge(sol[vcols], how="left", on=["source_id", "nss_solution_type"])
+        # one screen row = one solution: match on the solution, not only its type
+        cand = cand.merge(sol[vcols + ["period"]], how="left", on=["source_id", "nss_solution_type", "period"])
         cand["vetted"] = cand.vetoed.notna()                # False only if the S3 stop rule fired
         cand["vetoed"] = cand.vetoed.fillna(False).astype(bool)
         cand = cand.sort_values("m2", ascending=False)
