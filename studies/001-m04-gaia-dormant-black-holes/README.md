@@ -307,7 +307,7 @@ How a coding agent answers "what if" questions about this study without touching
 | `plx_snr_min` | parallax S/N cut | 3-20 | new screen and vetting queries; count first |
 | `m2_bh_min` | M2 above which a screen row is a candidate [Msun] | 2-10 | new vetting query (the candidate id list changes), small |
 | `rv_ratio_min` | RV veto threshold (observed / predicted RV range) | 0.2-1.0 | cache only |
-| `unvalidated_types` | solution types vetoed as not validated | subsets of the NSS types | cache only |
+| `unvalidated_types` | solution types vetoed as not validated | any subset of `screen.ASTROMETRIC_TYPES[release]` (DR3: Orbital, AstroSpectroSB1, OrbitalTargetedSearch(Validated), OrbitalAlternative(Validated)) | cache only |
 
 - Rerun with an override: `python -m astrolab explore 001 --tag <topic> --set KEY=VALUE`
   (outputs in `explore/<date>-<topic>/`, not committed; seconds from cache). A list is passed as JSON,
