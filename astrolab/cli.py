@@ -31,7 +31,8 @@ def cmd_status(args) -> None:
 def cmd_new(args) -> None:
     s = study.new(args.slug, args.title, args.level)
     print(f"created {s.path.relative_to(config.ROOT)}")
-    print("next: fill title_zh / question_zh in study.yaml (bilingual rule),")
+    print("next: fill title_zh / question_zh in study.yaml and the TODO Chinese title in web/index.html")
+    print("      (bilingual rule, AGENTS.md section 2),")
     print("      then README.md (question, hypothesis, criteria) BEFORE writing run.py")
 
 

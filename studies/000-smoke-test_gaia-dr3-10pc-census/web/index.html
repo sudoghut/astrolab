@@ -17,7 +17,7 @@
 <main>
   <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 000 · <span class="en">smoke test</span><span class="zh">冒烟测试</span></p>
   <h1><span class="en">Gaia DR3: the 10 pc neighbourhood</span><span class="zh">Gaia DR3：10 pc 邻域</span></h1>
-  <p class="muted"><span class="en">Pipeline check. Nearby sources with parallax &gt; 100 mas (quality-cut), plus an all-sky density of G &lt; 11 stars aggregated on the Gaia server into 768 HEALPix pixels.</span><span class="zh">管线检查。视差 &gt; 100 mas 的近邻源（经质量筛选），以及在 Gaia 服务器端聚合到 768 个 HEALPix 像素的 G &lt; 11 恒星全天密度。</span></p>
+  <p class="muted"><span class="en">Pipeline check. Nearby sources with parallax &gt; 100 mas (quality-cut), plus an all-sky density of G &lt; 11 stars aggregated on the Gaia server into 768 HEALPix pixels.</span><span class="zh">管线检查。视差 &gt; 100 mas 的近邻源（经数据质量筛选），以及在 Gaia 服务器端聚合到 768 个 HEALPix 像素的 G &lt; 11 恒星全天密度。</span></p>
 
   <div class="grid" id="stats"></div>
 
@@ -30,7 +30,10 @@
   <div class="card scroll"><table id="near"></table></div>
 </main>
 <script>
-const { L, t } = i18n;
+// English-only fallback if i18n.js failed to load, so the page still renders.
+const i18nApi = window.i18n || { L: en => en, t: en => en, onLangChange() {} };
+const { L, t } = i18nApi;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const layoutBase = () => ({
   paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
@@ -45,7 +48,7 @@ const get = n => fetch(`../results/${n}.json`).then(r => {
 Promise.all([get('summary'), get('nearby'), get('density_healpix3')]).then(([s, nb, d]) => {
   const stats = [
     [L('raw rows (ϖ &gt; 100 mas)', '原始行数（ϖ &gt; 100 mas）'), s.raw_rows],
-    [L('after quality cut', '质量筛选后'), s.after_quality_cut],
+    [L('after quality cut', '数据质量筛选后'), s.after_quality_cut],
     [L('within 5 pc', '5 pc 以内'), s.within_5pc],
     [L('median v_tan (km/s)', 'v_tan 中位数（km/s）'), s.median_v_tan_kms],
     [L('G &lt; 11 stars aggregated', '聚合的 G &lt; 11 恒星数'), s.bright_stars_G_lt_11.toLocaleString()],
@@ -82,15 +85,15 @@ Promise.all([get('summary'), get('nearby'), get('density_healpix3')]).then(([s, 
     '<tr><th>Gaia DR3 source_id</th><th>d (pc)</th><th>G</th><th>BP−RP</th><th>v_tan (km/s)</th></tr>' + rows;
 
   // Plot titles and hover text are plain text: redraw them when the language changes.
-  i18n.onLangChange(() => {
+  i18nApi.onLangChange(() => {
     Plotly.relayout('hr', { title: t('Colour–magnitude diagram', '颜色–星等图') });
     Plotly.relayout('sky', { title: skyTitle() });
     Plotly.restyle('sky', { text: [d.n.map((n, i) => `RA ${d.ra[i].toFixed(1)}°, Dec ${d.dec[i].toFixed(1)}°<br>${n} ${t('stars', '颗恒星')}`)] });
   });
 }).catch(e => {
   const msg = e instanceof MissingResult
-    ? L('Results missing — run <code>python -m astrolab run 000</code>.', '缺少结果文件——请运行 <code>python -m astrolab run 000</code>。') + ` (${e.message})`
-    : L('Page error while rendering results:', '渲染结果时页面出错：') + ` ${e}. ` + L('See the browser console.', '详见浏览器控制台。');
+    ? L('Results missing — run <code>python -m astrolab run 000</code>.', '缺少结果文件——请运行 <code>python -m astrolab run 000</code>。') + ` (${esc(e.message)})`
+    : L('Page error while rendering results:', '渲染结果时页面出错：') + ` ${esc(e)}. ` + L('See the browser console.', '详见浏览器控制台。');
   document.querySelector('main').insertAdjacentHTML('beforeend', `<p class="muted">${msg}</p>`);
 });
 </script>

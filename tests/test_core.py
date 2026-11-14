@@ -122,10 +122,15 @@ def test_every_web_page_loads_i18n():
     pages = [root / "atlas" / "web" / "index.html"]
     for d in sorted((root / "studies").iterdir()):
         if (d / "web").is_dir():
-            pages += sorted((d / "web").glob("*.html"))
+            pages += sorted((d / "web").rglob("*.html"))
     assert len(pages) >= 4
     for p in pages:
         text = p.read_text(encoding="utf-8")
-        assert re.search(r'<script[^>]*\ssrc="[^"]*i18n\.js"', text), f"{p} does not load i18n.js"
+        head = text.split("</head>", 1)[0]
+        tag = re.search(r'<script[^>]*\ssrc="[^"]*i18n\.js"', head)
+        assert tag, f"{p} does not load i18n.js in <head>"
+        title = head.find("<title>")
+        assert title < 0 or title < tag.start(), f"{p}: load i18n.js after <title>"
+        assert 'class="zh"' in text or "L(" in text or "t(" in text, f"{p} has no Chinese text"
         if "_template" not in p.parts:
             assert "TODO: 中文" not in text, f"{p} still has the template's Chinese placeholder"

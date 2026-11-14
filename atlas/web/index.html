@@ -23,17 +23,19 @@
 <main>
   <p class="crumb">astrolab</p>
   <h1><span class="en">Atlas of the Universe, by scale</span><span class="zh">宇宙图谱：按尺度排列</span></h1>
-  <p class="muted"><span class="en">Coarse map first, detail on demand. Each level lists the landmark claims we track and the studies that reproduce or test them.</span><span class="zh">先看粗略全图，需要时再看细节。每个尺度列出我们跟踪的代表性结论，以及复现或检验它们的研究。</span></p>
+  <p class="muted"><span class="en">Coarse map first, detail on demand. Each level lists the landmark claims we track and the studies that reproduce or test them.</span><span class="zh">先看粗略全图，需要时再看细节。每个尺度列出我们跟踪的标志性结论，以及复现或检验它们的研究。</span></p>
   <div id="atlas"><p class="muted"><span class="en">loading… (run <code>python -m astrolab serve</code>)</span><span class="zh">加载中……（请运行 <code>python -m astrolab serve</code>）</span></p></div>
   <p class="muted" id="gen"></p>
 </main>
 <script>
-const { L } = i18n;
+// English-only fallback if i18n.js failed to load, so the page still renders.
+const i18nApi = window.i18n || { L: en => en, t: en => en, onLangChange() {} };
+const { L } = i18nApi;
 const LEVELS = {
   L0: [['Cosmic background', '宇宙背景'], ['Cosmological parameters, expansion history, CMB', '宇宙学参数、膨胀历史、宇宙微波背景']],
   L1: [['Large-scale structure', '大尺度结构'], ['BAO, galaxy clustering, high-redshift galaxies', '重子声学振荡、星系成团、高红移星系']],
   L2: [['Local universe', '近邻宇宙'], ['Local Group, distance ladder, H0', '本星系群、距离阶梯、H0']],
-  L3: [['Milky Way', '银河系'], ['Structure, kinematics, assembly history, dark matter', '结构、运动学、组装历史、暗物质']],
+  L3: [['Milky Way', '银河系'], ['Structure, kinematics, assembly history, dark matter', '结构、运动学、形成与组装历史、暗物质']],
   L4: [['Stars & planets', '恒星与行星'], ['Stars, binaries, compact objects, exoplanets', '恒星、双星、致密天体、系外行星']],
   X:  [['Cross-cutting', '跨尺度'], ['Time domain, gravitational waves, transients', '时域、引力波、暂现源']],
 };
@@ -51,7 +53,7 @@ function claimCard(c) {
   const study = r.study ? ` · <a href="../../studies/${esc(r.study)}/web/">${L('study', '研究页面')}</a>` : '';
   return `<div class="card item"><span class="kind">${L('claim', '结论')}</span><h3>${both(c, 'title')}</h3>
     <p>${both(c, 'statement')}</p>
-    <div class="meta"><span class="tag g-${esc(c.grade)}">${word(c.grade, GRADE_ZH)}</span><span>${L('repro', '复现')}: ${word(r.status, REPRO_ZH)}</span>${study}</div>
+    <div class="meta"><span class="tag g-${esc(c.grade)}">${word(c.grade, GRADE_ZH)}</span><span>${L('repro:', '复现：')} ${word(r.status, REPRO_ZH)}</span>${study}</div>
     <p class="muted" style="font-size:12px">${src}</p></div>`;
 }
 function studyCard(s) {
