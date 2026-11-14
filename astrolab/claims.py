@@ -91,6 +91,24 @@ def sky_modes(mode: Any) -> list[str]:
     return [m.strip() for m in str(mode or "none").split("+") if m.strip()]
 
 
+def _num(x: Any) -> float | None:
+    """A finite float, or None (bools and non-numbers rejected)."""
+    import math
+
+    if isinstance(x, bool):
+        return None
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return None
+    return v if math.isfinite(v) else None
+
+
+def _coord_ok(t: dict[str, Any]) -> bool:
+    ra, dec = _num(t.get("ra")), _num(t.get("dec"))
+    return ra is not None and dec is not None and 0.0 <= ra < 360.0 and -90.0 <= dec <= 90.0
+
+
 def footprint_errors(meta: dict[str, Any]) -> list[str]:
     """Schema check of the optional ``footprint`` field of a study.yaml (design plan 011)."""
     fp = meta.get("footprint")
@@ -101,12 +119,11 @@ def footprint_errors(meta: dict[str, Any]) -> list[str]:
     errs = []
     sc = fp.get("scale")
     if sc is not None:
-        try:
-            lo, hi = float(sc["min_pc"]), float(sc["max_pc"])
-            if not (0 < lo < hi):
-                errs.append("footprint.scale needs 0 < min_pc < max_pc")
-        except (KeyError, TypeError, ValueError):
-            errs.append("footprint.scale needs numeric min_pc and max_pc")
+        lo, hi = (_num(sc.get("min_pc")), _num(sc.get("max_pc"))) if isinstance(sc, dict) else (None, None)
+        if lo is None or hi is None:
+            errs.append("footprint.scale needs finite numeric min_pc and max_pc")
+        elif not (0 < lo < hi):
+            errs.append("footprint.scale needs 0 < min_pc < max_pc")
     sky = fp.get("sky")
     if sky is not None:
         if not isinstance(sky, dict):
@@ -115,15 +132,23 @@ def footprint_errors(meta: dict[str, Any]) -> list[str]:
         bad = [m for m in modes if m not in SKY_MODES]
         if bad:
             errs.append(f"footprint.sky.mode: unknown {bad}; use {SKY_MODES} joined by ' + '")
+        if "none" in modes and len(modes) > 1:
+            errs.append("footprint.sky.mode: 'none' cannot be combined with other modes")
+        if len(set(modes)) != len(modes):
+            errs.append("footprint.sky.mode: repeated mode")
         if "survey" in modes and not (sky.get("survey") or {}).get("name"):
             errs.append("footprint.sky.mode includes survey: give survey.name")
+        tg = sky.get("targets")
         if "targets" in modes:
-            tg = sky.get("targets") or []
-            if not tg or not all(isinstance(t, dict) and t.get("name") for t in tg):
-                errs.append("footprint.sky.mode includes targets: give targets with a name (and ra, dec)")
+            if not isinstance(tg, list) or not tg or not all(isinstance(t, dict) and t.get("name") for t in tg):
+                return errs + ["footprint.sky.mode includes targets: give a list of targets with a name (and ra, dec)"]
             for t in tg:
-                if isinstance(t, dict) and (("ra" in t) != ("dec" in t)):
+                if ("ra" in t) != ("dec" in t):
                     errs.append(f"footprint target {t.get('name')}: give both ra and dec or neither")
+                elif "ra" in t and not _coord_ok(t):
+                    errs.append(f"footprint target {t.get('name')}: ra in [0, 360) and dec in [-90, 90] degrees")
+        elif tg:
+            errs.append("footprint.sky.targets given but mode does not include targets")
     return errs
 
 
@@ -134,6 +159,8 @@ def resolve_footprint(study_path: Path, meta: dict[str, Any]) -> dict[str, Any]:
     import math
 
     fp = meta.get("footprint") or {}
+    if footprint_errors(meta):          # invalid footprint: fall back to the level default, no sky
+        fp = {}
     sc = fp.get("scale")
     if sc:
         scale = {"log10_min": math.log10(float(sc["min_pc"])), "log10_max": math.log10(float(sc["max_pc"])),
@@ -148,12 +175,12 @@ def resolve_footprint(study_path: Path, meta: dict[str, Any]) -> dict[str, Any]:
     if tfile.exists():
         try:
             for t in json.loads(tfile.read_text(encoding="utf-8")):
-                if isinstance(t, dict) and "name" in t and "ra" in t and "dec" in t:
+                if isinstance(t, dict) and "name" in t and _coord_ok(t):
                     known[t["name"]] = (float(t["ra"]), float(t["dec"]))
         except (ValueError, TypeError):
             pass
     targets = []
-    for t in sky.get("targets") or []:
+    for t in (sky.get("targets") or []) if "targets" in modes else []:
         if "ra" in t and "dec" in t:
             ra, dec = float(t["ra"]), float(t["dec"])
         else:

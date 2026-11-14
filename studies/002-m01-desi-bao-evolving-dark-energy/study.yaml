@@ -13,7 +13,7 @@ wiki: Study-002-desi-bao-evolving-dark-energy  # paper studies: wiki page name w
 
 # Where this study sits on the Atlas (sky and scale views; schema in design plan 011).
 footprint:
-  scale: {min_pc: 4.0e+8, max_pc: 1.4e+10, note: "BAO comoving distances z = 0.1-2.3 (~0.4-5.7 Gpc) out to the CMB distance (~14 Gpc)"}
+  scale: {min_pc: 4.0e+8, max_pc: 1.4e+10, note: "BAO tracers z ~ 0.1-4.2 (effective z 0.295-2.33; comoving distance ~0.4-7.4 Gpc) out to the CMB distance (~14 Gpc)"}
   sky:
     mode: survey + all-sky
     survey: {name: "DESI DR2", note: "BAO from the DESI spectroscopic footprint; the CMB prior and SN compilations are all-sky"}

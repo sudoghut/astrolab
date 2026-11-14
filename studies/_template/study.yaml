@@ -17,5 +17,7 @@ wiki: null                    # paper studies: wiki page name without .md, e.g. 
 #   sky:
 #     mode: all-sky | survey | targets | none    # combine with ' + ', e.g. "survey + targets"
 #     survey: {name: "...", note: "..."}
-#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS
+#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS; ra/dec may be omitted if
+#                                                  # results/targets.json gives them by name
+#   (write exponents as 4.0e+8: PyYAML reads 4e8 as a string; both are accepted)
 #   data: [...]

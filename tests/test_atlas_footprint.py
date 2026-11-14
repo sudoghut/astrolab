@@ -23,6 +23,15 @@ def test_footprint_schema_rejects_invalid():
         {"footprint": {"sky": {"mode": "targets"}}},
         {"footprint": {"sky": {"mode": "targets", "targets": [{"name": "a", "ra": 1}]}}},
         {"footprint": "all-sky"},
+        {"footprint": {"scale": {"min_pc": 1, "max_pc": float("inf")}}},
+        {"footprint": {"scale": {"min_pc": True, "max_pc": 10}}},
+        {"footprint": {"sky": {"mode": "none + all-sky"}}},
+        {"footprint": {"sky": {"mode": "all-sky + all-sky"}}},
+        {"footprint": {"sky": {"mode": "targets", "targets": "x"}}},
+        {"footprint": {"sky": {"mode": "targets", "targets": [{"name": "a", "ra": None, "dec": None}]}}},
+        {"footprint": {"sky": {"mode": "targets", "targets": [{"name": "a", "ra": 10, "dec": 100}]}}},
+        {"footprint": {"sky": {"mode": "targets", "targets": [{"name": "a", "ra": "x", "dec": 1}]}}},
+        {"footprint": {"sky": {"mode": "all-sky", "targets": [{"name": "a", "ra": 1, "dec": 1}]}}},
     ]
     for meta in bad:
         assert claims.footprint_errors(meta), meta
@@ -59,3 +68,27 @@ def test_repo_studies_have_valid_footprints():
         sc = s["footprint"]["scale"]
         assert math.isfinite(sc["log10_min"]) and sc["log10_min"] < sc["log10_max"]
     assert set(data["level_scale_log10"]) == set(data["levels"])
+
+
+def test_invalid_footprint_does_not_crash_atlas(tmp_path):
+    for fp in ({"scale": {"min_pc": 1, "max_pc": float("inf")}},
+               {"sky": {"mode": "targets", "targets": [{"name": "a", "ra": None, "dec": None}]}},
+               {"sky": {"mode": "targets", "targets": [{"name": "a", "ra": 10, "dec": 100}]}},
+               {"sky": {"mode": "targets", "targets": "x"}}):
+        out = claims.resolve_footprint(tmp_path, {"level": "L4", "footprint": fp})
+        assert out["scale"]["default"] and out["sky"]["targets"] == []
+        json.dumps(out, allow_nan=False)                         # valid JSON for the page
+
+
+def test_yaml_exponent_forms():
+    import yaml
+    assert claims.footprint_errors(yaml.safe_load("footprint: {scale: {min_pc: 4.0e+8, max_pc: 1.4e+10}}")) == []
+    assert claims.footprint_errors(yaml.safe_load("footprint: {scale: {min_pc: 4e8, max_pc: 1e10}}")) == []  # strings
+
+
+def test_study_001_targets_resolve():
+    data = claims.atlas_data()
+    s = next(s for s in data["studies"] if s["id"].startswith("001-"))
+    names = {t["name"]: t for t in s["footprint"]["sky"]["targets"]}
+    assert set(names) == {"Gaia BH1", "Gaia BH2", "Gaia BH3"}
+    assert all(t["l"] is not None and t["b"] is not None for t in names.values())
