@@ -2,22 +2,18 @@ title: "Hubble tension: SH0ES distance ladder and host selection"
 title_zh: "哈勃张力：SH0ES 距离阶梯与校准宿主的选择"
 id: "003-m02-hubble-tension-distance-ladder"
 level: L2              # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
-status: planned               # planned | active | reproduced | concluded | paused | abandoned
+status: active                # planned | active | reproduced | concluded | paused | abandoned
 created: 2026-11-14
 question: "Does a GLS fit of the public SH0ES distance-ladder matrices reproduce H0, and does restricting the ladder to the CCHP-selected hosts lower H0 as much as Riess et al. 2024 claim?"
 question_zh: "用 SH0ES 公开的距离阶梯矩阵做广义最小二乘拟合能否复现 H0？把阶梯限制在 CCHP 选出的宿主上，H0 是否像 Riess 等 2024 所说的那样降低？"
-claims: []                    # claim ids in atlas/claims/ this study reproduces or tests
+claims: [hubble-tension]      # claim ids in atlas/claims/ this study reproduces or tests
 milestone: M2                 # roadmap milestone id, e.g. M1
 papers: ["2408.11770", "2112.04510", "2408.06153"]  # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
 wiki: Study-003-hubble-tension-host-selection  # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3
 
-# Where this study sits on the Atlas (optional; schema in design plan 011). Remove or fill.
-# footprint:
-#   scale: {min_pc: 1.0, max_pc: 1000.0, note: "distance range the study probes"}
-#   sky:
-#     mode: all-sky | survey | targets | none    # combine with ' + ', e.g. "survey + targets"
-#     survey: {name: "...", note: "..."}
-#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS; ra/dec may be omitted if
-#                                                  # results/targets.json gives them by name
-#   (write exponents as 4.0e+8: PyYAML reads 4e8 as a string; both are accepted)
-#   data: [...]
+footprint:
+  scale: {min_pc: 7.6e+6, max_pc: 6.4e+8, note: "distance ladder from the NGC 4258 anchor (7.6 Mpc) through the 37 Cepheid hosts (to ~80 Mpc) to Hubble-flow SNe Ia at z < 0.15 (~640 Mpc); the MW and LMC anchors are nearer but dropped in the host-selection test"}
+  sky:
+    mode: survey
+    survey: {name: "SH0ES + Pantheon+", note: "Cepheid hosts and Hubble-flow SNe Ia across the sky (public SH0ES matrices); CCHP JWST hosts are a subset"}
+  data: [PantheonPlusSH0ES/DataRelease SH0ES_Data (y, L, C, lstsq_results), paper tables R22 Tables 3 and 6, CCHP Table 2]
