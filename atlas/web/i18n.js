@@ -56,7 +56,7 @@
 
   function captureTitle(final) {
     if (titleEn !== null) return;
-    var el = document.querySelector('title');
+    var el = document.querySelector('head > title');
     if (el) titleEn = el.textContent;
     else if (final) titleEn = '';  // page has no <title>
   }
