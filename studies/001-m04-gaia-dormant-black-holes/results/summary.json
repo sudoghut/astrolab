@@ -1,38 +1,32 @@
 {
  "release": "dr3",
- "R1_BH1": {
-  "m2": [
-   10.976201622304227,
-   13.26984187763846,
-   16.148461611906686
-  ],
-  "deviation_sigma": 1.4079080102000845,
-  "pass_2sigma": true,
-  "period_dr3_d": 185.7656578920495
+ "params": {
+  "release": "dr3",
+  "fm_min": 0.25,
+  "plx_snr_min": 5.0,
+  "m2_bh_min": 3.0,
+  "rv_ratio_min": 0.5,
+  "unvalidated_types": [
+   "OrbitalAlternative",
+   "OrbitalTargetedSearch"
+  ]
  },
- "R2_BH2": {
-  "m2": [
-   7.956896762660265,
-   8.521125604779229,
-   9.131326667320787
-  ],
-  "deviation_sigma": -0.5745658386107906,
-  "pass_2sigma": true,
-  "period_dr3_d": 1352.2889370485916
+ "astrometric_types": [
+  "Orbital",
+  "AstroSpectroSB1",
+  "OrbitalTargetedSearch",
+  "OrbitalTargetedSearchValidated",
+  "OrbitalAlternative",
+  "OrbitalAlternativeValidated"
+ ],
+ "release_constants": {
+  "label": "Gaia DR3",
+  "rv_veto": null,
+  "covariance_trusted": true,
+  "epoch_gap_yr": 0.0
  },
  "S1_rows": 3343,
  "S1_rows_ok": true,
- "S1_published_m1": {
-  "Gaia BH1": {
-   "m2_published_m1": 12.766056615384867,
-   "pass": true
-  },
-  "Gaia BH2": {
-   "m2_published_m1": 8.513140459128829,
-   "pass": true
-  }
- },
- "S1_pass": true,
  "S2_ns_recall": "21/21",
  "S2_pass": true,
  "S2_weakest_ns_f_m": 0.4113646452251478,
@@ -51,11 +45,30 @@
   "4373465352415301632": "low-significance",
   "5870569352746779008": "giant"
  },
- "D1_dr4_query_ok": true,
+ "bh_candidates_rows": {
+  "rows_total": 87,
+  "rows_kept": 87,
+  "truncated": false
+ },
+ "screen_points_rows": {
+  "rows_total": 3343,
+  "rows_kept": 3343,
+  "sampled": false
+ },
  "astrometric_solutions_total": 169227,
- "rows_dropped_null_a0": 0,
  "post_hoc": {
-  "note": "Added 2026-11-11 after referee review; not pre-registered.",
+  "note": "Added 2026-11-11 after referee review; not pre-registered. Controls judged on their primary solution from 2026-11-14 (no DR3 number changes).",
+  "controls_vetoed": [],
+  "controls_checked": 23,
+  "controls_without_solution": [
+   "4318465066420528000"
+  ],
+  "sources_with_multiple_solutions_among_vetted": [
+   "1594082579405063168",
+   "1971412013460732928",
+   "5353676837544003200",
+   "6026372005837171072"
+  ],
   "R1b_bh1_vs_dr3_only_paper": {
    "a0_ours": 3.02072479951189,
    "a0_paper": [
@@ -63,21 +76,13 @@
     0.22
    ],
    "a0_dev_sigma": 0.0942036341449545,
-   "m2_ours": 13.26984187763846,
+   "m2_ours": 13.269841877638449,
    "m2_paper": [
     12.8,
     2.0
    ],
-   "m2_dev_sigma": 0.23492093881922926
+   "m2_dev_sigma": 0.23492093881922393
   },
-  "controls_vetoed": [],
-  "controls_checked": 23,
-  "sources_with_multiple_solutions_among_vetted": [
-   "1594082579405063168",
-   "1971412013460732928",
-   "5353676837544003200",
-   "6026372005837171072"
-  ],
   "candidates_vetoed_type": 27,
   "candidates_vetoed_rv": 6,
   "literature_refuted_in_list": 4,
@@ -89,5 +94,39 @@
    "low-significance,e>0.8": 2,
    "giant,plx-snr<20": 1
   }
- }
+ },
+ "R1_BH1": {
+  "m2": [
+   10.976201622304227,
+   13.269841877638449,
+   16.14846161190669
+  ],
+  "deviation_sigma": 1.4079080102000794,
+  "pass_2sigma": true,
+  "period_d": 185.7656578920495
+ },
+ "R2_BH2": {
+  "m2": [
+   7.95587863589402,
+   8.516815581177534,
+   9.13010890733086
+  ],
+  "deviation_sigma": -0.5811803630400191,
+  "pass_2sigma": true,
+  "period_d": 1352.2889370485916
+ },
+ "S1_published_m1": {
+  "Gaia BH1": {
+   "m2_published_m1": 12.766056615384867,
+   "pass": true
+  },
+  "Gaia BH2": {
+   "m2_published_m1": 8.513140459128829,
+   "pass": true
+  }
+ },
+ "S1_pass": true,
+ "D1_dr4_query_ok": true,
+ "rows_dropped_null_a0": 0,
+ "reference_ids": 109
 }

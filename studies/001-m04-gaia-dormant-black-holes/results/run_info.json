@@ -1,15 +1,17 @@
 {
  "study": "001-m04-gaia-dormant-black-holes",
- "finished_at": "2026-11-11T14:34:19+00:00",
- "seconds": 4.96,
+ "finished_at": "2026-11-14T12:52:11+00:00",
+ "seconds": 49.75,
  "outputs": [
   "targets.json",
   "reproduction.json",
-  "bh_candidates.json",
   "vetting_controls.json",
+  "bh_candidates.json",
   "screen_points.json",
   "ns_recall.json",
   "dr4_screen_query.json",
-  "summary.json"
+  "reference_ids.json",
+  "summary.json",
+  "release.json"
  ]
 }

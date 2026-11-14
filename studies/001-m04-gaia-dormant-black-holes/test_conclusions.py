@@ -1,6 +1,8 @@
-"""Pre-registered criteria of M4 (README section 2), checked against results/.
+"""Pre-registered criteria of M4 (README section 2 and its DR4 addendum), checked against results/.
 
-Run the study first: python -m astrolab run 001
+DR3 criteria read the archived DR3 run (results/dr3/), or results/ while it still holds the DR3
+run. DR4 criteria are checked only when results/ holds a DR4 run. Run the study first:
+python -m astrolab run 001
 """
 import json
 from pathlib import Path
@@ -10,12 +12,28 @@ import pytest
 RESULTS = Path(__file__).parent / "results"
 
 
-def load(name):
-    path = RESULTS / f"{name}.json"
-    if not path.exists():
-        pytest.skip(f"{path.name} missing; run: python -m astrolab run 001")
-    return json.loads(path.read_text(encoding="utf-8"))
+def _release(d):
+    for name in ("release.json", "summary.json"):
+        if (d / name).exists():
+            return json.loads((d / name).read_text(encoding="utf-8")).get("release")
+    return None
 
+
+def _dir(release):
+    for d in (RESULTS / release, RESULTS):
+        if _release(d) == release:
+            return d
+    return None
+
+
+def load(name, release="dr3"):
+    d = _dir(release)
+    if d is None or not (d / f"{name}.json").exists():
+        pytest.skip(f"no {release} {name}.json; run: python -m astrolab run 001")
+    return json.loads((d / f"{name}.json").read_text(encoding="utf-8"))
+
+
+# --- DR3 (pre-registered 2026-11-11) ---------------------------------------------------------
 
 def test_R1_bh1_mass_consistent_with_paper():
     assert load("summary")["R1_BH1"]["pass_2sigma"]
@@ -35,7 +53,27 @@ def test_no_rows_silently_dropped_by_server_sqrt():
     assert load("summary")["rows_dropped_null_a0"] == 0
 
 
-# --- post-hoc checks (added after the referee review, 2026-11-11) ---
+def test_S2_ns_candidate_recall_at_least_90_percent():
+    s = load("summary")
+    hit, total = map(int, s["S2_ns_recall"].split("/"))
+    assert total == 21 and hit >= 19
+
+
+def test_bh3_has_no_dr3_orbit():
+    bh3 = [r for r in load("reproduction") if r["name"] == "Gaia BH3"][0]
+    assert bh3["status"].startswith("no Gaia DR3 orbital solution")
+
+
+def test_D1_dr4_query_generated():
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent))
+    from screen import SCHEMAS
+    assert load("summary")["D1_dr4_query_ok"]
+    q = load("dr4_screen_query")["adql"]
+    assert f"{SCHEMAS['dr4']}.nss_two_body_orbit" in q and "gaiadr3" not in q
+
+
+# --- DR3 post-hoc checks (added after the referee review, 2026-11-11) ------------------------
 
 def test_R1b_bh1_matches_published_dr3_only_solution():
     r = load("summary")["post_hoc"]["R1b_bh1_vs_dr3_only_paper"]
@@ -45,6 +83,10 @@ def test_R1b_bh1_matches_published_dr3_only_solution():
 def test_post_hoc_vetoes_keep_all_positive_controls():
     p = load("summary")["post_hoc"]
     assert p["controls_checked"] == 23 and p["controls_vetoed"] == []
+
+
+def test_bh3_is_a_control_without_dr3_solution():
+    assert load("summary")["post_hoc"]["controls_without_solution"] == ["4318465066420528000"]
 
 
 def test_rv_prediction_matches_elbadry_table_e1():
@@ -65,18 +107,31 @@ def test_rv_veto_agrees_with_literature_where_rv_exists():
     assert ((lit.literature == "refuted") == lit.veto_rv.astype(bool)).all()
 
 
-def test_S2_ns_candidate_recall_at_least_90_percent():
-    s = load("summary")
-    hit, total = map(int, s["S2_ns_recall"].split("/"))
-    assert total == 21 and hit >= 19
+def test_dr3_reference_for_dr4_is_complete():
+    # every DR3 id the DR4 run resolves has a DR3 position and G (design plan 008)
+    import pandas as pd
+    ref = pd.DataFrame(load("reference_ids"))
+    c = pd.DataFrame(load("bh_candidates"))
+    assert set(c.source_id) <= set(ref.source_id)
+    assert ref[["ra", "dec", "phot_g_mean_mag"]].notna().all().all()
+    assert c.period_error.notna().all()
 
 
-def test_bh3_has_no_dr3_orbit():
-    bh3 = [r for r in load("reproduction") if r["name"] == "Gaia BH3"][0]
-    assert bh3["status"].startswith("no DR3 orbital solution")
+# --- DR4 (pre-registered 2026-11-14, before the release) -------------------------------------
+
+def _dr4():
+    return load("summary", "dr4")["dr4"]
 
 
-def test_D1_dr4_query_generated():
-    assert load("summary")["D1_dr4_query_ok"]
-    q = load("dr4_screen_query")["adql"]
-    assert "gaiadr4.nss_two_body_orbit" in q and "gaiadr3" not in q
+def test_dr4_criteria_all_reported():
+    d = _dr4()
+    for key in ("R", "S1", "S2", "V", "F", "S3", "resolution"):
+        assert key in d
+    assert sum(d["F"]["counts"].values()) == d["F"]["n"] == 51
+
+
+def test_dr4_verdicts_are_well_formed():
+    d = _dr4()
+    ok = {"pass", "fail", "not evaluable"}
+    assert d["S1"]["verdict"] in ok and d["S2"]["verdict"] in ok and d["V"]["verdict"] in ok
+    assert all(r["verdict"] in ok for r in d["R"].values())
