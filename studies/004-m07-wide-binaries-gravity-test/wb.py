@@ -199,8 +199,9 @@ def bin_index(x, edges):
 
 
 def merge_outer(counts, min_count):
-    """Merge the highest bin inward until it holds min_count; returns (mapping old bin -> new bin,
-    evaluable). Not evaluable if fewer than two bins remain or the merged bin is still short."""
+    """README section 2: merge the highest bin inward until it holds min_count. Returns (mapping
+    old bin -> new bin, evaluable); evaluable only if every final bin holds min_count and at least
+    two bins remain (an underfilled bin below the merged block is not merged)."""
     counts = list(counts)
     n = len(counts)
     mapping = list(range(n))

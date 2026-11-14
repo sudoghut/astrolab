@@ -47,11 +47,12 @@ r_sky/r_M, concluding that "Newtonian gravity is up to 1500× more likely than M
 - Δχ² = χ²_MOND − χ²_Newton, each at its best A; relative likelihood L = exp(Δχ²/2). The two models
   are not nested; L is a relative likelihood, not a Wilks test or posterior odds.
 
-**Fit validity.** Each bin must hold at least 15 pairs; otherwise the highest bin is merged inward
-with its neighbour until it holds at least 15 (its x_j is then the merged median, and the degrees of
-freedom become n_bins − 1, also for the Newtonian p-value). No other merging or edge change is
-allowed once counts are seen. If the whole sample cannot reach 15 pairs in a bin even after
-merging (fewer than two bins left), the fit is not evaluable and no verdict is given. The 15-pair minimum applies to every bootstrap replicate too: a
+**Fit validity.** Each bin must hold at least 15 pairs. If only the outermost bins fall short, the
+highest bin is merged inward with its neighbours until it holds at least 15 (its x_j is then the
+merged median); if any bin below the merged block is still under 15, no merging is tried and the fit
+is not evaluable. Evaluable means: every final bin holds at least 15 pairs and at least two bins
+remain; otherwise no verdict is given. All degrees of freedom are n_bins − 1 with the final n_bins,
+including the Newtonian p-value. No other merging or edge change is allowed once counts are seen. The 15-pair minimum applies to every bootstrap replicate too: a
 replicate with fewer than 15 pairs in any (merged) bin is redrawn; if more than 5% of draws are
 redrawn, the fit is reported as invalid. The bootstrap covariance must be finite; if its condition
 number exceeds 10⁸, its diagonal is used instead, flagged; if any diagonal entry is not strictly
@@ -82,7 +83,7 @@ degree-of-freedom count uses n_bins − 1. Verdicts on the main sample (ṽ ≤ 
 Also reported, without verdicts: χ²_MOND with A tied to the Newtonian best fit (an alternative
 reading of C26's convention), L with C26's MAD/√N and with 1.4826 MAD/√N (the reproduction
 column), L for the three other Table 3 rows, the bootstrap/MAD error ratio per bin, and the
-Newtonian χ² and its p-value (5 degrees of freedom).
+Newtonian χ² and its p-value (n_bins − 1 degrees of freedom; 5 if no bins are merged).
 
 **R3 (descriptive).** Each variant changes one choice from the main sample: no perspective
 correction; no HR cut; HR constant c ± 0.2 mag; d < 150 pc; d < 200 pc (needs its own A/B queries beyond the 150 pc parent cut; run only if their counts fit, otherwise reported as not run); parallax S/N > 100
@@ -114,7 +115,7 @@ star and each candidate neighbour.
 
 | Query | Content | Selection (server side) | Est. rows / size |
 |---|---|---|---|
-| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, a flag whether radial_velocity is not null, FLAME mass | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); proper-motion difference × distance < 10 km/s (computed in WHERE, not returned; A1 is not rerun with other caps and no counts against the cap are looked at before the commit). Cap 15 km/s. Bound: the HR band (M_G > 4) limits each star to ≤ 10^{0.0725(4.67−4)} ≈ 1.12 M☉ by the mass rule (FLAME masses for such dwarfs stay below ~1.3 M☉), so M ≤ 2.6 M☉; at r_sky ≥ 1 kAU, v_c ≤ 1.53 km/s and ṽ ≤ 2.5 gives a corrected v_sky ≤ 3.8 km/s; the uncorrected proper-motion difference used in the cap differs from it by at most |v_sys|·θ ≤ |v_sys|·0.5 pc/d, ≤ 10 km/s only if |v_sys| > 200 km/s at d = 10 pc (or > 2,600 km/s at 130 pc). So the cap can exclude only main-sample pairs with |v_sys| > 200 km/s within ~12 pc | trial: 2,209 in one 15° strip with \|δ\| < 60° at a 5 km/s cap; the 10 km/s cap may give a few times more chance pairs: ≤ 200,000 rows in total, each strip query with max_rows = 50,000 (the default cap; a strip that overflows is split), ~300–400 B per row, ≤ 80 MB in total, ≤ 10 MB per query |
+| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, a flag whether radial_velocity is not null, FLAME mass | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); proper-motion difference × distance < 15 km/s (computed in WHERE, not returned). This cap is a query-size safeguard against chance pairs, not a C24/C26 selection cut (C24 has no velocity cut at pair finding; C26's own velocity-related cuts are ΔRV < 10 km/s, σ(ṽ) < 0.1 and ṽ ≤ 2.5, applied later in section 4); A1 is not rerun with other caps and no counts against the cap are looked at before the commit. Bound: the HR band (M_G > 4) limits each star to ≤ 10^{0.0725(4.67−4)} ≈ 1.12 M☉ by the mass rule (FLAME masses for such dwarfs stay below ~1.3 M☉), so M ≤ 2.6 M☉; at r_sky ≥ 1 kAU, v_c ≤ 1.53 km/s and ṽ ≤ 2.5 gives a corrected v_sky ≤ 3.8 km/s; the uncorrected proper-motion difference used in the cap differs from it by at most |v_sys|·θ ≤ |v_sys|·0.5 pc/d, ≤ 10 km/s only if |v_sys| > 200 km/s at d = 10 pc (or > 2,600 km/s at 130 pc). So the cap can exclude only main-sample pairs with |v_sys| > 200 km/s within ~12 pc | trial: 2,209 in one 15° strip with \|δ\| < 60° at a 5 km/s cap; the 10 km/s cap may give a few times more chance pairs: ≤ 200,000 rows in total, each strip query with max_rows = 50,000 (the default cap; a strip that overflows is split), ~300–400 B per row, ≤ 80 MB in total, ≤ 10 MB per query |
 | A2 neighbour counts | per parent star: source_id, number of relaxed neighbours, and the smallest neighbour source_id | neighbours as defined above (no velocity condition); only stars with n ≥ 1 returned | ≤ 50,000 rows per strip (max_rows = 50,000, split if it overflows); at most one row per parent star, so ≤ 824,463 rows and ≤ 33 MB in total at 40 B per row (likely ≤ 200,000 rows, ≤ 8 MB) |
 | B1 velocities (after the pre-registration commit) | the A1 pairs with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | A1's WHERE plus velocity-free cuts: r_sky ≤ 30 kAU at the weighted parallax and radial_velocity not null for both stars | ≤ 50,000 rows in total, ≤ 20 MB |
 

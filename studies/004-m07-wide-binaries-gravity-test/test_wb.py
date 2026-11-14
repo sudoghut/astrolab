@@ -126,6 +126,7 @@ def test_merge_and_bins():
     assert wb.merge_outer([100, 80, 50, 20, 12, 4], 15) == ([0, 1, 2, 3, 4, 4], True)
     assert wb.merge_outer([100, 80, 50, 20, 30, 28], 15) == ([0, 1, 2, 3, 4, 5], True)
     assert wb.merge_outer([10, 3], 15)[1] is False
+    assert wb.merge_outer([100, 10, 50, 20, 30, 28], 15)[1] is False   # interior bin underfilled
     assert list(wb.bin_index([0.05, 0.2, 3.0], [0.1057, 0.2307, 0.5088, 1.0275, 2.0902])) == [0, 1, 5]
 
 
