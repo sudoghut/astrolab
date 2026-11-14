@@ -12,8 +12,8 @@ The chain (the conclusion is deliberately weak: "entirely consistent with"):
   on the same hosts, HST Cepheid and JWST distances agree (TRGB and JAGB within errors)
   for every subsample, the JWST-inferred H0 (the paper's own calibration of the CCHP distances)
       is consistent with the HST expectation (at or within 1 sigma)
-  F24's own reported values (Cepheids ~72, NIR-TRGB ~70, three-method combination 70) are near
-      the HST expectation for the subsample (~70.8 +- 2.3)
+  F24's own reported three-method combination (70) is near the HST expectation for the subsample
+      (~70.8 +- 2.3)
   -> the CCHP-vs-HST difference (about 2.5) is entirely consistent with sample selection
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
@@ -43,7 +43,7 @@ structure Vocab where
   AgreeSameHost : Prop
   /-- For every subsample, the H0 from the JWST distances, as recalibrated by the paper (Table 4), is consistent with the HST expectation on the same SNe (at or within 1 sigma, Sec. III.3). -/
   ResidSmall : Prop
-  /-- CCHP's own reported H0 values for the subsample (F24) are near the HST expectation for that subsample. -/
+  /-- CCHP's own reported three-method combined H0 for the subsample (F24) is near the HST expectation for that subsample. -/
   F24Near : Prop
   /-- The CCHP-vs-HST difference is entirely consistent with differences in sample selection. -/
   ConsSel : Prop
@@ -139,8 +139,9 @@ reading) is not stated. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   h ⟨732, 712, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
-/-- Even with standard knowledge the chain has a gap: the inference rule itself (gap_rule, our
-reading of how the paper gets from its facts to "consistent with selection"). -/
+/-- Consequence of the encoding, not evidence of a defect: the paper leaves its inference rule
+implicit, and we encode it as the reconstructed premise gap_rule, whose consequent is the
+conclusion; without it the stated facts do not entail the conclusion. -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
   h ⟨732, 712, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 

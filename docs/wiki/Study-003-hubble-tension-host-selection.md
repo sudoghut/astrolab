@@ -103,7 +103,8 @@ B. expectation: choosing those hosts and anchor lowers H0 by ~2 →
 C. same-host check: HST Cepheid and JWST (Cepheid, TRGB, JAGB) distances agree →
 D. for every subsample, the JWST H0 (as recalibrated by the paper) is consistent with the HST
 expectation (at or within 1σ) →
-E. CCHP's own reported values (2024 version) are near the HST expectation for the subsample →
+E. CCHP's own reported three-method combined value (2024 version) is near the HST expectation for the
+subsample →
 F. (our GAP: the inference rule) ⇒ the ~2.5 difference is entirely consistent with sample selection.
 
 How we check it: the argument is written in Lean 4
@@ -157,7 +158,7 @@ offset of a few percent cannot be excluded. The check has low power.
 | Premise | Tag | Provenance | Source |
 |---|---|---|---|
 | `stat_resid`: for every subsample the recalibrated JWST H0 is consistent with the HST expectation | STAT | stated 2408.11770: "we find the values inferred using JWST are consistent with expectations for every subsample" (next sentence: at or within 1σ of these smaller uncertainties) | §III.3, Table 4 |
-| `stat_f24`: CCHP's own reported values are near the HST expectation for the subsample | STAT | stated 2408.11770: "For the combination of these three methods, F24 reports $70$ $\,\rm km\,s^{-1}\,Mpc^{-1}$ , near the HST -expected value of $\sim$ 70.8 $\pm 2.3$" | §III.2 |
+| `stat_f24`: CCHP's own reported three-method combined value is near the HST expectation for the subsample | STAT | stated 2408.11770: "For the combination of these three methods, F24 reports $70$ $\,\rm km\,s^{-1}\,Mpc^{-1}$ , near the HST -expected value of $\sim$ 70.8 $\pm 2.3$" | §III.2 |
 | `gap_rule`: expected drop + agreement + within-1σ + same quantity → consistent | GAP | reconstructed: our reading of the paper's inference; the paper states only the conclusion, and a textbook definition of consistency within errors (Taylor 1997) covers only the last comparison | — |
 
 ```lean
@@ -174,12 +175,13 @@ exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .stat_f24)  -- Sec. II.3,
 
 #### 2.4 What the Lean check found
 
-1. **`explicit_insufficient`**: even with standard knowledge the chain has one gap, `gap_rule`: our
-   own reading of how the paper gets from its facts to "consistent with selection". The paper
-   states the conclusion and the facts, not the rule, and no textbook supplies it. What this does
-   and does not show: Lean does not derive the rule; it shows which inputs the rule needs, all of
-   which the paper states (including that CCHP's own reported values, not only the paper's
-   recalibration, are near the HST expectation, `stat_f24`). A different reading of "consistent"
+1. **`explicit_insufficient` is a consequence of our encoding, not evidence of a defect.** The
+   paper states its facts and its conclusion but leaves the inference rule between them implicit;
+   we encode that rule as the reconstructed premise `gap_rule`, whose consequent is the
+   conclusion itself, so removing it necessarily breaks the chain. The verdict records only that
+   the rule is unstated. The informative part is elsewhere: every input the rule needs is stated
+   by the paper, including that CCHP's own reported three-method combination (not only the paper's
+   recalibration) is near the HST expectation (`stat_f24`). A different reading of "consistent"
    would be a different encoding.
 2. **`stated_insufficient`**: for the same reason; the conclusion itself is weak ("entirely
    consistent with").
@@ -202,7 +204,7 @@ exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .stat_f24)  -- Sec. II.3,
 |---|---|---|---|---|---|
 | R1 · the SH0ES baseline | testable now | GLS fit of R22's y, L, C | C 46.5 MiB (Git LFS FITS), L 0.66 MB, y 17 kB, lstsq 0.7 kB; total about 47.2 MiB (below the 200 MB study budget) | primary: reproduce the authors' `lstsq_results.txt` (47 parameters); secondary: 73.04 ± 1.01 (tolerances in README §2) | pending |
 | R2 · stage A–B: anchor and host shifts | testable now | refit with NGC 4258 only (drop the other anchors' geometric rows), then restrict to the CCHP hosts; shifts in 5 log H0 with exact linear error propagation | same | anchor shift vs R22's −0.0158 mag; host shift: null "no shift", four-outcome table vs −0.0405 mag (our conversion of the paper's 72.54 → 71.2 to 5 log H0; README §2) | pending |
-| R3 · stages C and E: same hosts, Cepheid vs TRGB | explorable (descriptive by default) | joint linear estimator with CCHP's JWST TRGB distances; reproduce 69.29 first | CCHP Table 3 (paper) | descriptive unless the full CCHP error budget can be mapped before data; see README §8 | pending |
+| R3 · stages C and E: same hosts, Cepheid vs TRGB | explorable (descriptive by default) | joint linear estimator with CCHP's JWST TRGB distances; first reproduce CCHP's TRGB + Pantheon+ value 69.29 (not the paper's recalibrated Table 4 value 70.1) | CCHP Table 3 (paper) | descriptive unless the full CCHP error budget can be mapped before data; see README §8 | pending |
 | R4 · is the CCHP choice unusual? | explorable (descriptive) | random 10-host subsets of the 37 hosts, ΔH0 percentile (the paper did an 8-SN version for JAGB, Fig. 6: ~5%) | same | none — exploration only, see README §8 | pending |
 | Cross-paper comparison | explorable (descriptive) | pairwise differences for independent pairs only (ladder vs CMB, TDCOSMO vs others) | paper numbers | none — see README §8 | pending |
 
@@ -265,7 +267,7 @@ A. 测量：全样本 73.2；SH0ES 阶梯在 CCHP 宿主上 71.2 →
 B. 预期：选这些宿主与锚点使 H0 降低约 2 →
 C. 同宿主核对：HST 造父变星与 JWST（造父变星、TRGB、JAGB）的距离一致 →
 D. 对每个子样本，JWST 的 H0（论文重新标定）与 HST 预期相容（在 1σ 以内）→
-E. CCHP 自己报告的数值（2024 年版本）接近该子样本的 HST 预期 →
+E. CCHP 自己报告的三种方法合并值（2024 年版本）接近该子样本的 HST 预期 →
 F. （我们补上的 GAP：推理规则）⇒ 约 2.5 的差异完全与样本选择相容。
 
 检查方法：论证写成 Lean 4（[`studies/003-m02-hubble-tension-distance-ladder/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/argument/Argument.lean)）。每个前提是 `Field` 的一个构造子（不用公理），标注类型与出处性质：
@@ -308,7 +310,7 @@ have d : v.ExpDrop := p .mod_drop (p .stat_full) (p .stat_sel)   -- Sec. III.2
 | 前提 | 类型 | 出处性质 | 位置 |
 |---|---|---|---|
 | `stat_resid`：对每个子样本，重新标定的 JWST H0 与 HST 预期相容 | STAT | stated 2408.11770："we find the values inferred using JWST are consistent with expectations for every subsample"（下一句：在这些较小误差的 1σ 以内） | §III.3，表 4 |
-| `stat_f24`：CCHP 自己报告的数值接近该子样本的 HST 预期 | STAT | stated 2408.11770："For the combination of these three methods, F24 reports $70$ $\,\rm km\,s^{-1}\,Mpc^{-1}$ , near the HST -expected value of $\sim$ 70.8 $\pm 2.3$" | §III.2 |
+| `stat_f24`：CCHP 自己报告的三种方法合并值接近该子样本的 HST 预期 | STAT | stated 2408.11770："For the combination of these three methods, F24 reports $70$ $\,\rm km\,s^{-1}\,Mpc^{-1}$ , near the HST -expected value of $\sim$ 70.8 $\pm 2.3$" | §III.2 |
 | `gap_rule`：预期的移动 + 一致 + 1σ 以内 + 同一个量 → 相容 | GAP | reconstructed：我们对论文推理的理解；论文只写出结论，教科书中"误差内相容"的定义（Taylor 1997）只涵盖最后一项比较 | — |
 
 ```lean
@@ -325,7 +327,7 @@ exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .stat_f24)  -- Sec. II.3,
 
 #### 2.4 Lean 检查的发现
 
-1. **`explicit_insufficient`**：即使加上标准知识，链条仍有一处缺口 `gap_rule`：我们对论文如何由这些事实推到"与选择相容"的理解。论文写出了结论与事实，没有写出规则，也没有教科书提供它。这能说明什么、不能说明什么：Lean 并不推出这一规则；它表明这一规则需要哪些输入，而这些输入论文都写明了（包括 CCHP 自己报告的数值、而不只是论文的重新标定，也接近 HST 预期，`stat_f24`）。对"相容"的另一种理解会是另一种编码。
+1. **`explicit_insufficient` 是编码方式的结果，不是论证有缺陷的证据。** 论文写出了事实与结论，但两者之间的推理规则没有写出；我们把它编码为补上的前提 `gap_rule`，其结论就是论文的结论本身，所以去掉它链条必然断开。这一结论只记录了"规则没有写出"。有信息量的是另一点：这一规则需要的每个输入论文都写明了，包括 CCHP 自己报告的三种方法合并值（而不只是论文的重新标定）接近 HST 预期（`stat_f24`）。对"相容"的另一种理解会是另一种编码。
 2. **`stated_insufficient`**：原因相同；结论本身很弱（"完全相容"）。
 3. **每个前提都是必要的**（7 个 `_needed` 定理）：只有一条路径。背景而非缺口：论文表 4 的重新标定与 CCHP 后来发表的数值有些差别（CCHP 2025 年的 Pantheon+ TRGB 为 69.29，表 4 为 70.1）；R3 对此作描述性探索。
 4. **相容性**（`consistent`）是平凡成立的：没有否定形式的前提。
@@ -338,7 +340,7 @@ exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .stat_f24)  -- Sec. II.3,
 |---|---|---|---|---|---|
 | R1 · SH0ES 的基线 | 现在可检验 | 对 R22 的 y、L、C 做广义最小二乘（GLS, generalised least squares）拟合 | C 46.5 MiB（Git LFS 的 FITS），L 0.66 MB，y 17 kB，lstsq 0.7 kB；合计约 47.2 MiB（低于研究预算 200 MB） | 主要：复现作者的 `lstsq_results.txt`（47 个参数）；次要：73.04 ± 1.01（容差见 README 第 2 节） | 待定 |
 | R2 · 环节 A–B：锚点与宿主的移动 | 现在可检验 | 只用 NGC 4258（去掉其他锚点的几何约束行）重拟，再限于 CCHP 宿主；在 5 log H0 中用精确的线性误差传播 | 同上 | 锚点移动对 R22 的 −0.0158 mag；宿主移动：零假设（null hypothesis）"无移动"，四种结果的判定表，对 −0.0405 mag（我们把该文的 72.54 → 71.2 换算到 5 log H0；README 第 2 节） | 待定 |
-| R3 · 环节 C 与 E：同宿主上造父变星对 TRGB | 可探索（默认只作描述） | 与 CCHP 的 JWST TRGB 距离做联合线性估计；先复现 69.29 | CCHP 表 3（论文） | 只有在取数前能写出 CCHP 完整的误差预算时才作检验，否则只作描述；见 README 第 8 节 | 待定 |
+| R3 · 环节 C 与 E：同宿主上造父变星对 TRGB | 可探索（默认只作描述） | 与 CCHP 的 JWST TRGB 距离做联合线性估计；先复现 CCHP 的 TRGB + Pantheon+ 数值 69.29（不是论文重新标定的表 4 数值 70.1） | CCHP 表 3（论文） | 只有在取数前能写出 CCHP 完整的误差预算时才作检验，否则只作描述；见 README 第 8 节 | 待定 |
 | R4 · CCHP 的选择是否不寻常 | 可探索（只作描述） | 37 个宿主中随机 10 个的子样本，ΔH0 的百分位（percentile）（论文对 JAGB 做过 8 颗超新星的版本，图 6：约 5%） | 同上 | 无——只作探索，见 README 第 8 节 | 待定 |
 | 跨论文比较 | 可探索（只作描述） | 只对近似独立的组合给出两两之差（距离阶梯对 CMB、TDCOSMO 对其他） | 论文数字 | 无——见 README 第 8 节 | 待定 |
 
@@ -348,7 +350,7 @@ exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .stat_f24)  -- Sec. II.3,
 |---|---|
 | 距离阶梯 | 锚点 → 造父变星（或 TRGB、JAGB）→ Ia 型超新星 → 哈勃流 |
 | 锚点 | 有几何距离的星系（银河系视差、NGC 4258 的脉泽、LMC 的食双星） |
-| TRGB、JAGB | 红巨星支顶端；J 波段渐近巨星支（碳星） |
+| TRGB、JAGB | 红巨星支顶端（tip of the red giant branch）；J 波段渐近巨星支（J-region asymptotic giant branch，碳星） |
 | GLS（广义最小二乘） | q̂ = (LᵀC⁻¹L)⁻¹LᵀC⁻¹y |
 | 5 log H0 | 阶梯的最后一个参数；拟合对它是线性的，对 H0 不是 |
 
