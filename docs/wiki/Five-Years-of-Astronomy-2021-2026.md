@@ -5,6 +5,8 @@
 *Written November 2026, shortly before Gaia DR4. The source of this page lives in the main
 repository at [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
+*中文标题：近五年天文学（2021–2026）：科普综述。写于 2026 年 11 月，Gaia DR4 发布前夕。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+
 ---
 
 ## English
@@ -41,8 +43,8 @@ reached maturity in these years:
 | **James Webb Space Telescope (JWST)**, launched December 2021 | Sees the earliest galaxies in infrared light | Baby photos of the universe |
 | **Gaia** satellite (launched 2013), Data Release 3 in 2022, Data Release 4 on 2 December 2026 | Measures positions and motions of almost two billion stars | A census of the Milky Way |
 | **DESI** (Dark Energy Spectroscopic Instrument), surveying since 2021 | Measures distances to millions of galaxies | A 3-D map of the universe |
-| **LIGO, Virgo and KAGRA** gravitational-wave detectors | Catch the ripples in space-time sent out when black holes collide | Ears on the universe |
-| **Pulsar timing arrays (PTAs)**, running for up to two decades | Use fast-spinning pulsars in our Galaxy as clocks | A gravitational-wave detector the size of the Galaxy |
+| **LIGO** (Laser Interferometer Gravitational-Wave Observatory), **Virgo** and **KAGRA** (Kamioka Gravitational Wave Detector) | Catch the ripples in space-time sent out when black holes collide | Ears on the universe |
+| **Pulsar timing arrays (PTAs)**, running for two decades or more | Use fast-spinning pulsars in our Galaxy as clocks | A gravitational-wave detector the size of the Galaxy |
 | Euclid (launched 2023), the Vera C. Rubin Observatory (first images 2025) and others | Next-generation surveys, now starting to release data | |
 
 Most of this data is **public** and can be queried online. That is what makes a laptop project
@@ -52,28 +54,28 @@ like astrolab possible.
 
 astrolab arranges the universe in zoom levels, like an online map: L0 is the universe as a
 whole, L1 the early universe, L2 our cosmic neighbourhood, L3 the Milky Way and L4 individual
-stars; X is a cross-cutting theme (here, gravitational waves). We follow roughly the same order.
+stars; X is a cross-cutting theme (here, gravitational waves). We go through them in that order, except that gravitational waves (X) come before the Milky Way.
 
 #### L0 · The universe as a whole: cracks in the standard model?
 
 The standard model of cosmology is called **ΛCDM** ("Lambda cold dark matter"): a universe made
-mostly of invisible dark matter plus a constant dark energy (Λ).
+mostly of a constant dark energy (Λ) and invisible dark matter, with ordinary matter only about 5%.
 
 **Is dark energy changing? (M1, *hint*)**
 
 The expansion of the universe is speeding up. Whatever drives it is called *dark energy*. In
 ΛCDM, dark energy is a constant that never changes.
 
-- DESI measures *baryon acoustic oscillations* (BAO): a pattern frozen into the distribution of
-  galaxies in the early universe. It works as a standard ruler about 150 megaparsecs
+- DESI measures *baryon acoustic oscillations* (BAO): a pattern imprinted on matter in the early
+  universe and still visible today in how galaxies are spread out. It works as a standard ruler about 150 megaparsecs
   (roughly 500 million light-years) long.
-- DESI's first results (2024) and its second data release (2025) both found that when this ruler
+- DESI's first and second data releases (2024 and 2025) both found that when this ruler
   is combined with the cosmic microwave background (the afterglow of the Big Bang) and with
   supernovae, the data prefer a dark energy that **weakens over time**. With the 2025 data the
   preference is 2.8–4.2σ, depending on which supernova sample is used.
-- **In 2026 the signal weakened.** After a re-calibration of one supernova sample and a new DESI
-  analysis of the Lyman-α forest (light from distant quasars filtered by intervening gas), the
-  updated combinations sit at roughly 2.7–3.2σ.
+- **Since late 2025 the signal has weakened.** After a re-calibration of one supernova sample
+  and a new DESI analysis of the Lyman-α forest (light from distant quasars filtered by
+  intervening gas), it sits at about 2.7σ without supernovae and roughly 3σ with them.
 - This is the most talked-about question in cosmology today. It may rewrite the textbooks, or it
   may turn out to be a calibration problem.
 - Reproducing it needs only a small (kilobyte-to-megabyte) set of published distances. It is the
@@ -98,7 +100,7 @@ like new physics.
 
 - *Redshift* (z) tells how much the universe has stretched the light of a galaxy on its way to
   us; the larger z, the farther back in time we look.
-- JWST spectra have confirmed galaxies at z ≈ 14: JADES-GS-z14-0 and MoM-z14 (z = 14.44). We see
+- JWST spectra have confirmed galaxies at z ≈ 14: JADES-GS-z14-0 and MoM-z14 (z ≈ 14.4). We see
   them as they were less than 300 million years after the Big Bang.
 - The surprise is that there are **too many bright galaxies**. The early universe looks more
   "grown-up" than models predicted. The detection is *established*; the explanation is *contested*.
@@ -114,22 +116,22 @@ How fast is the universe expanding today? This rate is the *Hubble constant*, H0
 km/s per megaparsec. Two kinds of measurement disagree:
 
 - Building a *distance ladder* — step by step from nearby Cepheid variable stars to supernovae in
-  farther galaxies — the SH0ES team gets about **73** km/s/Mpc.
+  farther galaxies — the SH0ES team (Supernovae, H0, for the Equation of State) gets about **73** km/s/Mpc.
 - Working backwards from the cosmic microwave background, assuming ΛCDM, gives about **67–68**.
 - The gap is more than 5σ. JWST re-checked the Hubble Space Telescope's Cepheid measurements and
   found no error large enough to explain it.
 - Another team, the Chicago-Carnegie Hubble Program (CCHP), measured distances using the tip of
   the red giant branch (TRGB) instead and got about **70**.
 
-So part of the debate has moved from "is there new physics?" to "which galaxies should be used
-for calibration?".
+So part of the debate is now not only "is there new physics?" but also "which galaxies should
+be used for calibration?".
 
 #### X · Gravitational-wave astronomy grows up
 
 **A background hum at nanohertz frequencies (M9, *hint*)**
 
-- In June 2023, four pulsar timing arrays — NANOGrav (North America), EPTA (Europe), PPTA
-  (Australia) and CPTA (China) — announced, with varying strength, the same thing: the arrival
+- In June 2023, four pulsar timing arrays — NANOGrav (North American Nanohertz Observatory for
+  Gravitational Waves), EPTA (European PTA), PPTA (Parkes PTA, Australia) and CPTA (Chinese PTA) — announced, with varying strength, the same thing: the arrival
   times of pulsar signals share a common slow "wobble".
 - The way the wobble is correlated between pulsars follows the *Hellings–Downs curve*, the
   fingerprint of gravitational waves.
@@ -161,7 +163,8 @@ for calibration?".
 **The Milky Way grew up early (M5, *established*)**
 
 - In 2022, Xiang & Rix (Nature) measured precise ages for about 250,000 subgiant stars by
-  combining China's LAMOST spectroscopic survey with Gaia.
+  combining China's LAMOST (Large Sky Area Multi-Object Fiber Spectroscopic Telescope) survey
+  with Gaia.
 - They found that the Galaxy's thick disk started forming about **13 billion years ago** — much
   earlier than many had thought.
 
@@ -174,7 +177,7 @@ In 2024 astronomers found that it is also oscillating, like a wave moving throug
 
 **Dormant black holes (M4, *established*; astrolab has finished the DR3 part)**
 
-- Almost all stellar-mass black holes known before 2022 were feeding on a companion star and
+- Almost all stellar-mass black holes known in the Milky Way before 2022 were feeding on a companion star and
   glowing in X-rays.
 - Theory says most black holes in the Milky Way should be quiet: not feeding, not glowing.
 - Gaia's trick is to measure the **tiny ellipse a normal star traces on the sky**. If the orbit is
@@ -201,7 +204,7 @@ In 2024 astronomers found that it is also oscillating, like a wave moving throug
 - In pairs of stars thousands of astronomical units apart (one astronomical unit is the
   Earth–Sun distance), the pull between them is extremely weak. MOND (Modified Newtonian
   Dynamics) predicts that gravity should then be stronger than Newton's law says.
-- In 2023 one group reported a boost of about 1.4 times. Other groups, using larger and cleaner
+- In 2023 one group reported a boost of about 1.4 times. Other groups, using stricter and cleaner
   samples, ruled MOND out with high significance. A 2026 study of a small, high-precision sample
   still claims a MOND-like boost, so the debate is not closed.
 - The fight is about **contamination**: a hidden third star, or two unrelated stars that just
@@ -267,7 +270,7 @@ That is astrolab's starting point. The next chance is Gaia DR4, on 2 December 20
 
 [astrolab](https://github.com/sudoghut/astrolab) 想回答一个简单的问题：只用一台笔记本电脑和一个编程智能体（coding agent），能不能做真正的天文学研究？它的做法有三点：
 
-- **不搬数据，只问问题。** 现代巡天数据动辄 TB 级，电脑装不下。astrolab 把查询发到数据中心，筛选和统计都在服务器上做（server-side computation），本地只拿回 MB 级的结果。
+- **不搬数据，只问问题。** 现代巡天（sky survey）数据动辄 TB 级，电脑装不下。astrolab 把查询发到数据中心，筛选和统计都在服务器上做（server-side computation），本地只拿回 MB 级的结果。
 - **用复现带动建设。** [路线图（roadmap）](https://github.com/sudoghut/astrolab/blob/main/ROADMAP.md)挑了 10 个 2022–2026 年的代表性成果。复现每一个，都会逼出代码需要的一种新能力。
 - **结论分等级。** 每条结论（claim）标明是"已坐实（established）""有张力（tension）""初步迹象（hint）""有争议（contested）"还是"被否定（refuted）"。一条结论复现之后，由自动测试持续检查它是否仍然成立。
 
@@ -284,27 +287,27 @@ That is astrolab's starting point. The next chance is Gaia DR4, on 2 December 20
 | **詹姆斯·韦布空间望远镜（JWST, James Webb Space Telescope）**，2021 年 12 月发射 | 在红外波段看最早的星系 | 看宇宙的"婴儿照" |
 | **Gaia 卫星**（2013 年发射），2022 年发布第三次数据（DR3, Data Release 3），2026 年 12 月 2 日发布第四次数据（DR4） | 测量近二十亿颗恒星的位置和运动 | 给银河系做"人口普查" |
 | **DESI 暗能量光谱仪（Dark Energy Spectroscopic Instrument）**，2021 年开始巡天 | 测量数以百万计的星系的距离 | 绘制宇宙的三维地图 |
-| **LIGO、Virgo、KAGRA 引力波（gravitational wave）探测器** | 接收黑洞碰撞时发出的时空涟漪 | 用"耳朵"听宇宙 |
-| **脉冲星计时阵（PTA, Pulsar Timing Array）**，最长已运行约二十年 | 把银河系里高速自转的脉冲星（pulsar）当作钟 | 一台和银河系一样大的引力波探测器 |
+| **LIGO（激光干涉引力波天文台，Laser Interferometer Gravitational-Wave Observatory）、Virgo、KAGRA（神冈引力波探测器，Kamioka Gravitational Wave Detector）引力波（gravitational wave）探测器** | 接收黑洞碰撞时发出的时空涟漪 | 用"耳朵"听宇宙 |
+| **脉冲星计时阵（PTA, Pulsar Timing Array）**，已运行二十年左右或更久 | 把银河系里高速自转的脉冲星（pulsar）当作钟 | 一台和银河系一样大的引力波探测器 |
 | 欧几里得卫星（Euclid，2023 年发射）、鲁宾天文台（Vera C. Rubin Observatory，2025 年发布首批图像）等 | 新一代巡天，正陆续开始发布数据 | |
 
 这些数据大多**公开**，而且能在线查询。正因为如此，astrolab 这样的笔记本项目才有可能。
 
 ### 3. 从整个宇宙到单颗恒星
 
-astrolab 像在线地图一样把宇宙分成几个缩放级别：L0 是整个宇宙，L1 是早期宇宙，L2 是近邻宇宙，L3 是银河系，L4 是单颗恒星；X 是横跨各尺度的主题（这里指引力波）。下面大致按这个顺序讲。
+astrolab 像在线地图一样把宇宙分成几个缩放级别：L0 是整个宇宙，L1 是早期宇宙，L2 是近邻宇宙，L3 是银河系，L4 是单颗恒星；X 是横跨各尺度的主题（这里指引力波）。下面按这个顺序讲，只是把引力波（X）放在银河系之前。
 
 #### L0 · 整个宇宙：标准模型出现裂缝？
 
-宇宙学标准模型叫作 **ΛCDM（Lambda 冷暗物质模型，Lambda Cold Dark Matter）**：宇宙主要由看不见的暗物质，加上一个不变的暗能量（Λ）组成。
+宇宙学标准模型（standard model of cosmology）叫作 **ΛCDM（Lambda 冷暗物质模型，Lambda Cold Dark Matter）**：宇宙主要由一个不变的暗能量（dark energy，记作 Λ）和看不见的暗物质（dark matter）组成，普通物质只占约 5%。
 
 **暗能量在变化吗？（M1，初步迹象）**
 
-宇宙在加速膨胀，推动它的东西被叫作"暗能量（dark energy）"。在 ΛCDM 中，暗能量是一个永远不变的常数。
+宇宙在加速膨胀，推动它的东西就是暗能量。在 ΛCDM 中，暗能量是一个永远不变的常数。
 
-- DESI 测量的是重子声学振荡（BAO, Baryon Acoustic Oscillations）：早期宇宙在星系分布中"冻结"下来的一种图案。它可以当作一把标准尺，长约 150 兆秒差距（Mpc, megaparsec），也就是大约 5 亿光年。
-- DESI 的首批结果（2024 年）和第二次数据发布（2025 年）都发现：把这把尺子和宇宙微波背景（CMB, Cosmic Microwave Background，即大爆炸的余晖）、超新星（supernova）数据放在一起，结果更倾向于暗能量**随时间减弱**。用 2025 年的数据，偏好程度为 2.8–4.2σ，取决于用哪一组超新星数据。
-- **2026 年这个信号变弱了。** 一组超新星数据重新校准、DESI 对莱曼 α 森林（Lyman-α forest，遥远类星体的光被沿途气体吸收后留下的谱线）做了新的分析之后，更新后的各种组合约为 2.7–3.2σ。
+- DESI 测量的是重子声学振荡（BAO, Baryon Acoustic Oscillations）：早期宇宙在物质分布中留下的一种图案，今天仍能从星系的分布中看到。它可以当作一把标准尺，长约 150 兆秒差距（Mpc, megaparsec），也就是大约 5 亿光年。
+- DESI 的第一次和第二次数据发布（2024 年和 2025 年）都发现：把这把尺子和宇宙微波背景（CMB, Cosmic Microwave Background，即大爆炸的余晖）、超新星（supernova）数据放在一起，结果更倾向于暗能量**随时间减弱**。用 2025 年的数据，偏好程度为 2.8–4.2σ，取决于用哪一组超新星数据。
+- **2025 年底以来，这个信号变弱了。** 一组超新星数据重新校准、DESI 对莱曼 α 森林（Lyman-α forest，遥远类星体（quasar）的光被沿途气体吸收后留下的谱线）做了新的分析之后，不加超新星时约为 2.7σ，加上超新星约为 3σ。
 - 这是当今宇宙学最受关注的问题：可能改写教科书，也可能最终只是校准问题。
 - 复现它只需要一小组（kB 到 MB 级）已发表的距离数据。在 Gaia DR4 运行之后，这是 astrolab 的下一个新里程碑。
 
@@ -318,10 +321,10 @@ S8 描述物质"抱团"的程度。
 
 这是一个正在慢慢消失的张力，提醒人们：系统误差（systematic error）常常看起来很像新物理。
 
-#### L1 · 宇宙黎明：JWST 的惊喜（M8，探测已坐实）
+#### L1 · 宇宙黎明（cosmic dawn）：JWST 的惊喜（M8，探测已坐实）
 
 - 红移（redshift，记作 z）表示宇宙膨胀把一个星系的光拉长了多少；z 越大，我们看到的就越久远。
-- JWST 的光谱确认了 z ≈ 14 的星系：JADES-GS-z14-0 和 MoM-z14（z = 14.44）。我们看到的是它们在宇宙大爆炸后不到 3 亿年时的样子。
+- JWST 的光谱确认了 z ≈ 14 的星系：JADES-GS-z14-0 和 MoM-z14（z ≈ 14.4）。我们看到的是它们在宇宙大爆炸后不到 3 亿年时的样子。
 - 意外的是，**亮星系太多了**，早期宇宙比模型预测的更"早熟"。探测本身已坐实，解释仍有争议。
 - 可能的解释包括：恒星形成效率更高；或者星系亮度忽明忽暗（burstiness），让我们更容易在它们最亮的时候看到它们。
 - 不在路线图里但同样热门：JWST 发现了大量致密的红色天体，被称为**"小红点（Little Red Dots）"**。它们可能是被尘埃或稠密气体包裹的早期黑洞，目前还没有定论。
@@ -330,18 +333,18 @@ S8 描述物质"抱团"的程度。
 
 宇宙今天膨胀得有多快？这个速率叫哈勃常数（Hubble constant，H0），单位是 km/s/Mpc。两类测量给出的答案不一样：
 
-- 从附近的造父变星（Cepheid variable）到更远星系中的超新星，一级一级搭起距离阶梯（distance ladder），SH0ES 团队得到约 **73** km/s/Mpc。
+- 从附近的造父变星（Cepheid variable）到更远星系中的超新星，一级一级搭起距离阶梯（distance ladder），SH0ES 团队（Supernovae, H0, for the Equation of State）得到约 **73** km/s/Mpc。
 - 从宇宙微波背景反推（假设 ΛCDM 成立），得到约 **67–68**。
-- 两者相差超过 5σ。JWST 复查了哈勃空间望远镜对造父变星的测量，没有发现足以解释这一差距的误差。
+- 两者相差超过 5σ。JWST 复查了哈勃空间望远镜（HST, Hubble Space Telescope）对造父变星的测量，没有发现足以解释这一差距的误差。
 - 另一个团队——芝加哥-卡内基哈勃项目（CCHP, Chicago-Carnegie Hubble Program）——改用红巨星支顶端（TRGB, Tip of the Red Giant Branch）测距，得到约 **70**。
 
-所以争论的一部分，已经从"有没有新物理"转到了"应该用哪些星系来校准"。
+所以现在的争论不只是"有没有新物理"，也包括"应该用哪些星系来校准"。
 
 #### X · 引力波天文学走向成熟
 
-**纳赫兹频段的背景"嗡嗡声"（M9，初步迹象）**
+**纳赫兹（nanohertz）频段的背景"嗡嗡声"（M9，初步迹象）**
 
-- 2023 年 6 月，四个脉冲星计时阵——北美的 NANOGrav、欧洲的 EPTA、澳大利亚的 PPTA 和中国的 CPTA——以不同的强度，同时宣布了同一件事：脉冲星信号的到达时间存在一种共同的缓慢"抖动"。
+- 2023 年 6 月，四个脉冲星计时阵——北美的 NANOGrav（北美纳赫兹引力波天文台，North American Nanohertz Observatory for Gravitational Waves）、欧洲的 EPTA（欧洲脉冲星计时阵，European PTA）、澳大利亚的 PPTA（帕克斯脉冲星计时阵，Parkes PTA）和中国的 CPTA（中国脉冲星计时阵，Chinese PTA）——以不同的强度，同时宣布了同一件事：脉冲星信号的到达时间存在一种共同的缓慢"抖动"。
 - 不同脉冲星之间抖动的关联方式，符合引力波特有的"指纹"：Hellings–Downs 曲线。
 - 最可能的来源，是全宇宙超大质量黑洞双星（supermassive black-hole binaries）共同发出的"嗡嗡声"。
 - 证据很强，但还没有达到 5σ 的发现标准，所以等级定为"初步迹象"。
@@ -362,7 +365,7 @@ S8 描述物质"抱团"的程度。
 
 **银河系"早熟"（M5，已坐实）**
 
-- 2022 年，Xiang 和 Rix 在 Nature 发表研究：结合中国 LAMOST 光谱巡天和 Gaia，测出约 25 万颗亚巨星（subgiant）的精确年龄。
+- 2022 年，Xiang 和 Rix 在 Nature 发表研究：结合中国郭守敬望远镜（LAMOST, Large Sky Area Multi-Object Fiber Spectroscopic Telescope）的光谱巡天和 Gaia，测出约 25 万颗亚巨星（subgiant）的精确年龄。
 - 他们发现，银河系厚盘（thick disk）约在 **130 亿年前**就开始形成，比很多人以为的早得多。
 
 **Radcliffe 波（Radcliffe Wave，候选 M11）**
@@ -371,9 +374,9 @@ S8 描述物质"抱团"的程度。
 
 #### L4 · 恒星：Gaia 让看不见的东西现形
 
-**休眠黑洞（M4，已坐实；astrolab 已完成 DR3 部分）**
+**休眠黑洞（dormant black holes，M4，已坐实；astrolab 已完成 DR3 部分）**
 
-- 2022 年以前发现的恒星级黑洞，几乎都在吞噬伴星、发出 X 射线。
+- 2022 年以前在银河系中发现的恒星级黑洞（stellar-mass black hole），几乎都在吞噬伴星、发出 X 射线。
 - 但理论认为，银河系里大多数黑洞应该是"安静的"：不吃东西，也不发光。
 - Gaia 的办法是：精确测量一颗普通恒星**在天上画出的小椭圆**。如果轨道很大，伴星却看不见，那么伴星很可能是黑洞。
 - 用这个办法找到了三个：
@@ -393,7 +396,7 @@ S8 描述物质"抱团"的程度。
 **用宽双星检验引力（M7，有争议，趋向牛顿引力）**
 
 - 相隔几千个天文单位（astronomical unit，1 个天文单位即日地距离）的双星，彼此之间的引力极弱。修正牛顿动力学（MOND, Modified Newtonian Dynamics）预言：这时的引力会比牛顿定律算出的更强。
-- 2023 年，有团队报告了约 1.4 倍的增强；其他团队用更大、更干净的样本，以很高的显著性排除了 MOND。2026 年，一项基于少量高精度双星的研究仍然声称看到了类似 MOND 的增强，所以争论尚未结束。
+- 2023 年，有团队报告了约 1.4 倍的增强；其他团队用更严格、更干净的样本，以很高的显著性排除了 MOND。2026 年，一项基于少量高精度双星的研究仍然声称看到了类似 MOND 的增强，所以争论尚未结束。
 - 争论的核心在**样本污染**：隐藏的第三颗星，或者两颗毫无关系、只是恰好排在一起的恒星，都会让一对双星看起来"转得太快"。
 - Gaia DR4 的逐次观测数据（epoch astrometry）可以揭示隐藏的伴星，有望给这场争论画上句号。
 
@@ -402,11 +405,11 @@ S8 描述物质"抱团"的程度。
 这一节**没有**经过 astrolab 的文献核实流程，因此有意只做定性描述。
 
 - **事件视界望远镜（EHT, Event Horizon Telescope）**：2022 年拍到银河系中心黑洞人马座 A\*（Sagittarius A\*）的第一张照片。
-- **系外行星大气**：JWST 清楚地测出其他恒星的行星大气中的二氧化碳等分子。2025 年有研究称在 K2-18b 上发现了可能的生命迹象，引起轰动；多数后续研究认为证据不足。
+- **系外行星（exoplanet）大气**：JWST 清楚地测出其他恒星的行星大气中的二氧化碳等分子。2025 年有研究称在 K2-18b 上发现了可能的生命迹象，引起轰动；多数后续研究认为证据不足。
 - **小行星样本**：NASA 的 OSIRIS-REx 于 2023 年带回小行星贝努（Bennu）的样本，其中含有氨基酸等生命的基本原料。
-- **星际访客**：2025 年发现第三个已知的星际天体，彗星 3I/ATLAS。
+- **星际访客**：2025 年发现第三个已知的星际天体（interstellar object），彗星 3I/ATLAS。
 - **迄今最"响亮"的黑洞并合**：2025 年 1 月探测到的 GW250114 信号非常清晰，足以检验霍金面积定理（Hawking's area theorem）。
-- **中国设备**：高海拔宇宙线观测站（LHAASO, Large High Altitude Air Shower Observatory）发现了十几个能量高达拍电子伏特（PeV）的伽马射线源，指向能把宇宙线加速到这一能量的"拍电子伏特加速器（PeVatron）"；2024 年发射的爱因斯坦探针（Einstein Probe）X 射线卫星专门捕捉短暂的 X 射线闪光；500 米口径球面射电望远镜（FAST, Five-hundred-meter Aperture Spherical Telescope）是中国脉冲星计时阵的主力设备。
+- **中国设备**：高海拔宇宙线观测站（LHAASO, Large High Altitude Air Shower Observatory）发现了十几个能量高达拍电子伏特（PeV）的伽马射线源，指向能把宇宙线（cosmic ray）加速到这一能量的"拍电子伏特加速器（PeVatron）"；2024 年发射的爱因斯坦探针（Einstein Probe）X 射线卫星专门捕捉短暂的 X 射线闪光；500 米口径球面射电望远镜（FAST, Five-hundred-meter Aperture Spherical Telescope）是中国脉冲星计时阵的主力设备。
 
 ### 5. 一条贯穿的线索
 
