@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-title-zh="Gaia 10 pc 普查">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gaia 10 pc Census</title>
+<script src="../../../atlas/web/i18n.js"></script>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.0/plotly.min.js"></script>
 <style>
@@ -14,9 +15,9 @@
 </head>
 <body>
 <main>
-  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 000 · smoke test</p>
-  <h1>Gaia DR3: the 10 pc neighbourhood</h1>
-  <p class="muted">Pipeline check. Nearby sources with parallax &gt; 100 mas (quality-cut), plus an all-sky density of G &lt; 11 stars aggregated on the Gaia server into 768 HEALPix pixels.</p>
+  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 000 · <span class="en">smoke test</span><span class="zh">冒烟测试</span></p>
+  <h1><span class="en">Gaia DR3: the 10 pc neighbourhood</span><span class="zh">Gaia DR3：10 pc 邻域</span></h1>
+  <p class="muted"><span class="en">Pipeline check. Nearby sources with parallax &gt; 100 mas (quality-cut), plus an all-sky density of G &lt; 11 stars aggregated on the Gaia server into 768 HEALPix pixels.</span><span class="zh">管线检查。视差 &gt; 100 mas 的近邻源（经质量筛选），以及在 Gaia 服务器端聚合到 768 个 HEALPix 像素的 G &lt; 11 恒星全天密度。</span></p>
 
   <div class="grid" id="stats"></div>
 
@@ -25,10 +26,11 @@
     <div class="card"><div id="sky" class="plot"></div></div>
   </div>
 
-  <h2>Nearest objects</h2>
+  <h2><span class="en">Nearest objects</span><span class="zh">最近的天体</span></h2>
   <div class="card scroll"><table id="near"></table></div>
 </main>
 <script>
+const { L, t } = i18n;
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const layoutBase = () => ({
   paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
@@ -42,11 +44,11 @@ const get = n => fetch(`../results/${n}.json`).then(r => {
 
 Promise.all([get('summary'), get('nearby'), get('density_healpix3')]).then(([s, nb, d]) => {
   const stats = [
-    ['raw rows (ϖ > 100 mas)', s.raw_rows],
-    ['after quality cut', s.after_quality_cut],
-    ['within 5 pc', s.within_5pc],
-    ['median v_tan (km/s)', s.median_v_tan_kms],
-    ['G < 11 stars aggregated', s.bright_stars_G_lt_11.toLocaleString()],
+    [L('raw rows (ϖ &gt; 100 mas)', '原始行数（ϖ &gt; 100 mas）'), s.raw_rows],
+    [L('after quality cut', '质量筛选后'), s.after_quality_cut],
+    [L('within 5 pc', '5 pc 以内'), s.within_5pc],
+    [L('median v_tan (km/s)', 'v_tan 中位数（km/s）'), s.median_v_tan_kms],
+    [L('G &lt; 11 stars aggregated', '聚合的 G &lt; 11 恒星数'), s.bright_stars_G_lt_11.toLocaleString()],
   ];
   document.getElementById('stats').innerHTML = stats.map(([k, v]) =>
     `<div class="card stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
@@ -55,18 +57,19 @@ Promise.all([get('summary'), get('nearby'), get('density_healpix3')]).then(([s, 
     x: nb.bp_rp, y: nb.abs_g, mode: 'markers', type: 'scatter',
     marker: { size: 6, color: nb.dist_pc, colorscale: 'Viridis', colorbar: { title: 'pc', thickness: 10 } },
     text: nb.source_id.map((id, i) => `Gaia DR3 ${id}<br>${nb.dist_pc[i].toFixed(2)} pc`), hoverinfo: 'text',
-  }], { ...layoutBase(), title: 'Colour–magnitude diagram',
+  }], { ...layoutBase(), title: t('Colour–magnitude diagram', '颜色–星等图'),
         xaxis: { title: 'BP − RP', gridcolor: css('--line') },
         yaxis: { title: 'M_G', autorange: 'reversed', gridcolor: css('--line') } },
   { responsive: true, displayModeBar: false });
 
+  const skyTitle = () => t(`Bright-star density (HEALPix level ${d.level}, equatorial)`, `亮星密度（HEALPix 层级 ${d.level}，赤道坐标）`);
   const lon = d.ra.map(r => (r > 180 ? r - 360 : r));
   Plotly.newPlot('sky', [{
     type: 'scattergeo', lon: lon.map(x => -x), lat: d.dec, mode: 'markers',
     marker: { size: 7, color: d.n.map(Math.log10), colorscale: 'Cividis',
               colorbar: { title: 'log N', thickness: 10 } },
-    text: d.n.map((n, i) => `RA ${d.ra[i].toFixed(1)}°, Dec ${d.dec[i].toFixed(1)}°<br>${n} stars`), hoverinfo: 'text',
-  }], { ...layoutBase(), title: `Bright-star density (HEALPix level ${d.level}, equatorial)`,
+    text: d.n.map((n, i) => `RA ${d.ra[i].toFixed(1)}°, Dec ${d.dec[i].toFixed(1)}°<br>${n} ${t('stars', '颗恒星')}`), hoverinfo: 'text',
+  }], { ...layoutBase(), title: skyTitle(),
         geo: { projection: { type: 'mollweide' }, showland: false, showcoastlines: false, showframe: true,
                bgcolor: 'rgba(0,0,0,0)', framecolor: css('--line'),
                lonaxis: { showgrid: true, gridcolor: css('--line') }, lataxis: { showgrid: true, gridcolor: css('--line') } } },
@@ -77,10 +80,17 @@ Promise.all([get('summary'), get('nearby'), get('density_healpix3')]).then(([s, 
      <td>${nb.bp_rp[i]?.toFixed(2) ?? ''}</td><td>${nb.v_tan_kms[i].toFixed(1)}</td></tr>`).join('');
   document.getElementById('near').innerHTML =
     '<tr><th>Gaia DR3 source_id</th><th>d (pc)</th><th>G</th><th>BP−RP</th><th>v_tan (km/s)</th></tr>' + rows;
+
+  // Plot titles and hover text are plain text: redraw them when the language changes.
+  i18n.onLangChange(() => {
+    Plotly.relayout('hr', { title: t('Colour–magnitude diagram', '颜色–星等图') });
+    Plotly.relayout('sky', { title: skyTitle() });
+    Plotly.restyle('sky', { text: [d.n.map((n, i) => `RA ${d.ra[i].toFixed(1)}°, Dec ${d.dec[i].toFixed(1)}°<br>${n} ${t('stars', '颗恒星')}`)] });
+  });
 }).catch(e => {
   const msg = e instanceof MissingResult
-    ? `Results missing — run <code>python -m astrolab run 000</code>. (${e.message})`
-    : `Page error while rendering results: ${e}. See the browser console.`;
+    ? L('Results missing — run <code>python -m astrolab run 000</code>.', '缺少结果文件——请运行 <code>python -m astrolab run 000</code>。') + ` (${e.message})`
+    : L('Page error while rendering results:', '渲染结果时页面出错：') + ` ${e}. ` + L('See the browser console.', '详见浏览器控制台。');
   document.querySelector('main').insertAdjacentHTML('beforeend', `<p class="muted">${msg}</p>`);
 });
 </script>

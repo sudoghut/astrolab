@@ -114,3 +114,18 @@ def test_validate_all_reports_study_placeholders(tmp_path, monkeypatch):
 def test_studies_have_chinese_fields():
     for s in study.discover():
         assert claims.zh_errors(s.meta, claims.STUDY_ZH_FIELDS) == [], s.id
+
+
+def test_every_web_page_loads_i18n():
+    """Bilingual rule (AGENTS.md): every page loads the shared English/Chinese switch."""
+    root = config.ROOT
+    pages = [root / "atlas" / "web" / "index.html"]
+    for d in sorted((root / "studies").iterdir()):
+        if (d / "web").is_dir():
+            pages += sorted((d / "web").glob("*.html"))
+    assert len(pages) >= 4
+    for p in pages:
+        text = p.read_text(encoding="utf-8")
+        assert re.search(r'<script[^>]*\ssrc="[^"]*i18n\.js"', text), f"{p} does not load i18n.js"
+        if "_template" not in p.parts:
+            assert "TODO: 中文" not in text, f"{p} still has the template's Chinese placeholder"

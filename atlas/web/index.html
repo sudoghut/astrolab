@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-title-zh="Astrolab 宇宙图谱">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Astrolab Atlas</title>
+<script src="i18n.js"></script>
 <link rel="stylesheet" href="base.css">
 <style>
   .level { display: grid; grid-template-columns: 150px 1fr; gap: 16px; padding: 18px 0; border-top: 1px solid var(--line); }
@@ -21,47 +22,55 @@
 <body>
 <main>
   <p class="crumb">astrolab</p>
-  <h1>Atlas of the Universe, by scale</h1>
-  <p class="muted">Coarse map first, detail on demand. Each level lists the landmark claims we track and the studies that reproduce or test them.</p>
-  <div id="atlas"><p class="muted">loading… (run <code>python -m astrolab serve</code>)</p></div>
+  <h1><span class="en">Atlas of the Universe, by scale</span><span class="zh">宇宙图谱：按尺度排列</span></h1>
+  <p class="muted"><span class="en">Coarse map first, detail on demand. Each level lists the landmark claims we track and the studies that reproduce or test them.</span><span class="zh">先看粗略全图，需要时再看细节。每个尺度列出我们跟踪的代表性结论，以及复现或检验它们的研究。</span></p>
+  <div id="atlas"><p class="muted"><span class="en">loading… (run <code>python -m astrolab serve</code>)</span><span class="zh">加载中……（请运行 <code>python -m astrolab serve</code>）</span></p></div>
   <p class="muted" id="gen"></p>
 </main>
 <script>
+const { L } = i18n;
 const LEVELS = {
-  L0: ['Cosmic background', 'Cosmological parameters, expansion history, CMB'],
-  L1: ['Large-scale structure', 'BAO, galaxy clustering, high-redshift galaxies'],
-  L2: ['Local universe', 'Local Group, distance ladder, H0'],
-  L3: ['Milky Way', 'Structure, kinematics, assembly history, dark matter'],
-  L4: ['Stars & planets', 'Stars, binaries, compact objects, exoplanets'],
-  X:  ['Cross-cutting', 'Time domain, gravitational waves, transients'],
+  L0: [['Cosmic background', '宇宙背景'], ['Cosmological parameters, expansion history, CMB', '宇宙学参数、膨胀历史、宇宙微波背景']],
+  L1: [['Large-scale structure', '大尺度结构'], ['BAO, galaxy clustering, high-redshift galaxies', '重子声学振荡、星系成团、高红移星系']],
+  L2: [['Local universe', '近邻宇宙'], ['Local Group, distance ladder, H0', '本星系群、距离阶梯、H0']],
+  L3: [['Milky Way', '银河系'], ['Structure, kinematics, assembly history, dark matter', '结构、运动学、组装历史、暗物质']],
+  L4: [['Stars & planets', '恒星与行星'], ['Stars, binaries, compact objects, exoplanets', '恒星、双星、致密天体、系外行星']],
+  X:  [['Cross-cutting', '跨尺度'], ['Time domain, gravitational waves, transients', '时域、引力波、暂现源']],
 };
+const GRADE_ZH = { established: '已确立', tension: '张力', hint: '迹象', contested: '有争议', refuted: '已否定' };
+const REPRO_ZH = { 'not-started': '未开始', 'in-progress': '进行中', reproduced: '已复现', partial: '部分复现', failed: '复现失败' };
+const STATUS_ZH = { planned: '计划中', active: '进行中', reproduced: '已复现', concluded: '已完成', paused: '暂停', abandoned: '已放弃' };
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// Bilingual text from a data object: field + field_zh (falls back to English).
+const both = (o, f) => L(esc(o[f]), o[f + '_zh'] ? esc(o[f + '_zh']) : null);
+const word = (v, zh) => L(esc(v), zh[v] ? esc(zh[v]) : null);
 
 function claimCard(c) {
   const r = c.reproduction || {};
   const src = (c.sources || []).map(s => s.arxiv ? `<a href="https://arxiv.org/abs/${esc(s.arxiv)}">${esc(s.cite)}</a>` : esc(s.cite)).join('; ');
-  const study = r.study ? ` · <a href="../../studies/${esc(r.study)}/web/">study</a>` : '';
-  return `<div class="card item"><span class="kind">claim</span><h3>${esc(c.title)}</h3>
-    <p>${esc(c.statement)}</p>
-    <div class="meta"><span class="tag g-${esc(c.grade)}">${esc(c.grade)}</span><span>repro: ${esc(r.status)}</span>${study}</div>
+  const study = r.study ? ` · <a href="../../studies/${esc(r.study)}/web/">${L('study', '研究页面')}</a>` : '';
+  return `<div class="card item"><span class="kind">${L('claim', '结论')}</span><h3>${both(c, 'title')}</h3>
+    <p>${both(c, 'statement')}</p>
+    <div class="meta"><span class="tag g-${esc(c.grade)}">${word(c.grade, GRADE_ZH)}</span><span>${L('repro', '复现')}: ${word(r.status, REPRO_ZH)}</span>${study}</div>
     <p class="muted" style="font-size:12px">${src}</p></div>`;
 }
 function studyCard(s) {
-  const link = s.has_web ? `<a href="../../studies/${esc(s.id)}/web/">open page</a>` : '';
-  return `<div class="card item"><span class="kind">study</span><h3>${esc(s.title)}</h3>
-    <p>${esc(s.question)}</p><div class="meta"><span>${esc(s.status)}</span><span>${esc(s.id)}</span>${link}</div></div>`;
+  const link = s.has_web ? `<a href="../../studies/${esc(s.id)}/web/">${L('open page', '打开页面')}</a>` : '';
+  return `<div class="card item"><span class="kind">${L('study', '研究')}</span><h3>${both(s, 'title')}</h3>
+    <p>${both(s, 'question')}</p><div class="meta"><span>${word(s.status, STATUS_ZH)}</span><span>${esc(s.id)}</span>${link}</div></div>`;
 }
 
 fetch('data/atlas.json').then(r => r.json()).then(d => {
-  document.getElementById('atlas').innerHTML = d.levels.map(L => {
-    const cl = d.claims.filter(c => c.level === L), st = d.studies.filter(s => s.level === L);
-    const items = cl.map(claimCard).concat(st.map(studyCard)).join('') || '<p class="empty">nothing mapped yet</p>';
-    return `<section class="level"><div class="level-name"><div class="code">${L}</div><strong>${LEVELS[L][0]}</strong>
-      <div class="desc">${LEVELS[L][1]}</div></div><div class="items">${items}</div></section>`;
+  document.getElementById('atlas').innerHTML = d.levels.map(lv => {
+    const cl = d.claims.filter(c => c.level === lv), st = d.studies.filter(s => s.level === lv);
+    const items = cl.map(claimCard).concat(st.map(studyCard)).join('') || `<p class="empty">${L('nothing mapped yet', '暂无内容')}</p>`;
+    const [name, desc] = LEVELS[lv];
+    return `<section class="level"><div class="level-name"><div class="code">${lv}</div><strong>${L(...name)}</strong>
+      <div class="desc">${L(...desc)}</div></div><div class="items">${items}</div></section>`;
   }).join('');
-  document.getElementById('gen').textContent = 'generated ' + d.generated_at;
+  document.getElementById('gen').innerHTML = L('generated ', '生成于 ') + esc(d.generated_at);
 }).catch(e => {
-  document.getElementById('atlas').innerHTML = '<p class="muted">Could not load data/atlas.json. Run <code>python -m astrolab serve</code>.</p>';
+  document.getElementById('atlas').innerHTML = `<p class="muted">${L('Could not load data/atlas.json. Run <code>python -m astrolab serve</code>.', '无法加载 data/atlas.json。请运行 <code>python -m astrolab serve</code>。')}</p>`;
 });
 </script>
 </body>

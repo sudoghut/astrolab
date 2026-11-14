@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-11T14:36:40+00:00",
+ "generated_at": "2026-11-14T07:33:55+00:00",
  "levels": [
   "L0",
   "L1",
@@ -12,7 +12,9 @@
   {
    "id": "desi-dr2-bao-evolving-dark-energy",
    "title": "DESI DR2 BAO: hint of evolving dark energy",
+   "title_zh": "DESI DR2 重子声学振荡：暗能量演化的迹象",
    "statement": "DESI DR2 BAO combined with CMB and type Ia supernovae prefers w0waCDM (w0 > -1, wa < 0) over LambdaCDM at 2.8-4.2 sigma depending on the SN sample.\n",
+   "statement_zh": "DESI DR2 重子声学振荡（BAO）数据与宇宙微波背景（CMB）和 Ia 型超新星结合后，相对 ΛCDM 更偏好 w0waCDM（w0 > -1，wa < 0），显著性为 2.8–4.2σ，取决于所用的超新星样本。",
    "level": "L0",
    "grade": "hint",
    "sources": [
@@ -65,7 +67,9 @@
   {
    "id": "early-thick-disk-formation",
    "title": "The Milky Way's thick disk began forming ~13 Gyr ago",
+   "title_zh": "银河系厚盘约 13 Gyr 前开始形成",
    "statement": "Precise ages of ~250,000 subgiants (LAMOST x Gaia) show the old disk started forming ~13 Gyr ago, ~2 Gyr before the inner halo finished assembling, with a star-formation peak ~11 Gyr ago around the Gaia-Sausage-Enceladus merger.\n",
+   "statement_zh": "约 25 万颗亚巨星（LAMOST × Gaia）的精确年龄表明，老年盘约 13 Gyr 前开始形成，比内晕完成组装早约 2 Gyr；恒星形成峰值约在 11 Gyr 前，与盖亚-香肠-恩克拉多斯（Gaia-Sausage-Enceladus）并合同期。",
    "level": "L3",
    "grade": "established",
    "sources": [
@@ -93,7 +97,9 @@
   {
    "id": "gaia-dormant-black-holes",
    "title": "Dormant stellar-mass black holes found by Gaia astrometry",
+   "title_zh": "Gaia 天体测量发现的休眠恒星级黑洞",
    "statement": "Gaia astrometric orbits plus RV follow-up reveal non-interacting black holes orbiting normal stars: BH1 (9.6 Msun), BH2 (8.9 Msun) and BH3 (32.7 Msun).\n",
+   "statement_zh": "Gaia 天体测量轨道加上视向速度（RV）后续观测，发现了绕普通恒星运行、无相互作用（不发生物质交流）的黑洞：BH1（9.6 M☉）、BH2（8.9 M☉）和 BH3（32.7 M☉）。",
    "level": "L4",
    "grade": "established",
    "sources": [
@@ -151,7 +157,9 @@
   {
    "id": "gwtc4-bbh-mass-spectrum",
    "title": "Binary black hole mass spectrum features (GWTC-4.0)",
+   "title_zh": "双黑洞质量谱的特征（GWTC-4.0）",
    "statement": "The BBH primary-mass distribution steepens above ~35 Msun with overdensities near ~10 and ~35 Msun (and a possible ~20 Msun feature); GW231123 lies in or across the pair-instability gap.\n",
+   "statement_zh": "双黑洞（BBH）主星质量分布在约 35 M☉ 以上变陡，在约 10 和约 35 M☉ 处存在过密峰（并可能在约 20 M☉ 处有特征）；GW231123 落在对不稳定性质量间隙之内或跨越该间隙。",
    "level": "X",
    "grade": "established",
    "sources": [
@@ -183,7 +191,9 @@
   {
    "id": "hubble-tension",
    "title": "Hubble tension: local distance ladder vs early universe",
+   "title_zh": "哈勃张力：本地距离阶梯与早期宇宙",
    "statement": "Cepheid-calibrated distance-ladder H0 (~73 km/s/Mpc) exceeds the CMB-inferred LCDM value (~67-68) at >5 sigma; TRGB/JAGB calibrations (CCHP) give ~70.\n",
+   "statement_zh": "造父变星定标的距离阶梯给出的 H0（约 73 km/s/Mpc）高于 CMB 推断的 ΛCDM 值（约 67–68），差异显著性超过 5σ；TRGB/JAGB 定标（CCHP）给出约 70。",
    "level": "L2",
    "grade": "tension",
    "sources": [
@@ -225,7 +235,9 @@
   {
    "id": "jwst-z14-galaxies",
    "title": "Spectroscopically confirmed galaxies at z ~ 14 and the bright-galaxy excess",
+   "title_zh": "光谱确认的 z ≈ 14 星系与亮星系过剩",
    "statement": "JWST spectroscopy confirms luminous galaxies at z = 14.32 (JADES-GS-z14-0) and z = 14.44 (MoM-z14); the bright-end UV luminosity function at z > 10 exceeds pre-JWST model predictions.\n",
+   "statement_zh": "JWST 光谱确认了 z = 14.32（JADES-GS-z14-0）和 z = 14.44（MoM-z14）的高光度星系；z > 10 的亮端紫外光度函数超出 JWST 之前的模型预测。",
    "level": "L1",
    "grade": "established",
    "sources": [
@@ -262,7 +274,9 @@
   {
    "id": "milky-way-declining-rotation-curve",
    "title": "Declining outer rotation curve of the Milky Way",
+   "title_zh": "银河系外区旋转曲线下降",
    "statement": "Gaia DR3-based rotation curves decline beyond ~15-20 kpc (about 30 km/s from 19.5 to 26.5 kpc), implying a lighter Galaxy (~2e11 Msun); the Keplerian interpretation is disputed.\n",
+   "statement_zh": "基于 Gaia DR3 的旋转曲线在约 15–20 kpc 以外下降（从 19.5 到 26.5 kpc 下降约 30 km/s），意味着银河系质量较小（约 2×10¹¹ M☉）；开普勒式下降的解释存在争议。",
    "level": "L3",
    "grade": "contested",
    "sources": [
@@ -294,7 +308,9 @@
   {
    "id": "nanohertz-gw-background",
    "title": "Nanohertz gravitational-wave background from pulsar timing arrays",
+   "title_zh": "脉冲星计时阵列探测到的纳赫兹引力波背景",
    "statement": "NANOGrav, EPTA, PPTA and CPTA find a common red process with Hellings-Downs correlations at ~2-4.6 sigma, consistent with a GW background of amplitude ~2.4e-15 at f = 1/yr.\n",
+   "statement_zh": "NANOGrav、EPTA、PPTA 和 CPTA 发现了具有 Hellings-Downs 相关性的共同红噪声过程，显著性约 2–4.6σ，与 f = 1/yr 处振幅约 2.4×10⁻¹⁵ 的引力波背景一致。",
    "level": "X",
    "grade": "hint",
    "sources": [
@@ -327,7 +343,9 @@
   {
    "id": "s8-tension",
    "title": "S8 tension between weak lensing and the CMB",
+   "title_zh": "弱引力透镜与 CMB 之间的 S8 张力",
    "statement": "Low-redshift probes of clustering amplitude (S8) were lower than the CMB-inferred value; by 2025-26 KiDS-Legacy is consistent with the CMB while DES Y6 remains ~2.6 sigma low.\n",
+   "statement_zh": "低红移的成团幅度（S8）探针曾低于 CMB 推断值；到 2025–26 年，KiDS-Legacy 已与 CMB 一致，而 DES Y6 仍偏低约 2.6σ。",
    "level": "L0",
    "grade": "contested",
    "sources": [
@@ -365,7 +383,9 @@
   {
    "id": "wide-binary-gravity-test",
    "title": "Wide binaries as a test of gravity at low acceleration",
+   "title_zh": "用宽双星检验低加速度下的引力",
    "statement": "Gaia DR3 wide-binary relative velocities test MOND vs Newton below a0; large clean samples favour Newtonian gravity, while small high-precision samples are claimed to show a MOND-like boost.\n",
+   "statement_zh": "Gaia DR3 宽双星的相对速度可在加速度低于 a0 时检验 MOND 与牛顿引力；大而干净的样本支持牛顿引力，而有研究声称小的高精度样本显示出类 MOND 的增强。",
    "level": "L4",
    "grade": "contested",
    "sources": [
@@ -409,9 +429,11 @@
   {
    "id": "000-smoke-test_gaia-dr3-10pc-census",
    "title": "Smoke test: Gaia DR3 census of the 10 pc neighbourhood",
+   "title_zh": "冒烟测试：Gaia DR3 的 10 pc 邻域普查",
    "level": "L3",
    "status": "active",
    "question": "Does the pipeline (guarded TAP, cache, provenance, server-side aggregation, web page) work end to end?",
+   "question_zh": "管线（受守卫的 TAP 查询、缓存、来源记录、服务器端聚合、网页）能否端到端运行？",
    "claims": [],
    "has_web": true,
    "last_run": true
@@ -419,9 +441,11 @@
   {
    "id": "001-m04-gaia-dormant-black-holes",
    "title": "M4: Gaia dormant black holes - DR3 reproduction and DR4-ready screen",
+   "title_zh": "M4：Gaia 休眠黑洞——DR3 复现与面向 DR4 的筛选",
    "level": "L4",
    "status": "reproduced",
    "question": "Can DR3 NSS astrometric orbits alone reproduce Gaia BH1/BH2 masses, and can a server-side screen recover known dormant compact objects, ready for DR4?",
+   "question_zh": "仅凭 DR3 非单星（NSS）天体测量轨道能否复现 Gaia BH1/BH2 的质量？服务器端筛选能否找回已知的休眠致密天体，并为 DR4 做好准备？",
    "claims": [
     "gaia-dormant-black-holes"
    ],
