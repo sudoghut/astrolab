@@ -21,21 +21,21 @@
 - [ ] **T-005** Atlas 导航：天空视图与尺度视图，研究以足迹（footprint）形式出现在图上 · 登记 2026-11-14
   - 计划：复杂任务，先写 design 计划；新视图遵守双语规则。
 - [ ] **T-012** M2：哈勃张力（SH0ES、CCHP、H0DN）的距离阶梯复现与跨论文元分析 · 登记 2026-11-14
-  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Riess et al. 2022 arXiv:2112.04510、SH0ES 的 JWST 复核 arXiv:2408.11770、Freedman et al. 2025 arXiv:2408.06153、H0DN arXiv:2510.23823、TDCOSMO 2025 arXiv:2506.03023。能力：距离阶梯广义最小二乘（GLS）拟合。数据为论文表格，MB 级。
+  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Riess et al. 2022 arXiv:2112.04510（卷页号 [U]）、SH0ES 的 JWST 复核 arXiv:2408.11770、Freedman et al. 2025 arXiv:2408.06153 [S]、H0DN arXiv:2510.23823 [S]、TDCOSMO 2025 arXiv:2506.03023 [S]。能力：距离阶梯广义最小二乘（GLS）拟合、对校准星系的自助法（bootstrap）。数据为公开的 Pantheon+SH0ES 设计矩阵与协方差及论文表格，MB 级。
 - [ ] **T-013** M7：宽双星引力检验（MOND 之争） · 登记 2026-11-14
   - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Cookson, Banik, El-Badry et al. 2026 arXiv:2602.24035；Chae et al. arXiv:2601.21728（修改中）。能力：服务器端自连接配对、前向建模、污染成分建模。数据 5–20 MB，必须服务器端自连接，不下载 El-Badry 2021 星表（AGENTS.md 1.5）。
 - [ ] **T-014** M9：纳赫兹引力波背景（NANOGrav 15 年数据） · 登记 2026-11-14
-  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Agazie et al. 2023 arXiv:2306.16213 [S]。能力：自由谱拟合、模型比较。只用公开的汇总量（自由谱、后验摘要），MB 级。
+  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Agazie et al. 2023 arXiv:2306.16213 [S]。数据：zenodo.org/records/10344086 v1.1.0 [S] 中公开的汇总量（自由谱、后验摘要），MB 级。能力：自由谱拟合、模型比较。
 - [ ] **T-015** M8：z ≈ 14 星系的光谱确认与亮星系过多 · 登记 2026-11-14
   - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Carniani et al. 2024 arXiv:2405.18485 [S]、Naidu et al. 2026 arXiv:2505.11263 [S]、Harikane et al. 2025 arXiv:2406.18352。能力：紫外光度函数、晕质量函数模型。数据为论文表格，kB 级。
 - [ ] **T-016** M10：GWTC-4.0 双黑洞质量谱结构 · 登记 2026-11-14
-  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：GWTC-4.0 arXiv:2508.18082、群体分析 arXiv:2508.18083。能力：群体推断、汇总量再分析。只取事件列表与 popsummary，禁止下载 35 GB 数据发布与单事件后验（AGENTS.md 1.5）。
+  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：GWTC-4.0 arXiv:2508.18082、群体分析 arXiv:2508.18083。能力：群体推断、汇总量再分析。只取事件列表（GWOSC 事件接口，kB 级）、图表包（约 8.7 MB）与 popsummary，禁止下载 35 GB 数据发布的大文件与单事件后验（AGENTS.md 1.5）。
 - [ ] **T-017** M3：S8 张力减弱的多探针一致性 · 登记 2026-11-14
-  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：DES Y6 3x2pt arXiv:2601.14559 及 ROADMAP 所列其他探针。能力：多探针一致性元分析。数据为论文中的汇总值与协方差，kB 级。
+  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：DES Y6 3x2pt arXiv:2601.14559 及 ROADMAP 所列其他探针。能力：多探针一致性元分析。数据为各探针公开的后验与链文件（chains）：下载前先按 AGENTS.md 第一条核对大小，能用汇总值时不取链文件。
 - [ ] **T-018** M6：银河系外区旋转曲线下降 · 登记 2026-11-14
   - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：ROADMAP M6 所列，以及综述 Melchiorri & Ruchika 2026 arXiv:2608.10189。能力：质量模型拟合、金斯方程（Jeans equation）系统误差。数据 kB–MB。
 - [ ] **T-019** M5：银河系厚盘早期形成（亚巨星年龄） · 登记 2026-11-14
-  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Xiang & Rix 2022 arXiv:2203.12110 及后续修正。能力：外部星表与 Gaia 的交叉匹配，只取所需列，不超过 20 MB。
+  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Xiang & Rix 2022 arXiv:2203.12110 及 2025 年的更新星表（320,028 颗亚巨星，NADC，DOI 10.12149/101467）。能力：外部星表与 Gaia 的交叉匹配，只取所需列，预计不超过 20 MB；NADC 文件的实际大小为 [U]，取数前先核实（AGENTS.md 1.3）。
 
 ## 待办池（Backlog）
 
