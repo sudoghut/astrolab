@@ -110,7 +110,8 @@ Release-day load is expected: use `mode='async'`, retry patiently, no parallel q
 `dr4_query.py count dr4` counts the screen and the denominator (all astrometric orbits) on the
 server, using `SCHEMAS` from `screen.py` and the cuts `FM_MIN`, `PLX_SNR_MIN` from `run.py`
 (a tightened cut goes into `run.py` first, so the count and the run cannot disagree).
-Size estimate: rows x ~130 bytes (DR3: 3,343 rows -> 0.4 MB). Write count and estimate into
+Size estimate: rows x ~300 bytes, conservative for the ~30 columns fetched (DR3: 3,343 rows gave
+0.4 MB of results JSON). Write count and estimate into
 README section 3 before running.
 
 | Screen count | Action |
@@ -134,7 +135,10 @@ README section 3 before running.
 
 ## 4. Run and check
 
-`python -m astrolab run 001`. Then, in order:
+`python -m astrolab run 001 --refresh`. The cache key is the query text, so without `--refresh`
+a DR4 answer cached by an earlier attempt (e.g. before an archive reload or erratum) would be
+reused silently; every query of this run is a DR4 query, so refreshing re-fetches nothing else.
+Then, in order:
 
 1. The run finished. An over-size result raises `TooLarge` out of `ctx.tap` (it is never silently
    truncated); go back to step 2. **After any failed run, restore `results/` from git** (or from
