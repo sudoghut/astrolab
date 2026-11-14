@@ -115,6 +115,7 @@ def test_dr3_reference_for_dr4_is_complete():
     assert set(c.source_id) <= set(ref.source_id)
     assert ref[["ra", "dec", "phot_g_mean_mag"]].notna().all().all()
     assert c.period_error.notna().all()
+    assert not load("summary")["bh_candidates_rows"]["truncated"]   # complete reference set for DR4
 
 
 # --- DR4 (pre-registered 2026-11-14, before the release) -------------------------------------
