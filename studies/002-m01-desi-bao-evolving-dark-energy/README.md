@@ -38,7 +38,8 @@ Common definitions.
   allowance (~0.7) is assigned to it and to CAMB-versus-fitting-formula differences in z*. For R1
   the tolerance of 0.3σ covers the same implementation differences on a nearly Gaussian
   two-parameter posterior.
-- **Fit validity (required before any criterion is evaluated).** Every w0waCDM fit is also started
+- **Fit validity (required before any criterion is evaluated).** Every fit, the ΛCDM baseline
+  included, must pass the convergence and agreement rule below. Every w0waCDM fit is also started
   from its nested ΛCDM optimum (w0 = −1, wa = 0) and from the paper's reported point (the paper's
   w0, wa posterior means for that combination, Table 5 / Eqs. 23-24, other parameters from the
   ΛCDM optimum), so
@@ -58,6 +59,9 @@ h·r_d (flat priors Ωm ∈ [0.01, 0.99], h·r_d ∈ [50, 150] Mpc): |Ωm − 0.
 posterior means; and our 1σ errors (half-width of the central 68% marginal interval of the
  emcee samples, the paper's convention) within 20% of 0.0086 and 0.73 Mpc. *Expectation:* same data,
 nearly Gaussian posterior, so this should pass; a failure points to the distance code.
+The R1 chains must have post-burn length ≥ 50 integrated autocorrelation times τ (largest over
+parameters); the Monte Carlo error of each mean is σ/√N_eff with
+N_eff = walkers × post-burn steps / τ, and must be below 0.05σ.
 
 **R2 (DESI + compressed CMB prior).** |Δχ²_MAP − (−8.0)| ≤ 1.0, evaluated separately under
 - reading A (`R2.reading_A_with_nu`): the Eq. 35 ωbc mean constrains ωb + ωc + ων
