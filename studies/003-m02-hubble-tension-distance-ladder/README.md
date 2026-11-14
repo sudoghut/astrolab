@@ -238,6 +238,23 @@ M_B = −19.269); the 0.02 mag "matched" tolerance in R3 is the guard for this d
 > is the table's own inconsistency. The expected SN-host Cepheid count and the assertion in
 > `run.py` use 2149 (section 4). No criterion or tolerance changed.
 
+> **Dated amendment (2026-11-14, AFTER the first run; a deviation from the pre-registration).**
+> The first run showed that the columns of L are not in R22 Table 6 order (check (ii) failed for
+> most hosts; for example the column assumed to be N1365 holds SN magnitudes 12.254 and 11.752,
+> which are N1448's two SNe). As pre-registered, the R2 host step, R3 and R4 are therefore
+> **not evaluable** under the labelling of section 4, and that verdict is reported. Amendment:
+> the columns are relabelled by the perfect matching of the compatibility graph of checks
+> (ii)–(iv) (`scipy.optimize.linear_sum_assignment`), accepted only if every matched edge passes
+> (ii)–(iv), checks (i) and the Cepheid total pass, and check (v) finds no alternative matching
+> that changes the CCHP set. In this amended labelling, check (ii) compares the mean of a column's
+> SN rows with the mean of the host's Table 6 m⁰_B (tolerance unchanged, 0.15 mag): Table 6 note d
+> says its m⁰_B is a simple average over surveys, and a per-row comparison failed for one host only
+> (N1015: rows 13.499, 13.124, 13.427 against 13.350; their mean is 13.350). Ties among compatible
+> labellings are broken by the smallest summed |μ_fit − μ_Ceph(a)|/σ(a). The relabelling uses only SN magnitudes, Cepheid counts and host
+> distances, never an H0 result. Results under it are reported separately and labelled
+> "amended (post-data labelling)"; criteria and tolerances are unchanged. (The shift printed by
+> the first run under the wrong labelling is meaningless and is not used.)
+
 ## 5. Results
 
 Filled after running. Link to `web/index.html` and key numbers in `results/`.
