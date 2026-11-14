@@ -6,7 +6,7 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-013** M7：宽双星引力检验（MOND 之争） · 登记 2026-11-14 · 分支 feat/m7-wide-binaries
+- [ ] **T-013** M7：宽双星引力检验（MOND 之争） · 登记 2026-11-14 · 分支 feat/m7-wide-binaries · 计划 [013](design/013-plan_m07-wide-binaries-median-scaled-velocity-newton-vs-mond.md)
   - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Cookson, Banik, El-Badry et al. 2026 arXiv:2602.24035；Chae et al. arXiv:2601.21728（修改中）。能力：服务器端自连接配对、前向建模、污染成分建模。数据 5–20 MB，必须服务器端自连接，不下载 El-Badry 2021 星表（AGENTS.md 1.5）。
   - 备注：论文研究；Gaia 数据库 2026-11-25 至 12-02 下线，服务器端取数须在此之前完成。
 

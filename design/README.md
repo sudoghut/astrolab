@@ -38,6 +38,7 @@ NNN-<类型>_<核心内容>.md
 | 010 | plan | [M1：DESI DR2 BAO 与演化暗能量（新增 `cosmo`、`infer`）](010-plan_m01-desi-dr2-bao-evolving-dark-energy-cosmo-infer.md) | 完成 |
 | 011 | plan | [Atlas 的天空视图与尺度视图（研究以足迹出现在图上）](011-plan_atlas-sky-and-scale-views-from-study-footprints.md) | 完成 |
 | 012 | plan | [M2：哈勃张力——距离阶梯 GLS 复现与校准星系选择](012-plan_m02-hubble-tension-distance-ladder-gls-and-host-selection.md) | 已完成 |
+| 013 | plan | [M7：宽双星——按 MOND 半径分箱的缩放速度中位数，牛顿对 MOND](013-plan_m07-wide-binaries-median-scaled-velocity-newton-vs-mond.md) | 进行中 |
 
 ## 术语约定
 
