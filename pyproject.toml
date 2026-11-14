@@ -25,4 +25,4 @@ markers = [
     "network: test needs internet access (deselect with -m 'not network')",
 ]
 addopts = "-q --import-mode=importlib -p no:freezegun"
-norecursedirs = [".*", "_*", "web", "results", "__pycache__"]
+norecursedirs = [".*", "_*", "web", "results", "__pycache__", "explore", "argument", "lean_audit"]

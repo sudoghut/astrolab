@@ -34,10 +34,16 @@ def cmd_new(args) -> None:
     print("next: fill title_zh / question_zh in study.yaml and the TODO Chinese title in web/index.html")
     print("      (bilingual rule, AGENTS.md section 2),")
     print("      then README.md (question, hypothesis, criteria) BEFORE writing run.py")
+    print("      paper study: follow the paper-study skill (wiki article and argument/ first);")
+    print("      otherwise delete argument/ (leave papers: [] and wiki: null in study.yaml)")
 
 
 def cmd_run(args) -> None:
     study.run(study.resolve(args.study), refresh=args.refresh)
+
+
+def cmd_explore(args) -> None:
+    study.explore(study.resolve(args.study), args.tag, args.set, args.script, refresh=args.refresh)
 
 
 def cmd_claims(args) -> None:
@@ -102,6 +108,16 @@ def main(argv: list[str] | None = None) -> None:
     sp.add_argument("study")
     sp.add_argument("--refresh", action="store_true", help="ignore cache and re-fetch")
     sp.set_defaults(func=cmd_run)
+
+    sp = sub.add_parser("explore", help="exploration run: PARAMS overrides or an explore/ script; "
+                                         "writes explore/<date>-<tag>/, never results/")
+    sp.add_argument("study")
+    sp.add_argument("--tag", required=True, help="topic, [a-z0-9-]{1,40}")
+    sp.add_argument("--set", action="append", default=[], metavar="KEY=VALUE",
+                    help="override a run.py PARAMS entry in memory (repeatable)")
+    sp.add_argument("--script", help="run explore/<name>.py (defines main(ctx)) instead of run.py")
+    sp.add_argument("--refresh", action="store_true", help="ignore cache and re-fetch")
+    sp.set_defaults(func=cmd_explore)
 
     sp = sub.add_parser("claims", help="list or check claims")
     sp.add_argument("action", nargs="?", default="list", choices=["list", "check"])
