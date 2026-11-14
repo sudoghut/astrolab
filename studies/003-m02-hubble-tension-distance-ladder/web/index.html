@@ -87,7 +87,11 @@ const VT = {
 const vt = v => {
   if (!v) return '—';
   const m = String(v).match(/^(.*?) \[(.*)\]$/);
-  if (m && VT[m[1]]) return L(...VT[m[1]]) + ` <span class="note">[${m[2]}]</span>`;
+  if (m && VT[m[1]]) {
+    const R4 = D && D.r4;
+    const zh = R4 && R4.z_std ? `数据之后的宿主标注，识别检查 (ii) 改为比较均值；${f(D.r2.host_step.z, 1)}σ 用的是由 C 传播的误差；按随机子样本的尺度（Δ/σ 的离散 ${f(R4.z_std, 2)}，本身不确定）约 ${f(D.r2.host_step.z / R4.z_std, 1)}σ（事后的 Δ/σ 百分位 ${f(R4.z_percentile, 1)}；预注册的 R4 Δ 百分位 ${f(R4.percentile, 1)}）；按这一离散膨胀误差后，判定表会给出"未检测到宿主选择的效应"` : m[2];
+    return L(...VT[m[1]]) + ` <span class="note">[${L(m[2], zh)}]</span>`;
+  }
   return VT[v] ? L(...VT[v]) : v;
 };
 const plotLayout = (extra) => Object.assign({margin: {t: 10, r: 10, b: 50, l: 60}, paper_bgcolor: 'rgba(0,0,0,0)',
