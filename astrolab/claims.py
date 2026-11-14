@@ -88,7 +88,9 @@ def validate(claim: dict[str, Any], study_ids: set[str] | None = None) -> list[s
 
 def sky_modes(mode: Any) -> list[str]:
     """'all-sky + targets' -> ['all-sky', 'targets']."""
-    return [m.strip() for m in str(mode or "none").split("+") if m.strip()]
+    if mode is None:
+        return ["none"]
+    return [m.strip() for m in str(mode).split("+") if m.strip()]
 
 
 def _num(x: Any) -> float | None:
