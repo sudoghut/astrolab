@@ -109,6 +109,11 @@ def _rows(obj):
     return pd.DataFrame(obj) if isinstance(obj, dict) else pd.DataFrame.from_records(obj)
 
 
+def _capped_list(items, cap=200):
+    """Diagnostic lists in summary.json: the count plus at most `cap` entries (keeps the file < 1 MB)."""
+    return {"n": len(items), "first": items[:cap], "truncated": len(items) > cap}
+
+
 def _placeholder(release, why):
     return {"release": release, "status": why}
 
@@ -624,9 +629,9 @@ def main(ctx):
     summary = {"release": release, "params": params, "astrometric_types": list(ASTROMETRIC_TYPES),
                "release_constants": rel, "optional_columns": sorted(optional) if optional is not None else "all",
                "ambiguous_flame_sources": {"screen": int(ambiguous_screen), "solutions": int(ambiguous_flame)},
-               "sources_with_same_type_solutions": [{"source_id": str(i), "type": t} for (i, t), n in
-                                                    sol.groupby(["source_id", "nss_solution_type"]).size().items()
-                                                    if n > 1] if len(sol) else []}
+               "sources_with_same_type_solutions": _capped_list(
+                   [{"source_id": str(i), "type": t} for (i, t), n in
+                    sol.groupby(["source_id", "nss_solution_type"]).size().items() if n > 1] if len(sol) else [])}
     screen_desc = {}
     if sc is None:
         why = f"screen not fetched: {screen_n} rows >= {SCREEN_ROWS_MAX} (S1 fails)"
@@ -683,7 +688,7 @@ def main(ctx):
                         "primary solution from 2026-11-14 (no DR3 verdict or count changes).",
                 "controls_vetoed": controls_vetoed, "controls_checked": len(ctrl_prim),
                 "controls_without_solution": controls_without,
-                "sources_with_multiple_solutions_among_vetted": [str(i) for i in multi[multi > 1].index]}
+                "sources_with_multiple_solutions_among_vetted": _capped_list([str(i) for i in multi[multi > 1].index])}
 
     if release == "dr3":
         rec = {r["name"]: r for r in repro}

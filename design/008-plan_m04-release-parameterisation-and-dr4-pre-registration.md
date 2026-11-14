@@ -288,3 +288,4 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
 - 2026-11-14 · 环节 2 闸门 2 第 7 轮：1 个严重问题，成立（但对当前数据没有影响）。F-DR4 按 source_id 去重 DR3 幸存候选时依赖文件中的顺序。DR3 中 51 个幸存候选各只有一行，此前审查者已核实；但代码不应依赖这一点。现在按归档列上的 R-sel 顺序选出 DR3 参考行，并报告有多行的源数（DR3 为 0）。
 
   次要意见采纳：交叉匹配表把两个 DR3 编号映射到同一个 DR4 源时，两个都判为未解析（原因 neighbourhood-collision），并加了测试。
+- 2026-11-14 · 环节 2 闸门 2 第 8 轮：1 个严重问题，成立：`sources_with_same_type_solutions` 列表没有上限，可能撑破 `summary.json` 的 1 MB。已改为记录总数加最多前 200 项；`sources_with_multiple_solutions_among_vetted` 同样处理（其余列表都有上限：对照 ≤ 24、中子星候选 21）。
