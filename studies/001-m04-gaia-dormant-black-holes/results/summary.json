@@ -31,7 +31,11 @@
   "screen": 0,
   "solutions": 0
  },
- "sources_with_same_type_solutions": [],
+ "sources_with_same_type_solutions": {
+  "n": 0,
+  "first": [],
+  "truncated": false
+ },
  "astrometric_solutions_total": 169227,
  "rows_dropped_null_a0": 0,
  "S1_rows": 3343,
@@ -104,12 +108,16 @@
   "controls_without_solution": [
    "4318465066420528000"
   ],
-  "sources_with_multiple_solutions_among_vetted": [
-   "1594082579405063168",
-   "1971412013460732928",
-   "5353676837544003200",
-   "6026372005837171072"
-  ],
+  "sources_with_multiple_solutions_among_vetted": {
+   "n": 4,
+   "first": [
+    "1594082579405063168",
+    "1971412013460732928",
+    "5353676837544003200",
+    "6026372005837171072"
+   ],
+   "truncated": false
+  },
   "R1b_bh1_vs_dr3_only_paper": {
    "a0_ours": 3.02072479951189,
    "a0_paper": [
