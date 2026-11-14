@@ -41,10 +41,10 @@ reached maturity in these years:
 | Instrument | What it does | In one picture |
 |---|---|---|
 | **James Webb Space Telescope (JWST)**, launched December 2021 | Sees the earliest galaxies in infrared light | Baby photos of the universe |
-| **Gaia** satellite (launched 2013), Data Release 3 in 2022, Data Release 4 on 2 December 2026 | Measures positions and motions of almost two billion stars | A census of the Milky Way |
+| **Gaia** satellite (launched 2013), Data Release 3 in 2022, Data Release 4 on 2 December 2026 | Measures positions of about 1.8 billion stars and other sources, and motions of most of them | A census of the Milky Way |
 | **DESI** (Dark Energy Spectroscopic Instrument), surveying since 2021 | Measures distances to millions of galaxies | A 3-D map of the universe |
 | **LIGO** (Laser Interferometer Gravitational-Wave Observatory), **Virgo** and **KAGRA** (Kamioka Gravitational Wave Detector) | Catch the ripples in space-time sent out when black holes collide | Ears on the universe |
-| **Pulsar timing arrays (PTAs)**, running for two decades or more | Use fast-spinning pulsars in our Galaxy as clocks | A gravitational-wave detector the size of the Galaxy |
+| **Pulsar timing arrays (PTAs)**, some running for about two decades | Use fast-spinning pulsars in our Galaxy as clocks | A gravitational-wave detector the size of the Galaxy |
 | Euclid (launched 2023), the Vera C. Rubin Observatory (first images 2025) and others | Next-generation surveys, now starting to release data | |
 
 Most of this data is **public** and can be queried online. That is what makes a laptop project
@@ -69,13 +69,13 @@ The expansion of the universe is speeding up. Whatever drives it is called *dark
 - DESI measures *baryon acoustic oscillations* (BAO): a pattern imprinted on matter in the early
   universe and still visible today in how galaxies are spread out. It works as a standard ruler about 150 megaparsecs
   (roughly 500 million light-years) long.
-- DESI's first and second data releases (2024 and 2025) both found that when this ruler
+- DESI's results from its first and second data sets (2024 and 2025) both found that when this ruler
   is combined with the cosmic microwave background (the afterglow of the Big Bang) and with
   supernovae, the data prefer a dark energy that **weakens over time**. With the 2025 data the
   preference is 2.8–4.2σ, depending on which supernova sample is used.
 - **Since late 2025 the signal has weakened.** After a re-calibration of one supernova sample
   and a new DESI analysis of the Lyman-α forest (light from distant quasars filtered by
-  intervening gas), it sits at about 2.7σ without supernovae and roughly 3σ with them.
+  intervening gas), it sits at about 2.7σ without supernovae and at roughly 3σ in the updated combinations with them.
 - This is the most talked-about question in cosmology today. It may rewrite the textbooks, or it
   may turn out to be a calibration problem.
 - Reproducing it needs only a small (kilobyte-to-megabyte) set of published distances. It is the
@@ -145,8 +145,8 @@ be used for calibration?".
   candidate events, each more likely real than not.
 - Black-hole masses are not spread evenly. There are pile-ups near 10 and 35 times the mass of
   the Sun, and the numbers fall off more steeply above 35.
-- One event, GW231123, involves black holes in a mass range that ordinary stars are thought to be
-  unable to produce (the *pair-instability gap*). They may be the products of earlier mergers.
+- One event, GW231123, involves black holes in or near a mass range that ordinary stars are thought
+  to be unable to produce (the *pair-instability gap*). They may be the products of earlier mergers.
 
 #### L3 · Archaeology of the Milky Way
 
@@ -193,7 +193,9 @@ In 2024 astronomers found that it is also oscillating, like a wave moving throug
 - astrolab, using only Gaia DR3's public orbits:
   - gets 8.5 Suns for BH2, in agreement with the paper;
   - gets 13.3 Suns for BH1, in agreement with the paper's *astrometry-only* solution (12.8).
-    The paper's 9.6 also uses ground-based radial-velocity measurements, which tighten the result;
+    The paper's 9.6 also uses ground-based radial-velocity measurements (how fast the star moves
+    towards or away from us, from the Doppler shift of its light), which tighten the result; our
+    astrometry-only value is within about 1.4σ of it;
   - keeps all 21 known neutron-star candidates of El-Badry et al. (2024) in its server-side screen.
 - **Gaia DR4 will contain many more orbits.** astrolab's screen is prepared for release day,
   2 December 2026; it can run as soon as the new table names are confirmed — a rare case where a
@@ -253,14 +255,16 @@ That is astrolab's starting point. The next chance is Gaia DR4, on 2 December 20
 ### Sources and further reading
 
 - [ROADMAP.md](https://github.com/sudoghut/astrolab/blob/main/ROADMAP.md): every milestone, with
-  references and numbers and their verification status.
+  references and numbers and their verification status (in Chinese).
 - [Claims registry](https://github.com/sudoghut/astrolab/tree/main/atlas/claims): one file per
   graded conclusion.
 - [Study 001 · Gaia dormant black holes](https://github.com/sudoghut/astrolab/tree/main/studies/001-m04-gaia-dormant-black-holes):
   the first completed reproduction.
 - Numbers not in the roadmap: Gaia BH1 distance, El-Badry et al. 2023, MNRAS 518, 1057
   (arXiv:2209.06833); Radcliffe Wave length and motion, Konietzka et al. 2024, Nature 628, 62;
-  GWTC-4.0 event count, LVK 2025 (arXiv:2508.18082).
+  GWTC-4.0 event count, LIGO–Virgo–KAGRA (LVK) Collaboration 2025 (arXiv:2508.18082);
+  Gaia DR3 source count, Gaia Collaboration (Vallenari et al.) 2023, A&A 674, A1; age of the
+  z ≈ 14 galaxies, Carniani et al. 2024, Nature 633, 318.
 
 ---
 
@@ -285,10 +289,10 @@ That is astrolab's starting point. The next chance is Gaia DR4, on 2 December 20
 | 设备 | 作用 | 打个比方 |
 |---|---|---|
 | **詹姆斯·韦布空间望远镜（JWST, James Webb Space Telescope）**，2021 年 12 月发射 | 在红外波段看最早的星系 | 看宇宙的"婴儿照" |
-| **Gaia 卫星**（2013 年发射），2022 年发布第三次数据（DR3, Data Release 3），2026 年 12 月 2 日发布第四次数据（DR4） | 测量近二十亿颗恒星的位置和运动 | 给银河系做"人口普查" |
+| **Gaia 卫星**（2013 年发射），2022 年发布第三次数据（DR3, Data Release 3），2026 年 12 月 2 日发布第四次数据（DR4） | 测量约 18 亿颗恒星及其他天体的位置，以及其中大多数的运动 | 给银河系做"人口普查" |
 | **DESI 暗能量光谱仪（Dark Energy Spectroscopic Instrument）**，2021 年开始巡天 | 测量数以百万计的星系的距离 | 绘制宇宙的三维地图 |
 | **LIGO（激光干涉引力波天文台，Laser Interferometer Gravitational-Wave Observatory）、Virgo、KAGRA（神冈引力波探测器，Kamioka Gravitational Wave Detector）引力波（gravitational wave）探测器** | 接收黑洞碰撞时发出的时空涟漪 | 用"耳朵"听宇宙 |
-| **脉冲星计时阵（PTA, Pulsar Timing Array）**，已运行二十年左右或更久 | 把银河系里高速自转的脉冲星（pulsar）当作钟 | 一台和银河系一样大的引力波探测器 |
+| **脉冲星计时阵（PTA, Pulsar Timing Array）**，有的已运行约二十年 | 把银河系里高速自转的脉冲星（pulsar）当作钟 | 一台和银河系一样大的引力波探测器 |
 | 欧几里得卫星（Euclid，2023 年发射）、鲁宾天文台（Vera C. Rubin Observatory，2025 年发布首批图像）等 | 新一代巡天，正陆续开始发布数据 | |
 
 这些数据大多**公开**，而且能在线查询。正因为如此，astrolab 这样的笔记本项目才有可能。
@@ -305,9 +309,9 @@ astrolab 像在线地图一样把宇宙分成几个缩放级别：L0 是整个�
 
 宇宙在加速膨胀，推动它的东西就是暗能量。在 ΛCDM 中，暗能量是一个永远不变的常数。
 
-- DESI 测量的是重子声学振荡（BAO, Baryon Acoustic Oscillations）：早期宇宙在物质分布中留下的一种图案，今天仍能从星系的分布中看到。它可以当作一把标准尺，长约 150 兆秒差距（Mpc, megaparsec），也就是大约 5 亿光年。
-- DESI 的第一次和第二次数据发布（2024 年和 2025 年）都发现：把这把尺子和宇宙微波背景（CMB, Cosmic Microwave Background，即大爆炸的余晖）、超新星（supernova）数据放在一起，结果更倾向于暗能量**随时间减弱**。用 2025 年的数据，偏好程度为 2.8–4.2σ，取决于用哪一组超新星数据。
-- **2025 年底以来，这个信号变弱了。** 一组超新星数据重新校准、DESI 对莱曼 α 森林（Lyman-α forest，遥远类星体（quasar）的光被沿途气体吸收后留下的谱线）做了新的分析之后，不加超新星时约为 2.7σ，加上超新星约为 3σ。
+- DESI 测量的是重子声学振荡（BAO, Baryon Acoustic Oscillations）：早期宇宙在物质分布中留下的一种图案，今天仍能从星系的分布中看到。它可以当作一把标准尺（standard ruler），长约 150 兆秒差距（Mpc, megaparsec），也就是大约 5 亿光年。
+- DESI 基于第一批和第二批数据的结果（2024 年和 2025 年）都发现：把这把尺子和宇宙微波背景（CMB, Cosmic Microwave Background，即大爆炸的余晖）、超新星（supernova）数据放在一起，结果更倾向于暗能量**随时间减弱**。用 2025 年的数据，偏好程度为 2.8–4.2σ，取决于用哪一组超新星数据。
+- **2025 年底以来，这个信号变弱了。** 一组超新星数据重新校准、DESI 对莱曼 α 森林（Lyman-α forest，遥远类星体（quasar）的光被沿途气体吸收后留下的谱线）做了新的分析之后，不加超新星时约为 2.7σ，加上超新星的更新组合约为 3σ。
 - 这是当今宇宙学最受关注的问题：可能改写教科书，也可能最终只是校准问题。
 - 复现它只需要一小组（kB 到 MB 级）已发表的距离数据。在 Gaia DR4 运行之后，这是 astrolab 的下一个新里程碑。
 
@@ -326,8 +330,8 @@ S8 描述物质"抱团"的程度。
 - 红移（redshift，记作 z）表示宇宙膨胀把一个星系的光拉长了多少；z 越大，我们看到的就越久远。
 - JWST 的光谱确认了 z ≈ 14 的星系：JADES-GS-z14-0 和 MoM-z14（z ≈ 14.4）。我们看到的是它们在宇宙大爆炸后不到 3 亿年时的样子。
 - 意外的是，**亮星系太多了**，早期宇宙比模型预测的更"早熟"。探测本身已坐实，解释仍有争议。
-- 可能的解释包括：恒星形成效率更高；或者星系亮度忽明忽暗（burstiness），让我们更容易在它们最亮的时候看到它们。
-- 不在路线图里但同样热门：JWST 发现了大量致密的红色天体，被称为**"小红点（Little Red Dots）"**。它们可能是被尘埃或稠密气体包裹的早期黑洞，目前还没有定论。
+- 可能的解释包括：恒星形成效率（star-formation efficiency）更高；或者星系亮度忽明忽暗（burstiness），让我们更容易在它们最亮的时候看到它们。
+- 不在路线图里但同样热门：JWST 发现了大量致密的红色天体，被称为"**小红点（Little Red Dots）**"。它们可能是被尘埃或稠密气体包裹的早期黑洞，目前还没有定论。
 
 #### L2 · 近邻宇宙：宇宙膨胀得有多快？（M2，张力）
 
@@ -353,7 +357,7 @@ S8 描述物质"抱团"的程度。
 
 - 2025 年发布的引力波瞬变源目录 GWTC-4.0（Gravitational-Wave Transient Catalog），使候选事件总数达到约 220 个，每一个是真实信号的可能性都大于一半。
 - 黑洞的质量并不均匀分布：在约 10 倍和 35 倍太阳质量处有"扎堆"，35 倍以上数量下降得更陡。
-- 其中 GW231123 事件中的黑洞，质量落在普通恒星被认为"造不出来"的区间，即对不稳定性间隙（pair-instability gap）。它们可能是更早一次并合的产物。
+- 其中 GW231123 事件中的黑洞，质量落在或接近普通恒星被认为"造不出来"的区间，即对不稳定性间隙（pair-instability gap）。它们可能是更早一次并合（merger）的产物。
 
 #### L3 · 银河系考古
 
@@ -376,20 +380,20 @@ S8 描述物质"抱团"的程度。
 
 **休眠黑洞（dormant black holes，M4，已坐实；astrolab 已完成 DR3 部分）**
 
-- 2022 年以前在银河系中发现的恒星级黑洞（stellar-mass black hole），几乎都在吞噬伴星、发出 X 射线。
+- 2022 年以前在银河系中发现的恒星级黑洞（stellar-mass black hole），几乎都在吞噬伴星（companion star）、发出 X 射线。
 - 但理论认为，银河系里大多数黑洞应该是"安静的"：不吃东西，也不发光。
 - Gaia 的办法是：精确测量一颗普通恒星**在天上画出的小椭圆**。如果轨道很大，伴星却看不见，那么伴星很可能是黑洞。
 - 用这个办法找到了三个：
 
 | 天体 | 发现年份 | 质量 | 备注 |
 |---|---|---|---|
-| Gaia BH1 | 2022 | 约 9.6 倍太阳质量 | 距离约 1560 光年（480 pc），是已知最近的黑洞 |
+| Gaia BH1 | 2022 | 约 9.6 倍太阳质量 | 距离约 1560 光年（480 秒差距，pc, parsec），是已知最近的黑洞 |
 | Gaia BH2 | 2023 | 约 8.9 倍太阳质量 | |
 | Gaia BH3 | 2024 | 约 33 倍太阳质量 | 银河系内已知最重的恒星级黑洞；伴星是一颗古老的贫金属恒星 |
 
 - astrolab 只用 Gaia DR3 的公开轨道数据：
   - BH2 算出 8.5 倍太阳质量，与论文一致；
-  - BH1 算出 13.3 倍太阳质量，与论文中"只用天体测量（astrometry-only）"的解（12.8）一致。论文的 9.6 还用了地面视向速度（radial velocity）观测，使结果更精确；
+  - BH1 算出 13.3 倍太阳质量，与论文中"只用天体测量（astrometry-only）"的解（12.8）一致。论文的 9.6 还用了地面视向速度（radial velocity，即恒星朝向或背离我们运动的速度，由光的多普勒频移测得）观测，使结果更精确；我们只用天体测量得到的值与它相差约 1.4σ；
   - 服务器端筛选保留了 El-Badry 等人（2024）已知的全部 21 个中子星（neutron star）候选体。
 - **Gaia DR4 会包含多得多的轨道。** astrolab 的筛选程序已经为 2026 年 12 月 2 日的发布日准备好，只要确认新数据表的名称就能运行。这是个人研究者少有的、能和大团队一样快的机会。
 
@@ -397,7 +401,7 @@ S8 描述物质"抱团"的程度。
 
 - 相隔几千个天文单位（astronomical unit，1 个天文单位即日地距离）的双星，彼此之间的引力极弱。修正牛顿动力学（MOND, Modified Newtonian Dynamics）预言：这时的引力会比牛顿定律算出的更强。
 - 2023 年，有团队报告了约 1.4 倍的增强；其他团队用更严格、更干净的样本，以很高的显著性排除了 MOND。2026 年，一项基于少量高精度双星的研究仍然声称看到了类似 MOND 的增强，所以争论尚未结束。
-- 争论的核心在**样本污染**：隐藏的第三颗星，或者两颗毫无关系、只是恰好排在一起的恒星，都会让一对双星看起来"转得太快"。
+- 争论的核心在**样本污染**（contamination）：隐藏的第三颗星，或者两颗毫无关系、只是恰好排在一起的恒星，都会让一对双星看起来"转得太快"。
 - Gaia DR4 的逐次观测数据（epoch astrometry）可以揭示隐藏的伴星，有望给这场争论画上句号。
 
 ### 4. 路线图之外的其他亮点
@@ -423,7 +427,7 @@ S8 描述物质"抱团"的程度。
 
 ### 来源与延伸阅读
 
-- [ROADMAP.md](https://github.com/sudoghut/astrolab/blob/main/ROADMAP.md)：全部里程碑，附文献、数值及其核实状态。
+- [ROADMAP.md](https://github.com/sudoghut/astrolab/blob/main/ROADMAP.md)：全部里程碑，附文献、数值及其核实状态（中文）。
 - [结论登记表（claims registry）](https://github.com/sudoghut/astrolab/tree/main/atlas/claims)：每条带等级的结论一个文件。
 - [研究 001 · Gaia 休眠黑洞](https://github.com/sudoghut/astrolab/tree/main/studies/001-m04-gaia-dormant-black-holes)：第一个完成的复现。
-- 路线图之外的数字：Gaia BH1 的距离，El-Badry et al. 2023, MNRAS 518, 1057（arXiv:2209.06833）；Radcliffe 波的长度与运动，Konietzka et al. 2024, Nature 628, 62；GWTC-4.0 事件数，LVK 2025（arXiv:2508.18082）。
+- 路线图之外的数字：Gaia BH1 的距离，El-Badry et al. 2023, MNRAS 518, 1057（arXiv:2209.06833）；Radcliffe 波的长度与运动，Konietzka et al. 2024, Nature 628, 62；GWTC-4.0 事件数，LIGO–Virgo–KAGRA（LVK）合作组 2025（arXiv:2508.18082）；Gaia DR3 的天体数，Gaia Collaboration (Vallenari et al.) 2023, A&A 674, A1；z ≈ 14 星系的年龄，Carniani et al. 2024, Nature 633, 318。
