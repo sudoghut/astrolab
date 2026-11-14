@@ -195,17 +195,20 @@ about 900 in Figure 8's bins) is unexplained.
 | `stat_flat`: the median ṽ shows no 20% step | STAT | stated 2602.24035: "does not exhibit the 20% enhancement expected from MOND and is consistent with Newtonian gravity across all separations" | Abstract |
 | `stat_lr`: Δχ² is about 12–16 | STAT | stated 2602.24035: "The $\Delta\chi^{2}$ of about $12-16$ implies a likelihood ratio" | §5, Table 3 |
 | `gap_err`: the per-bin median errors are not underestimated | GAP | reconstructed: the paper uses MAD/√N (§4.2.1); the standard error of a median is 1/(2 f(m) √N), about 1.4–2.1 MAD/√N for plausible shapes (1.86 for a Gaussian; Kendall and Stuart) | — |
-| `mod_rule`: flat, unbiased, calibrated data with large Δχ² disfavour the step model | MOD | implied: likelihood-ratio reasoning (Wasserman 2004, ch. 10) | — |
+| `mod_lr`: calibrated errors and a large Δχ² give a valid likelihood ratio | MOD | implied: likelihood-ratio reasoning (Wasserman 2004, ch. 10) | — |
+| `mod_rule`: flat, unbiased data with a valid, large likelihood ratio disfavour the step model | MOD | implied: likelihood-ratio reasoning (Wasserman 2004, ch. 10) | — |
 
 ```lean
-exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) (p .gap_err)
-  (p .stat_lr)  -- Abstract, Sec. 4.2.1, 5, 8; GAP
+have lr : v.LRValid := p .mod_lr (p .gap_err) (p .stat_lr)  -- Sec. 4.2.1, 5 (Table 3); GAP
+exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) lr  -- Abstract, Sec. 5, 8
 ```
 
 **Critique.** The large-sample standard error of a median is 1/(2 f(m) √N), where f(m) is the
-probability density at the median; MAD/√N equals it only if f(m)·MAD = 0.5. For plausible shapes
-of the ṽ distribution the true error is larger by a factor of about 1.4–2.1 (Laplace 1.44,
-Gaussian 1.86, uniform 2.0, exponential 2.08). Two readings of the paper:
+probability density at the median; MAD/√N equals it only if f(m)·MAD = 0.5. For example shapes the
+true error would be larger by a factor of 1.44 (Laplace), 1.86 (Gaussian), 2.0 (uniform) or 2.08
+(exponential); whether any of these describes the ṽ distribution in each bin is not known, so
+these are illustrations, not evidence that C26's errors are too small. Two readings of the paper,
+taking the Gaussian factor as an example:
 - if Table 3 used MAD/√N (§4.2.1 says so), with the Gaussian factor every χ² shrinks by about 3.45:
   Δχ² 12.6 → 3.7 (likelihood ratio about 6, not 548) and, for the cleanest row, 14.6 → 4.2 (about
   8, not 1501);
@@ -221,14 +224,19 @@ MOND; only the size of the preference is at stake. This repo tests it directly w
 
 #### 2.3 What the Lean check found
 
-1. **`explicit_insufficient`** (a real gap): even with standard knowledge the chain needs
-   `gap_err`, that the per-bin errors are not underestimated. The paper states its error formula
-   but does not show it is calibrated; the standard result for a median suggests it is too small
-   by a factor of about 1.4–2.1 for plausible ṽ shapes (with the small Newton χ² as weak
-   counter-evidence; see 2.2).
-2. **`stated_insufficient`**: besides the gap, the inference rule from "flat and Δχ² large" to
-   "Newton preferred" is standard likelihood-ratio reasoning (`mod_rule`, implied).
-3. **Every premise is needed** (seven `_needed` theorems): a single route.
+1. **`explicit_insufficient`**: even with standard knowledge the chain needs `gap_err`, that the
+   per-bin errors are not underestimated. It enters through the statistical link `mod_lr`
+   (calibrated errors and a large Δχ² give a valid likelihood ratio), separately from the
+   interpretation step `mod_rule`. The paper states its error formula but does not show it is
+   calibrated; the standard formula for a median's error differs from MAD/√N unless the
+   distribution has a particular shape, and the small Newton χ² is weak counter-evidence (2.2).
+   What this does and does not show: the two implied steps are our encoding of the paper's
+   implicit reasoning, so the verdict says that, on this reading, the stated likelihood ratio
+   needs an error calibration the paper does not supply; it does not show the errors are wrong.
+   That is an empirical question, tested by R2.
+2. **`stated_insufficient`**: besides the gap, the two inference steps are standard
+   likelihood-ratio reasoning (`mod_lr`, `mod_rule`, implied).
+3. **Every premise is needed** (eight `_needed` theorems): a single route.
 4. **Consistency** (`consistent`) holds trivially: no premise is negative, and `mod_rule` is an
    implication.
 5. **Weak points** (ours): the error calibration (`gap_err`); the assumption of no separation
@@ -296,12 +304,12 @@ velocity columns are fetched only after the study's pre-registration is committe
 
 #### 1.2 数据
 
-欧洲空间局的 Gaia 卫星为十亿多颗恒星测量了位置、距离（由视差（parallax），即恒星相对背景的周年微小位移）和天球上的运动（自行（proper motion））（第三次数据发布，DR3）。对距离相同、一起运动的两颗星，两者自行之差乘以距离，就是它们在天球平面内的相对速度 v_sky（km/s）；天球上的间距给出 r_sky（kAU，千天文单位）；亮度经质光关系（mass–luminosity relation）给出质量。
+欧洲空间局（ESA, European Space Agency）的 Gaia 卫星（名字原为 Global Astrometric Interferometer for Astrophysics 的缩写）为十亿多颗恒星测量了位置、距离（由视差（parallax），即恒星相对背景的周年微小位移）和天球上的运动（自行（proper motion））（第三次数据发布，DR3）。对距离相同、一起运动的两颗星，两者自行之差乘以距离，就是它们在天球平面内的相对速度 v_sky（km/s）；天球上的间距给出 r_sky（kAU，千天文单位）；亮度经质光关系（mass–luminosity relation）给出质量。
 
 关键量是缩放速度（scaled velocity）ṽ = v_sky / √(GM/r_sky)：测得的速度除以该间距上的牛顿圆周速度（C26 式 9）。由于轨道倾斜、有偏心率（eccentricity），而我们只看到三维中的两维，ṽ 是一个分布（牛顿束缚轨道的 ṽ < √2），但在牛顿引力中它的典型值不应随间距变化；在 MOND 中，r_sky 超过 r_M 时它应升高约 20%。
 
 C26 的样本（全部来自 Gaia DR3；C26 第 3–4 节，C24 第 2 节）：
-- 视差误差小于 2.5% 的恒星（星表"C25"），距离 130 pc 以内，间距 1–30 kAU；
+- 视差误差小于 2.5% 的恒星（星表"C25"，即 catalogue with parallax error ≤ 2.5%），距离 130 pc 以内，间距 1–30 kAU；
 - 两颗星的 RUWE（renormalised unit weight error，单星模型拟合天体测量数据的好坏）都小于 1.25，以排除使恒星摆动的隐藏近伴星；
 - 两颗星都位于颜色—星等图（colour–magnitude diagram）主序（main sequence）上的一条带内（0.5 < BP−RP < 3.5，4 < M_G < 14），排除白矮星与可能藏有伴星的过亮恒星；
 - 两颗星都有视向速度（RV, radial velocity），相差小于 10 km/s；ṽ 的误差小于 0.1；ṽ ≤ 2.5；
@@ -312,7 +320,7 @@ C26 的样本（全部来自 Gaia DR3；C26 第 3–4 节，C24 第 2 节）：
 
 **第 1 步——预测。** C26 式 7 给出 MOND 对圆周速度的增强（含银河系外场 g_N,e = 1.184 a0）：中位数 ṽ 应从 r_sky/r_M ≪ 1 到 r_sky/r_M ≳ 1 升高约 20%。牛顿的预测是平的；其高度（约 0.5）取决于未知的偏心率分布，所以两个模型都有一个自由的归一化（normalisation）。
 
-**第 2 步——样本。** 加上全部切割后，C26 表 3 给出 ṽ ≤ 2.5 时 N = 1421 对，最干净的变体（ṽ ≤ 1.5 且 ipd_frac_multi_peak = 0，即 Gaia 标记边缘可分辨伴星的参数）为 1216 对。他们图 8 中印出的各箱数目（368、228、144、99、33、28，这些数字只出现在图中）加起来为 900，论文没有说明它与 1421 的差别。可能的解释：图 8 用的是不同的切割或样本，或者六个箱没有覆盖全部 r_sky/r_M 范围。
+**第 2 步——样本。** 加上全部切割后，C26 表 3 给出 ṽ ≤ 2.5 时 N = 1421 对，最干净的变体（ṽ ≤ 1.5 且 ipd_frac_multi_peak = 0，即图像参数测定中出现多峰的比例（image parameter determination multi-peak fraction），Gaia 用它标记边缘可分辨的伴星）为 1216 对。他们图 8 中印出的各箱数目（368、228、144、99、33、28，这些数字只出现在图中）加起来为 900，论文没有说明它与 1421 的差别。可能的解释：图 8 用的是不同的切割或样本，或者六个箱没有覆盖全部 r_sky/r_M 范围。
 
 **第 3 步——测量。** 双星按 r_sky/r_M 分成六个箱（各箱中位数 0.073、0.153、0.348、0.744、1.419、3.079；表 2；没有给出边界）。每箱取 ṽ 的中位数，误差为"MAD/√N"（第 4.2.1 节；MAD 是中位数绝对偏差（median absolute deviation））。各箱中位数平坦；图 8 把拟合的牛顿归一化画在 0.489。
 
@@ -387,14 +395,15 @@ E. （标准的似然比推理）⇒ 牛顿的可能性最高为 MOND 的 1500 �
 | `stat_flat`：中位数 ṽ 没有 20% 的台阶 | STAT | stated 2602.24035："does not exhibit the 20% enhancement expected from MOND and is consistent with Newtonian gravity across all separations" | 摘要 |
 | `stat_lr`：Δχ² 约为 12–16 | STAT | stated 2602.24035："The $\Delta\chi^{2}$ of about $12-16$ implies a likelihood ratio" | 第 5 节，表 3 |
 | `gap_err`：各箱中位数的误差没有被低估 | GAP | reconstructed：论文用 MAD/√N（第 4.2.1 节）；中位数的标准误为 1/(2 f(m) √N)，对合理的形状约为 1.4–2.1 MAD/√N（高斯为 1.86；Kendall 与 Stuart） | — |
-| `mod_rule`：平坦、无偏、误差标定正确且 Δχ² 大的数据不支持台阶模型 | MOD | implied：似然比推理（Wasserman 2004，第 10 章） | — |
+| `mod_lr`：误差标定正确且 Δχ² 大时，似然比是有效的 | MOD | implied：似然比推理（Wasserman 2004，第 10 章） | — |
+| `mod_rule`：平坦、无偏的数据加上有效且大的似然比不支持台阶模型 | MOD | implied：似然比推理（Wasserman 2004，第 10 章） | — |
 
 ```lean
-exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) (p .gap_err)
-  (p .stat_lr)  -- Abstract, Sec. 4.2.1, 5, 8; GAP
+have lr : v.LRValid := p .mod_lr (p .gap_err) (p .stat_lr)  -- Sec. 4.2.1, 5 (Table 3); GAP
+exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) lr  -- Abstract, Sec. 5, 8
 ```
 
-**评论。** 大样本下中位数的标准误为 1/(2 f(m) √N)，f(m) 是中位数处的概率密度；只有 f(m)·MAD = 0.5 时它才等于 MAD/√N。对 ṽ 分布各种合理的形状，真实误差要大约 1.4–2.1 倍（拉普拉斯分布 1.44，高斯分布 1.86，均匀分布 2.0，指数分布 2.08）。对论文有两种读法：
+**评论。** 大样本下中位数的标准误为 1/(2 f(m) √N)，f(m) 是中位数处的概率密度；只有 f(m)·MAD = 0.5 时它才等于 MAD/√N。以几种分布为例，真实误差会大 1.44 倍（拉普拉斯分布）、1.86 倍（高斯分布）、2.0 倍（均匀分布）或 2.08 倍（指数分布）；各箱 ṽ 的分布是否像其中任何一种并不知道，所以这些只是示例，不是 C26 误差偏小的证据。以高斯的倍数为例，对论文有两种读法：
 - 如果表 3 用的是 MAD/√N（第 4.2.1 节如此写），按高斯的倍数，每个 χ² 缩小约 3.45 倍：Δχ² 12.6 → 3.7（似然比约 6，而不是 548），最干净的一行 14.6 → 4.2（约 8，而不是 1501）；
 - 如果用的是 1.4826 MAD/√N（第 4.1.5 节的 σ），仍差 1.2533 倍：Δχ² 12.6 → 8.0（约 55），14.6 → 9.3（约 105）。
 
@@ -402,9 +411,9 @@ exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) (
 
 #### 2.3 Lean 检查的发现
 
-1. **`explicit_insufficient`**（真正的缺口）：即使加上标准知识，链条仍需要 `gap_err`，即各箱误差没有被低估。论文写出了误差公式，但没有说明它是标定正确的；中位数的标准结果表明，对合理的 ṽ 形状它小了约 1.4–2.1 倍（牛顿模型的小 χ² 是弱的反面证据，见 2.2）。
-2. **`stated_insufficient`**：除这一缺口外，从"平坦且 Δχ² 大"到"牛顿受偏好"的推理规则是标准的似然比推理（`mod_rule`，implied）。
-3. **每个前提都是必要的**（7 个 `_needed` 定理）：只有一条路径。
+1. **`explicit_insufficient`**：即使加上标准知识，链条仍需要 `gap_err`，即各箱误差没有被低估。它经由统计连接 `mod_lr`（误差标定正确且 Δχ² 大时似然比有效）进入，与解释一步 `mod_rule` 分开。论文写出了误差公式，但没有说明它是标定正确的；除非分布具有特定形状，中位数误差的标准公式与 MAD/√N 不同，而牛顿模型的小 χ² 是弱的反面证据（2.2）。这能说明什么、不能说明什么：两个 implied 的推理步骤是我们对论文隐含推理的编码，所以这一结论说的是：按这种理解，论文给出的似然比需要一个论文没有提供的误差标定；它并不说明误差是错的，那是一个经验问题，由 R2 检验。
+2. **`stated_insufficient`**：除这一缺口外，两个推理步骤是标准的似然比推理（`mod_lr`、`mod_rule`，implied）。
+3. **每个前提都是必要的**（8 个 `_needed` 定理）：只有一条路径。
 4. **相容性**（`consistent`）平凡成立：没有否定形式的前提，`mod_rule` 是一个蕴涵。
 5. **薄弱点**（我们的判断）：误差标定（`gap_err`）；没有随间距变化的假设（`mod_notrend`）；距离上限（150 pc 时结果翻转）；N = 1421 与约 900 的差别；没有发表分箱边界。
 6. **局限**：Lean 检查的是我们编码的结构，不是原子背后的物理或数字。

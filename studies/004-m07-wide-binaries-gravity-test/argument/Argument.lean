@@ -13,6 +13,7 @@ The chain (the conclusion encoded is the quantitative one, "up to 1500x more lik
       not vary with separation
   chi-square fits with per-bin median errors give a large Delta chi2 (about 12-16)
   [gap] the per-bin median errors are correctly calibrated (not underestimated)
+  [implied] calibrated errors and a large Delta chi2 give a valid likelihood ratio
   -> Newtonian gravity is up to 1500x more likely than MOND
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
@@ -43,6 +44,8 @@ structure Vocab where
   LRBig : Prop
   /-- The per-bin uncertainties of the median scaled velocity used in the chi-square are not underestimated. -/
   ErrCal : Prop
+  /-- The likelihood ratio exp(Delta chi2 / 2) computed from those errors measures the relative support of the two models. -/
+  LRValid : Prop
   /-- Newtonian gravity is strongly favoured over MOND (likelihood ratio of order 1000). -/
   NewtonStrong : Prop
 
@@ -60,7 +63,9 @@ inductive Field where
   | stat_lr
   /-- GAP [reconstructed] the per-bin median errors are calibrated; the paper takes the uncertainty of the median as MAD / sqrt(N) (Sec. 4.2.1), while the standard error of a median is 1/(2 f(m) sqrt(N)), about 1.4 to 2.1 MAD / sqrt(N) for plausible shapes (1.86 for a Gaussian; Kendall and Stuart, The Advanced Theory of Statistics, Vol. 1); the study tests this with a bootstrap (R2) -/
   | gap_err
-  /-- MOD [implied] standard model comparison: a model predicting a step is disfavoured when unbiased, calibrated data are flat and Delta chi2 is large (likelihood-ratio reasoning, e.g. Wasserman 2004, All of Statistics, ch. 10) -/
+  /-- MOD [implied] statistical link: with calibrated Gaussian errors, a large Delta chi2 between two fitted models gives a valid likelihood ratio exp(Delta chi2 / 2) (e.g. Wasserman 2004, All of Statistics, ch. 10) -/
+  | mod_lr
+  /-- MOD [implied] interpretation: when the predicted step is absent from flat, unbiased data and the likelihood ratio is valid and large, the step model is disfavoured (likelihood-ratio reasoning, Wasserman 2004, ch. 10) -/
   | mod_rule
   deriving DecidableEq, Repr
 
@@ -71,6 +76,7 @@ def prov : Field → Prov
   | .mod_notrend => .stated
   | .stat_lr => .stated
   | .gap_err => .reconstructed
+  | .mod_lr => .implied
   | .mod_rule => .implied
 
 def prem : Field → Vocab → Prop
@@ -80,7 +86,8 @@ def prem : Field → Vocab → Prop
   | .mod_notrend, v => v.NoTrend
   | .stat_lr, v => v.LRBig
   | .gap_err, v => v.ErrCal
-  | .mod_rule, v => v.Flat → v.MondStep → v.Pure → v.NoTrend → v.ErrCal → v.LRBig → v.NewtonStrong
+  | .mod_lr, v => v.ErrCal → v.LRBig → v.LRValid
+  | .mod_rule, v => v.Flat → v.MondStep → v.Pure → v.NoTrend → v.LRValid → v.NewtonStrong
 
 /-- [stated 2602.24035: "Newtonian gravity is up to $1500\times$ more likely than MOND for our cleanest sample"] Abstract -/
 def Conclusion (v : Vocab) : Prop := v.NewtonStrong
@@ -95,50 +102,53 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 /-- The paper's chain, step by step. -/
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) (p .gap_err)
-    (p .stat_lr)  -- Abstract, Sec. 4.2.1, 5, 8; GAP
+  have lr : v.LRValid := p .mod_lr (p .gap_err) (p .stat_lr)  -- Sec. 4.2.1, 5 (Table 3); GAP
+  exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) lr  -- Abstract, Sec. 5, 8
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
-  fun h => h ⟨False, False, False, False, False, False, False⟩
+  fun h => h ⟨False, False, False, False, False, False, False, False⟩
 
 theorem consistent : ∃ v, Premises v :=
-  ⟨⟨True, True, True, True, True, True, True⟩, by intro f; cases f <;> simp [prem]⟩
+  ⟨⟨True, True, True, True, True, True, True, True⟩, by intro f; cases f <;> simp [prem]⟩
 
 theorem alone_insufficient : ∀ g, ¬ ∀ v, prem g v → Conclusion v := by
   intro g h
   cases g
-  case mod_rule => exact h ⟨False, False, False, False, False, False, False⟩ (by simp [prem])
-  all_goals exact h ⟨True, True, True, True, True, True, False⟩ (by simp [prem])
+  case mod_rule => exact h ⟨False, False, False, False, False, False, False, False⟩ (by simp [prem])
+  all_goals exact h ⟨True, True, True, True, True, True, True, False⟩ (by simp [prem])
 
 theorem stat_flat_needed : ¬ ∀ v, Without .stat_flat v → Conclusion v := fun h =>
-  h ⟨False, True, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨False, True, True, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem mod_step_needed : ¬ ∀ v, Without .mod_step v → Conclusion v := fun h =>
-  h ⟨True, False, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨True, False, True, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_pure_needed : ¬ ∀ v, Without .stat_pure v → Conclusion v := fun h =>
-  h ⟨True, True, False, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨True, True, False, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem mod_notrend_needed : ¬ ∀ v, Without .mod_notrend v → Conclusion v := fun h =>
-  h ⟨True, True, True, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨True, True, True, False, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_lr_needed : ¬ ∀ v, Without .stat_lr v → Conclusion v := fun h =>
-  h ⟨True, True, True, True, False, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨True, True, True, True, False, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem gap_err_needed : ¬ ∀ v, Without .gap_err v → Conclusion v := fun h =>
-  h ⟨True, True, True, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨True, True, True, True, True, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+
+theorem mod_lr_needed : ¬ ∀ v, Without .mod_lr v → Conclusion v := fun h =>
+  h ⟨True, True, True, True, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem mod_rule_needed : ¬ ∀ v, Without .mod_rule v → Conclusion v := fun h =>
-  h ⟨True, True, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨True, True, True, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 /-- What the paper writes is not enough: the inference rule is standard background (implied), and
 the calibration of the per-bin median errors is not established. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
-  h ⟨True, True, True, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨True, True, True, True, True, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
 /-- Even with standard knowledge the chain has a gap: the per-bin median errors must not be
 underestimated for Delta chi2 to carry the stated likelihood ratio (gap_err). -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
-  h ⟨True, True, True, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨True, True, True, True, True, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
 end Argument
