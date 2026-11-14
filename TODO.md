@@ -6,9 +6,6 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-004** M1：DESI BAO 复现，引入 `cosmo` 与 `infer` 模块 · 登记 2026-11-14 · 分支 feat/m1-desi-bao · 计划 [010](design/010-plan_m01-desi-dr2-bao-evolving-dark-energy-cosmo-infer.md)
-  - 备注：论文研究，按 `paper-study` 技能分 5 个环节（见计划 010）；环节 1（计划与核实）、环节 2（Wiki 文章与 Lean）已过双闸审查；环节 3（预注册与核心模块）、环节 4（run.py、结果、网页）已过双闸审查；环节 5（独立审稿与收尾）进行中。
-
 ## 下一步（Next）
 
 按优先级排序，最重要的在最上面。
