@@ -33,6 +33,8 @@ def test_footprint_schema_rejects_invalid():
         {"footprint": {"sky": {"mode": "targets", "targets": [{"name": "a", "ra": "x", "dec": 1}]}}},
         {"footprint": {"sky": {"mode": "all-sky", "targets": [{"name": "a", "ra": 1, "dec": 1}]}}},
         {"footprint": {"sky": {"mode": "survey", "survey": "DESI"}}},
+        {"footprint": {"sky": {"mode": ""}}},
+        {"footprint": {"sky": {"mode": " + "}}},
         {"footprint": {"sky": {"mode": "survey", "survey": {"name": ["x"]}}}},
         {"footprint": {"sky": {"mode": "targets", "targets": [{"name": ["a"]}]}}},
         {"footprint": {"sky": {"mode": "targets", "targets": [{"name": "  "}]}}},
