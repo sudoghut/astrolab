@@ -26,7 +26,10 @@ python .claude/skills/gaia-dr4-release-day/dr4_query.py <command> [arg] [--print
 ```
 
 Commands: `schemas`, `tables <schema>`, `columns <schema.table>`, `types <schema>`,
-`count <release>`, `ids`, `resolve <schema>` (see the script's docstring).
+`count <release>`, `ids`, `resolve <schema>`, `followup <schema>` (see the script's docstring).
+The helper reads `TARGETS`, the cuts and the `data/` files from the study, so it follows code
+changes; `tests/test_dr4_query.py` runs every command with `--print` and fails if the study
+changes under it.
 
 ## 0. Preflight (before 2026-11-25, while the archive is still up)
 
@@ -47,6 +50,7 @@ has a failure mode:
 | `run.py` result keys `period_dr3_d`, `gaia_dr3`, status `"no DR3 orbital solution ..."`; `D1_dr4_query_ok` literal `gaiadr4` | DR3 names | DR4 numbers stored under DR3 keys |
 | `results/` | overwritten in place by `python -m astrolab run 001` | the committed DR3 reproduction is replaced, and every DR3 assertion in `test_conclusions.py` is evaluated on DR4 numbers (`test_bh3_has_no_dr3_orbit` must then fail) |
 | `test_conclusions.py` | DR3 criteria; `test_D1_dr4_query_generated` checks the literal `gaiadr4` | pytest red at close-out |
+| `.claude/skills/gaia-dr4-release-day/dr4_query.py` | `TARGETS[...]["gaia_dr3"]`, `results/` (or `results/dr3/`) with `summary.json` `release == "dr3"` | refuses to run, or reads moved files; `tests/test_dr4_query.py` catches it |
 | `web/index.html` | "DR3" labels, `P<sub>DR3</sub>`, the literal 169,227, `REPRO_STATUS_ZH` | page shows DR4 numbers under DR3 labels |
 | `study.yaml` `footprint.data` | `gaiadr3.*` | Atlas footprint names the wrong release |
 
@@ -104,7 +108,8 @@ Release-day load is expected: use `mode='async'`, retry patiently, no parallel q
 ## 2. Count before fetching
 
 `dr4_query.py count dr4` counts the screen and the denominator (all astrometric orbits) on the
-server, using `SCHEMAS` from `screen.py`.
+server, using `SCHEMAS` from `screen.py` and the cuts `FM_MIN`, `PLX_SNR_MIN` from `run.py`
+(a tightened cut goes into `run.py` first, so the count and the run cannot disagree).
 Size estimate: rows x ~130 bytes (DR3: 3,343 rows -> 0.4 MB). Write count and estimate into
 README section 3 before running.
 
@@ -159,8 +164,9 @@ refuted by literature, survivors. Then the 51 DR3 survivors. For each, from DR4:
   tested in DR3 (4 of 23 controls had it); DR4 RVs make it a real test.
 - did the solution type or significance change?
 
-Get these as **one server-side query** with `source_id IN (<51 ids>)` on the summary tables,
-aggregating any epoch quantity on the server (`server-side-query` skill). Per-source epoch
+Get these as **one server-side query**: `dr4_query.py followup <schema>` (orbit and RV summary
+for the 51 ids, `source_id IN (...)`; check its column names against step 1.3 first). Aggregate any
+epoch quantity on the server (`server-side-query` skill). Per-source epoch
 time-series are a last resort: count and size them first, never in a loop over the list
 (AGENTS.md section 1.2), and stop at summary parameters if they are large.
 

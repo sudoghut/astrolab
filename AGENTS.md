@@ -130,8 +130,8 @@ LRU 指最近最少使用（Least Recently Used）的清理策略。
   - 天体名称、星表编号、数值、单位、文献引用、代码与命令不翻译。
 - **引用前先核实**：路线图中标为 [S] 或 [U] 的条目，动手前要提升到 [V]，即对照原文核实。
 - **及时抽出技能（skills）**：某个研究动作第二次出现，或者步骤多、容易做错时，就把它写成技能，放在 `.claude/skills/<name>/SKILL.md`。
-  - 已有技能：独立审稿（referee）、服务器端查询（server-side query）、双闸代码审查（dual-gate review）、从论文立项（paper-study）、Gaia DR4 发布日运行手册（gaia-dr4-release-day）。待抽出的技能登记在 `TODO.md`。
-  - 技能里只写流程与检查清单；具体规则仍以本文件为准，两者不重复。
+  - 已有技能：独立审稿（referee）、服务器端查询（server-side query）、双闸代码审查（dual-gate review）、从论文立项（paper-study）、Gaia DR4 发布日运行手册（gaia-dr4-release-day，附查询辅助脚本）。待抽出的技能登记在 `TODO.md`。
+  - 技能里只写流程与检查清单；具体规则仍以本文件为准，两者不重复。执行流程的小型辅助脚本可以放在技能目录中，取数仍走受守卫的通道，并在 `tests/` 中做不联网的测试。
 
 ## 第三条：运行命令
 
