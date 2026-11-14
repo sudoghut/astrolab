@@ -39,7 +39,7 @@ compute) do and advance real astronomical research using public survey data
 | [000 · smoke test](studies/000-smoke-test_gaia-dr3-10pc-census/) | Gaia DR3 10 pc census; pipeline check |
 | [001 · M4 Gaia dormant black holes](studies/001-m04-gaia-dormant-black-holes/) | Gaia BH1/BH2 masses reproduced from DR3 astrometry alone; server-side screen of all 169,227 DR3 astrometric orbits (~0.5 MB downloaded); referee-reviewed; vetoes validated on 23 positive controls; ready for Gaia DR4 (2026-12-02) |
 
-See [STATUS.md](STATUS.md) and the design documents in [`design/`](design/) (in Chinese).
+See [STATUS.md](STATUS.md), the to-do list [TODO.md](TODO.md) (finished items move to [DONE.md](DONE.md)), and the design documents in [`design/`](design/) (all in Chinese).
 
 ### Background reading
 
@@ -98,7 +98,7 @@ python -m astrolab serve           # Atlas and study pages at http://127.0.0.1:8
 | [000 · 冒烟测试（smoke test）](studies/000-smoke-test_gaia-dr3-10pc-census/) | Gaia DR3 中 10 pc 以内的天体普查；用于检查整条管线（pipeline） |
 | [001 · M4 Gaia 休眠黑洞（dormant black holes）](studies/001-m04-gaia-dormant-black-holes/) | 只用 DR3 天体测量（astrometry）就复现了 Gaia BH1、BH2 的质量；在服务器端筛选了 DR3 全部 169,227 个天体测量轨道解，只下载约 0.5 MB；经过独立审稿；否决规则（veto）在 23 个已知正样本（positive controls）上验证无误；已为 Gaia DR4（2026-12-02 发布）准备就绪 |
 
-详见 [STATUS.md](STATUS.md)，以及 [`design/`](design/) 中的设计文献。
+详见 [STATUS.md](STATUS.md)、待办清单（to-do list）[TODO.md](TODO.md)（完成的条目移入 [DONE.md](DONE.md)），以及 [`design/`](design/) 中的设计文献。
 
 ### 背景阅读
 

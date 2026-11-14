@@ -3,9 +3,10 @@
 这是一个由编程智能体驱动、在个人电脑上运行的天文学研究环境。开始工作前请依次阅读：
 
 1. [`design/000-principles_*.md`](design/000-principles_agent-driven-laptop-astronomy-research.md)：设计原则，即项目的"宪法"。
-2. [`STATUS.md`](STATUS.md)：当前状态与下一步。
-3. [`ROADMAP.md`](ROADMAP.md)：里程碑（milestone）路线图。
-4. 当前要处理的研究的 `studies/<id>/README.md` 和 `log.md`。
+2. [`STATUS.md`](STATUS.md)：当前状态与时间点。
+3. [`TODO.md`](TODO.md)：待办清单（to-do list），要做的事与优先级。
+4. [`ROADMAP.md`](ROADMAP.md)：里程碑（milestone）路线图。
+5. 当前要处理的研究的 `studies/<id>/README.md` 和 `log.md`。
 
 ---
 
@@ -82,6 +83,17 @@ LRU 指最近最少使用（Least Recently Used）的清理策略。
 ## 第二条：工作方式
 
 - 不使用 Jupyter notebook。分析写成 `run.py`，展示写成 `web/index.html`。
+- **分支与合并**：所有改动（包括只改 `TODO.md`/`DONE.md` 的）都在功能分支（feature branch）上做，通过拉取请求（PR, Pull Request）以变基合并（rebase merge）进入 `main`，保持线性历史；不直接提交到 `main`。
+- **待办清单（to-do list）**：`TODO.md` 是唯一的任务清单，`DONE.md` 是完成日志（done log）。条目格式见两个文件开头，设计见 `design/006-plan_*`。
+  - **先登记再动手**：任何要做的独立任务先写进 `TODO.md`：马上做的放"进行中（Doing）"；排定的按优先级插入"下一步（Next）"；暂不排序的放"待办池（Backlog）"末尾。当前条目内部的小步骤写在它的 `计划：`/`备注：` 子条目里，不另开编号。研究自身的开放问题留在该研究 `README.md` 的"开放问题"一节，排上日程时再登记到 `TODO.md`。只登记、不开工时，随当前分支提交；手上没有分支时，开一个 `chore/todo-<内容>` 小分支走 PR。
+  - **编号**：`T-NNN`（三位数字），取 `TODO.md` 与 `DONE.md` 中最大编号加 1，永不复用。两个分支撞号时，先合入 `main` 的保留，后合入的改号，并同步修改 `来源 T-NNN` 与计划中的引用。
+  - **按复杂度写计划**：改动多个模块、新增核心库能力或需要分环节审查的，写工作计划（见下一条），条目只放链接；其余任务在条目下用 `计划：` 写几行步骤，然后开工。研究的预注册写在该研究的 `README.md` 中，不因此单独写 design 计划。
+  - **开工**：把条目移到"进行中"，写上分支名，尽早推送分支并开草稿 PR（draft PR），让别的会话看得见。分支上的 `TODO.md` 改动要合并后才出现在 `main`，所以开工或分配编号之前，先看未合并的分支与 PR 是否已在做这件事或用了这个编号（`gh pr list`；各分支上用过的编号可用 `git grep -h -o "T-[0-9]\{3\}" $(git for-each-ref --format="%(refname)" refs/heads refs/remotes) -- TODO.md DONE.md` 查看）。
+  - **不属于当前分支的问题不顺手修**：工作中发现的其他问题登记到"待办池"末尾，写明 `来源 T-NNN`，然后回到当前任务。
+  - **完成或放弃**：在同一个分支里（被放弃的分支除外，见下条）把条目从 `TODO.md` 删除，加到 `DONE.md` 当月小节（`## YYYY-MM`，没有就在最上面新建）；条目按日期倒序，变基（rebase）遇到冲突时按日期重排。完成写 `[x]`、日期、PR 编号和一句结果（先开 PR，拿到编号后补进条目再合并），复杂任务再加计划链接；一个任务分多个 PR 时，条目留在"进行中"直到最后一个 PR，写最后的 PR 编号；放弃写 `[-]`、日期和原因。
+  - **放弃或暂停一个分支**：删除分支之前，用一个小 PR 把它的状态落到 `main`：本分支的条目移入 `DONE.md` 标 `[-]` 并写原因，或者（暂停时）放回"下一步"/"待办池"并在 `备注：` 里写明进度；分支上新登记的其他条目一并带过去，不随分支丢失。
+  - **整理**：每次改 `TODO.md` 时顺手看一眼待办池：失效的标 `[-]` 移走，变重要的提到"下一步"。
+  - `STATUS.md` 不再列待办，只记全局状态与时间点；`python -m pytest` 会检查两个文件的格式与编号。
 - **复杂任务先写工作计划（work plan）**：
   - 放在 `design/NNN-plan_<核心内容>.md`，编号取当前最大值加 1，文件名必须表达核心内容。
   - 在 `design/README.md` 索引中登记。
@@ -100,7 +112,7 @@ LRU 指最近最少使用（Least Recently Used）的清理策略。
   - 天体名称、星表编号、数值、单位、文献引用、代码与命令不翻译。
 - **引用前先核实**：路线图中标为 [S] 或 [U] 的条目，动手前要提升到 [V]，即对照原文核实。
 - **及时抽出技能（skills）**：某个研究动作第二次出现，或者步骤多、容易做错时，就把它写成技能，放在 `.claude/skills/<name>/SKILL.md`。
-  - 已有技能：独立审稿（referee）、服务器端查询（server-side query）、双闸代码审查（dual-gate review）。已规划：新建研究、文献核实、出报告。
+  - 已有技能：独立审稿（referee）、服务器端查询（server-side query）、双闸代码审查（dual-gate review）。待抽出的技能登记在 `TODO.md`。
   - 技能里只写流程与检查清单；具体规则仍以本文件为准，两者不重复。
 
 ## 第三条：运行命令
@@ -127,6 +139,7 @@ python -m pytest                          # 核心库测试 + 各研究的结论
 | `atlas/web/` | 宏观总览页；`base.css` 为所有页面共享 |
 | `studies/NNN-slug/` | 每个研究问题一个文件夹，模板在 `studies/_template/` |
 | `design/` | 设计文献：原则、工作计划、决策、复盘 |
+| `TODO.md` / `DONE.md` | 待办清单与完成日志（见第二条） |
 
 单个研究文件夹的内容：
 
@@ -148,5 +161,5 @@ python -m pytest                          # 核心库测试 + 各研究的结论
 - 测试通过。
 - 网页可用。
 - 关联结论条目已更新复现值（`ours`）与状态。
-- `log.md` 和 `STATUS.md` 已更新。
+- `log.md` 和 `STATUS.md` 已更新；`TODO.md` 中的条目已移入 `DONE.md`。
 - 已做过独立审稿（referee）：派一个子智能体（subagent），只给它代码与结果，不给我们的结论，专门找系统误差（systematics）与选择效应（selection effects）。
