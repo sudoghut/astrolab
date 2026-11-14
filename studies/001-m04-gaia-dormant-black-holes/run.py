@@ -34,8 +34,10 @@ RELEASES = {
     # fetched (information barrier): covariance_trusted (corr_vec order), epoch_gap_yr (DR4
     # reference epoch - 2016.0).
     # neighbourhood: the DR3-DR4 cross-match table, assumed by analogy with DR3's dr2_neighbourhood
-    # (angular_distance in mas); confirmed or corrected from TAP_SCHEMA on release day (barrier).
-    # If TAP_SCHEMA does not list it, resolution is direct-id only (recorded in the summary).
+    # (angular_distance in mas). Release day, under the barrier: confirm or correct it from TAP_SCHEMA,
+    # or set None if DR4 publishes no such table (then resolution is direct-id only). A configured
+    # table that TAP_SCHEMA does not list, or lists without these columns, stops the run before any
+    # source-level data are fetched.
     "dr4": {"label": "Gaia DR4", "rv_veto": {"max_period_d": 1000.0, "max_ecc": 0.8},
             "covariance_trusted": False, "epoch_gap_yr": 1.5,
             # The column must exist in TAP_SCHEMA, or the run stops. On release day (logged before the
@@ -162,6 +164,35 @@ def dr3_reference_dir(ctx) -> Path:
 
 # ---------------------------------------------------------------------------------------------
 # Queries
+
+def release_constants(release):
+    """RELEASES[release] plus the release's astrometric types (screen.ASTROMETRIC_TYPES)."""
+    return dict(RELEASES[release], astrometric_types=tuple(ASTROMETRIC_TYPES[release]))
+
+
+def check_neighbourhood(ctx, schema, label, nbs):
+    """Validate the configured cross-match table against TAP_SCHEMA (metadata only, before any
+    source-level data). Returns the spec to use, or None if the release declares none."""
+    if not nbs:
+        return None
+    tables = ctx.tap(f"SELECT table_name FROM tap_schema.tables WHERE schema_name = '{schema}'",
+                     label="tables (TAP_SCHEMA)", release=label, max_rows=5000)
+    listed = {str(t).split(".")[-1].lower() for t in tables.table_name}
+    if not listed:
+        raise SystemExit(f"TAP_SCHEMA lists no tables for {schema}: metadata unavailable; nothing written")
+    if nbs["table"].lower() not in listed:
+        raise SystemExit(f"cross-match table {schema}.{nbs['table']} is not in TAP_SCHEMA: correct "
+                         f"RELEASES[...]['neighbourhood'] to the published table, or set it to None if the release "
+                         f"publishes none (logged, information barrier); nothing written")
+    meta = ctx.tap(f"SELECT column_name FROM tap_schema.columns WHERE table_name = '{schema}.{nbs['table']}'",
+                   label="neighbourhood columns (TAP_SCHEMA)", release=label, max_rows=200)
+    cols = {str(c).split(".")[-1].lower() for c in meta.column_name}
+    missing = sorted({nbs["old"], nbs["new"], nbs["distance"]} - cols)
+    if missing:
+        raise SystemExit(f"{schema}.{nbs['table']} lacks {missing}: correct RELEASES[...]['neighbourhood'] "
+                         f"from TAP_SCHEMA (logged) before running; nothing written")
+    return nbs
+
 
 def available_columns(ctx, schema, label, rv_col="rv_amplitude_robust"):
     """Which optional per-row columns this release has (TAP_SCHEMA: metadata, barrier-safe).
@@ -318,7 +349,7 @@ def ns_recall(ctx, release, label, screen_df):
 def reproduce_targets(ctx, params, rel, id_map, sol, positions):
     """id_map: name -> source_id in this release (None: unresolved). sol: vetted solutions."""
     label = rel["label"]
-    prim = sel.primary_solutions(sol, params["unvalidated_types"], ASTROMETRIC_TYPES) if not sol.empty else sol
+    prim = sel.primary_solutions(sol, params["unvalidated_types"], rel["astrometric_types"]) if not sol.empty else sol
     out, targets = [], []
     for name, t in TARGETS.items():
         p = positions[positions.source_id == id_map.get(name)] if id_map.get(name) is not None else positions.iloc[:0]
@@ -376,7 +407,9 @@ def reproduce_targets(ctx, params, rel, id_map, sol, positions):
 # ---------------------------------------------------------------------------------------------
 # DR4-only criteria (README DR4 addendum to section 2)
 
-def resolve_dr3_ids(ctx, schema, label, rel, ref_dir):
+def resolve_dr3_ids(ctx, schema, label, rel, ref_dir, nbs=None):
+    """Direct id + identity check; then the validated cross-match table (check_neighbourhood) for
+    the ids that failed. nbs=None: direct-id resolution only (declared for this release)."""
     ref = _rows(json.loads((ref_dir / "reference_ids.json").read_text(encoding="utf-8")))
     ref["source_id"] = ref.source_id.astype("int64")
     frames = [ctx.tap(f"SELECT source_id, ra, dec, pmra, pmdec, phot_g_mean_mag FROM {schema}.gaia_source "
@@ -384,30 +417,10 @@ def resolve_dr3_ids(ctx, schema, label, rel, ref_dir):
                       max_rows=len(c) + 10) for c in _chunks(ref.source_id)]
     found = pd.concat(frames, ignore_index=True)
     res = sel.resolve_ids(ref, found, rel["epoch_gap_yr"])
-    res.attrs["neighbourhood"] = "not used"
-    nbs = rel.get("neighbourhood")
+    res.attrs["neighbourhood"] = "none declared for this release: direct-id resolution only" if not nbs else "not needed"
     failed = [int(i) for i in res.dr3_id[res.dr4_id.isna()]]
     if not nbs or not failed:
         return res
-    # Three cases: metadata unavailable -> stop; table listed but spec does not match -> stop (fix the
-    # spec on release day, under the barrier); table genuinely absent -> direct-id resolution only.
-    tables = ctx.tap(f"SELECT table_name FROM tap_schema.tables WHERE schema_name = '{schema}'",
-                     label="tables (TAP_SCHEMA)", release=label, max_rows=5000)
-    listed = {str(t).split(".")[-1].lower() for t in tables.table_name}
-    if not listed:
-        raise SystemExit(f"TAP_SCHEMA lists no tables for {schema}: metadata unavailable; nothing written")
-    if nbs["table"].lower() not in listed:
-        note = f"{schema}.{nbs['table']} not published: direct-id resolution only"
-        ctx.log(note)
-        res.attrs["neighbourhood"] = note
-        return res
-    meta = ctx.tap(f"SELECT column_name FROM tap_schema.columns WHERE table_name = '{schema}.{nbs['table']}'",
-                   label="neighbourhood columns (TAP_SCHEMA)", release=label, max_rows=200)
-    cols = {str(c).split(".")[-1].lower() for c in meta.column_name}
-    missing = sorted({nbs["old"], nbs["new"], nbs["distance"]} - cols)
-    if missing:
-        raise SystemExit(f"{schema}.{nbs['table']} is published but lacks {missing}: correct "
-                         f"RELEASES[...]['neighbourhood'] from TAP_SCHEMA (logged) before running; nothing written")
     nb = pd.concat([ctx.tap(f"SELECT {nbs['old']} AS old_id, {nbs['new']} AS new_id, {nbs['distance']} AS dist "
                             f"FROM {schema}.{nbs['table']} WHERE {nbs['old']} IN ({_ids(c)})",
                             label="DR3-DR4 neighbourhood", release=label, max_rows=50 * len(c))
@@ -433,7 +446,7 @@ def dr4_criteria(params, rel, res, sol_all, target_recs, screen_df, screen_n, re
     """
     unval, m2_min = params["unvalidated_types"], params["m2_bh_min"]
     dmap = {int(r.dr3_id): (None if pd.isna(r.dr4_id) else int(r.dr4_id)) for r in res.itertuples()}
-    prim = sel.primary_solutions(sol_all, unval, ASTROMETRIC_TYPES)
+    prim = sel.primary_solutions(sol_all, unval, rel["astrometric_types"])
     prim_by = {int(r.source_id): r._asdict() for r in prim.itertuples(index=False)} if not prim.empty else {}
 
     def primary_of(dr3_id):
@@ -464,7 +477,7 @@ def dr4_criteria(params, rel, res, sol_all, target_recs, screen_df, screen_n, re
     passes, ns_rows = [], []
     for sid in ns.gaia_dr3:
         resolved, p = primary_of(sid)
-        ok = sel.in_screen_cuts(p, ASTROMETRIC_TYPES, params["plx_snr_min"], params["fm_min"]) if p else None
+        ok = sel.in_screen_cuts(p, rel["astrometric_types"], params["plx_snr_min"], params["fm_min"]) if p else None
         if p is not None:
             passes.append(ok)
         ns_rows.append({"gaia_dr3": str(sid), "resolved": resolved, "has_solution": p is not None, "passes_cuts": ok})
@@ -522,7 +535,7 @@ def dr4_criteria(params, rel, res, sol_all, target_recs, screen_df, screen_n, re
         dr3_87 = {dmap.get(int(i)) for i in cand3.source_id}
         hi = screen_df[screen_df.m2 > m2_min]
         new_ids = sorted(set(hi.source_id.astype("int64")) - dr3_87)
-        p3 = sel.primary_solutions(s3_sol[s3_sol.source_id.isin(new_ids)], unval, ASTROMETRIC_TYPES)
+        p3 = sel.primary_solutions(s3_sol[s3_sol.source_id.isin(new_ids)], unval, rel["astrometric_types"])
         if len(p3):
             p3 = p3.copy()
             p3["m1_used"] = p3.mass_flame.where(np.isfinite(p3.mass_flame), 1.0)
@@ -552,7 +565,7 @@ def main(ctx):
     release = params["release"]
     if release not in RELEASES or release not in SCHEMAS:
         raise SystemExit(f"release must be one of {sorted(RELEASES)}, not {release!r}")
-    rel, schema = RELEASES[release], SCHEMAS[release]
+    rel, schema = release_constants(release), SCHEMAS[release]
     label = rel["label"]
     unval = params["unvalidated_types"]
     guard_results(ctx, release)
@@ -571,7 +584,8 @@ def main(ctx):
     else:
         ref_dir = dr3_reference_dir(ctx)
         optional = available_columns(ctx, schema, label, rel.get("rv_amplitude_column", "rv_amplitude_robust"))
-        res = resolve_dr3_ids(ctx, schema, label, rel, ref_dir)
+        nbs = check_neighbourhood(ctx, schema, label, rel.get("neighbourhood"))   # metadata only
+        res = resolve_dr3_ids(ctx, schema, label, rel, ref_dir, nbs)
         dmap = {int(r.dr3_id): (None if pd.isna(r.dr4_id) else int(r.dr4_id)) for r in res.itertuples()}
     id_map = {name: dmap.get(int(sid)) for name, sid in controls.items()}
     flame = True if optional is None else [c for c in FLAME_COLS if c in optional]
@@ -607,7 +621,7 @@ def main(ctx):
     out["targets"], out["reproduction"] = targets, repro
 
     # Controls: vetoed if the primary solution is vetoed (README s5 note 2026-11-14). Ids in this release.
-    prim = sel.primary_solutions(sol, unval, ASTROMETRIC_TYPES)
+    prim = sel.primary_solutions(sol, unval, rel["astrometric_types"])
     ctrl_ids = {dmap.get(int(i)): int(i) for i in ctrl_dr3}
     ctrl_prim = prim[prim.source_id.isin([i for i in ctrl_ids if i is not None])].set_index("source_id")
     controls_vetoed = [f"{i} ({r.nss_solution_type})" for i, r in ctrl_prim.iterrows() if r.vetoed]
@@ -626,7 +640,7 @@ def main(ctx):
                  for i, r in ctrl_prim.iterrows()],
     }
 
-    summary = {"release": release, "params": params, "astrometric_types": list(ASTROMETRIC_TYPES),
+    summary = {"release": release, "params": params, "astrometric_types": list(rel["astrometric_types"]),
                "release_constants": rel, "optional_columns": sorted(optional) if optional is not None else "all",
                "ambiguous_flame_sources": {"screen": int(ambiguous_screen), "solutions": int(ambiguous_flame)},
                "sources_with_same_type_solutions": _capped_list(

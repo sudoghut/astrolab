@@ -26,12 +26,12 @@
 
 - **新增**：`reference_ids.json`（109 个 DR3 编号的位置与星等），以及 `bh_candidates` 中的 `period_error`。
 - **数值不变**：除下一条外，DR3 的预注册与事后数值全部不变。
-- **例外**：BH2 的蒙特卡罗中位数由 8.521 变为 8.517 M☉（−0.575σ → −0.581σ），判定不变。原因是 BH2 所用协方差块的条件数约 1.8e7，新环境的 LAPACK 给出另一种等价分解，属于约 1σ 的蒙特卡罗噪声。
+- **例外**：BH2 的蒙特卡罗（Monte Carlo）中位数由 8.521 变为 8.517 M☉（−0.575σ → −0.581σ），判定不变。原因是 BH2 所用协方差（covariance）块的条件数（condition number）约 1.8e7，新环境的 LAPACK 给出另一种等价分解；变化约为一个中位数标准误（standard error of the median，约 0.005 M☉）。
 - **结论**：DR3 的蒙特卡罗数值不能在不同机器之间逐位复现。
 
 **环境**：本机用户目录里的 numpy 2 与 Anaconda 的 astropy 不兼容。为此在 `%LOCALAPPDATA%\astrolab\venv` 建了虚拟环境，用法写在不入库的 `CLAUDE.local.md`。
 
-**DR4 演练（rehearsal）**：在暂存目录中把 DR4 模式临时指向 DR3 数据，跑通整条 DR4 路径。结果符合预期：
+**DR4 演练（rehearsal）**：在暂存目录（scratchpad）中把 DR4 的模式（schema）临时指向 DR3 数据，跑通整条 DR4 路径。结果符合预期：
 
 - 109/109 个编号解析成功；
 - R1–R3 不可评估（协方差未确认可信），S1、S2、V 通过；
@@ -46,7 +46,7 @@
 
 **网页**：`web/index.html` 按 `summary.release` 显示 DR3 或 DR4 的判据；`results/dr3/` 存在时提供 DR4/DR3 切换。
 
-**双闸审查（dual-gate review）**：三个环节都通过，过程见计划 008 的执行记录。
+**双闸审查（dual-gate review）**：环节 1、2 已通过；环节 3 的结论见计划 008 的执行记录。
 
 ## 2026-11-11
 

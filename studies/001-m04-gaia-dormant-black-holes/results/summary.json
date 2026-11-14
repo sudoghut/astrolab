@@ -24,7 +24,15 @@
   "rv_veto": null,
   "covariance_trusted": true,
   "epoch_gap_yr": 0.0,
-  "rv_amplitude_column": "rv_amplitude_robust"
+  "rv_amplitude_column": "rv_amplitude_robust",
+  "astrometric_types": [
+   "Orbital",
+   "AstroSpectroSB1",
+   "OrbitalTargetedSearch",
+   "OrbitalTargetedSearchValidated",
+   "OrbitalAlternative",
+   "OrbitalAlternativeValidated"
+  ]
  },
  "optional_columns": "all",
  "ambiguous_flame_sources": {
