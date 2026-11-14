@@ -12,9 +12,11 @@ One chain per system i (1 = BH1, 2 = BH2, 3 = BH3):
   no light + that mass                     ->  no main-sequence star carries the mass
   ... and no other luminous star either    ->  the mass is not in luminous stars
   at most two objects + compact-object mass limits -> the companion contains a black hole
+      (BH3: neutron stars excluded by the paper, white dwarfs by the textbook step lit_wd3)
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
-Masses are in tenths of a solar mass (Nat). Quotes follow the arXiv HTML text (math rendered as
+Masses are in tenths of a solar mass (Nat). Thresholds per system: BH1 more than 5 Msun
+(the RV-only bound), BH2 at least 8.0, BH3 at least 30.0 (about 3 sigma below the published masses). Quotes follow the arXiv HTML text (math rendered as
 plain text). Hedged statements (very unlikely, unlikely to be stable) are encoded as assertions.
 -/
 
@@ -60,7 +62,7 @@ structure Vocab where
   fit2 : Nat
   /-- BH2: true companion mass, tenths of Msun. -/
   mass2 : Nat
-  /-- BH2: spectra, SED and UV show no light from a second luminous star. -/
+  /-- BH2: the blue optical spectrum shows no second star contributing more than about 2 percent of the light. -/
   Faint2 : Prop
   /-- BH2: no main-sequence star (nor a close pair of them) carries the companion mass. -/
   NoMS2 : Prop
@@ -86,6 +88,8 @@ structure Vocab where
   NoStar3 : Prop
   /-- BH3: the companion consists of at most two objects. -/
   Few3 : Prop
+  /-- BH3: the companion is neither one nor two neutron stars. -/
+  NoNS3 : Prop
   /-- BH3: the companion contains at least one black hole. -/
   BH3 : Prop
 
@@ -99,7 +103,7 @@ inductive Field where
   | stat_fit1
   /-- MOD [implied] mass from the joint orbit fit: Kepler's third law with a dark companion (zero flux ratio), and a 9.62 ± 0.18 estimate being well above 5 Msun (textbook, e.g. Murray and Dermott 1999, Solar System Dynamics) -/
   | mod_fit1
-  /-- NUM [stated 2209.06833: "12.8±2.0"] Table 1, astrometry-only block, black hole mass; recomputed from DR3 by run.py (posterior median) NUM[results/summary.json:post_hoc.R1b_bh1_vs_dr3_only_paper.m2_ours >= 5.0] -/
+  /-- NUM [stated 2209.06833: "12.8±2.0"] Table 1, astrometry-only block, black hole mass; recomputed from DR3 by run.py (posterior median) NUM[results/summary.json:post_hoc.R1b_bh1_vs_dr3_only_paper.m2_ours > 5.0] -/
   | num_astro1
   /-- MOD [implied] mass from the astrometric orbit alone: Kepler's third law with a dark companion (textbook, e.g. Murray and Dermott 1999) -/
   | mod_astro1
@@ -115,7 +119,7 @@ inductive Field where
   | mod_other1
   /-- MOD [stated 2209.06833: "Scenarios involving more than two objects inside the G star's orbit are difficult to assemble and unlikely to be dynamically stable"] Sec. 8.2 -/
   | mod_few1
-  /-- LIT [implied] one or two compact objects without a black hole weigh less than 5 Msun: white dwarfs below the Chandrasekhar mass (Chandrasekhar 1931, 1931ApJ....74...81C), neutron stars below about 2.3 Msun (Ozel and Freire 2016, arXiv:1603.02698) -/
+  /-- LIT [implied] one or two compact objects without a black hole weigh at most about 5 Msun, and a dark compact object above that contains a black hole (no exotic compact objects): white dwarfs below the Chandrasekhar mass (Chandrasekhar 1931, 1931ApJ....74...81C), neutron stars at most about 2.3-2.5 Msun (Ozel and Freire 2016, arXiv:1603.02698); the paper names both limits without numbers (Sec. 8.1) -/
   | lit_ns1
   /-- OBS [stated 2302.07880: "The follow-up RVs are fully consistent with the Gaia-only solution"] Sec. 3.7.1 -/
   | obs_rv2
@@ -141,7 +145,7 @@ inductive Field where
   | mod_rv3
   /-- STAT [stated 2404.10486: "implies the presence of a 32.70±0.82 M⊙ BH"] Abstract, Eq. 5 -/
   | stat_fit3
-  /-- MOD [stated 2404.10486: "can be used to solve for the mass of the dark companion"] Sec. 2.2-2.3 (Eqs. 2, 5); the step from the published 32.70 ± 0.82 to a bound of 5 Msun is the same textbook step as in mod_fit1 -/
+  /-- MOD [implied] mass from the combined orbit fit with a dark companion, and the published 32.70 ± 0.82 being above 30 Msun (textbook, e.g. Murray and Dermott 1999); the paper gives the method in Sec. 2.2-2.3 (Eqs. 2, 5) -/
   | mod_fit3
   /-- OBS [stated 2404.10486: "The spectra do not show any sign of the presence of a second component, nor any emission line"] Appendix C -/
   | obs_faint3
@@ -153,6 +157,8 @@ inductive Field where
   | gap_few3
   /-- MOD [stated 2404.10486: "The estimated mass is also too large for one neutron star or two neutron stars in a close orbit"] Sec. 3 -/
   | mod_ns3
+  /-- LIT [implied] the remaining options without a black hole (one or two white dwarfs, a white dwarf and a neutron star) weigh far less than 30 Msun: Chandrasekhar 1931, 1931ApJ....74...81C; Ozel and Freire 2016, arXiv:1603.02698 -/
+  | lit_wd3
   deriving DecidableEq, Repr
 
 def prov : Field → Prov
@@ -181,49 +187,51 @@ def prov : Field → Prov
   | .obs_rv3 => .stated
   | .mod_rv3 => .stated
   | .stat_fit3 => .stated
-  | .mod_fit3 => .stated
+  | .mod_fit3 => .implied
   | .obs_faint3 => .stated
   | .mod_dark3 => .stated
   | .mod_other3 => .implied
   | .gap_few3 => .reconstructed
   | .mod_ns3 => .stated
+  | .lit_wd3 => .implied
 
 def prem : Field → Vocab → Prop
   | .obs_rv1, v => v.RVok1
   | .mod_rv1, v => v.RVok1 → v.Orbit1
   | .stat_fit1, v => v.fit1 ≥ 90
-  | .mod_fit1, v => v.Orbit1 → v.fit1 ≥ 90 → v.mass1 ≥ 50
-  | .num_astro1, v => v.astro1 ≥ 50
-  | .mod_astro1, v => v.Orbit1 → v.astro1 ≥ 50 → v.mass1 ≥ 50
-  | .stat_rvmin1, v => v.rvmin1 ≥ 50
-  | .mod_rvmin1, v => v.rvmin1 ≥ 50 → v.mass1 ≥ 50
+  | .mod_fit1, v => v.Orbit1 → v.fit1 ≥ 90 → v.mass1 > 50
+  | .num_astro1, v => v.astro1 > 50
+  | .mod_astro1, v => v.Orbit1 → v.astro1 > 50 → v.mass1 > 50
+  | .stat_rvmin1, v => v.rvmin1 > 50
+  | .mod_rvmin1, v => v.rvmin1 > 50 → v.mass1 > 50
   | .obs_faint1, v => v.Faint1
-  | .mod_dark1, v => v.Faint1 → v.mass1 ≥ 50 → v.NoMS1
+  | .mod_dark1, v => v.Faint1 → v.mass1 > 50 → v.NoMS1
   | .mod_other1, v => v.Faint1 → v.NoMS1 → v.NoStar1
   | .mod_few1, v => v.Few1
-  | .lit_ns1, v => v.NoStar1 → v.Few1 → v.mass1 ≥ 50 → v.BH1
+  | .lit_ns1, v => v.NoStar1 → v.Few1 → v.mass1 > 50 → v.BH1
   | .obs_rv2, v => v.RVok2
   | .mod_rv2, v => v.RVok2 → v.Orbit2
   | .stat_fit2, v => v.fit2 ≥ 80
-  | .mod_fit2, v => v.Orbit2 → v.fit2 ≥ 80 → v.mass2 ≥ 50
+  | .mod_fit2, v => v.Orbit2 → v.fit2 ≥ 80 → v.mass2 ≥ 80
   | .obs_faint2, v => v.Faint2
-  | .mod_dark2, v => v.Faint2 → v.mass2 ≥ 50 → v.NoMS2
+  | .mod_dark2, v => v.Faint2 → v.mass2 ≥ 80 → v.NoMS2
   | .mod_other2, v => v.Faint2 → v.NoMS2 → v.NoStar2
   | .mod_few2, v => v.Few2
-  | .mod_ns2, v => v.NoStar2 → v.Few2 → v.mass2 ≥ 50 → v.BH2
+  | .mod_ns2, v => v.NoStar2 → v.Few2 → v.mass2 ≥ 80 → v.BH2
   | .obs_rv3, v => v.RVok3
   | .mod_rv3, v => v.RVok3 → v.Orbit3
   | .stat_fit3, v => v.fit3 ≥ 300
-  | .mod_fit3, v => v.Orbit3 → v.fit3 ≥ 300 → v.mass3 ≥ 50
+  | .mod_fit3, v => v.Orbit3 → v.fit3 ≥ 300 → v.mass3 ≥ 300
   | .obs_faint3, v => v.Faint3
-  | .mod_dark3, v => v.Faint3 → v.mass3 ≥ 50 → v.NoMS3
+  | .mod_dark3, v => v.Faint3 → v.mass3 ≥ 300 → v.NoMS3
   | .mod_other3, v => v.Faint3 → v.NoMS3 → v.NoStar3
   | .gap_few3, v => v.Few3
-  | .mod_ns3, v => v.NoStar3 → v.Few3 → v.mass3 ≥ 50 → v.BH3
+  | .mod_ns3, v => v.NoStar3 → v.Few3 → v.mass3 ≥ 300 → v.NoNS3
+  | .lit_wd3, v => v.NoNS3 → v.Few3 → v.mass3 ≥ 300 → v.BH3
 
 /-- [stated 2209.06833: "We find no plausible astrophysical scenario that can explain the orbit and does not involve a black hole"] Abstract;
 [stated 2302.07880: "We conclude that if the Gaia astrometric solution is correct, the companion must be a BH, or a close binary containing a BH"] Sec. 4;
-[stated 2404.10486: "Although the single BH is the simplest explanation, the hypothesis of an inner binary of two BHs cannot be excluded"] Sec. 3 -/
+[stated 2404.10486: "implies the presence of a 32.70±0.82 M⊙ BH"] Abstract -/
 def Conclusion (v : Vocab) : Prop := v.BH1 ∧ v.BH2 ∧ v.BH3
 
 -- FIXED BLOCK B (identical in every study)
@@ -235,34 +243,35 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 
 /-- A model in which every premise and the conclusion hold; countermodels change a few fields. -/
 def full : Vocab :=
-  { RVok1 := True, Orbit1 := True, fit1 := 90, astro1 := 50, rvmin1 := 50, mass1 := 50,
+  { RVok1 := True, Orbit1 := True, fit1 := 90, astro1 := 51, rvmin1 := 51, mass1 := 51,
     Faint1 := True, NoMS1 := True, NoStar1 := True, Few1 := True, BH1 := True,
-    RVok2 := True, Orbit2 := True, fit2 := 80, mass2 := 50, Faint2 := True,
+    RVok2 := True, Orbit2 := True, fit2 := 80, mass2 := 80, Faint2 := True,
     NoMS2 := True, NoStar2 := True, Few2 := True, BH2 := True,
-    RVok3 := True, Orbit3 := True, fit3 := 300, mass3 := 50, Faint3 := True,
-    NoMS3 := True, NoStar3 := True, Few3 := True, BH3 := True }
+    RVok3 := True, Orbit3 := True, fit3 := 300, mass3 := 300, Faint3 := True,
+    NoMS3 := True, NoStar3 := True, Few3 := True, NoNS3 := True, BH3 := True }
 
 /-- The papers' chains, step by step. -/
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   -- BH1 (El-Badry et al. 2023a)
   have o1 : v.Orbit1 := p .mod_rv1 (p .obs_rv1)                 -- Sec. 3.2, 4.2.1
-  have m1 : v.mass1 ≥ 50 := p .mod_fit1 o1 (p .stat_fit1)       -- Sec. 4.1
+  have m1 : v.mass1 > 50 := p .mod_fit1 o1 (p .stat_fit1)        -- Sec. 4.1
   have s1 : v.NoMS1 := p .mod_dark1 (p .obs_faint1) m1          -- Sec. 5.1.1, 8.1
   have n1 : v.NoStar1 := p .mod_other1 (p .obs_faint1) s1       -- Sec. 5.1.1
   have b1 : v.BH1 := p .lit_ns1 n1 (p .mod_few1) m1             -- Sec. 8.2 (mass limits implied)
   -- BH2 (El-Badry et al. 2023b)
   have o2 : v.Orbit2 := p .mod_rv2 (p .obs_rv2)                 -- Sec. 3.7.1, 4.1
-  have m2 : v.mass2 ≥ 50 := p .mod_fit2 o2 (p .stat_fit2)       -- Sec. 3.7.3
+  have m2 : v.mass2 ≥ 80 := p .mod_fit2 o2 (p .stat_fit2)       -- Sec. 3.7.3
   have s2 : v.NoMS2 := p .mod_dark2 (p .obs_faint2) m2          -- Sec. 3.8.1, 4
   have n2 : v.NoStar2 := p .mod_other2 (p .obs_faint2) s2       -- Sec. 4
   have b2 : v.BH2 := p .mod_ns2 n2 (p .mod_few2) m2             -- Sec. 4, 7
   -- BH3 (Gaia Collaboration, Panuzzo et al. 2024)
   have o3 : v.Orbit3 := p .mod_rv3 (p .obs_rv3)                 -- Sec. 2.3
-  have m3 : v.mass3 ≥ 50 := p .mod_fit3 o3 (p .stat_fit3)       -- Sec. 2.2, Eq. 5
+  have m3 : v.mass3 ≥ 300 := p .mod_fit3 o3 (p .stat_fit3)      -- Sec. 2.2-2.3, Eq. 5
   have s3 : v.NoMS3 := p .mod_dark3 (p .obs_faint3) m3          -- App. C, Sec. 3
   have n3 : v.NoStar3 := p .mod_other3 (p .obs_faint3) s3       -- textbook step
-  have b3 : v.BH3 := p .mod_ns3 n3 (p .gap_few3) m3             -- Sec. 3 (three or more: not discussed)
+  have k3 : v.NoNS3 := p .mod_ns3 n3 (p .gap_few3) m3           -- Sec. 3 (three or more: not discussed)
+  have b3 : v.BH3 := p .lit_wd3 k3 (p .gap_few3) m3             -- white dwarfs: textbook step
   exact ⟨b1, b2, b3⟩
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
@@ -274,7 +283,7 @@ theorem consistent : ∃ v, Premises v :=
 theorem alone_insufficient : ∀ g, ¬ ∀ v, prem g v → Conclusion v := by
   intro g h
   cases g
-  case mod_ns3 => exact (h { full with BH1 := False } (by simp [prem, full])).1
+  case lit_wd3 => exact (h { full with BH1 := False } (by simp [prem, full])).1
   all_goals exact (h { full with BH3 := False } (by simp [prem, full])).2.2
 
 /-- The premises that give BH1's mass (three routes: joint fit, astrometry alone, RVs alone). -/
@@ -290,21 +299,21 @@ def massRoute1 : Field → Bool
   | _ => false
 
 /-- Everything after BH1's mass step, given that mass and every premise outside the mass routes. -/
-theorem tail (v : Vocab) (q : ∀ f, massRoute1 f = false → prem f v) (m1 : v.mass1 ≥ 50) :
+theorem tail (v : Vocab) (q : ∀ f, massRoute1 f = false → prem f v) (m1 : v.mass1 > 50) :
     Conclusion v := by
   have s1 : v.NoMS1 := q .mod_dark1 rfl (q .obs_faint1 rfl) m1
   have n1 : v.NoStar1 := q .mod_other1 rfl (q .obs_faint1 rfl) s1
   have o2 : v.Orbit2 := q .mod_rv2 rfl (q .obs_rv2 rfl)
-  have m2 : v.mass2 ≥ 50 := q .mod_fit2 rfl o2 (q .stat_fit2 rfl)
+  have m2 : v.mass2 ≥ 80 := q .mod_fit2 rfl o2 (q .stat_fit2 rfl)
   have s2 : v.NoMS2 := q .mod_dark2 rfl (q .obs_faint2 rfl) m2
   have n2 : v.NoStar2 := q .mod_other2 rfl (q .obs_faint2 rfl) s2
   have o3 : v.Orbit3 := q .mod_rv3 rfl (q .obs_rv3 rfl)
-  have m3 : v.mass3 ≥ 50 := q .mod_fit3 rfl o3 (q .stat_fit3 rfl)
+  have m3 : v.mass3 ≥ 300 := q .mod_fit3 rfl o3 (q .stat_fit3 rfl)
   have s3 : v.NoMS3 := q .mod_dark3 rfl (q .obs_faint3 rfl) m3
   have n3 : v.NoStar3 := q .mod_other3 rfl (q .obs_faint3 rfl) s3
   exact ⟨q .lit_ns1 rfl n1 (q .mod_few1 rfl) m1,
          q .mod_ns2 rfl n2 (q .mod_few2 rfl) m2,
-         q .mod_ns3 rfl n3 (q .gap_few3 rfl) m3⟩
+         q .lit_wd3 rfl (q .mod_ns3 rfl n3 (q .gap_few3 rfl) m3) (q .gap_few3 rfl) m3⟩
 
 -- BH1's mass is over-determined: each route premise is redundant.
 
@@ -399,38 +408,42 @@ theorem mod_ns2_needed : ¬ ∀ v, Without .mod_ns2 v → Conclusion v := fun h 
     (by intro f hf; cases f <;> simp_all [prem, full])).2.1
 
 theorem obs_rv3_needed : ¬ ∀ v, Without .obs_rv3 v → Conclusion v := fun h =>
-  (h { full with RVok3 := False, Orbit3 := False, mass3 := 0, NoMS3 := False, NoStar3 := False, BH3 := False }
+  (h { full with RVok3 := False, Orbit3 := False, mass3 := 0, NoMS3 := False, NoStar3 := False, NoNS3 := False, BH3 := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2
 
 theorem mod_rv3_needed : ¬ ∀ v, Without .mod_rv3 v → Conclusion v := fun h =>
-  (h { full with Orbit3 := False, mass3 := 0, NoMS3 := False, NoStar3 := False, BH3 := False }
+  (h { full with Orbit3 := False, mass3 := 0, NoMS3 := False, NoStar3 := False, NoNS3 := False, BH3 := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2
 
 theorem stat_fit3_needed : ¬ ∀ v, Without .stat_fit3 v → Conclusion v := fun h =>
-  (h { full with fit3 := 0, mass3 := 0, NoMS3 := False, NoStar3 := False, BH3 := False }
+  (h { full with fit3 := 0, mass3 := 0, NoMS3 := False, NoStar3 := False, NoNS3 := False, BH3 := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2
 
 theorem mod_fit3_needed : ¬ ∀ v, Without .mod_fit3 v → Conclusion v := fun h =>
-  (h { full with mass3 := 0, NoMS3 := False, NoStar3 := False, BH3 := False }
+  (h { full with mass3 := 0, NoMS3 := False, NoStar3 := False, NoNS3 := False, BH3 := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2
 
 theorem obs_faint3_needed : ¬ ∀ v, Without .obs_faint3 v → Conclusion v := fun h =>
-  (h { full with Faint3 := False, NoMS3 := False, NoStar3 := False, BH3 := False }
+  (h { full with Faint3 := False, NoMS3 := False, NoStar3 := False, NoNS3 := False, BH3 := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2
 
 theorem mod_dark3_needed : ¬ ∀ v, Without .mod_dark3 v → Conclusion v := fun h =>
-  (h { full with NoMS3 := False, NoStar3 := False, BH3 := False }
+  (h { full with NoMS3 := False, NoStar3 := False, NoNS3 := False, BH3 := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2
 
 theorem mod_other3_needed : ¬ ∀ v, Without .mod_other3 v → Conclusion v := fun h =>
-  (h { full with NoStar3 := False, BH3 := False }
+  (h { full with NoStar3 := False, NoNS3 := False, BH3 := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2
 
 theorem gap_few3_needed : ¬ ∀ v, Without .gap_few3 v → Conclusion v := fun h =>
-  (h { full with Few3 := False, BH3 := False }
+  (h { full with Few3 := False, NoNS3 := False, BH3 := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2
 
 theorem mod_ns3_needed : ¬ ∀ v, Without .mod_ns3 v → Conclusion v := fun h =>
+  (h { full with NoNS3 := False, BH3 := False }
+    (by intro f hf; cases f <;> simp_all [prem, full])).2.2
+
+theorem lit_wd3_needed : ¬ ∀ v, Without .lit_wd3 v → Conclusion v := fun h =>
   (h { full with BH3 := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2
 
@@ -443,7 +456,7 @@ theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
 /-- Even with standard knowledge the argument has a gap: the BH3 paper does not exclude three or
 more compact objects. The BH1 and BH2 papers argue it (as a plausibility statement). -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
-  (h { full with Few3 := False, BH3 := False }
+  (h { full with Few3 := False, NoNS3 := False, BH3 := False }
     (by intro f hf; cases f <;> simp_all [prov, prem, full])).2.2
 
 end Argument
