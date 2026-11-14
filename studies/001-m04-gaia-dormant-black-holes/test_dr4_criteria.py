@@ -35,7 +35,8 @@ def build(tmp_path):
         "source_id": [str(i) for i in surv] + [str(BH1)],
         "known": [False] * 4 + [True], "vetoed": [False] * 5, "literature": [""] * 5,
         "period": [300.0, 300.0, 300.0, 300.0, 185.6], "period_error": [2.0] * 5,
-        "m1_used": [1.0] * 5, "a0_mas": [1.0] * 5})
+        "m1_used": [1.0] * 5, "a0_mas": [1.0] * 5,
+        "nss_solution_type": ["Orbital"] * 5, "significance": [30.0] * 5})
     d = tmp_path / "dr3"
     d.mkdir()
     (d / "bh_candidates.json").write_text(ref.to_json(orient="columns"), encoding="utf-8")
