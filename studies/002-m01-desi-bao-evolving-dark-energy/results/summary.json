@@ -13,7 +13,6 @@
   "tol_dchi2": 1.0,
   "tol_r1_sigma": 0.3,
   "tol_r1_err": 0.2,
-  "tracers": "ALL",
   "drop_z": []
  },
  "targets": {
@@ -73,6 +72,7 @@
     "dev_sigma": -0.028830782936826265
    }
   },
+  "map_ok": true,
   "verdict": "reproduced"
  },
  "R3": {
@@ -327,9 +327,13 @@
   "K_check": {
    "dK_rel": 0.00024717158864145066,
    "A+": -6.976654410864038,
+   "A+_valid": true,
    "A-": -6.206837439518395,
+   "A-_valid": true,
    "B+": -8.438085132615722,
+   "B+_valid": true,
    "B-": -7.587021806868745,
+   "B-_valid": true,
    "second_point_dtheta100": 3.763732460781988e-05
   }
  }

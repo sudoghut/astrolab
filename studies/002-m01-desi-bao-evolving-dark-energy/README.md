@@ -168,11 +168,11 @@ Every fit passed the pre-registered validity checks (converged; at least 3 start
 - K check (diagnostic): K = 1.001141; shifting K by ±1 prior σ of θ* moves Δχ² by about ±0.4
   (A: −6.98 / −6.21; B: −8.44 / −7.59), so the θ* calibration cannot explain the 1.4 difference
   between the readings. Second reference point: Δ(100θ*) = 3.8×10⁻⁵ (0.15 prior σ).
-- **Finding.** The pre-registered "reading A" (supported only by indirect numerical evidence:
+- **Finding.** Reading A (initially favoured in planning, pre-registered in parallel with B; supported only by indirect numerical evidence:
   the chain's best fit plus ων rounds to Eq. 35's 0.14208) does not reproduce the paper; reading B,
   the paper's own definition next to Eq. 2, reproduces Δχ² and the posterior means. We record the
-  verdict as pre-registered (conditionally reproduced) and do not switch readings post hoc. The
-  likely explanation is that the published prior mean includes ων while the paper's code compares
+  verdict as pre-registered (conditionally reproduced) and do not switch readings post hoc. One
+  possible explanation (unverified speculation) is that the published prior mean includes ων while the paper's code compares
   it with ωb + ωc (or equivalently that the mean was shifted); this cannot be settled without
   the authors' likelihood configuration.
 

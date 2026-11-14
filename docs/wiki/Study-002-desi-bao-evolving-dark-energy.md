@@ -6,11 +6,11 @@
 BAO cosmology); Popovic et al. 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517 (DES
 supernova recalibration, "Dovekie"). Study:
 [`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy).
-Status: reproduced (2026-11-14; R2 conditionally). Last updated: 2026-11-14 (see the changelog at the end). The source of this page
+Status: active (results in; referee review pending). Last updated: 2026-11-14 (see the changelog at the end). The source of this page
 lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：DESI DR2：暗能量在演化吗？状态：已复现（2026-11-14；R2 为有条件复现）。论文：DESI 合作组 Abdul-Karim 等 2025, PRD 112, 083515, arXiv:2503.14738（DESI DR2 BAO 宇宙学）；Popovic 等 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517（DES 超新星重新校准，"Dovekie"）。研究：[`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：DESI DR2：暗能量在演化吗？状态：进行中（已有结果；独立审稿待做）。论文：DESI 合作组 Abdul-Karim 等 2025, PRD 112, 083515, arXiv:2503.14738（DESI DR2 BAO 宇宙学）；Popovic 等 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517（DES 超新星重新校准，"Dovekie"）。研究：[`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -343,11 +343,11 @@ recomputed every number it could from about 34 MB of public files, with its own 
   as the main weak point, is real and reproducible.
 - **R2, compressed CMB prior: conditionally reproduced.** With the prior's ωbc mean read as
   ωb + ωc (the paper's definition next to Eq. 2), Δχ²_MAP = −8.01 (2.4σ) and the posterior means
-  w0 = −0.44 ± 0.23, wa = −1.69 ± 0.66 match Eq. 24. With the reading we had pre-registered as
-  primary (the mean includes ων, supported only by indirect numerical evidence), Δχ²_MAP = −6.59
+  w0 = −0.44 ± 0.23, wa = −1.69 ± 0.66 match Eq. 24. With the reading initially favoured in planning (the mean includes ων, supported only by
+  indirect numerical evidence; pre-registered in parallel with B), Δχ²_MAP = −6.59
   (2.1σ). The θ* calibration shifts Δχ² by only ±0.4, so it cannot explain the difference. The
-  significance of the compressed-prior result therefore depends at the 0.3σ level on a parameter
-  convention the paper does not pin down.
+  significance of the compressed-prior result therefore depends at the 0.3σ level on a convention
+  on which the paper's stated definition and its quoted prior mean appear to disagree.
 - Not tested: the full-CMB Δχ² = −12.5 behind the headline 3.1σ (needs the full Planck and ACT
   likelihoods), the DES-SN5YR rows, and the Wilks calibration (`gap_regular`), which stays an
   exploration (README section 8).
@@ -584,7 +584,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 - **R1，只用 BAO 的 ΛCDM：已复现。** Ωm = 0.2979 ± 0.0086，h·r_d = 101.52 ± 0.73 Mpc，与式 17 相差不到 0.05σ。
 - **R3，不含 CMB：已复现。** Δχ²_MAP = −4.65（DESI）、−4.86（加 Pantheon+）、−10.03（加 Union3），论文为 −4.7、−4.9、−10.1。第二部分列为主要薄弱点的、偏好程度随超新星样本变化的现象是真实且可复现的。
-- **R2，压缩 CMB 先验：有条件复现。** 把先验的 ωbc 均值按 ωb + ωc 解读（论文式 2 旁的定义）时，Δχ²_MAP = −8.01（2.4σ），后验均值 w0 = −0.44 ± 0.23、wa = −1.69 ± 0.66，与式 24 一致。按我们预注册为"主要"的解读（均值含 ων，只有间接数值证据）时，Δχ²_MAP = −6.59（2.1σ）。θ* 标定只让 Δχ² 移动 ±0.4，解释不了这一差别。所以压缩先验结果的显著性在 0.3σ 的量级上取决于一个论文没有说清的参数约定。
+- **R2，压缩 CMB 先验：有条件复现。** 把先验的 ωbc 均值按 ωb + ωc 解读（论文式 2 旁的定义）时，Δχ²_MAP = −8.01（2.4σ），后验均值 w0 = −0.44 ± 0.23、wa = −1.69 ± 0.66，与式 24 一致。按计划阶段起初倾向的解读（均值含 ων，只有间接数值证据；与 B 并列预注册）时，Δχ²_MAP = −6.59（2.1σ）。θ* 标定只让 Δχ² 移动 ±0.4，解释不了这一差别。所以压缩先验结果的显著性在 0.3σ 的量级上取决于一个约定，而论文写明的定义与它给出的先验均值在这一点上看来不一致。
 - 未检验：标题数字 3.1σ 背后的完整 CMB 的 Δχ² = −12.5（需要完整的 Planck 与 ACT 似然）、DES-SN5YR 的组合，以及威尔克斯校准（`gap_regular`），后者仍是探索项（README 第 8 节）。
 
 ### 术语表
