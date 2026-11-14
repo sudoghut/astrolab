@@ -1,0 +1,265 @@
+"""Pure helpers for study 004 (wide binaries; pre-registration: README sections 1-4).
+
+No data access here: run.py fetches through ctx.tap and passes arrays in. Every function takes its
+parameters as arguments (AGENTS.md section 2: no `import run`, no module-level use of PARAMS).
+"""
+from __future__ import annotations
+
+import math
+
+import numpy as np
+
+KAPPA = 4.740470464          # km/s per (mas/yr * kpc); v = KAPPA * mu[mas/yr] / parallax[mas]
+G_SI = 6.674e-11
+AU_M = 1.495978707e11
+MSUN_KG = 1.98892e30
+PC_AU = 206264.806
+
+
+# ---------------------------------------------------------------- sky strips
+def strip_plan(margin_ra_low=2.2, margin_ra_mid=7.0, margin_dec=1.2):
+    """Star-a regions (non-overlapping, covering the sphere) with the star-b search box.
+
+    Returns a list of dicts: ra0, ra1, dec0, dec1 for star a, and bra0, bra1, bdec0, bdec1 for star b
+    (b's RA range may wrap: bra0 > bra1 means two intervals; full RA is bra0=0, bra1=360).
+    """
+    out = []
+    for i in range(24):
+        ra0, ra1 = 15.0 * i, 15.0 * (i + 1)
+        out.append(dict(ra0=ra0, ra1=ra1, dec0=-60.0, dec1=60.0,
+                        bra0=(ra0 - margin_ra_low) % 360, bra1=(ra1 + margin_ra_low) % 360,
+                        bdec0=-60.0 - margin_dec, bdec1=60.0 + margin_dec))
+    for sgn in (1, -1):
+        lo, hi = (60.0, 80.0) if sgn > 0 else (-80.0, -60.0)
+        for i in range(8):
+            ra0, ra1 = 45.0 * i, 45.0 * (i + 1)
+            out.append(dict(ra0=ra0, ra1=ra1, dec0=lo, dec1=hi,
+                            bra0=(ra0 - margin_ra_mid) % 360, bra1=(ra1 + margin_ra_mid) % 360,
+                            bdec0=lo - margin_dec, bdec1=hi + margin_dec))
+        cap = (80.0, 90.0) if sgn > 0 else (-90.0, -80.0)
+        out.append(dict(ra0=0.0, ra1=360.0, dec0=cap[0], dec1=cap[1], bra0=0.0, bra1=360.0,
+                        bdec0=cap[0] - margin_dec if sgn > 0 else -90.0,
+                        bdec1=90.0 if sgn > 0 else cap[1] + margin_dec))
+    return out
+
+
+def ra_in(ra, lo, hi):
+    """RA interval test with wrap-around (lo > hi means the interval crosses 0); [0, 360] is all."""
+    ra = np.asarray(ra) % 360.0
+    if lo == 0.0 and hi == 360.0:
+        return np.ones_like(ra, dtype=bool)
+    if lo <= hi:
+        return (ra >= lo) & (ra <= hi)
+    return (ra >= lo) | (ra <= hi)
+
+
+def search_radius_deg(parallax_mas, radius_au=0.5 * PC_AU):
+    """Angular radius (deg) of a projected radius (AU) at parallax (mas): 1 AU at 1 pc is 1 arcsec."""
+    return np.asarray(radius_au) * np.asarray(parallax_mas) / 1000.0 / 3600.0
+
+
+def in_region(ra, dec, r):
+    """Half-open membership of star a: ra0 <= ra < ra1 and dec0 <= dec < dec1 (dec = 90 belongs to the
+    north cap), so the regions partition the sphere."""
+    ra = np.asarray(ra) % 360.0
+    dec = np.asarray(dec)
+    in_ra = (ra >= r["ra0"]) & (ra < r["ra1"])
+    hi_ok = (dec < r["dec1"]) | ((r["dec1"] == 90.0) & (dec == 90.0))
+    return in_ra & (dec >= r["dec0"]) & hi_ok
+
+
+def region_of(ra, dec, plan):
+    """Indices of the star-a regions containing (ra, dec); exactly one for every point."""
+    return [k for k, r in enumerate(plan) if bool(in_region(ra, dec, r))]
+
+
+def canonical_pairs(id_a, id_b):
+    """Order each pair as (min, max) and drop duplicates; returns index array of kept rows."""
+    a = np.minimum(id_a, id_b)
+    b = np.maximum(id_a, id_b)
+    seen = {}
+    keep = []
+    for i, (x, y) in enumerate(zip(a.tolist(), b.tolist())):
+        if (x, y) not in seen:
+            seen[(x, y)] = i
+            keep.append(i)
+    return np.array(keep, dtype=int)
+
+
+# ---------------------------------------------------------------- MOND
+def mls_nu(gn, a0):
+    y = np.sqrt(np.asarray(gn, float) / a0)
+    return 1.0 / (-np.expm1(-y))
+
+
+def mls_k(gn, a0):
+    """K = dln nu / dln g_N for the MLS function: -(y/2) e^-y / (1 - e^-y), y = sqrt(g_N / a0)."""
+    y = np.sqrt(np.asarray(gn, float) / a0)
+    return -(y / 2.0) * np.exp(-y) / (-np.expm1(-y))
+
+
+def mond_boost(x, a0=1.2e-10, gne_over_a0=1.184):
+    """C26 Eq. 7 velocity boost at x = r_sky / r_M (3D r = r_sky sqrt(3/2))."""
+    x = np.asarray(x, float)
+    gne = gne_over_a0 * a0
+    gni = a0 / (1.5 * x ** 2)
+    gnt = np.sqrt(gni ** 2 + gne ** 2)
+    nu = mls_nu(gnt, a0)
+    k = mls_k(gnt, a0)
+    return np.sqrt(nu * (1.0 + (k / 3.0) * np.tanh(0.825 * gne / gni) ** 3.7))
+
+
+# ---------------------------------------------------------------- stars and pairs
+def mass_from_mg(mg, mg_sun=4.67, slope=0.0725, low=0.7, add=0.05):
+    m = 10.0 ** (slope * (mg_sun - np.asarray(mg, float)))
+    return np.where(m < low, m + add, m)
+
+
+def weighted_parallax(p1, e1, p2, e2):
+    """C24 Eq. A2 and its derivatives w.r.t. p1, p2 (A9, A10)."""
+    w = e1 ** 2 + e2 ** 2
+    pbar = (e2 ** 2 * p1 + e1 ** 2 * p2) / w
+    return pbar, e2 ** 2 / w, e1 ** 2 / w
+
+
+def sky_separation_au(ra1, dec1, ra2, dec2, pbar_mas):
+    """Projected separation r_sky (AU) at the common distance, exact great-circle angle."""
+    r1, d1, r2, d2 = map(np.radians, (ra1, dec1, ra2, dec2))
+    c = np.sin(d1) * np.sin(d2) + np.cos(d1) * np.cos(d2) * np.cos(r1 - r2)
+    theta = np.arccos(np.clip(c, -1.0, 1.0))
+    dist_pc = 1000.0 / np.asarray(pbar_mas)
+    return theta * dist_pc * PC_AU
+
+
+def perspective_vsky(ra1, dec1, pmra1, pmdec1, ra2, dec2, pmra2, pmdec2, pbar, rv1, correct=True):
+    """Relative sky-plane velocity (km/s) of star 2 w.r.t. star 1 at the common parallax pbar.
+
+    With `correct`, the systemic 3D velocity of star 1 (from its proper motion, pbar and RV rv1) is
+    projected onto star 2's sky plane and subtracted, removing the apparent relative motion caused
+    by viewing one space velocity from two directions (perspective effect; C24 Eqs. 2-8). Returns
+    (v_ra, v_dec) along star 2's local east and north.
+    """
+    a1, d1, a2, d2 = map(np.radians, (ra1, dec1, ra2, dec2))
+    k = KAPPA / pbar
+    # star-1 space velocity in equatorial Cartesian (km/s)
+    e1 = np.stack([-np.sin(a1), np.cos(a1), np.zeros_like(a1)])
+    n1 = np.stack([-np.sin(d1) * np.cos(a1), -np.sin(d1) * np.sin(a1), np.cos(d1)])
+    r1 = np.stack([np.cos(d1) * np.cos(a1), np.cos(d1) * np.sin(a1), np.sin(d1)])
+    v1 = k * pmra1 * e1 + k * pmdec1 * n1 + (rv1 if correct else 0.0) * r1
+    e2 = np.stack([-np.sin(a2), np.cos(a2), np.zeros_like(a2)])
+    n2 = np.stack([-np.sin(d2) * np.cos(a2), -np.sin(d2) * np.sin(a2), np.cos(d2)])
+    if correct:
+        exp_ra = (v1 * e2).sum(0)
+        exp_dec = (v1 * n2).sum(0)
+    else:
+        exp_ra = k * pmra1
+        exp_dec = k * pmdec1
+    return k * pmra2 - exp_ra, k * pmdec2 - exp_dec
+
+
+def vsky_sigma(pm1, pm2, p1, p2, e_p1, e_p2, e_pmra1, e_pmdec1, e_pmra2, e_pmdec2,
+               c_ppa1, c_ppd1, c_pad1, c_ppa2, c_ppd2, c_pad2):
+    """Jacobian propagation (C24 App. A) of v_sky = KAPPA/pbar * |mu2 - mu1| (perspective term's
+    error neglected). pm1, pm2: (pmra, pmdec) tuples. Returns sigma(v_sky) in km/s."""
+    pbar, w1, w2 = weighted_parallax(p1, e_p1, p2, e_p2)
+    dra = pm2[0] - pm1[0]
+    ddec = pm2[1] - pm1[1]
+    vra = KAPPA / pbar * dra
+    vdec = KAPPA / pbar * ddec
+    v = np.hypot(vra, vdec)
+    v = np.where(v > 0, v, 1e-12)
+    # derivatives of v w.r.t. (p1, pmra1, pmdec1, p2, pmra2, pmdec2)
+    dv_dvra = vra / v
+    dv_dvdec = vdec / v
+    dpbar = (-v / pbar)
+    J = [dpbar * w1, -KAPPA / pbar * dv_dvra, -KAPPA / pbar * dv_dvdec,
+         dpbar * w2, KAPPA / pbar * dv_dvra, KAPPA / pbar * dv_dvdec]
+    var = 0.0
+    for (jp, ja, jd, ep, ea, ed, cpa, cpd, cad) in [
+            (J[0], J[1], J[2], e_p1, e_pmra1, e_pmdec1, c_ppa1, c_ppd1, c_pad1),
+            (J[3], J[4], J[5], e_p2, e_pmra2, e_pmdec2, c_ppa2, c_ppd2, c_pad2)]:
+        var = var + (jp * ep) ** 2 + (ja * ea) ** 2 + (jd * ed) ** 2 \
+            + 2 * jp * ja * cpa * ep * ea + 2 * jp * jd * cpd * ep * ed + 2 * ja * jd * cad * ea * ed
+    return np.sqrt(var)
+
+
+def vc_kms(mass_msun, r_au):
+    """Newtonian circular speed sqrt(G M / r) in km/s."""
+    return np.sqrt(G_SI * np.asarray(mass_msun) * MSUN_KG / (np.asarray(r_au) * AU_M)) / 1000.0
+
+
+def r_mond_au(mass_msun, a0=1.2e-10):
+    return np.sqrt(G_SI * np.asarray(mass_msun) * MSUN_KG / a0) / AU_M
+
+
+# ---------------------------------------------------------------- statistics
+def bin_index(x, edges):
+    """edges: interior edges (increasing); returns bin number 0..len(edges)."""
+    return np.searchsorted(np.asarray(edges), np.asarray(x), side="right")
+
+
+def merge_outer(counts, min_count):
+    """Merge the highest bin inward until it holds min_count; returns a mapping old bin -> new bin."""
+    counts = list(counts)
+    n = len(counts)
+    mapping = list(range(n))
+    top = n - 1
+    total = counts[top]
+    while total < min_count and top > 0:
+        top -= 1
+        total += counts[top]
+    for b in range(top, n):
+        mapping[b] = top
+    return mapping
+
+
+def bin_medians(vt, b, nbins):
+    return np.array([np.median(vt[b == k]) if np.any(b == k) else np.nan for k in range(nbins)])
+
+
+def bootstrap_cov(vt, b, nbins, n_boot, seed):
+    rng = np.random.default_rng(seed)
+    n = len(vt)
+    meds = []
+    while len(meds) < n_boot:
+        idx = rng.integers(0, n, n)
+        bb = b[idx]
+        if any(not np.any(bb == k) for k in range(nbins)):
+            continue                      # redraw a replicate with an empty bin
+        meds.append(bin_medians(vt[idx], bb, nbins))
+    meds = np.array(meds)
+    return np.cov(meds, rowvar=False)
+
+
+def mad_errors(vt, b, nbins, scale=1.0):
+    out = []
+    for k in range(nbins):
+        v = vt[b == k]
+        out.append(scale * np.median(np.abs(v - np.median(v))) / np.sqrt(len(v)))
+    return np.array(out)
+
+
+def gls_scale_fit(y, shape, cov, cond_max=1e8):
+    """Fit y = A * shape with covariance cov; returns (A, chi2, used_diagonal)."""
+    y = np.asarray(y, float)
+    s = np.asarray(shape, float)
+    cov = np.asarray(cov, float)
+    diag = False
+    if not np.all(np.isfinite(cov)) or np.linalg.cond(cov) > cond_max:
+        cov = np.diag(np.diag(cov))
+        diag = True
+    ci = np.linalg.inv(cov)
+    A = float(s @ ci @ y / (s @ ci @ s))
+    r = y - A * s
+    return A, float(r @ ci @ r), diag
+
+
+def compare_models(medians, x_bins, cov, a0=1.2e-10, gne_over_a0=1.184):
+    """Newton (flat) vs MOND (A * b(x)); each with its own normalisation. Returns dict."""
+    flat = np.ones_like(medians)
+    shape = mond_boost(x_bins, a0, gne_over_a0)
+    An, cn, dn = gls_scale_fit(medians, flat, cov)
+    Am, cm, dm = gls_scale_fit(medians, shape, cov)
+    d = cm - cn
+    return {"A_newton": An, "chi2_newton": cn, "A_mond": Am, "chi2_mond": cm, "dchi2": d,
+            "ln_L": d / 2.0, "L": float(math.exp(min(d / 2.0, 700.0))), "used_diagonal": bool(dn or dm)}
