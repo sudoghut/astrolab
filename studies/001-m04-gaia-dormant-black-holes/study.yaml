@@ -1,9 +1,11 @@
 title: "M4: Gaia dormant black holes - DR3 reproduction and DR4-ready screen"
+title_zh: "M4：Gaia 休眠黑洞——DR3 复现与面向 DR4 的筛选"
 id: "001-m04-gaia-dormant-black-holes"
 level: L4
 status: reproduced
 created: 2026-11-11
 question: "Can DR3 NSS astrometric orbits alone reproduce Gaia BH1/BH2 masses, and can a server-side screen recover known dormant compact objects, ready for DR4?"
+question_zh: "仅凭 DR3 非单星（NSS）天体测量轨道能否复现 Gaia BH1/BH2 的质量？服务器端筛选能否找回已知的休眠致密天体，并为 DR4 做好准备？"
 claims: [gaia-dormant-black-holes]
 milestone: M4
 deadline: 2026-11-25   # Gaia archive offline before DR4 (2026-12-02)

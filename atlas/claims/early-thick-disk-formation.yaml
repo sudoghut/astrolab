@@ -1,9 +1,11 @@
 id: early-thick-disk-formation
 title: "The Milky Way's thick disk began forming ~13 Gyr ago"
+title_zh: "银河系厚盘约 130 亿年前开始形成"
 statement: >
   Precise ages of ~250,000 subgiants (LAMOST x Gaia) show the old disk started
   forming ~13 Gyr ago, ~2 Gyr before the inner halo finished assembling, with a
   star-formation peak ~11 Gyr ago around the Gaia-Sausage-Enceladus merger.
+statement_zh: "约 25 万颗亚巨星（LAMOST × Gaia）的精确年龄表明，老年盘约 130 亿年前开始形成，比内晕完成组装早约 20 亿年；恒星形成峰值约在 110 亿年前，与盖亚-香肠-恩克拉多斯（Gaia-Sausage-Enceladus）并合同期。"
 level: L3
 grade: established
 sources:

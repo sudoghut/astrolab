@@ -1,8 +1,10 @@
 id: s8-tension
 title: "S8 tension between weak lensing and the CMB"
+title_zh: "弱引力透镜与 CMB 之间的 S8 张力"
 statement: >
   Low-redshift probes of clustering amplitude (S8) were lower than the CMB-inferred
   value; by 2025-26 KiDS-Legacy is consistent with the CMB while DES Y6 remains ~2.6 sigma low.
+statement_zh: "低红移的成团幅度（S8）探针曾低于 CMB 推断值；到 2025–26 年，KiDS-Legacy 已与 CMB 一致，而 DES Y6 仍偏低约 2.6σ。"
 level: L0
 grade: contested
 sources:

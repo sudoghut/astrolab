@@ -28,7 +28,7 @@
   - 接口：`i18n.L(en, zh)` 生成两种语言的 `<span>`（用于 HTML）；`i18n.t(en, zh)` 按当前语言返回纯文本（用于 `textContent`、属性、`<option>`、图表）；`i18n.onLangChange(fn)`；`i18n.lang()`。
 - 静态文字用 `<span class="en">…</span><span class="zh">…</span>` 成对书写；动态生成的 HTML 用 `L()`。这样切换语言不需要重绘，表格筛选等交互状态不会丢失。
 - `astrolab/claims.py`：文档字符串登记 `title_zh`、`statement_zh`；`validate()` 检查它们是非空字符串；`atlas_data()` 透传研究的 `title_zh`、`question_zh`。
-- 测试（`tests/test_core.py`）：已有的结论校验测试用例同步补上中文字段；每个 `web/` 下的 `.html`（含 Atlas 与模板）都引用 `i18n.js`；每个研究的 `study.yaml`（不含模板）有非空的 `title_zh`、`question_zh`。
+- 测试（`tests/test_core.py`）：已有的结论校验测试用例同步补上中文字段；每个研究的 `study.yaml`（不含模板）有非空的 `title_zh`、`question_zh`（环节 2）；每个 `web/` 下的 `.html`（含 Atlas 与模板）都引用 `i18n.js`（环节 3，与网页改造一起加入）。
 
 ## 4. 步骤
 

@@ -1,9 +1,11 @@
 id: wide-binary-gravity-test
 title: "Wide binaries as a test of gravity at low acceleration"
+title_zh: "用宽双星检验低加速度下的引力"
 statement: >
   Gaia DR3 wide-binary relative velocities test MOND vs Newton below a0; large
   clean samples favour Newtonian gravity, while small high-precision samples
   are claimed to show a MOND-like boost.
+statement_zh: "Gaia DR3 宽双星的相对速度可在加速度低于 a0 时检验 MOND 与牛顿引力；大而干净的样本支持牛顿引力，而小的高精度样本被认为显示出类 MOND 的增强。"
 level: L4
 grade: contested
 sources:

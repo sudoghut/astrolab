@@ -1,5 +1,6 @@
 """Offline tests of the core library."""
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -93,4 +94,13 @@ def test_claim_validation_catches_errors():
     bad = {"_file": "x.yaml", "id": "y", "title": "t", "statement": "s", "level": "L9",
            "grade": "maybe", "sources": [], "reproduction": {"status": "?"}}
     errs = claims.validate(bad)
-    assert len(errs) == 5
+    assert len(errs) == 7  # 5 schema errors + missing title_zh / statement_zh
+    good = {**bad, "_file": "y.yaml", "level": "L3", "grade": "hint", "sources": [{"cite": "c"}],
+            "reproduction": {"status": "not-started"}, "title_zh": "标题", "statement_zh": "陈述"}
+    assert claims.validate(good) == []
+    assert claims.validate({**good, "title_zh": "TODO: 中文标题"}) == ["'title_zh' must be a non-empty Chinese string"]
+
+
+def test_studies_have_chinese_fields():
+    for s in study.discover():
+        assert claims.zh_errors(s.meta, ("title_zh", "question_zh")) == [], s.id

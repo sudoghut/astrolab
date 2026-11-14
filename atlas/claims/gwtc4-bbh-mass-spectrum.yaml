@@ -1,9 +1,11 @@
 id: gwtc4-bbh-mass-spectrum
 title: "Binary black hole mass spectrum features (GWTC-4.0)"
+title_zh: "双黑洞质量谱的特征（GWTC-4.0）"
 statement: >
   The BBH primary-mass distribution steepens above ~35 Msun with overdensities
   near ~10 and ~35 Msun (and a possible ~20 Msun feature); GW231123 lies in or
   across the pair-instability gap.
+statement_zh: "双黑洞（BBH）主星质量分布在约 35 M☉ 以上变陡，在约 10 和约 35 M☉ 处有超密集（并可能在约 20 M☉ 处有特征）；GW231123 落在对不稳定性质量间隙之内或跨越该间隙。"
 level: X
 grade: established
 sources:

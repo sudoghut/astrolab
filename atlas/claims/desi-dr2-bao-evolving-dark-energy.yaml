@@ -1,8 +1,10 @@
 id: desi-dr2-bao-evolving-dark-energy
 title: "DESI DR2 BAO: hint of evolving dark energy"
+title_zh: "DESI DR2 重子声学振荡：暗能量演化的迹象"
 statement: >
   DESI DR2 BAO combined with CMB and type Ia supernovae prefers w0waCDM
   (w0 > -1, wa < 0) over LambdaCDM at 2.8-4.2 sigma depending on the SN sample.
+statement_zh: "DESI DR2 重子声学振荡（BAO）数据与宇宙微波背景（CMB）和 Ia 型超新星结合后，相对 ΛCDM 更偏好 w0waCDM（w0 > -1，wa < 0），显著性为 2.8–4.2σ，取决于所用的超新星样本。"
 level: L0
 grade: hint
 sources:

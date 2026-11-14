@@ -1,8 +1,10 @@
 title: "Smoke test: Gaia DR3 census of the 10 pc neighbourhood"
+title_zh: "冒烟测试：Gaia DR3 的 10 秒差距邻域普查"
 id: "000-smoke-test_gaia-dr3-10pc-census"
 level: L3
 status: active
 created: 2026-11-11
 question: "Does the pipeline (guarded TAP, cache, provenance, server-side aggregation, web page) work end to end?"
+question_zh: "管线（受守卫的 TAP 查询、缓存、来源记录、服务器端聚合、网页）能否端到端运行？"
 claims: []
 milestone: null

@@ -1,9 +1,11 @@
 id: jwst-z14-galaxies
 title: "Spectroscopically confirmed galaxies at z ~ 14 and the bright-galaxy excess"
+title_zh: "光谱确认的 z ≈ 14 星系与亮星系过剩"
 statement: >
   JWST spectroscopy confirms luminous galaxies at z = 14.32 (JADES-GS-z14-0) and
   z = 14.44 (MoM-z14); the bright-end UV luminosity function at z > 10 exceeds
   pre-JWST model predictions.
+statement_zh: "JWST 光谱确认了 z = 14.32（JADES-GS-z14-0）和 z = 14.44（MoM-z14）的高光度星系；z > 10 的亮端紫外光度函数超出 JWST 之前的模型预测。"
 level: L1
 grade: established
 sources:
