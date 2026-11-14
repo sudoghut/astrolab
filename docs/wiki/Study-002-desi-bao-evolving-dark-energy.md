@@ -47,8 +47,9 @@ horizon at the drag epoch*, r_d ≈ 147 Mpc (about 480 million light years). Mea
 separation across the sky gives the transverse comoving distance D_M(z); measuring it along the
 line of sight gives the Hubble distance D_H(z) = c/H(z). Both come out in units of r_d.
 
-DR2 gives seven redshift bins (Table 4 of the paper), from the bright galaxy sample at
-z = 0.295 to the Lyman-α forest at z = 2.33. Examples: at z = 0.510, D_M/r_d = 13.588 ± 0.167 and
+DR2 gives seven redshift bins (Table 4 of the paper); their effective redshifts run from the bright
+galaxy sample at z_eff = 0.295 to the Lyman-α forest at z_eff = 2.33 (the galaxy and quasar samples
+cover 0.1 < z < 2.1). Examples: at z = 0.510, D_M/r_d = 13.588 ± 0.167 and
 D_H/r_d = 21.863 ± 0.425; at z = 2.33, D_M/r_d = 38.988 ± 0.531 and D_H/r_d = 8.632 ± 0.101. The
 whole set — means and covariance — is about 3 kB of numbers.
 
@@ -209,7 +210,7 @@ prior at the lower end".
 |---|---|---|---|
 | `mod_nested`: ΛCDM is w0waCDM with w0 = −1, wa = 0 | MOD | stated 2503.14738: "$\Lambda$ CDM is nested within $w_{0}w_{a}$ CDM, corresponding to $w_{0}=-1$ , $w_{a}=0$" | §VII |
 | `mod_gauss`: the errors are Gaussian (working assumption) | MOD | stated 2503.14738: "assuming that errors are Gaussian and correctly estimated" | §VII |
-| `gap_regular`: Wilks' regularity conditions hold, so Δχ²_MAP is calibrated by χ²(2) (large-sample limit, ΛCDM point inside the prior box) | GAP | reconstructed: Wilks 1938 (1938AnMS....9...60W) gives the theorem, not its validity for this nonlinear fit; the paper neither discusses nor simulates it | — |
+| `gap_regular`: under ΛCDM, Δχ²_MAP of this fit is calibrated by χ²(2) (assumed) | GAP | reconstructed: Wilks 1938 (1938AnMS....9...60W) gives this only asymptotically, for a smooth likelihood with the null point away from boundaries; only the last is checkable here (the ΛCDM point is inside the prior box), smoothness and the large-sample approximation are unverified; the paper neither discusses nor simulates it | — |
 | `mod_wilks`: nested + Gaussian + regular + no systematics → Δχ²_MAP ~ χ²(2 dof) | MOD | stated 2503.14738: "implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated" | §VII |
 | `mod_sig`: Wilks + Δχ² ≤ −12.5 → 3.1σ | MOD | stated 2503.14738: "corresponding to a 3.1 $\sigma$ preference for evolving dark energy" | §VII.1 (via Eq. 22, §VII) |
 
@@ -232,11 +233,13 @@ have s : v.sig ≥ 31 := p .mod_sig w d                                  -- Eq. 
 estimated") and does not test it. The "correctly estimated" half is the condition `NoSys` of the
 conclusion; the "Gaussian" half is the stated working assumption `mod_gauss`, which is not literally
 true for the full CMB (the low-ℓ likelihoods are not Gaussian). Wilks' theorem itself does not need
-Gaussian errors; it needs regularity: a large-sample limit and the null point away from prior
-boundaries. The paper does not discuss this, and the textbook theorem does not show that it holds for this
-nonlinear fit, so it is our `GAP` premise `gap_regular`. w0 = −1, wa = 0 is inside the prior box, so it is plausible, but no simulation of the
-Δχ² distribution is reported. That is
-something this repo can explore with the compressed prior (part 3).
+Gaussian errors; it gives the χ²(2) calibration asymptotically, for a smooth likelihood with
+identifiable parameters and the null point away from parameter boundaries. Only the last condition
+can be read off here (w0 = −1, wa = 0 is inside the prior box); it does not establish the others.
+Whether the likelihood is smooth enough and the large-sample approximation adequate for this
+nonlinear fit is unverified: the paper neither discusses nor simulates it. We therefore record the
+calibration itself as the assumption `gap_regular` (GAP). This repo can explore it with the
+compressed prior (part 3).
 
 #### 2.3 Stage C · From 3.1σ to "challenged" and "possible solution"
 
@@ -320,7 +323,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | R3 · Stage A–B without CMB | testable now | MAP fits for DESI, DESI + Pantheon+, DESI + Union3 | Pantheon+ 34 MB, Union3 11 kB | reproduced if Δχ²_MAP is within the pre-registered tolerance of −4.7, −4.9, −10.1 | pending |
 | Stage A with the full CMB (−12.5) | out of scope | needs the full Planck and ACT likelihoods (not a compressed data product) | — | — | — |
 | Stage B · Wilks calibration (`gap_regular`) | explorable (not decisive) | simulate DESI + compressed-prior data under the ΛCDM best fit, refit both models, compare the Δχ² distribution with χ²(2); this informs the gap but cannot close it, which concerns the full-CMB fit | no new data | none — exploration only, see README §8 | — |
-| `NoSys` · supernova calibration | explorable (not decisive) | DESI + compressed CMB + Pantheon+ / Union3 / DES-Dovekie; compare the spread | Dovekie 6.2 MB | none — exploration only | — |
+| `NoSys` · supernova calibration | explorable (not decisive) | DESI + compressed CMB + Pantheon+ / Union3 / DES-Dovekie; compare the spread | Dovekie `DES-Dovekie_HD.csv` 0.11 MB + `covtot_inv_000.npz` 6.2 MB (the only files needed) | none — exploration only | — |
 | `NoSys` · single tracers | explorable (not decisive) | leave one DESI redshift bin out | per-tracer files, ~1 kB | none — exploration only | — |
 | Stage C · parametrisation | explorable (not decisive) | replace CPL by binned w(z) or other forms | no new data | none — exploration only | — |
 | DES-SN5YR combinations | out of scope for now | its covariance is 53.5 MB, above the 50 MB single-download limit; Dovekie replaces it | — | — | — |
@@ -364,7 +367,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 DESI 用的尺子是 **重子声学振荡（BAO, baryon acoustic oscillations）** 的尺度。宇宙诞生后 38 万年之前，声波在炽热的等离子体中传播；等离子体变成中性气体时声波冻结，留下一个固定间距上星系对略多的痕迹，这个间距就是拖曳时期的声视界（sound horizon at the drag epoch）r_d ≈ 147 Mpc（约 4.8 亿光年）。在天空方向测这个间距，得到横向共动距离（transverse comoving distance）D_M(z)；沿视线方向测，得到哈勃距离（Hubble distance）D_H(z) = c/H(z)。两者都以 r_d 为单位。
 
-DR2 给出 7 个红移区间（论文表 4），从 z = 0.295 的亮星系样本到 z = 2.33 的莱曼 α 森林。例如 z = 0.510 处 D_M/r_d = 13.588 ± 0.167、D_H/r_d = 21.863 ± 0.425；z = 2.33 处 D_M/r_d = 38.988 ± 0.531、D_H/r_d = 8.632 ± 0.101。全部均值与协方差（covariance）约 3 kB。
+DR2 给出 7 个红移区间（论文表 4），有效红移（effective redshift）从亮星系样本的 z_eff = 0.295 到莱曼 α 森林的 z_eff = 2.33（星系与类星体样本覆盖 0.1 < z < 2.1）。例如 z = 0.510 处 D_M/r_d = 13.588 ± 0.167、D_H/r_d = 21.863 ± 0.425；z = 2.33 处 D_M/r_d = 38.988 ± 0.531、D_H/r_d = 8.632 ± 0.101。全部均值与协方差（covariance）约 3 kB。
 
 另外两组数据也参与。**宇宙微波背景（CMB, cosmic microwave background）**（Planck 加 ACT 透镜）确定早期宇宙：物质与重子的多少，以及声视界在天空上张开的角度 θ*。**Ia 型超新星（SNe）** 是标准烛光，给出 z < 2 的相对距离；论文用三个汇编：Pantheon+、Union3 和 DES-SN5YR（DESY5）。
 
@@ -466,7 +469,7 @@ have d : v.dchi2 ≥ 125 := p .stat_dchi2   -- Sec. VII.1, Table 6
 |---|---|---|---|
 | `mod_nested`：ΛCDM 是 w0 = −1、wa = 0 的 w0waCDM | MOD | stated 2503.14738："$\Lambda$ CDM is nested within $w_{0}w_{a}$ CDM, corresponding to $w_{0}=-1$ , $w_{a}=0$" | §VII |
 | `mod_gauss`：误差是高斯的（工作假设） | MOD | stated 2503.14738："assuming that errors are Gaussian and correctly estimated" | §VII |
-| `gap_regular`：威尔克斯定理的正则性（regularity）条件成立，所以 Δχ²_MAP 按 χ²(2) 校准（大样本极限，ΛCDM 点在先验范围内部） | GAP | reconstructed：Wilks 1938（1938AnMS....9...60W）给出定理，但不说明它对这一非线性拟合成立；论文既没有讨论也没有模拟 | — |
+| `gap_regular`：在 ΛCDM 下，这一拟合的 Δχ²_MAP 按 χ²(2) 校准（假设） | GAP | reconstructed：Wilks 1938（1938AnMS....9...60W）只在渐近意义下、对光滑且零假设点远离边界的似然给出这一点；这里只能核对最后一条（ΛCDM 点在先验范围内部），光滑性（正则性，regularity）与大样本近似是否适用都没有验证；论文既没有讨论也没有模拟 | — |
 | `mod_wilks`：嵌套 + 高斯 + 正则 + 无系统误差 → Δχ²_MAP 服从 χ²（2 个自由度） | MOD | stated 2503.14738："implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated" | §VII |
 | `mod_sig`：威尔克斯 + Δχ² ≤ −12.5 → 3.1σ | MOD | stated 2503.14738："corresponding to a 3.1 $\sigma$ preference for evolving dark energy" | §VII.1（经 §VII 的式 22） |
 
@@ -485,7 +488,7 @@ have w : v.WilksOK := p .mod_wilks (p .mod_nested) (p .mod_gauss) (p .gap_regula
 have s : v.sig ≥ 31 := p .mod_sig w d                                  -- Eq. 22
 ```
 
-**评析。** 论文写明了它的假设（"假设误差是高斯的且估计正确"），没有检验。"估计正确"这一半是结论的条件 `NoSys`；"高斯"这一半是明说的工作假设 `mod_gauss`，对完整 CMB 并不严格成立（低 ℓ 的似然不是高斯的）。威尔克斯定理本身并不需要高斯误差，需要的是正则性：大样本极限（渐近，asymptotic），且零假设点远离先验边界。论文没有讨论这一点，教科书定理也不说明它对这一非线性拟合成立，所以它是我们补上的 `GAP` 前提 `gap_regular`。w0 = −1、wa = 0 在先验范围内部，所以大致合理，但论文没有报告 Δχ² 分布的模拟。本项目可以用压缩先验探索这一点（第三部分）。
+**评析。** 论文写明了它的假设（"假设误差是高斯的且估计正确"），没有检验。"估计正确"这一半是结论的条件 `NoSys`；"高斯"这一半是明说的工作假设 `mod_gauss`，对完整 CMB 并不严格成立（低 ℓ 的似然不是高斯的）。威尔克斯定理本身并不需要高斯误差；它在渐近（asymptotic）意义下给出 χ²(2) 校准，前提是似然光滑、参数可辨识、零假设点远离参数边界。这里只能核对最后一条（w0 = −1、wa = 0 在先验范围内部），这并不能证明其他几条。对这一非线性拟合，似然是否足够光滑、大样本近似是否适用，都没有验证：论文既没有讨论也没有模拟。所以我们把校准本身记为假设 `gap_regular`（GAP）。本项目可以用压缩先验探索这一点（第三部分）。
 
 #### 2.3 环节 C · 从 3.1σ 到"受到挑战"与"可能的解释"
 
@@ -544,7 +547,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | R3 · 不含 CMB 的环节 A–B | 现在可检验 | DESI、DESI + Pantheon+、DESI + Union3 的 MAP 拟合 | Pantheon+ 34 MB，Union3 11 kB | Δχ²_MAP 在 −4.7、−4.9、−10.1 的预注册容差内为复现 | 待定 |
 | 用完整 CMB 的环节 A（−12.5） | 不在范围内 | 需要完整的 Planck 与 ACT 似然（不是压缩数据产品） | — | — | — |
 | 环节 B · 威尔克斯校准（`gap_regular`） | 可探索（不作判决） | 在 ΛCDM 最佳拟合下模拟 DESI + 压缩先验数据，重拟两个模型，把 Δχ² 分布与 χ²(2) 比较；这能为该缺口提供信息，但不能填补它，因为缺口针对的是完整 CMB 的拟合 | 不需新数据 | 无——只作探索，见 README §8 | — |
-| `NoSys` · 超新星校准 | 可探索（不作判决） | DESI + 压缩 CMB + Pantheon+ / Union3 / DES-Dovekie，比较离散程度 | Dovekie 6.2 MB | 无——只作探索 | — |
+| `NoSys` · 超新星校准 | 可探索（不作判决） | DESI + 压缩 CMB + Pantheon+ / Union3 / DES-Dovekie，比较离散程度 | Dovekie `DES-Dovekie_HD.csv` 0.11 MB + `covtot_inv_000.npz` 6.2 MB（只需这两个文件） | 无——只作探索 | — |
 | `NoSys` · 单个示踪体（tracer） | 可探索（不作判决） | 逐一去掉 DESI 的一个红移区间 | 分示踪体文件约 1 kB | 无——只作探索 | — |
 | 环节 C · 参数化 | 可探索（不作判决） | 把 CPL 换成分箱 w(z) 或其他形式 | 不需新数据 | 无——只作探索 | — |
 | DES-SN5YR 的组合 | 暂不在范围内 | 其协方差 53.5 MB，超过单次 50 MB 上限；以 Dovekie 代替 | — | — | — |
