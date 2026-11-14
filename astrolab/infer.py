@@ -109,6 +109,8 @@ def minimize_multistart(fun, bounds, n_starts: int = 20, seed: int = 0, constrai
         return {"x": None, "f": None, "converged": False, "n_conv": 0, "n_agree": 0,
                 "x_spread": None, "n_ok": len(results), "all": results}
     best_f, best_x = conv[0][0], conv[0][1]
+    if not (np.all(best_x >= lo) and np.all(best_x <= hi) and feasible(best_x) and np.isfinite(best_f)):
+        raise RuntimeError("internal error: returned optimum outside bounds or constraint")
     agree = [t for t in conv if t[0] - best_f <= agree_tol]
     spread = max((float(np.max(np.abs((t[1] - best_x) / span))) for t in agree), default=0.0)
     return {"x": best_x, "f": best_f, "converged": bool(conv), "n_conv": len(conv),
