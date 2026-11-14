@@ -19,11 +19,12 @@ plan (`design/NNN-plan_*.md`) when there is one. Work on a branch (AGENTS.md / u
 
 - Make the edits and run the relevant checks yourself (`python -m pytest`, render pages, ...).
 - Commit the stage as a WIP commit (squash or keep later as the user prefers). This is
-  required: it gives reviewers a clean diff (`git diff <base>..HEAD`) and lets you undo any
-  reviewer edits with `git checkout -- .` without losing the stage's own work. That only
-  restores tracked files: files a reviewer CREATED must be removed one by one (list them with
-  `git clean -n -d` and `git status --short --ignored`; never `git clean -fdx`, which also
-  wipes legitimate ignored files).
+  required: it gives reviewers a clean diff (`git diff <base>..HEAD`).
+- Before starting a reviewer, `git status --short` must be empty. If the user has unrelated
+  uncommitted work, stop and ask; never stash or discard it yourself.
+- Undoing reviewer changes afterwards: restore only the files `git status --short --ignored`
+  shows as changed, one by one (`git checkout -- <file>`); delete files the reviewer created
+  one by one. Never use `git checkout -- .`, `git reset --hard` or `git clean -fdx`.
 
 ## 2. Gate 1 - review subagents (loop)
 
@@ -34,7 +35,7 @@ plan (`design/NNN-plan_*.md`) when there is one. Work on a branch (AGENTS.md / u
   scenario, ending with `SERIOUS ISSUES: <n>`. Forbid editing files and fetching data.
 - For larger stages use 2-3 reviewers with different lenses (correctness, behaviour/UX,
   consistency with AGENTS.md) in one message so they run in parallel.
-- Afterwards run `git status --short --ignored` and revert anything a reviewer touched.
+- Afterwards run `git status --short --ignored` and undo anything a reviewer touched (step 1).
 - Triage every finding yourself against the code: fix, or reject with a reason. Fix all
   serious ones. Commit the fixes (WIP) and re-run gate 1 on the new diff until it reports
   no serious issues.
@@ -42,7 +43,8 @@ plan (`design/NNN-plan_*.md`) when there is one. Work on a branch (AGENTS.md / u
 ## 3. Gate 2 - Codex CLI (loop)
 
 Run Codex non-interactively from the terminal (it is a CLI, not one of our agents), in the
-project root, with the PowerShell tool. Do not route it through Bash -> `powershell.exe` with
+project root, with the PowerShell tool (Windows PowerShell 5.1, i.e. `powershell.exe`; the
+template relies on 5.1 behaviour). Do not route it through Bash -> `powershell.exe` with
 a `.ps1` file: Windows PowerShell 5.1 reads a BOM-less UTF-8 script in the ANSI code page and
 silently corrupts Chinese text in the prompt (if you must, save the `.ps1` as UTF-8 with BOM
 and pass `-C <project root>` to codex). Template:
@@ -60,7 +62,9 @@ Write-Output @'
 "exit code: $LASTEXITCODE"
 ```
 
-Set `$out` first to a NEW file per stage and round, e.g.
+`<scratchpad>` is a placeholder: replace it with this session's scratchpad directory (or
+another existing temp directory outside the project). Set `$out` first to a NEW file per
+stage and round, e.g.
 `$out = "<scratchpad>/codex-stage2-round1.md"; Remove-Item $out -ErrorAction SilentlyContinue`.
 
 - `codex exec` = non-interactive; `--dangerously-bypass-approvals-and-sandbox` = no approval
@@ -75,9 +79,10 @@ Set `$out` first to a NEW file per stage and round, e.g.
 - `-o` writes Codex's final message to a file; read the verdict from there, and only if the
   exit code is 0 and the file was written by this run (fresh name, deleted beforehand), so a
   failed run can never reuse an earlier `SERIOUS ISSUES: 0`. PowerShell 5.1 prefixes piped
-  stdin with a UTF-8 BOM; Chinese still arrives intact and Codex ignores it. Run the command
-  with `run_in_background` (a review can exceed the tool's 10-minute foreground limit) and
-  wait for the completion notification.
+  stdin with a UTF-8 BOM; Chinese still arrives intact and Codex ignores it. Start the PowerShell
+  tool call with its `run_in_background: true` parameter (a review can exceed the tool's
+  10-minute foreground limit); the harness notifies you when it exits. Redirect codex's
+  console output to a log file (`*> <scratchpad>/codex-....log`) to keep it out of context.
 - The prompt must say: review only; DO NOT modify files; DO NOT run network or data-fetching
   commands (`python -m astrolab run`, downloads; AGENTS.md section 1); the stage goal; the
   diff command and file list; findings ranked serious/minor with file:line and a failure
