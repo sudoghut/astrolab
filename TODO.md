@@ -7,7 +7,7 @@
 ## 进行中（Doing）
 
 - [ ] **T-012** M2：哈勃张力（SH0ES、CCHP、H0DN）的距离阶梯复现与跨论文元分析 · 登记 2026-11-14 · 分支 feat/m2-hubble-tension · 计划 [012](design/012-plan_m02-hubble-tension-distance-ladder-gls-and-host-selection.md)
-  - 备注：论文研究，按 `paper-study` 技能分 5 个环节（见计划 012）；环节 1（计划与核实）已过双闸审查；环节 2（Wiki 文章与 Lean）进行中。
+  - 备注：论文研究，按 `paper-study` 技能分 5 个环节（见计划 012）；环节 1（计划与核实）已过双闸审查；环节 2（Wiki 文章与 Lean）已过双闸审查；环节 3（预注册与 `infer.gls`）进行中。
 
 ## 下一步（Next）
 
