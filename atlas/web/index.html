@@ -20,7 +20,8 @@
   .views button { font: inherit; font-size: 13px; padding: 3px 12px; border: 1px solid var(--line); background: var(--surface);
                   color: var(--text); border-radius: 4px; cursor: pointer; }
   .views button[aria-pressed=true] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
-  svg.chart { width: 100%; height: auto; display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  .chart-wrap { overflow-x: auto; }
+  svg.chart { width: 100%; min-width: 720px; height: auto; display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
   svg.chart text { fill: var(--text); font: 12px var(--sans); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
   svg.chart .axis, svg.chart .grid { stroke: var(--line); fill: none; }
   svg.chart .tick { fill: var(--muted); font-size: 11px; }
@@ -36,7 +37,7 @@
   <p class="crumb">astrolab</p>
   <h1><span class="en">Atlas of the Universe, by scale</span><span class="zh">宇宙图谱：按尺度排列</span></h1>
   <p class="muted"><span class="en">Coarse map first, detail on demand. Each level lists the landmark claims we track and the studies that reproduce or test them. The scale and sky views place each study by its footprint.</span><span class="zh">先看粗略全图，需要时再看细节。每个尺度列出我们跟踪的标志性结论，以及复现或检验它们的研究。尺度视图与天空视图按足迹（footprint）标出每个研究的位置。</span></p>
-  <div class="views" id="views" role="group"></div>
+  <div class="views" id="views" role="group" aria-label="View"></div>
   <div id="atlas"><p class="muted"><span class="en">loading… (run <code>python -m astrolab serve</code>)</span><span class="zh">加载中……（请运行 <code>python -m astrolab serve</code>）</span></p></div>
   <p class="muted" id="gen"></p>
 </main>
@@ -60,7 +61,7 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 const both = (o, f) => L(esc(o[f]), o[f + '_zh'] ? esc(o[f + '_zh']) : null);
 const plain = (o, f) => t(String(o[f] ?? ''), o[f + '_zh'] ? String(o[f + '_zh']) : String(o[f] ?? ''));
 const word = (v, zh) => L(esc(v), zh[v] ? esc(zh[v]) : null);
-const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim() || '#888';
+const css = v => `var(${v})`;   // resolved by the browser, so colours follow theme changes
 
 function claimCard(c) {
   const r = c.reproduction || {};
@@ -83,7 +84,7 @@ function renderList(d) {
     const cl = d.claims.filter(c => c.level === lv), st = d.studies.filter(s => s.level === lv);
     const items = cl.map(claimCard).concat(st.map(studyCard)).join('') || `<p class="empty">${L('nothing mapped yet', '暂无内容')}</p>`;
     const [name, desc] = LEVELS[lv];
-    return `<section class="level"><div class="level-name"><div class="code">${lv}</div><strong>${L(...name)}</strong>
+    return `<section class="level"><div class="level-name"><div class="code">${esc(lv)}</div><strong>${L(...name)}</strong>
       <div class="desc">${L(...desc)}</div></div><div class="items">${items}</div></section>`;
   }).join('');
 }
@@ -113,7 +114,7 @@ function renderScale(d) {
   const RH = 20, HEAD = 22;
   let y = 34, body = '';
   for (const r of rows) {
-    body += `<text class="lvl" x="6" y="${y + 14}">${r.lv}</text><text x="${PADL}" y="${y + 14}" class="tick">${esc(t(...LEVELS[r.lv][0]))}</text>`;
+    body += `<text class="lvl" x="6" y="${y + 14}">${esc(r.lv)}</text><text x="${PADL}" y="${y + 14}" class="tick">${esc(t(...LEVELS[r.lv][0]))}</text>`;
     y += HEAD;
     if (!r.items.length) { body += `<text x="${PADL}" y="${y + 13}" class="tick">${esc(t('nothing mapped yet', '暂无内容'))}</text>`; y += RH; }
     for (const it of r.items) {
@@ -125,7 +126,7 @@ function renderScale(d) {
       let labelX = x1 + 6, anchor = 'start';
       if (x1 + 6 > W - 260) { if (x0 - 6 > PADL + 260) { labelX = x0 - 6; anchor = 'end'; } else { labelX = x0 + 6; } }
       const label = it.label.length > 60 ? it.label.slice(0, 58) + '…' : it.label;
-      let g = `<g><title>${esc(tip)}</title><rect x="${x0}" y="${y + 4}" width="${x1 - x0}" height="10" rx="3" fill="${fill}" fill-opacity="0.35" stroke="${it.color}" ${dash}/>
+      let g = `<g><title>${esc(tip)}</title><rect x="${x0}" y="${y + 4}" width="${x1 - x0}" height="10" rx="3" style="fill:${fill};fill-opacity:0.35;stroke:${it.color}" ${dash}/>
         <text x="${labelX}" y="${y + 13}" text-anchor="${anchor}">${esc(label)}</text></g>`;
       if (it.href) g = `<a href="${esc(it.href)}">${g}</a>`;
       body += g; y += RH;
@@ -139,9 +140,9 @@ function renderScale(d) {
   }
   MARKS.forEach(([v, lab], i) => {
     const right = xpos(v) > W - 160;
-    axis += `<line x1="${xpos(v)}" y1="24" x2="${xpos(v)}" y2="${y}" stroke="${css('--muted')}" stroke-opacity="0.35"/><text class="tick" x="${xpos(v) + (right ? -3 : 3)}" y="${y + 12 + (i % 2) * 12}" text-anchor="${right ? 'end' : 'start'}">${esc(t(...lab))}</text>`;
+    axis += `<line x1="${xpos(v)}" y1="24" x2="${xpos(v)}" y2="${y}" style="stroke:${css('--muted')};stroke-opacity:0.35"/><text class="tick" x="${xpos(v) + (right ? -3 : 3)}" y="${y + 12 + (i % 2) * 12}" text-anchor="${right ? 'end' : 'start'}">${esc(t(...lab))}</text>`;
   });
-  const svg = `<svg class="chart" viewBox="0 0 ${W} ${y + 34}" role="img" aria-label="${esc(t('Scale view', '尺度视图'))}">${axis}${body}</svg>`;
+  const svg = `<div class="chart-wrap"><svg class="chart" viewBox="0 0 ${W} ${y + 34}" role="group" aria-label="${esc(t('Scale view', '尺度视图'))}">${axis}${body}</svg></div>`;
   const legend = `<ul class="legend"><li>${L('Horizontal axis: distance in parsecs (log). Filled bars: studies, by their footprint. Outlined bars: claims, coloured by grade, at the range of their study.', '横轴：距离（秒差距，对数）。实心条：研究，按足迹。空心条：结论，按等级着色，取其研究的范围。')}</li>
     <li>${L('Dashed: no footprint yet, the level default range is shown.', '虚线：尚无足迹，显示层级默认范围。')}</li></ul>`;
   return svg + legend;
@@ -166,10 +167,10 @@ function moll(l, b) {
 }
 function path(pts) { return 'M' + pts.map(p => p.map(v => v.toFixed(1)).join(',')).join('L'); }
 function renderSky(d) {
-  let g = `<ellipse cx="${CX}" cy="${CY}" rx="${2 * Math.SQRT2 * R}" ry="${Math.SQRT2 * R}" fill="none" stroke="${css('--line')}"/>`;
+  let g = `<ellipse cx="${CX}" cy="${CY}" rx="${2 * Math.SQRT2 * R}" ry="${Math.SQRT2 * R}" style="fill:none;stroke:${css('--line')}"/>`;
   for (let b = -60; b <= 60; b += 30) {
-    const pts = []; for (let l = -180; l <= 180; l += 2) pts.push(moll(l + 0.0001, b));
-    g += `<path class="grid" d="${path(pts)}" ${b === 0 ? `stroke="${css('--muted')}" stroke-opacity="0.6"` : ''}/>`;
+    const pts = []; for (let l = -179.999; l <= 179.999; l += 2) pts.push(moll(l, b)); pts.push(moll(179.999, b));
+    g += `<path class="grid" d="${path(pts)}" ${b === 0 ? `style="stroke:${css('--muted')};stroke-opacity:0.6"` : ''}/>`;
   }
   for (let l = -150; l <= 180; l += 30) {
     const pts = []; for (let b = -90; b <= 90; b += 2) pts.push(moll(l === 180 ? 179.999 : l, b));
@@ -187,12 +188,12 @@ function renderSky(d) {
       if (tg.l === null || tg.l === undefined) { unresolved.push([title, tg.name]); continue; }
       const [x, y] = moll(tg.l, tg.b);
       let dot = `<g><title>${esc(tg.name)} — ${esc(title)}; l = ${tg.l.toFixed(1)}°, b = ${tg.b.toFixed(1)}°</title>
-        <circle cx="${x}" cy="${y}" r="5" fill="${css('--refuted')}" stroke="${css('--surface')}"/><text x="${x + 7}" y="${y + 4 + (k % 2) * 11}">${esc(tg.name)}</text></g>`;
+        <circle cx="${x}" cy="${y}" r="5" style="fill:${css('--refuted')};stroke:${css('--surface')}"/><text x="${x + 7}" y="${y + 4 + (k % 2) * 11}">${esc(tg.name)}</text></g>`;
       if (href) dot = `<a href="${esc(href)}">${dot}</a>`;
       g += dot; k++;
     }
   }
-  const svg = `<svg class="chart" viewBox="0 0 ${SW} ${SH + 10}" role="img" aria-label="${esc(t('Sky view, Galactic coordinates', '天空视图，银道坐标'))}">${g}</svg>`;
+  const svg = `<div class="chart-wrap"><svg class="chart" viewBox="0 0 ${SW} ${SH + 10}" role="group" aria-label="${esc(t('Sky view, Galactic coordinates', '天空视图，银道坐标'))}">${g}</svg></div>`;
   const link = ([title, href]) => href ? `<a href="${esc(href)}">${esc(title)}</a>` : esc(title);
   const items = [];
   items.push(`<li>${L('Mollweide projection, Galactic coordinates; the equator is the Galactic plane, l = 0 (Galactic centre) in the middle, l increasing to the left. Red points: targets of studies.', '莫尔韦德投影，银道坐标；赤道是银道面，中心为 l = 0（银心），l 向左增大。红点：研究的目标天体。')}</li>`);
@@ -210,12 +211,18 @@ let DATA = null, VIEW = 'list';
 try { const v = localStorage.getItem('atlas-view'); if (v && VIEWS[v]) VIEW = v; } catch (e) {}
 function render() {
   if (!DATA) return;
+  document.getElementById('views').setAttribute('aria-label', t('View', '视图'));
   document.getElementById('views').innerHTML = Object.entries(VIEWS).map(([k, [lab]]) =>
     `<button type="button" data-view="${k}" aria-pressed="${k === VIEW}">${L(...lab)}</button>`).join('');
   document.querySelectorAll('#views button').forEach(b => b.addEventListener('click', () => {
     VIEW = b.dataset.view; try { localStorage.setItem('atlas-view', VIEW); } catch (e) {} render();
   }));
-  document.getElementById('atlas').innerHTML = VIEWS[VIEW][1](DATA);
+  try {
+    document.getElementById('atlas').innerHTML = VIEWS[VIEW][1](DATA);
+  } catch (e) {
+    console.error(e);
+    document.getElementById('atlas').innerHTML = `<p class="muted">${L('This view could not be drawn from data/atlas.json; regenerate it with <code>python -m astrolab atlas</code>.', '无法用 data/atlas.json 绘制此视图；请用 <code>python -m astrolab atlas</code> 重新生成。')}</p>`;
+  }
   document.getElementById('gen').innerHTML = L('generated ', '生成于 ') + esc(DATA.generated_at);
 }
 fetch('data/atlas.json').then(r => r.json()).then(d => { DATA = d; render(); }).catch(e => {
