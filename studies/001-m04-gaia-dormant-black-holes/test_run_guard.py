@@ -6,8 +6,13 @@ from types import SimpleNamespace
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).parent))
-import run  # noqa: E402
+import importlib.util
+
+HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE))
+_spec = importlib.util.spec_from_file_location("m04_run_for_guard_tests", HERE / "run.py")
+run = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(run)
 
 
 def ctx_for(results: Path, formal=True):
@@ -15,9 +20,10 @@ def ctx_for(results: Path, formal=True):
     return SimpleNamespace(study=st, results=results if formal else results.parent / "explore-out")
 
 
-def mark(d: Path, release: str):
+def mark(d: Path, release: str, finished="t1"):
     d.mkdir(parents=True, exist_ok=True)
     (d / "release.json").write_text(json.dumps({"release": release}), encoding="utf-8")
+    (d / "run_info.json").write_text(json.dumps({"finished_at": finished}), encoding="utf-8")
 
 
 def test_formal_dr4_run_refused_until_dr3_archived(tmp_path):
@@ -62,3 +68,22 @@ def test_params_and_releases_are_consistent():
     assert run.PARAMS["release"] in run.RELEASES
     assert run.RELEASES["dr4"]["covariance_trusted"] is False   # until confirmed from documentation
     assert run.TARGETS["Gaia BH3"]["m1"] == 0.76 and run.TARGETS["Gaia BH3"]["m1_err"] == 0.05
+
+
+def test_stale_archive_is_refused(tmp_path):
+    res = tmp_path / "results"
+    mark(res / "dr3", "dr3", finished="t1")
+    mark(res, "dr3", finished="t2")          # DR3 rerun after archiving
+    with pytest.raises(SystemExit, match="older"):
+        run.guard_results(ctx_for(res), "dr4")
+
+
+def test_unknown_release_is_refused():
+    from types import SimpleNamespace as NS
+    old = run.PARAMS["release"]
+    run.PARAMS["release"] = "dr5"
+    try:
+        with pytest.raises(SystemExit, match="release must be one of"):
+            run.main(NS())
+    finally:
+        run.PARAMS["release"] = old

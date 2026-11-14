@@ -48,8 +48,19 @@ def test_print_builds_adql_without_network(args, expect):
     assert expect in r.stdout
 
 
+def _current_release():
+    import json
+    for name in ("release.json", "summary.json"):
+        f = RESULTS / name
+        if f.exists():
+            return json.loads(f.read_text(encoding="utf-8")).get("release")
+    return None
+
+
+@pytest.mark.skipif(_current_release() is None, reason="no results/ yet")
 def test_archive_dry_run_refuses_wrong_release():
-    r = run("archive", "dr4", "--print")
+    other = "dr4" if _current_release() == "dr3" else "dr3"
+    r = run("archive", other, "--print")
     assert r.returncode != 0 and "nothing archived" in r.stderr and "Traceback" not in r.stderr
 
 

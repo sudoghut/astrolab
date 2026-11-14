@@ -192,3 +192,91 @@ def test_cap_rows():
     df = pd.DataFrame({"m2": np.arange(3000.0)})
     out, info = sel.cap_rows(df, 2500)
     assert len(out) == 2500 and info["truncated"] and out.m2.min() == 500
+
+
+# --- tests that pin the order of each rule (gate-1 round 1, stage 2) ---------------------------
+
+def test_rsel_highest_significance_wins():
+    df = pd.DataFrame([sol(nss_solution_type="OrbitalTargetedSearchValidated", significance=10),
+                       sol(nss_solution_type="OrbitalAlternativeValidated", significance=50)])
+    assert sel.primary_solutions(df, UNVAL, AST).nss_solution_type.tolist() == ["OrbitalAlternativeValidated"]
+    df = pd.DataFrame([sol(nss_solution_type="OrbitalAlternativeValidated", significance=10),
+                       sol(nss_solution_type="OrbitalTargetedSearchValidated", significance=50)])
+    assert sel.primary_solutions(df, UNVAL, AST).nss_solution_type.tolist() == ["OrbitalTargetedSearchValidated"]
+
+
+def test_rsel_nan_significance_loses_even_against_type_name_order():
+    # the type-name tie-break alone would pick OrbitalAlternativeValidated; NaN significance must lose first
+    df = pd.DataFrame([sol(nss_solution_type="OrbitalAlternativeValidated", significance=np.nan),
+                       sol(nss_solution_type="OrbitalTargetedSearchValidated", significance=5)])
+    assert sel.primary_solutions(df, UNVAL, AST).nss_solution_type.tolist() == ["OrbitalTargetedSearchValidated"]
+
+
+def test_rsel_goodness_of_fit_then_type_name_then_period():
+    df = pd.DataFrame([sol(nss_solution_type="OrbitalAlternativeValidated", goodness_of_fit=-3),
+                       sol(nss_solution_type="OrbitalTargetedSearchValidated", goodness_of_fit=1)])
+    assert sel.primary_solutions(df, UNVAL, AST).nss_solution_type.tolist() == ["OrbitalTargetedSearchValidated"]
+
+
+def test_rsel_orbital_beats_other_validated_types():
+    df = pd.DataFrame([sol(nss_solution_type="OrbitalAlternativeValidated", significance=99),
+                       sol(nss_solution_type="Orbital", significance=1)])
+    assert sel.primary_solutions(df, UNVAL, AST).nss_solution_type.tolist() == ["Orbital"]
+
+
+@pytest.mark.parametrize("primary, label", [
+    (prim(nss_solution_type="OrbitalAlternative", parallax=-1.0), "type-vetoed"),      # type before insufficient
+    (prim(period_error=np.nan, veto_rv=True), "insufficient"),                          # insufficient before RV
+    (prim(veto_rv=True, m2=1.0), "rv-vetoed"),                                          # RV before mass
+    (prim(m2=1.0, period=400.0), "mass-below"),                                         # mass before period
+])
+def test_first_label_that_applies(primary, label):
+    assert sel.label_survivor(True, primary, REF, UNVAL, 5.0, 3.0) == label
+
+
+def test_period_test_uses_both_errors():
+    # |dP| = 9: fails with sigma_DR3 = 2 alone (3 x 2 = 6), passes with sigma_DR4 = 3 (3 x 3.6 = 10.8)
+    assert sel.label_survivor(True, prim(period=309.0, period_error=3.0), REF, UNVAL, 5.0, 3.0) == "persists"
+    assert sel.label_survivor(True, prim(period=309.0, period_error=0.1), REF, UNVAL, 5.0, 3.0) == "period-changed"
+
+
+def test_insufficient_on_zero_parallax_error():
+    assert sel.label_survivor(True, prim(parallax_error=0.0), REF, UNVAL, 5.0, 3.0) == "insufficient"
+
+
+def test_in_screen_cuts_fail_on_mass_function_only():
+    small = sol(a_thiele_innes=0.01, b_thiele_innes=0.0, f_thiele_innes=0.0, g_thiele_innes=0.01)
+    assert not sel.in_screen_cuts(small, AST, 5.0, 0.25)
+
+
+def test_boundaries():
+    assert sel.s2_dr4(21, [True] * 14 + [False])["verdict"] == "pass"          # N_eval = 15, 14 >= ceil(13.5)
+    assert sel.s2_dr4(21, [True] * 13 + [False] * 2)["verdict"] == "fail"
+    assert sel.rv_veto_applicable([999.9, 1000.0], [0.0, 0.0], DR4_RV).tolist() == [True, False]
+    assert sel.rv_veto_applicable([500, 500], [0.79, 0.8], DR4_RV).tolist() == [True, False]
+
+
+def test_s1_nan_mass_counts_as_evaluable_failure():
+    assert sel.s1_targets({"a": 9.0, "b": float("nan"), "c": None}, 3.0)["verdict"] == "fail"
+
+
+def test_identity_check_uses_cos_dec_and_wraps_ra():
+    ref = {"ra": 10.0, "dec": 80.0, "phot_g_mean_mag": 12.0}
+    # 10 arcsec in RA at dec 80 is 1.74 arcsec on the sky: within 2 arcsec
+    assert sel.identity_check(ref, {"ra": 10.0 + 10 / 3600, "dec": 80.0, "phot_g_mean_mag": 12.0}, 0.0)[0]
+    ref0 = {"ra": 359.99999, "dec": 0.0, "phot_g_mean_mag": 12.0}
+    assert sel.identity_check(ref0, {"ra": 0.00001, "dec": 0.0, "phot_g_mean_mag": 12.0}, 0.0)[0]
+
+
+def test_possible_alias_is_relative():
+    assert sel.possible_alias(0.52) and sel.possible_alias(2.15) and not sel.possible_alias(1.0)
+    assert not sel.possible_alias(0.6) and not sel.possible_alias(float("nan"))
+
+
+def test_resolve_ids_keeps_19_digit_ids_exact_with_unresolved_present():
+    big = [6481502062263141504, 5820382041374661888, 2995961897685517313]
+    ref = pd.DataFrame({"source_id": big, "ra": [10.0] * 3, "dec": [0.0] * 3, "phot_g_mean_mag": [12.0] * 3})
+    found = pd.DataFrame({"source_id": big[:2], "ra": [10.0] * 2, "dec": [0.0] * 2, "pmra": [0.0] * 2,
+                          "pmdec": [0.0] * 2, "phot_g_mean_mag": [12.0] * 2})
+    r = sel.resolve_ids(ref, found, 1.5)
+    assert [int(x) for x in r.dr4_id.dropna()] == big[:2] and r.dr4_id.isna().sum() == 1

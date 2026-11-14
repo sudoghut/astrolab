@@ -48,15 +48,19 @@ def screen_from_where(release="dr3", fm_min=0.25, plx_snr_min=5.0) -> str:
     return f"({mass_function_subquery(release, plx_snr_min)}) AS q WHERE q.f_m > {fm_min}"
 
 
-def screen_adql(release="dr3", fm_min=0.25, plx_snr_min=5.0) -> str:
+def screen_adql(release="dr3", fm_min=0.25, plx_snr_min=5.0, flame=True) -> str:
+    """Screen query. flame=False drops the FLAME join (if a release lacks those columns);
+    the caller then fills mass_flame / radius_flame with NaN. The default keeps the DR3 text."""
     s = SCHEMAS[release]
     cols = ", ".join(f"q.{c.strip()}" for c in _COLS.split(","))
+    ap_cols = "ap.mass_flame, ap.mass_flame_lower, ap.mass_flame_upper, ap.radius_flame " if flame else ""
+    ap_join = f"LEFT OUTER JOIN {s}.astrophysical_parameters AS ap ON ap.source_id = q.source_id " if flame else ""
     return (
         f"SELECT {cols}, q.a0_mas, q.f_m, "
-        f"g.ra, g.dec, g.l, g.b, g.phot_g_mean_mag, g.bp_rp, g.ruwe, "
-        f"ap.mass_flame, ap.mass_flame_lower, ap.mass_flame_upper, ap.radius_flame "
+        f"g.ra, g.dec, g.l, g.b, g.phot_g_mean_mag, g.bp_rp, g.ruwe"
+        f"{', ' + ap_cols if flame else ' '}"
         f"FROM ({mass_function_subquery(release, plx_snr_min)}) AS q "
         f"JOIN {s}.gaia_source AS g ON g.source_id = q.source_id "
-        f"LEFT OUTER JOIN {s}.astrophysical_parameters AS ap ON ap.source_id = q.source_id "
+        f"{ap_join}"
         f"WHERE q.f_m > {fm_min}"
     )
