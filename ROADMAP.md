@@ -156,7 +156,7 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 
 **数据**
 - El-Badry 等人 2021 年的宽双星星表有 **1.8 GB，不下载**。
-- 改为在服务器端用 ADQL 自连接（self-join），重建 130–200 pc 以内的干净样本，约 5–20 MB。
+- 改为在服务器端用 ADQL 自连接（self-join），重建 130–150 pc 以内的干净样本（候选对与逐星的邻居计数），约 10–40 MB。
 
 **方法**
 - 计划 013：按 Cookson et al. 2026 的质量清单重建干净样本，比较 r_sky/r_M 各箱中缩放相对速度（scaled relative velocity）ṽ 的中位数是"平的牛顿线"还是"MOND 台阶"。
