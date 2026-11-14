@@ -42,8 +42,9 @@ that depends on it is reported as **not evaluable**, with the reason.
 **R1 (reproduction).**
 - Primary: all 47 parameters agree with `lstsq_results.txt` to |Δq| ≤ 1×10⁻³ and
   |Δσ| ≤ 1×10⁻³ (same data and method, so this is an exact check of `infer.gls`, the FITS
-  decoding and the column reading). Verdict: **reproduced** / **not reproduced** (with the worst
-  parameter).
+  decoding and the column reading). A column that is all zero in L (expected: column 44, printed
+  as 0.00000 ± 0.000) is not fitted; it passes if the file's value and error are both 0 within
+  the same tolerance. Verdict: **reproduced** / **not reproduced** (with the worst parameter).
 - Secondary: our 5 log H0 against R22's 9.318 (73.04). Not expected to match exactly: the public
   file's last entry is 9.32599 (about 73.3), a slightly different fit from the printed baseline
   (plan 012, section 2). Reported with the difference; nothing is tuned to close it.
@@ -51,8 +52,12 @@ that depends on it is reported as **not evaluable**, with the reason.
 **R2 (the test of the paper's selection claim).**
 - *Anchor step* (all anchors → NGC 4258 only, all 37 hosts):
   Δ_a = 5 log H0(NGC 4258 only) − 5 log H0(baseline). Target: R22 Table 5 fit 10 (72.51 ± 1.54
-  against 73.04), i.e. −0.0158 mag. **Reproduced** if |Δ_a − (−0.0158)| ≤ 0.005 mag; this also
-  validates the anchor rule. arXiv:2408.11770 Table 4 (73.17 → 72.54, −0.0188) is a secondary
+  against 73.04), i.e. −0.0158 mag. **Reproduced** if |Δ_a − (−0.0158)| ≤ 0.005 mag **and** the
+  NGC 4258-only σ(5 log H0) is within 15% of fit 10's 5 log10(e) × 1.54 / 72.51 = 0.0461 mag (a
+  fit that kept another anchor would have a clearly smaller σ; 15% allows for the public file
+  not being the printed baseline). Both together validate the anchor rule. If the anchor step is
+  not reproduced, the host step is still computed but its verdict is reported as **conditional
+  (anchor rule not validated)**. arXiv:2408.11770 Table 4 (73.17 → 72.54, −0.0188) is a secondary
   reference, reported only.
 - *Host step* (NGC 4258 only: 37 hosts → the 10 CCHP hosts): Δ_h = aᵀy with
   a = (A_sub S − A_full)ᵀ e (A: the GLS estimator matrices; S: the row selection; e: the last
@@ -103,34 +108,51 @@ their values are listed as "not independent, not interpreted" and are not averag
 | CCHP Table 2 (JWST TRGB μ and σ_T; 10 hosts, 11 SNe) | typed into `run.py` from arXiv:2408.06153 v3 | R3 | 11 rows |
 
 Total about 47.2 MiB: under the 200 MB study budget, and the largest file is under the 50 MiB
-single-download limit. If an LFS download returns a pointer or an error page (size or hash
-mismatch), the run stops. No TAP queries.
+single-download limit. `ctx.http` follows the media.githubusercontent.com redirect; if an LFS
+download returns a pointer or an error page, for example after the LFS bandwidth quota is
+exhausted (size or hash mismatch), the run stops. No TAP queries.
 
 ## 4. Method
 
 **Parameter order** (R22 Eq. 6; checked against `lstsq_results.txt` in plan 012): columns 0–36 are
 the host distance moduli μ₀,i in R22 Table 6 order (alphabetical: M101, M1337, N0105, …, U9391),
 then ΔμN4258 (37), M^W_H,1 (38), ΔμLMC (39), μM31 (40), b_W (41), M⁰_B (42), Z_W (43), an extra
-parameter (44; 0.00000 in the file), Δzp (45) and 5 log H0 (46).
+parameter (44; 0.00000 in the file), zp (45; R22 section 4.2: "the difference between the ground
+and HST zeropoints", carried by ground-based Cepheid rows and constrained by "0 = zp ± σgrnd") and
+5 log H0 (46). In R22 Eq. 6 the anchors enter as external-constraint rows: y = M^W_H,1,HST
+(−5.810, σ 0.054) and y = M^W_H,1,Gaia (−5.903, σ 0.024) for the Milky Way (R22 Table 4), and
+rows y = 0 for ΔμN4258, ΔμLMC and zp; the NGC 4258 and LMC Cepheid rows carry
+y = m − μ₀,anchor and a +1 in their Δμ column. There are no per-Cepheid Milky Way rows.
 
 **GLS.** `astrolab.infer.gls`: q̂ = (LᵀC⁻¹L)⁻¹LᵀC⁻¹y with Cholesky factors (no explicit inverse),
 all-zero columns dropped, full column rank required; C is converted to native float64. A
 subsystem takes the selected rows of y and L and the rows and columns of C (the marginal of a
 Gaussian).
 
-**Host identification (structural checks; all required).** Calibrator SN rows have a non-zero in
-column 42 and in exactly one host column; Hubble-flow SN rows have non-zeros in columns 42 and 46
-and in no host column. Required: 42 calibrator rows with per-host counts equal to Table 6 (2 in
-N1448, 3 in N3147, 2 in N5468, 2 in N5643, 1 elsewhere); 277 Hubble-flow rows; and, within each
-host, the sorted y values of its SN rows within 0.05 mag of the sorted Table 6 m⁰_B (Table 6
-note d: those are approximations). Reported only: each host's fitted μ against Table 6 μ_Ceph.
+**Row classes (reported, must sum to 3492).** Calibrator SN rows: a non-zero in column 42 and in
+exactly one host column. R22 section 4.8 uses "77 sets in all for 42 SNe Ia" (several light-curve
+sets per SN), so 77 such rows are expected, not 42. Hubble-flow SN rows: non-zeros in columns 42
+and 46 and in no host column (R22: 277 SNe; the count is reported, and nothing depends on it, since
+these rows are kept in every subsystem). Single-non-zero constraint rows (expected 5: two in
+column 38, one each in columns 37, 39, 45). The rest are Cepheid rows.
+
+**Host identification (structural checks; all required).** (i) 77 calibrator rows, every host
+column 0–36 having at least one; (ii) within each host, every SN row's y is within
+`sn_match_tol` = 0.15 mag of some Table 6 m⁰_B of that host, and every Table 6 SN of that host is
+matched by at least one row (the tolerance is wider than the Table 6 errors, 0.07–0.20 mag,
+because Table 6 note d gives a simple average over surveys while each row is one survey's light
+curve; different hosts' m⁰_B span 9.8–15.3 mag); (iii) each host's fitted μ₀,i in the baseline fit
+within 3σ_Ceph + 0.02 mag of Table 6 μ_Ceph (column a, which excludes that host's SNe; host
+distances span 29.2–34.5 mag, so a permuted column fails this). Reported: the worst host for each
+check.
 
 **Anchor rule (NGC 4258 only; R22 section 6.2: drop the other anchors' geometric distances, keep
-their Cepheids).** Drop the LMC detached-eclipsing-binary row (its only non-zero is in column 39)
-and the Milky Way parallax rows (the rows with a non-zero in column 45, Δzp, the Gaia parallax
-zero point, which only MW parallax rows carry; column 45 then drops out). Required: exactly one
-LMC row and at least one MW row found, and the NGC 4258 maser row (its only non-zero is in
-column 37) kept. Validated by the R2 anchor target.
+their Cepheids).** Drop the LMC detached-eclipsing-binary row (only non-zero in column 39, y = 0)
+and the two Milky Way rows (only non-zero in column 38, y within 0.2 mag of −5.85). Keep the
+NGC 4258 maser row (only non-zero in column 37, y = 0), the zp constraint row and every row with
+a non-zero in column 45. Required: exactly one LMC row, exactly two MW rows and exactly one maser
+row found. ΔμLMC is then fixed by the LMC Cepheids relative to NGC 4258, as in R22's fit 10.
+Validated by the R2 anchor target (shift and σ).
 
 **Host step.** From the NGC 4258-only system, drop every row with a non-zero in a host column
 outside the CCHP set {M101, N1365, N2442, N3972, N4038, N4424, N4536, N4639, N5643, N7250}
@@ -139,25 +161,37 @@ as in section 2, from `infer.gls(..., return_estimator=True)`.
 
 **R3 joint estimator.** z = (y, t), t = the CCHP Table 2 μ_TRGB of the 10 hosts (one value per
 host; N5643's two SNe share it). Cov(z): the y block is C; the t block is diag(σ_T²) plus
-0.025² + 0.032² on every entry (the TRGB tip measurement in NGC 4258, 0.025 mag, and the maser
-distance, 0.032 mag, both fully correlated across hosts; arXiv:2408.06153 sections V, VII.2 and
-X); the y–t block is zero except Cov(t_i, maser row) = that row's variance in C (both carry the
-same maser error, with the same sign). H0,SH0ES comes from the host-step subsystem; H0,CCHP from
-the same subsystem with the 10 hosts' Cepheid rows removed and rows μ₀,i = t_i added. Both are
-linear in z, so d = bᵀz and σ_d² = bᵀ Cov(z) b exactly; σ_d is indicative only (section 2).
+0.025² + σ_m² on every entry, where 0.025 mag is the TRGB tip measurement in NGC 4258 and σ_m² is
+the maser row's variance in C (R22's 0.032 mag), both fully correlated across hosts
+(arXiv:2408.06153 sections V, VII.2 and X; we read Table 2's σ_T as excluding these zero-point
+terms, since CCHP section X adds them separately "for each SN Ia-host distance average"). The y–t
+block is zero except Cov(t_i, maser row) = k·c·σ_m², where k is the maser row's column-37 entry and
+c the NGC 4258 Cepheid rows' column-37 entry (both must be ±1, else R3 is not evaluable). Derivation:
+a maser modulus too high by ε makes every t_i too high by ε, the fitted ΔμN4258 low by ε through
+the NGC 4258 Cepheid rows (y = m − μ₀,N4258, coefficient c), and the maser row's error k·c·ε; with
+k = c = +1 the cross term is +σ_m².
+H0,SH0ES comes from the host-step subsystem. H0,CCHP is a GLS on the same subsystem with the 10
+hosts' Cepheid rows removed and the rows μ₀,i = t_i added, weighted by the matching block of
+Cov(z) (C for the y rows, the t block, and the cross term). Both are linear in z, so d = bᵀz and
+σ_d² = bᵀ Cov(z) b exactly; σ_d is indicative only (section 2). Sensitivity (reported only): d
+and the CCHP-side H0 with the t-block zero-point terms removed.
 
 **R4.** Random host subsets as in section 2, on the NGC 4258-only system, one GLS per draw.
+Runtime estimate: each draw factorises a C sub-block of roughly 1500–2500 rows (0.05–0.2 s), so
+10,000 draws take roughly 10–30 min; the subsystem's row indices are precomputed per host. An
+exploration that changes `r4_draws` reruns all draws.
 
 **Parameters (`PARAMS` in `run.py`, saved with the results):** `cchp_hosts`, `r4_draws` (10,000),
-`r4_seed` (0), `sn_match_tol` (0.05 mag), `trgb_tip_sys` (0.025 mag), `maser_sys` (0.032 mag; the
-cross term uses the maser row's variance in C). Changing a committed `PARAMS` value amends this
-pre-registration and needs a dated note.
+`r4_seed` (0), `sn_match_tol` (0.15 mag), `trgb_tip_sys` (0.025 mag). The maser variance is read
+from C. Changing a committed `PARAMS` value amends this pre-registration and needs a dated note.
 
 **Systematics and limits.** The public matrices are not exactly the printed R22 baseline (R1).
 The 2024 paper's numbers use newer data (SMC anchor, more Cepheids) and its Eq. 6 approximation,
 hence the 0.02 mag allowance in R2. R3's covariance omits SN-photometry differences between the
 two analyses: CCHP's 69.29 uses the same Pantheon+ magnitudes inside the R22 framework (Table 5
-note d), so this term is expected to be small.
+note d), so this term is expected to be small. Our CCHP-side estimate fits all 77 light-curve rows
+of the 11 SNe with C, whereas CCHP applied one peak m_B per SN to R22's NGC 4258 fit (fit 10,
+M_B = −19.269); the 0.02 mag "matched" tolerance in R3 is the guard for this difference.
 
 ## 5. Results
 

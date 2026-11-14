@@ -151,6 +151,8 @@ def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rto
 
     Returns dict: q, sigma (NaN for dropped columns), cov (kept x kept), kept, chi2, dof, and, with
     ``return_estimator``, ``A`` (kept x n_rows, q_kept = A y) for exact linear error propagation.
+    Rows/columns of ``cov`` and rows of ``A`` are indexed in ``kept`` space: the parameter in
+    original column j sits at ``np.searchsorted(kept, j)`` (only if j is in ``kept``).
     """
     from scipy import linalg
 
@@ -168,6 +170,8 @@ def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rto
         if C.shape != (n, n):
             raise ValueError(f"C has shape {C.shape}, expected ({n}, {n})")
         c_factor = linalg.cho_factor(C, lower=True)
+    elif c_factor[0].shape != (n, n):
+        raise ValueError(f"c_factor has shape {c_factor[0].shape}, expected ({n}, {n})")
     W = linalg.cho_solve(c_factor, Lk)                     # C^-1 L
     F = Lk.T @ W                                           # Fisher matrix
     F = 0.5 * (F + F.T)
@@ -177,7 +181,10 @@ def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rto
     ev = np.linalg.eigvalsh(F / np.outer(d, d))
     if ev[0] <= rank_rtol * ev[-1]:
         raise ValueError(f"L^T C^-1 L is rank deficient (min/max eigenvalue {ev[0] / ev[-1]:.2e})")
-    f_factor = linalg.cho_factor(F, lower=True)
+    try:
+        f_factor = linalg.cho_factor(F, lower=True)
+    except linalg.LinAlgError as exc:
+        raise ValueError(f"L^T C^-1 L is not positive definite: {exc}") from exc
     cov = linalg.cho_solve(f_factor, np.eye(len(kept)))
     cov = 0.5 * (cov + cov.T)
     qk = cov @ (W.T @ y)
