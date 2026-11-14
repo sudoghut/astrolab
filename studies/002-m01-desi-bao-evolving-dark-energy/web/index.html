@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" data-title-zh="DESI DR2 重子声学振荡与演化暗能量">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DESI DR2 BAO and evolving dark energy</title>
+<!-- Bilingual rule (AGENTS.md): keep this script, write text as <span class="en">…</span><span class="zh">…</span>,
+     use i18n.L(en, zh) for generated HTML and i18n.t(en, zh) + i18n.onLangChange for plain text / charts. -->
+<script src="../../../atlas/web/i18n.js"></script>
+<link rel="stylesheet" href="../../../atlas/web/base.css">
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 002-m01-desi-bao-evolving-dark-energy</p>
+  <h1><span class="en">DESI DR2 BAO and evolving dark energy</span><span class="zh">DESI DR2 重子声学振荡与演化暗能量</span></h1>
+  <p class="muted"><span class="en">Replace this page freely: design whatever this question needs (visualization, interactive analysis, several pages). It does not have to follow the Atlas. Data comes from <code>../results/*.json</code>.</span><span class="zh">可以完全替换本页面：按研究问题的需要来设计（可视化、交互式分析、多个页面），不必遵循 Atlas 的样式。数据来自 <code>../results/*.json</code>。</span></p>
+  <pre id="out"><span class="en">loading…</span><span class="zh">加载中……</span></pre>
+</main>
+<script>
+fetch('../results/summary.json')
+  .then(r => { if (!r.ok) throw new Error(`results/summary.json: HTTP ${r.status}`); return r.json(); })
+  .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
+  .catch(e => {
+    const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
+    // Both languages in the DOM, so the message follows later language switches.
+    document.getElementById('out').innerHTML = i18n.L('Could not load results (run the study first?) or render them: ', '无法加载或显示结果（是否已运行研究？）：') + msg;
+  });
+</script>
+</body>
+</html>
