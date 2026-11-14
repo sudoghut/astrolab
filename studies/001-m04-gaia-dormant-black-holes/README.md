@@ -298,6 +298,7 @@ from `tests/test_lean_arguments.py`, not our article. Triage:
 | 3 | `mod_fit3` [stated] covers the method, not the step from an estimate to a bound | yes | `mod_fit3` is [implied], like `mod_fit1`/`mod_fit2`. |
 | 4 | "Redundant" BH1 mass routes all rest on the same follow-up RVs | yes | Article says redundancy is robustness to dropping one premise, not to a problem in the RV data. |
 | 5 | `num_astro1` is redundant and binds a median of a low-significance DR3 solution | yes | Stated in the article; no Lean verdict depends on it. |
+| 5b | (from review of the fixes) `lit_wd3` lacked `NoStar3`; `mod_dark2` quote names only a 9 Msun single star | yes | `lit_wd3` takes `NoStar3`; `mod_dark2` is [implied] (mass-luminosity relation). |
 | 6 | Minor wording (`Faint2` scope, BH3 conclusion quote, `lit_ns1` neutron-star maximum 2.3-2.5 Msun) | yes | Fixed. |
 
 Verdicts after the fixes: `explicit_insufficient` (GAP `gap_few3`), `stated_insufficient`, 8 BH1 mass-route
