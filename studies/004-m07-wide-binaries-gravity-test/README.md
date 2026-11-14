@@ -1,27 +1,138 @@
 # Wide binaries: Newton or MOND at low acceleration?
 
-> Write sections 1–4 BEFORE writing run.py (pre-registration). Edit them later only
-> with a dated note explaining the change.
+> Sections 1-4 are the pre-registration (derived from part 3 of the wiki article
+> [Study-004](https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-004-wide-binaries-newton-or-mond.md)
+> and design plan 013). Because the Gaia archive is offline 2026-11-25 to 12-02, data are fetched in
+> two steps (section 3): step A (no velocity columns) may run once section 3 is committed; step B
+> (proper motions and radial velocities) runs only after sections 1-4 are committed with a date.
+> No ṽ, v_sky or median is computed before that commit. Later edits need a dated note.
 
 ## 1. Question
 
-TODO: what exactly are we asking?
+Cookson, Banik, El-Badry et al. 2026 (C26, arXiv:2602.24035) build a clean Gaia DR3 wide-binary
+sample within 130 pc and find the median scaled relative velocity ṽ = v_sky/√(GM/r_sky) flat with
+r_sky/r_M, concluding that "Newtonian gravity is up to 1500× more likely than MOND". We ask:
 
-## 2. Hypothesis and decision criteria
+1. **R1.** Rebuilt from Gaia DR3 with server-side queries and the same cuts, do we get a sample of
+   comparable size and a median-ṽ profile like C26's Figure 8?
+2. **R2 (the test).** With per-bin errors that are calibrated (a bootstrap over pairs), does the
+   comparison still favour Newton over the MOND step by a relative likelihood of at least 100?
+   This is the `gap_err` premise of the Lean argument.
+3. **R3 (descriptive).** How do C26's choices (projection correction, HR cut, distance, parallax
+   S/N, ipd_frac_multi_peak, degrouping, ṽ cap) move the result?
+4. **R4 (descriptive, optional).** The median profile with Banik et al. 2024's selection
+   (250 pc, G < 17), only if its server-side count fits the budget.
 
-TODO: what result would support / refute the hypothesis? Quantitative thresholds.
+## 2. Hypotheses and decision criteria
+
+**Definitions (fixed here).**
+- a0 = 1.2 × 10⁻¹⁰ m/s²; G = 6.674 × 10⁻¹¹ (SI); 1 AU = 1.495978707 × 10¹¹ m.
+- r_M = √(GM/a0) with M the pair's total mass; x = r_sky/r_M.
+- ṽ = v_sky/√(GM/r_sky) (C26 Eq. 9).
+- MOND prediction (C26 Eqs. 2, 4–8): ν(g) = 1/(1 − exp(−√(g/a0))) (MLS form); g_N,e = 1.184 a0;
+  internal g_N,i = a0/(x²·3/2) using r ≈ r_sky√(3/2) (Eq. 10); g_N,t = √(g_N,i² + g_N,e²);
+  K = ∂ln ν/∂ln g evaluated at g_N,t; boost b(x) = √(ν(g_N,t)·(1 + (K/3)·tanh(0.825 g_N,e/g_N,i)^3.7)).
+  b → 1 as x → 0 (ν → 1, K → 0), so the MOND model for bin j is A·b(x_j) and the Newtonian model
+  is the constant A. Each model has one free
+  normalisation A, fitted by weighted least squares (generalised least squares with the bin
+  covariance). x_j is the median x of the pairs in bin j (C26 Figure 8 uses the geometric mean;
+  both are reported, the median is used in the fit).
+- Bins (written before any velocity is computed): edges in x at the geometric midpoints of C26's
+  Table 2 bin medians: 0.1057, 0.2307, 0.5088, 1.0275, 2.0902; the lowest bin has no lower edge
+  (r_sky ≥ 1 kAU) and the highest no upper edge (r_sky ≤ 30 kAU).
+- Δχ² = χ²_MOND − χ²_Newton, each at its best A; relative likelihood L = exp(Δχ²/2). The two models
+  are not nested; L is a relative likelihood, not a Wilks test or posterior odds.
+
+**Fit validity.** Each bin must hold at least 15 pairs; otherwise adjacent bins at the outer end
+are merged (and this is reported). The bootstrap covariance must be finite; if its condition
+number exceeds 10⁸, its diagonal is used instead, flagged.
+
+**R1 (reproduction; main sample = C26's "ṽ ≤ 2.5" row).**
+- N within ±20% of 1421 (main) and of 1216 (ṽ ≤ 1.5 and ipd_frac_multi_peak = 0) →
+  **reproduced sample size**; otherwise **different sample** (R2 is still computed but labelled
+  "different sample; not a reproduction", and a diagnostic chain switching cuts on one at a time is
+  reported).
+- Diagnostics only (no pass/fail): per-bin medians against C26 Figure 8 (read from the image),
+  per-bin counts against 368, 228, 144, 99, 33, 28; the fitted Newtonian normalisation against
+  0.489; which error formula (MAD/√N or 1.4826 MAD/√N) reproduces Figure 8's error bars.
+
+**R2 (the test of C26's conclusion and of `gap_err`).** Primary errors: bootstrap over pairs —
+2000 resamples of the whole sample with replacement (seed 0), each re-binned; the covariance of
+the six bin medians is used in both fits. Verdicts on the main sample (ṽ ≤ 2.5), fixed here:
+
+| Condition on L (primary errors) | Verdict |
+|---|---|
+| L ≥ 100 | Newton has the higher relative likelihood (agrees with C26's conclusion) |
+| 1/100 < L < 100 | cannot distinguish (does not support the strength of C26's conclusion) |
+| L ≤ 1/100 | MOND has the higher relative likelihood (contradicts C26) |
+
+Also reported, without verdicts: L with C26's MAD/√N and with 1.4826 MAD/√N (the reproduction
+column), L for the three other Table 3 rows, the bootstrap/MAD error ratio per bin, and the
+Newtonian χ² and its p-value (5 degrees of freedom).
+
+**R3 (descriptive).** Each variant changes one choice from the main sample: no perspective
+correction; no HR cut; d < 150 pc; d < 200 pc; parallax S/N > 100 (catalogue C10); ipd = 0 at
+130 pc and at 150 pc; no degrouping; ṽ ≤ 1.5 and ≤ 2. All are reported together in one table with
+L (primary errors), compared with C26's quantitative statements (150 pc: MOND 12×; 150 pc with
+ipd = 0: Newton 88×; no projection correction raises the outer-bin median by about 0.15). No
+variant is a headline result and no variant-wise significance is claimed.
+
+**R4 (descriptive, optional).** Only if the server-side count for B24's selection gives inputs
+within the study budget; otherwise reported as not run.
 
 ## 3. Data (with size estimate)
 
-| Input | Source (service / URL) | Selection | Est. rows / size |
-|---|---|---|---|
-| TODO | | | |
+All from the Gaia archive (gea.esac.esa.int, `gaiadr3.gaia_source`, plus
+`gaiadr3.astrophysical_parameters` for FLAME masses), through `ctx.tap` (async), never El-Badry's
+catalogue. Parent star: parallax > 6.6667 mas and parallax_over_error > 40 (C25; 824,463 stars,
+counted 2026-11-14). Relaxed neighbour star: parallax_over_error > 5 and
+phot_g_mean_flux_over_error > 5 (C24's download filter) and parallax + 3·parallax_error > 6.6667.
 
-All inputs must be MB-scale. Push filtering and aggregation to the server.
+| Query | Content | Selection (server side) | Est. rows / size |
+|---|---|---|---|
+| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, a flag whether radial_velocity is not null, FLAME mass | both parent stars; projected separation ≤ 0.5 pc (103 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined; proper-motion difference × distance < 10 km/s (computed in WHERE, not returned) | ~55,000 rows (strip trial: 2,209 in one 15° strip with \|δ\| < 60°), ~10 MB |
+| A2 neighbour counts | per parent star: source_id, number of relaxed neighbours, and the smallest neighbour source_id | relaxed neighbours with the same projected and parallax rules; only stars with n ≥ 1 returned | ≤ 200,000 rows, ~5 MB |
+| B1 velocities (after the pre-registration commit) | the same pairs as A1 with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | same WHERE as A1 | ~55,000 rows, ~10 MB |
+
+Total about 25–30 MB, under the 200 MB study budget; no single query near 50 MB (each is split
+into strips). Strips: star a in 24 right-ascension strips of 15° for |δ| ≤ 60°, 8 strips of 45° for
+60° < |δ| ≤ 80° (each hemisphere), and one query per polar cap (|δ| > 80°); star b restricted to the
+same strip plus a margin in right ascension of 2° (|δ| ≤ 60°), 6° (60–80°) and all right ascensions
+(caps), which covers 100 kAU for stars with parallax < 36 mas. Stars with parallax ≥ 36 mas
+(d < 28 pc) are queried once with star b unrestricted in position but restricted to parallax > 30.
+Each pair is kept once (canonical source_id_a < source_id_b; duplicates from the margins dropped);
+this logic has an offline test. If any query's count shows it cannot fit, the run stops and the
+user is asked. The cache (`%LOCALAPPDATA%`, ~30 MB) must not be cleared until the study is closed.
+Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-24).
 
 ## 4. Method
 
-TODO: steps, model, priors, systematics to check.
+1. **Pairs and degrouping (C24 §2.3, C26 §3.2.1).** A pair is kept only if each member's neighbour
+   count (A2) is 1 and that neighbour is the partner; pairs sharing a star are thereby removed.
+2. **Common distance and separation.** ϖ̄ = (σ²_ϖ2 ϖ1 + σ²_ϖ1 ϖ2)/(σ²_ϖ1 + σ²_ϖ2) (C24 Eq. A2);
+   d = 1/ϖ̄; r_sky = d·θ (θ the angular separation, exact great-circle formula).
+3. **Masses (C26 §4.1.2).** FLAME mass when available, else M⋆ = 10^{0.0725(4.67 − M_G)} with
+   M_G = G + 5 log10(ϖ̄/100) (ϖ̄ in mas); add 0.05 M☉ when M⋆ < 0.7 M☉. M = M⋆,1 + M⋆,2.
+4. **Velocity (C24 Eqs. 2–8, C26 §4.1.6).** v_sky from the proper-motion difference at the common
+   distance with the perspective correction from the primary's (brighter star's) radial velocity;
+   σ(ṽ) by the Jacobian propagation of C24 Appendix A (parallax and proper-motion errors and their
+   correlations; stars independent).
+5. **Cuts (main sample, C26).** d < 130 pc; 1 ≤ r_sky ≤ 30 kAU; RUWE < 1.25 (both); both on the HR
+   band: 0.5 < BP−RP < 3.5, 4 < M_G < 14, and within the 0.8 mag band of slope 3.3 whose upper
+   edge is M_G = 3.3(BP−RP) + c, with c fixed in the pre-registration commit from the stellar
+   locus of the parent sample (the band's position cannot be read from C26 exactly; the rule: the
+   upper edge passes 0.4 mag above the median M_G of parent stars at BP−RP = 1.8, using no
+   velocity); both stars with radial velocities and |ΔRV| < 10 km/s; σ(ṽ) < 0.1; ṽ ≤ 2.5.
+6. **Statistics.** Section 2 definitions; bootstrap covariance; GLS fits for A.
+7. **Parameters (`PARAMS` in run.py, saved with the results):** a0, bins, bootstrap count and seed,
+   the cut values above, variant switches for R3. Changing a committed value amends this
+   pre-registration and needs a dated note.
+
+**Systematics and limits.** Our pair finding (projected 0.5 pc with parallax consistency) is our
+reading of C24's "within 0.5 pc of one another", which does not say whether the distance is 2D or
+3D; the HR band's exact position and C26's bin edges are not published; FLAME masses exist for
+only part of the sample; the sample-size discrepancy inside C26 (1421 vs 900) means R1's size
+target is itself uncertain.
 
 ## 5. Results
 
