@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-14T18:50:01+00:00",
+ "generated_at": "2026-11-14T18:54:28+00:00",
  "levels": [
   "L0",
   "L1",
@@ -543,7 +543,7 @@
     "scale": {
      "log10_min": 8.602059991327963,
      "log10_max": 10.146128035678238,
-     "note": "BAO tracers z ~ 0.1-4.2 (effective z 0.295-2.33; comoving distance ~0.4-7.4 Gpc) out to the CMB distance (~14 Gpc)",
+     "note": "BAO tracers z ~ 0.1-4.2 (effective z 0.295-2.33; comoving distance ~0.4-7.4 Gpc) and, separately, the CMB distance (~14 Gpc); a combined, not contiguous, range",
      "default": false
     },
     "sky": {
