@@ -212,9 +212,9 @@ prior at the lower end".
 |---|---|---|---|
 | `mod_nested`: ΛCDM is w0waCDM with w0 = −1, wa = 0 | MOD | stated 2503.14738: "$\Lambda$ CDM is nested within $w_{0}w_{a}$ CDM, corresponding to $w_{0}=-1$ , $w_{a}=0$" | §VII |
 | `mod_gauss`: the errors are Gaussian (working assumption) | MOD | stated 2503.14738: "assuming that errors are Gaussian and correctly estimated" | §VII |
-| `gap_regular`: the regularity conditions hold under which Wilks' theorem calibrates Δχ²_MAP of this fit by χ²(2) (assumed) | GAP | reconstructed: Wilks 1938 (1938AnMS....9...60W) gives this only asymptotically, for a smooth likelihood with the null point away from boundaries; only the last is checkable here (the ΛCDM point is inside the prior box), smoothness and the large-sample approximation are unverified; the paper neither discusses nor simulates it | — (Wilks 1938 is background) |
+| `gap_regular`: the regularity conditions hold under which Wilks' theorem calibrates Δχ²_MAP of this fit by χ²(2) (assumed) | GAP | reconstructed: Wilks 1938 (1938AnMS....9...60W) gives this only asymptotically, for a smooth likelihood with the null point away from boundaries; only the last is checkable here (the ΛCDM point is inside the prior box), smoothness and the large-sample approximation are unverified, and the prior truncation of the alternative (wa near −3; the DESI-alone MAP has wa = −2.72) also changes the null distribution; the paper neither discusses nor simulates it | — (Wilks 1938 is background) |
 | `mod_wilks`: nested + Gaussian + regular + no systematics → Δχ²_MAP ~ χ²(2 dof) | MOD | stated 2503.14738: "implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated" | §VII |
-| `mod_sig`: Wilks + Δχ² ≤ −12.5 → 3.1σ | MOD | stated 2503.14738: "corresponding to a 3.1 $\sigma$ preference for evolving dark energy" | §VII.1 (via Eq. 22, §VII) |
+| `mod_sig`: Wilks + Δχ² ≤ −12.5 → 3.1σ | MOD | stated 2503.14738: "corresponding to a 3.1 $\sigma$ preference for evolving dark energy" | §VII.1 (via Eq. 22, §VII; the Lean body generalises the quoted value by the monotonicity of Eq. 22) |
 
 **Rival explanations.**
 
@@ -343,15 +343,15 @@ recomputed every number it could from about 34 MB of public files, with its own 
   against −4.7, −4.9, −10.1. The supernova-dependent spread of the preference, which part 2 ranks
   as the main weak point, is real and reproducible.
 - **R2, compressed CMB prior: conditionally reproduced.** With the prior's ωbc mean read as
-  ωb + ωc (the paper's definition next to Eq. 2), Δχ²_MAP = −8.01 (2.4σ) and the posterior means
+  ωb + ωc (the definition stated in the text next to Eq. 2; but see below: Eq. 2's normalisation points to A), Δχ²_MAP = −8.01 (2.4σ) and the posterior means
   w0 = −0.44 ± 0.23, wa = −1.69 ± 0.66 match Eq. 24. With the reading initially favoured in planning (the mean includes ων, supported only by
   indirect numerical evidence; pre-registered in parallel with B), Δχ²_MAP = −6.59
   (2.1σ). The independent referee showed that this split is not robust: the θ* calibration moves
   Δχ² by about 0.4 per prior σ of θ*, and its unmeasured cosmology dependence could plausibly reach
   ~1σ at the fit points, enough for reading A to pass; and the paper's Eq. 2 normalises ωbc to
   Planck's ωm including neutrinos, which points to reading A. So we do not conclude which
-  convention DESI's prior uses; the compressed-prior result is reproduced, with the convention
-  open (a CAMB check would settle it).
+  convention DESI's prior uses: the compressed-prior result is conditionally reproduced (reading B),
+  and whether it depends on the convention at all is open (a CAMB check of θ* would show that).
 - Not tested: the full-CMB Δχ² = −12.5 behind the headline 3.1σ (needs the full Planck and ACT
   likelihoods), the DES-SN5YR rows, and the Wilks calibration (`gap_regular`), which stays an
   exploration (README section 8).
@@ -376,7 +376,8 @@ recomputed every number it could from about 34 MB of public files, with its own 
   gate-1 review (Gaussian errors are a stated assumption; Wilks regularity added as the GAP `gap_regular`, so `explicit_insufficient`).
 - 2026-11-14: study run: R1 and R3 reproduced; R2 conditionally reproduced (only with the prior's
   ωbc mean read as ωb + ωc); part 3 results and "What we found" added.
-- 2026-11-14: independent referee: the R2 reading split is within the θ* calibration systematics and
+- 2026-11-14: independent referee: the R2 reading split may lie within the (unmeasured) θ* calibration
+  systematics and
   Eq. 2 points to reading A, so the convention is left open; Lean notes on `mod_sig`, `Challenged`
   and prior truncation in `gap_regular`.
 
@@ -502,9 +503,9 @@ have d : v.dchi2 ≥ 125 := p .stat_dchi2   -- Sec. VII.1, Table 6
 |---|---|---|---|
 | `mod_nested`：ΛCDM 是 w0 = −1、wa = 0 的 w0waCDM | MOD | stated 2503.14738："$\Lambda$ CDM is nested within $w_{0}w_{a}$ CDM, corresponding to $w_{0}=-1$ , $w_{a}=0$" | §VII |
 | `mod_gauss`：误差是高斯的（工作假设） | MOD | stated 2503.14738："assuming that errors are Gaussian and correctly estimated" | §VII |
-| `gap_regular`：使威尔克斯定理把这一拟合的 Δχ²_MAP 按 χ²(2) 校准的正则性条件成立（假设） | GAP | reconstructed：Wilks 1938（1938AnMS....9...60W）只在渐近意义下、对光滑且零假设（null hypothesis）点远离边界的似然给出这一点；这里只能核对最后一条（ΛCDM 点在先验范围内部），光滑性（正则性，regularity）与大样本近似是否适用都没有验证；论文既没有讨论也没有模拟 | —（Wilks 1938 为背景文献） |
+| `gap_regular`：使威尔克斯定理把这一拟合的 Δχ²_MAP 按 χ²(2) 校准的正则性条件成立（假设） | GAP | reconstructed：Wilks 1938（1938AnMS....9...60W）只在渐近意义下、对光滑且零假设（null hypothesis）点远离边界的似然给出这一点；这里只能核对最后一条（ΛCDM 点在先验范围内部），光滑性（正则性，regularity）与大样本近似是否适用都没有验证，备择模型的先验截断（wa 接近 −3；只用 DESI 的 MAP 为 wa = −2.72）也会改变零分布；论文既没有讨论也没有模拟 | —（Wilks 1938 为背景文献） |
 | `mod_wilks`：嵌套 + 高斯 + 正则 + 无系统误差 → Δχ²_MAP 服从 χ²（2 个自由度） | MOD | stated 2503.14738："implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated" | §VII |
-| `mod_sig`：威尔克斯 + Δχ² ≤ −12.5 → 3.1σ | MOD | stated 2503.14738："corresponding to a 3.1 $\sigma$ preference for evolving dark energy" | §VII.1（经 §VII 的式 22） |
+| `mod_sig`：威尔克斯 + Δχ² ≤ −12.5 → 3.1σ | MOD | stated 2503.14738："corresponding to a 3.1 $\sigma$ preference for evolving dark energy" | §VII.1（经 §VII 的式 22；Lean 内容按式 22 的单调性推广引文中的单个数值） |
 
 **其他解释。**
 
@@ -591,7 +592,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 - **R1，只用 BAO 的 ΛCDM：已复现。** Ωm = 0.2979 ± 0.0086，h·r_d = 101.52 ± 0.73 Mpc，与式 17 相差不到 0.05σ。
 - **R3，不含 CMB：已复现。** Δχ²_MAP = −4.65（DESI）、−4.86（加 Pantheon+）、−10.03（加 Union3），论文为 −4.7、−4.9、−10.1。第二部分列为主要薄弱点的、偏好程度随超新星样本变化的现象是真实且可复现的。
-- **R2，压缩 CMB 先验：有条件复现。** 把先验的 ωbc 均值按 ωb + ωc 解读（论文式 2 旁的定义）时，Δχ²_MAP = −8.01（2.4σ），后验均值 w0 = −0.44 ± 0.23、wa = −1.69 ± 0.66，与式 24 一致。按计划阶段起初倾向的解读（均值含 ων，只有间接数值证据；与 B 并列预注册）时，Δχ²_MAP = −6.59（2.1σ）。独立审稿指出这一分歧并不稳健：θ* 标定每改变一个先验 σ，Δχ² 移动约 0.4，而标定在拟合点处随宇宙学参数的变化没有测过，可能达到约 1σ，足以让解读 A 通过；论文式 2 把 ωbc 归一到包含中微子的 Planck ωm，也指向解读 A。所以我们不下结论 DESI 的先验用的是哪种约定；压缩先验的结果得到复现，约定仍未确定（用 CAMB 核对即可解决）。
+- **R2，压缩 CMB 先验：有条件复现。** 把先验的 ωbc 均值按 ωb + ωc 解读（式 2 旁正文写明的定义；但见下文：式 2 的归一指向 A）时，Δχ²_MAP = −8.01（2.4σ），后验均值 w0 = −0.44 ± 0.23、wa = −1.69 ± 0.66，与式 24 一致。按计划阶段起初倾向的解读（均值含 ων，只有间接数值证据；与 B 并列预注册）时，Δχ²_MAP = −6.59（2.1σ）。独立审稿指出这一分歧并不稳健：θ* 标定每改变一个先验 σ，Δχ² 移动约 0.4，而标定在拟合点处随宇宙学参数的变化没有测过，可能达到约 1σ，足以让解读 A 通过；论文式 2 把 ωbc 归一到包含中微子的 Planck ωm，也指向解读 A。所以我们不下结论 DESI 的先验用的是哪种约定：压缩先验的结果为有条件复现（解读 B），它是否依赖这一约定仍未确定（用 CAMB 核对 θ* 可以说明这一点）。
 - 未检验：标题数字 3.1σ 背后的完整 CMB 的 Δχ² = −12.5（需要完整的 Planck 与 ACT 似然）、DES-SN5YR 的组合，以及威尔克斯校准（`gap_regular`），后者仍是探索项（README 第 8 节）。
 
 ### 术语表
@@ -612,4 +613,4 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 - 2026-11-14：第一版：第一至三部分，在实现之前写成（T-004，计划 010）；按闸门 1 审查修订（高斯误差是明说的假设；威尔克斯正则性作为 GAP `gap_regular` 补上，因而 `explicit_insufficient`）。
 - 2026-11-14：研究运行：R1、R3 已复现；R2 有条件复现（只有把先验的 ωbc 均值按 ωb + ωc 解读时才复现）；补上第三部分的结果与"我们的发现"。
-- 2026-11-14：独立审稿：R2 两种解读的分歧在 θ* 标定的系统误差之内，且式 2 指向解读 A，所以约定仍未确定；补充 `mod_sig`、`Challenged` 与 `gap_regular`（先验截断）的说明。
+- 2026-11-14：独立审稿：R2 两种解读的分歧可能落在（未测量的）θ* 标定系统误差之内，且式 2 指向解读 A，所以约定仍未确定；补充 `mod_sig`、`Challenged` 与 `gap_regular`（先验截断）的说明。
