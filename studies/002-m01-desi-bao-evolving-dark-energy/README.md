@@ -25,16 +25,19 @@ single-download limit.
 Common definitions.
 - Δχ²_MAP = χ²_min(w0waCDM) − χ²_min(ΛCDM), each minimum found by bounded multi-start
   optimisation inside the paper's priors (w0 ∈ [−3, 1], wa ∈ [−3, 2], w0 + wa < 0; flat priors,
-  so the MAP is the constrained maximum likelihood). Significance: N such that the two-sided
+  so the MAP is the constrained maximum likelihood; w0 + wa < 0 is enforced as
+  w0 + wa ≤ −10⁻⁹). Significance: N such that the two-sided
   Gaussian tail equals the χ²(2 dof) tail at −Δχ²_MAP (paper Eq. 22).
 - Tolerances are fixed here, before any result, and are the same for every reading and combination.
   Their sizes reflect expected differences in implementation: rounding in the paper (0.1 in Δχ²),
   our analytic background code versus CAMB, the θ* calibration factor K (section 4), and
   optimiser noise.
 - **Fit validity (required before any criterion is evaluated).** Every w0waCDM fit is also started
-  from its nested ΛCDM optimum (w0 = −1, wa = 0) and from the paper's reported point, so
+  from its nested ΛCDM optimum (w0 = −1, wa = 0) and from the paper's reported point (the paper's
+  w0, wa posterior means for that combination, Table 5 / Eqs. 23-24, other parameters from the
+  ΛCDM optimum), so
   χ²_min(w0waCDM) ≤ χ²_min(ΛCDM) + 10⁻³ must hold; and at least 3 starts must agree on each minimum
-  within 0.01. A fit that fails either check is reported as a failed fit (not as a result) and is
+  within 0.01 (`n_agree` and `n_ok` are saved with every fit). A fit that fails either check is reported as a failed fit (not as a result) and is
   investigated before anything else.
 - Each criterion is reported as **reproduced** or **not reproduced**; R2 also has
   **conditionally reproduced** (below). A failure is reported with its size and our best
@@ -117,7 +120,8 @@ Exploration only (README section 8): DES-Dovekie (`DES-Dovekie_HD.csv` 0.11 MB,
   at least 20 random starts plus the nested ΛCDM optimum and the paper's point, Nelder-Mead in
   unit-scaled coordinates with polish restarts; non-finite values and points outside the priors
   are rejected (validity checks in section 2); emcee for posterior means (R1, R2 secondary),
-  with convergence checked by the integrated autocorrelation time (chains at least 50 τ).
+  with convergence checked by the integrated autocorrelation time (post-burn chains at least
+  50 τ); posterior means are reported with their Monte Carlo error σ/√N_eff.
 - **Tests.** Offline unit tests for `cosmo` (limits, Planck reference point, K) and `infer`
   (analytic marginalisation against a brute-force grid, Δχ² → σ conversion: 12.5 → 3.1σ,
   8.0 → 2.4σ).

@@ -100,3 +100,9 @@ def test_multistart_ignores_nan_and_nests():
     nested = 0.1
     r = infer.minimize_multistart(h, [(-3, 3), (-3, 3)], n_starts=3, x0_extra=[[1.0, 0.0]])
     assert r["f"] <= nested + 1e-9
+
+
+def test_dm_at_zero():
+    b = cosmo.Background(70.0, 0.022, 0.12)
+    assert b.DM(0.0)[0] == 0.0
+    assert np.all(np.isfinite(b.DM([0.0, 0.5])))

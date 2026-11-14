@@ -78,11 +78,13 @@ class Background:
     def comoving(self, z) -> np.ndarray:
         """Line-of-sight comoving distance D_C = D_M (flat) in Mpc; z scalar or array.
 
-        Integrates c/H over x = ln(1+z) on a fixed grid (composite Simpson on 2048 intervals per
-        unit of x; relative accuracy ~1e-9 for smooth E), then interpolates with a cubic
-        Hermite rule on the cumulative integral."""
+        Integrates c/H over x = ln(1+z) on a fixed grid (trapezoid with end correction, 2048
+        intervals per unit of x; ~1e-8 at the grid nodes), then interpolates linearly between
+        nodes (relative error up to a few 1e-6 at low z, about 1e-5 mag in distance modulus)."""
         z = np.atleast_1d(np.asarray(z, dtype=float))
         xmax = float(np.log1p(z.max())) if z.size else 0.0
+        if xmax <= 0.0:
+            return np.zeros_like(z)
         n = max(64, int(np.ceil(xmax * 2048 / 2)) * 2)
         x = np.linspace(0.0, xmax, n + 1)
         f = np.exp(x) / self.E(np.exp(-x))                 # dz/E = e^x dx / E
@@ -133,7 +135,7 @@ class Background:
         # r_s(a0) = c a0 / (sqrt(3) H0 sqrt(omega_r) / h)
         omr_all = OMEGA_GAMMA * (1.0 + 3.0 * NU_REL)
         head = C_KMS * 1e-8 / (np.sqrt(3.0) * self.H0 * np.sqrt(omr_all) / self.h)
-        return float(head + np.trapz(f, la) - h * h / 12.0 * (dfdx[-1] - dfdx[0]))
+        return float(head + integrate.trapezoid(f, la) - h * h / 12.0 * (dfdx[-1] - dfdx[0]))
 
     def theta_star_raw(self) -> float:
         """r_s(z_*) / D_M(z_*) with the Hu & Sugiyama z_* (uncalibrated)."""
