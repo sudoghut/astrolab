@@ -2,7 +2,7 @@ title: "Hubble tension: SH0ES distance ladder and host selection"
 title_zh: "哈勃张力：SH0ES 距离阶梯与校准宿主的选择"
 id: "003-m02-hubble-tension-distance-ladder"
 level: L2              # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
-status: active                # planned | active | reproduced | concluded | paused | abandoned
+status: concluded             # planned | active | reproduced | concluded | paused | abandoned
 created: 2026-11-14
 question: "Does a GLS fit of the public SH0ES distance-ladder matrices reproduce H0, and does restricting the ladder to the CCHP-selected hosts lower H0 as much as Riess et al. 2024 claim?"
 question_zh: "用 SH0ES 公开的距离阶梯矩阵做广义最小二乘拟合能否复现 H0？把阶梯限制在 CCHP 选出的宿主上，H0 是否像 Riess 等 2024 所说的那样降低？"

@@ -7,11 +7,11 @@ Subsample Explains Differences in JWST Estimates of Local H0", ApJ (accepted), a
 context: Riess et al. 2022 (R22), ApJL, doi:10.3847/2041-8213/ac5c5b, arXiv:2112.04510; Freedman et
 al. 2025 (CCHP), arXiv:2408.06153. Study:
 [`studies/003-m02-hubble-tension-distance-ladder`](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder).
-Status: active (results in; referee pending). Last updated: 2026-11-14 (see the changelog at the end). The source of this page
+Status: concluded (referee done). Last updated: 2026-11-14 (see the changelog at the end). The source of this page
 lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：哈勃张力：校准星系的选择能否解释 JWST 给出的较低数值？状态：进行中（已有结果，待独立审稿）。论文：Riess 等 2024，arXiv:2408.11770（ApJ 已接收）；背景：Riess 等 2022（R22），ApJL，doi:10.3847/2041-8213/ac5c5b，arXiv:2112.04510；Freedman 等 2025（CCHP），arXiv:2408.06153。研究：[`studies/003-m02-hubble-tension-distance-ladder`](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：哈勃张力：校准星系的选择能否解释 JWST 给出的较低数值？状态：已结束（已做独立审稿）。论文：Riess 等 2024，arXiv:2408.11770（ApJ 已接收）；背景：Riess 等 2022（R22），ApJL，doi:10.3847/2041-8213/ac5c5b，arXiv:2112.04510；Freedman 等 2025（CCHP），arXiv:2408.06153。研究：[`studies/003-m02-hubble-tension-distance-ladder`](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -230,7 +230,9 @@ section were added after the run (study README section 5; [web page](https://git
   is 1.8 times the paper's −1.3 km/s/Mpc and agrees only within a wide tolerance. Random 10-host
   subsets scatter more than the covariance predicts (the ratio Δ/σ spreads by 1.33), and on that
   empirical scale the CCHP choice is about 1.7σ low (4.7th–5.7th percentile): a low but not
-  exceptional draw.
+  exceptional draw. With errors inflated by that factor the pre-registered table would read "no
+  host-selection effect detected"; the independent referee made this its main point, and a test
+  with a host-level random effect is registered for later (T-023).
 - **Same hosts, two indicators (stages C and E).** Putting CCHP's JWST TRGB distances in place
   of the Cepheids on the same 10 hosts gives 69.70, close to CCHP's own 69.29; the SH0ES and CCHP
   ladders on those hosts differ by +0.010 ± 0.048 mag (0.3 km/s/Mpc), and no host deviates by
@@ -238,7 +240,8 @@ section were added after the run (study README section 5; [web page](https://git
 - **What this means for the argument.** The inputs of `gap_rule` that this repo can recompute
   hold in R22's data: the selected hosts give a lower H0 than the full sample, and on those hosts
   Cepheids and TRGB agree. The rule itself (that this makes the difference "entirely" a matter of
-  selection) is not tested, and the selection effect is about 2σ, not overwhelming.
+  selection) is not tested, and the selection effect is at most about 2σ and marginal once the
+  host-to-host scatter is counted.
 
 ### Glossary
 
@@ -252,6 +255,7 @@ section were added after the run (study README section 5; [web page](https://git
 
 ### Changelog
 
+- 2026-11-14: independent referee: the host step's significance depends on the error scale (about 1.7σ with the random-subset scatter, where the pre-registered table would read no effect); R3's per-host distances include each host's own SNe; Lean gloss of `ResidSmall` clarified; follow-up test T-023 registered.
 - 2026-11-14: results added after implementation (Part 3 "Result" column and section 3.1): R22's printed fit reproduced; host step −0.073 ± 0.033 mag under a post-data host labelling (pre-registered verdict: not evaluable); same-host Cepheid–TRGB agreement; the CCHP choice is a low but ordinary draw.
 - 2026-11-14: first version: parts 1–3, written before implementation (T-012, plan 012); revised after
   review (gate 1: TRGB agreement included; the within-1σ comparison is stated by the paper; Fig. 6;
@@ -385,9 +389,9 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 - **公开矩阵复现了 R22 印出的拟合**（H0 = 73.04，χ²/自由度 1.031）。我们预注册的主要目标，即作者的 `lstsq_results.txt`，是另一个拟合（约 73.3）。
 - **偏离预注册。** 公开的方程矩阵的列不是按 R22 宿主表的顺序排列的，所以预注册的宿主识别失败，宿主一步（R2）、R3 与 R4 按预注册为*不可评估*。第一次运行之后，我们只用超新星星等、造父变星数目与宿主距离重新标注各列；这样 CCHP 宿主集合是唯一确定的。下面的结果都依赖这一数据之后的标注。
-- **宿主一步（环节 A–B）。** 把只用 NGC 4258 的阶梯限于 10 个 CCHP 宿主，5 log H0 移动 −0.073 ± 0.033 mag（H0 72.4 → 70.0），按协方差传播的误差为 −2.2σ。这符合预注册判定表中"显著，且大小与该文一致"一行，但我们的移动是论文的 −1.3 km/s/Mpc 的 1.8 倍，只在宽的容差内一致。随机 10 宿主子样本的离散大于协方差的预期（Δ/σ 的离散为 1.33），在这一经验尺度上 CCHP 的选择约低 1.7σ（第 4.7–5.7 百分位）：偏低，但不算异常。
+- **宿主一步（环节 A–B）。** 把只用 NGC 4258 的阶梯限于 10 个 CCHP 宿主，5 log H0 移动 −0.073 ± 0.033 mag（H0 72.4 → 70.0），按协方差传播的误差为 −2.2σ。这符合预注册判定表中"显著，且大小与该文一致"一行，但我们的移动是论文的 −1.3 km/s/Mpc 的 1.8 倍，只在宽的容差内一致。随机 10 宿主子样本的离散大于协方差的预期（Δ/σ 的离散为 1.33），在这一经验尺度上 CCHP 的选择约低 1.7σ（第 4.7–5.7 百分位）：偏低，但不算异常。按这一倍数膨胀误差后，预注册判定表会给出"未检测到宿主选择的效应"；独立审稿把这一点列为最主要的意见，带逐宿主随机效应（random effect）的检验已登记待做（T-023）。
 - **同样的宿主、两种指示器（环节 C 与 E）。** 在同样 10 个宿主上用 CCHP 的 JWST TRGB 距离代替造父变星，得到 69.70，与 CCHP 自己的 69.29 接近；这些宿主上 SH0ES 与 CCHP 两个阶梯相差 +0.010 ± 0.048 mag（0.3 km/s/Mpc），没有宿主偏离超过 1.2σ。
-- **对论证的意义。** 本项目能重算的 `gap_rule` 输入在 R22 的数据中成立：选出的宿主给出比全样本低的 H0，而在这些宿主上造父变星与 TRGB 一致。规则本身（因此差异"完全"是选择造成的）没有被检验，而选择效应约为 2σ，并不压倒性。
+- **对论证的意义。** 本项目能重算的 `gap_rule` 输入在 R22 的数据中成立：选出的宿主给出比全样本低的 H0，而在这些宿主上造父变星与 TRGB 一致。规则本身（因此差异"完全"是选择造成的）没有被检验，而选择效应至多约 2σ，计入宿主之间的离散后只是边缘显著。
 
 ### 术语表
 
@@ -401,5 +405,6 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 ### 研究进展
 
+- 2026-11-14：独立审稿：宿主一步的显著性取决于误差尺度（按随机子样本的离散约 1.7σ，此时预注册判定表会给出没有效应）；R3 的逐宿主距离含本宿主的超新星；澄清 `ResidSmall` 的 Lean 说明；登记后续检验 T-023。
 - 2026-11-14：实现之后加入结果（第三部分"结果"一栏与 3.1 节）：复现 R22 印出的拟合；在数据之后的宿主标注下宿主移动为 −0.073 ± 0.033 mag（预注册判定：不可评估）；同宿主上造父变星与 TRGB 一致；CCHP 的选择偏低但不异常。
 - 2026-11-14：第一版：第一至三部分，在实现之前写成（T-012，计划 012）；按审查修订（闸门 1：补上 TRGB 的一致性；1σ 以内的比较论文自己写明；图 6；GAP `stat_f24`：重新标定的 JWST 数值与 CCHP 发表的 H0，因而 `explicit_insufficient`；闸门 2：报告的中心值 73.2，以及 Lean 对 `gap_rule` 能说明什么）。

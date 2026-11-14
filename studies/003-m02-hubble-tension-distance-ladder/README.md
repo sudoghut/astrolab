@@ -300,7 +300,10 @@ passed; page: [`web/index.html`](web/index.html); numbers in `results/*.json`).
   1, which suggests that C may understate host-to-host scatter (the draws share one data set and
   37 hosts, so the 1.33 is itself uncertain); the CCHP ratio (−2.21) sits at the 4.7th percentile
   of that empirical distribution, about 1.7σ on that scale (a descriptive diagnostic added after the
-  first results, at the gate-1 review).
+  first results, at the gate-1 review). With σ inflated by that factor the pre-registered verdict
+  table would give "no host-selection effect detected" (referee point 1; a pre-registered test with
+  a host-level random effect is T-023). **Overall: in R22's data the CCHP hosts give a lower H0, by
+  about 2σ at most; the evidence that the selection effect is significant is marginal.**
 - **R3.** On the same 10 hosts the SH0ES Cepheid ladder and CCHP's JWST TRGB distances give the
   same H0 within 0.01 mag (0.3 km/s/Mpc); no host deviates by more than 1.2σ.
 - **R4.** The CCHP selection sits at the low edge (5.7th percentile) of random 10-host subsets:
@@ -313,7 +316,21 @@ passed; page: [`web/index.html`](web/index.html); numbers in `results/*.json`).
 
 ## 6. Referee notes
 
-Pending (stage 5).
+Independent referee, 2026-11-14 (a subagent that saw the pre-registration, code and results, not
+sections 5-8). Triage:
+
+| # | Point | Triage |
+|---|---|---|
+| 1 | The host step's significance rests on C-propagated errors; R4 shows the spread of Δ/σ over random subsets is 1.33, so with σ inflated by that factor z ≈ −1.66 and the verdict table would give "no host-selection effect detected"; the two parts of the study disagree while the summary led with "supports the paper". | **Accepted.** The qualified verdict (`r2.json` `verdict`, `summary.json` `R2_host`) now states the inflated-σ outcome; section 5 and the claim say so. The pre-registered rule (C-propagated σ) is unchanged and its outcome is reported as `criterion_outcome`; the inflation is post-hoc and descriptive. A pre-registered test with a host-level random effect is registered as T-023. |
+| 2 | The verdict string quoted the post-hoc Δ/σ percentile 4.7, not the pre-registered Δ percentile 5.68 (they fall on opposite sides of 5%). | **Fixed**: both are quoted and labelled. |
+| 3 | Three unexpected constraint rows (Z_W prior −0.215 ± 0.12, column 44 fixed at 0 ± 3 × 10⁻⁵, b_W prior 0 ± 10) were not flagged by a check; the Z_W prior weighs more in anchor-reduced fits. | **Accepted limitation**, documented in section 5 (row classes). They are R22's own priors and are kept in every subsystem, as in R22's variants. |
+| 4 | The N4038/N4639 tie-break uses fitted distances. | **Accepted, no change**: the single-row SN magnitude (12.454 = N4639) gives the same labelling; R2 and R4 are unaffected (both are CCHP hosts); R3's per-host rows for the two carry the caveat. |
+| 5 | R3's "Cepheid" distances come from the host-step fit and include each host's own SN rows, so the per-host Δμ is not Cepheid-only (likely part of why χ² = 5.1 for 10). | **Accepted limitation**; noted here and in section 7. d (the H0 difference) is unaffected in meaning: both sides use the same SN rows. |
+| 6 | Data vintage: R22 matrices against the paper's 2024 data; our shift is 1.8 times the paper's and agrees only within a wide (±0.086 mag) band that discriminates little. | **Accepted**; already stated in section 5. |
+| 7 | R3's match to 69.29 is not like-for-like (full GLS on 77 rows against CCHP's rescaling of R22 fit 10). | **Accepted**; the pre-registered 0.02 mag tolerance was set for this; stated in section 4. |
+| 8 | The reading that CCHP Table 2's σ_T excludes the zero-point terms is not stated by CCHP. | **Accepted**; the sensitivity without those terms moves σ_d from 0.048 to 0.052 and leaves d unchanged. |
+| 9 | Lean: the `ResidSmall` gloss omitted that the paper's σ excludes the SN term. | **Fixed** in `argument/Argument.lean` (doc comment). All six `[stated]` premises were checked against the paper and are not stronger than their quotes; the GAP label is honest. |
+| 10 | Literature: the 2024 paper's own random-subset test for the 8-SN JAGB sample gives about 5% (Fig. 6), a direct analogue of R4; the paper also says SNe dominate subsample scatter (consistent with the 1.33). | Noted (verified by the referee); Efstathiou arXiv:2007.10716 on calibrator scatter was cited unverified and is not used. |
 
 ## 7. Open questions
 
@@ -321,6 +338,7 @@ Pending (stage 5).
 - How the 2024 data (SMC anchor, more Cepheids) change the host shift; not public as matrices.
 - Does C understate host-to-host scatter? A host-level χ² of the 37 leave-one-host-out SN
   residuals would test the 1.33 spread of Δ/σ seen in R4 (an exploration script).
+- A Cepheid-only per-host comparison for R3 (μ from fits without each host's SN rows).
 - R4 suggests the CCHP selection is a low but ordinary draw: is there a property of those hosts
   (for example the TRGB-friendly, low-extinction halos) that correlates with their SN magnitudes?
 
