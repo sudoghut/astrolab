@@ -211,7 +211,7 @@
     "converged": true,
     "n_conv": 22,
     "n_agree": 15,
-    "x_spread": 9.959349682731044e-08,
+    "x_spread": 1.2750042075460044e-07,
     "n_ok": 22
    },
    "valid": true,
@@ -280,7 +280,7 @@
     "converged": true,
     "n_conv": 21,
     "n_agree": 15,
-    "x_spread": 1.3478971854219425e-07,
+    "x_spread": 8.837545717454987e-08,
     "n_ok": 22
    },
    "valid": true,
@@ -326,13 +326,13 @@
   "overall": "conditionally reproduced (reading B)",
   "K_check": {
    "dK_rel": 0.00024717158864145066,
-   "A+": -6.976654410864038,
+   "A+": -6.976654410864433,
    "A+_valid": true,
-   "A-": -6.206837439518395,
+   "A-": -6.206837439491547,
    "A-_valid": true,
-   "B+": -8.438085132615722,
+   "B+": -8.438085132617406,
    "B+_valid": true,
-   "B-": -7.587021806868745,
+   "B-": -7.5870218068299,
    "B-_valid": true,
    "second_point_dtheta100": 3.763732460781988e-05
   }

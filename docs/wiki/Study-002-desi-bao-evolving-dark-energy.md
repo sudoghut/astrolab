@@ -6,11 +6,11 @@
 BAO cosmology); Popovic et al. 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517 (DES
 supernova recalibration, "Dovekie"). Study:
 [`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy).
-Status: active (results in; referee review pending). Last updated: 2026-11-14 (see the changelog at the end). The source of this page
+Status: reproduced (2026-11-14; R2 conditionally, convention open). Last updated: 2026-11-14 (see the changelog at the end). The source of this page
 lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：DESI DR2：暗能量在演化吗？状态：进行中（已有结果；独立审稿待做）。论文：DESI 合作组 Abdul-Karim 等 2025, PRD 112, 083515, arXiv:2503.14738（DESI DR2 BAO 宇宙学）；Popovic 等 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517（DES 超新星重新校准，"Dovekie"）。研究：[`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：DESI DR2：暗能量在演化吗？状态：已复现（2026-11-14；R2 为有条件复现，约定未定）。论文：DESI 合作组 Abdul-Karim 等 2025, PRD 112, 083515, arXiv:2503.14738（DESI DR2 BAO 宇宙学）；Popovic 等 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517（DES 超新星重新校准，"Dovekie"）。研究：[`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -270,7 +270,8 @@ have e : v.DDE := p .mod_dde d                         -- Abstract
 exact ⟨c, e⟩
 ```
 
-**Critique.** "Challenged" and "possible solution" are deliberately weak words, and the encoding
+**Critique.** The step from the quoted "not trivially dismissed" to "ΛCDM is challenged" is made by
+naming: the atom `Challenged` is defined as "cannot be trivially dismissed". "Challenged" and "possible solution" are deliberately weak words, and the encoding
 keeps them weak; the paper does not claim a detection. The `mod_challenge` sentence is said of the
 whole range "around 3σ to over 4σ"; our threshold 3.0σ is the low end. In this encoding the `DDE` conjunct needs neither Wilks nor `NoSys`: any better fit triggers the
 paper's sentence, and the threshold 12.5 is only the observed value. "Possible solution" is
@@ -345,9 +346,12 @@ recomputed every number it could from about 34 MB of public files, with its own 
   ωb + ωc (the paper's definition next to Eq. 2), Δχ²_MAP = −8.01 (2.4σ) and the posterior means
   w0 = −0.44 ± 0.23, wa = −1.69 ± 0.66 match Eq. 24. With the reading initially favoured in planning (the mean includes ων, supported only by
   indirect numerical evidence; pre-registered in parallel with B), Δχ²_MAP = −6.59
-  (2.1σ). The θ* calibration shifts Δχ² by only ±0.4, so it cannot explain the difference. The
-  significance of the compressed-prior result therefore depends at the 0.3σ level on a convention
-  on which the paper's stated definition and its quoted prior mean appear to disagree.
+  (2.1σ). The independent referee showed that this split is not robust: the θ* calibration moves
+  Δχ² by about 0.4 per prior σ of θ*, and its unmeasured cosmology dependence could plausibly reach
+  ~1σ at the fit points, enough for reading A to pass; and the paper's Eq. 2 normalises ωbc to
+  Planck's ωm including neutrinos, which points to reading A. So we do not conclude which
+  convention DESI's prior uses; the compressed-prior result is reproduced, with the convention
+  open (a CAMB check would settle it).
 - Not tested: the full-CMB Δχ² = −12.5 behind the headline 3.1σ (needs the full Planck and ACT
   likelihoods), the DES-SN5YR rows, and the Wilks calibration (`gap_regular`), which stays an
   exploration (README section 8).
@@ -372,6 +376,9 @@ recomputed every number it could from about 34 MB of public files, with its own 
   gate-1 review (Gaussian errors are a stated assumption; Wilks regularity added as the GAP `gap_regular`, so `explicit_insufficient`).
 - 2026-11-14: study run: R1 and R3 reproduced; R2 conditionally reproduced (only with the prior's
   ωbc mean read as ωb + ωc); part 3 results and "What we found" added.
+- 2026-11-14: independent referee: the R2 reading split is within the θ* calibration systematics and
+  Eq. 2 points to reading A, so the convention is left open; Lean notes on `mod_sig`, `Challenged`
+  and prior truncation in `gap_regular`.
 
 ---
 
@@ -543,7 +550,7 @@ have e : v.DDE := p .mod_dde d                         -- Abstract
 exact ⟨c, e⟩
 ```
 
-**评析。** "受到挑战"与"可能的解释"是刻意的弱措辞，编码也保持了这种弱度；论文没有宣称探测到。`mod_challenge` 那句话针对的是"约 3σ 到 4σ 以上"整个范围；我们的阈值 3.0σ 是下端。在本编码中 `DDE` 这一半既不需要威尔克斯定理也不需要 `NoSys`：任何更好的拟合都触发论文的那句话，阈值 12.5 只是观测值。"可能的解释"有更好的拟合和张力的消除作支持，但也伴随论文自己承认对单个标量场在理论上很困难的幽灵穿越。
+**评析。** 从引文的"不能轻易忽略"到"ΛCDM 受到挑战"这一步是靠命名完成的：原子 `Challenged` 的定义就是"不能轻易忽略"。"受到挑战"与"可能的解释"是刻意的弱措辞，编码也保持了这种弱度；论文没有宣称探测到。`mod_challenge` 那句话针对的是"约 3σ 到 4σ 以上"整个范围；我们的阈值 3.0σ 是下端。在本编码中 `DDE` 这一半既不需要威尔克斯定理也不需要 `NoSys`：任何更好的拟合都触发论文的那句话，阈值 12.5 只是观测值。"可能的解释"有更好的拟合和张力的消除作支持，但也伴随论文自己承认对单个标量场在理论上很困难的幽灵穿越。
 
 #### 2.4 Lean 检查的发现
 
@@ -584,7 +591,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 - **R1，只用 BAO 的 ΛCDM：已复现。** Ωm = 0.2979 ± 0.0086，h·r_d = 101.52 ± 0.73 Mpc，与式 17 相差不到 0.05σ。
 - **R3，不含 CMB：已复现。** Δχ²_MAP = −4.65（DESI）、−4.86（加 Pantheon+）、−10.03（加 Union3），论文为 −4.7、−4.9、−10.1。第二部分列为主要薄弱点的、偏好程度随超新星样本变化的现象是真实且可复现的。
-- **R2，压缩 CMB 先验：有条件复现。** 把先验的 ωbc 均值按 ωb + ωc 解读（论文式 2 旁的定义）时，Δχ²_MAP = −8.01（2.4σ），后验均值 w0 = −0.44 ± 0.23、wa = −1.69 ± 0.66，与式 24 一致。按计划阶段起初倾向的解读（均值含 ων，只有间接数值证据；与 B 并列预注册）时，Δχ²_MAP = −6.59（2.1σ）。θ* 标定只让 Δχ² 移动 ±0.4，解释不了这一差别。所以压缩先验结果的显著性在 0.3σ 的量级上取决于一个约定，而论文写明的定义与它给出的先验均值在这一点上看来不一致。
+- **R2，压缩 CMB 先验：有条件复现。** 把先验的 ωbc 均值按 ωb + ωc 解读（论文式 2 旁的定义）时，Δχ²_MAP = −8.01（2.4σ），后验均值 w0 = −0.44 ± 0.23、wa = −1.69 ± 0.66，与式 24 一致。按计划阶段起初倾向的解读（均值含 ων，只有间接数值证据；与 B 并列预注册）时，Δχ²_MAP = −6.59（2.1σ）。独立审稿指出这一分歧并不稳健：θ* 标定每改变一个先验 σ，Δχ² 移动约 0.4，而标定在拟合点处随宇宙学参数的变化没有测过，可能达到约 1σ，足以让解读 A 通过；论文式 2 把 ωbc 归一到包含中微子的 Planck ωm，也指向解读 A。所以我们不下结论 DESI 的先验用的是哪种约定；压缩先验的结果得到复现，约定仍未确定（用 CAMB 核对即可解决）。
 - 未检验：标题数字 3.1σ 背后的完整 CMB 的 Δχ² = −12.5（需要完整的 Planck 与 ACT 似然）、DES-SN5YR 的组合，以及威尔克斯校准（`gap_regular`），后者仍是探索项（README 第 8 节）。
 
 ### 术语表
@@ -605,3 +612,4 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 - 2026-11-14：第一版：第一至三部分，在实现之前写成（T-004，计划 010）；按闸门 1 审查修订（高斯误差是明说的假设；威尔克斯正则性作为 GAP `gap_regular` 补上，因而 `explicit_insufficient`）。
 - 2026-11-14：研究运行：R1、R3 已复现；R2 有条件复现（只有把先验的 ωbc 均值按 ωb + ωc 解读时才复现）；补上第三部分的结果与"我们的发现"。
+- 2026-11-14：独立审稿：R2 两种解读的分歧在 θ* 标定的系统误差之内，且式 2 指向解读 A，所以约定仍未确定；补充 `mod_sig`、`Challenged` 与 `gap_regular`（先验截断）的说明。
