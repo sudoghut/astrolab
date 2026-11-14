@@ -113,5 +113,6 @@ def test_multistart_reports_nonconvergence():
     f = lambda x: sum((xi - 0.1 * i) ** 2 for i, xi in enumerate(x))
     r = infer.minimize_multistart(f, [(-1, 1)] * 5, n_starts=3, maxfev=10, n_polish=0)
     assert r["converged"] is False and r["n_conv"] == 0 and r["n_agree"] == 0
+    assert r["x"] is None and r["f"] is None
     r = infer.minimize_multistart(f, [(-1, 1)] * 5, n_starts=3)
     assert r["converged"] and r["n_agree"] >= 3 and r["x_spread"] < 1e-3
