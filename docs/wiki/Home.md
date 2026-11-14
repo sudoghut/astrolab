@@ -17,6 +17,7 @@ walkthrough of the paper, its argument checked step by step in Lean, and what as
 - [Dormant black holes in Gaia astrometric orbits](Study-001-gaia-dormant-black-holes) (Gaia BH1, BH2, BH3; study 001)
 - [DESI DR2: is dark energy evolving?](Study-002-desi-bao-evolving-dark-energy) (DESI DR2 BAO, w0waCDM; study 002)
 - [The Hubble tension: does host selection explain the lower JWST values?](Study-003-hubble-tension-host-selection) (SH0ES, CCHP; study 003)
+- [Wide binaries: Newton or MOND at low acceleration?](Study-004-wide-binaries-newton-or-mond) (Gaia DR3 wide binaries; study 004)
 
 The sources of these pages are kept in the main repository under
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) and reviewed there
@@ -33,5 +34,6 @@ before being published here.
 - [Gaia 天体测量轨道中的休眠黑洞](Study-001-gaia-dormant-black-holes#中文)（Gaia BH1、BH2、BH3；研究 001）
 - [DESI DR2：暗能量在演化吗？](Study-002-desi-bao-evolving-dark-energy#中文)（DESI DR2 BAO、w0waCDM；研究 002）
 - [哈勃张力：校准星系的选择能否解释 JWST 的较低数值？](Study-003-hubble-tension-host-selection#中文)（SH0ES、CCHP；研究 003）
+- [宽双星：低加速度下是牛顿引力还是 MOND？](Study-004-wide-binaries-newton-or-mond#中文)（Gaia DR3 宽双星；研究 004）
 
 这些页面的源文件保存在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，在那里审查后再发布到这里。

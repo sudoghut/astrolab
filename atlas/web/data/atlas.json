@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-14T21:42:21+00:00",
+ "generated_at": "2026-11-14T22:50:35+00:00",
  "levels": [
   "L0",
   "L1",
@@ -259,7 +259,7 @@
     ]
    },
    "open_questions": [
-    "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003, post-data host labelling: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run. The 2.2 sigma uses C-propagated errors; random 10-host subsets show 1.33 times more scatter, placing the CCHP set at the 4.7th-5.7th percentile, about 1.7 sigma empirically (the subset spread is itself uncertain).)"
+    "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003, post-data host labelling: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run. The 2.2 sigma uses C-propagated errors; random 10-host subsets show 1.33 times more scatter, placing the CCHP set at the 4.7th-5.7th percentile, about 1.7 sigma empirically (the subset spread is itself uncertain), where the pre-registered table would read no significant effect.)"
    ],
    "notes": "Milestone M2."
   },
@@ -574,7 +574,7 @@
    "title": "Hubble tension: SH0ES distance ladder and host selection",
    "title_zh": "哈勃张力：SH0ES 距离阶梯与校准宿主的选择",
    "level": "L2",
-   "status": "active",
+   "status": "concluded",
    "question": "Does a GLS fit of the public SH0ES distance-ladder matrices reproduce H0, and does restricting the ladder to the CCHP-selected hosts lower H0 as much as Riess et al. 2024 claim?",
    "question_zh": "用 SH0ES 公开的距离阶梯矩阵做广义最小二乘拟合能否复现 H0？把阶梯限制在 CCHP 选出的宿主上，H0 是否像 Riess 等 2024 所说的那样降低？",
    "claims": [
@@ -597,6 +597,31 @@
       "name": "SH0ES + Pantheon+",
       "note": "Cepheid hosts and Hubble-flow SNe Ia across the sky (public SH0ES matrices); CCHP JWST hosts are a subset"
      },
+     "targets": []
+    }
+   }
+  },
+  {
+   "id": "004-m07-wide-binaries-gravity-test",
+   "title": "Wide binaries: Newton or MOND at low acceleration?",
+   "title_zh": "宽双星：低加速度下是牛顿引力还是 MOND？",
+   "level": "L4",
+   "status": "planned",
+   "question": "In a clean Gaia DR3 wide-binary sample rebuilt server-side to the quality standard of Cookson et al. 2026, does the median scaled relative velocity stay flat with r_sky/r_M (Newton) or rise by ~20% beyond the MOND radius?",
+   "question_zh": "在按 Cookson 等 2026 的质量标准、于服务器端重建的干净 Gaia DR3 宽双星样本中，缩放相对速度的中位数随 r_sky/r_M 保持平坦（牛顿），还是在 MOND 半径以外升高约 20%？",
+   "claims": [],
+   "has_web": true,
+   "last_run": false,
+   "footprint": {
+    "scale": {
+     "log10_min": -6.0,
+     "log10_max": 4.0,
+     "note": null,
+     "default": true
+    },
+    "sky": {
+     "modes": [],
+     "survey": null,
      "targets": []
     }
    }
