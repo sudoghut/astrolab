@@ -126,13 +126,14 @@ DR4 的内容：
 
 | 测量 | H0 (km/s/Mpc) | 核实 |
 |---|---|---|
-| SH0ES (Riess et al. 2022, ApJL, arXiv:2112.04510) | 73.04 ± 1.04 | [V]；卷页号 [U] |
+| SH0ES (Riess et al. 2022, ApJL, doi:10.3847/2041-8213/ac5c5b, arXiv:2112.04510) | 73.04 ± 1.04 | [V]；卷页号 [U] |
 | SH0ES 的 JWST 复核 (arXiv:2408.11770) | 73.2 ± 0.9 | [V] |
-| CCHP (Freedman et al. 2025, ApJ 985, 182, arXiv:2408.06153)，TRGB 方法 | 70.39 ± 1.22(stat) ± 1.33(sys) | [S] |
-| H0DN 本地距离网络（Local Distance Network, arXiv:2510.23823） | 73.50 ± 0.81 | [S] |
-| 早期宇宙：CMB-SPA 组合 | 67.19 ± 0.38 | [S] |
-| 早期宇宙：ACT DR6 (P-ACT) | 68.22 ± 0.36 | [S] |
-| 独立方法：TDCOSMO 2025 时间延迟透镜（time-delay lensing, arXiv:2506.03023） | 71.6 (+3.9/−3.3) | [S] |
+| CCHP (Freedman et al. 2025, ApJ 985, 182, arXiv:2408.06153)，TRGB 方法，24 个 SN Ia 校准 | 70.39 ± 1.22(stat) ± 1.33(sys) ± 0.70(σ_SN) | [V]（摘要；卷页号 [U]） |
+| H0DN 本地距离网络（Local Distance Network, A&A 708, A166 (2026), arXiv:2510.23823） | 73.50 ± 0.81 | [V] |
+| 早期宇宙：SPT-3G + ACT + Planck 组合（arXiv:2506.20707） | 67.19 ± 0.38 | [V] |
+| 早期宇宙：ACT DR6（P-ACT + CMB 透镜 + DESI DR1 BAO，arXiv:2503.14452） | 68.22 ± 0.36 | [V] |
+| 独立方法：TDCOSMO 2025 时间延迟透镜（time-delay lensing, A&A 704, A63 (2025), arXiv:2506.03023） | 71.6 (+3.9/−3.3) | [V] |
+| SH0ES 限于 CCHP JWST 样本（10 宿主、11 SN Ia；arXiv:2408.11770 表 4） | 71.2 | [V] |
 
 TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 
