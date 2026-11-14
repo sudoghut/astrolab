@@ -57,11 +57,11 @@ inductive Field where
   | mod_nested
   /-- MOD [stated 2503.14738: "assuming that errors are Gaussian and correctly estimated"] Sec. VII (adopted as a working assumption, not literally true for the low-l CMB likelihoods; the correctly-estimated half is the condition NoSys of the conclusion) -/
   | mod_gauss
-  /-- GAP [reconstructed] the assumption that, under LCDM, Delta chi2_MAP of this fit is calibrated by chi2 with 2 degrees of freedom. Wilks 1938 (1938AnMS....9...60W) gives this only asymptotically, for a smooth likelihood with identifiable parameters and the null point away from parameter boundaries. Of these, only the last can be read off here (w0 = -1, wa = 0 lies inside the prior box w0 in [-3, 1], wa in [-3, 2], w0 + wa < 0); smoothness and the adequacy of the large-sample approximation for this nonlinear fit are unverified, and the paper neither discusses nor simulates them -/
+  /-- GAP [reconstructed] the assumption that, under LCDM, Delta chi2_MAP of this fit is calibrated by chi2 with 2 degrees of freedom. Wilks 1938 (1938AnMS....9...60W) gives this only asymptotically, for a smooth likelihood with identifiable parameters and the null point away from parameter boundaries. Of these, only the last can be read off here (w0 = -1, wa = 0 lies inside the prior box w0 in [-3, 1], wa in [-3, 2], w0 + wa < 0); smoothness and the adequacy of the large-sample approximation for this nonlinear fit are unverified, the prior truncation of the alternative (wa near -3) also changes the null distribution, and the paper neither discusses nor simulates them -/
   | gap_regular
   /-- MOD [stated 2503.14738: "implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated"] Sec. VII (Wilks theorem) -/
   | mod_wilks
-  /-- MOD [stated 2503.14738: "corresponding to a 3.1 $\sigma$ preference for evolving dark energy"] Sec. VII.1 (via Eq. 22, Sec. VII) -/
+  /-- MOD [stated 2503.14738: "corresponding to a 3.1 $\sigma$ preference for evolving dark energy"] Sec. VII.1 (via Eq. 22, Sec. VII; the body generalises the quoted value by the monotonicity of Eq. 22) -/
   | mod_sig
   /-- MOD [stated 2503.14738: "This level of significance is not trivially dismissed, even if it does not yet rise to the $5\sigma$ threshold"] Sec. VII.3 (said of about 3 sigma to over 4 sigma) -/
   | mod_challenge

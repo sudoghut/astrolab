@@ -142,7 +142,7 @@ def fit_pair(f_lcdm, f_w, b_lcdm, paper_x, n_starts, seed):
     if not r0["converged"]:
         out.update(valid=False, reason="LCDM fit did not converge")
         return out
-    nested = list(r0["x"]) + [-1.0, -1e-6]
+    nested = list(r0["x"]) + [-1.0, 0.0]
     r1 = infer.minimize_multistart(f_w, b_lcdm + W_BOUNDS, n_starts=n_starts, seed=seed + 1,
                                    constraint=w_constraint, x0_extra=[nested, paper_x(r0["x"])])
     out["w0wa"] = summarise(r1)
@@ -293,7 +293,7 @@ def main(ctx):
                 K = K0 * (1.0 + sgn * dK)
                 fl = lambda x, rd=reading, K=K: chi2_r2(bao, x, rd, P["mnu"], K, w=False)
                 fw = lambda x, rd=reading, K=K: chi2_r2(bao, x, rd, P["mnu"], K, w=True)
-                f = fit_pair(fl, fw, b_r2, paper_r2, P["n_starts"] // 2, P["seed"] + 3)
+                f = fit_pair(fl, fw, b_r2, paper_r2, P["n_starts"], P["seed"] + 3)
                 kc[f"{reading}{'+' if sgn > 0 else '-'}"] = f.get("dchi2")
                 kc[f"{reading}{'+' if sgn > 0 else '-'}_valid"] = bool(f.get("valid"))
         cam = cosmo.Background(67.39, 0.02229, 0.1197, mnu=P["mnu"])

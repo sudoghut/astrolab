@@ -146,7 +146,7 @@ Exploration only (README section 8): DES-Dovekie (`DES-Dovekie_HD.csv` 0.11 MB,
 
 ## 5. Results (2026-11-14)
 
-Run of 2026-11-14 (`python -m astrolab run 002`, 1414 s; inputs 33.9 MB from the cache). Page:
+Run of 2026-11-14 (`python -m astrolab run 002`, final run 1717 s; inputs 33.9 MB from the cache). Page:
 [`web/index.html`](web/index.html) (`python -m astrolab serve`). Numbers: `results/summary.json`.
 Every fit passed the pre-registered validity checks (converged; at least 3 starts agree within
 0.01; χ²(w0waCDM) ≤ χ²(ΛCDM) + 10⁻³; Pantheon+ uses 1590 SNe after zHD > 0.01).
@@ -166,24 +166,44 @@ Every fit passed the pre-registered validity checks (converged; at least 3 start
 - R2 secondary (posterior means, reading B): w0 = −0.437 ± 0.226, wa = −1.69 ± 0.66, against
   −0.43 ± 0.22 and −1.72 ± 0.64 (Eq. 24); reading A gives −0.48 ± 0.23 and −1.55 ± 0.66.
 - K check (diagnostic): K = 1.001141; shifting K by ±1 prior σ of θ* moves Δχ² by about ±0.4
-  (A: −6.98 / −6.21; B: −8.44 / −7.59), so the θ* calibration cannot explain the 1.4 difference
-  between the readings. Second reference point: Δ(100θ*) = 3.8×10⁻⁵ (0.15 prior σ).
-- **Finding.** Reading A (initially favoured in planning, pre-registered in parallel with B; supported only by indirect numerical evidence:
-  the chain's best fit plus ων rounds to Eq. 35's 0.14208) does not reproduce the paper; reading B,
-  the paper's own definition next to Eq. 2, reproduces Δχ² and the posterior means. We record the
-  verdict as pre-registered (conditionally reproduced) and do not switch readings post hoc. One
-  possible explanation (unverified speculation) is that the published prior mean includes ων while the paper's code compares
-  it with ωb + ωc (or equivalently that the mean was shifted); this cannot be settled without
-  the authors' likelihood configuration.
+  (A: −6.98 / −6.21; B: −8.44 / −7.59): a constant shift of K does not close the 1.4 difference,
+  but the cosmology dependence of K at the fit points is not measured (see the finding below). Second reference point: Δ(100θ*) = 3.8×10⁻⁵ (0.15 prior σ).
+- **Finding, with its limit.** Reading B reproduces Δχ² and the posterior means; reading A misses
+  by 1.4. The verdict is recorded as pre-registered (conditionally reproduced, reading B) and
+  readings are not switched post hoc. But the split is not robust (referee, section 6): the θ*
+  calibration moves Δχ² by about 0.4 per prior σ of θ*, and its cosmology dependence between the
+  reference point and the fit points (ωc 0.117-0.120) is unmeasured and could plausibly reach ~1σ,
+  enough for reading A to pass. Nor is reading B cleanly "the paper's convention": the text defines
+  ωbc = ωb + ωc, but Eq. 2 normalises ωbc to 0.1432, which equals Planck's ωm including the
+  0.06 eV neutrino. We therefore do not conclude which convention DESI's prior uses; a CAMB check of
+  θ* at the fit points (T-022, needs the user's consent to install CAMB) would settle it.
 
-## 6. Referee notes
+## 6. Referee notes (independent subagent, 2026-11-14)
 
-Independent critique: selection effects, systematics, alternative explanations.
+The referee saw only README sections 1-4, the code, the results, the Lean argument with its
+quote / kind / body table, and the paper. Triage (verified = checked by us against code, results or
+the paper):
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The R2 A/B split is of the size of the θ* calibration error: K ± 1σ moves Δχ² by ~0.4; at K + 1σ reading A misses the tolerance by only 0.02; the cosmology dependence of K at the fit points is unmeasured (second point already 0.15σ off at Δωc = 4×10⁻⁴) | yes | Accepted limitation; interpretation softened (section 5); CAMB check registered as T-022 (needs user consent). The test no longer asserts the K-check values, only their validity. |
+| 2 | Eq. 2 normalises ωbc to 0.1432 = Planck ωm including ων, so the paper itself points to reading A; B is not cleanly "the paper's definition" | yes (0.02236 + 0.1202 + 0.00064 = 0.1432) | Accepted; wording changed in README, log, wiki, claim. |
+| 3 | DESI-alone w0wa MAP sits near the wa = −3 prior edge (wa = −2.72); Δχ² and its Wilks calibration depend on the prior box | yes | Same box as the paper, so the reproduction stands; noted under `gap_regular` (wiki) and open questions. |
+| 4 | Wilks calibration untested anywhere (all σ from χ²(2)) | yes | Open question (section 7): null-hypothesis mocks; this is the wiki's GAP `gap_regular`. |
+| 5 | Extra start for DESI alone uses the paper's 68% upper limit wa = −1.34, not a posterior mean | yes | Harmless (a start only); noted here. |
+| 6 | N_eff = walkers × steps / τ is optimistic for emcee | yes | R1 margin is large (MC error 0.02σ vs 0.05σ limit); accepted. |
+| 7 | 10 Pantheon+ calibrators survive zHD > 0.01; Cobaya likely keeps them too (match −4.86 vs −4.9) | partly (count verified; Cobaya not checked offline) | Accepted; same cut as pre-registered. |
+| 8 | K-check fits used 10 starts, not ≥ 20 | yes | Fixed (20 starts) and rerun. |
+| 9 | Lean: `mod_sig` generalises one quoted value by monotonicity of Eq. 22; `Challenged` is named from "not trivially dismissed"; `gap_regular` could mention prior truncation | yes | Docstrings and wiki notes added; no change of verdicts. |
+
+No code bug that changes a verdict was found; criteria were applied as pre-registered (README
+sections 1-4 unchanged since commit 88cdacb, before the data were first used).
 
 ## 7. Open questions
 
 - The ωbc convention of the compressed prior (Eq. 35): which quantity does the paper's code compare
-  with it? A primary source (the authors' Cobaya configuration) would settle R2 fully.
+  with it? A primary source (the authors' Cobaya configuration or the definition in the
+  compression paper, ref. [111]) or a CAMB check of θ* at the fit points (T-022) would settle R2.
 - Wilks calibration (wiki `gap_regular`): simulate the Δχ² distribution under the ΛCDM best fit
   for DESI + compressed CMB and compare with χ²(2).
 - Leave-one-tracer-out sensitivity of Δχ² (`drop_z`), and DES-Dovekie as a third SN sample.
