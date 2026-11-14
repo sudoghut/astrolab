@@ -453,6 +453,7 @@ def main(ctx):
     else:
         v = "host selection raises H0 (contradicts the paper)"
     if not ident["host_step_evaluable"]:
+        v = "not evaluable (host identification)"
         status = "not evaluable (host identification)"
     elif not anchor_repro:
         status = "conditional (anchor rule not validated)"
@@ -617,6 +618,18 @@ def main(ctx):
             ctx.log(f"R4: CCHP shift at percentile {pct:.1f} of {len(dl)} draws -> {rv}")
     ctx.save("r4", r4)
 
+    # One canonical qualified verdict for the host step (gate-2 review): states the labelling mode
+    # and, when R4 ran, the empirical (random-subset) scale next to the C-propagated significance.
+    qual = []
+    if mode != "pre-registered":
+        qual.append("post-data host labelling, with identification check (ii) changed to compare means")
+    if r4.get("z_std"):
+        qual.append(f"{z:.1f} sigma uses C-propagated errors; on the random-subset scale "
+                    f"(Delta/sigma spread {r4['z_std']:.2f}, itself uncertain) about "
+                    f"{z / r4['z_std']:.1f} sigma, percentile {r4['z_percentile']:.1f}")
+    r2h["qualified_verdict"] = v + (" [" + "; ".join(qual) + "]" if qual and ident["host_step_evaluable"] else "")
+    ctx.save("r2", {"anchor_step": r2a, "host_step": r2h})
+
     # ---- cross-paper comparison (descriptive)
     def pair(a, b):
         hi_a = a["hi"] if b["h0"] > a["h0"] else a["lo"]
@@ -644,7 +657,7 @@ def main(ctx):
         "validity": validity,
         "R1": r1["verdict"], "R1_h0": r1["h0"],
         "R2_anchor": r2a["verdict"], "R2_anchor_shift": d_a,
-        "R2_host": (r2h["verdict"] if mode == "pre-registered" else f"[{mode}] " + r2h["verdict"]),
+        "R2_host": r2h["qualified_verdict"],
         "R2_host_status": r2h["status"],
         "R2_host_preregistered": r2h["preregistered_verdict"], "host_labelling_mode": mode,
         "R2_host_shift": d_h, "R2_host_sigma": s_h, "R2_host_z": z,

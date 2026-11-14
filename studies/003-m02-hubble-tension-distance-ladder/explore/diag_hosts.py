@@ -1,6 +1,7 @@
 """Diagnose host-column identification: which checks (ii)-(iv) link each column to which host.
 
-Uses the per-row check (ii) and run.PARAMS as committed (a fresh `import run`), so `--set`
+Diagnoses the ORIGINAL pre-registered per-row check (ii) (the amendment in run.py compares
+means instead; see README dated note). Uses run.PARAMS as committed (a fresh `import run`), so `--set`
 overrides do not apply to this script.
 """
 import numpy as np
