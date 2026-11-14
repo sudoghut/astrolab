@@ -8,6 +8,8 @@ question: "Can DR3 NSS astrometric orbits alone reproduce Gaia BH1/BH2 masses, a
 question_zh: "仅凭 DR3 非单星（NSS）天体测量轨道能否复现 Gaia BH1/BH2 的质量？服务器端筛选能否找回已知的休眠致密天体，并为 DR4 做好准备？"
 claims: [gaia-dormant-black-holes]
 milestone: M4
+papers: ["2209.06833", "2302.07880", "2405.00089", "2404.10486"]
+wiki: Study-001-gaia-dormant-black-holes
 deadline: 2026-11-25   # Gaia archive offline before DR4 (2026-12-02)
 
 # Where this study sits on the Atlas (for the sky / scale views, plan to follow).
