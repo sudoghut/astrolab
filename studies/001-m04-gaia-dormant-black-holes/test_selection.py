@@ -295,3 +295,14 @@ def test_resolve_ids_duplicate_rows_are_ambiguous():
                           "pmdec": [0.0, 0.0], "phot_g_mean_mag": [12.0, 15.0]})
     r = sel.resolve_ids(ref, found, 1.5)
     assert r.dr4_id.isna().all() and r.reason.tolist() == ["ambiguous"]
+
+
+def test_missing_dr3_period_error_is_insufficient():
+    assert sel.label_survivor(True, prim(), dict(REF, period_error=None), UNVAL, 5.0, 3.0) == "insufficient"
+    assert sel.label_survivor(True, prim(), dict(REF, period_error=float("nan")), UNVAL, 5.0, 3.0) == "insufficient"
+
+
+def test_rsel_requires_thiele_innes_columns():
+    df = pd.DataFrame([sol()]).drop(columns=["g_thiele_innes"])
+    with pytest.raises(ValueError, match="g_thiele_innes"):
+        sel.primary_solutions(df, UNVAL, AST)
