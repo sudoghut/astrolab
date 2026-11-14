@@ -51,7 +51,8 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
 **Definitions used below.**
 - *Information barrier*: the three release-day decisions below (astrometric types, non-validated
   types, `covariance_trusted`) are made from metadata and documentation only (TAP_SCHEMA, the
-  server-side type tally, the DR4 data model and release papers) and logged in `log.md`, with the
+  server-side type tally, an aggregate query that returns only counts per type, the DR4 data model
+  and release papers; no source-level row or value is inspected) and logged in `log.md`, with the
   `PARAMS` / `RELEASES` / `screen.py` change committed, before any source-level DR4 data (targets,
   controls, survivors, screen) are fetched. They cannot be revisited after such data are seen
   without being reported as a post-hoc change.
