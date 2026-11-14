@@ -20,7 +20,11 @@
 fetch('../results/summary.json')
   .then(r => { if (!r.ok) throw new Error(`results/summary.json: HTTP ${r.status}`); return r.json(); })
   .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
-  .catch(e => { document.getElementById('out').textContent = i18n.t('Could not load results (run the study first?) or render them: ', '无法加载或显示结果（是否已运行研究？）：') + e; });
+  .catch(e => {
+    const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
+    // Both languages in the DOM, so the message follows later language switches.
+    document.getElementById('out').innerHTML = i18n.L('Could not load results (run the study first?) or render them: ', '无法加载或显示结果（是否已运行研究？）：') + msg;
+  });
 </script>
 </body>
 </html>
