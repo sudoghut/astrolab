@@ -220,3 +220,16 @@ def test_neighbourhood_metadata_cases(tmp_path):
                                                                    "DR4_SOURCE_ID", "ANGULAR_DISTANCE"]})})
     res = run.resolve_dr3_ids(ctx, "gaiadr4", "Gaia DR4", rel, d)
     assert int(res.dr4_id.iloc[0]) == NEW + 2 and res.reason.iloc[0] == "neighbourhood"
+
+
+def test_rv_successor_column_is_used_and_renamed():
+    import pytest
+    rows = [(f"gaiadr4.{tb}", c) for tb, cols in run.CORE_COLUMNS.items() for c in cols]
+    rows += [("gaiadr4.gaia_source", "rv_amplitude_new")]
+    meta = pd.DataFrame(rows, columns=["table_name", "column_name"])
+    have = run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4", "rv_amplitude_new")
+    assert "rv_amplitude_robust" in have
+    assert "rv_amplitude_robust" not in run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4")
+    ctx = FakeCtx({"nss_two_body_orbit": pd.DataFrame([solution(NEW)])})
+    run.fetch_solutions(ctx, "gaiadr4", "Gaia DR4", [NEW], "x", have, "rv_amplitude_new")
+    assert "g.rv_amplitude_new AS rv_amplitude_robust" in ctx.queries[0]

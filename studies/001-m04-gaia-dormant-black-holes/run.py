@@ -28,7 +28,8 @@ PARAMS = {
 
 # Per-release constants. Part of the pre-registration (README DR4 addendum): changes are recorded.
 RELEASES = {
-    "dr3": {"label": "Gaia DR3", "rv_veto": None, "covariance_trusted": True, "epoch_gap_yr": 0.0},
+    "dr3": {"label": "Gaia DR3", "rv_veto": None, "covariance_trusted": True, "epoch_gap_yr": 0.0,
+            "rv_amplitude_column": "rv_amplitude_robust"},
     # Set on release day from metadata/documentation only, before any source-level DR4 data are
     # fetched (information barrier): covariance_trusted (corr_vec order), epoch_gap_yr (DR4
     # reference epoch - 2016.0).
@@ -37,6 +38,9 @@ RELEASES = {
     # If TAP_SCHEMA does not list it, resolution is direct-id only (recorded in the summary).
     "dr4": {"label": "Gaia DR4", "rv_veto": {"max_period_d": 1000.0, "max_ecc": 0.8},
             "covariance_trusted": False, "epoch_gap_yr": 1.5,
+            # a documented successor with the same definition replaces this name on release day (logged
+            # before the vetting query); if the release has neither, the RV veto is not applicable
+            "rv_amplitude_column": "rv_amplitude_robust",
             "neighbourhood": {"table": "dr3_neighbourhood", "old": "dr3_source_id", "new": "dr4_source_id",
                               "distance": "angular_distance", "distance_to_arcsec": 0.001}},
 }
@@ -153,8 +157,11 @@ def dr3_reference_dir(ctx) -> Path:
 # ---------------------------------------------------------------------------------------------
 # Queries
 
-def available_columns(ctx, schema, label):
-    """Which optional per-row columns this release has (TAP_SCHEMA: metadata, barrier-safe)."""
+def available_columns(ctx, schema, label, rv_col="rv_amplitude_robust"):
+    """Which optional per-row columns this release has (TAP_SCHEMA: metadata, barrier-safe).
+
+    rv_col: the release's RV-amplitude column; reported under the canonical name rv_amplitude_robust.
+    """
     names = ", ".join(f"'{schema}.{t}'" for t in CORE_COLUMNS)
     meta = ctx.tap(f"SELECT table_name, column_name FROM tap_schema.columns WHERE table_name IN ({names})",
                    label="columns (TAP_SCHEMA)", release=label, max_rows=5000)
@@ -164,10 +171,12 @@ def available_columns(ctx, schema, label):
     if missing_core:
         raise SystemExit(f"TAP_SCHEMA lists no {missing_core} for schema {schema}: the metadata lookup failed "
                          f"(table renamed or table_name format differs). Fix before running; nothing written.")
-    return {c for t, cols in OPTIONAL_COLUMNS.items() for c in cols if (t, c) in have}
+    def present(t, c):
+        return (t, rv_col.lower() if c == "rv_amplitude_robust" else c) in have
+    return {c for t, cols in OPTIONAL_COLUMNS.items() for c in cols if present(t, c)}
 
 
-def fetch_solutions(ctx, schema, label, ids, what, optional=None):
+def fetch_solutions(ctx, schema, label, ids, what, optional=None, rv_col="rv_amplitude_robust"):
     """All NSS solutions of `ids`, with photometry, RV amplitude and FLAME mass; chunked IN lists.
 
     optional: available optional columns (None = all, the DR3 query text); missing ones are NaN.
@@ -175,7 +184,8 @@ def fetch_solutions(ctx, schema, label, ids, what, optional=None):
     optional = set(OPTIONAL_COLUMNS["gaia_source"] + OPTIONAL_COLUMNS["astrophysical_parameters"]) \
         if optional is None else set(optional)
     o_cols = ", ".join(f"o.{p}, o.{p}_error" for p in ERR_PARAMS)
-    g_opt = "".join(f", g.{c}" for c in OPTIONAL_COLUMNS["gaia_source"] if c in optional)
+    g_opt = "".join((f", g.{rv_col} AS rv_amplitude_robust" if c == "rv_amplitude_robust" and rv_col != c
+                     else f", g.{c}") for c in OPTIONAL_COLUMNS["gaia_source"] if c in optional)
     ap_opt = [c for c in OPTIONAL_COLUMNS["astrophysical_parameters"] if c in optional]
     ap_sel = "".join(f", ap.{c}" for c in ap_opt)
     ap_join = (f"LEFT OUTER JOIN {schema}.astrophysical_parameters AS ap ON ap.source_id = o.source_id "
@@ -220,9 +230,13 @@ def count_solutions(ctx, schema, ids):
     return sum(ctx.count(f"{schema}.nss_two_body_orbit WHERE source_id IN ({_ids(c)})") for c in _chunks(ids))
 
 
-def target_positions(ctx, schema, label):
+def target_positions(ctx, schema, label, id_map):
+    """Positions of the targets in this release (resolved ids; DR3: the DR3 ids, same query text)."""
+    ids = [id_map[n] for n in TARGETS if id_map.get(n) is not None]
+    if not ids:
+        return pd.DataFrame({"source_id": pd.Series(dtype="int64")})
     return ctx.tap(f"SELECT source_id, ra, dec, l, b, parallax, phot_g_mean_mag, bp_rp FROM {schema}.gaia_source "
-                   f"WHERE source_id IN ({_ids(t['gaia_dr3'] for t in TARGETS.values())})",
+                   f"WHERE source_id IN ({', '.join(str(int(i)) for i in ids)})",
                    label="BH positions", release=label, max_rows=10)
 
 
@@ -294,7 +308,7 @@ def reproduce_targets(ctx, params, rel, id_map, sol, positions):
     prim = sel.primary_solutions(sol, params["unvalidated_types"], ASTROMETRIC_TYPES) if not sol.empty else sol
     out, targets = [], []
     for name, t in TARGETS.items():
-        p = positions[positions.source_id == t["gaia_dr3"]]
+        p = positions[positions.source_id == id_map.get(name)] if id_map.get(name) is not None else positions.iloc[:0]
         if len(p):
             r = p.iloc[0]
             targets.append({"name": name, "source_id": str(t["gaia_dr3"]), "ra": r.ra, "dec": r.dec, "l": r.l,
@@ -534,7 +548,7 @@ def main(ctx):
         dmap = {int(i): int(i) for i in ctrl_dr3}
     else:
         ref_dir = dr3_reference_dir(ctx)
-        optional = available_columns(ctx, schema, label)
+        optional = available_columns(ctx, schema, label, rel.get("rv_amplitude_column", "rv_amplitude_robust"))
         res = resolve_dr3_ids(ctx, schema, label, rel, ref_dir)
         dmap = {int(r.dr3_id): (None if pd.isna(r.dr4_id) else int(r.dr4_id)) for r in res.itertuples()}
     id_map = {name: dmap.get(int(sid)) for name, sid in controls.items()}
@@ -551,14 +565,15 @@ def main(ctx):
         want |= set(cand.source_id.astype("int64"))
     if res is not None:
         want |= {int(i) for i in res.dr4_id.dropna()}
-    sol = fetch_solutions(ctx, schema, label, want, "vetting", optional)
+    rv_col = rel.get("rv_amplitude_column", "rv_amplitude_robust")
+    sol = fetch_solutions(ctx, schema, label, want, "vetting", optional, rv_col)
     ambiguous_flame = sol.attrs.get("ambiguous_flame_sources", 0)
     s3_sol, s3_count = None, 0
     if release != "dr3" and cand is not None:
         extra = set(cand.source_id.astype("int64")) - set(sol.source_id if not sol.empty else [])
         s3_count = count_solutions(ctx, schema, extra) if extra else 0
         if s3_count <= SCREEN_ROWS_MAX:
-            more = fetch_solutions(ctx, schema, label, extra, "screen candidates", optional) if extra else sol.iloc[:0]
+            more = fetch_solutions(ctx, schema, label, extra, "screen candidates", optional, rv_col) if extra else sol.iloc[:0]
             ambiguous_flame += more.attrs.get("ambiguous_flame_sources", 0)
             sol = pd.concat([sol, more], ignore_index=True) if len(more) else sol   # extra excludes ids in sol
             s3_sol = True
@@ -566,7 +581,7 @@ def main(ctx):
     if s3_sol is True:
         s3_sol = sol
 
-    repro, targets = reproduce_targets(ctx, params, rel, id_map, sol, target_positions(ctx, schema, label))
+    repro, targets = reproduce_targets(ctx, params, rel, id_map, sol, target_positions(ctx, schema, label, id_map))
     out["targets"], out["reproduction"] = targets, repro
 
     # Controls: vetoed if the primary solution is vetoed (README s5 note 2026-11-14). Ids in this release.
