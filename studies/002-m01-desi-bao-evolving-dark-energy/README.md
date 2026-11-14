@@ -144,15 +144,49 @@ Exploration only (README section 8): DES-Dovekie (`DES-Dovekie_HD.csv` 0.11 MB,
   (installing CAMB needs the user's consent and is not planned); the Wilks calibration
   (wiki `gap_regular`) is assumed here as in the paper and only explored (section 8).
 
-## 5. Results
+## 5. Results (2026-11-14)
 
-Filled after running. Link to `web/index.html` and key numbers in `results/`.
+Run of 2026-11-14 (`python -m astrolab run 002`, 1414 s; inputs 33.9 MB from the cache). Page:
+[`web/index.html`](web/index.html) (`python -m astrolab serve`). Numbers: `results/summary.json`.
+Every fit passed the pre-registered validity checks (converged; at least 3 starts agree within
+0.01; χ²(w0waCDM) ≤ χ²(ΛCDM) + 10⁻³; Pantheon+ uses 1590 SNe after zHD > 0.01).
+
+| Criterion | Ours | Paper | Verdict |
+|---|---|---|---|
+| R1 Ωm (BAO only, ΛCDM) | 0.2979 ± 0.0086 (+0.05σ) | 0.2975 ± 0.0086 | reproduced |
+| R1 h·r_d [Mpc] | 101.52 ± 0.73 (−0.03σ) | 101.54 ± 0.73 | reproduced |
+| R2 reading A (ωbc mean = ωb + ωc + ων) | Δχ² = −6.59 (2.1σ) | −8.0 (2.4σ) | not reproduced |
+| R2 reading B (ωbc mean = ωb + ωc) | Δχ² = −8.01 (2.4σ) | −8.0 (2.4σ) | reproduced |
+| R2 overall | | | **conditionally reproduced (reading B)** |
+| R3 DESI alone | −4.65 (1.7σ) | −4.7 (1.7σ) | reproduced |
+| R3 DESI + Pantheon+ | −4.86 (1.7σ) | −4.9 (1.7σ) | reproduced |
+| R3 DESI + Union3 | −10.03 (2.7σ) | −10.1 (2.7σ) | reproduced |
+
+- R1 chain: post-burn length 99 τ, Monte Carlo error 0.02σ.
+- R2 secondary (posterior means, reading B): w0 = −0.437 ± 0.226, wa = −1.69 ± 0.66, against
+  −0.43 ± 0.22 and −1.72 ± 0.64 (Eq. 24); reading A gives −0.48 ± 0.23 and −1.55 ± 0.66.
+- K check (diagnostic): K = 1.001141; shifting K by ±1 prior σ of θ* moves Δχ² by about ±0.4
+  (A: −6.98 / −6.21; B: −8.44 / −7.59), so the θ* calibration cannot explain the 1.4 difference
+  between the readings. Second reference point: Δ(100θ*) = 3.8×10⁻⁵ (0.15 prior σ).
+- **Finding.** The pre-registered "reading A" (supported only by indirect numerical evidence:
+  the chain's best fit plus ων rounds to Eq. 35's 0.14208) does not reproduce the paper; reading B,
+  the paper's own definition next to Eq. 2, reproduces Δχ² and the posterior means. We record the
+  verdict as pre-registered (conditionally reproduced) and do not switch readings post hoc. The
+  likely explanation is that the published prior mean includes ων while the paper's code compares
+  it with ωb + ωc (or equivalently that the mean was shifted); this cannot be settled without
+  the authors' likelihood configuration.
 
 ## 6. Referee notes
 
 Independent critique: selection effects, systematics, alternative explanations.
 
 ## 7. Open questions
+
+- The ωbc convention of the compressed prior (Eq. 35): which quantity does the paper's code compare
+  with it? A primary source (the authors' Cobaya configuration) would settle R2 fully.
+- Wilks calibration (wiki `gap_regular`): simulate the Δχ² distribution under the ΛCDM best fit
+  for DESI + compressed CMB and compare with χ²(2).
+- Leave-one-tracer-out sensitivity of Δχ² (`drop_z`), and DES-Dovekie as a third SN sample.
 
 ## 8. Exploring via chat
 
@@ -161,14 +195,27 @@ How a coding agent answers "what if" questions about this study without touching
 
 | Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
 |---|---|---|---|
-| TODO | | | |
+| `drop_z` | list of BAO effective redshifts to leave out (leave-one-tracer-out) | values from the mean file: 0.295, 0.51, 0.706, 0.934, 1.321, 1.484, 2.33 | cache only |
+| `sn_zmin` | Pantheon+ minimum zHD | 0.01-0.1 | cache only |
+| `mnu` | neutrino mass sum [eV], one massive state | 0.06-0.3 | cache only |
+| `n_starts` | random starts per fit | ≥ 10 (fewer weakens the validity check) | cache only |
+| `r2_mcmc`, `k_check` | run the R2 posterior chains / the K check | true, false (false: much faster) | cache only |
+| `r1_steps`, `r2_steps` | chain lengths | ≥ 4000 / ≥ 6000 for the pre-registered precision | cache only |
 
-- Rerun with an override: `python -m astrolab explore 002-m01-desi-bao-evolving-dark-energy --tag <topic> --set KEY=VALUE`
-  (outputs in `explore/<date>-<topic>/`, not committed; about N s from cache).
+- Rerun with an override: `python -m astrolab explore 002 --tag <topic> --set KEY=VALUE`
+  (outputs in `explore/<date>-<topic>/`, not committed; about 1.5 min with
+  `--set r2_mcmc=false --set k_check=false`, about 25 min with everything). A list is passed as
+  JSON, e.g. in bash `--set 'drop_z=[2.33]'`.
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
-  `python -m astrolab explore 002-m01-desi-bao-evolving-dark-energy --tag <topic> --script explore/<name>.py`.
-- Results files and keys: TODO (`results/<file>.json`: key - meaning).
-- Example questions: TODO (question -> knob or script an agent would use).
-- Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
-  on a branch.
-
+  `python -m astrolab explore 002 --tag <topic> --script explore/<name>.py` (e.g. a Wilks
+  simulation, or DES-Dovekie: `sn_data/master/DES-Dovekie/DES-Dovekie_HD.csv` 0.11 MB and
+  `covtot_inv_000.npz` 6.2 MB through `ctx.http`).
+- Results files and keys (`results/summary.json`): `R1` (`posterior.Om`, `posterior.hrd`,
+  `checks`, `verdict`), `R2` (`reading_A_with_nu`, `reading_B_without_nu`: `dchi2`, `sigma`,
+  `lcdm`, `w0wa`, `posterior`, `verdict`; `overall`, `K`, `K_check`), `R3` (`desi`,
+  `desi_pantheonplus`, `desi_union3`: `dchi2`, `sigma`, `verdict`; `overall`), `params`, `targets`.
+- Example questions:
+  - "Does the preference survive without the Lyman-α point?" -> `--set 'drop_z=[2.33]' --set r2_mcmc=false --set k_check=false`.
+  - "What if the neutrino mass were 0.1 eV?" -> `--set mnu=0.1`.
+  - "Is Δχ² really χ²(2)-distributed here?" -> a simulation script in `explore/`.
+- Findings that change what we know go into `log.md` (and the wiki article) on a branch.

@@ -1,30 +1,124 @@
 <!doctype html>
-<html lang="en" data-title-zh="DESI DR2 重子声学振荡与演化暗能量">
+<html lang="en" data-title-zh="DESI DR2：暗能量在演化吗？">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DESI DR2 BAO and evolving dark energy</title>
-<!-- Bilingual rule (AGENTS.md): keep this script, write text as <span class="en">…</span><span class="zh">…</span>,
-     use i18n.L(en, zh) for generated HTML and i18n.t(en, zh) + i18n.onLangChange for plain text / charts. -->
+<title>DESI DR2 and evolving dark energy</title>
 <script src="../../../atlas/web/i18n.js"></script>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.0/plotly.min.js"></script>
+<style>
+  .plot { height: 360px; }
+  .verdict { font-weight: 600; white-space: nowrap; }
+  .ok { color: var(--established); } .bad { color: var(--refuted); } .warn { color: var(--tension); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .note { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+  .chain { display: grid; gap: 8px; grid-template-columns: repeat(3, 1fr); margin: 10px 0; }
+  .stage { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; background: var(--surface); font-size: 13.5px; }
+  .stage b { display: block; margin-bottom: 4px; }
+  .tag { font: 11.5px var(--mono); color: var(--muted); }
+  @media (max-width: 760px) { .chain { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
 <main>
-  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 002-m01-desi-bao-evolving-dark-energy</p>
-  <h1><span class="en">DESI DR2 BAO and evolving dark energy</span><span class="zh">DESI DR2 重子声学振荡与演化暗能量</span></h1>
-  <p class="muted"><span class="en">Replace this page freely: design whatever this question needs (visualization, interactive analysis, several pages). It does not have to follow the Atlas. Data comes from <code>../results/*.json</code>.</span><span class="zh">可以完全替换本页面：按研究问题的需要来设计（可视化、交互式分析、多个页面），不必遵循 Atlas 的样式。数据来自 <code>../results/*.json</code>。</span></p>
-  <pre id="out"><span class="en">loading…</span><span class="zh">加载中……</span></pre>
+  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / L0 / M1</p>
+  <h1><span class="en">DESI DR2: is dark energy evolving?</span><span class="zh">DESI DR2：暗能量在演化吗？</span></h1>
+  <p class="muted"><span class="en">Reproduction of DESI DR2 BAO cosmology (arXiv:2503.14738) with this repo's own background code, from public BAO and supernova files. Criteria pre-registered in the study README (sections 1-4); the argument is decomposed in the
+    <a href="https://github.com/sudoghut/astrolab/wiki/Study-002-desi-bao-evolving-dark-energy">wiki article</a>.</span><span class="zh">用本项目自己的背景宇宙学代码，从公开的 BAO 与超新星文件复现 DESI DR2 BAO 宇宙学结果（arXiv:2503.14738）。判据预注册在研究 README 第 1–4 节；论证拆解见
+    <a href="https://github.com/sudoghut/astrolab/wiki/Study-002-desi-bao-evolving-dark-energy">Wiki 文章</a>。</span></p>
+
+  <h2><span class="en">The argument and what we checked</span><span class="zh">论证链条与我们检查的环节</span></h2>
+  <div class="chain">
+    <div class="stage"><b><span class="en">A · the data prefer w0waCDM</span><span class="zh">A · 数据偏好 w0waCDM</span></b>
+      <span class="en">Paper: Δχ²_MAP = −12.5 for DESI + full CMB (not reproducible here). Checked: the neighbouring combinations R1–R3 below.</span><span class="zh">论文：DESI + 完整 CMB 的 Δχ²_MAP = −12.5（本项目无法复现）。已检查：下面相邻的组合 R1–R3。</span>
+      <div class="tag">stat_dchi2</div></div>
+    <div class="stage"><b><span class="en">B · from Δχ² to σ</span><span class="zh">B · 从 Δχ² 到 σ</span></b>
+      <span class="en">Wilks' theorem with 2 degrees of freedom. The calibration is assumed by the paper (our GAP); explorable, not checked here.</span><span class="zh">2 个自由度的威尔克斯定理。校准是论文的假设（我们的 GAP）；可探索，本页不检查。</span>
+      <div class="tag">mod_wilks · gap_regular · mod_sig</div></div>
+    <div class="stage"><b><span class="en">C · interpretation</span><span class="zh">C · 解释</span></b>
+      <span class="en">"ΛCDM is challenged" (≥ 3σ) and "dynamical dark energy is a possible solution". Not testable with data.</span><span class="zh">"ΛCDM 受到挑战"（≥ 3σ）与"动力学暗能量是可能的解释"。无法用数据检验。</span>
+      <div class="tag">mod_challenge · mod_dde</div></div>
+  </div>
+
+  <h2><span class="en">Pre-registered criteria</span><span class="zh">预注册判据</span></h2>
+  <div id="criteria"><span class="en">loading…</span><span class="zh">加载中……</span></div>
+
+  <h2><span class="en">Δχ²_MAP: ours against the paper</span><span class="zh">Δχ²_MAP：本项目与论文对比</span></h2>
+  <div id="plot" class="plot"></div>
+  <p class="note"><span class="en">Grey band: the pre-registered tolerance ±1.0 around the paper's value. More negative means a stronger preference for w0waCDM over ΛCDM.</span><span class="zh">灰色带：论文数值 ±1.0 的预注册容差。越负表示越偏好 w0waCDM 而非 ΛCDM。</span></p>
+
+  <h2><span class="en">Details</span><span class="zh">细节</span></h2>
+  <div id="details"></div>
 </main>
 <script>
+const L = i18n.L, t = i18n.t;
+const f = (x, n = 2) => (x === null || x === undefined || Number.isNaN(x)) ? '—' : Number(x).toFixed(n);
+const cls = v => v === 'reproduced' ? 'ok' : (String(v).startsWith('conditionally') ? 'warn' : 'bad');
+const vtxt = v => {
+  const m = {'reproduced': ['reproduced', '已复现'], 'not reproduced': ['not reproduced', '未复现'], 'failed fit': ['failed fit', '拟合失败']};
+  if (m[v]) return L(...m[v]);
+  const r = String(v).match(/reading (A|B)/);
+  return r ? L(`conditionally reproduced (reading ${r[1]})`, `有条件复现（解读 ${r[1]}）`) : v;
+};
+let D = null;
+
+function render() {
+  if (!D) return;
+  const R1 = D.R1, R2 = D.R2, R3 = D.R3;
+  const rows = [];
+  rows.push(['R1', L('BAO only, ΛCDM: Ωm', '只用 BAO，ΛCDM：Ωm'), `${f(R1.posterior.Om.mean, 4)} ± ${f(R1.posterior.Om.sigma68, 4)}`, '0.2975 ± 0.0086', R1.verdict]);
+  rows.push(['', L('BAO only, ΛCDM: h·r_d [Mpc]', '只用 BAO，ΛCDM：h·r_d [Mpc]'), `${f(R1.posterior.hrd.mean, 2)} ± ${f(R1.posterior.hrd.sigma68, 2)}`, '101.54 ± 0.73', '']);
+  const r2a = R2.reading_A_with_nu, r2b = R2.reading_B_without_nu;
+  rows.push(['R2', L('DESI + compressed CMB, reading A (ωbc includes ων)', 'DESI + 压缩 CMB，解读 A（ωbc 含 ων）'), `${f(r2a.dchi2)} (${f(r2a.sigma, 1)}σ)`, '−8.0 (2.4σ)', r2a.verdict]);
+  rows.push(['', L('DESI + compressed CMB, reading B (ωbc = ωb + ωc)', 'DESI + 压缩 CMB，解读 B（ωbc = ωb + ωc）'), `${f(r2b.dchi2)} (${f(r2b.sigma, 1)}σ)`, '−8.0 (2.4σ)', r2b.verdict]);
+  rows.push(['', L('R2 overall', 'R2 总体'), '', '', R2.overall]);
+  const names = {desi: ['DESI alone', '只用 DESI'], desi_pantheonplus: ['DESI + Pantheon+', 'DESI + Pantheon+'], desi_union3: ['DESI + Union3', 'DESI + Union3']};
+  let first = true;
+  for (const k of ['desi', 'desi_pantheonplus', 'desi_union3']) {
+    const r = R3[k];
+    rows.push([first ? 'R3' : '', L(...names[k]), `${f(r.dchi2)} (${f(r.sigma, 1)}σ)`, `${f(r.target, 1)}`, r.verdict]);
+    first = false;
+  }
+  rows.push(['', L('R3 overall', 'R3 总体'), '', '', R3.overall]);
+  document.getElementById('criteria').innerHTML =
+    `<table><thead><tr><th></th><th>${L('Quantity', '量')}</th><th class="num">${L('Ours', '本项目')}</th><th class="num">${L('Paper', '论文')}</th><th>${L('Verdict', '判定')}</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td><td class="verdict ${r[4] ? cls(r[4]) : ''}">${r[4] ? vtxt(r[4]) : ''}</td></tr>`).join('') +
+    '</tbody></table>';
+
+  const labels = [t('R2 reading A', 'R2 解读 A'), t('R2 reading B', 'R2 解读 B'), t('DESI alone', '只用 DESI'), 'DESI + Pantheon+', 'DESI + Union3'];
+  const ours = [r2a.dchi2, r2b.dchi2, R3.desi.dchi2, R3.desi_pantheonplus.dchi2, R3.desi_union3.dchi2];
+  const paper = [-8.0, -8.0, -4.7, -4.9, -10.1];
+  const shapes = paper.map((p, i) => ({type: 'rect', xref: 'x', yref: 'y', x0: i - 0.4, x1: i + 0.4, y0: p - 1, y1: p + 1,
+    fillcolor: 'rgba(128,128,128,0.18)', line: {width: 0}}));
+  Plotly.react('plot', [
+    {x: labels, y: paper, type: 'scatter', mode: 'markers', name: t('paper', '论文'), marker: {symbol: 'line-ew-open', size: 30, line: {width: 3}}},
+    {x: labels, y: ours, type: 'scatter', mode: 'markers', name: t('ours', '本项目'), marker: {size: 11}}
+  ], {margin: {t: 10, r: 10, b: 60, l: 50}, yaxis: {title: 'Δχ²_MAP', zeroline: true}, shapes,
+      legend: {orientation: 'h'}, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+      font: {color: getComputedStyle(document.body).color}}, {displayModeBar: false, responsive: true});
+
+  const det = [];
+  det.push(`<p>${L('R1 chain', 'R1 链')}: n/τ = ${f(R1.n_over_tau, 0)}, N_eff = ${f(R1.n_eff, 0)}, ${L('acceptance', '接受率')} ${f(R1.acceptance, 2)}; ${L('deviations', '偏离')}: Ωm ${f(R1.checks.Om.dev_sigma, 2)}σ, h·r_d ${f(R1.checks.hrd.dev_sigma, 2)}σ.</p>`);
+  for (const [k, r] of [['A', r2a], ['B', r2b]]) {
+    if (r.posterior) det.push(`<p>R2 ${L('reading', '解读')} ${k}: ${L('posterior means (secondary)', '后验均值（次要比较）')} w0 = ${f(r.posterior.w0.mean)} ± ${f(r.posterior.w0.sigma68)}, wa = ${f(r.posterior.wa.mean)} ± ${f(r.posterior.wa.sigma68)}, H0 = ${f(r.posterior.H0.mean, 1)} (${L('paper', '论文')} −0.43 ± 0.22, −1.72 ± 0.64, 63.7); n/τ = ${f(r.posterior.n_over_tau, 0)}.</p>`);
+  }
+  if (R2.K_check) {
+    const k = R2.K_check;
+    det.push(`<p>${L('K check (diagnostic; θ* calibration K = ', 'K 检查（诊断；θ* 标定 K = ')}${f(R2.K, 6)}${L(', shifted by ±1 prior σ of θ*): Δχ²', '，按 θ* 先验 σ 平移 ±1）：Δχ²')} A+ ${f(k['A+'])}, A− ${f(k['A-'])}, B+ ${f(k['B+'])}, B− ${f(k['B-'])}; ${L('second reference point', '第二参考点')} Δ(100θ*) = ${f(k.second_point_dtheta100, 6)}.</p>`);
+  }
+  det.push(`<p class="note">${L('Fit validity: each fit converged, at least 3 starts agree within 0.01, and χ²(w0waCDM) ≤ χ²(ΛCDM) + 10⁻³ (README section 2).', '拟合有效性：每个拟合都收敛，至少 3 个起点在 0.01 内一致，且 χ²(w0waCDM) ≤ χ²(ΛCDM) + 10⁻³（README 第 2 节）。')}</p>`);
+  document.getElementById('details').innerHTML = det.join('');
+}
+
 fetch('../results/summary.json')
   .then(r => { if (!r.ok) throw new Error(`results/summary.json: HTTP ${r.status}`); return r.json(); })
-  .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
+  .then(d => { D = d; render(); })
   .catch(e => {
     const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
-    // Both languages in the DOM, so the message follows later language switches.
-    document.getElementById('out').innerHTML = i18n.L('Could not load results (run the study first?) or render them: ', '无法加载或显示结果（是否已运行研究？）：') + msg;
+    document.getElementById('criteria').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + msg;
   });
+i18n.onLangChange(render);
 </script>
 </body>
 </html>
