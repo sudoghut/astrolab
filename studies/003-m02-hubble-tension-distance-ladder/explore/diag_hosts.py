@@ -1,4 +1,8 @@
-"""Diagnose host-column identification: which checks (ii)-(iv) link each column to which host."""
+"""Diagnose host-column identification: which checks (ii)-(iv) link each column to which host.
+
+Uses the per-row check (ii) and run.PARAMS as committed (a fresh `import run`), so `--set`
+overrides do not apply to this script.
+"""
 import numpy as np
 from scipy import linalg
 

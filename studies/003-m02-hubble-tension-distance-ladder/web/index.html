@@ -93,15 +93,15 @@ function render() {
   const S = D.summary, R1 = D.r1, A = D.r2.anchor_step, H = D.r2.host_step, R3 = D.r3, R4 = D.r4, X = D.cross_paper, I = D.host_identification;
   const amended = I.mode !== 'pre-registered';
   document.getElementById('amend').innerHTML = amended
-    ? L(`<b>Deviation from the pre-registration.</b> The columns of the public L matrix are not in R22 Table 6 order, so under the pre-registered labelling the host step (R2), R3 and R4 are <b>not evaluable</b>. The results below for those use a labelling amended after the first run (README dated note): columns matched to hosts by SN magnitudes, Cepheid counts and host distances only; the CCHP set is unique (${I.alternatives} alternative labellings, none changing it).`,
-        `<b>偏离预注册。</b>公开的 L 矩阵的列不是按 R22 表 6 的顺序排列的，所以在预注册的标注下，宿主一步（R2）、R3 与 R4 <b>不可评估</b>。下面这几项的结果用的是第一次运行后修订的标注（README 中的日期说明）：只用超新星星等、造父变星数目与宿主距离把列与宿主对应起来；CCHP 宿主集合是唯一确定的（另有 ${I.alternatives} 种标注，都不改变这一集合）。`)
+    ? L(`<b>Deviation from the pre-registration.</b> The columns of the public L matrix are not in R22 Table 6 order, so under the pre-registered labelling the host step (R2), R3 and R4 are <b>not evaluable</b>. The results below for those use a labelling amended after the first run (README dated note): columns matched to hosts by SN magnitudes, Cepheid counts and host distances only; the CCHP set is unique (${I.alternatives} compatible edges lie in alternative labellings; none changes it).`,
+        `<b>偏离预注册。</b>公开的 L 矩阵的列不是按 R22 表 6 的顺序排列的，所以在预注册的标注下，宿主一步（R2）、R3 与 R4 <b>不可评估</b>。下面这几项的结果用的是第一次运行后修订的标注（README 中的日期说明）：只用超新星星等、造父变星数目与宿主距离把列与宿主对应起来；CCHP 宿主集合是唯一确定的（有 ${I.alternatives} 条相容边属于其他标注，都不改变这一集合）。`)
     : L('All criteria evaluated under the pre-registered labelling.', '所有判据都在预注册的标注下评估。');
 
   const rows = [
     ['R1', L('All 47 parameters vs the authors\' lstsq_results.txt (|Δ| ≤ 10⁻³)', '47 个参数对作者的 lstsq_results.txt（|Δ| ≤ 10⁻³）'), `max |Δq| ${f(R1.max_abs_dq, 4)} (${R1.worst_param})`, '0.001', R1.verdict],
     ['', L('Secondary: R22 printed baseline 5 log H0', '次要：R22 印出的基线 5 log H0'), `${f(R1.fivelogh0, 4)} ± ${f(R1.sigma_fivelogh0, 4)} (H0 ${f(R1.h0, 2)})`, '9.318 (73.04)', null],
     ['R2', L('Anchor step: all anchors → NGC 4258 only', '锚点一步：全部锚点 → 只用 NGC 4258'), `${f(A.shift, 4)} mag; σ ${f(A.sigma, 4)}`, `−0.0158 ± 0.005; σ 0.0461 ± 15%`, A.verdict],
-    ['', L('Host step: 37 hosts → 10 CCHP hosts (the test)', '宿主一步：37 个宿主 → 10 个 CCHP 宿主（检验）'), `${f(H.shift, 4)} ± ${f(H.shift_sigma, 4)} mag (${f(H.z, 2)}σ)`, '−0.0405', H.verdict],
+    ['', L('Host step: 37 hosts → 10 CCHP hosts (the test)', '宿主一步：37 个宿主 → 10 个 CCHP 宿主（检验）') + (amended ? ` <i>(${L('amended, post-data', '修订，数据之后')})</i>` : ''), `${f(H.shift, 4)} ± ${f(H.shift_sigma, 4)} mag (${f(H.z, 2)}σ)`, '−0.0405', H.verdict, amended ? 'amended' : null],
     ['', L('Host step, pre-registered labelling', '宿主一步，预注册的标注'), '', '', H.preregistered_verdict],
     ['R3', L('CCHP-side H0 on the same 10 hosts vs CCHP\'s 69.29', '同样 10 个宿主上 CCHP 一侧的 H0 对 CCHP 的 69.29'), `${f(R3.cchp_side_h0, 2)} (Δ ${f(R3.cchp_diff_mag, 4)} mag)`, '69.29 ± 0.02 mag', R3.cchp_match],
     ['', L('d = SH0ES − CCHP on the same hosts (descriptive)', 'd = 同宿主上 SH0ES − CCHP（只作描述）'), `${f(R3.d, 4)} ± ${f(R3.sigma_d, 4)} mag`, '—', null],
@@ -109,7 +109,7 @@ function render() {
   ];
   document.getElementById('criteria').innerHTML =
     `<table><thead><tr><th></th><th>${L('Quantity', '量')}</th><th class="num">${L('Ours', '本项目')}</th><th class="num">${L('Target', '目标')}</th><th>${L('Verdict', '判定')}</th></tr></thead><tbody>` +
-    rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td><td class="verdict ${cls(r[4])}">${r[4] ? vt(r[4]) : ''}</td></tr>`).join('') +
+    rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td><td class="verdict ${cls(r[5] || r[4])}">${r[4] ? vt(r[4]) : ''}</td></tr>`).join('') +
     '</tbody></table>' + (amended ? `<p class="note">${L('R2 host step, R3 and R4 above: amended (post-data) labelling.', '上面的 R2 宿主一步、R3、R4：修订后（数据之后）的标注。')}</p>` : '');
 
   const steps = [
@@ -142,8 +142,8 @@ function render() {
         annotations: [{x: R4.cchp_shift, yref: 'paper', y: 1, text: 'CCHP', showarrow: false, yanchor: 'bottom'}]}),
       {displayModeBar: false, responsive: true});
     document.getElementById('r4-note').innerHTML = L(
-      `The CCHP selection's shift (${f(R4.cchp_shift, 4)} mag) is at the ${f(R4.percentile, 1)}th percentile of ${R4.draws} random draws (spread σ = ${f(R4.std, 3)} mag). Descriptive: every outcome is compatible with the paper.`,
-      `CCHP 选择的移动（${f(R4.cchp_shift, 4)} mag）位于 ${R4.draws} 次随机抽样的第 ${f(R4.percentile, 1)} 百分位（离散 σ = ${f(R4.std, 3)} mag）。只作描述：任何结果都与该文相容。`);
+      `The CCHP selection's shift (${f(R4.cchp_shift, 4)} mag) is at the ${f(R4.percentile, 1)}th percentile of ${R4.draws} random draws (spread σ = ${f(R4.std, 3)} mag). In units of each draw's own C-propagated σ it is at the ${f(R4.z_percentile, 1)}th percentile, and those ratios spread by ${f(R4.z_std, 2)}, not 1: the host step's ${f(R4.cchp_z, 2)}σ is about ${f(R4.cchp_z / R4.z_std, 1)}σ on the empirical scale. Descriptive: every outcome is compatible with the paper.`,
+      `CCHP 选择的移动（${f(R4.cchp_shift, 4)} mag）位于 ${R4.draws} 次随机抽样的第 ${f(R4.percentile, 1)} 百分位（离散 σ = ${f(R4.std, 3)} mag）。以每次抽样自己由 C 传播的 σ 为单位，它位于第 ${f(R4.z_percentile, 1)} 百分位，而这些比值的离散是 ${f(R4.z_std, 2)} 而不是 1：宿主一步的 ${f(R4.cchp_z, 2)}σ 在经验尺度上约为 ${f(R4.cchp_z / R4.z_std, 1)}σ。只作描述：任何结果都与该文相容。`);
   }
   const v = X.values;
   Plotly.react('cross', [{y: v.map(p => p.name), x: v.map(p => p.h0), type: 'scatter', mode: 'markers', orientation: 'h',

@@ -49,7 +49,7 @@
  "R1_h0": 73.04281910198733,
  "R2_anchor": "reproduced",
  "R2_anchor_shift": -0.018430806133437727,
- "R2_host": "host selection significantly lowers H0, by the size the paper reports (supports the paper)",
+ "R2_host": "[amended (post-data labelling)] host selection significantly lowers H0, by the size the paper reports (supports the paper)",
  "R2_host_status": "evaluated; amended (post-data labelling)",
  "R2_host_preregistered": "not evaluable (host identification)",
  "host_labelling_mode": "amended (post-data labelling)",
@@ -61,5 +61,5 @@
  "R3_sigma_d": 0.04783482196376176,
  "R4_percentile": 5.680000000000001,
  "R4_verdict": "consistent with random-subset fluctuations",
- "runtime_s": 780.499134400161
+ "runtime_s": 776.8311201001052
 }

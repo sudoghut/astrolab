@@ -250,7 +250,8 @@ M_B = −19.269); the 0.02 mag "matched" tolerance in R3 is the guard for this d
 > SN rows with the mean of the host's Table 6 m⁰_B (tolerance unchanged, 0.15 mag): Table 6 note d
 > says its m⁰_B is a simple average over surveys, and a per-row comparison failed for one host only
 > (N1015: rows 13.499, 13.124, 13.427 against 13.350; their mean is 13.350). Ties among compatible
-> labellings are broken by the smallest summed |μ_fit − μ_Ceph(a)|/σ(a). The relabelling uses only SN magnitudes, Cepheid counts and host
+> labellings are broken by the smallest summed |μ_fit − μ_Ceph(a)|/σ(a) (implemented as a tiny
+> cost, far below 1, added to every compatible edge). The relabelling uses only SN magnitudes, Cepheid counts and host
 > distances, never an H0 result. Results under it are reported separately and labelled
 > "amended (post-data labelling)"; criteria and tolerances are unchanged. (The shift printed by
 > the first run under the wrong labelling is meaningless and is not used.)
@@ -262,7 +263,7 @@ passed; page: [`web/index.html`](web/index.html); numbers in `results/*.json`).
 
 | Criterion | Ours | Target | Verdict |
 |---|---|---|---|
-| R1 primary: 47 parameters vs `lstsq_results.txt` | max \|Δq\| 0.050 (N0691) | ≤ 0.001 | **not reproduced** |
+| R1 primary: 47 parameters vs `lstsq_results.txt` | max \|Δq\| 0.050 (column 3, which holds N1015) | ≤ 0.001 | **not reproduced** |
 | R1 secondary: R22 printed baseline | 5 log H0 = 9.3179 ± 0.0299 (H0 73.04); χ²/dof = 3552.8/3445 = 1.031 | 9.318 (73.04); 1.03 | matches |
 | R2 anchor step | −0.0184 mag; σ(5 log H0) 0.0461 | −0.0158 ± 0.005; 0.0461 ± 15% | **reproduced** |
 | R2 host step, pre-registered labelling | — | — | **not evaluable** (host identification) |
@@ -278,16 +279,33 @@ passed; page: [`web/index.html`](web/index.html); numbers in `results/*.json`).
 - **Host identification.** The columns of L are not in R22 Table 6 order (for example, N0976 is
   the second-to-last host column). Under the pre-registered labelling the R2 host step, R3 and R4
   are not evaluable. Under the dated amendment (section 4 note) every host gets a column; the CCHP
-  set is unique; 6 alternative labellings exist (N4038 ↔ N4639, both CCHP hosts, which only touches
-  R3's per-host table; and swaps among non-CCHP hosts).
-- **R2.** On the paper's own terms the claim holds in R22's data: dropping to NGC 4258 costs
-  −0.6 km/s/Mpc and restricting to the CCHP hosts a further −2.4 km/s/Mpc (illustrative), a
-  2.2σ shift whose size agrees with the paper's −1.3 (72.54 → 71.2) within the pre-registered
-  tolerance. This verdict rests on the amended labelling.
+  set is unique. Six compatible edges lie in alternative matchings; they form three pairwise swaps
+  (N4038 ↔ N4639, both CCHP hosts, which only touches R3's per-host table; N2608 ↔ N5728 and
+  N3021 ↔ N5917, both non-CCHP), so 7 alternative labellings exist, none changing the CCHP set.
+  The SN means decide N4038 against N4639 outright (offsets 0.000 and 0.045 mag), as does the
+  tie-break. Under the chosen labelling every column's mean SN magnitude is within 0.001 mag of
+  Table 6, every Cepheid count equals Table 3 except N1365 (46 against 45), and every
+  |Δμ/σ(a)| ≤ 1.71.
+- **Row classes vs section 4.** Section 4 expected 5 single-non-zero constraint rows; the data have
+  8: the extra three constrain Z_W (y = −0.215), b_W (y = 0) and column 44 (y = 0). Column 44 is
+  therefore fitted (σ 3 × 10⁻⁵), not all-zero as section 2 assumed for R1; it still passes R1's
+  tolerance. The anchor rule selects rows by column and is unaffected.
+- **R2.** Under the amended labelling the pre-registered table gives "significantly lowers H0, by
+  the size the paper reports": dropping to NGC 4258 costs −0.6 km/s/Mpc and restricting to the
+  CCHP hosts a further −2.4 km/s/Mpc (illustrative), a 2.2σ shift. Two qualifications. (1) Our
+  shift is 1.8 times the paper's (−0.073 against −0.0405 mag, −2.4 against −1.3 km/s/Mpc); it is
+  consistent only within the wide pre-registered tolerance (±0.086 mag). (2) The 2.2σ uses the
+  C-propagated σ. Across random 10-host subsets (R4) the same ratio Δ/σ has a spread of 1.33, not
+  1, so C understates host-to-host scatter; the CCHP ratio (−2.21) sits at the 4.7th percentile of
+  that empirical distribution, about 1.7σ on that scale (a descriptive diagnostic added after the
+  first results, at the gate-1 review).
 - **R3.** On the same 10 hosts the SH0ES Cepheid ladder and CCHP's JWST TRGB distances give the
   same H0 within 0.01 mag (0.3 km/s/Mpc); no host deviates by more than 1.2σ.
 - **R4.** The CCHP selection sits at the low edge (5.7th percentile) of random 10-host subsets:
-  a large but not exceptional draw. Random subsets scatter by 0.046 mag (about 1.5 km/s/Mpc).
+  a large but not exceptional draw. Random subsets scatter by 0.046 mag (about 1.5 km/s/Mpc), more
+  than the CCHP set's own σ_h = 0.033 (its Cepheid-rich hosts M101, N5643 and N2442 make it more
+  precise than a typical subset); in units of each draw's own σ the CCHP set is at the 4.7th
+  percentile (spread of Δ/σ: 1.33).
 - **Cross-paper (descriptive).** SH0ES R22 vs CMB-only 5.3σ; TDCOSMO vs SH0ES −0.4σ; TDCOSMO vs
   CMB-only 1.3σ; CCHP TRGB vs CMB-only 1.6σ (`results/cross_paper.json`).
 
