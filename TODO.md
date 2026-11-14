@@ -6,8 +6,8 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-012** M2：哈勃张力（SH0ES、CCHP、H0DN）的距离阶梯复现与跨论文元分析 · 登记 2026-11-14 · 分支 feat/m2-hubble-tension
-  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Riess et al. 2022 arXiv:2112.04510（卷页号 [U]）、SH0ES 的 JWST 复核 arXiv:2408.11770、Freedman et al. 2025 arXiv:2408.06153 [S]、H0DN arXiv:2510.23823 [S]、TDCOSMO 2025 arXiv:2506.03023 [S]。能力：距离阶梯广义最小二乘（GLS）拟合、对校准星系的自助法（bootstrap）。数据为公开的 Pantheon+SH0ES 设计矩阵与协方差及论文表格，MB 级。
+- [ ] **T-012** M2：哈勃张力（SH0ES、CCHP、H0DN）的距离阶梯复现与跨论文元分析 · 登记 2026-11-14 · 分支 feat/m2-hubble-tension · 计划 [012](design/012-plan_m02-hubble-tension-distance-ladder-gls-and-host-selection.md)
+  - 备注：论文研究，按 `paper-study` 技能分 5 个环节（见计划 012）；环节 1（计划与核实）进行中。
 
 ## 下一步（Next）
 
