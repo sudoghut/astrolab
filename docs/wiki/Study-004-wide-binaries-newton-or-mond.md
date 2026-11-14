@@ -35,7 +35,8 @@ Solar neighbourhood the Galaxy's own pull (the external field effect) caps MOND'
 well beyond r_M should orbit about 20% faster than Newton predicts, and no faster.
 
 Since 2023 the test has been contested. Chae (C23) reported gravity about 1.4 times stronger than
-Newtonian at low acceleration (g_obs/g_N = 1.43 ± 0.06, "10σ"); Banik et al. (B24) excluded MOND
+Newtonian at low acceleration (g_obs/g_N = 1.43 ± 0.06 at g_N ≈ 10^−10.15 m/s²; about 10σ when two
+deviations in the same direction are combined); Banik et al. (B24) excluded MOND
 at 16σ from about 8,600 binaries within 250 pc. C26 asks why careful groups disagree, writes a
 quality checklist, and applies it to the cleanest sample they can build.
 
@@ -123,15 +124,16 @@ within 250 pc, G < 17, |b| > 15°, per-star astrometric-quality and extinction c
 least one star, ṽ error below 0.1 (scaled at large ṽ); 8,611 pairs with r_sky = 2–30 kAU. Instead
 of medians it forward-models the full (r_sky, ṽ) distribution with a mixture of bound binaries
 (gravity interpolated by α_grav: 0 = Newton, 1 = MOND), undetected close companions (fitted
-fraction about 63%) and chance alignments (about 2%), and finds α_grav = −0.021 (+0.065/−0.045):
+fraction about 63%) and chance alignments (about 2%; B24 Table 3), and finds α_grav = −0.021 (+0.065/−0.045):
 MOND excluded at 16σ.
 
 **C23 (Chae 2023).** Took about 26,600 pairs within 200 pc from the El-Badry, Rix and Heintz 2021
 catalogue (chance-alignment probability below 1%, main-sequence pairs), estimated masses from
 magnitudes, deprojected the sky velocities by Monte Carlo with eccentricities from Hwang et al.
-2022, and calibrated the close-binary fraction on the high-acceleration bin. It reports the
-acceleration law g_obs/g_N = 1.43 ± 0.06 at low acceleration (about 10σ from Newton). C26's
-checklist scores it as "not valid" (no HR cut, no projection correction, no ṽ cap).
+2022 (C23 §III), and calibrated the close-binary fraction on the high-acceleration bin (C23
+§IV.2). It reports g_obs/g_N = 1.43 ± 0.06 at g_N ≈ 10^−10.15 m/s² (about 10σ when combined with a
+second deviation at higher acceleration). C26's checklist (Table 4) scores it 8 of 17 and "not
+valid".
 
 ### Part 2 · The logic of the argument
 
@@ -208,7 +210,7 @@ Gaussian 1.86, uniform 2.0, exponential 2.08). Two readings of the paper:
   Δχ² 12.6 → 3.7 (likelihood ratio about 6, not 548) and, for the cleanest row, 14.6 → 4.2 (about
   8, not 1501);
 - if it used 1.4826 MAD/√N (the σ of §4.1.5), the factor 1.2533 remains: Δχ² 12.6 → 8.0 (about 55)
-  and 14.6 → 9.3 (about 107).
+  and 14.6 → 9.3 (about 105).
 
 Either way the stated ratio needs errors the paper does not justify. Counter-evidence: the Newton
 χ² values are already small (2.48 and 1.46 for 5 degrees of freedom); with errors 1.86 times larger
@@ -290,7 +292,7 @@ velocity columns are fetched only after the study's pre-registration is committe
 
 宽双星（wide binaries）是相隔数千个天文单位（AU, astronomical unit，日地距离）互相绕转的两颗恒星。间距超过几千 AU 时，它们之间的加速度低于 a0，正好落在 MOND 与牛顿引力分歧的区域，而且不牵涉暗物质。对一个太阳质量的双星，分界点即 MOND 半径（MOND radius）r_M = √(GM/a0)，约 7,000 AU。在太阳附近，银河系本身的引力（外场效应（external field effect））限制了 MOND 的增强：远在 r_M 之外的双星，轨道速度应比牛顿预期快约 20%，不会更快。
 
-2023 年以来这一检验争议不断。Chae（C23）报告低加速度下的引力约为牛顿的 1.4 倍（g_obs/g_N = 1.43 ± 0.06，"10σ"）；Banik 等（B24）用 250 pc 以内约 8,600 对双星以 16σ 排除 MOND。C26 追问为什么认真的团队会得出相反结论，写出一份质量清单，并用它建立尽可能干净的样本。
+2023 年以来这一检验争议不断。Chae（C23）报告低加速度下的引力约为牛顿的 1.4 倍（在 g_N ≈ 10^−10.15 m/s² 处 g_obs/g_N = 1.43 ± 0.06；与另一处同方向的偏差合起来约 10σ）；Banik 等（B24）用 250 pc 以内约 8,600 对双星以 16σ 排除 MOND。C26 追问为什么认真的团队会得出相反结论，写出一份质量清单，并用它建立尽可能干净的样本。
 
 #### 1.2 数据
 
@@ -333,9 +335,9 @@ C26 的样本（全部来自 Gaia DR3；C26 第 3–4 节，C24 第 2 节）：
 
 #### 1.5 两篇背景论文
 
-**B24（Banik 等 2024）。** 自己从 Gaia 建样本（不用 El-Badry 星表）：250 pc 以内、G < 17、|b| > 15° 的恒星，逐星的天体测量质量与消光切割，至少一颗星有视向速度，ṽ 误差小于 0.1（ṽ 大时放宽）；r_sky = 2–30 kAU 的 8,611 对。它不用中位数，而是对整个 (r_sky, ṽ) 分布做前向建模：束缚双星（引力由 α_grav 插值：0 为牛顿，1 为 MOND）、未探测到的近伴星（拟合比例约 63%）与偶然成对（约 2%）的混合，得到 α_grav = −0.021（+0.065/−0.045）：以 16σ 排除 MOND。
+**B24（Banik 等 2024）。** 自己从 Gaia 建样本（不用 El-Badry 星表）：250 pc 以内、G < 17、|b| > 15° 的恒星，逐星的天体测量质量与消光切割，至少一颗星有视向速度，ṽ 误差小于 0.1（ṽ 大时放宽）；r_sky = 2–30 kAU 的 8,611 对。它不用中位数，而是对整个 (r_sky, ṽ) 分布做前向建模：束缚双星（引力由 α_grav 插值：0 为牛顿，1 为 MOND）、未探测到的近伴星（拟合比例约 63%）与偶然成对（约 2%；B24 表 3）的混合，得到 α_grav = −0.021（+0.065/−0.045）：以 16σ 排除 MOND。
 
-**C23（Chae 2023）。** 从 El-Badry、Rix 与 Heintz 2021 星表中取 200 pc 以内约 26,600 对（偶然成对概率小于 1%，主序对），由星等估计质量，用 Hwang 等 2022 的偏心率以蒙特卡罗方法对天球速度去投影，并用高加速度箱标定近伴星比例。它报告低加速度下的加速度关系 g_obs/g_N = 1.43 ± 0.06（与牛顿相差约 10σ）。C26 的清单把它评为"无效"（没有 HR 切割、没有投影修正、没有 ṽ 上限）。
+**C23（Chae 2023）。** 从 El-Badry、Rix 与 Heintz 2021 星表中取 200 pc 以内约 26,600 对（偶然成对概率小于 1%，主序对），由星等估计质量，用 Hwang 等 2022 的偏心率以蒙特卡罗方法对天球速度去投影（C23 第 III 节），并用高加速度箱标定近伴星比例（C23 第 IV.2 节）。它报告在 g_N ≈ 10^−10.15 m/s² 处 g_obs/g_N = 1.43 ± 0.06（与较高加速度处的另一偏差合起来约 10σ）。C26 的清单（表 4）给它 17 分中的 8 分，评为"无效"。
 
 ### 第二部分 · 论证逻辑
 
@@ -394,7 +396,7 @@ exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) (
 
 **评论。** 大样本下中位数的标准误为 1/(2 f(m) √N)，f(m) 是中位数处的概率密度；只有 f(m)·MAD = 0.5 时它才等于 MAD/√N。对 ṽ 分布各种合理的形状，真实误差要大约 1.4–2.1 倍（拉普拉斯分布 1.44，高斯分布 1.86，均匀分布 2.0，指数分布 2.08）。对论文有两种读法：
 - 如果表 3 用的是 MAD/√N（第 4.2.1 节如此写），按高斯的倍数，每个 χ² 缩小约 3.45 倍：Δχ² 12.6 → 3.7（似然比约 6，而不是 548），最干净的一行 14.6 → 4.2（约 8，而不是 1501）；
-- 如果用的是 1.4826 MAD/√N（第 4.1.5 节的 σ），仍差 1.2533 倍：Δχ² 12.6 → 8.0（约 55），14.6 → 9.3（约 107）。
+- 如果用的是 1.4826 MAD/√N（第 4.1.5 节的 σ），仍差 1.2533 倍：Δχ² 12.6 → 8.0（约 55），14.6 → 9.3（约 105）。
 
 无论哪种读法，论文给出的倍数都依赖它没有论证的误差。反面证据：牛顿模型的 χ² 本来就小（5 个自由度下 2.48 与 1.46）；误差放大 1.86 倍后约为 0.7 与 0.4，拟合好得可疑（p ≈ 0.98–0.995），这弱地提示误差并没有被低估那么多。平坦的曲线仍然不是 MOND 的证据；受影响的只是偏好的大小。本项目用自助法（bootstrap）直接检验（第三部分 R2）。
 
