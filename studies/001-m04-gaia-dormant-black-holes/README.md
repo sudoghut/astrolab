@@ -294,3 +294,33 @@ Triage of the referee report (verified = checked by us against code, results or 
 - Propagate parallax uncertainty into f_M for the screen (Eddington bias at parallax S/N 5-20).
 - A validated period-alias veto (Gaia scanning-law harmonics) for short-period solutions.
 - BH2: compare with its published DR3-only solution (arXiv:2302.07880) as a tight test like R1b.
+
+## 8. Exploring via chat
+
+How a coding agent answers "what if" questions about this study without touching `results/`
+(rules: AGENTS.md section 2). Added 2026-11-14 (T-010, after implementation).
+
+| Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
+|---|---|---|---|
+| `release` | Gaia data release (`dr3`, `dr4` once published) | `dr3`, `dr4` | `dr4`: new queries (run-book `gaia-dr4-release-day`, count first) |
+| `fm_min` | server-side cut on the astrometric mass function [Msun] | 0.1-1.0 | new screen query; 0.1 gives ~22,500 rows (~3 MB), count first |
+| `plx_snr_min` | parallax S/N cut | 3-20 | new screen query; count first |
+| `m2_bh_min` | M2 above which a screen row is a candidate [Msun] | 2-10 | cache only |
+| `rv_ratio_min` | RV veto threshold (observed / predicted RV range) | 0.2-1.0 | cache only |
+| `unvalidated_types` | solution types vetoed as not validated | subsets of the NSS types | new vetting query only if the candidate set changes; small |
+
+- Rerun with an override: `python -m astrolab explore 001 --tag <topic> --set KEY=VALUE`
+  (outputs in `explore/<date>-<topic>/`, not committed; seconds from cache).
+- Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
+  `python -m astrolab explore 001 --tag <topic> --script explore/<name>.py`.
+- Results files and keys: `results/summary.json` (`R1_BH1`, `R2_BH2`, `S1_*`, `S2_*`, `S3_*`, `post_hoc`;
+  on DR4 also `dr4`), `results/reproduction.json` (per-target masses), `results/bh_candidates.json`
+  (M2 > 3 Msun rows with labels and vetoes), `results/screen_points.json`, `results/ns_recall.json`,
+  `results/vetting_controls.json`; DR4 adds `survivors_dr4.json` and `new_candidates_dr4.json`.
+- Example questions:
+  - "How many candidates survive if the RV veto is stricter?" -> `--set rv_ratio_min=0.8` (cache only).
+  - "Does the screen still recover the NS candidates with a looser cut?" -> `--set fm_min=0.1` (count first).
+  - "Which DR3 candidates would a 5 Msun threshold leave?" -> `--set m2_bh_min=5.0` (cache only).
+- Findings that change what we know go into `log.md` and the wiki article
+  ([Study-001-gaia-dormant-black-holes](https://github.com/sudoghut/astrolab/wiki/Study-001-gaia-dormant-black-holes))
+  on a branch.
