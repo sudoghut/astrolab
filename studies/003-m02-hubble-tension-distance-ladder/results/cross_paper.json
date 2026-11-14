@@ -1,0 +1,86 @@
+{
+ "values": [
+  {
+   "name": "SH0ES R22 baseline",
+   "arxiv": "2112.04510",
+   "h0": 73.04,
+   "lo": 1.04,
+   "hi": 1.04,
+   "group": "ladder"
+  },
+  {
+   "name": "SH0ES + JWST (Riess et al. 2024), full HST sample",
+   "arxiv": "2408.11770",
+   "h0": 73.17,
+   "lo": 0.86,
+   "hi": 0.86,
+   "group": "ladder"
+  },
+  {
+   "name": "H0DN local distance network",
+   "arxiv": "2510.23823",
+   "h0": 73.5,
+   "lo": 0.81,
+   "hi": 0.81,
+   "group": "ladder"
+  },
+  {
+   "name": "CCHP TRGB (24 calibrators)",
+   "arxiv": "2408.06153",
+   "h0": 70.39,
+   "lo": 1.94,
+   "hi": 1.94,
+   "group": "ladder",
+   "note": "1.22 stat, 1.33 sys, 0.70 sigma_SN in quadrature"
+  },
+  {
+   "name": "TDCOSMO 2025 (flat LCDM)",
+   "arxiv": "2506.03023",
+   "h0": 71.6,
+   "lo": 3.3,
+   "hi": 3.9,
+   "group": "lensing"
+  },
+  {
+   "name": "Planck 2018",
+   "arxiv": "1807.06209",
+   "h0": 67.4,
+   "lo": 0.5,
+   "hi": 0.5,
+   "group": "cmb"
+  },
+  {
+   "name": "SPT-3G + ACT + Planck (CMB only)",
+   "arxiv": "2506.20707",
+   "h0": 67.19,
+   "lo": 0.38,
+   "hi": 0.38,
+   "group": "cmb"
+  }
+ ],
+ "interpreted_pairs": [
+  {
+   "pair": "SH0ES R22 vs CMB-only",
+   "nsigma": 5.283365196322911
+  },
+  {
+   "pair": "TDCOSMO vs SH0ES R22",
+   "nsigma": -0.35676367000661696
+  },
+  {
+   "pair": "TDCOSMO vs CMB-only",
+   "nsigma": 1.3275907807866123
+  },
+  {
+   "pair": "CCHP TRGB vs CMB-only",
+   "nsigma": 1.6187236085193468
+  }
+ ],
+ "not_independent": [
+  "SH0ES R22",
+  "SH0ES + JWST 2024",
+  "H0DN",
+  "CCHP"
+ ],
+ "note": "SH0ES, H0DN and CCHP share data; listed, not interpreted, not averaged."
+}

@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-11-14T20:59:12+00:00",
+  "inputs": [
+    {
+      "source": "http",
+      "request": "https://media.githubusercontent.com/media/PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/allc_shoes_ceph_topantheonwt6.0_112221.fits",
+      "retrieved_at": "2026-11-14T20:43:39+00:00",
+      "sha256": "a42778672d25df7a559bd2949b1e412b99b2e35dd9a36895f6b38828be019172",
+      "bytes": 48781440,
+      "cache_key": "9d4a76b21e60a2ed78c2e011",
+      "label": "SH0ES C (LFS)"
+    },
+    {
+      "source": "http",
+      "request": "https://raw.githubusercontent.com/PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/alll_shoes_ceph_topantheonwt6.0_112221.fits",
+      "retrieved_at": "2026-11-14T20:43:40+00:00",
+      "sha256": "9a2ce872dd20ed4fdf5005ce62a805d3eefbbb0b20b0c614013e7c0094009db8",
+      "bytes": 659520,
+      "cache_key": "d2bc949c74d9141dee4fa130",
+      "label": "SH0ES L"
+    },
+    {
+      "source": "http",
+      "request": "https://raw.githubusercontent.com/PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/ally_shoes_ceph_topantheonwt6.0_112221.fits",
+      "retrieved_at": "2026-11-14T20:43:40+00:00",
+      "sha256": "10bb034ca3fff53f6625c9fe47ebd054b37ef45d1140af1c766831cfa6871433",
+      "bytes": 17280,
+      "cache_key": "861ffcc80e8fcd3aa210e50c",
+      "label": "SH0ES y"
+    },
+    {
+      "source": "http",
+      "request": "https://raw.githubusercontent.com/PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/lstsq_results.txt",
+      "retrieved_at": "2026-11-14T20:43:40+00:00",
+      "sha256": "37d2d423d06b6a2100c47578eb9b1c566a575caf6ade0ed61f6b9586d2a35c95",
+      "bytes": 721,
+      "cache_key": "7d83aa74e77e8413db7ea189",
+      "label": "SH0ES lstsq_results"
+    }
+  ]
+}

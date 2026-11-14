@@ -215,8 +215,12 @@ def anchor_rows(nz, cls, y):
     return np.flatnonzero(keep), checks
 
 
-def host_compat(nz, cls, y, mu_fit, hosts, tol):
-    """Compatibility matrix compat[j, h]: column j passes checks (ii)-(iv) for host label h."""
+def host_compat(nz, cls, y, mu_fit, hosts, tol, mean_mode=False):
+    """Compatibility matrix compat[j, h]: column j passes checks (ii)-(iv) for host label h.
+
+    mean_mode (amendment, README dated note): check (ii) compares the mean of the column's SN
+    rows with the mean of the host's Table 6 m0_B (Table 6 note d: a simple average over surveys).
+    """
     sn = {}
     for h, s, mb, smb, mua, sa in TABLE6:
         sn.setdefault(h, {"mb": [], "mua": mua, "sa": sa})["mb"].append(mb)
@@ -230,8 +234,11 @@ def host_compat(nz, cls, y, mu_fit, hosts, tol):
         for k, h in enumerate(hosts):
             mbs = np.array(sn[h]["mb"])
             ry = rows_y[j]
-            ii = (len(ry) > 0 and all(np.min(np.abs(mbs - v)) <= tol for v in ry)
-                  and all(np.min(np.abs(ry - m)) <= tol for m in mbs))
+            if mean_mode:
+                ii = len(ry) > 0 and abs(float(np.mean(ry)) - float(np.mean(mbs))) <= tol
+            else:
+                ii = (len(ry) > 0 and all(np.min(np.abs(mbs - v)) <= tol for v in ry)
+                      and all(np.min(np.abs(ry - m)) <= tol for m in mbs))
             iii = abs(mu_fit[j] - sn[h]["mua"]) <= 3 * sn[h]["sa"] + 0.02
             iv = abs(ncep[j] - TABLE3_FIT[h]) <= 2
             detail["ii"][j, k], detail["iii"][j, k], detail["iv"][j, k] = ii, iii, iv
@@ -291,7 +298,6 @@ def main(ctx):
     assert len(hosts) == NH and sum(TABLE3_FIT.values()) == TABLE3_SUM
     par_names = hosts + ["dmu_N4258", "M_H1_W", "dmu_LMC", "mu_M31", "b_W", "M0_B", "Z_W",
                          "extra", "zp", "5logH0"]
-    cchp = [hosts.index(h) for h in P["cchp_hosts"]]
     nz, cls, counts = row_classes(L, y)
     ctx.log(f"row classes: {counts}")
     validity = {"row_counts": counts, "notes": []}
@@ -343,7 +349,32 @@ def main(ctx):
     }
     ceph_ok = TABLE3_SUM - 37 <= counts["ceph_host"] <= TABLE3_SUM + 37
     id_ok = bool(i_ok and diag.all() and ceph_ok)
-    alts = assignment_alternatives(comp) if id_ok else []
+    # Pre-registered labelling: column j = Table 6 host j. If it fails, the pre-registered verdicts
+    # of R2's host step, R3 and R4 are "not evaluable". AMENDMENT (2026-11-14, after the first run;
+    # README dated note): label the columns by the perfect matching of the compatibility graph
+    # (checks ii-iv), accepted only if it exists and no alternative matching changes the CCHP set.
+    mode = "pre-registered" if id_ok else "amended (post-data labelling)"
+    if id_ok:
+        match = np.arange(NH)
+    else:
+        comp, detail_m, _, _, _ = host_compat(nz, cls, y, mu_fit, hosts, P["sn_match_tol"], mean_mode=True)
+        # cost: 1 for an incompatible edge; ties among compatible edges are broken by the
+        # structural distance |mu_fit - mu_Ceph(a)| / sigma(a), scaled to stay far below 1
+        dist = np.array([[abs(mu_fit[j] - sn[h]["mua"]) / sn[h]["sa"] for h in hosts] for j in range(NH)])
+        cost = np.where(comp, 1e-3 * dist / max(dist.max(), 1.0), 1.0)
+        r_, c_ = optimize.linear_sum_assignment(cost)
+        match = np.empty(NH, int)
+        match[r_] = c_
+        ident["amended_check_ii_mean_mode"] = True
+        if not (i_ok and ceph_ok and comp[np.arange(NH), match].all()):
+            match = None
+    if match is not None:
+        comp_m = comp[:, match]                 # identity = the chosen labelling
+        alts = assignment_alternatives(comp_m)
+        col_host = [hosts[match[j]] for j in range(NH)]
+    else:
+        alts, col_host = [], list(hosts)
+    cchp = [j for j in range(NH) if col_host[j] in P["cchp_hosts"]]
     cset = set(cchp)
     changes_set, cchp_perm = False, False
     for a in alts:
@@ -353,14 +384,29 @@ def main(ctx):
             changes_set = True
         elif any(perm[j] != j for j in cset):
             cchp_perm = True
-    ident.update({"compatible_offdiag_edges": [[hosts[j], hosts[h]] for j, h in
-                                               zip(*np.nonzero(comp & ~np.eye(NH, dtype=bool)))],
+    evaluable = bool(match is not None and len(cchp) == len(P["cchp_hosts"]) and not changes_set)
+    ident.update({"compatible_edges_not_chosen": [] if match is None else
+                  [[j, hosts[h]] for j, h in zip(*np.nonzero(comp)) if h != match[j]],
+                  "ok": id_ok, "preregistered_labelling_ok": id_ok, "mode": mode,
+                  "matching_found": match is not None,
+                  "column_labels": col_host,
+                  "relabelled": [{"column": j, "table6_order_label": hosts[j], "label": col_host[j]}
+                                 for j in range(NH) if col_host[j] != hosts[j]],
                   "alternatives": len(alts), "alt_changes_cchp_set": changes_set,
-                  "alt_permutes_cchp_only": cchp_perm, "ok": id_ok,
-                  "host_step_evaluable": bool(id_ok and not changes_set)})
-    ctx.log(f"host identification: ok={id_ok}, alternatives={len(alts)}, changes CCHP set={changes_set}")
+                  "alt_permutes_cchp_only": cchp_perm,
+                  "host_step_evaluable": evaluable})
+    if match is not None:
+        ident["per_column_under_labels"] = [
+            {"column": j, "label": col_host[j], "rows_y": [round(float(v), 3) for v in rows_y[j]],
+             "table6_mb": sn[col_host[j]]["mb"], "mu_fit": float(mu_fit[j]),
+             "mu_ceph_a": sn[col_host[j]]["mua"],
+             "dmu_over_sigma": float((mu_fit[j] - sn[col_host[j]]["mua"]) / sn[col_host[j]]["sa"]),
+             "ceph_rows": int(ncep[j]), "table3_fit": TABLE3_FIT[col_host[j]]} for j in range(NH)]
+    ctx.log(f"host identification: pre-registered ok={id_ok}; mode={mode}; matching={match is not None}; "
+            f"alternatives={len(alts)}, changes CCHP set={changes_set}")
     ctx.save("host_identification", ident)
     validity["host_identification_ok"] = id_ok
+    validity["host_labelling_mode"] = mode
 
     # ---- R2 anchor step
     rows_a, achk = anchor_rows(nz, cls, y)
@@ -406,16 +452,20 @@ def main(ctx):
         status = "conditional (anchor rule not validated)"
     else:
         status = "evaluated"
+    if mode != "pre-registered":
+        status += "; " + mode
     r2h = {"rows": int(len(rows_s)), "fivelogh0": qs, "sigma": float(res_s["sigma"][C_H0]), "h0": to_h0(qs),
            "shift": d_h, "shift_sigma": s_h, "z": z, "shift_check_ay": float(a_h @ y),
            "nested_var_check": float(res_s["sigma"][C_H0] ** 2 - sa ** 2),
            "reference": ref, "reference_tol": 2 * s_h + extra,
-           "h0_shift_kms": to_h0(qs) - to_h0(qa), "verdict": v, "status": status}
+           "h0_shift_kms": to_h0(qs) - to_h0(qa), "verdict": v, "status": status,
+           "preregistered_verdict": v if mode == "pre-registered" else "not evaluable (host identification)",
+           "labelling_mode": mode}
     ctx.log(f"R2 host: shift {d_h:+.4f} +- {s_h:.4f} (z {z:+.2f}); {v}; {status}")
     ctx.save("r2", {"anchor_step": r2a, "host_step": r2h})
 
     # ---- R3 (descriptive)
-    r3 = {"status": "evaluated"}
+    r3 = {"status": "evaluated", "labelling_mode": mode}
     m_rows = np.flatnonzero(cls["maser"])
     n4258_ceph = cls["ceph"] & nz[:, C_N4258]
     cvals = np.unique(L[n4258_ceph, C_N4258])
@@ -426,8 +476,8 @@ def main(ctx):
         m = int(m_rows[0])
         k, c = float(L[m, C_N4258]), float(cvals[0])
         sm2 = float(C[m, m])
-        t = np.array([CCHP_TRGB[hosts[j]][0] for j in cchp])
-        st = np.array([CCHP_TRGB[hosts[j]][1] for j in cchp])
+        t = np.array([CCHP_TRGB[col_host[j]][0] for j in cchp])
+        st = np.array([CCHP_TRGB[col_host[j]][1] for j in cchp])
 
         def cchp_side(zp_terms):
             Ct = np.diag(st ** 2) + ((P["trgb_tip_sys"] ** 2 + sm2) if zp_terms else 0.0)
@@ -484,7 +534,7 @@ def main(ctx):
             "cchp_diff_mag": qc - P["cchp_target_5logh0"],
             "d": d, "sigma_d": float(np.sqrt(var_d)), "d_check": qs - qc,
             "d_kms_illustrative": to_h0(qs) - to_h0(qc),
-            "per_host": [{"host": hosts[j], "mu_ceph": float(res_s["q"][j]), "mu_trgb": float(t[r]),
+            "per_host": [{"host": col_host[j], "mu_ceph": float(res_s["q"][j]), "mu_trgb": float(t[r]),
                           "dmu": float(dmu[r]), "sigma": float(np.sqrt(cov_dmu[r, r]))}
                          for r, j in enumerate(cchp)],
             "dmu_chi2": chi2, "dmu_dof": len(cchp),
@@ -505,7 +555,7 @@ def main(ctx):
     n_sn = {h: len(sn[h]["mb"]) for h in hosts}
     draws = int(P["r4_draws"])
     deltas, nsns = [], []
-    r4 = {"status": "evaluated", "draws_requested": draws}
+    r4 = {"status": "evaluated", "draws_requested": draws, "labelling_mode": mode}
     if not ident["host_step_evaluable"]:
         r4["status"] = "not evaluable"
     else:
@@ -516,7 +566,7 @@ def main(ctx):
             rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
             res = fit(L, y, C, rows)
             deltas.append(float(res["q"][C_H0]) - qa)
-            nsns.append(int(sum(n_sn[hosts[j]] for j in pick)))
+            nsns.append(int(sum(n_sn[col_host[j]] for j in pick)))
             i += 1
             if i == 100:
                 per = (time.perf_counter() - t1) / 100
@@ -581,6 +631,7 @@ def main(ctx):
         "R1": r1["verdict"], "R1_h0": r1["h0"],
         "R2_anchor": r2a["verdict"], "R2_anchor_shift": d_a,
         "R2_host": r2h["verdict"], "R2_host_status": r2h["status"],
+        "R2_host_preregistered": r2h["preregistered_verdict"], "host_labelling_mode": mode,
         "R2_host_shift": d_h, "R2_host_sigma": s_h, "R2_host_z": z,
         "R3_cchp_match": r3.get("cchp_match"), "R3_d": r3.get("d"), "R3_sigma_d": r3.get("sigma_d"),
         "R4_percentile": r4.get("percentile"), "R4_verdict": r4.get("verdict", r4["status"]),

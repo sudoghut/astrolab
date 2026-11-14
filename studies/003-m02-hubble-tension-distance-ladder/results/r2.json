@@ -1,0 +1,52 @@
+{
+ "anchor_step": {
+  "structural": {
+   "lmc_rows": [
+    3214
+   ],
+   "mw_rows": [
+    3207,
+    3208
+   ],
+   "maser_rows": [
+    3213
+   ],
+   "lmc_ok": true,
+   "mw_ok": true,
+   "maser_ok": true,
+   "mw_y": [
+    -5.803875923156738,
+    -5.903414726257324
+   ],
+   "ok": true
+  },
+  "fivelogh0": 9.299456826520384,
+  "sigma": 0.04609535073458804,
+  "h0": 72.42547718687281,
+  "shift": -0.018430806133437727,
+  "shift_sigma": 0.035047147206916804,
+  "shift_check_ay": -0.018430806133453936,
+  "target": -0.0158,
+  "sigma_target": 0.0461,
+  "secondary_2024": -0.01877751894488736,
+  "verdict": "reproduced"
+ },
+ "host_step": {
+  "rows": 2195,
+  "fivelogh0": 9.226439639468865,
+  "sigma": 0.05673128344475157,
+  "h0": 70.03061300206964,
+  "shift": -0.07301718705151927,
+  "shift_sigma": 0.033070487779046344,
+  "z": -2.2079259168890575,
+  "shift_check_ay": -0.07301718705163274,
+  "nested_var_check": 0.0010936571619440572,
+  "reference": -0.0405,
+  "reference_tol": 0.08614097555809269,
+  "h0_shift_kms": -2.3948641848031684,
+  "verdict": "host selection significantly lowers H0, by the size the paper reports (supports the paper)",
+  "status": "evaluated; amended (post-data labelling)",
+  "preregistered_verdict": "not evaluable (host identification)",
+  "labelling_mode": "amended (post-data labelling)"
+ }
+}
