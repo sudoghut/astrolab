@@ -106,3 +106,12 @@ def test_dm_at_zero():
     b = cosmo.Background(70.0, 0.022, 0.12)
     assert b.DM(0.0)[0] == 0.0
     assert np.all(np.isfinite(b.DM([0.0, 0.5])))
+
+
+def test_multistart_reports_nonconvergence():
+    # an evaluation cap far too small: no start converges, and this is reported
+    f = lambda x: sum((xi - 0.1 * i) ** 2 for i, xi in enumerate(x))
+    r = infer.minimize_multistart(f, [(-1, 1)] * 5, n_starts=3, maxfev=10, n_polish=0)
+    assert r["converged"] is False and r["n_conv"] == 0 and r["n_agree"] == 0
+    r = infer.minimize_multistart(f, [(-1, 1)] * 5, n_starts=3)
+    assert r["converged"] and r["n_agree"] >= 3 and r["x_spread"] < 1e-3

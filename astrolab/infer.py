@@ -47,8 +47,13 @@ def minimize_multistart(fun, bounds, n_starts: int = 20, seed: int = 0, constrai
     so they can never be returned as the optimum. Each start is polished by ``n_polish`` restarts
     from its own end point. ``x0_extra`` are added as starts (e.g. the nested-model optimum).
 
-    Returns a dict: x, f, n_agree (starts within ``agree_tol`` of the best f), n_ok (finite starts),
-    and all (sorted list of (f, x)).
+    A start counts as converged only if its last Nelder-Mead run reports success (tolerances met
+    within ``maxfev``); the best point over a start and its polishes is kept, so a polish can never
+    make a start worse. The returned optimum is the best converged start.
+
+    Returns a dict: x, f, converged (bool), n_conv (converged starts), n_agree (converged starts
+    within ``agree_tol`` of the best f), x_spread (largest distance of those agreeing starts from
+    the best x, in unit-box coordinates), n_ok (finite starts), and all (sorted (f, x, converged)).
     """
     lo = np.array([b[0] for b in bounds], dtype=float)
     hi = np.array([b[1] for b in bounds], dtype=float)
@@ -83,16 +88,24 @@ def minimize_multistart(fun, bounds, n_starts: int = 20, seed: int = 0, constrai
     for u0 in starts:
         u0 = np.clip(u0, 0.0, 1.0)
         r = optimize.minimize(g, u0, method="Nelder-Mead", options=opts)
+        best_u, best_f, conv = r.x, float(r.fun), bool(r.success)
         for _ in range(n_polish):
-            r = optimize.minimize(g, r.x, method="Nelder-Mead", options=opts)
-        if r.fun < PENALTY:
-            results.append((float(r.fun), lo + span * r.x))
+            r = optimize.minimize(g, best_u, method="Nelder-Mead", options=opts)
+            if float(r.fun) <= best_f:
+                best_u, best_f = r.x, float(r.fun)
+            conv = bool(r.success)
+        if best_f < PENALTY:
+            results.append((best_f, lo + span * best_u, conv))
     if not results:
         raise RuntimeError("no start reached a finite, feasible point")
     results.sort(key=lambda t: t[0])
-    best_f, best_x = results[0]
-    n_agree = sum(1 for f, _ in results if f - best_f <= agree_tol)
-    return {"x": best_x, "f": best_f, "n_agree": n_agree, "n_ok": len(results), "all": results}
+    conv = [t for t in results if t[2]]
+    pool = conv if conv else results
+    best_f, best_x = pool[0][0], pool[0][1]
+    agree = [t for t in conv if t[0] - best_f <= agree_tol]
+    spread = max((float(np.max(np.abs((t[1] - best_x) / span))) for t in agree), default=0.0)
+    return {"x": best_x, "f": best_f, "converged": bool(conv), "n_conv": len(conv),
+            "n_agree": len(agree), "x_spread": spread, "n_ok": len(results), "all": results}
 
 
 def run_emcee(log_prob, p0, nwalkers: int = 32, nsteps: int = 4000, seed: int = 0,
