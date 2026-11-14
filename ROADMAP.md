@@ -141,7 +141,7 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 
 **方法**
 - 用 Pantheon+SH0ES 公开的设计矩阵（design matrix）做距离阶梯的广义最小二乘（GLS, Generalised Least Squares）拟合。
-- 对 37 个校准宿主（calibrator hosts，含 42 颗 SN Ia）做无放回的子抽样与留一宿主（有放回的自助法（bootstrap）会复制相关的行）。
+- 对 37 个校准宿主（calibrator hosts，含 42 颗 SN Ia）做无放回的子抽样与留一宿主（leave-one-host-out；有放回的自助法（bootstrap）会复制相关的行）。
 
 **开放问题**
 - CCHP 与 SH0ES 的差异，是否主要来自校准星系样本的选择（host selection）？
