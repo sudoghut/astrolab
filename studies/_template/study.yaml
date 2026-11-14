@@ -8,3 +8,5 @@ question: "TODO: one-sentence research question"
 question_zh: "TODO: 一句话研究问题（中文）"
 claims: []                    # claim ids in atlas/claims/ this study reproduces or tests
 milestone: null               # roadmap milestone id, e.g. M1
+papers: []                    # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
+wiki: null                    # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3

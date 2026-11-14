@@ -6,7 +6,7 @@
 
 ## 进行中（Doing）
 
-（暂无）
+- [ ] **T-009** 论文立项流程：Wiki 双语文章（科普、论证逻辑与 Lean 拆解、可检验或探索的环节）→ 研究计划 → 实现与网页 → 回写 Wiki · 登记 2026-11-14 · 分支 `feat/paper-study-workflow` · 计划 [007](design/007-plan_paper-to-study-workflow-wiki-article-lean-argument-and-chat-exploration.md)
 
 ## 下一步（Next）
 
@@ -28,3 +28,4 @@
 - [ ] **T-006** 技能：新建研究（new study） · 登记 2026-11-14
 - [ ] **T-007** 技能：文献核实（literature verification） · 登记 2026-11-14
 - [ ] **T-008** 技能：出报告（report） · 登记 2026-11-14
+- [ ] **T-010** 试点：按论文立项流程为 M4（Gaia BH1/BH2 论文）补写 Wiki 文章与 Lean 论证拆解 · 登记 2026-11-14 · 来源 T-009

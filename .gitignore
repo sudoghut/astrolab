@@ -12,3 +12,7 @@ __pycache__/
 # Large intermediate files inside studies (results/ keeps small JSON only)
 studies/*/scratch/
 CLAUDE.local.md
+# Lean build output (build outside Dropbox; see AGENTS.md section 2)
+.lake/
+# Chat exploration outputs (scripts in explore/ are committed, outputs are not)
+studies/*/explore/*/
