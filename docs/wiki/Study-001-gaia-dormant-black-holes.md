@@ -300,7 +300,7 @@ have s1 : v.NoMS1 := p .mod_dark1 (p .obs_faint1) m1      -- Sec. 5.1.1, 8.1
 have n1 : v.NoStar1 := p .mod_other1 (p .obs_faint1) s1   -- Sec. 5.1.1
 ```
 
-**Critique.** Splitting the step keeps each quoted premise no stronger than its sentence. The BH3 paper
+**Critique.** Splitting the step keeps each quoted premise no stronger than its sentence. For BH1 the 0.4 Msun limit also covers pairs: two normal stars carrying 5 Msun would include one above 2.5 Msun. The BH3 paper
 discusses only main-sequence stars; the extension to other luminous stars is standard stellar physics.
 
 #### 2.4 Stage D · A black hole is required
@@ -611,7 +611,7 @@ have s1 : v.NoMS1 := p .mod_dark1 (p .obs_faint1) m1      -- Sec. 5.1.1, 8.1
 have n1 : v.NoStar1 := p .mod_other1 (p .obs_faint1) s1   -- Sec. 5.1.1
 ```
 
-**评析。** 把这一步拆开，使每条引用的前提都不强于原句。BH3 论文只讨论了主序星；推广到其他发光恒星属于标准的恒星物理。
+**评析。** 把这一步拆开，使每条引用的前提都不强于原句。对 BH1，0.4 M☉ 的限制也覆盖一对恒星：两颗普通恒星合计 5 M☉ 时，其中必有一颗超过 2.5 M☉。BH3 论文只讨论了主序星；推广到其他发光恒星属于标准的恒星物理。
 
 #### 2.4 环节 D · 必须有黑洞
 

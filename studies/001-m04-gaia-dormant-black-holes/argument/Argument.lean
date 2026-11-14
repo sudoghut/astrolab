@@ -44,7 +44,7 @@ structure Vocab where
   mass1 : Nat
   /-- BH1: spectra and SED show no light from a second luminous star. -/
   Faint1 : Prop
-  /-- BH1: no main-sequence (normal) star carries the companion mass. -/
+  /-- BH1: no main-sequence (normal) star, nor a pair of them, carries the companion mass (a pair carrying 5 Msun has a member above 2.5 Msun, far above the 0.4 Msun detection limit). -/
   NoMS1 : Prop
   /-- BH1: the companion mass is not carried by luminous (non-degenerate) stars of any kind. -/
   NoStar1 : Prop
