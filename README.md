@@ -45,7 +45,7 @@ See [STATUS.md](STATUS.md) and the design documents in [`design/`](design/) (in 
 
 - [Five Years of Astronomy (2021–2026): A Plain-Language Review](https://github.com/sudoghut/astrolab/wiki/Five-Years-of-Astronomy-2021-2026)
   (wiki, English and Chinese): what changed in astronomy over the last five years, with the
-  emphasis on the results this project reproduces. Source: [`docs/wiki/`](docs/wiki/).
+  emphasis on the results this project sets out to reproduce. Source: [`docs/wiki/`](docs/wiki/).
 
 ### Quick start
 
@@ -103,7 +103,7 @@ python -m astrolab serve           # Atlas and study pages at http://127.0.0.1:8
 ### 背景阅读
 
 - [近五年天文学（2021–2026）：科普综述](https://github.com/sudoghut/astrolab/wiki/Five-Years-of-Astronomy-2021-2026#中文)
-  （Wiki，中英双语）：用浅显的语言介绍近五年天文学的主要进展，重点是本项目复现的成果。源文件：[`docs/wiki/`](docs/wiki/)。
+  （Wiki，中英双语）：用浅显的语言介绍近五年天文学的主要进展，重点是本项目计划复现的成果。源文件：[`docs/wiki/`](docs/wiki/)。
 
 ### 快速开始
 
