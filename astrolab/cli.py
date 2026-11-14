@@ -24,7 +24,7 @@ def cmd_status(args) -> None:
         print(f"  {c.get('id', c['_file']):<40} {c.get('level', '?'):<3} {c.get('grade', '?'):<12} repro={repro}")
     problems = claims.validate_all()
     if problems:
-        print(f"claim problems: {sum(map(len, problems.values()))} (run: python -m astrolab claims check)")
+        print(f"claim/study problems: {sum(map(len, problems.values()))} (run: python -m astrolab claims check)")
     print("cache:", cache.info())
 
 
@@ -43,7 +43,7 @@ def cmd_claims(args) -> None:
     if args.action == "check":
         problems = claims.validate_all()
         if not problems:
-            print(f"all {len(claims.load_all())} claims valid")
+            print(f"all {len(claims.load_all())} claims valid; all studies have Chinese title/question")
             return
         for f, errs in problems.items():
             for e in errs:

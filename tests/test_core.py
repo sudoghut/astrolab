@@ -103,6 +103,14 @@ def test_claim_validation_catches_errors():
     assert claims.validate({**good, "statement_zh": "   "}) == ["'statement_zh' must be a non-empty Chinese string"]
 
 
+def test_validate_all_reports_study_placeholders(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "STUDIES", tmp_path / "studies")
+    monkeypatch.setattr(config, "TEMPLATE", Path(__file__).parent.parent / "studies" / "_template")
+    s = study.new("fresh", "Fresh", "L3")  # template placeholders, Chinese not filled in yet
+    errs = claims.validate_all()[f"studies/{s.id}/study.yaml"]
+    assert len(errs) == 2 and all("placeholder" in e for e in errs)
+
+
 def test_studies_have_chinese_fields():
     for s in study.discover():
         assert claims.zh_errors(s.meta, claims.STUDY_ZH_FIELDS) == [], s.id
