@@ -99,7 +99,8 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
   is "not applicable", never a veto. A missing eccentricity means a pseudo-circular solution, for which Gaia fixes
   e = 0 (note 2026-11-14, before the release; the DR3 code already used e = 0 in this case). Even within these limits, a sparsely sampled orbit can show a
   smaller range than predicted, so an RV veto is evidence, not proof. If DR4 renames the column,
-  its documented successor with the same definition is used, decided and logged in `log.md`
+  its documented successor with the same definition is used (`RELEASES[...]["rv_amplitude_column"]`;
+  a configured name absent from TAP_SCHEMA stops the run, so a typo cannot switch the veto off), decided and logged in `log.md`
   before the vetting query (like the type list); if there is none, the RV veto is not applicable.
 - *Uncertainties*: the DR4 entry of `RELEASES` in `run.py` has `covariance_trusted = False` until
   the `corr_vec` parameter order is confirmed on release day (run-book step 1.5) from documentation
