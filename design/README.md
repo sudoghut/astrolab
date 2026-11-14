@@ -37,6 +37,7 @@ NNN-<类型>_<核心内容>.md
 | 009 | plan | [为 M4 补写 Wiki 文章与 Lean 论证拆解](009-plan_m04-retrofit-wiki-article-and-lean-argument.md) | 完成 |
 | 010 | plan | [M1：DESI DR2 BAO 与演化暗能量（新增 `cosmo`、`infer`）](010-plan_m01-desi-dr2-bao-evolving-dark-energy-cosmo-infer.md) | 完成 |
 | 011 | plan | [Atlas 的天空视图与尺度视图（研究以足迹出现在图上）](011-plan_atlas-sky-and-scale-views-from-study-footprints.md) | 完成 |
+| 012 | plan | [M2：哈勃张力——距离阶梯 GLS 复现与校准星系选择](012-plan_m02-hubble-tension-distance-ladder-gls-and-host-selection.md) | 进行中 |
 
 ## 术语约定
 
