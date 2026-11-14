@@ -257,13 +257,50 @@ M_B = −19.269); the 0.02 mag "matched" tolerance in R3 is the guard for this d
 
 ## 5. Results
 
-Filled after running. Link to `web/index.html` and key numbers in `results/`.
+Run of 2026-11-14 (`python -m astrolab run 003`; inputs 47.2 MiB, size and SHA-256 checks
+passed; page: [`web/index.html`](web/index.html); numbers in `results/*.json`).
+
+| Criterion | Ours | Target | Verdict |
+|---|---|---|---|
+| R1 primary: 47 parameters vs `lstsq_results.txt` | max \|Δq\| 0.050 (N0691) | ≤ 0.001 | **not reproduced** |
+| R1 secondary: R22 printed baseline | 5 log H0 = 9.3179 ± 0.0299 (H0 73.04); χ²/dof = 3552.8/3445 = 1.031 | 9.318 (73.04); 1.03 | matches |
+| R2 anchor step | −0.0184 mag; σ(5 log H0) 0.0461 | −0.0158 ± 0.005; 0.0461 ± 15% | **reproduced** |
+| R2 host step, pre-registered labelling | — | — | **not evaluable** (host identification) |
+| R2 host step, amended labelling | Δ_h = −0.0730 ± 0.0331 mag (−2.21σ); H0 72.42 → 70.03 | −0.0405 ± (2σ + 0.02) | significantly lowers H0, by the size the paper reports (**amended, post-data**) |
+| R3 CCHP-side H0, same 10 hosts (amended) | 69.70 (Δ = +0.013 mag) | 69.29 ± 0.02 mag | matched |
+| R3 d = SH0ES − CCHP, same hosts (amended) | +0.010 ± 0.048 mag (≈ +0.3 km/s/Mpc); per-host χ² 5.1 / 10 | — | descriptive |
+| R4 percentile of the CCHP host shift (amended) | 5.7th of 10,000 draws (spread σ = 0.046 mag) | 5th–95th | consistent with random-subset fluctuations |
+
+- **R1.** Our GLS reproduces R22's printed baseline to rounding (5 log H0, M⁰_B −19.2529,
+  Z_W −0.2166, ΔμN4258 −0.0127, ΔμLMC 0.0101, χ²/dof 1.031). The public `lstsq_results.txt` is a
+  different fit (5 log H0 9.326, about 73.3, host distances off by up to 0.05 mag), so the
+  pre-registered primary target was the wrong one; the pre-registered verdict stands.
+- **Host identification.** The columns of L are not in R22 Table 6 order (for example, N0976 is
+  the second-to-last host column). Under the pre-registered labelling the R2 host step, R3 and R4
+  are not evaluable. Under the dated amendment (section 4 note) every host gets a column; the CCHP
+  set is unique; 6 alternative labellings exist (N4038 ↔ N4639, both CCHP hosts, which only touches
+  R3's per-host table; and swaps among non-CCHP hosts).
+- **R2.** On the paper's own terms the claim holds in R22's data: dropping to NGC 4258 costs
+  −0.6 km/s/Mpc and restricting to the CCHP hosts a further −2.4 km/s/Mpc (illustrative), a
+  2.2σ shift whose size agrees with the paper's −1.3 (72.54 → 71.2) within the pre-registered
+  tolerance. This verdict rests on the amended labelling.
+- **R3.** On the same 10 hosts the SH0ES Cepheid ladder and CCHP's JWST TRGB distances give the
+  same H0 within 0.01 mag (0.3 km/s/Mpc); no host deviates by more than 1.2σ.
+- **R4.** The CCHP selection sits at the low edge (5.7th percentile) of random 10-host subsets:
+  a large but not exceptional draw. Random subsets scatter by 0.046 mag (about 1.5 km/s/Mpc).
+- **Cross-paper (descriptive).** SH0ES R22 vs CMB-only 5.3σ; TDCOSMO vs SH0ES −0.4σ; TDCOSMO vs
+  CMB-only 1.3σ; CCHP TRGB vs CMB-only 1.6σ (`results/cross_paper.json`).
 
 ## 6. Referee notes
 
-Independent critique: selection effects, systematics, alternative explanations.
+Pending (stage 5).
 
 ## 7. Open questions
+
+- Why the public `lstsq_results.txt` differs from the printed baseline (a later or variant fit).
+- How the 2024 data (SMC anchor, more Cepheids) change the host shift; not public as matrices.
+- R4 suggests the CCHP selection is a low but ordinary draw: is there a property of those hosts
+  (for example the TRGB-friendly, low-extinction halos) that correlates with their SN magnitudes?
 
 ## 8. Exploring via chat
 
@@ -272,14 +309,25 @@ How a coding agent answers "what if" questions about this study without touching
 
 | Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
 |---|---|---|---|
-| TODO | | | |
+| `cchp_hosts` | the host set for the host step and R3 (names as in R22 Table 6) | any subset of the 37 hosts (R3 needs CCHP Table 2 hosts) | cache only |
+| `r4_draws`, `r4_seed` | random-subset draws and seed | 1000–10,000 (about 0.08 s per draw) | cache only |
+| `sn_match_tol` | host-identification tolerance (mag) | 0.1–0.3 | cache only |
+| `trgb_tip_sys` | NGC 4258 TRGB tip uncertainty in the R3 covariance (mag) | 0–0.05 | cache only |
 
 - Rerun with an override: `python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --set KEY=VALUE`
-  (outputs in `explore/<date>-<topic>/`, not committed; about N s from cache).
+  (outputs in `explore/<date>-<topic>/`, not committed; about 15 min with the default R4;
+  `--set r4_draws=1000` takes about 2 min).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --script explore/<name>.py`.
-- Results files and keys: TODO (`results/<file>.json`: key - meaning).
-- Example questions: TODO (question -> knob or script an agent would use).
+  Existing: `explore/diag_hosts.py` (which checks link each L column to which host).
+- Results files and keys: `summary.json` (verdicts), `r1.json` (`params`, `fivelogh0`, `chi2`),
+  `r2.json` (`anchor_step`, `host_step.shift`, `.shift_sigma`, `.verdict`, `.preregistered_verdict`),
+  `r3.json` (`cchp_side_h0`, `d`, `sigma_d`, `per_host`), `r4.json` (`percentile`, `quantiles`,
+  histogram), `host_identification.json` (`column_labels`, `relabelled`, `per_column_under_labels`),
+  `cross_paper.json`.
+- Example questions: "Which single CCHP host drives the shift?" → `--set cchp_hosts=[...]` leaving
+  one out at a time; "Does the shift survive with a looser identification tolerance?" →
+  `--set sn_match_tol=0.25`; "Is the CCHP set unusual among subsets with the same number of SNe?" →
+  a script over `r4` draws.
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.
-

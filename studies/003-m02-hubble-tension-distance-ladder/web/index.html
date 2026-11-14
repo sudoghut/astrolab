@@ -3,28 +3,172 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hubble tension: SH0ES distance ladder and host selection</title>
-<!-- Bilingual rule (AGENTS.md): keep this script, write text as <span class="en">…</span><span class="zh">…</span>,
-     use i18n.L(en, zh) for generated HTML and i18n.t(en, zh) + i18n.onLangChange for plain text / charts. -->
+<title>Hubble tension: host selection</title>
 <script src="../../../atlas/web/i18n.js"></script>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.0/plotly.min.js"></script>
+<style>
+  .plot { height: 340px; }
+  .verdict { font-weight: 600; }
+  .ok { color: var(--established); } .bad { color: var(--refuted); } .warn { color: var(--tension); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .note { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+  .amend { border-left: 3px solid var(--tension); padding: 6px 10px; background: var(--surface); font-size: 14px; }
+  .grid2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  .table-wrap { overflow-x: auto; }
+</style>
 </head>
 <body>
 <main>
-  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 003-m02-hubble-tension-distance-ladder</p>
-  <h1><span class="en">Hubble tension: SH0ES distance ladder and host selection</span><span class="zh">哈勃张力：SH0ES 距离阶梯与校准宿主的选择</span></h1>
-  <p class="muted"><span class="en">Replace this page freely: design whatever this question needs (visualization, interactive analysis, several pages). It does not have to follow the Atlas. Data comes from <code>../results/*.json</code>.</span><span class="zh">可以完全替换本页面：按研究问题的需要来设计（可视化、交互式分析、多个页面），不必遵循 Atlas 的样式。数据来自 <code>../results/*.json</code>。</span></p>
-  <pre id="out"><span class="en">loading…</span><span class="zh">加载中……</span></pre>
+  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / L2 / M2</p>
+  <h1><span class="en">Hubble tension: does host selection explain the lower JWST H0?</span><span class="zh">哈勃张力：校准宿主的选择能否解释 JWST 给出的较低 H0？</span></h1>
+  <p class="muted"><span class="en">A generalised least squares (GLS) refit of the public SH0ES distance-ladder matrices (Riess et al. 2022, arXiv:2112.04510), restricted to the 10 hosts the CCHP JWST program selected (Freedman et al. 2025, arXiv:2408.06153), to test the claim of Riess et al. 2024 (arXiv:2408.11770). Criteria are pre-registered in the study README (sections 1–4); the argument is decomposed in the
+    <a href="https://github.com/sudoghut/astrolab/wiki/Study-003-hubble-tension-host-selection">wiki article</a>.</span><span class="zh">对 SH0ES 公开的距离阶梯矩阵（Riess 等 2022，arXiv:2112.04510）做广义最小二乘（GLS）重新拟合，并限于 CCHP JWST 计划选出的 10 个宿主（Freedman 等 2025，arXiv:2408.06153），以检验 Riess 等 2024（arXiv:2408.11770）的论断。判据预注册在研究 README 第 1–4 节；论证拆解见
+    <a href="https://github.com/sudoghut/astrolab/wiki/Study-003-hubble-tension-host-selection">Wiki 文章</a>。</span></p>
+
+  <p class="amend" id="amend"></p>
+
+  <h2><span class="en">Verdicts</span><span class="zh">判定</span></h2>
+  <div class="table-wrap" id="criteria"><span class="en">loading…</span><span class="zh">加载中……</span></div>
+
+  <h2><span class="en">The ladder, step by step</span><span class="zh">阶梯的每一步</span></h2>
+  <p class="note"><span class="en">H0 from the same SH0ES data as anchors and then hosts are removed, and the CCHP-side estimate on the same 10 hosts with JWST TRGB distances in place of Cepheids. Error bars: the fit's σ(5 log H0) converted to km/s/Mpc (illustrative; all tests are done in 5 log H0).</span><span class="zh">同一份 SH0ES 数据在依次去掉锚点与宿主后的 H0，以及在同样 10 个宿主上用 JWST TRGB 距离代替造父变星的 CCHP 一侧估计。误差棒：拟合的 σ(5 log H0) 换算成 km/s/Mpc（仅作示意；所有检验都在 5 log H0 中进行）。</span></p>
+  <div id="ladder" class="plot"></div>
+
+  <div class="grid2">
+    <div>
+      <h2><span class="en">R3 · Cepheid minus TRGB, per host</span><span class="zh">R3 · 逐宿主的造父变星减 TRGB</span></h2>
+      <div id="dmu" class="plot"></div>
+      <p class="note" id="dmu-note"></p>
+    </div>
+    <div>
+      <h2><span class="en">R4 · random 10-host subsets</span><span class="zh">R4 · 随机抽取 10 个宿主</span></h2>
+      <div id="r4" class="plot"></div>
+      <p class="note" id="r4-note"></p>
+    </div>
+  </div>
+
+  <h2><span class="en">Published H0 values (descriptive)</span><span class="zh">已发表的 H0（只作描述）</span></h2>
+  <div id="cross" class="plot"></div>
+  <p class="note" id="cross-note"></p>
+
+  <h2><span class="en">Details</span><span class="zh">细节</span></h2>
+  <div id="details"></div>
 </main>
 <script>
-fetch('../results/summary.json')
-  .then(r => { if (!r.ok) throw new Error(`results/summary.json: HTTP ${r.status}`); return r.json(); })
-  .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
+const L = i18n.L, t = i18n.t;
+const f = (x, n = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '—' : Number(x).toFixed(n);
+const h0 = q => Math.pow(10, q / 5);
+const dh0 = (q, s) => h0(q) * Math.log(10) / 5 * s;
+const files = ['summary', 'r1', 'r2', 'r3', 'r4', 'cross_paper', 'host_identification'];
+let D = null;
+
+function cls(v) {
+  if (!v) return '';
+  if (/not evaluable|not reproduced|contradicts|not matched/.test(v)) return 'bad';
+  if (/conditional|amended|different size|not detected|does not support/.test(v)) return 'warn';
+  return 'ok';
+}
+const VT = {
+  'reproduced': ['reproduced', '复现'],
+  'not reproduced': ['not reproduced', '未复现'],
+  'matched': ['matched', '一致'],
+  'not matched': ['not matched', '不一致'],
+  'not evaluable (host identification)': ['not evaluable (host identification)', '不可评估（宿主识别）'],
+  'host selection significantly lowers H0, by the size the paper reports (supports the paper)': ['host selection significantly lowers H0, by the size the paper reports (supports the paper)', '宿主选择显著降低 H0，大小与该文一致（支持该文）'],
+  'host selection significantly lowers H0, but by a different size': ['host selection significantly lowers H0, but by a different size', '宿主选择显著降低 H0，但大小与该文不同'],
+  'no host-selection effect detected in these data (does not support the paper\'s quantitative claim)': ['no host-selection effect detected (does not support the paper\'s quantitative claim)', '未检测到宿主选择的效应（不支持该文的定量论断）'],
+  'host selection raises H0 (contradicts the paper)': ['host selection raises H0 (contradicts the paper)', '宿主选择反而提高 H0（与该文矛盾）'],
+  'consistent with random-subset fluctuations': ['consistent with random-subset fluctuations', '与随机抽样的涨落一致'],
+  'the selection itself is systematically low': ['the selection itself is systematically low', '选择本身系统性偏低'],
+  'the selection itself is systematically high': ['the selection itself is systematically high', '选择本身系统性偏高'],
+};
+const vt = v => VT[v] ? L(...VT[v]) : (v || '—');
+const plotLayout = (extra) => Object.assign({margin: {t: 10, r: 10, b: 50, l: 60}, paper_bgcolor: 'rgba(0,0,0,0)',
+  plot_bgcolor: 'rgba(0,0,0,0)', font: {color: getComputedStyle(document.body).color}, showlegend: false}, extra);
+
+function render() {
+  if (!D) return;
+  const S = D.summary, R1 = D.r1, A = D.r2.anchor_step, H = D.r2.host_step, R3 = D.r3, R4 = D.r4, X = D.cross_paper, I = D.host_identification;
+  const amended = I.mode !== 'pre-registered';
+  document.getElementById('amend').innerHTML = amended
+    ? L(`<b>Deviation from the pre-registration.</b> The columns of the public L matrix are not in R22 Table 6 order, so under the pre-registered labelling the host step (R2), R3 and R4 are <b>not evaluable</b>. The results below for those use a labelling amended after the first run (README dated note): columns matched to hosts by SN magnitudes, Cepheid counts and host distances only; the CCHP set is unique (${I.alternatives} alternative labellings, none changing it).`,
+        `<b>偏离预注册。</b>公开的 L 矩阵的列不是按 R22 表 6 的顺序排列的，所以在预注册的标注下，宿主一步（R2）、R3 与 R4 <b>不可评估</b>。下面这几项的结果用的是第一次运行后修订的标注（README 中的日期说明）：只用超新星星等、造父变星数目与宿主距离把列与宿主对应起来；CCHP 宿主集合是唯一确定的（另有 ${I.alternatives} 种标注，都不改变这一集合）。`)
+    : L('All criteria evaluated under the pre-registered labelling.', '所有判据都在预注册的标注下评估。');
+
+  const rows = [
+    ['R1', L('All 47 parameters vs the authors\' lstsq_results.txt (|Δ| ≤ 10⁻³)', '47 个参数对作者的 lstsq_results.txt（|Δ| ≤ 10⁻³）'), `max |Δq| ${f(R1.max_abs_dq, 4)} (${R1.worst_param})`, '0.001', R1.verdict],
+    ['', L('Secondary: R22 printed baseline 5 log H0', '次要：R22 印出的基线 5 log H0'), `${f(R1.fivelogh0, 4)} ± ${f(R1.sigma_fivelogh0, 4)} (H0 ${f(R1.h0, 2)})`, '9.318 (73.04)', null],
+    ['R2', L('Anchor step: all anchors → NGC 4258 only', '锚点一步：全部锚点 → 只用 NGC 4258'), `${f(A.shift, 4)} mag; σ ${f(A.sigma, 4)}`, `−0.0158 ± 0.005; σ 0.0461 ± 15%`, A.verdict],
+    ['', L('Host step: 37 hosts → 10 CCHP hosts (the test)', '宿主一步：37 个宿主 → 10 个 CCHP 宿主（检验）'), `${f(H.shift, 4)} ± ${f(H.shift_sigma, 4)} mag (${f(H.z, 2)}σ)`, '−0.0405', H.verdict],
+    ['', L('Host step, pre-registered labelling', '宿主一步，预注册的标注'), '', '', H.preregistered_verdict],
+    ['R3', L('CCHP-side H0 on the same 10 hosts vs CCHP\'s 69.29', '同样 10 个宿主上 CCHP 一侧的 H0 对 CCHP 的 69.29'), `${f(R3.cchp_side_h0, 2)} (Δ ${f(R3.cchp_diff_mag, 4)} mag)`, '69.29 ± 0.02 mag', R3.cchp_match],
+    ['', L('d = SH0ES − CCHP on the same hosts (descriptive)', 'd = 同宿主上 SH0ES − CCHP（只作描述）'), `${f(R3.d, 4)} ± ${f(R3.sigma_d, 4)} mag`, '—', null],
+    ['R4', L('Percentile of the CCHP host shift among random 10-host subsets', 'CCHP 宿主移动在随机 10 宿主子样本中的百分位'), `${f(R4.percentile, 1)}% (${R4.draws} ${L('draws', '次')})`, '5–95%', R4.verdict],
+  ];
+  document.getElementById('criteria').innerHTML =
+    `<table><thead><tr><th></th><th>${L('Quantity', '量')}</th><th class="num">${L('Ours', '本项目')}</th><th class="num">${L('Target', '目标')}</th><th>${L('Verdict', '判定')}</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td><td class="verdict ${cls(r[4])}">${r[4] ? vt(r[4]) : ''}</td></tr>`).join('') +
+    '</tbody></table>' + (amended ? `<p class="note">${L('R2 host step, R3 and R4 above: amended (post-data) labelling.', '上面的 R2 宿主一步、R3、R4：修订后（数据之后）的标注。')}</p>` : '');
+
+  const steps = [
+    [t('baseline (3 anchors, 37 hosts)', '基线（3 个锚点，37 个宿主）'), R1.fivelogh0, R1.sigma_fivelogh0],
+    [t('NGC 4258 only, 37 hosts', '只用 NGC 4258，37 个宿主'), A.fivelogh0, A.sigma],
+    [t('NGC 4258 only, 10 CCHP hosts (Cepheids)', '只用 NGC 4258，10 个 CCHP 宿主（造父变星）'), H.fivelogh0, H.sigma],
+    [t('JWST TRGB, same hosts', 'JWST TRGB，同样宿主'), R3.cchp_side_fivelogh0, null],
+  ];
+  Plotly.react('ladder', [
+    {x: steps.map(s => s[0]), y: steps.map(s => h0(s[1])), type: 'scatter', mode: 'markers+lines',
+     error_y: {type: 'data', array: steps.map(s => s[2] ? dh0(s[1], s[2]) : 0), visible: true}, marker: {size: 11}},
+    {x: [steps[2][0], steps[3][0]], y: [71.2, 69.29], type: 'scatter', mode: 'markers', marker: {symbol: 'x', size: 11},
+     name: t('paper', '论文'), hovertemplate: t('paper: %{y}', '论文：%{y}') + '<extra></extra>'},
+  ], plotLayout({yaxis: {title: 'H0 [km/s/Mpc]'}, margin: {t: 10, r: 10, b: 90, l: 60}}), {displayModeBar: false, responsive: true});
+
+  if (R3.per_host) {
+    const ph = R3.per_host;
+    Plotly.react('dmu', [{x: ph.map(p => p.host), y: ph.map(p => p.dmu), error_y: {type: 'data', array: ph.map(p => p.sigma), visible: true},
+      type: 'scatter', mode: 'markers', marker: {size: 9}}],
+      plotLayout({yaxis: {title: t('μ_Ceph − μ_TRGB [mag]', 'μ_造父 − μ_TRGB [mag]'), zeroline: true}}), {displayModeBar: false, responsive: true});
+    document.getElementById('dmu-note').innerHTML = L(
+      `χ² = ${f(R3.dmu_chi2, 1)} for ${R3.dmu_dof} hosts; weighted mean ${f(R3.dmu_weighted_mean, 3)} mag. Errors include the correlated TRGB zero-point and maser terms. Descriptive only (README section 2).`,
+      `χ² = ${f(R3.dmu_chi2, 1)}，${R3.dmu_dof} 个宿主；加权平均 ${f(R3.dmu_weighted_mean, 3)} mag。误差含相关的 TRGB 零点与脉泽项。只作描述（README 第 2 节）。`);
+  }
+  if (R4.hist_counts) {
+    const e = R4.hist_edges, mid = R4.hist_counts.map((_, i) => (e[i] + e[i + 1]) / 2);
+    Plotly.react('r4', [{x: mid, y: R4.hist_counts, type: 'bar', marker: {opacity: 0.7}}],
+      plotLayout({xaxis: {title: t('Δ 5 log H0 vs 37 hosts [mag]', '相对 37 个宿主的 Δ 5 log H0 [mag]')}, yaxis: {title: t('draws', '次数')},
+        shapes: [{type: 'line', x0: R4.cchp_shift, x1: R4.cchp_shift, yref: 'paper', y0: 0, y1: 1, line: {width: 2, dash: 'dot'}}],
+        annotations: [{x: R4.cchp_shift, yref: 'paper', y: 1, text: 'CCHP', showarrow: false, yanchor: 'bottom'}]}),
+      {displayModeBar: false, responsive: true});
+    document.getElementById('r4-note').innerHTML = L(
+      `The CCHP selection's shift (${f(R4.cchp_shift, 4)} mag) is at the ${f(R4.percentile, 1)}th percentile of ${R4.draws} random draws (spread σ = ${f(R4.std, 3)} mag). Descriptive: every outcome is compatible with the paper.`,
+      `CCHP 选择的移动（${f(R4.cchp_shift, 4)} mag）位于 ${R4.draws} 次随机抽样的第 ${f(R4.percentile, 1)} 百分位（离散 σ = ${f(R4.std, 3)} mag）。只作描述：任何结果都与该文相容。`);
+  }
+  const v = X.values;
+  Plotly.react('cross', [{y: v.map(p => p.name), x: v.map(p => p.h0), type: 'scatter', mode: 'markers', orientation: 'h',
+    error_x: {type: 'data', symmetric: false, array: v.map(p => p.hi), arrayminus: v.map(p => p.lo), visible: true},
+    marker: {size: 9, color: v.map(p => ({ladder: '#b45f06', lensing: '#6a3d9a', cmb: '#1f78b4'})[p.group])}}],
+    plotLayout({xaxis: {title: 'H0 [km/s/Mpc]'}, margin: {t: 10, r: 10, b: 50, l: 330}}), {displayModeBar: false, responsive: true});
+  document.getElementById('cross-note').innerHTML = L(
+    'Interpreted pairs (roughly independent): ' + X.interpreted_pairs.map(p => `${p.pair} ${f(p.nsigma, 1)}σ`).join('; ') + '. SH0ES, H0DN and CCHP share data: listed, not interpreted, not averaged.',
+    '可解释的配对（近似独立）：' + X.interpreted_pairs.map(p => `${p.pair} ${f(p.nsigma, 1)}σ`).join('；') + '。SH0ES、H0DN 与 CCHP 共用数据：只列出，不解释，不平均。');
+
+  const det = [];
+  det.push(`<p>${L('Baseline fit', '基线拟合')}: χ² = ${f(R1.chi2, 1)}, ${L('dof', '自由度')} ${R1.dof} (χ²/dof ${f(R1.chi2_dof, 3)}; R22: 1.03). ${L('Our fit matches R22\'s printed baseline; the public lstsq_results.txt is a different fit (5 log H0 9.326, about 73.3).', '我们的拟合与 R22 印出的基线一致；公开的 lstsq_results.txt 是另一个拟合（5 log H0 9.326，约 73.3）。')}</p>`);
+  det.push(`<p>${L('Host step', '宿主一步')}: ${H.rows} ${L('rows', '行')}; ΔH0 ≈ ${f(H.h0_shift_kms, 2)} km/s/Mpc (${L('illustrative', '示意')}); ${L('exact check a·y = Δ', '精确核对 a·y = Δ')}: ${f(H.shift_check_ay, 5)}; σ_sub² − σ_full² = ${f(H.nested_var_check, 6)} (= σ_Δ² ${f(H.shift_sigma ** 2, 6)}).</p>`);
+  det.push(`<p>R3 ${L('sensitivity', '敏感度')}: ${L('without the zero-point terms in the TRGB covariance', '去掉 TRGB 协方差中的零点项')} d = ${f(R3.sensitivity_no_zp_terms.d, 4)} ± ${f(R3.sensitivity_no_zp_terms.sigma_d, 4)}; ${L('against CCHP\'s CSP-based 68.81', '对 CCHP 基于 CSP 的 68.81')} d = ${f(R3.sensitivity_csp.d, 4)} mag.</p>`);
+  det.push(`<p>${L('Row classes', '行的类别')}: ${Object.entries(S.validity.row_counts).map(([k, n]) => `${k} ${n}`).join(', ')}.</p>`);
+  document.getElementById('details').innerHTML = det.join('');
+}
+
+Promise.all(files.map(n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`results/${n}.json: HTTP ${r.status}`); return r.json(); })))
+  .then(arr => { D = Object.fromEntries(files.map((n, i) => [n, arr[i]])); render(); })
   .catch(e => {
     const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
-    // Both languages in the DOM, so the message follows later language switches.
-    document.getElementById('out').innerHTML = i18n.L('Could not load results (run the study first?) or render them: ', '无法加载或显示结果（是否已运行研究？）：') + msg;
+    document.getElementById('criteria').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + msg;
   });
+i18n.onLangChange(render);
 </script>
 </body>
 </html>

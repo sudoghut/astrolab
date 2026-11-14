@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-14T18:54:28+00:00",
+ "generated_at": "2026-11-14T21:05:00+00:00",
  "levels": [
   "L0",
   "L1",
@@ -232,13 +232,23 @@
     }
    ],
    "reproduction": {
-    "status": "not-started",
-    "study": null,
+    "status": "partial",
+    "study": "003-m02-hubble-tension-distance-ladder",
     "quantities": [
      {
-      "name": "H0 SH0ES 2022",
-      "paper": "73.04 +/- 1.04",
-      "ours": null
+      "name": "H0 SH0ES 2022 (GLS of the public matrices)",
+      "paper": "73.04 +/- 1.01 (fit)",
+      "ours": "73.04 +/- 1.01 (5 log H0 9.3179 +/- 0.0299)"
+     },
+     {
+      "name": "H0 shift, NGC 4258 only: 37 hosts -> 10 CCHP hosts (5 log H0)",
+      "paper": "-0.0405 (72.54 -> 71.2, 2024 data)",
+      "ours": "-0.0730 +/- 0.0331 (amended host labelling)"
+     },
+     {
+      "name": "H0 CCHP TRGB, 11 JWST calibrators, Pantheon+",
+      "paper": "69.29",
+      "ours": "69.70 (same hosts in the R22 GLS)"
      },
      {
       "name": "H0 CCHP TRGB",
@@ -249,7 +259,7 @@
     ]
    },
    "open_questions": [
-    "Is the CCHP-SH0ES difference a calibrator-host selection effect?"
+    "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run.)"
    ],
    "notes": "Milestone M2."
   },
@@ -554,6 +564,38 @@
      "survey": {
       "name": "DESI DR2",
       "note": "BAO from the DESI spectroscopic footprint; the CMB prior and SN compilations are all-sky"
+     },
+     "targets": []
+    }
+   }
+  },
+  {
+   "id": "003-m02-hubble-tension-distance-ladder",
+   "title": "Hubble tension: SH0ES distance ladder and host selection",
+   "title_zh": "哈勃张力：SH0ES 距离阶梯与校准宿主的选择",
+   "level": "L2",
+   "status": "active",
+   "question": "Does a GLS fit of the public SH0ES distance-ladder matrices reproduce H0, and does restricting the ladder to the CCHP-selected hosts lower H0 as much as Riess et al. 2024 claim?",
+   "question_zh": "用 SH0ES 公开的距离阶梯矩阵做广义最小二乘拟合能否复现 H0？把阶梯限制在 CCHP 选出的宿主上，H0 是否像 Riess 等 2024 所说的那样降低？",
+   "claims": [
+    "hubble-tension"
+   ],
+   "has_web": true,
+   "last_run": true,
+   "footprint": {
+    "scale": {
+     "log10_min": 6.880813592280791,
+     "log10_max": 8.806179973983888,
+     "note": "distance ladder from the NGC 4258 anchor (7.6 Mpc) through the 37 Cepheid hosts (to ~80 Mpc) to Hubble-flow SNe Ia at z < 0.15 (~640 Mpc); the MW and LMC anchors are nearer but dropped in the host-selection test",
+     "default": false
+    },
+    "sky": {
+     "modes": [
+      "survey"
+     ],
+     "survey": {
+      "name": "SH0ES + Pantheon+",
+      "note": "Cepheid hosts and Hubble-flow SNe Ia across the sky (public SH0ES matrices); CCHP JWST hosts are a subset"
      },
      "targets": []
     }
