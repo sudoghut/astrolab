@@ -29,15 +29,25 @@ Common definitions.
   w0 + wa ≤ −10⁻⁹). Significance: N such that the two-sided
   Gaussian tail equals the χ²(2 dof) tail at −Δχ²_MAP (paper Eq. 22).
 - Tolerances are fixed here, before any result, and are the same for every reading and combination.
-  Their sizes reflect expected differences in implementation: rounding in the paper (0.1 in Δχ²),
-  our analytic background code versus CAMB, the θ* calibration factor K (section 4), and
-  optimiser noise.
+  Error budget behind the Δχ² tolerance of 1.0 (written before any result): the paper rounds
+  Δχ² to 0.1 (±0.05); optimiser convergence is required to 0.01 (fit validity below); r_d from the
+  Aubourg formula is good to 0.02% against CAMB, which at the DESI precision (~0.3% on the
+  combined BAO scale) moves χ² by well under 0.1; the BAO-only approximation (radiation neglected,
+  ~5×10⁻⁴ in E(z) at z = 2.33) moves χ² by ~0.1 at most; the θ* calibration K is the largest
+  unknown, bounded only by the reported K check (section 2, last item), and the remainder of the
+  allowance (~0.7) is assigned to it and to CAMB-versus-fitting-formula differences in z*. For R1
+  the tolerance of 0.3σ covers the same implementation differences on a nearly Gaussian
+  two-parameter posterior.
 - **Fit validity (required before any criterion is evaluated).** Every w0waCDM fit is also started
   from its nested ΛCDM optimum (w0 = −1, wa = 0) and from the paper's reported point (the paper's
   w0, wa posterior means for that combination, Table 5 / Eqs. 23-24, other parameters from the
   ΛCDM optimum), so
   χ²_min(w0waCDM) ≤ χ²_min(ΛCDM) + 10⁻³ must hold; and at least 3 starts must agree on each minimum
-  within 0.01 (`n_agree` and `n_ok` are saved with every fit). A fit that fails either check is reported as a failed fit (not as a result) and is
+  within 0.01, counting only converged starts (a start converges when its final Nelder-Mead run
+  meets the tolerances within the evaluation limit; agreement is in χ², and the largest parameter
+  distance among the agreeing starts, `x_spread` in units of the prior width, is reported but not
+  required, since degenerate directions are expected). `n_conv`, `n_agree`, `x_spread` and `n_ok` are
+  saved with every fit. A fit that fails either check is reported as a failed fit (not as a result) and is
   investigated before anything else.
 - Each criterion is reported as **reproduced** or **not reproduced**; R2 also has
   **conditionally reproduced** (below). A failure is reported with its size and our best
@@ -45,7 +55,8 @@ Common definitions.
 
 **R1 (BAO only, ΛCDM).** Fitting the DESI DR2 BAO (ALL tracers) with flat ΛCDM, sampling Ωm and
 h·r_d (flat priors Ωm ∈ [0.01, 0.99], h·r_d ∈ [50, 150] Mpc): |Ωm − 0.2975| ≤ 0.0026 (0.3σ) and |h·r_d − 101.54 Mpc| ≤ 0.22 Mpc (0.3σ), using the
-posterior means; and our 1σ errors within 20% of 0.0086 and 0.73 Mpc. *Expectation:* same data,
+posterior means; and our 1σ errors (half-width of the central 68% marginal interval of the
+ emcee samples, the paper's convention) within 20% of 0.0086 and 0.73 Mpc. *Expectation:* same data,
 nearly Gaussian posterior, so this should pass; a failure points to the distance code.
 
 **R2 (DESI + compressed CMB prior).** |Δχ²_MAP − (−8.0)| ≤ 1.0, evaluated separately under
@@ -71,7 +82,7 @@ reference point (sanity check only).
 ## 3. Data (with size estimate)
 
 File sizes from GitHub API metadata (no download), 2026-11-14. All fetched through `ctx.http`
-into the system cache (not the project folder). Total required input about 34 MB, below the
+into the system cache (not the project folder). Total required input about 34 MB (33.9 MB, almost all the Pantheon+ covariance), below the
 200 MB study budget; every file is below the 50 MB single-download limit.
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
