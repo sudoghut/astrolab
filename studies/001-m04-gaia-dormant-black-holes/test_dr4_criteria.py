@@ -229,7 +229,10 @@ def test_rv_successor_column_is_used_and_renamed():
     meta = pd.DataFrame(rows, columns=["table_name", "column_name"])
     have = run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4", "rv_amplitude_new")
     assert "rv_amplitude_robust" in have
-    assert "rv_amplitude_robust" not in run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4")
+    with pytest.raises(SystemExit, match="not in TAP_SCHEMA"):   # configured name absent (e.g. a typo): stop
+        run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4", "rv_amplitude_typo")
+    none = run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4", None)
+    assert "rv_amplitude_robust" not in none                       # explicit None: RV veto not applicable
     ctx = FakeCtx({"nss_two_body_orbit": pd.DataFrame([solution(NEW)])})
     run.fetch_solutions(ctx, "gaiadr4", "Gaia DR4", [NEW], "x", have, "rv_amplitude_new")
     assert "g.rv_amplitude_new AS rv_amplitude_robust" in ctx.queries[0]

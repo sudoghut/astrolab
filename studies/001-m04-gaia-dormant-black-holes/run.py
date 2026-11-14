@@ -38,8 +38,9 @@ RELEASES = {
     # If TAP_SCHEMA does not list it, resolution is direct-id only (recorded in the summary).
     "dr4": {"label": "Gaia DR4", "rv_veto": {"max_period_d": 1000.0, "max_ecc": 0.8},
             "covariance_trusted": False, "epoch_gap_yr": 1.5,
-            # a documented successor with the same definition replaces this name on release day (logged
-            # before the vetting query); if the release has neither, the RV veto is not applicable
+            # The column must exist in TAP_SCHEMA, or the run stops. On release day (logged before the
+            # vetting query): keep it, replace it by a documented successor with the same definition, or
+            # set None when the release has neither (then the RV veto is not applicable).
             "rv_amplitude_column": "rv_amplitude_robust",
             "neighbourhood": {"table": "dr3_neighbourhood", "old": "dr3_source_id", "new": "dr4_source_id",
                               "distance": "angular_distance", "distance_to_arcsec": 0.001}},
@@ -171,8 +172,15 @@ def available_columns(ctx, schema, label, rv_col="rv_amplitude_robust"):
     if missing_core:
         raise SystemExit(f"TAP_SCHEMA lists no {missing_core} for schema {schema}: the metadata lookup failed "
                          f"(table renamed or table_name format differs). Fix before running; nothing written.")
+    if rv_col is not None and ("gaia_source", rv_col.lower()) not in have:
+        raise SystemExit(f"RV amplitude column {schema}.gaia_source.{rv_col} is not in TAP_SCHEMA: set "
+                         f"RELEASES[...]['rv_amplitude_column'] to its documented successor, or to None if the "
+                         f"release has none (logged, information barrier); nothing written")
+
     def present(t, c):
-        return (t, rv_col.lower() if c == "rv_amplitude_robust" else c) in have
+        if c == "rv_amplitude_robust":
+            return rv_col is not None
+        return (t, c) in have
     return {c for t, cols in OPTIONAL_COLUMNS.items() for c in cols if present(t, c)}
 
 
@@ -184,7 +192,7 @@ def fetch_solutions(ctx, schema, label, ids, what, optional=None, rv_col="rv_amp
     optional = set(OPTIONAL_COLUMNS["gaia_source"] + OPTIONAL_COLUMNS["astrophysical_parameters"]) \
         if optional is None else set(optional)
     o_cols = ", ".join(f"o.{p}, o.{p}_error" for p in ERR_PARAMS)
-    g_opt = "".join((f", g.{rv_col} AS rv_amplitude_robust" if c == "rv_amplitude_robust" and rv_col != c
+    g_opt = "".join((f", g.{rv_col} AS rv_amplitude_robust" if c == "rv_amplitude_robust" and rv_col not in (c, None)
                      else f", g.{c}") for c in OPTIONAL_COLUMNS["gaia_source"] if c in optional)
     ap_opt = [c for c in OPTIONAL_COLUMNS["astrophysical_parameters"] if c in optional]
     ap_sel = "".join(f", ap.{c}" for c in ap_opt)
