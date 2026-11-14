@@ -32,6 +32,11 @@ def test_footprint_schema_rejects_invalid():
         {"footprint": {"sky": {"mode": "targets", "targets": [{"name": "a", "ra": 10, "dec": 100}]}}},
         {"footprint": {"sky": {"mode": "targets", "targets": [{"name": "a", "ra": "x", "dec": 1}]}}},
         {"footprint": {"sky": {"mode": "all-sky", "targets": [{"name": "a", "ra": 1, "dec": 1}]}}},
+        {"footprint": {"sky": {"mode": "survey", "survey": "DESI"}}},
+        {"footprint": {"sky": {"mode": "survey", "survey": {"name": ["x"]}}}},
+        {"footprint": {"sky": {"mode": "targets", "targets": [{"name": ["a"]}]}}},
+        {"footprint": {"sky": {"mode": "targets", "targets": [{"name": "  "}]}}},
+        {"footprint": {"scale": {"min_pc": 1, "max_pc": 10 ** 400}}},
     ]
     for meta in bad:
         assert claims.footprint_errors(meta), meta
@@ -92,3 +97,19 @@ def test_study_001_targets_resolve():
     names = {t["name"]: t for t in s["footprint"]["sky"]["targets"]}
     assert set(names) == {"Gaia BH1", "Gaia BH2", "Gaia BH3"}
     assert all(t["l"] is not None and t["b"] is not None for t in names.values())
+
+
+def test_validated_footprints_serialise(tmp_path):
+    import datetime
+    import yaml
+    metas = [
+        {"level": "L1", "footprint": {"scale": {"min_pc": 1, "max_pc": 10, "note": datetime.date(2026, 1, 1)}}},
+        {"level": "L1", "footprint": {"sky": {"mode": "survey", "survey": {"name": "S", "note": datetime.date(2026, 1, 1)}}}},
+        yaml.safe_load("level: L1\nfootprint: {scale: {min_pc: 1, max_pc: 10, note: 2026-01-01}}"),
+        {"level": "L1", "footprint": {"sky": {"mode": "survey", "survey": {"name": "S", "note": "ok"}}}},
+    ]
+    for meta in metas:
+        out = claims.resolve_footprint(tmp_path, meta)
+        json.dumps(out, allow_nan=False)
+    assert claims.footprint_errors(metas[0]) and claims.footprint_errors(metas[1]) and claims.footprint_errors(metas[2])
+    assert claims.footprint_errors(metas[3]) == []
