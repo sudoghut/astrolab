@@ -7,8 +7,7 @@
 ## 进行中（Doing）
 
 - [ ] **T-004** M1：DESI BAO 复现，引入 `cosmo` 与 `infer` 模块 · 登记 2026-11-14 · 分支 feat/m1-desi-bao · 计划 [010](design/010-plan_m01-desi-dr2-bao-evolving-dark-energy-cosmo-infer.md)
-  - 计划：复杂任务。先把 ROADMAP 中 M1 的 [S]/[U] 项核实为 [V]，再写 design 计划（编号取当时最大值加 1），然后新建研究。
-  - 备注：论文研究，按 `paper-study` 技能：核实 → design 计划 → Wiki 文章与 Lean → 预注册 → `cosmo`/`infer` 与 `run.py` → 网页 → 审稿。
+  - 备注：论文研究，按 `paper-study` 技能分 5 个环节（见计划 010）；环节 1（计划与核实）进行中。
 
 ## 下一步（Next）
 
