@@ -104,8 +104,8 @@ their values are listed as "not independent, not interpreted" and are not averag
 | Input | Source (service / URL) | Selection | Est. rows / size |
 |---|---|---|---|
 | C (covariance, 3492 × 3492, big-endian float32 FITS) | `https://media.githubusercontent.com/media/PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/allc_shoes_ceph_topantheonwt6.0_112221.fits` (Git LFS) via `ctx.http` | whole file; assert 48,781,440 bytes and SHA-256 `a42778672d25df7a559bd2949b1e412b99b2e35dd9a36895f6b38828be019172` | 46.5 MiB |
-| L (equation matrix, 3492 × 47) | `https://raw.githubusercontent.com/PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/alll_shoes_ceph_topantheonwt6.0_112221.fits` | whole file; assert shape | 0.66 MB |
-| y (data vector, 3492) | same folder, `ally_shoes_ceph_topantheonwt6.0_112221.fits` | whole file; assert shape | 17 kB |
+| L (equation matrix, 3492 × 47) | `https://raw.githubusercontent.com/PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/alll_shoes_ceph_topantheonwt6.0_112221.fits` | whole file via `ctx.http`; assert shape | 0.66 MB (about 0.69 × 10⁶ bytes; exact size recorded in the provenance) |
+| y (data vector, 3492) | same folder, `ally_shoes_ceph_topantheonwt6.0_112221.fits` | whole file via `ctx.http`; assert shape | 17 kB (about 1.7 × 10⁴ bytes; exact size recorded in the provenance) |
 | Authors' least-squares solution | same folder, `lstsq_results.txt` | 47 rows "value error" | 0.7 kB |
 | R22 Table 6 (42 SNe: host, SN, m⁰_B, μ_Ceph) | typed into `run.py` from arXiv:2112.04510 (PDF p. 30) | host-identification checks | 42 rows |
 | CCHP Table 2 (JWST TRGB μ and σ_T; 10 hosts, 11 SNe) | typed into `run.py` from arXiv:2408.06153 v3 | R3 | 11 rows |
@@ -149,7 +149,8 @@ matched by at least one row (the tolerance is wider than the Table 6 errors, 0.0
 because Table 6 note d gives a simple average over surveys while each row is one survey's light
 curve). In hosts with several SNe (N1448, N3147, N5468, N5643) rows are matched to the host, not
 to individual SNe; no criterion needs a per-SN assignment (R2 and R4 select by host; R3 uses one
-TRGB distance per host). (iii) Each host's fitted μ₀,i in the baseline fit within
+TRGB distance per host). Check (ii) validates host membership only: the 77 light-curve rows are
+not expected to map one-to-one onto the 42 SNe, and several rows may match the same SN. (iii) Each host's fitted μ₀,i in the baseline fit within
 3σ_Ceph + 0.02 mag of Table 6 μ_Ceph (column a; Table 6 prints no full-fit distance: column a
 excludes that host's SNe and column b all SNe, so the 3σ allowance also covers the pull of the
 host's own SNe). (iv) Each host's Cepheid row count (rows with a non-zero in that host column and
@@ -183,8 +184,9 @@ outside the CCHP set {M101, N1365, N2442, N3972, N4038, N4424, N4536, N4639, N56
 (the Cepheids and SNe of the other 27 hosts); anchor and Hubble-flow rows are kept. Δ_h and σ_h
 as in section 2, from `infer.gls(..., return_estimator=True)`.
 
-**R3 joint estimator.** z = (y, t), t = the CCHP Table 2 μ_TRGB of the 10 hosts (one value per
-host; N5643's two SNe share it). Cov(z): the y block is C; the t block is diag(σ_T²) plus
+**R3 joint estimator.** z = (y, t), where t has exactly 10 entries, one μ_TRGB per host from CCHP
+Table 2 (Table 2 lists SNe, so it prints N5643's single host distance twice, for 2013aa and
+2017cbv; that is one measurement and enters t once). Cov(z): the y block is C; the t block is diag(σ_T²) plus
 0.025² + σ_m² on every entry, where 0.025 mag is the TRGB tip measurement in NGC 4258 and σ_m² is
 the maser row's variance in C (R22's 0.032 mag), both fully correlated across hosts
 (arXiv:2408.06153 sections V, VII.2 and X; we read Table 2's σ_T as excluding these zero-point
@@ -194,10 +196,16 @@ c the NGC 4258 Cepheid rows' column-37 entry (both must be ±1, else R3 is not e
 a maser modulus too high by ε makes every t_i too high by ε, the fitted ΔμN4258 low by ε through
 the NGC 4258 Cepheid rows (y = m − μ₀,N4258, coefficient c), and the maser row's error k·c·ε; with
 k = c = +1 the cross term is +σ_m².
-H0,SH0ES comes from the host-step subsystem. H0,CCHP is a GLS on the same subsystem with the 10
-hosts' Cepheid rows removed and the rows μ₀,i = t_i added, weighted by the matching block of
-Cov(z) (C for the y rows, the t block, and the cross term). Both are linear in z, so d = bᵀz and
-σ_d² = bᵀ Cov(z) b exactly; σ_d is indicative only (section 2). Sensitivity (reported only): d
+Both estimators are written as linear maps on the full z (length 3492 + 10).
+H0,SH0ES comes from the host-step subsystem: its coefficient vector b_S is e_Hᵀ A_sub placed on that
+subsystem's y rows, zero elsewhere (A_sub from `infer.gls(..., return_estimator=True)`, e_H the
+5 log H0 row). H0,CCHP is a GLS on the same subsystem with the 10 hosts' Cepheid rows removed and
+the 10 rows μ₀,i = t_i added (L rows with a single 1 in host column i), weighted by the matching
+sub-block of Cov(z) (C for the y rows, the t block, and the y–t cross term): its coefficient vector
+b_C is e_Hᵀ A_CCHP placed on those y rows and the t entries, zero elsewhere. Then
+d = bᵀz with b = b_S − b_C, and σ_d² = bᵀ Cov(z) b exactly; this includes their covariance through
+the shared y rows (anchors, SNe, Hubble flow) and the maser cross term. σ_d is indicative only
+(section 2). The per-host Δμ_i use the same construction (b for μ₀,i of the SH0ES fit minus e_i on t). Sensitivity (reported only): d
 and the CCHP-side H0 with the t-block zero-point terms removed.
 
 **R4.** Random host subsets as in section 2, on the NGC 4258-only system, one GLS per draw.
@@ -206,8 +214,9 @@ Runtime, measured before any data on this machine with `infer.gls` on synthetic 
 has about 980 anchor Cepheid rows, ten hosts' Cepheids (about 600), 277 Hubble-flow rows and the
 constraint rows, so about 1900 rows and 0.05 s: 10,000 draws take about 8 min. Guard
 (pre-registered): the first 100 draws are timed; if the projection for all draws exceeds 60 min,
-`r4_draws` drops to the largest multiple of 1000 that fits in 60 min (at least 2000), and the
-change is recorded in the results. The subsystem's row indices are precomputed per host. An
+`r4_draws` drops to the largest multiple of 1000 that fits in 60 min, and the change is recorded
+in the results. If even 2000 draws would exceed 60 min, R4 is not run and is reported as
+**not evaluated (runtime)**. The subsystem's row indices are precomputed per host. An
 exploration that changes `r4_draws` reruns all draws.
 
 **Parameters (`PARAMS` in `run.py`, saved with the results):** `cchp_hosts`, `r4_draws` (10,000),
