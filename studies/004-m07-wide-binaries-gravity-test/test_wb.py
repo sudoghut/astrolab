@@ -161,3 +161,18 @@ def test_gls_invalid_diagonal():
     assert not ok and np.isnan(chi2)
     r = wb.compare_models(np.ones(3), np.array([0.1, 1.0, 3.0]), np.diag([1.0, -1.0, 1.0]))
     assert not r["valid"] and np.isnan(r["L"])
+
+
+def test_plan_geometry_matches_readme():
+    plan = wb.strip_plan()
+    assert len(plan) == 338
+    low = [r for r in plan if r["dec0"] >= -60 and r["dec1"] <= 60]
+    assert len(low) == 288 and {(r["dec0"], r["dec1"]) for r in low} == {(-60, -30), (-30, 0), (0, 30), (30, 60)}
+    assert all(r["ra1"] - r["ra0"] == 5.0 for r in low)
+
+
+def test_queries_have_no_velocity_condition_by_default():
+    import queries as Q
+    r = wb.strip_plan()[0]
+    q = Q.pair_query(r, "parallax > 6.6667", None, "COUNT(*) AS n")
+    assert "pmra" not in q.split("WHERE", 3)[-1]

@@ -27,7 +27,7 @@ PARAMS = {
     "neighbour_relaxed": ("parallax_over_error > 5 AND phot_g_mean_flux_over_error > 5"
                           " AND parallax + 3 * parallax_error > 6.6667"),
     "near_plx": 34.0, "near_b": "parallax + 3 * parallax_error > 28",
-    "vcap_kms": 15.0,
+    "vcap_kms": None,                  # no velocity condition in A1 (README section 3)
     "max_rows": 50000,
     "bytes_per_row_pair": 400, "bytes_per_row_count": 40,
     "budget_bytes": 200 * 1024 ** 2,
