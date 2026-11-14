@@ -53,7 +53,7 @@ like astrolab possible.
 ### 3. From the whole universe down to single stars
 
 astrolab arranges the universe in zoom levels, like an online map: L0 is the universe as a
-whole, L1 the early universe, L2 our cosmic neighbourhood, L3 the Milky Way and L4 individual
+whole, L1 large-scale structure and the early universe, L2 our cosmic neighbourhood, L3 the Milky Way and L4 individual
 stars; X is a cross-cutting theme (here, gravitational waves). We go through them in that order, except that gravitational waves (X) come before the Milky Way.
 
 #### L0 · The universe as a whole: cracks in the standard model?
@@ -144,7 +144,8 @@ be used for calibration?".
 - The gravitational-wave catalogue GWTC-4.0, released in 2025, brought the total to about 220
   candidate events, each more likely real than not.
 - Black-hole masses are not spread evenly. There are pile-ups near 10 and 35 times the mass of
-  the Sun, and the numbers fall off more steeply above 35.
+  the Sun, and the numbers fall off more steeply above 35. A possible third feature near 20 is
+  still only a hint.
 - One event, GW231123, involves black holes in or near a mass range that ordinary stars are thought
   to be unable to produce (the *pair-instability gap*). They may be the products of earlier mergers.
 
@@ -177,8 +178,8 @@ In 2024 astronomers found that it is also oscillating, like a wave moving throug
 
 **Dormant black holes (M4, *established*; astrolab has finished the DR3 part)**
 
-- Almost all stellar-mass black holes known in the Milky Way before 2022 were feeding on a companion star and
-  glowing in X-rays.
+- Before 2022, stellar-mass black holes in the Milky Way were found almost only when they were
+  feeding on a companion star and glowing in X-rays.
 - Theory says most black holes in the Milky Way should be quiet: not feeding, not glowing.
 - Gaia's trick is to measure the **tiny ellipse a normal star traces on the sky**. If the orbit is
   large but the companion is invisible, the companion may well be a black hole.
@@ -300,7 +301,7 @@ That is astrolab's starting point. The next chance is Gaia DR4, on 2 December 20
 
 ### 3. 从整个宇宙到单颗恒星
 
-astrolab 像在线地图一样把宇宙分成几个缩放级别：L0 是整个宇宙，L1 是早期宇宙，L2 是近邻宇宙，L3 是银河系，L4 是单颗恒星；X 是横跨各尺度的主题（这里指引力波）。下面按这个顺序讲，只是把引力波（X）放在银河系之前。
+astrolab 像在线地图一样把宇宙分成几个缩放级别：L0 是整个宇宙，L1 是大尺度结构（large-scale structure）与早期宇宙，L2 是近邻宇宙，L3 是银河系，L4 是单颗恒星；X 是横跨各尺度的主题（这里指引力波）。下面按这个顺序讲，只是把引力波（X）放在银河系之前。
 
 #### L0 · 整个宇宙：标准模型出现裂缝？
 
@@ -357,7 +358,7 @@ S8 描述物质"抱团"的程度。
 **黑洞的"质量分布图"（M10，已坐实）**
 
 - 2025 年发布的引力波瞬变源目录 GWTC-4.0（Gravitational-Wave Transient Catalog），使候选事件总数达到约 220 个，每一个是真实信号的可能性都大于一半。
-- 黑洞的质量并不均匀分布：在约 10 倍和 35 倍太阳质量处有"扎堆"，35 倍以上数量下降得更陡。
+- 黑洞的质量并不均匀分布：在约 10 倍和 35 倍太阳质量处有"扎堆"，35 倍以上数量下降得更陡。约 20 倍处可能还有第三个特征，但目前只是初步迹象。
 - 其中 GW231123 事件中的黑洞，质量落在或接近普通恒星被认为"造不出来"的区间，即对不稳定性间隙（pair-instability gap）。它们可能是更早一次并合（merger）的产物。
 
 #### L3 · 银河系考古
@@ -381,7 +382,7 @@ S8 描述物质"抱团"的程度。
 
 **休眠黑洞（dormant black holes，M4，已坐实；astrolab 已完成 DR3 部分）**
 
-- 2022 年以前在银河系中发现的恒星级黑洞（stellar-mass black hole），几乎都在吞噬伴星（companion star）、发出 X 射线。
+- 2022 年以前，银河系中的恒星级黑洞（stellar-mass black hole）几乎只有在吞噬伴星（companion star）、发出 X 射线时才能被发现。
 - 但理论认为，银河系里大多数黑洞应该是"安静的"：不吃东西，也不发光。
 - Gaia 的办法是：精确测量一颗普通恒星**在天上画出的小椭圆**。如果轨道很大，伴星却看不见，那么伴星很可能是黑洞。
 - 用这个办法找到了三个：
