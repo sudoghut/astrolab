@@ -62,6 +62,18 @@ const both = (o, f) => L(esc(o[f]), o[f + '_zh'] ? esc(o[f + '_zh']) : null);
 const plain = (o, f) => t(String(o[f] ?? ''), o[f + '_zh'] ? String(o[f + '_zh']) : String(o[f] ?? ''));
 const word = (v, zh) => L(esc(v), zh[v] ? esc(zh[v]) : null);
 const css = v => `var(${v})`;   // resolved by the browser, so colours follow theme changes
+const GRADE_VAR = { established: '--established', tension: '--tension', hint: '--hint', contested: '--contested', refuted: '--refuted' };
+const gradeColor = g => css(GRADE_VAR[g] || '--muted');
+// Footprint with per-entry fallbacks, so a partial or stale atlas.json degrades gracefully.
+function fpOf(s, d) {
+  const fp = (s && s.footprint) || {};
+  const lv = (d.level_scale_log10 || {})[s && s.level] || [-6, 10.15];
+  const sc = fp.scale && Number.isFinite(fp.scale.log10_min) && Number.isFinite(fp.scale.log10_max)
+    ? fp.scale : {log10_min: lv[0], log10_max: lv[1], note: null, default: true};
+  const sky = fp.sky || {};
+  return {scale: sc, sky: {modes: Array.isArray(sky.modes) ? sky.modes : [], survey: sky.survey || null,
+                           targets: Array.isArray(sky.targets) ? sky.targets : []}};
+}
 
 function claimCard(c) {
   const r = c.reproduction || {};
@@ -102,12 +114,12 @@ function renderScale(d) {
     const items = [];
     for (const s of d.studies.filter(s => s.level === lv))
       items.push({kind: 'study', label: plain(s, 'title'), href: s.has_web ? `../../studies/${s.id}/web/` : null,
-                  sc: s.footprint.scale, color: css('--accent'), note: s.footprint.scale.note});
+                  sc: fpOf(s, d).scale, color: css('--accent'), note: fpOf(s, d).scale.note});
     for (const c of d.claims.filter(c => c.level === lv)) {
       const st = byStudy[(c.reproduction || {}).study];
-      const sc = st ? st.footprint.scale : {log10_min: d.level_scale_log10[lv][0], log10_max: d.level_scale_log10[lv][1], default: true};
+      const sc = st ? fpOf(st, d).scale : fpOf({level: lv}, d).scale;
       items.push({kind: 'claim', label: plain(c, 'title'), href: st && st.has_web ? `../../studies/${st.id}/web/` : null,
-                  sc, color: css('--' + c.grade), note: null});
+                  sc, color: gradeColor(c.grade), note: null});
     }
     rows.push({lv, items});
   }
@@ -180,12 +192,12 @@ function renderSky(d) {
   const allsky = [], surveys = [], unresolved = [];
   let k = 0;
   for (const s of d.studies) {
-    const fp = s.footprint.sky; const title = plain(s, 'title');
+    const fp = fpOf(s, d).sky; const title = plain(s, 'title');
     const href = s.has_web ? `../../studies/${s.id}/web/` : null;
     if (fp.modes.includes('all-sky')) allsky.push([title, href]);
     if (fp.modes.includes('survey') && fp.survey) surveys.push([title, href, fp.survey]);
     for (const tg of fp.targets) {
-      if (tg.l === null || tg.l === undefined) { unresolved.push([title, tg.name]); continue; }
+      if (!tg || !Number.isFinite(tg.l) || !Number.isFinite(tg.b)) { unresolved.push([title, tg && tg.name]); continue; }
       const [x, y] = moll(tg.l, tg.b);
       let dot = `<g><title>${esc(tg.name)} — ${esc(title)}; l = ${tg.l.toFixed(1)}°, b = ${tg.b.toFixed(1)}°</title>
         <circle cx="${x}" cy="${y}" r="5" style="fill:${css('--refuted')};stroke:${css('--surface')}"/><text x="${x + 7}" y="${y + 4 + (k % 2) * 11}">${esc(tg.name)}</text></g>`;
@@ -200,7 +212,7 @@ function renderSky(d) {
   if (allsky.length) items.push(`<li>${L('All-sky footprint', '全天足迹')}: ${allsky.map(link).join('; ')}</li>`);
   for (const [title, href, sv] of surveys) items.push(`<li>${L('Survey region (not drawn)', '巡天区域（未画出边界）')}: ${esc(sv.name)}${sv.note ? ' — ' + esc(sv.note) : ''} (${link([title, href])})</li>`);
   for (const [title, name] of unresolved) items.push(`<li>${L('Target without coordinates (run the study)', '缺坐标的目标（请先运行研究）')}: ${esc(name)} (${esc(title)})</li>`);
-  const without = d.studies.filter(s => !s.footprint.sky.modes.length).map(s => esc(plain(s, 'title')));
+  const without = d.studies.filter(s => !fpOf(s, d).sky.modes.length).map(s => esc(plain(s, 'title')));
   if (without.length) items.push(`<li>${L('No sky footprint', '没有天空足迹')}: ${without.join('; ')}</li>`);
   return svg + `<ul class="legend">${items.join('')}</ul>`;
 }
