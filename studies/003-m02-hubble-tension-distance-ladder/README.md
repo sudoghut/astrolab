@@ -270,7 +270,7 @@ passed; page: [`web/index.html`](web/index.html); numbers in `results/*.json`).
 | R2 host step, amended labelling | Δ_h = −0.0730 ± 0.0331 mag (−2.21σ); H0 72.42 → 70.03 | −0.0405 ± (2σ + 0.02) | significantly lowers H0, by the size the paper reports (**amended, post-data**) |
 | R3 CCHP-side H0, same 10 hosts (amended) | 69.70 (Δ = +0.013 mag) | 69.29 ± 0.02 mag | matched |
 | R3 d = SH0ES − CCHP, same hosts (amended) | +0.010 ± 0.048 mag (≈ +0.3 km/s/Mpc); per-host χ² 5.1 / 10 | — | descriptive |
-| R4 percentile of the CCHP host shift (amended) | 5.7th of 10,000 draws (spread σ = 0.046 mag) | 5th–95th | consistent with random-subset fluctuations |
+| R4 percentile of the CCHP host shift (amended) | 5.7th of 10,000 draws (spread σ = 0.046 mag); 4.7th in Δ/σ | 5th–95th | consistent with random-subset fluctuations |
 
 - **R1.** Our GLS reproduces R22's printed baseline to rounding (5 log H0, M⁰_B −19.2529,
   Z_W −0.2166, ΔμN4258 −0.0127, ΔμLMC 0.0101, χ²/dof 1.031). The public `lstsq_results.txt` is a
@@ -296,8 +296,9 @@ passed; page: [`web/index.html`](web/index.html); numbers in `results/*.json`).
   shift is 1.8 times the paper's (−0.073 against −0.0405 mag, −2.4 against −1.3 km/s/Mpc); it is
   consistent only within the wide pre-registered tolerance (±0.086 mag). (2) The 2.2σ uses the
   C-propagated σ. Across random 10-host subsets (R4) the same ratio Δ/σ has a spread of 1.33, not
-  1, so C understates host-to-host scatter; the CCHP ratio (−2.21) sits at the 4.7th percentile of
-  that empirical distribution, about 1.7σ on that scale (a descriptive diagnostic added after the
+  1, which suggests that C may understate host-to-host scatter (the draws share one data set and
+  37 hosts, so the 1.33 is itself uncertain); the CCHP ratio (−2.21) sits at the 4.7th percentile
+  of that empirical distribution, about 1.7σ on that scale (a descriptive diagnostic added after the
   first results, at the gate-1 review).
 - **R3.** On the same 10 hosts the SH0ES Cepheid ladder and CCHP's JWST TRGB distances give the
   same H0 within 0.01 mag (0.3 km/s/Mpc); no host deviates by more than 1.2σ.
@@ -317,6 +318,8 @@ Pending (stage 5).
 
 - Why the public `lstsq_results.txt` differs from the printed baseline (a later or variant fit).
 - How the 2024 data (SMC anchor, more Cepheids) change the host shift; not public as matrices.
+- Does C understate host-to-host scatter? A host-level χ² of the 37 leave-one-host-out SN
+  residuals would test the 1.33 spread of Δ/σ seen in R4 (an exploration script).
 - R4 suggests the CCHP selection is a low but ordinary draw: is there a property of those hosts
   (for example the TRGB-friendly, low-extinction halos) that correlates with their SN magnitudes?
 
@@ -338,10 +341,11 @@ How a coding agent answers "what if" questions about this study without touching
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --script explore/<name>.py`.
   Existing: `explore/diag_hosts.py` (which checks link each L column to which host).
-- Results files and keys: `summary.json` (verdicts), `r1.json` (`params`, `fivelogh0`, `chi2`),
+- Results files and keys: `summary.json` (verdicts), `r1.json` (`params` with `column_label`, `worst_param_label`,
+  `fivelogh0`, `chi2`),
   `r2.json` (`anchor_step`, `host_step.shift`, `.shift_sigma`, `.verdict`, `.preregistered_verdict`),
   `r3.json` (`cchp_side_h0`, `d`, `sigma_d`, `per_host`), `r4.json` (`percentile`, `quantiles`,
-  histogram), `host_identification.json` (`column_labels`, `relabelled`, `per_column_under_labels`),
+  histogram, `z_quantiles`, `z_std`, `z_percentile`, `cchp_z`), `host_identification.json` (`column_labels`, `relabelled`, `per_column_under_labels`),
   `cross_paper.json`.
 - Example questions: "Which single CCHP host drives the shift?" → `--set cchp_hosts=[...]` leaving
   one out at a time; "Does the shift survive with a looser identification tolerance?" →
