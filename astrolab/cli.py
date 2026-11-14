@@ -50,7 +50,7 @@ def cmd_claims(args) -> None:
     if args.action == "check":
         problems = claims.validate_all()
         if not problems:
-            print(f"all {len(claims.load_all())} claims valid; all studies have Chinese title/question")
+            print(f"all {len(claims.load_all())} claims valid; all studies have Chinese title/question and valid footprints")
             return
         for f, errs in problems.items():
             for e in errs:

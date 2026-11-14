@@ -46,3 +46,4 @@ footprint:
 ## 5. 执行记录
 
 - 2026-11-14：建分支 `feat/atlas-sky-scale-views`；登记 T-005 进行中。
+- 2026-11-14 · 环节 1：`astrolab/claims.py` 新增足迹模式校验 `footprint_errors`、解析 `resolve_footprint`（层级默认范围、从 results/targets.json 补坐标、用 astropy 换算银道坐标）；`atlas_data()` 输出每个研究的足迹与各层级默认范围；`claims check` 同时检查足迹；研究 000、001、002 与模板加上足迹（001 的模式改写为 all-sky + targets，含义不变）；新增不联网测试 `tests/test_atlas_footprint.py`；重新生成 `atlas.json`。

@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-14T07:33:55+00:00",
+ "generated_at": "2026-11-14T18:45:56+00:00",
  "levels": [
   "L0",
   "L1",
@@ -28,13 +28,34 @@
     }
    ],
    "reproduction": {
-    "status": "not-started",
-    "study": null,
+    "status": "partial",
+    "study": "002-m01-desi-bao-evolving-dark-energy",
     "quantities": [
      {
       "name": "Omega_m (BAO only, LCDM)",
       "paper": "0.2975 +/- 0.0086",
-      "ours": null
+      "ours": "0.2979 +/- 0.0086"
+     },
+     {
+      "name": "h r_d (BAO only, LCDM)",
+      "paper": "101.54 +/- 0.73",
+      "ours": "101.52 +/- 0.73",
+      "unit": "Mpc"
+     },
+     {
+      "name": "Delta chi2_MAP, DESI + compressed CMB prior",
+      "paper": "-8.0 (2.4 sigma)",
+      "ours": "-8.01 (reading B, omega_bc = omega_b + omega_c); -6.59 (reading A, with omega_nu)"
+     },
+     {
+      "name": "Delta chi2_MAP, DESI alone / + Pantheon+ / + Union3",
+      "paper": "-4.7 / -4.9 / -10.1",
+      "ours": "-4.65 / -4.86 / -10.03"
+     },
+     {
+      "name": "w0, wa (DESI + compressed CMB prior)",
+      "paper": "-0.43 +/- 0.22, -1.72 +/- 0.64",
+      "ours": "-0.44 +/- 0.23, -1.69 +/- 0.66 (reading B); -0.48 +/- 0.23, -1.55 +/- 0.66 (reading A)"
      },
      {
       "name": "w0 (DESI+CMB+DES-SN5YR)",
@@ -62,7 +83,7 @@
     "How much of the preference comes from the w0-wa parametrisation versus binned w(z) or Gaussian-process reconstructions?",
     "Leave-one-tracer-out and leave-one-SN-sample-out sensitivity of the signal."
    ],
-   "notes": "Verified against arXiv abstracts in plan 002 (cosmology agent report, 2026-11-11). Milestone M1."
+   "notes": "Verified against arXiv abstracts in plan 002 (cosmology agent report, 2026-11-11). Milestone M1. Study 002 (2026-11-14): BAO-only and no-CMB rows reproduced, compressed-CMB row conditionally reproduced; full-CMB and DES-SN5YR rows are out of scope (full Planck/ACT likelihoods; 53.5 MB covariance above the download limit). The compressed prior reproduces when its omega_bc mean is read as omega_b + omega_c (-8.01) but not with omega_nu added (-6.59); the referee pointed out that the split may lie within the (unmeasured) theta_* calibration systematics, so the convention is left open (T-022)."
   },
   {
    "id": "early-thick-disk-formation",
@@ -436,7 +457,22 @@
    "question_zh": "管线（受守卫的 TAP 查询、缓存、来源记录、服务器端聚合、网页）能否端到端运行？",
    "claims": [],
    "has_web": true,
-   "last_run": true
+   "last_run": true,
+   "footprint": {
+    "scale": {
+     "log10_min": 0.0,
+     "log10_max": 1.0,
+     "note": "Gaia DR3 sources within 10 pc",
+     "default": false
+    },
+    "sky": {
+     "modes": [
+      "all-sky"
+     ],
+     "survey": null,
+     "targets": []
+    }
+   }
   },
   {
    "id": "001-m04-gaia-dormant-black-holes",
@@ -450,7 +486,104 @@
     "gaia-dormant-black-holes"
    ],
    "has_web": true,
-   "last_run": true
+   "last_run": true,
+   "footprint": {
+    "scale": {
+     "log10_min": 2.0,
+     "log10_max": 3.4771212547196626,
+     "note": "Galactic, solar neighbourhood to a few kpc",
+     "default": false
+    },
+    "sky": {
+     "modes": [
+      "all-sky",
+      "targets"
+     ],
+     "survey": null,
+     "targets": [
+      {
+       "name": "Gaia BH1",
+       "ra": 262.17120727595824,
+       "dec": -0.5810919626714084,
+       "l": 22.625647844176562,
+       "b": 18.045809422866643
+      },
+      {
+       "name": "Gaia BH2",
+       "ra": 207.56971494177265,
+       "dec": -59.23900523844159,
+       "l": 310.4031103240916,
+       "b": 2.7765375359746165
+      },
+      {
+       "name": "Gaia BH3",
+       "ra": 294.82786250815144,
+       "dec": 14.930979608612361,
+       "l": 51.67172841061906,
+       "b": -3.4880659519427772
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "002-m01-desi-bao-evolving-dark-energy",
+   "title": "DESI DR2 BAO and evolving dark energy",
+   "title_zh": "DESI DR2 重子声学振荡与演化暗能量",
+   "level": "L0",
+   "status": "reproduced",
+   "question": "Do DESI DR2 BAO distances, alone and combined with a compressed CMB prior or supernovae, prefer evolving dark energy (w0waCDM) over a cosmological constant, and how strongly?",
+   "question_zh": "DESI DR2 的 BAO 距离单独使用、或与压缩 CMB 先验及超新星组合时，是否偏好演化暗能量（w0waCDM）而非宇宙学常数，偏好有多强？",
+   "claims": [
+    "desi-dr2-bao-evolving-dark-energy"
+   ],
+   "has_web": true,
+   "last_run": true,
+   "footprint": {
+    "scale": {
+     "log10_min": 8.602059991327963,
+     "log10_max": 10.146128035678238,
+     "note": "BAO comoving distances z = 0.1-2.3 (~0.4-5.7 Gpc) out to the CMB distance (~14 Gpc)",
+     "default": false
+    },
+    "sky": {
+     "modes": [
+      "survey",
+      "all-sky"
+     ],
+     "survey": {
+      "name": "DESI DR2",
+      "note": "BAO from the DESI spectroscopic footprint; the CMB prior and SN compilations are all-sky"
+     },
+     "targets": []
+    }
+   }
   }
- ]
+ ],
+ "level_scale_log10": {
+  "L0": [
+   8.0,
+   10.15
+  ],
+  "L1": [
+   7.0,
+   10.0
+  ],
+  "L2": [
+   4.0,
+   8.5
+  ],
+  "L3": [
+   0.0,
+   5.0
+  ],
+  "L4": [
+   -6.0,
+   4.0
+  ],
+  "X": [
+   -6.0,
+   10.15
+  ]
+ }
 }

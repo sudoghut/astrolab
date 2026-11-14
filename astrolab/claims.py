@@ -37,6 +37,12 @@ REQUIRED = ("id", "title", "statement", "level", "grade", "sources", "reproducti
 ZH_FIELDS = ("title_zh", "statement_zh")  # required Chinese twins of title / statement
 STUDY_ZH_FIELDS = ("title_zh", "question_zh")  # required in every studies/*/study.yaml
 
+# Atlas footprints (design plan 011). Default distance range per level [log10 pc], for entries
+# without a footprint; deliberately loose orders of magnitude.
+LEVEL_SCALE_LOG10 = {"L0": (8.0, 10.15), "L1": (7.0, 10.0), "L2": (4.0, 8.5), "L3": (0.0, 5.0),
+                     "L4": (-6.0, 4.0), "X": (-6.0, 10.15)}
+SKY_MODES = ("all-sky", "survey", "targets", "none")
+
 
 def zh_errors(data: dict[str, Any], fields: tuple[str, ...]) -> list[str]:
     """Chinese fields must contain Chinese text and must not be template placeholders."""
@@ -80,12 +86,99 @@ def validate(claim: dict[str, Any], study_ids: set[str] | None = None) -> list[s
     return errs
 
 
+def sky_modes(mode: Any) -> list[str]:
+    """'all-sky + targets' -> ['all-sky', 'targets']."""
+    return [m.strip() for m in str(mode or "none").split("+") if m.strip()]
+
+
+def footprint_errors(meta: dict[str, Any]) -> list[str]:
+    """Schema check of the optional ``footprint`` field of a study.yaml (design plan 011)."""
+    fp = meta.get("footprint")
+    if fp is None:
+        return []
+    if not isinstance(fp, dict):
+        return ["footprint must be a mapping"]
+    errs = []
+    sc = fp.get("scale")
+    if sc is not None:
+        try:
+            lo, hi = float(sc["min_pc"]), float(sc["max_pc"])
+            if not (0 < lo < hi):
+                errs.append("footprint.scale needs 0 < min_pc < max_pc")
+        except (KeyError, TypeError, ValueError):
+            errs.append("footprint.scale needs numeric min_pc and max_pc")
+    sky = fp.get("sky")
+    if sky is not None:
+        if not isinstance(sky, dict):
+            return errs + ["footprint.sky must be a mapping"]
+        modes = sky_modes(sky.get("mode"))
+        bad = [m for m in modes if m not in SKY_MODES]
+        if bad:
+            errs.append(f"footprint.sky.mode: unknown {bad}; use {SKY_MODES} joined by ' + '")
+        if "survey" in modes and not (sky.get("survey") or {}).get("name"):
+            errs.append("footprint.sky.mode includes survey: give survey.name")
+        if "targets" in modes:
+            tg = sky.get("targets") or []
+            if not tg or not all(isinstance(t, dict) and t.get("name") for t in tg):
+                errs.append("footprint.sky.mode includes targets: give targets with a name (and ra, dec)")
+            for t in tg:
+                if isinstance(t, dict) and (("ra" in t) != ("dec" in t)):
+                    errs.append(f"footprint target {t.get('name')}: give both ra and dec or neither")
+    return errs
+
+
+def resolve_footprint(study_path: Path, meta: dict[str, Any]) -> dict[str, Any]:
+    """Footprint for the Atlas: scale as log10 pc (or the level default) and sky targets with
+    ICRS and Galactic coordinates; missing coordinates are taken from results/targets.json."""
+    import json
+    import math
+
+    fp = meta.get("footprint") or {}
+    sc = fp.get("scale")
+    if sc:
+        scale = {"log10_min": math.log10(float(sc["min_pc"])), "log10_max": math.log10(float(sc["max_pc"])),
+                 "note": sc.get("note"), "default": False}
+    else:
+        lo, hi = LEVEL_SCALE_LOG10.get(meta.get("level"), LEVEL_SCALE_LOG10["X"])
+        scale = {"log10_min": lo, "log10_max": hi, "note": None, "default": True}
+    sky = fp.get("sky") or {}
+    modes = sky_modes(sky.get("mode")) if fp.get("sky") else []
+    known = {}
+    tfile = study_path / "results" / "targets.json"
+    if tfile.exists():
+        try:
+            for t in json.loads(tfile.read_text(encoding="utf-8")):
+                if isinstance(t, dict) and "name" in t and "ra" in t and "dec" in t:
+                    known[t["name"]] = (float(t["ra"]), float(t["dec"]))
+        except (ValueError, TypeError):
+            pass
+    targets = []
+    for t in sky.get("targets") or []:
+        if "ra" in t and "dec" in t:
+            ra, dec = float(t["ra"]), float(t["dec"])
+        else:
+            ra, dec = known.get(t.get("name"), (None, None))
+        entry = {"name": t.get("name"), "ra": ra, "dec": dec, "l": None, "b": None}
+        if ra is not None and dec is not None:
+            entry["l"], entry["b"] = _galactic(ra, dec)
+        targets.append(entry)
+    return {"scale": scale, "sky": {"modes": modes, "survey": sky.get("survey"), "targets": targets}}
+
+
+def _galactic(ra: float, dec: float) -> tuple[float, float]:
+    import astropy.units as u
+    from astropy.coordinates import SkyCoord
+
+    g = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame="icrs").galactic
+    return float(g.l.deg), float(g.b.deg)
+
+
 def validate_all() -> dict[str, list[str]]:
     ids = {s.id for s in discover()}
     claims = load_all()
     problems = {c["_file"]: validate(c, ids) for c in claims}
     for s in discover():  # studies must carry Chinese title/question too (bilingual rule)
-        errs = zh_errors(s.meta, STUDY_ZH_FIELDS)
+        errs = zh_errors(s.meta, STUDY_ZH_FIELDS) + footprint_errors(s.meta)
         if errs:
             problems[f"studies/{s.id}/study.yaml"] = errs
     known = {c.get("id") for c in claims}
@@ -115,6 +208,8 @@ def atlas_data() -> dict[str, Any]:
             "claims": meta.get("claims", []),
             "has_web": (s.path / "web" / "index.html").exists(),
             "last_run": run_info.exists(),
+            "footprint": resolve_footprint(s.path, meta),
         })
     claims = [{k: v for k, v in c.items() if not k.startswith("_")} for c in load_all()]
-    return {"generated_at": now_iso(), "levels": list(LEVELS), "claims": claims, "studies": studies}
+    return {"generated_at": now_iso(), "levels": list(LEVELS), "claims": claims, "studies": studies,
+            "level_scale_log10": {k: list(v) for k, v in LEVEL_SCALE_LOG10.items()}}
