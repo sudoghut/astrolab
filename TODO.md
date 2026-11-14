@@ -6,7 +6,7 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-009** 论文立项流程：Wiki 双语文章（科普、论证逻辑与 Lean 拆解、可检验或探索的环节）→ 研究计划 → 实现与网页 → 回写 Wiki · 登记 2026-11-14 · 分支 `feat/paper-study-workflow` · 计划 [007](design/007-plan_paper-to-study-workflow-wiki-article-lean-argument-and-chat-exploration.md)
+（暂无）
 
 ## 下一步（Next）
 
