@@ -57,7 +57,7 @@ inductive Field where
   | mod_nested
   /-- MOD [stated 2503.14738: "assuming that errors are Gaussian and correctly estimated"] Sec. VII (adopted as a working assumption, not literally true for the low-l CMB likelihoods; the correctly-estimated half is the condition NoSys of the conclusion) -/
   | mod_gauss
-  /-- GAP [reconstructed] the regularity conditions of Wilks theorem hold for this fit: large-sample limit and the LCDM point w0 = -1, wa = 0 inside the prior box w0 in [-3, 1], wa in [-3, 2], w0 + wa < 0, so that Delta chi2_MAP is calibrated by chi2 with 2 degrees of freedom; Wilks 1938 (1938AnMS....9...60W) gives the theorem, not its validity for this nonlinear fit, and the paper neither discusses nor simulates it -/
+  /-- GAP [reconstructed] the assumption that, under LCDM, Delta chi2_MAP of this fit is calibrated by chi2 with 2 degrees of freedom. Wilks 1938 (1938AnMS....9...60W) gives this only asymptotically, for a smooth likelihood with identifiable parameters and the null point away from parameter boundaries. Of these, only the last can be read off here (w0 = -1, wa = 0 lies inside the prior box w0 in [-3, 1], wa in [-3, 2], w0 + wa < 0); smoothness and the adequacy of the large-sample approximation for this nonlinear fit are unverified, and the paper neither discusses nor simulates them -/
   | gap_regular
   /-- MOD [stated 2503.14738: "implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated"] Sec. VII (Wilks theorem) -/
   | mod_wilks
