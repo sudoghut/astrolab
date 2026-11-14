@@ -405,6 +405,12 @@ def main(ctx):
     ctx.log(f"host identification: pre-registered ok={id_ok}; mode={mode}; matching={match is not None}; "
             f"alternatives={len(alts)}, changes CCHP set={changes_set}")
     ctx.save("host_identification", ident)
+    for i_, prm in enumerate(r1["params"][:NH]):
+        prm["column_label"] = col_host[i_]
+    r1["worst_param_label"] = col_host[worst] if worst < NH else par_names[worst]
+    r1["note"] = ("params[].name is the Table 6-order name of the column; column_label is the host "
+                  "it holds (host_identification.json)")
+    ctx.save("r1", r1)
     validity["host_identification_ok"] = id_ok
     validity["host_labelling_mode"] = mode
 
@@ -554,7 +560,7 @@ def main(ctx):
     base_rows = np.array([i for i in rows_a if not any_host[i]])
     n_sn = {h: len(sn[h]["mb"]) for h in hosts}
     draws = int(P["r4_draws"])
-    deltas, nsns = [], []
+    deltas, nsns, zs = [], [], []
     r4 = {"status": "evaluated", "draws_requested": draws, "labelling_mode": mode}
     if not ident["host_step_evaluable"]:
         r4["status"] = "not evaluable"
@@ -566,6 +572,8 @@ def main(ctx):
             rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
             res = fit(L, y, C, rows)
             deltas.append(float(res["q"][C_H0]) - qa)
+            # nested GLS with the same C: Var(shift) = sigma_sub^2 - sigma_full^2 (checked in R2)
+            zs.append(deltas[-1] / np.sqrt(max(float(res["sigma"][C_H0]) ** 2 - sa ** 2, 1e-30)))
             nsns.append(int(sum(n_sn[col_host[j]] for j in pick)))
             i += 1
             if i == 100:
@@ -576,7 +584,7 @@ def main(ctx):
                     new = int(P["r4_max_minutes"] * 60 / per) // 1000 * 1000
                     if new < 2000:
                         r4["status"] = "not evaluated (runtime)"
-                        deltas, nsns = [], []
+                        deltas, nsns, zs = [], [], []
                         break
                     r4["draws_reduced_from"] = draws
                     draws = new
@@ -598,6 +606,12 @@ def main(ctx):
                        "mean": float(dl.mean()), "std": float(dl.std()),
                        "hist_counts": hist.tolist(), "hist_edges": [float(e) for e in edges],
                        "n_sn_mean": float(np.mean(nsns)),
+                       # added after the first results (gate-1 review; descriptive): each draw's
+                       # shift in units of its own C-propagated sigma, and where the CCHP z sits
+                       "z_quantiles": dict(zip(["p2.5", "p5", "p16", "p50", "p84", "p95", "p97.5"],
+                                               [float(x) for x in np.percentile(zs, [2.5, 5, 16, 50, 84, 95, 97.5])])),
+                       "z_std": float(np.std(zs)), "cchp_z": z,
+                       "z_percentile": float(100.0 * np.mean(np.array(zs) <= z)),
                        "shift_by_n_sn": {str(n): float(np.mean(dl[np.array(nsns) == n]))
                                          for n in sorted(set(nsns))}})
             ctx.log(f"R4: CCHP shift at percentile {pct:.1f} of {len(dl)} draws -> {rv}")
@@ -630,7 +644,8 @@ def main(ctx):
         "validity": validity,
         "R1": r1["verdict"], "R1_h0": r1["h0"],
         "R2_anchor": r2a["verdict"], "R2_anchor_shift": d_a,
-        "R2_host": r2h["verdict"], "R2_host_status": r2h["status"],
+        "R2_host": (r2h["verdict"] if mode == "pre-registered" else f"[{mode}] " + r2h["verdict"]),
+        "R2_host_status": r2h["status"],
         "R2_host_preregistered": r2h["preregistered_verdict"], "host_labelling_mode": mode,
         "R2_host_shift": d_h, "R2_host_sigma": s_h, "R2_host_z": z,
         "R3_cchp_match": r3.get("cchp_match"), "R3_d": r3.get("d"), "R3_sigma_d": r3.get("sigma_d"),

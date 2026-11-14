@@ -10,259 +10,296 @@
    "q": 29.159557351067466,
    "sigma": 0.03875121290851795,
    "file_q": 29.1493,
-   "file_sigma": 0.035
+   "file_sigma": 0.035,
+   "column_label": "M101"
   },
   {
    "name": "M1337",
    "q": 32.91557888086823,
    "sigma": 0.08211918468161993,
    "file_q": 32.8917,
-   "file_sigma": 0.07
+   "file_sigma": 0.07,
+   "column_label": "M1337"
   },
   {
    "name": "N0105",
    "q": 32.8222217452223,
    "sigma": 0.08768117926017725,
    "file_q": 32.8077,
-   "file_sigma": 0.081
+   "file_sigma": 0.081,
+   "column_label": "N0691"
   },
   {
    "name": "N0691",
    "q": 32.617782286704255,
    "sigma": 0.06007672308068397,
    "file_q": 32.6674,
-   "file_sigma": 0.059
+   "file_sigma": 0.059,
+   "column_label": "N1015"
   },
   {
    "name": "N0976",
    "q": 34.4933905039502,
    "sigma": 0.11935782292766568,
    "file_q": 34.4927,
-   "file_sigma": 0.095
+   "file_sigma": 0.095,
+   "column_label": "N0105"
   },
   {
    "name": "N1015",
    "q": 32.50898471356814,
    "sigma": 0.05067802528606653,
    "file_q": 32.5067,
-   "file_sigma": 0.045
+   "file_sigma": 0.045,
+   "column_label": "N1309"
   },
   {
    "name": "N1309",
    "q": 31.325428287906117,
    "sigma": 0.05006325482070734,
    "file_q": 31.2958,
-   "file_sigma": 0.045
+   "file_sigma": 0.045,
+   "column_label": "N1365"
   },
   {
    "name": "N1365",
    "q": 31.29514232032833,
    "sigma": 0.03572853826021511,
    "file_q": 31.277,
-   "file_sigma": 0.033
+   "file_sigma": 0.033,
+   "column_label": "N1448"
   },
   {
    "name": "N1448",
    "q": 31.460813120450748,
    "sigma": 0.05163337825433053,
    "file_q": 31.4527,
-   "file_sigma": 0.046
+   "file_sigma": 0.046,
+   "column_label": "N1559"
   },
   {
    "name": "N1559",
    "q": 31.465249751088237,
    "sigma": 0.054636676101615454,
    "file_q": 31.453,
-   "file_sigma": 0.051
+   "file_sigma": 0.051,
+   "column_label": "N2442"
   },
   {
    "name": "N2442",
    "q": 32.011399340541324,
    "sigma": 0.060659119983821834,
    "file_q": 32.0024,
-   "file_sigma": 0.05
+   "file_sigma": 0.05,
+   "column_label": "N2525"
   },
   {
    "name": "N2525",
    "q": 32.62781718200951,
    "sigma": 0.11484338301717834,
    "file_q": 32.6619,
-   "file_sigma": 0.103
+   "file_sigma": 0.103,
+   "column_label": "N2608"
   },
   {
    "name": "N2608",
    "q": 32.391609426125356,
    "sigma": 0.09661899960798093,
    "file_q": 32.4061,
-   "file_sigma": 0.091
+   "file_sigma": 0.091,
+   "column_label": "N3021"
   },
   {
    "name": "N3021",
    "q": 33.09081038920978,
    "sigma": 0.08548299732276327,
    "file_q": 33.1204,
-   "file_sigma": 0.079
+   "file_sigma": 0.079,
+   "column_label": "N3147"
   },
   {
    "name": "N3147",
    "q": 32.40310582573666,
    "sigma": 0.056427653525858934,
    "file_q": 32.3973,
-   "file_sigma": 0.049
+   "file_sigma": 0.049,
+   "column_label": "N3254"
   },
   {
    "name": "N3254",
    "q": 32.14251746076772,
    "sigma": 0.04563473189822725,
    "file_q": 32.1475,
-   "file_sigma": 0.043
+   "file_sigma": 0.043,
+   "column_label": "N3370"
   },
   {
    "name": "N3370",
    "q": 31.944304478319488,
    "sigma": 0.03333158367950117,
    "file_q": 31.9496,
-   "file_sigma": 0.031
+   "file_sigma": 0.031,
+   "column_label": "N3447"
   },
   {
    "name": "N3447",
    "q": 32.78993938617761,
    "sigma": 0.06342230677794905,
    "file_q": 32.7761,
-   "file_sigma": 0.059
+   "file_sigma": 0.059,
+   "column_label": "N3583"
   },
   {
    "name": "N3583",
    "q": 31.70724472822569,
    "sigma": 0.06762384081208837,
    "file_q": 31.7006,
-   "file_sigma": 0.062
+   "file_sigma": 0.062,
+   "column_label": "N3972"
   },
   {
    "name": "N3972",
    "q": 31.638196759147874,
    "sigma": 0.056134408182611825,
    "file_q": 31.6454,
-   "file_sigma": 0.054
+   "file_sigma": 0.054,
+   "column_label": "N3982"
   },
   {
    "name": "N3982",
    "q": 31.633825447099692,
    "sigma": 0.08006150525544779,
    "file_q": 31.6383,
-   "file_sigma": 0.067
+   "file_sigma": 0.067,
+   "column_label": "N4038"
   },
   {
    "name": "N4038",
    "q": 30.82390883674539,
    "sigma": 0.10803518768739716,
    "file_q": 30.8085,
-   "file_sigma": 0.095
+   "file_sigma": 0.095,
+   "column_label": "N4424"
   },
   {
    "name": "N4424",
    "q": 30.835513258019578,
    "sigma": 0.047975778205131284,
    "file_q": 30.8243,
-   "file_sigma": 0.045
+   "file_sigma": 0.045,
+   "column_label": "N4536"
   },
   {
    "name": "N4536",
    "q": 31.787382960082304,
    "sigma": 0.07135653229644352,
    "file_q": 31.7642,
-   "file_sigma": 0.065
+   "file_sigma": 0.065,
+   "column_label": "N4639"
   },
   {
    "name": "N4639",
    "q": 32.54682356695994,
    "sigma": 0.14704427476955093,
    "file_q": 32.5307,
-   "file_sigma": 0.136
+   "file_sigma": 0.136,
+   "column_label": "N4680"
   },
   {
    "name": "N4680",
    "q": 33.1872762497041,
    "sigma": 0.048508558091704054,
    "file_q": 33.165,
-   "file_sigma": 0.043
+   "file_sigma": 0.043,
+   "column_label": "N5468"
   },
   {
    "name": "N5468",
    "q": 31.865541554869232,
    "sigma": 0.04537569853589352,
    "file_q": 31.8892,
-   "file_sigma": 0.04
+   "file_sigma": 0.04,
+   "column_label": "N5584"
   },
   {
    "name": "N5584",
    "q": 30.50840973622332,
    "sigma": 0.04233846161328016,
    "file_q": 30.5088,
-   "file_sigma": 0.039
+   "file_sigma": 0.039,
+   "column_label": "N5643"
   },
   {
    "name": "N5643",
    "q": 32.915922652833686,
    "sigma": 0.10319264370533644,
    "file_q": 32.9171,
-   "file_sigma": 0.09
+   "file_sigma": 0.09,
+   "column_label": "N5728"
   },
   {
    "name": "N5728",
    "q": 32.20524259981872,
    "sigma": 0.07563450858323086,
    "file_q": 32.19,
-   "file_sigma": 0.064
+   "file_sigma": 0.064,
+   "column_label": "N5861"
   },
   {
    "name": "N5861",
    "q": 32.33691328637764,
    "sigma": 0.07694249779462106,
    "file_q": 32.3208,
-   "file_sigma": 0.065
+   "file_sigma": 0.065,
+   "column_label": "N5917"
   },
   {
    "name": "N5917",
    "q": 31.605953391768708,
    "sigma": 0.10331343662816206,
    "file_q": 31.625,
-   "file_sigma": 0.086
+   "file_sigma": 0.086,
+   "column_label": "N7250"
   },
   {
    "name": "N7250",
    "q": 33.26917009655875,
    "sigma": 0.07020100506502126,
    "file_q": 33.2759,
-   "file_sigma": 0.069
+   "file_sigma": 0.069,
+   "column_label": "N7329"
   },
   {
    "name": "N7329",
    "q": 32.57972291902752,
    "sigma": 0.08435555694310803,
    "file_q": 32.5753,
-   "file_sigma": 0.071
+   "file_sigma": 0.071,
+   "column_label": "N7541"
   },
   {
    "name": "N7541",
    "q": 33.26691896023712,
    "sigma": 0.08320427423600804,
    "file_q": 33.2818,
-   "file_sigma": 0.073
+   "file_sigma": 0.073,
+   "column_label": "N7678"
   },
   {
    "name": "N7678",
    "q": 33.54385547571887,
    "sigma": 0.08232854580898415,
    "file_q": 33.5518,
-   "file_sigma": 0.073
+   "file_sigma": 0.073,
+   "column_label": "N0976"
   },
   {
    "name": "U9391",
    "q": 32.816017413545964,
    "sigma": 0.05443887980955707,
    "file_q": 32.8407,
-   "file_sigma": 0.048
+   "file_sigma": 0.048,
+   "column_label": "U9391"
   },
   {
    "name": "dmu_N4258",
@@ -345,5 +382,7 @@
   "r22_fivelogh0": 9.318,
   "r22_h0": 73.04,
   "diff_mag": -0.00011236734617803279
- }
+ },
+ "worst_param_label": "N1015",
+ "note": "params[].name is the Table 6-order name of the column; column_label is the host it holds (host_identification.json)"
 }
