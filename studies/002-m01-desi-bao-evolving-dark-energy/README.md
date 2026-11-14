@@ -78,7 +78,7 @@ sampling parameters through the Jacobian (section 4).
 DESI + Union3 (−10.1): |Δχ²_MAP − target| ≤ 1.0. R3 is reproduced if all three pass; the three
 are also reported individually.
 
-**K check (not a reproduction criterion; reported).** The θ* calibration factor K is fixed at
+**K check (diagnostic only; reported, never used to change a tolerance).** The θ* calibration factor K is fixed at
 the Planck 2018 reference point (section 4) and treated as a constant. Reported: the shift of
 Δχ²_MAP in R2 when K is changed by ±1 prior σ of θ*, and the deviation of our 100θ* at a second
 reference point (sanity check only).
@@ -92,9 +92,9 @@ into the system cache (not the project folder). Total required input about 34 MB
 | Input | Source (service / URL) | Selection | Est. rows / size |
 |---|---|---|---|
 | DESI DR2 BAO mean | `raw.githubusercontent.com/CobayaSampler/bao_data/master/desi_bao_dr2/desi_gaussian_bao_ALL_GCcomb_mean.txt` | all 7 tracers | 13 rows, 0.5 kB |
-| DESI DR2 BAO covariance | same folder, `desi_gaussian_bao_ALL_GCcomb_cov.txt` | | 13 × 13, 2.5 kB |
+| DESI DR2 BAO covariance | `raw.githubusercontent.com/CobayaSampler/bao_data/master/desi_bao_dr2/desi_gaussian_bao_ALL_GCcomb_cov.txt` | | 13 × 13, 2.5 kB |
 | Pantheon+ distances | `raw.githubusercontent.com/CobayaSampler/sn_data/master/PantheonPlus/Pantheon+SH0ES.dat` | zHD > 0.01 | 1701 rows in the file (fewer after the cut), 0.58 MB |
-| Pantheon+ covariance | same folder, `Pantheon+SH0ES_STAT+SYS.cov` | submatrix for zHD > 0.01 | 1701², 33.3 MB |
+| Pantheon+ covariance | `raw.githubusercontent.com/CobayaSampler/sn_data/master/PantheonPlus/Pantheon+SH0ES_STAT+SYS.cov` | submatrix for zHD > 0.01 | 1701², 33.3 MB |
 | Union3 | `raw.githubusercontent.com/CobayaSampler/sn_data/master/Union3/lcparam_full.txt` and `.../Union3/mag_covmat.txt` | all nodes | about 22 binned nodes, 1.6 kB + 9.2 kB |
 | Compressed CMB prior | paper Appendix A, Eqs. 35-36 (θ* mean to 6 digits from `cmbant/PlanckEarlyLCDM`) | in the code | 3 numbers + 3 × 3 |
 
