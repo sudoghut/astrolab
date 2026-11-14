@@ -1,7 +1,7 @@
 """No-network checks of the DR4 release-day helper (.claude/skills/gaia-dr4-release-day/dr4_query.py).
 
-The helper is coupled to the M4 study code (TARGETS, data/ files, results layout); these tests
-make a change there that breaks it fail now rather than on release day.
+The helper is coupled to the M4 study (run.PARAMS/RELEASES, screen.SCHEMAS, results/reference_ids.json);
+these tests make a change there that breaks it fail now rather than on release day.
 """
 import os
 import subprocess
@@ -12,6 +12,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = ROOT / ".claude" / "skills" / "gaia-dr4-release-day" / "dr4_query.py"
+RESULTS = ROOT / "studies" / "001-m04-gaia-dormant-black-holes" / "results"
 
 
 def run(*args):
@@ -20,22 +21,26 @@ def run(*args):
                           encoding="utf-8", env=env, cwd=ROOT, timeout=120)
 
 
-def test_ids_lists_every_role():
+needs_reference = pytest.mark.skipif(
+    not (RESULTS / "reference_ids.json").exists() and not (RESULTS / "dr3" / "reference_ids.json").exists(),
+    reason="run the DR3 study first (reference_ids.json)")
+
+
+@needs_reference
+def test_ids_lists_the_reference_ids():
     r = run("ids")
     assert r.returncode == 0, r.stderr
-    counts = {line.split(" (")[0]: int(line.split("(")[1].split(")")[0]) for line in r.stdout.splitlines()}
-    assert counts["bh"] == 3 and counts["ns_controls"] == 21 and counts["literature"] == 6
-    assert counts["dr3_survivors"] > 0
+    n = int(r.stdout.split("(")[1].split(")")[0])
+    assert n >= 100   # 87 DR3 candidates + 21 NS + BH3 + literature, overlapping: 109 on DR3
 
 
 @pytest.mark.parametrize("args, expect", [
     (["schemas"], "FROM tap_schema.schemas"),
     (["tables", "gaiadr4"], "schema_name = 'gaiadr4'"),
     (["columns", "gaiadr4.gaia_source"], "table_name = 'gaiadr4.gaia_source'"),
-    (["types", "gaiadr4"], "FROM gaiadr4.nss_two_body_orbit GROUP BY nss_solution_type"),
+    (["types", "gaiadr4"], "COUNT(a_thiele_innes) AS n_thiele_innes FROM gaiadr4.nss_two_body_orbit GROUP BY"),
     (["count", "dr4"], "FROM gaiadr4.nss_two_body_orbit WHERE a_thiele_innes IS NOT NULL"),
-    (["resolve", "gaiadr4"], "FROM gaiadr4.gaia_source WHERE source_id IN ("),
-    (["followup", "gaiadr4"], "LEFT OUTER JOIN gaiadr4.nss_two_body_orbit"),
+    pytest.param(["resolve", "gaiadr4"], "FROM gaiadr4.gaia_source WHERE source_id IN (", marks=needs_reference),
 ])
 def test_print_builds_adql_without_network(args, expect):
     r = run(*args, "--print")
@@ -43,7 +48,13 @@ def test_print_builds_adql_without_network(args, expect):
     assert expect in r.stdout
 
 
-@pytest.mark.parametrize("args", [["count"], ["count", "gaiadr4"], ["tables", "x' OR 1=1"], ["types", "a;b"]])
+def test_archive_dry_run_refuses_wrong_release():
+    r = run("archive", "dr4", "--print")
+    assert r.returncode != 0 and "nothing archived" in r.stderr and "Traceback" not in r.stderr
+
+
+@pytest.mark.parametrize("args", [["count"], ["count", "gaiadr4"], ["tables", "x' OR 1=1"], ["types", "a;b"],
+                                  ["archive", "dr9"], ["followup", "gaiadr4"]])
 def test_bad_arguments_are_refused_with_a_message(args):
     r = run(*args, "--print")
     assert r.returncode != 0

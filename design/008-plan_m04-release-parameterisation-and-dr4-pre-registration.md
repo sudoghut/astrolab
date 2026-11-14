@@ -186,3 +186,22 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
 - 2026-11-14 · 环节 1 闸门 2 第 4 轮：1 个严重问题，成立：R-sel 没有最终的并列规则，选择可能取决于行的顺序。已补上：再按类型名的字典序，再按周期从小到大，缺失值排在最后。次要意见采纳：FLAME 质量为 NULL 时视为缺失。
 - 2026-11-14 · 环节 1 闸门 2 第 5 轮：1 个严重问题，成立：S3 的"全部解"查询没有强制上限。已加入先计数的停止规则：超过 50,000 行时 S3-DR4 不可评估，不取数（约 15 MB，在 200 MB 研究预算之内）。
 - 2026-11-14 · 环节 1 闸门 2 第 6 轮：无严重问题，无次要问题。**环节 1 通过双闸审查**：闸门 1 共 3 轮（严重问题 6 → 1 → 0），闸门 2 共 6 轮（2 → 1 → 2 → 1 → 1 → 0）。
+- 2026-11-14 · 环节 2 实现（闸门审查前）：
+  - **代码**：
+    - 新增 `selection.py`：把 R-sel、否决规则、F-DR4 标签、S1/S2/V 计数、身份核对、结果文件上限写成纯函数；
+    - `run.py` 加入 `PARAMS`、`RELEASES` 和 DR4 判据，结果最后统一写出；
+    - `dr4_query.py`：加入 `archive <release>`，类型统计加上 Thiele-Innes 计数，`resolve` 与正式运行共用函数；
+    - 新增不联网测试 `test_selection.py`、`test_run_guard.py`、`tests/test_dr4_query.py`。
+  - **环境**：本机用户目录（user site-packages）里有 numpy 2.5.4（2026-10-16 安装），而 Anaconda 的 pyerfa 是针对 numpy 1.x 编译的，所以 `astropy.coordinates` 和 `pyvo` 都无法导入（缓存也是空的，之前的 DR3 运行不在这台机器上）。
+    - 没有改共享环境，在 `%LOCALAPPDATA%strolabenv` 建了 `--system-site-packages` 虚拟环境（约 20 MB），配合 `PYTHONNOUSERSITE=1` 使用，写在不入库的 `CLAUDE.local.md`。
+    - 先前误把 pyvo、astropy-healpix、emcee、nsstools 也装进了用户目录，对本项目无害。
+  - **DR3 重跑**：查询数量很小，经受守卫的通道发出，在 11-25 之前完成。与重构前的快照比较：
+    - BH1、R1b、S1、S2、S3、否决结果、`bh_candidates` 各列、`ns_recall` 都完全相同；`screen_points` 行相同，只是服务器返回的顺序不同；
+    - BH2 的蒙特卡罗中位数由 8.521 变为 8.517 M☉（−0.575σ → −0.581σ）。中心值（a0、f_M、P、ϖ）完全相同，差别在蒙特卡罗噪声以内（中位数的标准误约 0.005 M☉），可能来自重新取数后 15 参数协方差矩阵分解的数值差异；判定不变；
+    - 新增 `reference_ids.json`（109 行）与 `period_error` 列。
+  - **DR4 演练**：在暂存目录（scratchpad）中把 `dr4` 模式临时指向 `gaiadr3`，完整运行 DR4 路径，结果与预期一致：
+    - 109/109 解析成功；
+    - R1、R2 不可评估（协方差未确认可信）；
+    - S1 通过（2 个目标可评估）；S2 为 21/21；
+    - V 通过，RV 部分偏弱（3 个可适用）；
+    - F-DR4 中 51 个全部为 `persists`；S3 为 0。
