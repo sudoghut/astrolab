@@ -35,7 +35,7 @@ M4 研究（`studies/001-m04-gaia-dormant-black-holes/`）早于论文立项流�
 - 2026-11-14 · 环节 1 闸门 1 第 1 轮：两位审查者（忠实于原文；Lean 编码与规则）共 5 个严重问题，全部成立，已修改。
   - BH3 自己就用地面视向速度（UVES、HERMES、SOPHIE）验证了轨道，`mod_rv3` 改为 [stated]（§2.3）。
   - `mod_dark2`、`mod_dark3` 的 Lean 内容强于引文：环节 C 拆成两步，"没有主序星"（引文）与"也没有其他发光恒星"（BH1 引"热而小或冷而大"，BH2 引红巨星句，BH3 为 [implied] 教科书知识）。
-  - BH3 论文从未讨论三个以上致密天体，`mod_few3` 改为 `gap_few3`（GAP，[reconstructed]），结论随之变为 `explicit_insufficient`。
+  - BH3 论文从未讨论三个以上致密天体，`mod_few3` 改为 `gap_few3`（GAP，[reconstructed]），结论随之变为 `explicit_insufficient`（环节 2 又把 BH3 的最后一步拆成 `mod_ns3` → `NoNS3` 与 `lit_wd3`，两者都以 `Few3` 为前件，缺口仍是 `gap_few3`）。
   - BH1 漏掉了论文强调的、与倾角无关的视向速度质量下限，补上 `stat_rvmin1`、`mod_rvmin1`。BH1 的质量从此有三条路径，环节 A、B 的 8 个前提都是多余的，与论文自己的稳健性说法一致；文章不再把联合拟合与只用天体测量说成相互独立。
   - 一并修正的次要意见：
     - BH2、BH3 的结论用完整引文；
@@ -66,3 +66,6 @@ M4 研究（`studies/001-m04-gaia-dormant-black-holes/`）早于论文立项流�
   - 文章称"阈值比测量值低约 3σ"对 BH1 不对（9.62 对 5 约为 26σ），改为只说 BH2、BH3。
   - 次要意见采纳：`mod_dark2` 改为 [implied]（引文只说 9 M☉ 的单星，8.0 M☉ 与一对恒星靠质光关系），列入 `stated_insufficient` 的说明；中子星最大质量写为约 2.2–2.5 M☉，补引 Rezzolla 等 2018，并说明因果性上限约 3 M☉ 时两颗中子星可以超过 5 M☉；Lean 文件头注释更新。
 - 2026-11-14 · 环节 2 闸门 1 第 2 轮：两位审查者都没有严重问题，**闸门 1 通过**。次要意见采纳：BH1 只用视向速度的段落改为 2 × 2.2 = 4.4；中子星最大质量写为约 2.2–2.3 M☉（Rezzolla 等 2018），考虑不确定度可到约 2.5；`mod_dark2` 的质光关系改引 Kippenhahn、Weigert 与 Weiss 2012；`stated_insufficient` 的说明补全；排版。
+- 2026-11-14 · 环节 2 闸门 2（Codex）第 1 轮：
+  - 1 个严重问题，不采纳：Codex 认为 `mod_ns3` 以 `Few3` 为前件，所以 `explicit_insufficient` 的反例模型（`Few3 := False`、`NoNS3 := False`）不满足 `mod_ns3`。这不成立：前件 `Few3` 为假时 `mod_ns3` 空真（vacuously true），定理通过构建与测试。`Few3` 前件对应引文中的"one neutron star or two neutron stars"，只会让前提变弱，不会强于引文。
+  - 次要意见采纳：BH3 的阈值低约 3.3σ（不是 3σ）；本计划第 1 轮记录补注环节 2 的拆分。

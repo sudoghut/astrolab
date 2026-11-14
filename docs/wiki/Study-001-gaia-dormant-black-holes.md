@@ -263,8 +263,8 @@ the RVs alone, which give a minimum mass for any inclination and do not need the
 have m1 : v.mass1 > 50 := p .mod_fit1 o1 (p .stat_fit1)   -- Sec. 4.1
 ```
 
-**Critique.** The BH2 and BH3 thresholds sit about 3σ below the measured values (8.9 ± 0.3 against 8.0;
-32.70 ± 0.82 against 30); BH1 uses the RV-only "> 5", far below the joint-fit 9.62 ± 0.18. BH1's RV-only route needs no Gaia orbit but does use the G star's mass from its SED: with no M1 at all the bound is about 4 Msun (§4.3), and 4 Msun would no longer exclude two neutron stars (2 × 2.2 = 4.4). The `mod_fit*`
+**Critique.** The BH2 and BH3 thresholds sit about 3σ and 3.3σ below the measured values (8.9 ± 0.3 against
+8.0; 32.70 ± 0.82 against 30); BH1 uses the RV-only "> 5", far below the joint-fit 9.62 ± 0.18. BH1's RV-only route needs no Gaia orbit but does use the G star's mass from its SED: with no M1 at all the bound is about 4 Msun (§4.3), and 4 Msun would no longer exclude two neutron stars (2 × 2.2 = 4.4). The `mod_fit*`
 premises carry more than Kepler: the dark-companion assumption (no light in the photocentre fit) and the
 step from a published estimate with its error to a bound on the true mass. For BH2 the 8.0 Msun bound rests
 on the Gaia inclination; the paper's inclination-free fallback (2.6 Msun, still above white-dwarf and
@@ -593,7 +593,7 @@ have o1 : v.Orbit1 := p .mod_rv1 (p .obs_rv1)   -- Sec. 3.2, 4.2.1
 have m1 : v.mass1 > 50 := p .mod_fit1 o1 (p .stat_fit1)   -- Sec. 4.1
 ```
 
-**评析。** BH2、BH3 的阈值比测量值低约 3σ（8.9 ± 0.3 对 8.0；32.70 ± 0.82 对 30）；BH1 用只靠视向速度的"> 5"，远低于联合拟合的 9.62 ± 0.18。BH1 只用视向速度的路径不需要 Gaia 轨道，但用到了由 SED 得到的 G 型星质量：完全不用 M1 时下限约为 4 M☉（§4.3），而 4 M☉ 已不足以排除两颗中子星（2 × 2.2 = 4.4）。`mod_fit*` 前提不只是开普勒定律：还包含暗伴星假设（光心拟合中伴星不发光），以及从带误差的发表值到真实质量下限的一步。对 BH2，8.0 M☉ 的下限依赖 Gaia 的倾角；论文给出的、与倾角无关的退路（2.6 M☉，仍高于白矮星和中子星质量）需要另一个环节 D，本编码没有包含。
+**评析。** BH2、BH3 的阈值分别比测量值低约 3σ 与 3.3σ（8.9 ± 0.3 对 8.0；32.70 ± 0.82 对 30）；BH1 用只靠视向速度的"> 5"，远低于联合拟合的 9.62 ± 0.18。BH1 只用视向速度的路径不需要 Gaia 轨道，但用到了由 SED 得到的 G 型星质量：完全不用 M1 时下限约为 4 M☉（§4.3），而 4 M☉ 已不足以排除两颗中子星（2 × 2.2 = 4.4）。`mod_fit*` 前提不只是开普勒定律：还包含暗伴星假设（光心拟合中伴星不发光），以及从带误差的发表值到真实质量下限的一步。对 BH2，8.0 M☉ 的下限依赖 Gaia 的倾角；论文给出的、与倾角无关的退路（2.6 M☉，仍高于白矮星和中子星质量）需要另一个环节 D，本编码没有包含。
 
 #### 2.3 环节 C · 这些质量不在发光恒星中
 
