@@ -38,7 +38,7 @@ structure Vocab where
   fit1 : Nat
   /-- BH1: companion mass from the Gaia DR3 astrometry alone, tenths of Msun. -/
   astro1 : Nat
-  /-- BH1: minimum companion mass from the RV orbit alone (any inclination), tenths of Msun. -/
+  /-- BH1: minimum companion mass from the RV orbit alone (any inclination, M1 from the SED), tenths of Msun. -/
   rvmin1 : Nat
   /-- BH1: true companion mass, tenths of Msun. -/
   mass1 : Nat
@@ -62,7 +62,7 @@ structure Vocab where
   mass2 : Nat
   /-- BH2: spectra, SED and UV show no light from a second luminous star. -/
   Faint2 : Prop
-  /-- BH2: no main-sequence star carries the companion mass. -/
+  /-- BH2: no main-sequence star (nor a close pair of them) carries the companion mass. -/
   NoMS2 : Prop
   /-- BH2: the companion mass is not carried by luminous (non-degenerate) stars of any kind. -/
   NoStar2 : Prop
@@ -105,7 +105,7 @@ inductive Field where
   | mod_astro1
   /-- STAT [stated 2209.06833: "The spectroscopic orbit alone sets a minimum companion mass of M2 > 5 M⊙"] Abstract; Sec. 4.3 -/
   | stat_rvmin1
-  /-- MOD [implied] the spectroscopic mass function gives a lower limit on the companion mass for any inclination (textbook, e.g. Hilditch 2001, An Introduction to Close Binary Stars) -/
+  /-- MOD [implied] the spectroscopic mass function gives a lower limit on the companion mass for any inclination, given the luminous-star mass M1 = 0.93 Msun from the SED (textbook, e.g. Hilditch 2001, An Introduction to Close Binary Stars); with no M1 at all the bound is about 4 Msun (Sec. 4.3) -/
   | mod_rvmin1
   /-- OBS [stated 2209.06833: "no evidence of another luminous star"] Sec. 5.1.1 -/
   | obs_faint1
@@ -129,7 +129,7 @@ inductive Field where
   | obs_faint2
   /-- MOD [stated 2302.07880: "a 9Msun main-sequence star would outshine the giant at all wavelengths"] Sec. 4 -/
   | mod_dark2
-  /-- MOD [stated 2302.07880: "But one or more red giant companions would outshine the giant in the optical"] Sec. 4 -/
+  /-- MOD [implied] non-main-sequence stars of several solar masses are at least as luminous as main-sequence stars of that mass (textbook, e.g. Kippenhahn, Weigert and Weiss 2012); the BH2 paper states it for red giants (Sec. 4) and limits hot companions with the UV (Sec. 3.3) -/
   | mod_other2
   /-- MOD [stated 2302.07880: "such a configuration would be difficult to assemble and would rapidly become unstable"] Sec. 4 -/
   | mod_few2
@@ -141,7 +141,7 @@ inductive Field where
   | mod_rv3
   /-- STAT [stated 2404.10486: "implies the presence of a 32.70±0.82 M⊙ BH"] Abstract, Eq. 5 -/
   | stat_fit3
-  /-- MOD [stated 2404.10486: "can be used to solve for the mass of the dark companion"] Sec. 2.2 (Eq. 2) -/
+  /-- MOD [stated 2404.10486: "can be used to solve for the mass of the dark companion"] Sec. 2.2-2.3 (Eqs. 2, 5); the step from the published 32.70 ± 0.82 to a bound of 5 Msun is the same textbook step as in mod_fit1 -/
   | mod_fit3
   /-- OBS [stated 2404.10486: "The spectra do not show any sign of the presence of a second component, nor any emission line"] Appendix C -/
   | obs_faint3
@@ -175,7 +175,7 @@ def prov : Field → Prov
   | .mod_fit2 => .implied
   | .obs_faint2 => .stated
   | .mod_dark2 => .stated
-  | .mod_other2 => .stated
+  | .mod_other2 => .implied
   | .mod_few2 => .stated
   | .mod_ns2 => .stated
   | .obs_rv3 => .stated
