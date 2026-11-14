@@ -128,8 +128,8 @@ fluctuation (a 0.2% chance under the stated assumptions).
 #### 2.0 Map of the argument
 
 A. the data: w0waCDM fits DESI + CMB better by Δχ²_MAP = −12.5 →
-B. the statistics: nested models + Gaussian likelihoods + correctly estimated errors → Wilks →
-3.1σ →
+B. the statistics: nested models + Gaussian, correctly estimated errors + Wilks regularity (our GAP)
+→ Wilks → 3.1σ →
 C. the interpretation: a ≥ 3σ preference cannot be dismissed (ΛCDM challenged); a better fit that
 relieves the BAO–CMB tension makes dynamical dark energy a possible solution
 ⇒ *unless there is an unknown systematic error*, ΛCDM is challenged and dynamical dark energy is a
@@ -209,7 +209,7 @@ prior at the lower end".
 |---|---|---|---|
 | `mod_nested`: ΛCDM is w0waCDM with w0 = −1, wa = 0 | MOD | stated 2503.14738: "$\Lambda$ CDM is nested within $w_{0}w_{a}$ CDM, corresponding to $w_{0}=-1$ , $w_{a}=0$" | §VII |
 | `mod_gauss`: the errors are Gaussian (working assumption) | MOD | stated 2503.14738: "assuming that errors are Gaussian and correctly estimated" | §VII |
-| `mod_regular`: Wilks' regularity conditions hold (large-sample limit, ΛCDM point inside the prior box) | MOD | implied: Wilks 1938, Ann. Math. Statist. 9, 60; not discussed by the paper | — |
+| `gap_regular`: Wilks' regularity conditions hold, so Δχ²_MAP is calibrated by χ²(2) (large-sample limit, ΛCDM point inside the prior box) | GAP | reconstructed: Wilks 1938 (1938AnMS....9...60W) gives the theorem, not its validity for this nonlinear fit; the paper neither discusses nor simulates it | — |
 | `mod_wilks`: nested + Gaussian + regular + no systematics → Δχ²_MAP ~ χ²(2 dof) | MOD | stated 2503.14738: "implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated" | §VII |
 | `mod_sig`: Wilks + Δχ² ≤ −12.5 → 3.1σ | MOD | stated 2503.14738: "corresponding to a 3.1 $\sigma$ preference for evolving dark energy" | §VII.1 (via Eq. 22, §VII) |
 
@@ -217,14 +217,14 @@ prior at the lower end".
 
 | Alternative | Excluded by premise | Excluded explicitly by the paper? |
 |---|---|---|
-| Non-Gaussian likelihood tails (the low-ℓ CMB likelihoods are not Gaussian) make large Δχ² more common than χ²(2) says | `mod_gauss`, `mod_regular` | no: the paper writes "assuming that errors are Gaussian" |
-| Prior boundaries or parameter-space volume distort the Δχ² distribution | `mod_regular` | no |
+| Non-Gaussian likelihood tails (the low-ℓ CMB likelihoods are not Gaussian) make large Δχ² more common than χ²(2) says | `mod_gauss` (stated assumption), `gap_regular` | no: the paper writes "assuming that errors are Gaussian" and does not discuss the calibration |
+| Prior boundaries or parameter-space volume distort the Δχ² distribution | `gap_regular` | no (not discussed) |
 | Underestimated errors | `NoSys` (condition of the conclusion) | yes, as the stated caveat |
 
 **Inference (Lean excerpt).**
 
 ```lean
-have w : v.WilksOK := p .mod_wilks (p .mod_nested) (p .mod_gauss) (p .mod_regular) hns
+have w : v.WilksOK := p .mod_wilks (p .mod_nested) (p .mod_gauss) (p .gap_regular) hns
 have s : v.sig ≥ 31 := p .mod_sig w d                                  -- Eq. 22
 ```
 
@@ -233,8 +233,8 @@ estimated") and does not test it. The "correctly estimated" half is the conditio
 conclusion; the "Gaussian" half is the stated working assumption `mod_gauss`, which is not literally
 true for the full CMB (the low-ℓ likelihoods are not Gaussian). Wilks' theorem itself does not need
 Gaussian errors; it needs regularity: a large-sample limit and the null point away from prior
-boundaries. The paper does not discuss this, so we add it as the `[implied]` premise
-`mod_regular`. w0 = −1, wa = 0 is inside the prior box, so it is plausible, but no simulation of the
+boundaries. The paper does not discuss this, and the textbook theorem does not show that it holds for this
+nonlinear fit, so it is our `GAP` premise `gap_regular`. w0 = −1, wa = 0 is inside the prior box, so it is plausible, but no simulation of the
 Δχ² distribution is reported. That is
 something this repo can explore with the compressed prior (part 3).
 
@@ -279,19 +279,24 @@ theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   (h ⟨True, True, False, True, False, 125, 0, False, True⟩
     (by intro f hf; cases f <;> simp_all [prov, prem]) trivial).1
 
-theorem explicit_sufficient : ∀ v, Explicit v → Conclusion v := fun v p =>
-  final v (fun f => p f (by cases f <;> decide))
+theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
+  (h ⟨True, True, False, True, False, 125, 0, False, True⟩
+    (by intro f hf; cases f <;> simp_all [prov, prem]) trivial).1
 ```
 
-1. **`explicit_sufficient`**: with standard knowledge the chain closes; there is no `GAP`. That is
-   because the paper puts its main caveat into the conclusion itself ("unless there is an unknown
-   systematic error"). The encoding keeps that condition; without it the chain would need a GAP
-   "no unknown systematics", which no paper can supply.
-2. **`stated_insufficient`**: what the paper writes needs one piece of background: the regularity
-   conditions of Wilks' theorem (`mod_regular`), which the paper does not discuss. The countermodel
-   sets `Regular := False`: then Wilks does not apply, there is no significance, and the conclusion
-   fails. (Gaussian errors, by contrast, are stated as an assumption.)
-3. **Every premise is needed** (eight `_needed` theorems). There is a single route from data to
+1. **`explicit_insufficient`**: even with standard knowledge the chain has one real gap,
+   `gap_regular`: that Δχ²_MAP is calibrated by a χ² distribution with two degrees of freedom for
+   this nonlinear fit. Wilks' theorem gives this only under regularity conditions, and the paper
+   neither discusses nor simulates them. The countermodel sets `Regular := False`: Wilks does not
+   apply, there is no significance, and the conclusion fails. This gap is explorable here (part 3,
+   "Stage B · Wilks calibration"). The paper's main caveat, unknown systematics, is not a gap of
+   the encoding because the paper writes it into the conclusion ("unless there is an unknown
+   systematic error"); without that condition the chain would need a second GAP "no unknown
+   systematics", which no paper can supply.
+2. **`stated_insufficient`**: for the same reason, what the paper writes is not enough. Gaussian
+   errors, by contrast, are a stated assumption (`mod_gauss`).
+3. **Every premise is needed** (eight `_needed` theorems; `mod_gauss` is needed only because we encode the
+   paper's own sufficient condition for Wilks, which does not itself require Gaussian errors). There is a single route from data to
    conclusion: the Δχ², Wilks, and the two interpretive steps. This follows partly from our
    encoding choice (§2.0): the abstract's conclusion is about "DESI BAO with other measurements",
    backed by a range of 2.8–4.2σ that includes combinations below 3σ; we encode only DESI + CMB. In particular, the conclusion
@@ -299,7 +304,7 @@ theorem explicit_sufficient : ∀ v, Explicit v → Conclusion v := fun v p =>
    compressed CMB prior the same chain gives 2.4σ, below the 3σ of `mod_challenge`.
 4. **Ranked weak points** (ours, not Lean's): (i) the condition "no unknown systematics" is where
    the debate is — the supernova range 2.8–4.2σ and the Dovekie drop to 3.2σ show how much
-   calibration moves the answer; (ii) the Wilks calibration (`mod_regular`) is assumed, not simulated; (iii) the
+   calibration moves the answer; (ii) the Wilks calibration (`gap_regular`) is assumed, not simulated; (iii) the
    significance relies on CMB lensing; (iv) "possible solution" includes phantom behaviour.
 5. **Consistency** (`consistent`) holds trivially here: no premise is negative.
 6. **Limits**: Lean checks the structure under our encoding, not the physics in each premise.
@@ -335,7 +340,7 @@ theorem explicit_sufficient : ∀ v, Explicit v → Conclusion v := fun v p =>
 ### Changelog
 
 - 2026-11-14: first version: parts 1–3, written before implementation (T-004, plan 010); revised after
-  gate-1 review (Gaussian errors are a stated assumption; Wilks regularity added as `mod_regular`).
+  gate-1 review (Gaussian errors are a stated assumption; Wilks regularity added as the GAP `gap_regular`, so `explicit_insufficient`).
 
 ---
 
@@ -403,7 +408,7 @@ DR2 给出 7 个红移区间（论文表 4），从 z = 0.295 的亮星系样本
 #### 2.0 论证结构
 
 A. 数据：w0waCDM 对 DESI + CMB 的拟合好 Δχ²_MAP = −12.5 →
-B. 统计：模型嵌套（nested）+ 高斯似然 + 误差估计正确 → 威尔克斯定理 → 3.1σ →
+B. 统计：模型嵌套（nested）+ 误差高斯且估计正确 + 威尔克斯正则性（我们补上的 GAP）→ 威尔克斯定理 → 3.1σ →
 C. 解释：≥ 3σ 的偏好不能轻易忽略（ΛCDM 受到挑战）；拟合更好且消除 BAO–CMB 张力，使动力学暗能量成为可能的解释
 ⇒ *除非存在未知系统误差*，ΛCDM 受到挑战，动力学暗能量是一种可能的解释。
 
@@ -420,7 +425,7 @@ C. 解释：≥ 3σ 的偏好不能轻易忽略（ΛCDM 受到挑战）；拟合
 
 出处性质：`[stated <arXiv 编号>: "引文"]`（论文明说，附引文）、`[implied]`（论文依赖但没写出的标准知识，注明来源）、`[reconstructed]`（我们补上的；恰好是 `GAP` 前提）。
 
-Lean 检查：结论能否由这些前提推出（`final`），且不是恒真（`final_nontrivial`）；前提能否同时成立（`consistent`）；没有任何单个前提单独推出结论（`alone_insufficient`）；每个前提是必要的（去掉它有反例模型）还是多余的；论文实际写出的前提是否足够（`stated_*`），加上标准知识后是否足够（`explicit_*`；`explicit_insufficient` 表示真正的缺口）。Lean 不检查：每个前提内部的物理——那是第一、三部分和研究本身的任务。
+Lean 检查：结论能否由这些前提推出（`final`），且不是恒真（`final_nontrivial`）；前提能否同时成立（`consistent`）；没有任何单个前提单独推出结论（`alone_insufficient`）；每个前提是必要的（去掉它有反例模型（countermodel））还是多余的；论文实际写出的前提是否足够（`stated_*`），加上标准知识后是否足够（`explicit_*`；`explicit_insufficient` 表示真正的缺口）。Lean 不检查：每个前提内部的物理——那是第一、三部分和研究本身的任务。
 
 编码选择：Δχ² 与显著性用十分之一为单位的整数（12.5 → 125，3.1σ → 31）。结论保留论文的条件：`Conclusion v := v.NoSys → v.Challenged ∧ v.DDE`，`NoSys` 表示 DESI 或 CMB 数据中没有未知系统误差（误差估计正确）。超新星组合不在链条中：DESI + CMB 的标题数字不需要超新星，论文本身也只给出范围（2.8–4.2σ）。因此第二篇论文（Dovekie）是第一、三部分的背景，不是链条的前提。
 
@@ -459,7 +464,7 @@ have d : v.dchi2 ≥ 125 := p .stat_dchi2   -- Sec. VII.1, Table 6
 |---|---|---|---|
 | `mod_nested`：ΛCDM 是 w0 = −1、wa = 0 的 w0waCDM | MOD | stated 2503.14738："$\Lambda$ CDM is nested within $w_{0}w_{a}$ CDM, corresponding to $w_{0}=-1$ , $w_{a}=0$" | §VII |
 | `mod_gauss`：误差是高斯的（工作假设） | MOD | stated 2503.14738："assuming that errors are Gaussian and correctly estimated" | §VII |
-| `mod_regular`：威尔克斯定理的正则性（regularity）条件成立（大样本极限，ΛCDM 点在先验范围内部） | MOD | implied：Wilks 1938, Ann. Math. Statist. 9, 60；论文没有讨论 | — |
+| `gap_regular`：威尔克斯定理的正则性（regularity）条件成立，所以 Δχ²_MAP 按 χ²(2) 校准（大样本极限，ΛCDM 点在先验范围内部） | GAP | reconstructed：Wilks 1938（1938AnMS....9...60W）给出定理，但不说明它对这一非线性拟合成立；论文既没有讨论也没有模拟 | — |
 | `mod_wilks`：嵌套 + 高斯 + 正则 + 无系统误差 → Δχ²_MAP 服从 χ²（2 个自由度） | MOD | stated 2503.14738："implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated" | §VII |
 | `mod_sig`：威尔克斯 + Δχ² ≤ −12.5 → 3.1σ | MOD | stated 2503.14738："corresponding to a 3.1 $\sigma$ preference for evolving dark energy" | §VII.1（经 §VII 的式 22） |
 
@@ -467,18 +472,18 @@ have d : v.dchi2 ≥ 125 := p .stat_dchi2   -- Sec. VII.1, Table 6
 
 | 其他解释 | 由哪个前提排除 | 论文是否明确排除 |
 |---|---|---|
-| 似然（likelihood）的非高斯尾部（低 ℓ 的 CMB 似然不是高斯的）让大的 Δχ² 比 χ²(2) 更常见 | `mod_gauss`、`mod_regular` | 否：论文写的是"假设误差是高斯的" |
-| 先验边界或参数空间体积扭曲 Δχ² 的分布 | `mod_regular` | 否 |
+| 似然（likelihood）的非高斯尾部（低 ℓ 的 CMB 似然不是高斯的）让大的 Δχ² 比 χ²(2) 更常见 | `mod_gauss`（明说的假设）、`gap_regular` | 否：论文写的是"假设误差是高斯的"，没有讨论校准 |
+| 先验边界或参数空间体积扭曲 Δχ² 的分布 | `gap_regular` | 否（没有讨论） |
 | 误差被低估 | `NoSys`（结论的条件） | 是，作为明说的保留 |
 
 **推理（Lean 摘录）。**
 
 ```lean
-have w : v.WilksOK := p .mod_wilks (p .mod_nested) (p .mod_gauss) (p .mod_regular) hns
+have w : v.WilksOK := p .mod_wilks (p .mod_nested) (p .mod_gauss) (p .gap_regular) hns
 have s : v.sig ≥ 31 := p .mod_sig w d                                  -- Eq. 22
 ```
 
-**评析。** 论文写明了它的假设（"假设误差是高斯的且估计正确"），没有检验。"估计正确"这一半是结论的条件 `NoSys`；"高斯"这一半是明说的工作假设 `mod_gauss`，对完整 CMB 并不严格成立（低 ℓ 的似然不是高斯的）。威尔克斯定理本身并不需要高斯误差，需要的是正则性：大样本极限（渐近，asymptotic），且零假设点远离先验边界。论文没有讨论这一点，所以我们把它作为 `[implied]` 前提 `mod_regular` 补上。w0 = −1、wa = 0 在先验范围内部，所以大致合理，但论文没有报告 Δχ² 分布的模拟。本项目可以用压缩先验探索这一点（第三部分）。
+**评析。** 论文写明了它的假设（"假设误差是高斯的且估计正确"），没有检验。"估计正确"这一半是结论的条件 `NoSys`；"高斯"这一半是明说的工作假设 `mod_gauss`，对完整 CMB 并不严格成立（低 ℓ 的似然不是高斯的）。威尔克斯定理本身并不需要高斯误差，需要的是正则性：大样本极限（渐近，asymptotic），且零假设点远离先验边界。论文没有讨论这一点，教科书定理也不说明它对这一非线性拟合成立，所以它是我们补上的 `GAP` 前提 `gap_regular`。w0 = −1、wa = 0 在先验范围内部，所以大致合理，但论文没有报告 Δχ² 分布的模拟。本项目可以用压缩先验探索这一点（第三部分）。
 
 #### 2.3 环节 C · 从 3.1σ 到"受到挑战"与"可能的解释"
 
@@ -516,14 +521,15 @@ theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   (h ⟨True, True, False, True, False, 125, 0, False, True⟩
     (by intro f hf; cases f <;> simp_all [prov, prem]) trivial).1
 
-theorem explicit_sufficient : ∀ v, Explicit v → Conclusion v := fun v p =>
-  final v (fun f => p f (by cases f <;> decide))
+theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
+  (h ⟨True, True, False, True, False, 125, 0, False, True⟩
+    (by intro f hf; cases f <;> simp_all [prov, prem]) trivial).1
 ```
 
-1. **`explicit_sufficient`**：加上标准知识后链条闭合，没有 `GAP`。原因是论文把主要的保留直接写进了结论（"除非存在未知系统误差"）。编码保留了这个条件；去掉它，链条就需要一个"没有未知系统误差"的 GAP，而这是任何论文都无法提供的。
-2. **`stated_insufficient`**：论文写出的内容需要一条背景知识：威尔克斯定理的正则性条件（`mod_regular`），论文没有讨论。反例模型（countermodel）令 `Regular := False`：威尔克斯定理不适用，没有显著性，结论不成立。（高斯误差则是论文明说的假设。）
-3. **每个前提都是必要的**（8 个 `_needed` 定理）。从数据到结论只有一条路径：Δχ²、威尔克斯定理与两个解释步骤。这部分是我们编码选择的结果（§2.0）：摘要的结论针对"DESI BAO 与其他测量的组合"，依据的是 2.8–4.2σ 的范围，其中包括低于 3σ 的组合；我们只编码了 DESI + CMB。特别是，结论依赖一个用包括透镜在内的完整 CMB 似然算出的数（−12.5）；用压缩 CMB 先验时同一链条给出 2.4σ，低于 `mod_challenge` 的 3σ。
-4. **按重要性排序的薄弱点**（我们的判断，不是 Lean 的）：(i) "没有未知系统误差"这一条件正是争论所在——超新星给出的 2.8–4.2σ 范围和 Dovekie 降到 3.2σ，说明校准对答案影响很大；(ii) 威尔克斯校准（`mod_regular`）是假设的，没有模拟；(iii) 显著性依赖 CMB 透镜；(iv) "可能的解释"包含幽灵行为。
+1. **`explicit_insufficient`**：即使加上标准知识，链条仍有一处真正的缺口 `gap_regular`：对这一非线性拟合，Δχ²_MAP 按 2 个自由度的 χ² 分布校准。威尔克斯定理只在正则性条件下给出这一点，论文既没有讨论也没有模拟。反例模型令 `Regular := False`：威尔克斯定理不适用，没有显著性，结论不成立。这个缺口在本项目可以探索（第三部分"环节 B · 威尔克斯校准"）。论文的主要保留——未知系统误差——不是编码中的缺口，因为论文把它写进了结论（"除非存在未知系统误差"）；去掉这个条件，链条就需要第二个"没有未知系统误差"的 GAP，而这是任何论文都无法提供的。
+2. **`stated_insufficient`**：同样的原因，论文写出的内容不够。高斯误差则是论文明说的假设（`mod_gauss`）。
+3. **每个前提都是必要的**（8 个 `_needed` 定理；`mod_gauss` 之所以必要，只是因为我们编码了论文自己给出的威尔克斯定理的充分条件，而该定理本身并不要求高斯误差）。从数据到结论只有一条路径：Δχ²、威尔克斯定理与两个解释步骤。这部分是我们编码选择的结果（§2.0）：摘要的结论针对"DESI BAO 与其他测量的组合"，依据的是 2.8–4.2σ 的范围，其中包括低于 3σ 的组合；我们只编码了 DESI + CMB。特别是，结论依赖一个用包括透镜在内的完整 CMB 似然算出的数（−12.5）；用压缩 CMB 先验时同一链条给出 2.4σ，低于 `mod_challenge` 的 3σ。
+4. **按重要性排序的薄弱点**（我们的判断，不是 Lean 的）：(i) "没有未知系统误差"这一条件正是争论所在——超新星给出的 2.8–4.2σ 范围和 Dovekie 降到 3.2σ，说明校准对答案影响很大；(ii) 威尔克斯校准（`gap_regular`）是假设的，没有模拟；(iii) 显著性依赖 CMB 透镜；(iv) "可能的解释"包含幽灵行为。
 5. **相容性**（`consistent`）在这里是平凡成立的：没有否定形式的前提。
 6. **局限**：Lean 检查的是我们编码下的逻辑结构，不是每个前提内部的物理。
 
@@ -557,4 +563,4 @@ theorem explicit_sufficient : ∀ v, Explicit v → Conclusion v := fun v p =>
 
 ### 研究进展
 
-- 2026-11-14：第一版：第一至三部分，在实现之前写成（T-004，计划 010）；按闸门 1 审查修订（高斯误差是明说的假设；威尔克斯正则性作为 `mod_regular` 补上）。
+- 2026-11-14：第一版：第一至三部分，在实现之前写成（T-004，计划 010）；按闸门 1 审查修订（高斯误差是明说的假设；威尔克斯正则性作为 GAP `gap_regular` 补上，因而 `explicit_insufficient`）。

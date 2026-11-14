@@ -7,7 +7,7 @@ headline DESI + CMB result needs no supernovae); it is discussed in the wiki art
 The chain (conclusion is conditional, as in the paper: unless there is an unknown systematic error):
   w0waCDM improves the DESI + CMB fit by Delta chi2_MAP = -12.5
   LCDM is nested in w0waCDM, errors Gaussian and correctly estimated (assumed by the paper),
-  asymptotic regularity (null point inside the prior box)
+  asymptotic regularity (null point inside the prior box; not discussed by the paper: GAP)
       -> Wilks: Delta chi2_MAP follows chi2 with 2 degrees of freedom under LCDM
   -> 3.1 sigma preference
   -> a preference of about 3 sigma or more is not trivially dismissed: LCDM is challenged
@@ -55,10 +55,10 @@ inductive Field where
   | stat_dchi2
   /-- MOD [stated 2503.14738: "$\Lambda$ CDM is nested within $w_{0}w_{a}$ CDM, corresponding to $w_{0}=-1$ , $w_{a}=0$"] Sec. VII -/
   | mod_nested
-  /-- MOD [stated 2503.14738: "assuming that errors are Gaussian and correctly estimated"] Sec. VII (adopted as a working assumption; the correctly-estimated half is the condition NoSys of the conclusion) -/
+  /-- MOD [stated 2503.14738: "assuming that errors are Gaussian and correctly estimated"] Sec. VII (adopted as a working assumption, not literally true for the low-l CMB likelihoods; the correctly-estimated half is the condition NoSys of the conclusion) -/
   | mod_gauss
-  /-- MOD [implied] the regularity conditions of Wilks theorem hold for this fit: asymptotic (large-sample) limit and the LCDM point w0 = -1, wa = 0 inside the prior box w0 in [-3, 1], wa in [-3, 2], w0 + wa < 0 (Wilks 1938, Ann. Math. Statist. 9, 60, doi:10.1214/aoms/1177732360); the paper does not discuss them, and the full CMB likelihood is not Gaussian at low l -/
-  | mod_regular
+  /-- GAP [reconstructed] the regularity conditions of Wilks theorem hold for this fit: large-sample limit and the LCDM point w0 = -1, wa = 0 inside the prior box w0 in [-3, 1], wa in [-3, 2], w0 + wa < 0, so that Delta chi2_MAP is calibrated by chi2 with 2 degrees of freedom; Wilks 1938 (1938AnMS....9...60W) gives the theorem, not its validity for this nonlinear fit, and the paper neither discusses nor simulates it -/
+  | gap_regular
   /-- MOD [stated 2503.14738: "implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated"] Sec. VII (Wilks theorem) -/
   | mod_wilks
   /-- MOD [stated 2503.14738: "corresponding to a 3.1 $\sigma$ preference for evolving dark energy"] Sec. VII.1 (via Eq. 22, Sec. VII) -/
@@ -73,7 +73,7 @@ def prov : Field → Prov
   | .stat_dchi2 => .stated
   | .mod_nested => .stated
   | .mod_gauss => .stated
-  | .mod_regular => .implied
+  | .gap_regular => .reconstructed
   | .mod_wilks => .stated
   | .mod_sig => .stated
   | .mod_challenge => .stated
@@ -83,7 +83,7 @@ def prem : Field → Vocab → Prop
   | .stat_dchi2, v => v.dchi2 ≥ 125
   | .mod_nested, v => v.Nested
   | .mod_gauss, v => v.Gaussian
-  | .mod_regular, v => v.Regular
+  | .gap_regular, v => v.Regular
   | .mod_wilks, v => v.Nested → v.Gaussian → v.Regular → v.NoSys → v.WilksOK
   | .mod_sig, v => v.WilksOK → v.dchi2 ≥ 125 → v.sig ≥ 31
   | .mod_challenge, v => v.sig ≥ 30 → v.Challenged
@@ -102,7 +102,7 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 /-- The paper's chain, step by step. -/
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p hns
-  have w : v.WilksOK := p .mod_wilks (p .mod_nested) (p .mod_gauss) (p .mod_regular) hns
+  have w : v.WilksOK := p .mod_wilks (p .mod_nested) (p .mod_gauss) (p .gap_regular) hns
   have d : v.dchi2 ≥ 125 := p .stat_dchi2                                -- Sec. VII.1, Table 6
   have s : v.sig ≥ 31 := p .mod_sig w d                                  -- Eq. 22
   have c : v.Challenged := p .mod_challenge (by omega)                   -- Sec. VII.3
@@ -136,7 +136,7 @@ theorem mod_gauss_needed : ¬ ∀ v, Without .mod_gauss v → Conclusion v := fu
   (h ⟨True, False, True, True, False, 125, 0, False, True⟩
     (by intro f hf; cases f <;> simp_all [prem]) trivial).1
 
-theorem mod_regular_needed : ¬ ∀ v, Without .mod_regular v → Conclusion v := fun h =>
+theorem gap_regular_needed : ¬ ∀ v, Without .gap_regular v → Conclusion v := fun h =>
   (h ⟨True, True, False, True, False, 125, 0, False, True⟩
     (by intro f hf; cases f <;> simp_all [prem]) trivial).1
 
@@ -157,14 +157,16 @@ theorem mod_dde_needed : ¬ ∀ v, Without .mod_dde v → Conclusion v := fun h 
     (by intro f hf; cases f <;> simp_all [prem]) trivial).2
 
 /-- What the paper writes is not enough: Wilks theorem also needs its regularity conditions
-(asymptotic limit, null point inside the prior box), which the paper does not discuss. -/
+(gap_regular), which the paper does not discuss. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   (h ⟨True, True, False, True, False, 125, 0, False, True⟩
     (by intro f hf; cases f <;> simp_all [prov, prem]) trivial).1
 
-/-- With standard knowledge the chain closes: no reconstructed premise is needed. The
-conclusion is conditional on the absence of unknown systematics, as the paper says. -/
-theorem explicit_sufficient : ∀ v, Explicit v → Conclusion v := fun v p =>
-  final v (fun f => p f (by cases f <;> decide))
+/-- Even with standard knowledge the chain has a gap: the chi2(2) calibration of Delta chi2_MAP
+(gap_regular) is assumed, not shown. The other caveat, unknown systematics, is the condition of the
+conclusion itself. -/
+theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
+  (h ⟨True, True, False, True, False, 125, 0, False, True⟩
+    (by intro f hf; cases f <;> simp_all [prov, prem]) trivial).1
 
 end Argument
