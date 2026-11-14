@@ -37,7 +37,7 @@ structure Vocab where
   h_full : Nat
   /-- Reported central value of H0 from HST Cepheids on the 10 CCHP-selected hosts (11 SNe Ia), NGC 4258 anchor, tenths. -/
   h_sel : Nat
-  /-- Choosing the CCHP hosts and anchor is expected to lower H0 by about 2 km/s/Mpc. -/
+  /-- The paper attributes the about 2 km/s/Mpc lower H0 on the CCHP-selected sample to the choice of SN hosts and anchor. -/
   ExpDrop : Prop
   /-- On the same hosts, HST Cepheid and JWST (Cepheid, TRGB, JAGB) distances agree within errors. -/
   AgreeSameHost : Prop
@@ -54,22 +54,22 @@ inductive Field where
   | stat_full
   /-- STAT [stated 2408.11770: "a corresponding value of H ${}_{0}=71.2$"] Sec. III.2 (HST Cepheids on the CCHP-selected hosts, NGC 4258 anchor) -/
   | stat_sel
-  /-- MOD [stated 2408.11770: "thus 2.0 $\,\rm km\,s^{-1}\,Mpc^{-1}$ lower than the full HST sample—simply due to the choice of SN hosts and anchor"] Sec. III.2 -/
-  | mod_drop
+  /-- STAT [stated 2408.11770: "thus 2.0 $\,\rm km\,s^{-1}\,Mpc^{-1}$ lower than the full HST sample—simply due to the choice of SN hosts and anchor"] Sec. III.2 -/
+  | stat_drop
   /-- STAT [stated 2408.11770: "The HST Cepheid and JWST distance measurements themselves are in good agreement"] Fig. 5 caption; the numbers are in Sec. II.3, Table 2 (TRGB 0.032, JAGB 0.047, Cepheids -0.027 mag; uncertainties 0.05-0.10 mag) -/
   | stat_agree
   /-- STAT [stated 2408.11770: "we find the values inferred using JWST are consistent with expectations for every subsample"] Sec. III.3 (next sentence: at or within 1 sigma of these smaller uncertainties, i.e. between HST and JWST excluding SNe; Table 4) -/
   | stat_resid
   /-- STAT [stated 2408.11770: "For the combination of these three methods, F24 reports $70$ $\,\rm km\,s^{-1}\,Mpc^{-1}$ , near the HST -expected value of $\sim$ 70.8 $\pm 2.3$"] Sec. III.2 (also: F24's JWST Cepheids about 72 and NIR-TRGB near the HST-expected about 71) -/
   | stat_f24
-  /-- GAP [reconstructed] our reading of the paper's inference: an expected selection shift, agreement on the same hosts, a within-1 sigma comparison, and the right quantity together make the difference entirely consistent with selection; the paper states the conclusion but not this rule, and no textbook supplies it (a standard definition of consistency within errors, e.g. Taylor 1997, covers only the last comparison) -/
+  /-- GAP [reconstructed] our reading of the paper's inference: the two reported values, the attribution of their difference to selection, agreement on the same hosts, a within-1 sigma comparison, and the right quantity together make the difference entirely consistent with selection; the paper states the conclusion but not this rule, and no textbook supplies it (a standard definition of consistency within errors, e.g. Taylor 1997, covers only the last comparison) -/
   | gap_rule
   deriving DecidableEq, Repr
 
 def prov : Field → Prov
   | .stat_full => .stated
   | .stat_sel => .stated
-  | .mod_drop => .stated
+  | .stat_drop => .stated
   | .stat_agree => .stated
   | .stat_resid => .stated
   | .stat_f24 => .stated
@@ -78,11 +78,11 @@ def prov : Field → Prov
 def prem : Field → Vocab → Prop
   | .stat_full, v => v.h_full ≥ 732
   | .stat_sel, v => v.h_sel ≤ 712
-  | .mod_drop, v => v.h_full ≥ 732 → v.h_sel ≤ 712 → v.ExpDrop
+  | .stat_drop, v => v.ExpDrop
   | .stat_agree, v => v.AgreeSameHost
   | .stat_resid, v => v.ResidSmall
   | .stat_f24, v => v.F24Near
-  | .gap_rule, v => v.ExpDrop → v.AgreeSameHost → v.ResidSmall → v.F24Near → v.ConsSel
+  | .gap_rule, v => v.h_full ≥ 732 → v.h_sel ≤ 712 → v.ExpDrop → v.AgreeSameHost → v.ResidSmall → v.F24Near → v.ConsSel
 
 /-- [stated 2408.11770: "between the CCHP JWST program and the full HST sample is entirely consistent with differences in sample selection"] Abstract -/
 def Conclusion (v : Vocab) : Prop := v.ConsSel
@@ -97,8 +97,8 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 /-- The paper's chain, step by step. -/
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  have d : v.ExpDrop := p .mod_drop (p .stat_full) (p .stat_sel)   -- Sec. III.2
-  exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .stat_f24)  -- Sec. II.3, III.2-3; GAP
+  exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p .stat_resid)
+    (p .stat_f24)  -- Abstract, Sec. II.3, III.2-3; GAP
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
   fun h => h ⟨0, 0, False, False, False, False, False⟩
@@ -109,17 +109,16 @@ theorem consistent : ∃ v, Premises v :=
 theorem alone_insufficient : ∀ g, ¬ ∀ v, prem g v → Conclusion v := by
   intro g h
   cases g
-  case mod_drop => exact h ⟨0, 999, False, False, False, False, False⟩ (by simp [prem])
   case gap_rule => exact h ⟨0, 999, False, False, False, False, False⟩ (by simp [prem])
-  all_goals exact h ⟨732, 712, False, True, True, True, False⟩ (by simp [prem])
+  all_goals exact h ⟨732, 712, True, True, True, True, False⟩ (by simp [prem])
 
 theorem stat_full_needed : ¬ ∀ v, Without .stat_full v → Conclusion v := fun h =>
-  h ⟨0, 712, False, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨0, 712, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_sel_needed : ¬ ∀ v, Without .stat_sel v → Conclusion v := fun h =>
-  h ⟨732, 999, False, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨732, 999, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-theorem mod_drop_needed : ¬ ∀ v, Without .mod_drop v → Conclusion v := fun h =>
+theorem stat_drop_needed : ¬ ∀ v, Without .stat_drop v → Conclusion v := fun h =>
   h ⟨732, 712, False, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_agree_needed : ¬ ∀ v, Without .stat_agree v → Conclusion v := fun h =>
