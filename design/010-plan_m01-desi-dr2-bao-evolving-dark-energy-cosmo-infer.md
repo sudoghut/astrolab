@@ -9,9 +9,9 @@
 按论文立项流程（`paper-study` 技能，计划 007）把 M1 立为研究：
 
 - 复现 DESI DR2 只用重子声学振荡（BAO, Baryon Acoustic Oscillations）时 ΛCDM 下的 Ωm 与 h·r_d；
-- 复现 DESI DR2 加压缩宇宙微波背景（CMB, Cosmic Microwave Background）先验时，演化暗能量模型 w0waCDM 相对 ΛCDM 的偏好（Δχ²_MAP 与等效显著性）；
+- 复现 DESI DR2 加压缩宇宙微波背景（CMB, Cosmic Microwave Background）先验（compressed prior，把 CMB 信息压缩成少数几个早期宇宙参数的高斯分布）时，演化暗能量模型 w0waCDM 相对 ΛCDM 的偏好（Δχ²_MAP 与等效显著性）；
 - 加入超新星（SN, supernova）样本（Pantheon+、Union3、DES-Dovekie），看偏好程度如何随样本变化，并与论文给出的数值对比；
-- 为此新增两个核心模块：`astrolab/cosmo.py`（平直宇宙背景演化与 BAO、超新星、CMB 声学尺度可观测量）与 `astrolab/infer.py`（高斯似然、解析边缘化、最大后验（MAP, maximum a posteriori）寻优、emcee 采样、Δχ² 与显著性换算）。
+- 为此新增两个核心模块：`astrolab/cosmo.py`（平直宇宙背景演化与 BAO、超新星、CMB 声学尺度可观测量）与 `astrolab/infer.py`（高斯似然（Gaussian likelihood）、对超新星绝对星等的解析边缘化（analytic marginalisation）、最大后验（MAP, maximum a posteriori）寻优、emcee 采样、Δχ² 与显著性换算）。
 
 论文：
 
@@ -24,15 +24,16 @@
 ## 2. 已核实的数字（2026-11-14）
 
 - 只用 BAO，ΛCDM：Ωm = 0.2975 ± 0.0086，h·r_d = 101.54 ± 0.73 Mpc，相关系数 −0.92（式 17）。
-- 压缩 CMB 先验（附录 A，式 35–36）：均值 (θ*, ωb, ωbc) = (0.01041, 0.02223, 0.14208)；协方差 10⁻⁹ × [[0.006621, 0.12444, −1.1929], [0.12444, 21.344, −94.001], [−1.1929, −94.001, 1488.4]]。来自 Planck PR4 CamSpec 的早期宇宙压缩（Lemos & Lewis 2023，arXiv:2302.12911），已对 ISW 与透镜效应边缘化。
+- 压缩 CMB 先验（附录 A，式 35–36）：均值 (θ*, ωb, ωbc) = (0.01041, 0.02223, 0.14208)；协方差 10⁻⁹ × [[0.006621, 0.12444, −1.1929], [0.12444, 21.344, −94.001], [−1.1929, −94.001, 1488.4]]。来自 Planck PR4 CamSpec 的早期宇宙压缩（Lemos & Lewis 2023，arXiv:2302.12911），已对积分萨克斯–沃尔夫效应（ISW, Integrated Sachs–Wolfe effect）与 CMB 透镜效应边缘化。
+  - **均值的精度**：式 35 的 θ* 只印了 4 位有效数字（0.01041），舍入误差 ±5×10⁻⁶ 约为先验 σ(θ*) = 2.57×10⁻⁶ 的 ±1.9 倍，会明显影响 Δχ²。压缩所用链的公开仓库 `github.com/cmbant/PlanckEarlyLCDM` 的 README（只读，2026-11-14）给出 `means: [[1.04103e-2, 0.02223, 0.1192]]`（参数 `thetastar, ombh2, omch2`）及协方差；把 ωc 换成 ωb + ωc 后，该协方差与式 36 逐项一致，而 0.02223 + 0.1192 + 0.06/93.14 = 0.14207，与式 35 的 0.14208 一致。所以采用 **θ* = 0.0104103**，并推断 DESI 的 ωbc 包含有质量中微子的密度 ων = Σmν/93.14 eV（即 ωm）。这一推断写入预注册，并作为探索参数保留另一种解读（ωbc 不含 ων）。
 - w0waCDM（表 5、表 6）：
   - DESI + (θ*, ωb, ωbc)_CMB：w0 = −0.43 ± 0.22，wa = −1.72 ± 0.64，Δχ²_MAP = −8.0（2.4σ）（式 24）。**这是本项目能直接复现的组合。**
   - DESI + 完整 CMB：−12.5（3.1σ）；+ Pantheon+：−10.7（2.8σ）；+ Union3：−17.4（3.8σ）；+ DESY5：−21.0（4.2σ）。
   - 不含 CMB：DESI −4.7（1.7σ）；DESI + Pantheon+ −4.9（1.7σ）；DESI + Union3 −10.1（2.7σ）；DESI + DESY5 −13.6（3.3σ）。
   - 显著性换算：2 个自由度的 χ² 分布的累积概率，换算为一维高斯的双侧 Nσ（式 22）。
   - 先验：w0 ∈ U[−3, 1]，wa ∈ U[−3, 2]，并要求 w0 + wa < 0。
-- 物理假设：Neff = 3.044，Σmν = 0.06 eV（一个有质量本征态），平直宇宙；r_d 的近似式（式 2）：147.05 Mpc × (ωb/0.02236)^−0.13 × (ωbc/0.1432)^−0.23 × (Neff/3.04)^−0.1。
-- Dovekie：DES-Dovekie + CMB + DESI DR2 的偏好为 3.2σ（DES-SN5YR 为 4.2σ）；w0 = −0.803 ± 0.054，wa = −0.72 ± 0.21。
+- 物理假设：Neff = 3.044，Σmν = 0.06 eV（一个有质量的本征态（eigenstate），两个无质量），平直宇宙；r_d 的近似式（式 2）：147.05 Mpc × (ωb/0.02236)^−0.13 × (ωbc/0.1432)^−0.23 × (Neff/3.04)^−0.1。
+- Dovekie：DES-Dovekie + CMB + DESI DR2 的偏好为 3.2σ（DES-SN5YR 为 4.2σ）；w0 = −0.803 ± 0.054，wa = −0.72 ± 0.21。这里的 CMB 是 Planck + ACT + SPT，与 DESI 论文的 CMB 组合不同；摘要没有给出不含 CMB 的 DESI + Dovekie 数值（第 2 环节读全文时再查）。
 
 ## 3. 数据与大小（AGENTS.md 第一条）
 
@@ -41,7 +42,7 @@
 | 输入 | 来源 | 大小 |
 |---|---|---|
 | DESI DR2 BAO 均值与协方差（ALL） | `CobayaSampler/bao_data/desi_bao_dr2/desi_gaussian_bao_ALL_GCcomb_{mean,cov}.txt` | 0.5 kB + 2.5 kB |
-| DESI DR2 分示踪体（tracer）文件（留一法探索用） | 同目录，8 组 | 共约 10 kB |
+| DESI DR2 分示踪体（tracer）文件（留一法（leave-one-out）探索用） | 同目录，7 组（BGS、LRG1、LRG2、LRG3+ELG1、ELG2、QSO、Lyα） | 共约 1.2 kB |
 | Pantheon+ | `CobayaSampler/sn_data/PantheonPlus/`：`Pantheon+SH0ES.dat`、`Pantheon+SH0ES_STAT+SYS.cov` | 0.58 MB + 33.3 MB |
 | Union3 | `sn_data/Union3/`：`lcparam_full.txt`、`mag_covmat.txt` | 2 kB + 9 kB |
 | DES-Dovekie | `sn_data/DES-Dovekie/`：`DES-Dovekie_HD.csv`、`covtot_inv_000.npz` | 0.11 MB + 6.2 MB |
@@ -51,15 +52,26 @@
 
 ## 4. 设计要点
 
-- **`cosmo`**：平直 w0waCDM 背景（CPL 参数化 w(a) = w0 + wa(1 − a)），含光子、三种中微子（两种无质量、一种 0.06 eV 有质量，用数值积分求有质量中微子的能量密度）；D_M、D_H、D_V；r_d（近似式 2，并用声速积分交叉核对）；θ* = r_s(z*)/D_M(z*)，z* 用 Hu & Sugiyama 1996 的拟合公式。精度验收：用 Planck 2018 最佳拟合点（ωb = 0.02237，ωc = 0.1200，H0 = 67.36）复算 100θ* 并与 1.04110 比较，差异须小于 CMB 先验 σ 的 0.3 倍；否则改用对 θ* 的经验修正并在预注册中写明。
-- **`infer`**：高斯似然；超新星绝对星等的解析边缘化；MAP 用多起点的 scipy 寻优；后验用 emcee；Δχ²_MAP → Nσ（2 个自由度）。
-- **复现判据**（预注册写在研究 README 第 2 节，此处只列方向）：R1 只用 BAO 的 Ωm 与 h·r_d；R2 DESI + 压缩 CMB 的 Δχ²_MAP、w0、wa；R3 加超新星后偏好程度的排序（Union3 > Pantheon+；Dovekie 低于 DESY5 的 4.2σ），因为论文的 +SN 数值用的是完整 CMB，我们只用压缩先验，判据只比较方向与大致数值，容差在预注册中写明。
+- **`cosmo`**：平直 w0waCDM 背景，暗能量用 CPL（Chevallier–Polarski–Linder）参数化 w(a) = w0 + wa(1 − a)；含光子、三种中微子（两种无质量、一种 0.06 eV 有质量，用费米–狄拉克（Fermi–Dirac）积分求其能量密度）；D_M、D_H、D_V。
+  - **Ωm 的定义**：Ωm = (ωb + ωc + ων)/h²，ων = 0.06/93.14。只用 BAO 时 h 与 r_d 简并，采样 Ωm 与 h·r_d；此时 z < 2.5 的 E(z) 中把 0.06 eV 中微子当作物质、忽略辐射（相对误差约 10⁻⁴，在第 3 环节的测试中核对）。
+  - **r_d**：默认用 Aubourg et al. 2015（arXiv:1411.1074）式 16 的拟合公式（含 ων，精度约 0.02%），以论文式 2 与声速积分作为交叉核对（式 2 是示意性的幂律，积分配 Eisenstein & Hu 1998 的 z_d 有约 1–2% 的已知归一化偏差，只作数量级核对）。公式在第 3 环节对照原文核实。
+  - **θ***：θ* = r_s(z*)/D_M(z*)，z* 用 Hu & Sugiyama 1996 拟合公式，r_s 用数值积分。这实质上是 CosmoMC 的 θ_MC 近似，而 Planck 2018 中 100θ_MC = 1.04092 与 100θ* = 1.04110 相差 1.7×10⁻⁴（相对），约为先验 σ 的 0.7 倍。原型（2026-11-14，草稿）在 Planck 2018 参数（表 2 后验均值 ωb = 0.02237、ωc = 0.1200、H0 = 67.36）下得到 z* = 1091.9（CAMB 为 1089.92）、100θ* = 1.03974，偏低约 5σ；改用 z* = 1089.92 则为 1.04101。**所以事先就预期需要修正**：采用乘法修正因子 K（θ* = K × θ_HS），在上述参考点把 100θ* 标定为 1.04110。z* 处暗能量几乎不起作用，K 对 w0、wa 几乎不敏感；对 ωb、ωbc 的依赖在第 3 环节用第二个参考点检验（Planck 2018 另一组合的后验均值）。参考点本身的舍入（约为先验 σ 的一半）作为已知的系统误差，在第 4 环节报告 Δχ² 对 K 改变 ±1 个先验 σ 的敏感度。要更好的参考需要 CAMB；安装 CAMB 要先征得用户同意，本计划不安装。
+- **`infer`**：高斯似然；超新星绝对星等的解析边缘化，χ² = ΔᵀC⁻¹Δ − (1ᵀC⁻¹Δ)²/(1ᵀC⁻¹1)；MAP 用有界的多起点寻优，并满足 w0 ∈ [−3, 1]、wa ∈ [−3, 2]、w0 + wa < 0（论文指出 DESI + CMB 压缩先验的组合中 wa 仍受先验下界约束）；后验均值用 emcee 采样；Δχ²_MAP → Nσ（2 个自由度）。采样参数与先验在预注册中写明：CMB 组合采样 (θ*、ωb、ωbc 对应的 H0、ωb、ωc) 中的哪一组会通过雅可比因子（Jacobian）影响后验均值，所以 w0、wa 的判据以 Δχ²_MAP 为主，后验均值只作次要比较。
+- **超新星的处理**（第 3 环节写进代码与测试）：
+  - Pantheon+：只用 zHD > 0.01 的超新星（去掉大部分造父变星校准星）；先取协方差的子矩阵再求逆；距离用 zHD，(1+z) 因子用 zHEL；不用 SH0ES 的 `MU` 列。
+  - Union3：`lcparam_full.txt` 是约 22 个分箱节点（UNITY1.5），配 `mag_covmat.txt`，不是单个超新星。
+  - DES-Dovekie：`covtot_inv_000.npz` 已经是逆协方差，可直接做解析边缘化；若要切红移，须用舒尔补（Schur complement）或重新求逆，不能直接切片；对照 Cobaya 的似然与 `config.dataset` 确认 MUERR 是否已含在内，避免重复；读取时 `allow_pickle=False`。
+- **复现判据**（预注册写在研究 README 第 2 节，此处只列方向）：
+  - R1：只用 BAO 的 Ωm 与 h·r_d（式 17）。
+  - R2：DESI + 压缩 CMB 的 Δχ²_MAP = −8.0（2.4σ），容差覆盖 θ* 修正的系统误差；w0、wa 的后验均值为次要比较。
+  - R3：不含 CMB 的超新星组合，与表 6 一一对应，可以完全复现：DESI + Pantheon+ −4.9（1.7σ），DESI + Union3 −10.1（2.7σ），以及只用 DESI −4.7（1.7σ）。
+  - 压缩 CMB 加超新星的组合（含 Dovekie）只作探索：论文的 +SN 数值用完整 CMB，Dovekie 的 3.2σ 用 Planck + ACT + SPT，都不是同一组数据，不设判据。
 - **探索**（对话探索入口）：逐一剔除示踪体（留一法）、换超新星样本、换 w(z) 参数化。
 
 ## 5. 环节（每个环节过双闸审查）
 
 1. **本计划与 ROADMAP 核实**（[S] → [V]）。
-2. **Wiki 文章与 Lean 论证**：`docs/wiki/Study-002-desi-bao-evolving-dark-energy.md`（第一至三部分），`studies/002-…/argument/`。
+2. **Wiki 文章与 Lean 论证**：先用 `python -m astrolab new` 建研究目录（编号 002），填 `study.yaml` 的 `papers`、`wiki`、`title_zh`、`question_zh`；然后写`docs/wiki/Study-002-desi-bao-evolving-dark-energy.md`（第一至三部分），`studies/002-…/argument/`。
 3. **预注册与核心模块**：研究 README 第 1–4 节；`astrolab/cosmo.py`、`astrolab/infer.py` 及不联网测试（含 θ* 精度验收）。
 4. **`run.py`、结果、网页**：取数、运行、`test_conclusions.py`、`web/index.html`、结论条目（claim）。
 5. **独立审稿与收尾**：审稿、Wiki 第三部分回写、README 第 8 节、STATUS、DONE。
@@ -67,3 +79,8 @@
 ## 6. 执行记录
 
 - 2026-11-14：建分支 `feat/m1-desi-bao`，草稿 PR #10。核实：Dovekie（arXiv:2511.07517 v3 摘要：3.2σ，由 4.2σ 降低，MNRAS 2026）；`CobayaSampler/sn_data` 目录与文件大小（GitHub API 元数据）；DESI DR2 正文表 4–6、式 2、14–28 与附录 A 式 35–36（arXiv HTML v3，网页读取子智能体与无头浏览器只读读取，未保存到项目目录）。发现 DES-SN5YR 协方差 53.5 MB 超过单次下载上限，以 Dovekie 代替。
+- 2026-11-14 · 环节 1 闸门 1 第 1 轮：3 个严重问题，全部成立并已修改：
+  - 式 35 的 θ* 只有 4 位有效数字，舍入误差约 ±1.9σ：从 `cmbant/PlanckEarlyLCDM` 找到完整精度 θ* = 0.0104103，并发现 DESI 的 ωbc 包含 ων（见第 2 节）。
+  - θ* 精度检查不可靠（Hu & Sugiyama 加积分实质上是 θ_MC 近似；参考点是舍入的后验均值）：事先写明需要乘法修正因子 K，并把参考点舍入列为系统误差、报告敏感度。
+  - 原 R3（压缩 CMB 加超新星对完整 CMB 的数值）不公平也不含信息：改用表 6 不含 CMB 的行（DESI + Pantheon+、DESI + Union3、只用 DESI），压缩 CMB 加超新星只作探索。
+  - 次要意见采纳：r_d 默认用 Aubourg et al. 2015 式 16；写明 Ωm 含 ων 与只用 BAO 时的处理；MAP 用有界寻优、后验均值用 emcee、采样参数的雅可比因子；超新星各样本的处理要点；分示踪体文件为 7 组约 1.2 kB；ROADMAP 中 Dovekie 大小改为 6.2 MB；环节 2 先建研究目录；`TODO.md` 中过时的 `计划：` 改为 `备注：`；术语首次出现补英文。
