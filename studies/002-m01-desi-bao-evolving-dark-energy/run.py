@@ -22,8 +22,7 @@ PARAMS = {
     "k_check": True,
     "mnu": 0.06,
     "tol_dchi2": 1.0, "tol_r1_sigma": 0.3, "tol_r1_err": 0.2,   # pre-registered (README section 2)
-    "tracers": "ALL",                # exploration: e.g. drop a redshift bin via drop_z
-    "drop_z": [],
+    "drop_z": [],                    # exploration: BAO effective redshifts to leave out
 }
 
 RAW = "https://raw.githubusercontent.com/CobayaSampler/"
@@ -207,12 +206,14 @@ def main(ctx):
         checks[k] = {"mean_ok": abs(stats[k]["mean"] - tv) <= P["tol_r1_sigma"] * ts,
                      "err_ok": abs(stats[k]["sigma68"] / ts - 1.0) <= P["tol_r1_err"],
                      "dev_sigma": (stats[k]["mean"] - tv) / ts}
-    r1_pass = ok_chain and all(c["mean_ok"] and c["err_ok"] for c in checks.values())
+    map_ok = r["converged"] and r["n_agree"] >= 3
+    r1_pass = ok_chain and map_ok and all(c["mean_ok"] and c["err_ok"] for c in checks.values())
     out["R1"] = {"map": summarise(r), "posterior": stats, "n_eff": n_eff,
                  "n_over_tau": mc["n_over_tau"], "acceptance": mc["acceptance"],
                  "chain_ok": bool(ok_chain), "checks": checks,
+                 "map_ok": bool(map_ok),
                  "verdict": ("reproduced" if r1_pass else
-                             ("failed fit" if not ok_chain or not r["converged"] else "not reproduced"))}
+                             ("failed fit" if not (ok_chain and map_ok) else "not reproduced"))}
     ctx.log(f"R1: {out['R1']['verdict']} {stats}")
 
     # R3: no CMB
@@ -274,12 +275,12 @@ def main(ctx):
         r2[key] = fit
         ctx.log(f"R2 {key}: {fit.get('dchi2')} -> {fit['verdict']}")
     va, vb = r2["reading_A_with_nu"]["verdict"], r2["reading_B_without_nu"]["verdict"]
-    if va == vb == "reproduced":
+    if "failed fit" in (va, vb):
+        r2["overall"] = "failed fit"
+    elif va == vb == "reproduced":
         r2["overall"] = "reproduced"
     elif "reproduced" in (va, vb):
         r2["overall"] = "conditionally reproduced (reading %s)" % ("A" if va == "reproduced" else "B")
-    elif "failed fit" in (va, vb):
-        r2["overall"] = "failed fit"
     else:
         r2["overall"] = "not reproduced"
 
@@ -294,6 +295,7 @@ def main(ctx):
                 fw = lambda x, rd=reading, K=K: chi2_r2(bao, x, rd, P["mnu"], K, w=True)
                 f = fit_pair(fl, fw, b_r2, paper_r2, P["n_starts"] // 2, P["seed"] + 3)
                 kc[f"{reading}{'+' if sgn > 0 else '-'}"] = f.get("dchi2")
+                kc[f"{reading}{'+' if sgn > 0 else '-'}_valid"] = bool(f.get("valid"))
         cam = cosmo.Background(67.39, 0.02229, 0.1197, mnu=P["mnu"])
         kc["second_point_dtheta100"] = float(100 * cam.theta_star(K0) - 1.04106)
         r2["K_check"] = kc

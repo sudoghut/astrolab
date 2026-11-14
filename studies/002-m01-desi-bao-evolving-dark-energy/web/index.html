@@ -107,7 +107,11 @@ function render() {
     const k = R2.K_check;
     det.push(`<p>${L('K check (diagnostic; θ* calibration K = ', 'K 检查（诊断；θ* 标定 K = ')}${f(R2.K, 6)}${L(', shifted by ±1 prior σ of θ*): Δχ²', '，按 θ* 先验 σ 平移 ±1）：Δχ²')} A+ ${f(k['A+'])}, A− ${f(k['A-'])}, B+ ${f(k['B+'])}, B− ${f(k['B-'])}; ${L('second reference point', '第二参考点')} Δ(100θ*) = ${f(k.second_point_dtheta100, 6)}.</p>`);
   }
-  det.push(`<p class="note">${L('Fit validity: each fit converged, at least 3 starts agree within 0.01, and χ²(w0waCDM) ≤ χ²(ΛCDM) + 10⁻³ (README section 2).', '拟合有效性：每个拟合都收敛，至少 3 个起点在 0.01 内一致，且 χ²(w0waCDM) ≤ χ²(ΛCDM) + 10⁻³（README 第 2 节）。')}</p>`);
+  const fits = [r2a, r2b, R3.desi, R3.desi_pantheonplus, R3.desi_union3];
+  const allValid = fits.every(x => x.valid) && R1.chain_ok && R1.map_ok;
+  det.push(`<p class="note ${allValid ? '' : 'bad'}">${allValid
+    ? L('Fit validity: every fit converged, at least 3 starts agree within 0.01, and χ²(w0waCDM) ≤ χ²(ΛCDM) + 10⁻³ (README section 2).', '拟合有效性：每个拟合都收敛，至少 3 个起点在 0.01 内一致，且 χ²(w0waCDM) ≤ χ²(ΛCDM) + 10⁻³（README 第 2 节）。')
+    : L('Fit validity: at least one fit failed the pre-registered checks; see the verdicts above.', '拟合有效性：至少一个拟合没有通过预注册的检查；见上面的判定。')}</p>`);
   document.getElementById('details').innerHTML = det.join('');
 }
 

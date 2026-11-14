@@ -20,7 +20,7 @@ reproduction:
     - {name: "h r_d (BAO only, LCDM)", paper: "101.54 +/- 0.73", ours: "101.52 +/- 0.73", unit: Mpc}
     - {name: "Delta chi2_MAP, DESI + compressed CMB prior", paper: "-8.0 (2.4 sigma)", ours: "-8.01 (reading B, omega_bc = omega_b + omega_c); -6.59 (reading A, with omega_nu)"}
     - {name: "Delta chi2_MAP, DESI alone / + Pantheon+ / + Union3", paper: "-4.7 / -4.9 / -10.1", ours: "-4.65 / -4.86 / -10.03"}
-    - {name: "w0, wa (DESI + compressed CMB prior)", paper: "-0.43 +/- 0.22, -1.72 +/- 0.64", ours: "-0.44 +/- 0.23, -1.69 +/- 0.66 (reading B)"}
+    - {name: "w0, wa (DESI + compressed CMB prior)", paper: "-0.43 +/- 0.22, -1.72 +/- 0.64", ours: "-0.44 +/- 0.23, -1.69 +/- 0.66 (reading B); -0.48 +/- 0.23, -1.55 +/- 0.66 (reading A)"}
     - {name: "w0 (DESI+CMB+DES-SN5YR)", paper: "-0.752 +/- 0.057", ours: null}
     - {name: "wa (DESI+CMB+DES-SN5YR)", paper: "-0.86 +0.23/-0.20", ours: null}
     - {name: "preference over LCDM (DESI+CMB+DES-SN5YR)", paper: "4.2 sigma", ours: null}
@@ -31,4 +31,4 @@ updates:
 open_questions:
   - "How much of the preference comes from the w0-wa parametrisation versus binned w(z) or Gaussian-process reconstructions?"
   - "Leave-one-tracer-out and leave-one-SN-sample-out sensitivity of the signal."
-notes: "Verified against arXiv abstracts in plan 002 (cosmology agent report, 2026-11-11). Milestone M1. Study 002 (2026-11-14): BAO-only, compressed-CMB and no-CMB rows reproduced; full-CMB and DES-SN5YR rows are out of scope (full Planck/ACT likelihoods; 53.5 MB covariance above the download limit). The compressed prior reproduces only when its omega_bc mean is read as omega_b + omega_c."
+notes: "Verified against arXiv abstracts in plan 002 (cosmology agent report, 2026-11-11). Milestone M1. Study 002 (2026-11-14): BAO-only and no-CMB rows reproduced, compressed-CMB row conditionally reproduced; full-CMB and DES-SN5YR rows are out of scope (full Planck/ACT likelihoods; 53.5 MB covariance above the download limit). The compressed prior reproduces only when its omega_bc mean is read as omega_b + omega_c."

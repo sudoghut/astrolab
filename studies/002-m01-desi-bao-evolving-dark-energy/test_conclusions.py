@@ -30,7 +30,7 @@ def test_fits_valid():
 
 def test_r1_bao_only_lcdm():
     r1 = load("summary")["R1"]
-    assert r1["chain_ok"]
+    assert r1["chain_ok"] and r1["map_ok"]
     assert abs(r1["posterior"]["Om"]["mean"] - 0.2975) <= 0.3 * 0.0086
     assert abs(r1["posterior"]["hrd"]["mean"] - 101.54) <= 0.3 * 0.73
     assert r1["verdict"] == "reproduced"
@@ -43,6 +43,7 @@ def test_r2_compressed_cmb_depends_on_reading():
     assert r2["overall"] == "conditionally reproduced (reading B)"
     # the theta_* calibration (K +- 1 prior sigma) does not move reading A into the tolerance
     kc = r2["K_check"]
+    assert all(kc[k + "_valid"] for k in ("A+", "A-", "B+", "B-"))
     assert all(abs(kc[k] - (-8.0)) > 1.0 for k in ("A+", "A-"))
 
 

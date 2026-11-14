@@ -2,7 +2,7 @@ title: "DESI DR2 BAO and evolving dark energy"
 title_zh: "DESI DR2 重子声学振荡与演化暗能量"
 id: "002-m01-desi-bao-evolving-dark-energy"
 level: L0              # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
-status: reproduced              # planned | active | reproduced | concluded | paused | abandoned
+status: active                  # planned | active | reproduced | concluded | paused | abandoned
 created: 2026-11-14
 question: "Do DESI DR2 BAO distances, alone and combined with a compressed CMB prior or supernovae, prefer evolving dark energy (w0waCDM) over a cosmological constant, and how strongly?"
 question_zh: "DESI DR2 的 BAO 距离单独使用、或与压缩 CMB 先验及超新星组合时，是否偏好演化暗能量（w0waCDM）而非宇宙学常数，偏好有多强？"
