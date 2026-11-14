@@ -58,12 +58,16 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
   pre-registration and is recorded as such.
 - *Resolution*: a DR3 source_id "resolves" if it is present in DR4 `gaia_source` and passes the
   identity check, or else, if DR4 publishes a DR3-DR4 cross-match (neighbourhood) table, if that
-  table maps it to a DR4 source (the neighbour with the smallest angular distance; a tie, or a
-  failed identity check, means no match); the mapped DR4 id is then used. Identity check: against
-  the DR3 position and G magnitude archived for all 79 ids (`results/dr3/reference_ids.json`),
-  with the DR3 position moved to the DR4 reference epoch using the DR4 proper motion, the offset
-  is < 2 arcsec and |G_DR4 - G_DR3| < 0.3 mag. A source that does not resolve is reported as
-  `unresolved` and is never counted as a scientific outcome.
+  table maps it to a DR4 source (the neighbour with the smallest angular distance; two neighbours
+  within 0.1 arcsec of the same distance, or a failed identity check, mean no match); the mapped
+  DR4 id is then used. Identity check: against the DR3 position and G magnitude archived for all
+  109 DR3 ids the study uses (the 87 DR3 rows with M2 > 3 Msun, the 21 NS candidates, BH3 and the
+  literature-labelled sources; `results/dr3/reference_ids.json`), with the DR3 position moved to the
+  DR4 reference epoch using the DR4 proper motion (no propagation if DR4 has none), the offset is
+  < 2 arcsec and |G_DR4 - G_DR3| < 0.3 mag. A source that does not resolve is reported as
+  `unresolved`, with the reason (not found / offset / magnitude), and is never counted as a
+  scientific outcome. Large-amplitude variable giants can fail the magnitude check; this errs
+  towards `unresolved`, and the count is reported.
 - *Primary solution (R-sel)*, applied per source everywhere (targets, controls, survivors, new
   candidates): among the source's solutions of astrometric type, prefer validated over
   non-validated; among those prefer `AstroSpectroSB1`, then `Orbital`, then the other types; ties
@@ -79,8 +83,10 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
   its documented successor with the same definition is used, decided and logged in `log.md`
   before the vetting query (like the type list); if there is none, the RV veto is not applicable.
 - *Uncertainties*: the DR4 entry of `RELEASES` in `run.py` has `covariance_trusted = False` until
-  the `corr_vec` parameter order is confirmed on release day (run-book step 1.5) and the change is
-  logged; while it is False, R1-R3 are "not evaluable" and only central values are reported.
+  the `corr_vec` parameter order is confirmed on release day (run-book step 1.5) from documentation
+  only (the DR4 data model or a DPAC `nsstools` release for DR4), and the change is logged, before
+  the first formal DR4 run; while it is False, R1-R3 are "not evaluable" and only central values
+  are reported. If it is changed after any formal DR4 run, that earlier run is reported as well.
   `RELEASES` is part of this pre-registration: any other change to it is recorded as such.
 
 **R1-DR4, R2-DR4.** Same rule as on DR3 (|M2_ours - M2_paper| < 2 sigma_combined), using the
@@ -102,14 +108,16 @@ solution is a0/a1), so no method offset is expected; their astrometry-only solut
 pipeline, not an independent measurement.
 
 **S1-DR4.** The DR4 screen returns < 50,000 rows (counted on the server first; at >= 50,000 S1-DR4
-fails, the screen is not fetched, and the screen-dependent items S2-DR4 and S3-DR4 are "not
-evaluable" while the rest is still computed), and each of BH1, BH2, BH3 that resolves and has a
+fails, the screen is not fetched, and the screen-dependent item S3-DR4 is "not evaluable" while
+the rest is still computed; a tightened screen run afterwards is post-hoc and its S3 numbers are
+never read as the pre-registered result), and each of BH1, BH2, BH3 that resolves and has a
 DR4 solution has M2 > 3 Msun with its published M1 on its primary solution; a missing target is
 listed as "not evaluable" for this part.
 
 **S2-DR4.** Of the 21 El-Badry et al. (2024) candidates, N_eval are those that resolve and have a
-DR4 solution of astrometric type; a candidate passes if its primary solution is in the DR4 screen
-(astrometric type, parallax S/N > 5, f_M > 0.25 Msun; the same meaning as `in_screen` on DR3).
+DR4 solution of astrometric type; a candidate passes if its primary solution meets the screen
+cuts (astrometric type, parallax S/N > 5, f_M > 0.25 Msun; the same meaning as `in_screen` on DR3),
+evaluated on the fetched solution, so S2-DR4 does not depend on fetching the screen.
 Pass: N_eval >= 15 and passed >= ceil(0.9 N_eval). N_eval < 15: "not evaluable". The catalogue
 recall (how many of the 21 have any DR4 solution) is reported separately. As on DR3, this test is
 weak (the weakest DR3 f_M was 0.41 against a 0.25 cut).
@@ -135,12 +143,15 @@ and not refuted gets exactly one label, the first that applies:
 8. `persists`: none of the above.
 Also reported, not used for labels: P_DR4/P_DR3 (values near 0.5 or 2 flagged as possible
 aliases) and a0_DR4/a0_DR3. For P_DR3 > ~1000 d (beyond the DR3 baseline) the period test is weak.
-The counts per label are the result. No discovery claim: `persists` means "still a candidate".
+The counts per label are the result, with the number of survivors to which the RV veto applied
+(28 of the 51 have P_DR3 > 1000 d, so for them `persists` rests on period and mass only). No
+discovery claim: `persists` means "still a candidate".
 
-**S3-DR4 (new candidates, exploratory).** DR4 sources with M2 > 3 Msun (FLAME M1, fallback 1 Msun)
-that were not among the 87 DR3 rows with M2 > 3 Msun are counted; their primary solution is chosen
-among all their DR4 solutions (fetched for these sources, not only the screen rows), and they are
-given the quality labels and vetoes above, and checked
+**S3-DR4 (new candidates, exploratory).** Membership: DR4 sources with at least one screen row of
+M2 > 3 Msun (FLAME M1, fallback 1 Msun) that are not one of the 87 DR3 rows with M2 > 3 Msun after
+resolution. Their primary solution is chosen among all their DR4 solutions (fetched for these
+sources, not only the screen rows); labels, vetoes and the reported "primary M2 > 3" count use the
+primary. Their ids are saved in full. They are checked
 against literature published after DR3 (including the Gaia DR4 release papers). No prior
 expectation and no discovery claim.
 
@@ -153,6 +164,10 @@ expectation and no discovery claim.
 | Screen | `nss_two_body_orbit` JOIN `gaia_source` LEFT JOIN `astrophysical_parameters` | astrometric orbit types, `parallax_over_error > 5`, `f_M > 0.25` (computed in ADQL) | to be checked with COUNT first; expect 10^3-10^4 rows, < 5 MB |
 | NS candidates | El-Badry et al. 2024 Table 1 (21 source_ids, M2, P) | transcribed from arXiv:2405.00089v2 HTML | 21 rows, in `ns_candidates_elbadry2024.json` |
 
+*Note 2026-11-14 (design plan 008):* the DR3 rerun adds one input, the DR3 position and G of the
+109 DR3 ids the study uses (`gaiadr3.gaia_source`, < 200 rows, < 50 kB), archived as
+`reference_ids.json` for the DR4 identity check.
+
 The DR3 table has ~443k solutions in total; we never download it. The mass
 function is evaluated on the server.
 
@@ -161,10 +176,11 @@ function is evaluated on the server.
 | Input | Source | Selection | Est. rows / size |
 |---|---|---|---|
 | DR4 schema, tables, columns, solution types | `TAP_SCHEMA`; GROUP BY on `nss_two_body_orbit` | metadata | < 1,000 rows each |
-| Resolution of DR3 ids | DR4 `gaia_source` (and the DR3-DR4 cross-match table if published) | 79 unique DR3 source_ids (3 BHs, 21 NS, 6 literature-labelled, 51 survivors; BH1 and BH2 appear twice) | < 200 rows |
+| Resolution of DR3 ids | DR4 `gaia_source` (and the DR3-DR4 cross-match table if published) | 109 unique DR3 source_ids (87 DR3 rows with M2 > 3 incl. BH1, BH2 and the 51 survivors; 21 NS; BH3; literature-labelled) | < 300 rows |
+| All solutions of S3-DR4 candidates | DR4 `nss_two_body_orbit` JOIN `gaia_source` LEFT JOIN `astrophysical_parameters`, by id in chunks of <= 500 | sources with a screen row of M2 > 3 | <= a few x 10^3 rows, < 2 MB |
 | Target, control and survivor solutions | DR4 `nss_two_body_orbit` JOIN `gaia_source` LEFT JOIN `astrophysical_parameters` | the resolved ids | < 500 rows |
 | Screen | same query as DR3 on the DR4 schema | same cuts | counted on release day; DR3 gave 3,343. Above 50,000: S1-DR4 fails and is recorded first (run-book step 2) |
-| DR3 reference values | `results/dr3/` (archived DR3 run: periods and their errors, a0, M1 used; `reference_ids.json` with DR3 position, proper motion and G of the 79 ids, fetched in the DR3 rerun before 2026-11-25) | committed files | < 1 MB |
+| DR3 reference values | `results/dr3/` (archived DR3 run: periods and their errors, a0, M1 used; `reference_ids.json` with DR3 position and G of the 109 ids, fetched in the DR3 rerun before 2026-11-25) | committed files | < 1 MB |
 
 The release-day count and its size estimate (rows x ~300 bytes) are written into this table
 before the screen is fetched. Result files stay under 1 MB (AGENTS.md section 1): the screen
@@ -190,8 +206,8 @@ points are thinned in `run.py` when the screen is large (design plan 008, sectio
   and the solution choice used on DR4 are defined in the section 2 addendum.
 - A formal run refuses to overwrite results of another release that are not archived in
   `results/<release>/` (both directions).
-- DR4 type names, the non-validated types and the `corr_vec` order are confirmed on release day
-  (run-book steps 1.4-1.5) and logged before any criterion is evaluated.
+- DR4 type names, the non-validated types and the `corr_vec` order (`covariance_trusted`) are
+  confirmed on release day (run-book steps 1.4-1.5) and logged before the first formal DR4 run.
 
 ## 5. Results (2026-11-11)
 

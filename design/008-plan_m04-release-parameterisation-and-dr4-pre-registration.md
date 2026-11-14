@@ -65,7 +65,7 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
   - R1b 只在 DR3 运行时计算；
   - 在 DR4 运行中，这几项都记为"不适用（not applicable）"。
 - `bh_candidates.json` 增加 `period_error`，供 F-DR4 的周期检验使用。这必须在 DR3 重跑时加入。
-- DR3 重跑新增 `reference_ids.json`：79 个 DR3 编号的 DR3 位置、自行（proper motion）与 G 星等，供 DR4 的身份核对（identity check）。这需要一次小查询（< 100 行），也必须在 11-25 前完成。
+- DR3 重跑新增 `reference_ids.json`：研究用到的 109 个 DR3 编号（87 个 M2 > 3 的 DR3 行、21 个中子星候选、BH3、文献标注的源）的 DR3 位置与 G 星等，供 DR4 的身份核对（identity check）。这需要一次小查询（< 200 行），也必须在 11-25 前完成。
 
 ### 2.3 主解（primary solution）、对照与 DR4 判据的计算
 
@@ -76,20 +76,21 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
   - DR3 中 BH3 没有轨道解，所以 `controls_checked` 在 DR3 仍是 23，新增的 `controls_without_solution` 为 `[BH3]`。
 - DR3 运行时，`main()` 保持 DR3 的全部输出与判据。
 - DR4 运行时（`release != "dr3"`），`main()` 额外计算 DR4 附录中的各项：
-  - **编号解析（resolution）**：一次 `IN (...)` 查询 DR4 `gaia_source`；
+  - **编号解析（resolution）**：一次 `IN (...)` 查询 DR4 `gaia_source`（含 ra、dec、自行、G），按 README 的规则做身份核对，`unresolved` 记下原因。若 DR4 发布 DR3–DR4 交叉匹配表（neighbourhood table），按表回退的代码在发布日表名与列确定后再写，并单独过审查；在此之前只有"直接编号 + 身份核对"一条路径；
   - **判据**：R1–R3、S1-DR4、S2-DR4、V-DR4，以及 F-DR4 的 51 个标签；
-  - **新候选**（new candidates）S3-DR4：对 M2 > 3 的筛选源再取一次它们的全部轨道解（`vet` 查询已按编号取全部行），在全部解中选主解。
+  - **新候选**（new candidates）S3-DR4：对有 M2 > 3 筛选行的源，另发一个"全部解"查询，按编号分块（每块 ≤ 500 个），列包括解类型、Thiele-Innes 常数、周期及误差、偏心率、视差及误差、`significance`、`goodness_of_fit`、`gaia_source` 的 RV 列与 FLAME 质量，在全部解中选主解。不复用 `vet`（它缺这些列，且 `max_rows` 只有 2,000）；
+  - S2-DR4 用"全部解"查询中的主解判断是否满足筛选条件，不依赖筛选结果；
   - 先在服务器端计数：≥ 50,000 时记 S1-DR4 失败，不取筛选结果，S2-DR4、S3-DR4 与 `screen_points` 记为"不可评估"，其余判据照常计算。
   - DR3 参考值（reference values）读自 `results/dr3/`（周期及其误差、a0、所用 M1、`reference_ids.json`）；还没存档时，若 `results/` 的发布是 DR3，就读 `results/`（与测试相同的回退），所以存档前的对话探索也能运行；
   - 结果写入 `summary.json` 的 `dr4` 小节，以及 `survivors_dr4.json`。
-- RV 否决的适用条件按 `RELEASES` 的周期上限判断，并要求该列存在。
+- RV 否决的适用条件按 `RELEASES` 中的条件判断（DR4：P < 1000 d 且 e < 0.8），并要求该列存在。
 
 ### 2.4 结果按发布分开，文件大小
 
-- `results/` 存放当前发布的正式运行结果。`main()` 第一步保存 `release.json`（只含发布名），作为运行所属发布的标记。
+- `results/` 存放当前发布的正式运行结果。`release.json`（只含发布名）标记运行所属的发布，与其他文件一起在最后写出（见下文"保存前统一检查"），不在运行开始时写。
 - 存档：`dr4_query.py archive <release>` 把 `results/*.json` 复制到 `results/<release>/`。它不联网；`results/` 的发布与参数不符、或目标目录已存在时拒绝执行。
 - 保护（双向）：正式运行（不是对话探索，以 `ctx.results == ctx.study.results_dir` 判断）如果要写的发布与 `results/release.json` 记录的不同，而后者还没存档到 `results/<旧发布>/`，就拒绝运行。缺少 `release.json` 时按 `summary.json` 的 `release` 判断。
-- 运行中途失败时，`results/` 会混有两个发布的文件，而 `release.json` 已标为新发布。恢复办法是 `git restore` 该目录（运行手册第 4 步），不是再跑一次旧发布。
+- 所有结果算完后才写文件，所以取数阶段失败不会留下半个目录；写文件阶段本身失败（如磁盘错误）时，恢复办法是对 `results/` 做 `git restore`，并删除其中新出现的未入库文件（运行手册第 4 步），不是再跑一次旧发布。
 - `test_conclusions.py`：
   - DR3 判据读 `results/dr3/`（存在时），否则读 `results/`（其发布为 DR3 时）；
   - DR4 判据只在 `results/` 的发布为 DR4 时检查，否则跳过。
@@ -112,7 +113,7 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
   - 预检表改为"已由 T-011 处理"的核对清单；
   - 第 0、2、3、4、5 步与失败表中提到旧常量、BH3 TypeError、手工复制、手工判定幸存候选的地方，全部改为新机制。第 5 步改为直接读 F-DR4 结果；
   - 第 1 步：第 1.3 步要核对的列加入新的解析、全部解与 FLAME 查询；第 1.4 步改为"非验证类型按 DR4 文档决定并记入 `log.md`、`PARAMS`"（README 的预注册规则）；
-  - `dr4_query.py` 读 `PARAMS`，新增 `archive <release>`；`followup` 删除（F-DR4 已在 `run.py` 中），`resolve` 保留为运行前的检查。`dr4_query.py` 导入 `run` 是技能脚本，不是研究的辅助模块，`AGENTS.md` 中"辅助模块不 `import run`"的规则针对的是后者（覆盖 `PARAMS` 后不生效的问题），这里只读取，不受影响；
+  - `dr4_query.py` 读 `PARAMS`，新增 `archive <release>`；`followup` 删除（F-DR4 已在 `run.py` 中）；`resolve` 保留为运行前的检查，但改为调用 `run.py` 的解析与身份核对函数，保证与正式运行的结果一致。`dr4_query.py` 导入 `run` 是技能脚本，不是研究的辅助模块，`AGENTS.md` 中"辅助模块不 `import run`"的规则针对的是后者（覆盖 `PARAMS` 后不生效的问题），这里只读取，不受影响；
   - 发布日要在 `study.yaml` 的 `footprint.data` 中加入 DR4 表名，运行手册保留这一步。
 - **日志与状态**：`log.md` 与 `STATUS.md`。
 
@@ -157,3 +158,15 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
   - 运行手册第 1 步列入更新；
   - DR3 对照规则改为按主解，加注日期；
   - 术语括注英文。
+- 2026-11-14 · 环节 1 闸门 1 第 3 轮：两位审查者都没有严重问题，闸门 1 通过。同轮次要意见全部采纳，都是为了不在看到 DR4 数据后留下选择余地：
+  - `covariance_trusted` 只能凭文档、在第一次正式运行前改；
+  - S3-DR4 的入选看筛选行，标签看主解，编号全量保存；
+  - 解析与参考值扩大到全部 109 个 DR3 编号；
+  - 身份核对的边界情况：无自行、并列容差、记录原因；
+  - 报告 RV 否决适用的幸存候选数；
+  - "全部解"查询单独写，列名明确，并补进 README 第 3 节；
+  - 交叉匹配表回退在发布日另行审查；
+  - `release.json` 改为最后写出；
+  - `resolve` 与正式运行共用函数；
+  - S2-DR4 不依赖筛选结果；
+  - DR3 新输入注明于 DR3 第 3 节。
