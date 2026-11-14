@@ -7,7 +7,7 @@ this argument; it is discussed in the wiki article.
 
 One chain per system i (1 = BH1, 2 = BH2, 3 = BH3):
   follow-up RVs agree with the Gaia orbit  ->  the orbit is real
-  real orbit + orbit-fit mass              ->  companion mass at least 5 Msun
+  real orbit + orbit-fit mass              ->  companion mass above the system threshold
       (BH1 also: the RV orbit alone gives a minimum mass above 5 Msun, without the Gaia orbit)
   no light + that mass                     ->  no main-sequence star carries the mass
   ... and no other luminous star either    ->  the mass is not in luminous stars
@@ -16,8 +16,8 @@ One chain per system i (1 = BH1, 2 = BH2, 3 = BH3):
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
 Masses are in tenths of a solar mass (Nat). Thresholds per system: BH1 more than 5 Msun
-(the RV-only bound), BH2 at least 8.0, BH3 at least 30.0 (about 3 sigma below the published masses). Quotes follow the arXiv HTML text (math rendered as
-plain text). Hedged statements (very unlikely, unlikely to be stable) are encoded as assertions.
+(the RV-only bound), BH2 at least 8.0, BH3 at least 30.0 (BH2 and BH3: about 3 sigma below
+the published masses). Quotes follow the arXiv HTML text (math rendered as plain text). Hedged statements (very unlikely, unlikely to be stable) are encoded as assertions.
 -/
 
 namespace Argument
@@ -119,7 +119,7 @@ inductive Field where
   | mod_other1
   /-- MOD [stated 2209.06833: "Scenarios involving more than two objects inside the G star's orbit are difficult to assemble and unlikely to be dynamically stable"] Sec. 8.2 -/
   | mod_few1
-  /-- LIT [implied] one or two compact objects without a black hole weigh at most about 5 Msun, and a dark compact object above that contains a black hole (no exotic compact objects): white dwarfs below the Chandrasekhar mass (Chandrasekhar 1931, 1931ApJ....74...81C), neutron stars at most about 2.3-2.5 Msun (Ozel and Freire 2016, arXiv:1603.02698); the paper names both limits without numbers (Sec. 8.1) -/
+  /-- LIT [implied] one or two compact objects without a black hole weigh at most about 5 Msun, and a dark compact object above that contains a black hole (no exotic compact objects): white dwarfs below the Chandrasekhar mass (Chandrasekhar 1931, 1931ApJ....74...81C), neutron stars at most about 2.2-2.5 Msun (Ozel and Freire 2016, arXiv:1603.02698; Rezzolla et al. 2018, arXiv:1711.00314), well below the causality bound of about 3 Msun (Kalogera and Baym 1996, arXiv:astro-ph/9608059); the paper names both limits without numbers (Sec. 8.1) -/
   | lit_ns1
   /-- OBS [stated 2302.07880: "The follow-up RVs are fully consistent with the Gaia-only solution"] Sec. 3.7.1 -/
   | obs_rv2
@@ -131,7 +131,7 @@ inductive Field where
   | mod_fit2
   /-- OBS [stated 2302.07880: "A companion contributing more than ≈2% of the total light at 4000-4300 Å would dilute the absorption lines beyond this value and is thus ruled out"] Sec. 3.8.1 -/
   | obs_faint2
-  /-- MOD [stated 2302.07880: "a 9Msun main-sequence star would outshine the giant at all wavelengths"] Sec. 4 -/
+  /-- MOD [implied] a main-sequence star (or a close pair of them) carrying 8 Msun or more would exceed the 2% blue-light limit by far (mass-luminosity relation, textbook, e.g. Hilditch 2001, An Introduction to Close Binary Stars); the paper says this for a single 9 Msun star (Sec. 4: a 9Msun main-sequence star would outshine the giant at all wavelengths) -/
   | mod_dark2
   /-- MOD [implied] non-main-sequence stars of several solar masses are at least as luminous as main-sequence stars of that mass (textbook, e.g. Kippenhahn, Weigert and Weiss 2012); the BH2 paper states it for red giants (Sec. 4) and limits hot companions with the UV (Sec. 3.3) -/
   | mod_other2
@@ -157,7 +157,7 @@ inductive Field where
   | gap_few3
   /-- MOD [stated 2404.10486: "The estimated mass is also too large for one neutron star or two neutron stars in a close orbit"] Sec. 3 -/
   | mod_ns3
-  /-- LIT [implied] the remaining options without a black hole (one or two white dwarfs, a white dwarf and a neutron star) weigh far less than 30 Msun: Chandrasekhar 1931, 1931ApJ....74...81C; Ozel and Freire 2016, arXiv:1603.02698 -/
+  /-- LIT [implied] once luminous stars and one or two neutron stars are excluded, the remaining options without a black hole (one or two white dwarfs, a white dwarf and a neutron star) weigh far less than 30 Msun, so a dark companion of at most two objects above 30 Msun contains a black hole (no exotic compact objects): Chandrasekhar 1931, 1931ApJ....74...81C; Ozel and Freire 2016, arXiv:1603.02698 -/
   | lit_wd3
   deriving DecidableEq, Repr
 
@@ -180,7 +180,7 @@ def prov : Field → Prov
   | .stat_fit2 => .stated
   | .mod_fit2 => .implied
   | .obs_faint2 => .stated
-  | .mod_dark2 => .stated
+  | .mod_dark2 => .implied
   | .mod_other2 => .implied
   | .mod_few2 => .stated
   | .mod_ns2 => .stated
@@ -227,7 +227,7 @@ def prem : Field → Vocab → Prop
   | .mod_other3, v => v.Faint3 → v.NoMS3 → v.NoStar3
   | .gap_few3, v => v.Few3
   | .mod_ns3, v => v.NoStar3 → v.Few3 → v.mass3 ≥ 300 → v.NoNS3
-  | .lit_wd3, v => v.NoNS3 → v.Few3 → v.mass3 ≥ 300 → v.BH3
+  | .lit_wd3, v => v.NoStar3 → v.NoNS3 → v.Few3 → v.mass3 ≥ 300 → v.BH3
 
 /-- [stated 2209.06833: "We find no plausible astrophysical scenario that can explain the orbit and does not involve a black hole"] Abstract;
 [stated 2302.07880: "We conclude that if the Gaia astrometric solution is correct, the companion must be a BH, or a close binary containing a BH"] Sec. 4;
@@ -271,7 +271,7 @@ theorem final : ∀ v, Premises v → Conclusion v := by
   have s3 : v.NoMS3 := p .mod_dark3 (p .obs_faint3) m3          -- App. C, Sec. 3
   have n3 : v.NoStar3 := p .mod_other3 (p .obs_faint3) s3       -- textbook step
   have k3 : v.NoNS3 := p .mod_ns3 n3 (p .gap_few3) m3           -- Sec. 3 (three or more: not discussed)
-  have b3 : v.BH3 := p .lit_wd3 k3 (p .gap_few3) m3             -- white dwarfs: textbook step
+  have b3 : v.BH3 := p .lit_wd3 n3 k3 (p .gap_few3) m3             -- white dwarfs: textbook step
   exact ⟨b1, b2, b3⟩
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
@@ -313,7 +313,7 @@ theorem tail (v : Vocab) (q : ∀ f, massRoute1 f = false → prem f v) (m1 : v.
   have n3 : v.NoStar3 := q .mod_other3 rfl (q .obs_faint3 rfl) s3
   exact ⟨q .lit_ns1 rfl n1 (q .mod_few1 rfl) m1,
          q .mod_ns2 rfl n2 (q .mod_few2 rfl) m2,
-         q .lit_wd3 rfl (q .mod_ns3 rfl n3 (q .gap_few3 rfl) m3) (q .gap_few3 rfl) m3⟩
+         q .lit_wd3 rfl n3 (q .mod_ns3 rfl n3 (q .gap_few3 rfl) m3) (q .gap_few3 rfl) m3⟩
 
 -- BH1's mass is over-determined: each route premise is redundant.
 

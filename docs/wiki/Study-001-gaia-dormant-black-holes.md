@@ -189,7 +189,7 @@ does not check: the physics inside each premise.
 Masses are in tenths of a solar mass (whole numbers): `mass1 > 50`, `mass2 ≥ 80`, `mass3 ≥ 300`. The
 thresholds are chosen so that each quoted sentence speaks about masses in that range (the BH2 and BH3 sentences
 are about the 8.9 and 32.7 Msun companions); BH1 uses the strict "> 5" of its abstract, because two neutron
-stars near the maximum neutron-star mass (about 2.3–2.5 Msun) could reach 5.0. Hedged
+stars near the maximum neutron-star mass (about 2.2–2.5 Msun) could reach 5.0. Hedged
 sentences ("very unlikely", "unlikely to be dynamically stable") are encoded as plain assertions; each such
 premise is named in its stage.
 
@@ -262,8 +262,8 @@ the RVs alone, which give a minimum mass for any inclination and do not need the
 have m1 : v.mass1 > 50 := p .mod_fit1 o1 (p .stat_fit1)   -- Sec. 4.1
 ```
 
-**Critique.** The thresholds sit about 3σ below the measured values (9.6 against > 5; 8.9 against 8.0; 32.7
-against 30). BH1's RV-only route needs no Gaia orbit but does use the G star's mass from its SED: with no M1 at all the bound is about 4 Msun (§4.3), and 4 Msun would no longer exclude two neutron stars (2 × 2.3 = 4.6). The `mod_fit*`
+**Critique.** The BH2 and BH3 thresholds sit about 3σ below the measured values (8.9 ± 0.3 against 8.0;
+32.70 ± 0.82 against 30); BH1 uses the RV-only "> 5", far below the joint-fit 9.62 ± 0.18. BH1's RV-only route needs no Gaia orbit but does use the G star's mass from its SED: with no M1 at all the bound is about 4 Msun (§4.3), and 4 Msun would no longer exclude two neutron stars (2 × 2.3 = 4.6). The `mod_fit*`
 premises carry more than Kepler: the dark-companion assumption (no light in the photocentre fit) and the
 step from a published estimate with its error to a bound on the true mass. For BH2 the 8.0 Msun bound rests
 on the Gaia inclination; the paper's inclination-free fallback (2.6 Msun, still above white-dwarf and
@@ -283,7 +283,7 @@ stars are a separate step.
 | `mod_dark1`: faint + mass > 5 → no normal star carries it | MOD | stated 2209.06833: "any normal star with a mass exceeding ≈0.4 M⊙ would easily be detected in the spectrum" | §8.1 |
 | `mod_other1`: … nor any other luminous star | MOD | stated 2209.06833: "This and the GALEX + WISE photometry allow us to rule out pathological companions that are hot and small or cool and large" | §5.1.1 |
 | `obs_faint2` | OBS | stated 2302.07880: "A companion contributing more than ≈2% of the total light at 4000-4300 Å would dilute the absorption lines beyond this value and is thus ruled out" | §3.8.1 |
-| `mod_dark2` | MOD | stated 2302.07880: "a 9Msun main-sequence star would outshine the giant at all wavelengths" | §4 |
+| `mod_dark2`: faint + mass ≥ 8.0 → no main-sequence star (nor a pair) | MOD | implied: mass–luminosity relation; the paper says it for one 9 Msun star: "a 9Msun main-sequence star would outshine the giant at all wavelengths" | §4 |
 | `mod_other2` | MOD | implied: non-main-sequence stars of several solar masses are at least as luminous (textbook); the paper states it for red giants ("But one or more red giant companions would outshine the giant in the optical", §4) and limits hot companions with the UV (§3.3) | — |
 | `obs_faint3` | OBS | stated 2404.10486: "The spectra do not show any sign of the presence of a second component, nor any emission line" | App. C |
 | `mod_dark3` | MOD | stated 2404.10486: "too low by several orders of magnitude to be compatible with the hypothesis that the companion is a main sequence star or even two main sequence stars in a close orbit" | §3 |
@@ -311,20 +311,22 @@ discusses only main-sequence stars; the extension to other luminous stars is sta
 #### 2.4 Stage D · A black hole is required
 
 **Overview.** Once the mass is dark and above these thresholds, the remaining non-black-hole options are white
-dwarfs (below 1.4 Msun each) and neutron stars (below about 2.3 Msun each). One or two of them cannot reach
-5 Msun; three or more would be needed.
+dwarfs (below 1.4 Msun each) and neutron stars (below about 2.2–2.5 Msun each). One or two of them cannot
+exceed 5 Msun (BH1's strict bound), let alone 8 or 30; three or more would be needed. This uses the
+measured and equation-of-state maximum neutron-star mass: the causality bound (about 3 Msun; Kalogera and
+Baym 1996) would let two neutron stars exceed 5 Msun, so BH1's RV-only route depends on the former.
 
 **Premises.**
 
 | Premise | Tag | Provenance | Source |
 |---|---|---|---|
 | `mod_few1`: at most two objects (hedged: "unlikely to be dynamically stable") | MOD | stated 2209.06833: "Scenarios involving more than two objects inside the G star's orbit are difficult to assemble and unlikely to be dynamically stable" | §8.2 |
-| `lit_ns1`: dark, at most two, > 5 Msun → black hole (no exotic compact objects) | LIT | implied: Chandrasekhar 1931 (white dwarfs); Özel and Freire 2016, arXiv:1603.02698 (neutron stars) | — |
+| `lit_ns1`: dark, at most two, > 5 Msun → black hole (no exotic compact objects) | LIT | implied: Chandrasekhar 1931 (white dwarfs); Özel and Freire 2016, arXiv:1603.02698; Rezzolla et al. 2018, arXiv:1711.00314 (neutron stars) | — |
 | `mod_few2` (hedged: "difficult to assemble") | MOD | stated 2302.07880: "such a configuration would be difficult to assemble and would rapidly become unstable" | §4 |
 | `mod_ns2` | MOD | stated 2302.07880: "is too large to be a neutron star or white dwarf, or any plausible combination of white dwarfs, neutron stars, and faint stars" | §7 item 4 |
 | `gap_few3`: at most two objects (BH3) | GAP | reconstructed: the BH3 paper does not discuss three or more compact objects (the argument exists in BH1 §8.2) | — |
 | `mod_ns3`: … → neither one nor two neutron stars | MOD | stated 2404.10486: "The estimated mass is also too large for one neutron star or two neutron stars in a close orbit" | §3 |
-| `lit_wd3`: … → black hole (white dwarfs, white dwarf + neutron star) | LIT | implied: Chandrasekhar 1931; Özel and Freire 2016 | — |
+| `lit_wd3`: no luminous star, no neutron stars, at most two, ≥ 30 Msun → black hole (white dwarfs, white dwarf + neutron star) | LIT | implied: Chandrasekhar 1931; Özel and Freire 2016 | — |
 
 **Rival explanations.**
 
@@ -340,7 +342,7 @@ dwarfs (below 1.4 Msun each) and neutron stars (below about 2.3 Msun each). One 
 ```lean
 have b1 : v.BH1 := p .lit_ns1 n1 (p .mod_few1) m1   -- Sec. 8.2 (mass limits implied)
 have k3 : v.NoNS3 := p .mod_ns3 n3 (p .gap_few3) m3  -- Sec. 3 (three or more: not discussed)
-have b3 : v.BH3 := p .lit_wd3 k3 (p .gap_few3) m3     -- white dwarfs: textbook step
+have b3 : v.BH3 := p .lit_wd3 n3 k3 (p .gap_few3) m3  -- white dwarfs: textbook step
 exact ⟨b1, b2, b3⟩
 ```
 
@@ -358,7 +360,7 @@ that step is our `GAP`. For BH2, `mod_ns2` ("any plausible combination") already
    stars, so the gap is small in practice, but it is a missing step.
 2. **`stated_insufficient`.** What the papers write needs textbook knowledge: the Kepler mass relations and
    the step from a published estimate to a bound (`mod_fit*`; BH3 gives its equations but not this step), the inclination-free lower limit from the RV mass function,
-   the white-dwarf and neutron-star mass limits for BH1 and the white-dwarf limit for BH3 (`lit_wd3`), and, for BH2 (beyond red giants) and BH3, the
+   the white-dwarf and neutron-star mass limits for BH1 and the white-dwarf limit for BH3 (`lit_wd3`), the mass–luminosity scaling from the 9 Msun star BH2 names down to 8.0 Msun (`mod_dark2`), and, for BH2 (beyond red giants) and BH3, the
    luminosity of non-main-sequence stars.
 3. **BH1 is over-determined.** `obs_rv1`, `mod_rv1`, `stat_fit1`, `mod_fit1`, `num_astro1`, `mod_astro1`,
    `stat_rvmin1` and `mod_rvmin1` are each redundant: the RV-only minimum mass gives stage B without the
@@ -438,6 +440,8 @@ Newest first.
 - El-Badry et al. 2023b, MNRAS 521, 4323, arXiv:2302.07880 (read: v2) [V]
 - Gaia Collaboration, Panuzzo et al. 2024, A&A 686, L2, arXiv:2404.10486 (read: v2) [V]
 - El-Badry et al. 2024, OJAp 7, arXiv:2405.00089 (read: v2) [V]
+- Kalogera and Baym 1996, ApJ 470, L61, arXiv:astro-ph/9608059 (causality bound on neutron-star mass);
+  Rezzolla, Most and Weih 2018, ApJL 852, L25, arXiv:1711.00314 (maximum neutron-star mass).
 - Chandrasekhar 1931, ApJ 74, 81 (white-dwarf maximum mass); Özel and Freire 2016, ARA&A 54, 401,
   arXiv:1603.02698 (neutron-star masses)
 
@@ -523,7 +527,7 @@ D. 至多两个天体，加上白矮星与中子星的质量上限 → 伴星含
 
 Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒真（`final_nontrivial`）；前提能否同时成立（`consistent`）；单个前提不能单独推出结论（`alone_insufficient`）；每个前提是必要的（去掉它时的反例模型）还是多余的；论文明说的前提是否足够（`stated_*`）；加上标准知识后是否足够（`explicit_*`，`explicit_insufficient` 即存在真正的缺口）。Lean 不检查每个前提内部的物理是否正确。
 
-质量以十分之一太阳质量为单位（整数）：`mass1 > 50`、`mass2 ≥ 80`、`mass3 ≥ 300`。阈值的选择使每条引文讲的都是这一范围内的质量（BH2、BH3 的句子讲的是 8.9 与 32.7 M☉ 的伴星）；BH1 用摘要中严格的"> 5"，因为两颗接近中子星最大质量（约 2.3–2.5 M☉）的中子星可以达到 5.0。留有余地的句子（"可能性很小"、"不太可能动力学稳定"）被编码为断言；每个这样的前提都在所属环节中点名。
+质量以十分之一太阳质量为单位（整数）：`mass1 > 50`、`mass2 ≥ 80`、`mass3 ≥ 300`。阈值的选择使每条引文讲的都是这一范围内的质量（BH2、BH3 的句子讲的是 8.9 与 32.7 M☉ 的伴星）；BH1 用摘要中严格的"> 5"，因为两颗接近中子星最大质量（约 2.2–2.5 M☉）的中子星可以达到 5.0。留有余地的句子（"可能性很小"、"不太可能动力学稳定"）被编码为断言；每个这样的前提都在所属环节中点名。
 
 #### 2.1 环节 A · 轨道是真实的
 
@@ -588,7 +592,7 @@ have o1 : v.Orbit1 := p .mod_rv1 (p .obs_rv1)   -- Sec. 3.2, 4.2.1
 have m1 : v.mass1 > 50 := p .mod_fit1 o1 (p .stat_fit1)   -- Sec. 4.1
 ```
 
-**评析。** 阈值比测量值低约 3σ（9.6 对 > 5；8.9 对 8.0；32.7 对 30）。BH1 只用视向速度的路径不需要 Gaia 轨道，但用到了由 SED 得到的 G 型星质量：完全不用 M1 时下限约为 4 M☉（§4.3），而 4 M☉ 已不足以排除两颗中子星（2 × 2.3 = 4.6）。`mod_fit*` 前提不只是开普勒定律：还包含暗伴星假设（光心拟合中伴星不发光），以及从带误差的发表值到真实质量下限的一步。对 BH2，8.0 M☉ 的下限依赖 Gaia 的倾角；论文给出的、与倾角无关的退路（2.6 M☉，仍高于白矮星和中子星质量）需要另一个环节 D，本编码没有包含。
+**评析。** BH2、BH3 的阈值比测量值低约 3σ（8.9 ± 0.3 对 8.0；32.70 ± 0.82 对 30）；BH1 用只靠视向速度的"> 5"，远低于联合拟合的 9.62 ± 0.18。BH1 只用视向速度的路径不需要 Gaia 轨道，但用到了由 SED 得到的 G 型星质量：完全不用 M1 时下限约为 4 M☉（§4.3），而 4 M☉ 已不足以排除两颗中子星（2 × 2.3 = 4.6）。`mod_fit*` 前提不只是开普勒定律：还包含暗伴星假设（光心拟合中伴星不发光），以及从带误差的发表值到真实质量下限的一步。对 BH2，8.0 M☉ 的下限依赖 Gaia 的倾角；论文给出的、与倾角无关的退路（2.6 M☉，仍高于白矮星和中子星质量）需要另一个环节 D，本编码没有包含。
 
 #### 2.3 环节 C · 这些质量不在发光恒星中
 
@@ -602,7 +606,7 @@ have m1 : v.mass1 > 50 := p .mod_fit1 o1 (p .stat_fit1)   -- Sec. 4.1
 | `mod_dark1`：不发光 + 质量 > 5 → 没有普通恒星承载 | MOD | stated 2209.06833："any normal star with a mass exceeding ≈0.4 M⊙ would easily be detected in the spectrum" | §8.1 |
 | `mod_other1`：……也没有其他发光恒星 | MOD | stated 2209.06833："This and the GALEX + WISE photometry allow us to rule out pathological companions that are hot and small or cool and large" | §5.1.1 |
 | `obs_faint2` | OBS | stated 2302.07880："A companion contributing more than ≈2% of the total light at 4000-4300 Å would dilute the absorption lines beyond this value and is thus ruled out" | §3.8.1 |
-| `mod_dark2` | MOD | stated 2302.07880："a 9Msun main-sequence star would outshine the giant at all wavelengths" | §4 |
+| `mod_dark2`：不发光 + 质量 ≥ 8.0 → 没有主序星（也没有一对主序星） | MOD | implied：质光关系（mass–luminosity relation）；论文对一颗 9 M☉ 的恒星明说："a 9Msun main-sequence star would outshine the giant at all wavelengths" | §4 |
 | `mod_other2` | MOD | implied：几个太阳质量的非主序恒星至少同样明亮（教科书）；论文对红巨星明确说明（"But one or more red giant companions would outshine the giant in the optical"，§4），并用紫外限制热的伴星（§3.3） | — |
 | `obs_faint3` | OBS | stated 2404.10486："The spectra do not show any sign of the presence of a second component, nor any emission line" | 附录 C |
 | `mod_dark3` | MOD | stated 2404.10486："too low by several orders of magnitude to be compatible with the hypothesis that the companion is a main sequence star or even two main sequence stars in a close orbit" | §3 |
@@ -628,19 +632,19 @@ have n1 : v.NoStar1 := p .mod_other1 (p .obs_faint1) s1   -- Sec. 5.1.1
 
 #### 2.4 环节 D · 必须有黑洞
 
-**概述。** 一旦确定这些质量不发光且超过上述阈值，剩下的非黑洞选项是白矮星（每颗低于 1.4 M☉）和中子星（每颗低于约 2.3 M☉）。一颗或两颗都到不了 5 M☉，需要三颗以上。
+**概述。** 一旦确定这些质量不发光且超过上述阈值，剩下的非黑洞选项是白矮星（每颗低于 1.4 M☉）和中子星（每颗低于约 2.2–2.5 M☉）。一颗或两颗都不能超过 5 M☉（BH1 的严格下限），更到不了 8 或 30 M☉，需要三颗以上。这里用的是观测与物态方程（equation of state）给出的中子星最大质量；按因果性上限（约 3 M☉；Kalogera 与 Baym 1996），两颗中子星可以超过 5 M☉，所以 BH1 只用视向速度的路径依赖前者。
 
 **前提。**
 
 | 前提 | 标签 | 出处性质 | 出处 |
 |---|---|---|---|
 | `mod_few1`：至多两个天体（留有余地："unlikely to be dynamically stable"） | MOD | stated 2209.06833："Scenarios involving more than two objects inside the G star's orbit are difficult to assemble and unlikely to be dynamically stable" | §8.2 |
-| `lit_ns1`：不发光、至多两个、> 5 M☉ → 黑洞（没有奇异致密天体） | LIT | implied：Chandrasekhar 1931（白矮星）；Özel 与 Freire 2016，arXiv:1603.02698（中子星） | — |
+| `lit_ns1`：不发光、至多两个、> 5 M☉ → 黑洞（没有奇异致密天体） | LIT | implied：Chandrasekhar 1931（白矮星）；Özel 与 Freire 2016，arXiv:1603.02698；Rezzolla 等 2018，arXiv:1711.00314（中子星） | — |
 | `mod_few2`（留有余地："difficult to assemble"） | MOD | stated 2302.07880："such a configuration would be difficult to assemble and would rapidly become unstable" | §4 |
 | `mod_ns2` | MOD | stated 2302.07880："is too large to be a neutron star or white dwarf, or any plausible combination of white dwarfs, neutron stars, and faint stars" | §7 第 4 条 |
 | `gap_few3`：至多两个天体（BH3） | GAP | reconstructed：BH3 论文没有讨论三个以上致密天体（这一论证见 BH1 §8.2） | — |
 | `mod_ns3`：…… → 既不是一颗也不是两颗中子星 | MOD | stated 2404.10486："The estimated mass is also too large for one neutron star or two neutron stars in a close orbit" | §3 |
-| `lit_wd3`：…… → 黑洞（白矮星、白矮星加中子星） | LIT | implied：Chandrasekhar 1931；Özel 与 Freire 2016 | — |
+| `lit_wd3`：没有发光恒星、没有中子星、至多两个、≥ 30 M☉ → 黑洞（白矮星、白矮星加中子星） | LIT | implied：Chandrasekhar 1931；Özel 与 Freire 2016 | — |
 
 **其他解释。**
 
@@ -656,7 +660,7 @@ have n1 : v.NoStar1 := p .mod_other1 (p .obs_faint1) s1   -- Sec. 5.1.1
 ```lean
 have b1 : v.BH1 := p .lit_ns1 n1 (p .mod_few1) m1   -- Sec. 8.2 (mass limits implied)
 have k3 : v.NoNS3 := p .mod_ns3 n3 (p .gap_few3) m3  -- Sec. 3 (three or more: not discussed)
-have b3 : v.BH3 := p .lit_wd3 k3 (p .gap_few3) m3     -- white dwarfs: textbook step
+have b3 : v.BH3 := p .lit_wd3 n3 k3 (p .gap_few3) m3  -- white dwarfs: textbook step
 exact ⟨b1, b2, b3⟩
 ```
 
@@ -665,7 +669,7 @@ exact ⟨b1, b2, b3⟩
 #### 2.5 Lean 检查发现的问题
 
 1. **`explicit_insufficient`：一个真正的缺口。** 即使加上标准知识，BH3 的结论仍需要 `gap_few3`：BH3 论文没有排除三个以上不含黑洞的致密天体。BH1 和 BH2 论文论证了这一点（作为合理性陈述），所以缺口只在 BH3，引用它们的论证即可补上。对 33 M☉ 的伴星需要十几颗中子星，所以实际影响很小，但它确实是缺失的一步。
-2. **`stated_insufficient`。** 论文写出的内容需要教科书知识补充：开普勒质量关系以及从发表值到下限的一步（`mod_fit*`；BH3 给出了方程，但没有这一步）、光谱质量函数给出的与倾角无关的下限、BH1 所需的白矮星与中子星质量上限、BH3 所需的白矮星质量上限（`lit_wd3`），以及 BH2（红巨星之外）与 BH3 所需的非主序恒星的光度。
+2. **`stated_insufficient`。** 论文写出的内容需要教科书知识补充：开普勒质量关系以及从发表值到下限的一步（`mod_fit*`；BH3 给出了方程，但没有这一步）、光谱质量函数给出的与倾角无关的下限、BH1 所需的白矮星与中子星质量上限、BH3 所需的白矮星质量上限（`lit_wd3`）、从 BH2 点名的 9 M☉ 恒星推到 8.0 M☉ 的质光关系（`mod_dark2`），以及 BH2（红巨星之外）与 BH3 所需的非主序恒星的光度。
 3. **BH1 是超定的。** `obs_rv1`、`mod_rv1`、`stat_fit1`、`mod_fit1`、`num_astro1`、`mod_astro1`、`stat_rvmin1` 与 `mod_rvmin1` 各自都是多余的：只用视向速度的最小质量不需要 Gaia 轨道就能给出环节 B，联合拟合不需要视向速度下限也能给出。这与 BH1 论文自己的说法一致：即使不用天体测量，视向速度也要求一个黑洞质量的伴星。联合拟合与只用天体测量的两条路径彼此并不独立（都需要 Gaia 轨道）；只用视向速度的路径独立于 Gaia 轨道。但三条路径都依赖同一批后续视向速度（联合拟合用到它们，Gaia 轨道由它们验证，视向速度下限就是它们本身）："多余"的意思是去掉任何一条前提都不影响结论，而不是对视向速度数据本身出问题也稳健，更不是"只用 Gaia DR3 就够"。
 4. **薄弱之处在物理。** 起决定作用的前提是被编码为断言的、留有余地的句子：`mod_rv2`（"very unlikely"）、`mod_few1` 与 `mod_few2`（"difficult to assemble"、"unlikely to be dynamically stable"）。BH2 论文本身就把结论写成以 Gaia 解为条件，而且 8.0 M☉ 的下限依赖 Gaia 的倾角。
 5. **`num_astro1` 与本项目结果的联系较弱。** 它是多余的前提，所以即使我们的复现失败，也不会改变任何 Lean 结论；它绑定的是我们只用 DR3 的质量的后验中位数（13.3 M☉），而不是下界（第 16 百分位约 11，存在列表里，绑定无法寻址）。我们自己的标签还把 BH1 的 DR3 解标为低显著性，而 G ≈ 13.8 附近 DR3 的误差被低估约 30%（BH1 §4.3.2），这会使下侧尾部更宽。
@@ -719,4 +723,5 @@ exact ⟨b1, b2, b3⟩
 - El-Badry 等 2023b, MNRAS 521, 4323, arXiv:2302.07880（阅读版本 v2）[V]
 - Gaia 合作组 Panuzzo 等 2024, A&A 686, L2, arXiv:2404.10486（阅读版本 v2）[V]
 - El-Badry 等 2024, OJAp 7, arXiv:2405.00089（阅读版本 v2）[V]
+- Kalogera 与 Baym 1996, ApJ 470, L61, arXiv:astro-ph/9608059（中子星质量的因果性上限）；Rezzolla、Most 与 Weih 2018, ApJL 852, L25, arXiv:1711.00314（中子星最大质量）。
 - Chandrasekhar 1931, ApJ 74, 81（白矮星最大质量）；Özel 与 Freire 2016, ARA&A 54, 401, arXiv:1603.02698（中子星质量）
