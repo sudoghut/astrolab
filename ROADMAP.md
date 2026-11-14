@@ -130,7 +130,7 @@ DR4 的内容：
 | SH0ES HST 全样本（42 SN Ia、4 个锚点；arXiv:2408.11770 表 4） | 73.2 ± 0.9 | [V] |
 | SH0ES 的 JWST 三方法合并（arXiv:2408.11770 摘要） | 72.6 ± 2.0 | [V] |
 | CCHP (Freedman et al. 2025, ApJ 985, 182, arXiv:2408.06153)，TRGB 方法，24 个 SN Ia 校准 | 70.39 ± 1.22(stat) ± 1.33(sys) ± 0.70(σ_SN) | [V]（摘要；卷页号 [U]） |
-| CCHP 只用 JWST 的 TRGB，同样 11 颗 SN Ia 校准（arXiv:2408.06153 表 5、第 X.5 节） | CSP 哈勃流 68.81；Pantheon+ 哈勃流 69.29 | [V]（69.29 的误差 [U]） |
+| CCHP 只用 JWST 的 TRGB，同样 11 颗 SN Ia 校准（arXiv:2408.06153 表 5、第 X.5 节） | CSP 哈勃流 68.81；Pantheon+ 哈勃流 69.29（在 R22 的协方差框架内算出） | [V]（69.29 的误差论文表 5 未给出） |
 | H0DN 本地距离网络（Local Distance Network, A&A 708, A166 (2026), arXiv:2510.23823） | 73.50 ± 0.81 | [V] |
 | 早期宇宙：SPT-3G + ACT + Planck 组合（arXiv:2506.20707） | 67.19 ± 0.38 | [V] |
 | 早期宇宙：ACT DR6（P-ACT + CMB 透镜 + DESI DR1 BAO，arXiv:2503.14452） | 68.22 ± 0.36 | [V] |
