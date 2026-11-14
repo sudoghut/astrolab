@@ -222,3 +222,19 @@ def test_gls_checks_factor_shape():
     L, y, C = _gls_problem(seed=6)
     with pytest.raises(ValueError, match="c_factor"):
         infer.gls(L[:-1], y[:-1], c_factor=linalg.cho_factor(C, lower=True))
+    with pytest.raises(ValueError, match="c_factor"):
+        infer.gls(L, y, c_factor=(C, "lower"))
+    with pytest.raises(ValueError, match="c_factor"):
+        infer.gls(L, y, c_factor=np.linalg.cholesky(C))
+    bad = linalg.cho_factor(C, lower=True)
+    bad[0][0, 0] = -1.0
+    with pytest.raises(ValueError, match="diagonal"):
+        infer.gls(L, y, c_factor=bad)
+
+
+def test_gls_rejects_asymmetric_covariance():
+    L, y, C = _gls_problem(seed=8)
+    A = C.copy()
+    A[0, 1] += 0.1 * np.max(np.abs(C))
+    with pytest.raises(ValueError, match="symmetric"):
+        infer.gls(L, y, A)
