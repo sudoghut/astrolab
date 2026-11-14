@@ -39,6 +39,52 @@ spurious (quality flags) / unexplained. No discovery claim is made in this study
 **D1 (DR4 readiness).** The same code produces valid ADQL for `release="dr4"` (schema
 `gaiadr4`) and runs end to end for `release="dr3"`.
 
+### DR4 addendum to section 2 (2026-11-14, written before the DR4 release; pre-registration)
+
+Evaluated on the DR4 run only (`PARAMS["release"] = "dr4"`); the DR3 criteria above stay as they
+are and keep being checked against the archived DR3 results.
+
+**R-sel (which solution).** If a target has more than one solution of an astrometric type, all are
+computed and reported; the criteria use the one chosen by: drop `unvalidated_types`; prefer
+`AstroSpectroSB1`, then `Orbital`, then the other types; ties by the highest `significance`.
+
+**R3 (BH3).** If DR4 has an astrometric orbital solution for 4318465066420528000, M1 =
+0.76 +/- 0.05 Msun (Gaia Collaboration, Panuzzo et al. 2024, arXiv:2404.10486v2, Table 3) gives M2
+consistent with the published 32.70 +/- 0.82 Msun: |M2_ours - 32.70| < 2 sigma_combined.
+*Expectation noted in advance:* the published value comes from a pre-release run (NSS 4.1) with a
+combined astrometric + RV solution and f_M from a1 (their f_M = 31.23 +/- 0.81 Msun); the paper's
+astrometry-only solution gives f_M = 32.03 +/- 0.64 Msun, so our a0/parallax mass may sit
+somewhat above 32.70, and DR4's final pipeline differs from NSS 4.1. No DR4 solution: R3 is
+reported as "not evaluable", not as a failure.
+
+**R1, R2 on DR4.** Same rule as on DR3 (2 sigma_combined against the published masses), now with
+DR4 solutions; reported next to the DR3 values.
+
+**S1-DR4.** The DR4 screen returns < 50,000 rows, and BH1, BH2 (and BH3 if it has a solution)
+have M2 > 3 Msun with their published M1.
+
+**S2-DR4.** At least 19 of the 21 El-Badry et al. (2024) candidates pass `f_M > 0.25 Msun` on DR4.
+Only candidates whose DR3 source_id resolves in DR4 `gaia_source` and that have a DR4 astrometric
+solution are counted; the others are listed separately (cross-match or no solution) and the
+denominator is stated.
+
+**V-DR4 (vetoes).** No positive control (BH1, BH2, BH3, the 21 NS candidates) is vetoed. The type
+veto uses the DR4 names of the non-validated families, decided from the DR4 type tally and written
+into `log.md` before the run. A vetoed control means the veto rules fail on DR4; they are not
+retuned.
+
+**F-DR4 (the 51 DR3 survivors).** Each of the 51 DR3 candidates that were not known, not vetoed
+and not refuted gets exactly one label from DR4, in this order:
+1. `unresolved`: its DR3 source_id is not in DR4 `gaia_source` (cross-match problem, not a result);
+2. `solution-gone`: no DR4 astrometric solution;
+3. `rv-vetoed`: DR4 `rv_amplitude_robust` < `rv_ratio_min` x the RV range predicted from the DR4 orbit;
+4. `type-vetoed`: the DR4 solution is of a non-validated type;
+5. `persists`: |P_DR4 - P_DR3| < 3 sqrt(sigma_P,DR3^2 + sigma_P,DR4^2) and M2 > 3 Msun with FLAME M1
+   (fallback 1 Msun);
+6. `changed`: anything else.
+The counts per label are reported. No discovery claim is made: `persists` means "still a
+candidate".
+
 ## 3. Data (with size estimate)
 
 | Input | Source | Selection | Est. rows / size |
@@ -50,6 +96,18 @@ spurious (quality flags) / unexplained. No discovery claim is made in this study
 
 The DR3 table has ~443k solutions in total; we never download it. The mass
 function is evaluated on the server.
+
+### DR4 addendum to section 3 (2026-11-14, before the DR4 release)
+
+| Input | Source | Selection | Est. rows / size |
+|---|---|---|---|
+| DR4 schema, tables, columns, solution types | `TAP_SCHEMA`, GROUP BY on `nss_two_body_orbit` | metadata | < 1,000 rows each |
+| Target and control solutions | DR4 `nss_two_body_orbit` | 3 BHs + 21 NS candidates by source_id | < 100 rows |
+| Screen | same query as DR3 on the DR4 schema | same cuts | counted on release day; DR3 gave 3,343. Above 50,000: S1-DR4 fails and is recorded first (run-book step 2) |
+| Id resolution and survivor follow-up | DR4 `gaia_source` LEFT JOIN `nss_two_body_orbit` | 79 unique DR3 source_ids (3 BHs, 21 NS, 6 literature-labelled, 51 survivors; BH1 and BH2 appear twice) | < 200 rows |
+
+The release-day count and its size estimate (rows x ~300 bytes) are written into this table
+before the screen is fetched.
 
 ## 4. Method
 
@@ -64,6 +122,14 @@ function is evaluated on the server.
   (verified by unit test against nsstools), and M1 ~ N(M1, sigma_M1).
 - Screen: per-row central M2 with M1 from FLAME (flag when missing; flag giants by
   absolute magnitude and FLAME radius when available).
+
+### DR4 addendum to section 4 (2026-11-14, before the DR4 release)
+
+- Method unchanged; the release is the parameter `PARAMS["release"]` (design plan 008).
+- The DR4 run starts only after the DR3 results are archived in `results/dr3/`; `run.py` refuses a
+  formal non-DR3 run otherwise.
+- The DR4 type names for `ASTROMETRIC_TYPES` and `unvalidated_types`, and the `corr_vec` order, are
+  confirmed on release day (run-book steps 1.4-1.5) before any criterion is evaluated.
 
 ## 5. Results (2026-11-11)
 
