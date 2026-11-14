@@ -116,3 +116,77 @@ def test_multistart_reports_nonconvergence():
     assert r["x"] is None and r["f"] is None
     r = infer.minimize_multistart(f, [(-1, 1)] * 5, n_starts=3)
     assert r["converged"] and r["n_agree"] >= 3 and r["x_spread"] < 1e-3
+
+
+# ---- infer.gls (design plan 012) -------------------------------------------------------------
+
+def _gls_problem(seed=1, n=60, p=5):
+    rng = np.random.default_rng(seed)
+    L = rng.normal(size=(n, p))
+    M = rng.normal(size=(n, n))
+    C = M @ M.T / n + 0.5 * np.eye(n)
+    q_true = rng.normal(size=p)
+    y = L @ q_true + np.linalg.cholesky(C) @ rng.normal(size=n)
+    return L, y, C
+
+
+def test_gls_matches_explicit_formula():
+    L, y, C = _gls_problem()
+    Ci = np.linalg.inv(C)
+    cov = np.linalg.inv(L.T @ Ci @ L)
+    q = cov @ L.T @ Ci @ y
+    out = infer.gls(L, y, C, return_estimator=True)
+    assert np.allclose(out["q"], q, atol=1e-10)
+    assert np.allclose(out["cov"], cov, atol=1e-10)
+    assert np.allclose(out["A"] @ y, q, atol=1e-10)
+    r = y - L @ q
+    assert out["chi2"] == pytest.approx(r @ Ci @ r, rel=1e-10)
+    assert out["dof"] == L.shape[0] - L.shape[1]
+
+
+def test_gls_ordinary_least_squares_limit():
+    L, y, _ = _gls_problem(seed=2)
+    out = infer.gls(L, y, 4.0 * np.eye(len(y)))
+    q_ols = np.linalg.lstsq(L, y, rcond=None)[0]
+    assert np.allclose(out["q"], q_ols, atol=1e-10)
+    assert np.allclose(out["sigma"] ** 2, 4.0 * np.diag(np.linalg.inv(L.T @ L)), rtol=1e-10)
+
+
+def test_gls_drops_zero_columns_and_reuses_factor():
+    from scipy import linalg
+    L, y, C = _gls_problem(seed=3)
+    L0 = np.insert(L, 2, 0.0, axis=1)                  # a host whose rows were removed
+    full = infer.gls(L, y, C)
+    out = infer.gls(L0, y, c_factor=linalg.cho_factor(C, lower=True))
+    assert list(out["kept"]) == [0, 1, 3, 4, 5]
+    assert np.isnan(out["q"][2]) and np.isnan(out["sigma"][2])
+    assert np.allclose(np.delete(out["q"], 2), full["q"], atol=1e-10)
+
+
+def test_gls_rejects_rank_deficiency_and_bad_shapes():
+    L, y, C = _gls_problem(seed=4)
+    Lbad = L.copy()
+    Lbad[:, 1] = 2.0 * Lbad[:, 0]
+    with pytest.raises(ValueError, match="rank deficient"):
+        infer.gls(Lbad, y, C)
+    with pytest.raises(ValueError):
+        infer.gls(L, y[:-1], C)
+    with pytest.raises(ValueError):
+        infer.gls(L, y)
+
+
+def test_gls_subset_shift_variance_is_exact():
+    # Delta = e^T (A_sub S - A_full) y has variance a^T C a; check against Monte Carlo
+    L, _, C = _gls_problem(seed=5, n=40, p=3)
+    rows = np.arange(0, 40, 2)
+    full = infer.gls(L, np.zeros(40), C, return_estimator=True)
+    sub = infer.gls(L[rows], np.zeros(len(rows)), C[np.ix_(rows, rows)], return_estimator=True)
+    S = np.zeros((len(rows), 40))
+    S[np.arange(len(rows)), rows] = 1.0
+    a = (sub["A"] @ S - full["A"])[-1]
+    var = a @ C @ a
+    rng = np.random.default_rng(0)
+    ys = (np.linalg.cholesky(C) @ rng.normal(size=(40, 20000))).T
+    deltas = ys @ a
+    assert deltas.var() == pytest.approx(var, rel=0.05)
+    assert var > 0
