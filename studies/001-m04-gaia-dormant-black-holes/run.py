@@ -658,6 +658,11 @@ def main(ctx):
         cout["source_id"] = cout.source_id.astype(str)
         survivors = cout[~cout.known & ~cout.vetoed & (cout.literature != "refuted")]
         unexplained = cout[~cout.known & (cout.qc == "")]
+        if release == "dr3" and len(cout) > CANDIDATE_ROWS_MAX:
+            # the DR3 candidate table is the complete reference set of the DR4 criteria (F-DR4 survivors,
+            # S3 exclusion): it is never truncated
+            raise SystemExit(f"{len(cout)} DR3 candidates exceed {CANDIDATE_ROWS_MAX}; the DR3 reference must be "
+                             f"complete: nothing written")
         cout_capped, cap_info = sel.cap_rows(cout, CANDIDATE_ROWS_MAX)
         out["bh_candidates"] = cout_capped.round(4)
         plot = sc[["f_m", "period", "m2", "m1_used", "abs_g", "bp_rp", "nss_solution_type"]].copy()

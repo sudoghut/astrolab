@@ -289,3 +289,4 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
 
   次要意见采纳：交叉匹配表把两个 DR3 编号映射到同一个 DR4 源时，两个都判为未解析（原因 neighbourhood-collision），并加了测试。
 - 2026-11-14 · 环节 2 闸门 2 第 8 轮：1 个严重问题，成立：`sources_with_same_type_solutions` 列表没有上限，可能撑破 `summary.json` 的 1 MB。已改为记录总数加最多前 200 项；`sources_with_multiple_solutions_among_vetted` 同样处理（其余列表都有上限：对照 ≤ 24、中子星候选 21）。
+- 2026-11-14 · 环节 2 闸门 2 第 9 轮：1 个严重问题，成立（对当前数据没有影响：DR3 只有 87 个候选）。DR4 判据把 DR3 的 `bh_candidates.json` 当作完整的参考集，而 2,000 行的上限可能截断它。已改为 DR3 运行一律不截断，超过上限就停止，测试也核对参考集未被截断；只有 DR4 的展示表才允许截断。
