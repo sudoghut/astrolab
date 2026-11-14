@@ -177,12 +177,13 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
    The within-1σ comparisons the paper states are made on its own recalibration of the CCHP
    distances; the conclusion is about the CCHP program's published H0. That the two can be
    exchanged is neither stated nor standard knowledge (CCHP's Pantheon+ TRGB value is 69.29,
-   Table 4's 70.1). The countermodel sets `SameQuantity := False`. This repo can probe exactly this
-   step: R3 reproduces CCHP's 69.29 in R22's framework and compares it with the Cepheid ladder on
+   Table 4's 70.1). The countermodel sets `SameQuantity := False`. This repo can probe this step
+   (descriptively): R3 reproduces CCHP's 69.29 in R22's framework and compares it with the Cepheid ladder on
    the same hosts.
 2. **`stated_insufficient`**: besides the gap, the rule from the facts to "consistent" (`mod_cons`)
    is left implicit; the conclusion itself is weak ("entirely consistent with").
-3. **Every premise is needed** (seven `_needed` theorems): a single route.
+3. **Every premise is needed** (seven `_needed` theorems): a single route. `gap_same` is the only
+   reconstructed premise, which is why `explicit_insufficient` hinges on it.
 4. **Consistency** (`consistent`) holds trivially: no premise is negative.
 5. **Weak points** (ours): the gap above; the 71.2 is an approximation on newer data; "consistent" is backed by
    low-power checks (≈ 0.05–0.10 mag in distance, ≈ 1.5 km/s/Mpc in H0); "consistent with" is not
@@ -195,7 +196,7 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 |---|---|---|---|---|---|
 | R1 · the SH0ES baseline | testable now | GLS fit of R22's y, L, C | C 46.5 MiB (Git LFS FITS), L 0.66 MB, y 17 kB, lstsq 0.7 kB | primary: reproduce the authors' `lstsq_results.txt` (47 parameters); secondary: 73.04 ± 1.01 (tolerances in README §2) | pending |
 | R2 · stage A–B: anchor and host shifts | testable now | refit with NGC 4258 only (drop the other anchors' geometric rows), then restrict to the CCHP hosts; shifts in 5 log H0 with exact linear error propagation | same | anchor shift vs R22's −0.0158 mag; host shift: null "no shift", four-outcome table vs the paper's −0.0405 mag (README §2) | pending |
-| R3 · stage C: same hosts, Cepheid vs TRGB | explorable (descriptive by default) | joint linear estimator with CCHP's JWST TRGB distances; reproduce 69.29 first | CCHP Table 3 (paper) | descriptive unless the full CCHP error budget can be mapped before data; see README §8 | pending |
+| R3 · stages C and E (`gap_same`): same hosts, Cepheid vs TRGB | explorable (descriptive by default) | joint linear estimator with CCHP's JWST TRGB distances; reproduce 69.29 first | CCHP Table 3 (paper) | descriptive unless the full CCHP error budget can be mapped before data; see README §8 | pending |
 | R4 · is the CCHP choice unusual? | explorable (descriptive) | random 10-host subsets of the 37 hosts, ΔH0 percentile (the paper did an 8-SN version for JAGB, Fig. 6: ~5%) | same | none — exploration only, see README §8 | pending |
 | Cross-paper comparison | explorable (descriptive) | pairwise differences for independent pairs only (ladder vs CMB, TDCOSMO vs others) | paper numbers | none — see README §8 | pending |
 
@@ -316,9 +317,9 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 
 #### 2.4 Lean 检查的发现
 
-1. **`explicit_insufficient`**：即使加上标准知识，链条仍有一处缺口 `gap_same`。论文写明的 1σ 以内的比较，是在它自己对 CCHP 距离的重新标定上做的；而结论针对的是 CCHP 计划发表的 H0。两者可以互换，论文没有写，也不是标准知识（CCHP 的 Pantheon+ TRGB 为 69.29，表 4 为 70.1）。反例模型令 `SameQuantity := False`。本项目可以正好探索这一步：R3 在 R22 的框架内复现 CCHP 的 69.29，并与同一批宿主上的造父变星阶梯比较。
+1. **`explicit_insufficient`**：即使加上标准知识，链条仍有一处缺口 `gap_same`。论文写明的 1σ 以内的比较，是在它自己对 CCHP 距离的重新标定上做的；而结论针对的是 CCHP 计划发表的 H0。两者可以互换，论文没有写，也不是标准知识（CCHP 的 Pantheon+ TRGB 为 69.29，表 4 为 70.1）。反例模型令 `SameQuantity := False`。本项目可以（描述性地）探索这一步：R3 在 R22 的框架内复现 CCHP 的 69.29，并与同一批宿主上的造父变星阶梯比较。
 2. **`stated_insufficient`**：除了这一缺口，由这些事实到"相容"的规则（`mod_cons`）也没有写出；结论本身很弱（"完全相容"）。
-3. **每个前提都是必要的**（7 个 `_needed` 定理）：只有一条路径。
+3. **每个前提都是必要的**（7 个 `_needed` 定理）：只有一条路径。`gap_same` 是唯一的补上前提，所以 `explicit_insufficient` 取决于它。
 4. **相容性**（`consistent`）是平凡成立的：没有否定形式的前提。
 5. **薄弱点**（我们的判断）：上述缺口；71.2 是在较新数据上的近似；"相容"依靠检验力不高的核对（距离约 0.05–0.10 mag，H0 约 1.5 km/s/Mpc）；"相容"不等于"由其造成"。研究（第三部分）直接检验第一点。
 6. **局限**：Lean 检查的是我们编码下的结构，不是天体物理。
@@ -329,7 +330,7 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 |---|---|---|---|---|---|
 | R1 · SH0ES 的基线 | 现在可检验 | 对 R22 的 y、L、C 做广义最小二乘（GLS, generalised least squares）拟合 | C 46.5 MiB（Git LFS 的 FITS），L 0.66 MB，y 17 kB，lstsq 0.7 kB | 主要：复现作者的 `lstsq_results.txt`（47 个参数）；次要：73.04 ± 1.01（容差见 README 第 2 节） | 待定 |
 | R2 · 环节 A–B：锚点与宿主的移动 | 现在可检验 | 只用 NGC 4258（去掉其他锚点的几何约束行）重拟，再限于 CCHP 宿主；在 5 log H0 中用精确的线性误差传播 | 同上 | 锚点移动对 R22 的 −0.0158 mag；宿主移动：零假设（null hypothesis）"无移动"，四种结果的判定表，对该文的 −0.0405 mag（README 第 2 节） | 待定 |
-| R3 · 环节 C：同宿主上造父变星对 TRGB | 可探索（默认只作描述） | 与 CCHP 的 JWST TRGB 距离做联合线性估计；先复现 69.29 | CCHP 表 3（论文） | 只有在取数前能写出 CCHP 完整的误差预算时才作检验，否则只作描述；见 README 第 8 节 | 待定 |
+| R3 · 环节 C 与 E（`gap_same`）：同宿主上造父变星对 TRGB | 可探索（默认只作描述） | 与 CCHP 的 JWST TRGB 距离做联合线性估计；先复现 69.29 | CCHP 表 3（论文） | 只有在取数前能写出 CCHP 完整的误差预算时才作检验，否则只作描述；见 README 第 8 节 | 待定 |
 | R4 · CCHP 的选择是否不寻常 | 可探索（只作描述） | 37 个宿主中随机 10 个的子样本，ΔH0 的百分位（percentile）（论文对 JAGB 做过 8 颗超新星的版本，图 6：约 5%） | 同上 | 无——只作探索，见 README 第 8 节 | 待定 |
 | 跨论文比较 | 可探索（只作描述） | 只对近似独立的组合给出两两之差（距离阶梯对 CMB、TDCOSMO 对其他） | 论文数字 | 无——见 README 第 8 节 | 待定 |
 

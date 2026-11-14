@@ -134,8 +134,8 @@ theorem gap_same_needed : ¬ ∀ v, Without .gap_same v → Conclusion v := fun 
 theorem mod_cons_needed : ¬ ∀ v, Without .mod_cons v → Conclusion v := fun h =>
   h ⟨731, 712, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-/-- What the paper writes is not enough: the rule from the three facts to "consistent" is left
-implicit. -/
+/-- What the paper writes is not enough: the bridge to CCHP's published values (gap_same) and the
+rule to "consistent" (mod_cons) are not stated. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   h ⟨731, 712, True, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
