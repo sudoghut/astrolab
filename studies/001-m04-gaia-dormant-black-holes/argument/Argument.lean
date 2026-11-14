@@ -16,8 +16,8 @@ One chain per system i (1 = BH1, 2 = BH2, 3 = BH3):
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
 Masses are in tenths of a solar mass (Nat). Thresholds per system: BH1 more than 5 Msun
-(the RV-only bound), BH2 at least 8.0, BH3 at least 30.0 (BH2 and BH3: about 3 sigma below
-the published masses). Quotes follow the arXiv HTML text (math rendered as plain text).
+(the RV-only bound), BH2 at least 8.0, BH3 at least 30.0 (BH2 about 3 sigma, BH3 about 3.3
+sigma below the published masses). Quotes follow the arXiv HTML text (math rendered as plain text).
 Hedged statements (very unlikely, unlikely to be stable) are encoded as assertions.
 -/
 
