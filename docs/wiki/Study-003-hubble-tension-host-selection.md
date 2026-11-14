@@ -46,7 +46,7 @@ unknowns q (the distance of each host, Cepheid calibration terms, the SN Ia lumi
 The Chicago-Carnegie Hubble Program (CCHP; Freedman et al. 2025) uses other stars as rung 2: the
 tip of the red giant branch (TRGB) and carbon stars (JAGB). With the James Webb Space Telescope
 (JWST) it observed 10 of the SN hosts (11 SNe Ia) and found lower values, 70.39 ± 1.22 (stat) ±
-1.33 (sys) from 24 calibrators in total, and, from the JWST TRGB distances to the 11 JWST-observed calibrators alone, 68.81 (with CSP
+1.33 (sys) ± 0.70 (σ_SN, supernova sample) from 24 calibrators in total (HST and JWST data), and, from the JWST TRGB distances to the 11 JWST-observed calibrators alone, 68.81 (with CSP
 Hubble-flow SNe) or 69.29 (with Pantheon+ SNe).
 
 #### 1.3 Step by step
@@ -192,7 +192,9 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 4. **Consistency** (`consistent`) holds trivially: no premise is negative.
 5. **Weak points** (ours): the gap above; the 71.2 is an approximation on newer data; "consistent" is backed by
    low-power checks (≈ 0.05–0.10 mag in distance, ≈ 1.5 km/s/Mpc in H0); "consistent with" is not
-   "caused by". The study (part 3) tests the first directly.
+   "caused by". The study (part 3) does not test the inference rule; it tests the size and
+   significance of the host-selection shift (R2) that the rule takes as input, and explores the
+   rest descriptively (R3, R4).
 6. **Limits**: Lean checks the structure under our encoding, not the astrophysics. In particular the
    atoms are uninterpreted: `gap_rule` asserts that the selection shift, the same-host agreement and
    the within-1σ comparison together imply "consistent"; whether the numbers behind those atoms
@@ -242,7 +244,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 SH0ES（Supernovae and H0 for the Equation of State of dark energy）团队（Riess 等 2022，"R22"）用了 37 个曾出现 42 颗 Ia 型超新星的星系中的造父变星、三个锚点，以及哈勃流中 277 颗 Ia 型超新星（0.0233 < z < 0.15）。全部数据可以写成一个线性方程组 y = L q：约 3500 个星等 y、方程矩阵（design matrix）L、协方差矩阵（covariance matrix）C 与 47 个未知数 q（每个宿主星系（host galaxy）的距离、造父变星的标定项、超新星光度 M_B，以及最后一个 5 log H0）。R22 公开了 y、L 和 C，本项目可以重新拟合。
 
-芝加哥—卡内基哈勃计划（CCHP, Chicago-Carnegie Hubble Program；Freedman 等 2025）在第二级用别的恒星：红巨星支顶端（TRGB, tip of the red giant branch）与碳星（JAGB, J-region asymptotic giant branch）。它用詹姆斯·韦布空间望远镜（JWST）观测了 10 个超新星宿主星系（11 颗 Ia 型超新星），得到较低的数值：全部 24 颗校准超新星给出 70.39 ± 1.22（统计）± 1.33（系统），只用 JWST 观测的 11 颗校准超新星的 TRGB 距离给出 68.81（哈勃流用 CSP 超新星）或 69.29（用 Pantheon+ 超新星）。
+芝加哥—卡内基哈勃计划（CCHP, Chicago-Carnegie Hubble Program；Freedman 等 2025）在第二级用别的恒星：红巨星支顶端（TRGB, tip of the red giant branch）与碳星（JAGB, J-region asymptotic giant branch）。它用詹姆斯·韦布空间望远镜（JWST）观测了 10 个超新星宿主星系（11 颗 Ia 型超新星），得到较低的数值：全部 24 颗校准超新星给出 70.39 ± 1.22（统计）± 1.33（系统）± 0.70（σ_SN，超新星样本），24 颗校准超新星包括 HST 与 JWST 的数据；只用 JWST 观测的 11 颗校准超新星的 TRGB 距离给出 68.81（哈勃流用 CSP 超新星）或 69.29（用 Pantheon+ 超新星）。
 
 #### 1.3 逐步讲解
 
@@ -333,7 +335,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 2. **`stated_insufficient`**：原因相同；结论本身很弱（"完全相容"）。
 3. **每个前提都是必要的**（7 个 `_needed` 定理）：只有一条路径。背景而非缺口：论文表 4 的重新标定与 CCHP 后来发表的数值有些差别（CCHP 2025 年的 Pantheon+ TRGB 为 69.29，表 4 为 70.1）；R3 对此作描述性探索。
 4. **相容性**（`consistent`）是平凡成立的：没有否定形式的前提。
-5. **薄弱点**（我们的判断）：上述缺口；71.2 是在较新数据上的近似；"相容"依靠检验力不高的核对（距离约 0.05–0.10 mag，H0 约 1.5 km/s/Mpc）；"相容"不等于"由其造成"。研究（第三部分）直接检验第一点。
+5. **薄弱点**（我们的判断）：上述缺口；71.2 是在较新数据上的近似；"相容"依靠检验力不高的核对（距离约 0.05–0.10 mag，H0 约 1.5 km/s/Mpc）；"相容"不等于"由其造成"。研究（第三部分）不检验这一推理规则；它检验规则的输入之一，即宿主选择造成的移动的大小与显著性（R2），其余只作描述性探索（R3、R4）。
 6. **局限**：Lean 检查的是我们编码下的结构，不是天体物理。特别是原子没有解释：`gap_rule` 断言选择造成的移动、同宿主的一致与 1σ 以内的比较合起来推出"相容"；这些原子背后的数字是否真的支持它们，由阅读论文以及（对移动量而言）研究的 R2 来检查，而不是 Lean。
 
 ### 第三部分 · astrolab 能检验或探索的环节
