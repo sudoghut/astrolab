@@ -189,7 +189,7 @@ def resolve_footprint(study_path: Path, meta: dict[str, Any]) -> dict[str, Any]:
     if tfile.exists():
         try:
             for t in json.loads(tfile.read_text(encoding="utf-8")):
-                if isinstance(t, dict) and "name" in t and _coord_ok(t):
+                if isinstance(t, dict) and _name_ok(t.get("name")) and _coord_ok(t):
                     known[t["name"]] = (float(t["ra"]), float(t["dec"]))
         except (ValueError, TypeError):
             pass
@@ -203,7 +203,9 @@ def resolve_footprint(study_path: Path, meta: dict[str, Any]) -> dict[str, Any]:
         if ra is not None and dec is not None:
             entry["l"], entry["b"] = _galactic(ra, dec)
         targets.append(entry)
-    return {"scale": scale, "sky": {"modes": modes, "survey": sky.get("survey"), "targets": targets}}
+    sv = sky.get("survey")
+    survey = {"name": sv["name"], "note": sv.get("note")} if isinstance(sv, dict) and "survey" in modes else None
+    return {"scale": scale, "sky": {"modes": modes, "survey": survey, "targets": targets}}
 
 
 def _galactic(ra: float, dec: float) -> tuple[float, float]:

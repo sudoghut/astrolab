@@ -113,3 +113,19 @@ def test_validated_footprints_serialise(tmp_path):
         json.dumps(out, allow_nan=False)
     assert claims.footprint_errors(metas[0]) and claims.footprint_errors(metas[1]) and claims.footprint_errors(metas[2])
     assert claims.footprint_errors(metas[3]) == []
+
+
+def test_survey_extra_keys_and_bad_target_file(tmp_path):
+    import datetime
+    meta = {"level": "L1", "footprint": {"sky": {"mode": "survey", "survey": {
+        "name": "S", "note": "n", "when": datetime.date(2026, 1, 1), "x": float("nan")}}}}
+    assert claims.footprint_errors(meta) == []
+    out = claims.resolve_footprint(tmp_path, meta)
+    assert out["sky"]["survey"] == {"name": "S", "note": "n"}       # only validated fields emitted
+    json.dumps(out, allow_nan=False)
+    (tmp_path / "results").mkdir()
+    (tmp_path / "results" / "targets.json").write_text(json.dumps(
+        [{"name": ["bad"], "ra": 1, "dec": 1}, {"name": "ok", "ra": 10, "dec": 20}]), encoding="utf-8")
+    meta = {"level": "L4", "footprint": {"sky": {"mode": "targets", "targets": [{"name": "ok"}]}}}
+    out = claims.resolve_footprint(tmp_path, meta)
+    assert out["sky"]["targets"][0]["ra"] == 10
