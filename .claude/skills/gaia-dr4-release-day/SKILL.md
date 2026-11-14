@@ -1,178 +1,181 @@
 ---
 name: gaia-dr4-release-day
-description: Run-book for Gaia DR4 release day (2026-12-02) - confirm the DR4 schema and columns via TAP_SCHEMA, count before fetching, re-run the M4 dormant-compact-object screen and its vetoes on DR4, and follow up the surviving DR3 candidates with DR4 epoch data. Use on or after DR4 release, or when preparing / rehearsing that run.
+description: Run-book for Gaia DR4 release day (2026-12-02) - preflight the M4 study for DR4, confirm the DR4 schema, columns and solution types via TAP_SCHEMA, count before fetching, re-run the dormant-compact-object screen and its vetoes on DR4, and follow up the surviving DR3 candidates. Use on or after DR4 release, or when preparing / rehearsing that run.
 ---
 
 # Gaia DR4 release day run-book
 
-Study: `studies/001-m04-gaia-dormant-black-holes/` (M4). Its DR3 run is `reproduced`; the
-screen is written to be release-parameterised (`screen.py`). The open questions this run
-answers are in that study's `README.md` section 7; the to-do item is `T-002`.
+Study: `studies/001-m04-gaia-dormant-black-holes/` (M4). Its DR3 run is `reproduced`. The open
+questions this run answers are in that study's `README.md` section 7; the to-do item is `T-002`.
 
-Rules stay in `AGENTS.md` - in particular section 1 (download limits, count before fetch,
-server-side first). This file is only the order of work, the decision points and the
-fallbacks. ADQL how-to and archive quirks: `server-side-query` skill.
+Rules stay in `AGENTS.md` (download limits and the order count -> estimate -> fetch in section 1;
+pre-registration, branches, to-do items in section 2). This file is only the order of work, the
+decision points and the fallbacks. ADQL how-to and archive quirks: `server-side-query` skill.
 
-**DR4 is a new release, not a bigger DR3.** Every table name, column name and solution type
-below is an assumption until TAP_SCHEMA confirms it. Confirm first, then run.
+**DR4 is a new release, not a bigger DR3.** Every table name, column name and solution type the
+study uses is an assumption until TAP_SCHEMA confirms it.
 
-## 0. Before the day
+Commands below are single lines so they paste into both PowerShell and bash (in PowerShell set
+`$env:PYTHONIOENCODING='utf-8'` first). Ad-hoc queries go through the guarded channel:
 
-- The Gaia archive is offline 2026-11-25 to 2026-12-02. Do not plan DR3 queries in that
-  window; the DR3 results needed for comparison are already in `results/`.
-- Work on a branch, with `T-002` moved to "进行中" in `TODO.md` and a draft PR open
-  (AGENTS.md section 2).
-- Rehearsal (safe before release): `python -c "import sys; sys.path.insert(0,'studies/001-m04-gaia-dormant-black-holes'); from screen import screen_adql; print(screen_adql('dr4'))"`
-  prints the DR4 query without touching the network. The same string is already stored in
-  `results/dr4_screen_query.json` from the DR3 run.
-- Record the DR3 baseline numbers you will compare against (from `results/summary.json`):
-  3,343 screen rows, 87 candidates with M2 > 3 Msun, 51 unexplained survivors after vetoes,
-  21/21 NS-candidate recall.
+```
+python -c "from astrolab import fetch; print(fetch.tap('<ADQL>', mode='async', refresh=True).data.to_string())"
+```
 
-## 1. Confirm the schema (no assumptions)
+`refresh=True` matters for TAP_SCHEMA queries: an answer cached during a pre-release rehearsal
+would otherwise be served again on release day.
 
-Expect release-day load; use `mode="async"` and retry rather than hammering `/sync`.
+## 0. Preflight (before 2026-11-25, while the archive is still up)
 
-1. Schemas: `SELECT schema_name FROM tap_schema.schemas` - confirm the DR4 schema name.
-   `screen.py` assumes `gaiadr4` (`SCHEMAS = {"dr3": "gaiadr3", "dr4": "gaiadr4"}`). If it
-   differs, change that mapping only - nothing else in the study hard-codes a schema.
+The study is not yet a one-parameter switch. `T-011` makes it one; check it is merged. If it is
+not, every site in this table must be changed by hand on the day, and each one has a failure mode:
+
+| Site | Current DR3 assumption | Failure if left |
+|---|---|---|
+| `screen.py` `SCHEMAS` | `"dr4": "gaiadr4"` (unconfirmed) | every query fails if the schema name differs |
+| `run.py` `RELEASE` | `"dr3"` | runs DR3 again |
+| `run.py` `release="Gaia DR3"` in `reproduce_targets`, `run_screen`, `ns_recall`, `vet` | provenance label | results claim DR3 as their source |
+| `run.py` `TARGETS["Gaia BH3"]` | `m1: None, m1_err: None` | **`TypeError` in `reproduce_targets` as soon as BH3 has an orbit** (`rng.normal(None, ...)`), before anything is saved |
+| `run.py` `UNVALIDATED_TYPES` | DR3 type names, exact match | if DR4 renames the families, `veto_type` silently never fires and the survivor count is inflated |
+| `run.py` result keys `period_dr3_d`, `gaia_dr3`, status `"no DR3 orbital solution ..."`; `D1_dr4_query_ok` literal `gaiadr4` | DR3 names | DR4 numbers stored under DR3 keys |
+| `results/` | overwritten in place by `python -m astrolab run 001` | the committed DR3 reproduction is replaced, and every DR3 assertion in `test_conclusions.py` is evaluated on DR4 numbers (`test_bh3_has_no_dr3_orbit` must then fail) |
+| `test_conclusions.py` | DR3 criteria; `test_D1_dr4_query_generated` checks the literal `gaiadr4` | pytest red at close-out |
+| `web/index.html` | "DR3" labels, `P<sub>DR3</sub>`, the literal 169,227, `REPRO_STATUS_ZH` | page shows DR4 numbers under DR3 labels |
+| `study.yaml` `footprint.data` | `gaiadr3.*` | Atlas footprint names the wrong release |
+
+**Pre-register the DR4 run before it happens** (AGENTS.md section 2): `README.md` sections 1-4 get
+a dated DR4 addendum written before 2026-12-02, at least:
+
+- R3 (BH3): M1 and its error from Gaia Collaboration, Panuzzo et al. 2024 (arXiv:2404.10486),
+  verified against the paper text; the comparison value 32.70 +/- 0.82 Msun; the pass rule.
+- What S1 (< 50,000 rows), S2 (>= 19/21 NS recall) and the veto checks mean on DR4.
+- What decides each of the 51 DR3 survivors (step 5).
+- README section 3: the DR4 inputs with "to be counted on release day" and the decision table of
+  step 2, so the size estimate is written before the fetch.
+
+Rehearsal (safe, no network): `python -c "import sys; sys.path.insert(0,'studies/001-m04-gaia-dormant-black-holes'); from screen import screen_adql; print(screen_adql('dr4'))"`.
+The same string is in `results/dr4_screen_query.json`. A full rehearsal through
+`python -m astrolab explore` needs a `PARAMS` dict in `run.py` (also `T-011`).
+
+DR3 baseline to compare against (`results/summary.json`): 3,343 screen rows of 169,227 astrometric
+solutions; 87 with M2 > 3 Msun, 2 known; 51 survivors (not known, not vetoed, not refuted - all
+giant and/or low-significance); 5 unknown with no pre-registered label (`S3_unflagged_unknown_preregistered_labels`);
+21/21 NS recall, weakest f_M 0.41; 0 of 23 positive controls vetoed.
+
+If DR4 slips or arrives partial (e.g. NSS tables later than `gaia_source`), stop after step 1, record
+what exists in `log.md` and the `T-002` item's `备注：`, and wait.
+
+## 1. Confirm the schema
+
+Release-day load is expected: use `mode='async'`, retry patiently, no parallel query storms.
+
+1. Schema: `SELECT schema_name FROM tap_schema.schemas`.
 2. Tables: `SELECT table_name FROM tap_schema.tables WHERE schema_name = '<dr4 schema>'` -
-   confirm `nss_two_body_orbit`, `gaia_source`, `astrophysical_parameters` exist under those
-   names.
-3. Columns, per table: `SELECT column_name, unit, description FROM tap_schema.columns WHERE table_name = '<schema>.<table>'`.
-   Check every column the study uses:
-   - `nss_two_body_orbit`: `source_id`, `nss_solution_type`, `period`, `period_error`,
-     `eccentricity`, `parallax`, `parallax_error`, `significance`, `goodness_of_fit`, `flags`,
-     `a_thiele_innes`, `b_thiele_innes`, `f_thiele_innes`, `g_thiele_innes`, `c_thiele_innes`,
-     `h_thiele_innes`, `center_of_mass_velocity`, `t_periastron`, their `_error` twins,
-     `bit_index`, `corr_vec`.
-   - `gaia_source`: `ra`, `dec`, `l`, `b`, `parallax`, `phot_g_mean_mag`, `bp_rp`, `ruwe`,
-     `rv_amplitude_robust`, `rv_nb_transits`.
-   - `astrophysical_parameters`: `mass_flame`, `mass_flame_lower`, `mass_flame_upper`,
-     `radius_flame`.
-   Write the confirmed list into the study `log.md` before fetching anything.
-4. Solution types: `SELECT nss_solution_type, COUNT(*) FROM <schema>.nss_two_body_orbit GROUP BY nss_solution_type`
-   (server-side aggregate, a handful of rows). Compare with `ASTROMETRIC_TYPES` in
-   `screen.py`. DR4 may rename types, drop the `OrbitalAlternative` /
-   `OrbitalTargetedSearch` families, or add new astrometric ones. **A new type that is not
-   in `ASTROMETRIC_TYPES` is silently excluded from the screen** - decide explicitly for each
-   new type whether it is an astrometric orbit, record the decision in `log.md`, and say so
-   in the results.
-5. `corr_vec`: the DR3 parameter order comes from DPAC `nsstools` (`astrolab/orbits.py`,
-   unit-tested in `tests/test_orbits.py`). If DR4 changes the fitted-parameter set or the
-   packing, the Monte Carlo masses (R1/R2) are wrong in a way no test catches. Check the DR4
-   data-model documentation and the `bit_index` / `corr_vec` lengths on a known source before
-   trusting any DR4 uncertainty. If the order cannot be confirmed, report DR4 central values
-   only and mark the uncertainties as DR3-order-assumed.
+   `nss_two_body_orbit`, `gaia_source`, `astrophysical_parameters`.
+3. Columns: `SELECT column_name, unit, description FROM tap_schema.columns WHERE table_name = '<schema>.<table>'`.
+   Check every column the code selects - read them from the code, not from a list here:
+   `ERR_PARAMS` and the two SELECTs in `reproduce_targets`, `vet` in `run.py`; `_COLS` and the
+   SELECTs in `screen.py`. Write the confirmed mapping into `log.md` before fetching data.
+4. Solution types (a server-side aggregate, a handful of rows):
+   `SELECT nss_solution_type, COUNT(*) AS n FROM <schema>.nss_two_body_orbit GROUP BY nss_solution_type`.
+   Compare with **both** `ASTROMETRIC_TYPES` (`screen.py`) and `UNVALIDATED_TYPES` (`run.py`):
+   - a new astrometric type not in `ASTROMETRIC_TYPES` is silently excluded from the screen;
+   - a renamed non-validated family makes `veto_type` silently stop firing;
+   - `orbits.solution_parameters` raises `ValueError` on any type other than `Orbital`,
+     `AstroSpectroSB1`, or a name containing `OrbitalAlternative` / `OrbitalTargetedSearch` (each
+     with its own `corr_vec` order), so BH1/BH2/BH3 with a new type crash `reproduce_targets`.
+   Decide each new type explicitly, record the decision in `log.md`, and state it in the results.
+5. `corr_vec`: the DR3 order follows DPAC `nsstools` (`astrolab/orbits.py`). `tests/test_orbits.py`
+   checks it only when `nsstools` is installed (otherwise it skips). A changed parameter count fails
+   loudly (`orbits.covariance` raises on a length mismatch); a same-length reordering corrupts the
+   Monte Carlo masses silently. Check the DR4 data-model documentation and the `bit_index` /
+   `corr_vec` length on BH1 before trusting any DR4 uncertainty. If the order cannot be confirmed,
+   report central values only and say why.
 
 ## 2. Count before fetching
 
-```
-python -c "import sys; sys.path.insert(0,'studies/001-m04-gaia-dormant-black-holes'); \
-  from screen import screen_from_where; print(screen_from_where('dr4'))"
-```
+Print the screen's `FROM ... WHERE`:
+`python -c "import sys; sys.path.insert(0,'studies/001-m04-gaia-dormant-black-holes'); from screen import screen_from_where; print(screen_from_where('<release>'))"`,
+then `python -c "from astrolab import fetch; print(fetch.tap_count('<that string>', refresh=True))"`.
+Also count the denominator (`<schema>.nss_two_body_orbit WHERE a_thiele_innes IS NOT NULL`).
+Size estimate: rows x ~130 bytes (DR3: 3,343 rows -> 0.4 MB). Write count and estimate into
+README section 3 before running.
 
-Run that `FROM ... WHERE ...` through `fetch.tap_count` (or `ctx.count`). Also count the
-whole astrometric-orbit table (`... WHERE a_thiele_innes IS NOT NULL`) for the denominator.
-
-Decision on the count:
-
-| Screen rows | Action |
+| Screen count | Action |
 |---|---|
-| < 50,000 | proceed as written (DR3 gave 3,343) |
-| 50,000 - 200,000 | do not raise `max_rows` blindly. First tighten: raise `f_M` or the parallax S/N cut, or drop columns. Record the tightened cut as a dated, post-hoc change in `README.md` and `log.md`. |
-| > 200,000 or > 50 MB estimated | stop and ask the user (AGENTS.md section 1.6). Do not edit `config.py` or set `ASTROLAB_*`. |
+| < 50,000 | proceed |
+| >= 50,000 | **pre-registered S1 fails on DR4: record that first.** Then, as a dated post-hoc step, tighten the selection (higher `f_M` or parallax S/N cut - fewer columns does not help, the limit is rows), re-count, and report both. Raising `max_rows` or any limit follows AGENTS.md section 1.6. |
 
-Estimate size as rows x ~130 bytes/row (DR3: 3,343 rows -> 0.4 MB) and check it against
-`STUDY_BUDGET_BYTES` (200 MB per run) together with everything else this run fetches.
+## 3. Switch and protect the DR3 results
 
-## 3. Switch the study to DR4
+- Apply the preflight table (or confirm `T-011` did).
+- Keep the DR3 results as committed files, not memory: the DR3 `results/` is in git on `main`.
+  Unless `T-011` already separates results by release, copy it to `results/dr3/` (small JSON,
+  ~0.5 MB) and commit before the DR4 run, and point the DR3 assertions of `test_conclusions.py`
+  there. Never edit DR3 assertions to make them pass on DR4 numbers.
+- Confirm BH1, BH2, BH3 resolve in `<schema>.gaia_source` by source_id. A missing row is a
+  cross-match problem, not "no DR4 solution".
 
-The release is not yet a single parameter. Change, in `studies/001-m04-gaia-dormant-black-holes/run.py`:
+## 4. Run and check
 
-- `RELEASE = "dr3"` -> `"dr4"`;
-- the provenance labels `release="Gaia DR3"` in `reproduce_targets`, `run_screen`,
-  `ns_recall` and `vet` -> `"Gaia DR4"` (they are provenance strings, not logic, but a wrong
-  label makes the results file lie about its source);
-- `TARGETS[...]["gaia_dr3"]` keys: DR4 source_ids are expected to be stable for these sources,
-  but confirm BH1/BH2/BH3 resolve in `<schema>.gaia_source` before interpreting an empty result
-  as "no DR4 solution". A missing row is a cross-match problem, not a science result.
-- `D1_dr4_query_ok` in `summary` checks for the literal `FROM gaiadr4.nss_two_body_orbit`;
-  if the schema name differed in step 1, that check and `SCHEMAS` move together.
+`python -m astrolab run 001`. Then, in order:
 
-Keep the DR3 results: copy `results/` to `results_dr3/` (not committed) or run DR4 on the
-branch only, so the comparison in step 5 is against a file, not a memory.
-
-Expected, and fine: BH3 now has an orbital solution in DR4 (it had none in DR3) - that is a
-new positive control, not a bug.
-
-## 4. Run
-
-`python -m astrolab run 001` (add `--refresh` only if a cached DR3 answer would otherwise be
-reused for an identical query string; the DR4 queries differ by schema, so normally no).
-
-Then check, in order:
-
-1. `assert len(df) == n` in `run_screen` passed (download matches the server-side count).
-2. `rows_dropped_null_a0` is 0, as in DR3; a non-zero value means the `SQRT` clip issue is
-   live in DR4 and the screen is losing rows.
-3. Positive controls are not vetoed: `results/vetting_controls.json` - BH1, BH2 and the 21
-   El-Badry et al. (2024) NS candidates must all have `vetoed: false`. **If any control is
-   vetoed, the veto rules do not transfer to DR4: report them as failed, do not retune them
+1. The run finished. An over-size result raises `TooLarge` out of `ctx.tap` (it is never silently
+   truncated); go back to step 2.
+2. `rows_dropped_null_a0` is 0 (as in DR3). Non-zero: the screen loses rows to the `SQRT`.
+3. Positive controls (`results/vetting_controls.json`: BH1, BH2, 21 NS candidates; add BH3) all
+   `vetoed: false`. **If any is vetoed, the veto rules fail on DR4: report it, do not retune them
    to let the controls through.**
-4. S2 recall of the 21 NS candidates. In DR3 the weakest `f_M` was 0.41 against a 0.25 cut;
-   if DR4 recall drops below 19/21, the pre-selection is too aggressive for DR4 (that is the
-   pre-registered meaning of S2) - report it, loosen the cut only as a labelled post-hoc step,
-   and re-count first.
-5. `test_conclusions.py`: it asserts the DR3 numbers. Do not edit it to match DR4 in the same
-   step as the run. Either keep it pinned to the archived DR3 results, or add DR4 assertions
-   alongside - decided deliberately and written up, never silently.
+4. `candidates_vetoed_type` > 0, or an explained 0 (step 1.4). A silent 0 is a finding to
+   investigate, not a pass.
+5. S2 recall >= 19/21; below that the pre-selection is too aggressive for DR4 (its pre-registered
+   meaning). Loosen only as a labelled post-hoc step, re-counting first.
+6. R3 (BH3) against its pre-registered rule.
+
+Mass direction, for interpreting rows without FLAME masses: M2 rises with M1 in
+M2^3 = f_M (M1 + M2)^2, so the fallback M1 = 1 Msun underestimates M2 for hosts heavier than
+1 Msun and overestimates it for lighter ones.
 
 ## 5. Interpret against DR3
 
-Report, with DR3 and DR4 side by side: screen rows, candidates with M2 > 3 Msun, how many are
-known, how many are vetoed and by which rule, and how many survive unexplained. Then the
-specific DR3 follow-up (README section 7): the **51 surviving DR3 candidates** (all giants
-and/or low-significance solutions). For each, use DR4 to decide:
+Report DR3 and DR4 side by side: screen rows, M2 > 3 candidates, known, vetoed (by rule),
+refuted by literature, survivors. Then the 51 DR3 survivors. For each, from DR4:
 
-- does the DR4 orbital solution still exist, and with a consistent period and `a0`?
-- does DR4 epoch radial velocity give an RV amplitude where DR3 had none? The `veto_rv` rule
-  was only weakly tested in DR3 (4 of 23 controls had `rv_amplitude_robust`); DR4 epoch RVs
-  are what makes it a real test.
-- does DR4 epoch astrometry change the solution type or the significance?
+- does the orbital solution still exist with a consistent period and `a0`?
+- is there now an RV amplitude (`rv_amplitude_robust` or its DR4 successor)? Veto (ii) was weakly
+  tested in DR3 (4 of 23 controls had it); DR4 RVs make it a real test.
+- did the solution type or significance change?
 
-Fetch epoch data **only for this short list**, source by source, never in bulk: epoch
-time-series for tens of thousands of sources is exactly the kind of download AGENTS.md
-section 1.5 forbids. Count and size-check the epoch query before running it; if per-source
-epoch tables are large, stop at the summary parameters.
+Get these as **one server-side query** with `source_id IN (<51 ids>)` on the summary tables,
+aggregating any epoch quantity on the server (`server-side-query` skill). Per-source epoch
+time-series are a last resort: count and size them first, never in a loop over the list
+(AGENTS.md section 1.2), and stop at summary parameters if they are large.
 
-No discovery claim comes out of this run on its own. A surviving candidate is a candidate.
+No discovery claim comes out of this run. A surviving candidate is a candidate.
 
 ## 6. When something fails
 
 | Symptom | First response |
 |---|---|
-| Archive down / 503 / timeouts on release day | Expected under load. `astrolab.fetch` already retries with backoff and falls back to async. Wait and retry; do not open parallel query storms. |
-| DR4 schema or table name differs | Fix `SCHEMAS` in `screen.py` (step 1.1); nothing else should need touching. |
-| A column is missing or renamed in DR4 | Patch `screen.py` / `run.py` for that column and say so in `log.md`. If it is `mass_flame`, the screen falls back to M1 = 1 Msun, which inflates M2 for giants - flag it loudly rather than quietly. |
-| ADQL parse error on the nested query | Known Gaia parser quirk; see the `server-side-query` skill (nested subqueries, not inlined expressions). Test each function alone. |
-| `corr_vec` order unconfirmed | Central values only; uncertainties withheld (step 1.5). |
-| Count over budget | Step 2 table. Ask the user before raising any limit. |
-| Positive controls vetoed | Report as a failure of the veto rules on DR4; do not retune. |
+| 503 / timeouts | Expected under load. `astrolab.fetch` retries with backoff and falls back to async. Wait. |
+| Schema or table name differs | Preflight table, first and last rows (`SCHEMAS`, D1 literal, test, footprint). |
+| Column missing or renamed | Patch the code for that column; record in `log.md`. A missing `mass_flame` makes every row use M1 = 1 Msun: flag it (step 4 note on direction). |
+| `TypeError` in `reproduce_targets` | BH3 `m1` is still `None` (preflight). |
+| `ValueError` from `orbits` | New solution type or changed `corr_vec` length (step 1.4-1.5). |
+| ADQL parse error | Known Gaia parser quirk: nested subqueries (`server-side-query` skill). |
+| Count over 50,000 | Step 2 table. |
+| Positive control vetoed | Report as a veto failure on DR4; do not retune. |
 
-If the day's run cannot be completed, leave the branch in a readable state and record the
-progress in the `T-002` item's `备注:` before pausing (AGENTS.md section 2).
+If the run cannot be completed, leave the branch readable and record progress in the `T-002`
+item's `备注：` before pausing.
 
 ## 7. Close out
 
-- `README.md`: new section with the DR4 results against the pre-registered criteria; every
-  change to a criterion, cut or veto dated and marked post-hoc.
-- `log.md`: Chinese entry, newest first, with the confirmed schema, counts, and decisions on
-  new solution types.
-- `study.yaml`: `footprint.data` gains the DR4 tables; `status` only changes if the DR4 run
-  actually settles the study's questions.
-- `atlas/claims/*.yaml`: update `ours` and the status for `gaia-dormant-black-holes`.
-- `STATUS.md`: the DR4 time-point row is done; state what DR4 changed.
-- `python -m pytest` passes; `python -m astrolab atlas`; the study page still renders.
+- `README.md`: DR4 results against the pre-registered DR4 criteria; any change to a cut or veto
+  dated and marked post-hoc. `log.md`: Chinese entry with schema, counts, type decisions.
+- `study.yaml` `footprint.data`; `status` changes only if DR4 settles the questions.
+- `atlas/claims/gaia-dormant-black-holes.yaml`: `ours` for BH3, status; `python -m astrolab claims check`.
+- Web page: labels show the release of the numbers they sit on (preflight row).
+- `STATUS.md` time-point row; `python -m pytest`; `python -m astrolab atlas`; page renders.
 - Referee the DR4 run (`referee` skill) before calling anything reproduced.
-- Move `T-002` to `DONE.md` with the PR number and a one-line result.
+- Move `T-002` to `DONE.md`.
