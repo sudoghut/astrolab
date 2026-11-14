@@ -73,12 +73,13 @@ the six bin medians is used in both fits. Verdicts on the main sample (ṽ ≤ 2
 | 1/100 < L < 100 | cannot distinguish (does not support the strength of C26's conclusion) |
 | L ≤ 1/100 | MOND has the higher relative likelihood (contradicts C26) |
 
-Also reported, without verdicts: L with C26's MAD/√N and with 1.4826 MAD/√N (the reproduction
+Also reported, without verdicts: χ²_MOND with A tied to the Newtonian best fit (an alternative
+reading of C26's convention), L with C26's MAD/√N and with 1.4826 MAD/√N (the reproduction
 column), L for the three other Table 3 rows, the bootstrap/MAD error ratio per bin, and the
 Newtonian χ² and its p-value (5 degrees of freedom).
 
 **R3 (descriptive).** Each variant changes one choice from the main sample: no perspective
-correction; no HR cut; HR constant c ± 0.2 mag; d < 150 pc; d < 200 pc; parallax S/N > 100
+correction; no HR cut; HR constant c ± 0.2 mag; d < 150 pc; d < 200 pc (needs its own A/B queries beyond the 150 pc parent cut; run only if their counts fit, otherwise reported as not run); parallax S/N > 100
 (catalogue C10); ipd = 0 at 130 pc and at 150 pc; no degrouping; degrouping with relaxed neighbours
 (parallax_over_error > 5, needs an extra count query, run only if it fits); perspective correction
 from the inverse-variance-weighted mean RV of both stars instead of the primary's; ṽ ≤ 1.5 and ≤ 2. All are reported together in one table with
@@ -106,10 +107,10 @@ parallax rules as a pair.
 |---|---|---|---|
 | A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, a flag whether radial_velocity is not null, FLAME mass | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined; proper-motion difference × distance < 10 km/s (computed in WHERE, not returned; ṽ ≤ 2.5 implies v_sky ≲ 4 km/s even at 1 kAU and 3 M☉, so this cap cannot touch the main sample; A1 is not rerun with other caps and no counts against the cap are looked at before the commit) | trial: 2,209 in one 15° strip with \|δ\| < 60° at a 5 km/s cap; the 10 km/s cap may give a few times more chance pairs: ≤ 200,000 rows in total, each strip query with max_rows = 50,000 (the default cap; a strip that overflows is split), ~300–400 B per row, ≤ 80 MB in total, ≤ 10 MB per query |
 | A2 neighbour counts | per parent star: source_id, number of relaxed neighbours, and the smallest neighbour source_id | neighbours as defined above (no velocity condition); only stars with n ≥ 1 returned | ≤ 50,000 rows per strip (max_rows = 50,000, split if it overflows), ~5 MB in total |
-| B1 velocities (after the pre-registration commit) | the same pairs as A1 with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | same WHERE as A1 | ~55,000 rows, ~10 MB |
+| B1 velocities (after the pre-registration commit) | the A1 pairs with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | A1's WHERE plus velocity-free cuts: r_sky ≤ 30 kAU at the weighted parallax and radial_velocity not null for both stars | ≤ 50,000 rows in total, ≤ 20 MB |
 
-Total at most about 100 MB (more likely 25–40 MB), under the 200 MB study budget; no single query near 50 MB (each is split
-into strips). Strips: star a in 24 right-ascension strips of 15° for |δ| ≤ 60°, 8 strips of 45° for
+Total at most about 105 MB (A1 ≤ 80, A2 ~5, B1 ≤ 20; more likely 25–40 MB), under the 200 MB study budget; no single query near 50 MB (each is split
+into strips). Strips (half-open in α and δ, so that every parent star with parallax < 34 mas belongs to exactly one region and gets its A2 count from exactly one query; checked by an offline test): star a in 24 right-ascension strips of 15° for |δ| ≤ 60°, 8 strips of 45° for
 60° < |δ| ≤ 80° (each hemisphere), and one query per polar cap (|δ| > 80°); star b restricted to the
 same strip plus a margin of 1.2° in declination at every boundary and, in right ascension, 2.2°
 (|δ| ≤ 60°), 7° (60–80°) and all right ascensions (caps). The search radius is 0.5 pc = 103.1 kAU,
@@ -131,8 +132,8 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
 2. **Common distance and separation.** ϖ̄ = (σ²_ϖ2 ϖ1 + σ²_ϖ1 ϖ2)/(σ²_ϖ1 + σ²_ϖ2) (C24 Eq. A2);
    d = 1/ϖ̄; r_sky = d·θ (θ the angular separation, exact great-circle formula).
 3. **Masses (C26 §4.1.2).** FLAME mass when available, else M⋆ = 10^{0.0725(M_G,⊙ − M_G)} with
-   M_G,⊙ = 4.67 (Gaia G, Vega; Willmer 2018, ApJS 236, 47, Table 3 — to be verified against the
-   table before stage 4, recorded in `PARAMS`) and M_G = G + 5 log10(ϖ̄/100) (ϖ̄, the pair's
+   M_G,⊙ = 4.67 (Gaia G, Vega; Willmer 2018, ApJS 236, 47, Table 3 — verified against the table
+   before any mass is computed, recorded in `PARAMS`) and M_G = G + 5 log10(ϖ̄/100) (ϖ̄, the pair's
    weighted parallax in mas, for both stars; C26 uses d_h); add 0.05 M☉ when M⋆ < 0.7 M☉.
    M = M⋆,1 + M⋆,2.
 4. **Velocity (C24 Eqs. 2–8, C26 §4.1.6).** v_sky from the proper-motion difference at the common
@@ -143,8 +144,8 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
 5. **Cuts (main sample, C26).** d < 130 pc; 1 ≤ r_sky ≤ 30 kAU; RUWE < 1.25 (both); both on the HR
    band: 0.5 < BP−RP < 3.5, 4 < M_G < 14, and 3.3(BP−RP) + c < M_G < 3.3(BP−RP) + c + 0.8 (slope
    3.3, height 0.8 mag; C26 §3.2.4). The band's position cannot be read from C26, so c is set by a
-   velocity-free rule from the A1 stars: take all A1 stars with RUWE < 1.25, ϖ̄ > 7.6923 mas
-   (130 pc) and |BP−RP − 1.8| < 0.05; c = median(M_G − 3.3·(BP−RP)) − 0.4, so the band is centred on
+   velocity-free rule from the A1 stars: take all A1 stars with non-null BP−RP, RUWE < 1.25, pair
+   weighted parallax ϖ̄ > 7.6923 mas (130 pc) and |BP−RP − 1.8| < 0.05; c = median(M_G − 3.3·(BP−RP)) − 0.4, so the band is centred on
    the K-star locus. The numeric c is committed (dated) after A1 and before B1; the R3 variant uses
    c ± 0.2. Both stars with radial velocities and |ΔRV| < 10 km/s; σ(ṽ) < 0.1; ṽ ≤ 2.5.
 6. **Statistics.** Section 2 definitions; bootstrap covariance; GLS fits for A.
