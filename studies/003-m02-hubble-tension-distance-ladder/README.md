@@ -53,7 +53,9 @@ that depends on it is reported as **not evaluable**, with the reason.
 - *Anchor step* (all anchors → NGC 4258 only, all 37 hosts):
   Δ_a = 5 log H0(NGC 4258 only) − 5 log H0(baseline). Target: R22 Table 5 fit 10 (72.51 ± 1.54
   against 73.04), i.e. −0.0158 mag. **Reproduced** if |Δ_a − (−0.0158)| ≤ 0.005 mag **and** the
-  NGC 4258-only σ(5 log H0) is within 15% of fit 10's 5 log10(e) × 1.54 / 72.51 = 0.0461 mag (a
+  NGC 4258-only σ(5 log H0) is within 15% of fit 10's 5 log10(e) × 1.54 / 72.51 = 0.0461 mag
+  (Table 5's errors, like the baseline's 73.04 ± 1.01, are fit-only errors without the
+  analysis-variant systematics; a
   fit that kept another anchor would have a clearly smaller σ; 15% allows for the public file
   not being the printed baseline). Both together validate the anchor rule. If the anchor step is
   not reproduced, the host step is still computed but its verdict is reported as **conditional
@@ -80,7 +82,8 @@ from CCHP Table 2) with their χ² under Cov(z); and d = 5 log H0,SH0ES − 5 lo
 10 hosts, both from the joint estimator on z = (y, t) (section 4), with σ_d = √(bᵀ Cov(z) b) as an
 indicative uncertainty. Before d is reported, our CCHP-side estimate is compared with CCHP's own
 TRGB + Pantheon+ value 69.29 (arXiv:2408.06153 section X.5 and Table 5; 5 log H0 = 9.2034):
-**matched** if within 0.02 mag; otherwise d is still reported, with the mismatch stated.
+**matched** if within 0.02 mag; otherwise d is still reported, with the mismatch stated. The
+per-host Δμ table does not depend on this step and is reported unchanged either way.
 Sensitivity (reported only): CCHP's CSP-based 68.81.
 
 **R4 (descriptive).** With NGC 4258 only, draw 10 of the 37 hosts without replacement
@@ -141,10 +144,20 @@ column 0–36 having at least one; (ii) within each host, every SN row's y is wi
 `sn_match_tol` = 0.15 mag of some Table 6 m⁰_B of that host, and every Table 6 SN of that host is
 matched by at least one row (the tolerance is wider than the Table 6 errors, 0.07–0.20 mag,
 because Table 6 note d gives a simple average over surveys while each row is one survey's light
-curve; different hosts' m⁰_B span 9.8–15.3 mag); (iii) each host's fitted μ₀,i in the baseline fit
-within 3σ_Ceph + 0.02 mag of Table 6 μ_Ceph (column a, which excludes that host's SNe; host
-distances span 29.2–34.5 mag, so a permuted column fails this). Reported: the worst host for each
-check.
+curve). In hosts with several SNe (N1448, N3147, N5468, N5643) rows are matched to the host, not
+to individual SNe; no criterion needs a per-SN assignment (R2 and R4 select by host; R3 uses one
+TRGB distance per host). (iii) Each host's fitted μ₀,i in the baseline fit within
+3σ_Ceph + 0.02 mag of Table 6 μ_Ceph (column a; Table 6 prints no full-fit distance: column a
+excludes that host's SNe and column b all SNe, so the 3σ allowance also covers the pull of the
+host's own SNe). (iv) Each host's Cepheid row count (rows with a non-zero in that host column and
+in column 38) within 2 of R22 Table 3's "fit" count (e.g. M101 259, N1448 73, N5643 251; 2150 in
+all), typed into `run.py`; the allowance covers the public file not being exactly the printed
+fit. (v) **Swap test**: for every pair of host columns, swap their labels and re-apply (ii)–(iv);
+if any swapped labelling also passes all of them, the identification of that pair is ambiguous.
+An ambiguous pair that involves a CCHP host makes R2's host step, R3 and R4 **not evaluable**;
+other ambiguous pairs are reported (they affect only R4's random subsets, which treat all
+non-CCHP hosts alike, and only through which non-CCHP host carries which label). Reported: the
+worst host for each check and the list of ambiguous pairs.
 
 **Anchor rule (NGC 4258 only; R22 section 6.2: drop the other anchors' geometric distances, keep
 their Cepheids).** Drop the LMC detached-eclipsing-binary row (only non-zero in column 39, y = 0)
