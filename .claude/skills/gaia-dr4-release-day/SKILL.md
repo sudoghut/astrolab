@@ -59,7 +59,8 @@ a dated DR4 addendum written before 2026-12-02, at least:
 
 - R3 (BH3): M1 and its error from Gaia Collaboration, Panuzzo et al. 2024 (arXiv:2404.10486),
   verified against the paper text; the comparison value 32.70 +/- 0.82 Msun; the pass rule.
-- What S1 (< 50,000 rows), S2 (>= 19/21 NS recall) and the veto checks mean on DR4.
+- What S1, S2 and the veto checks mean on DR4 (now written: README DR4 addendum to section 2;
+  e.g. S2-DR4 is >= 90% of N_eval >= 15 resolved candidates, not 19/21).
 - What decides each of the 51 DR3 survivors (step 5).
 - README section 3: the DR4 inputs with "to be counted on release day" and the decision table of
   step 2, so the size estimate is written before the fetch.
@@ -97,13 +98,17 @@ Release-day load is expected: use `mode='async'`, retry patiently, no parallel q
    - `orbits.solution_parameters` raises `ValueError` on any type other than `Orbital`,
      `AstroSpectroSB1`, or a name containing `OrbitalAlternative` / `OrbitalTargetedSearch` (three
      `corr_vec` orders: `Orbital`; the alternative / targeted-search families; `AstroSpectroSB1`), so BH1/BH2/BH3 with a new type crash `reproduce_targets`.
-   Decide each new type explicitly, record the decision in `log.md`, and state it in the results.
+   Apply the pre-registered rules (README DR4 addendum, "Information barrier"): astrometric types
+   are those whose tally shows Thiele-Innes constants; non-validated types come from the DR4
+   documentation. Log and commit both before fetching any source-level DR4 data.
 5. `corr_vec`: the DR3 order follows DPAC `nsstools` (`astrolab/orbits.py`). `tests/test_orbits.py`
    checks it only when `nsstools` is installed (otherwise it skips). A changed parameter count fails
    loudly (`orbits.covariance` raises on a length mismatch); a same-length reordering corrupts the
-   Monte Carlo masses silently. Check the DR4 data-model documentation and the `bit_index` /
-   `corr_vec` length on BH1 before trusting any DR4 uncertainty. If the order cannot be confirmed,
-   report central values only and say why.
+   Monte Carlo masses silently. Decide `covariance_trusted` from the DR4 data-model documentation
+   (or a DPAC `nsstools` release for DR4) only, and log and commit it with the type decisions,
+   before any source-level DR4 data are fetched (information barrier). Afterwards, the `bit_index`
+   / `corr_vec` length on BH1 is a consistency check that can only set `covariance_trusted` back to
+   False (reported), never to True. While False, R1-R3 are not evaluable; central values only.
 
 ## 2. Count before fetching
 
@@ -150,8 +155,9 @@ Then, in order:
    to let the controls through.**
 4. `candidates_vetoed_type` > 0, or an explained 0 (step 1.4). A silent 0 is a finding to
    investigate, not a pass.
-5. S2 recall >= 19/21; below that the pre-selection is too aggressive for DR4 (its pre-registered
-   meaning). Loosen only as a labelled post-hoc step, re-counting first.
+5. S2-DR4 as pre-registered (README DR4 addendum): passed >= ceil(0.9 N_eval) with N_eval >= 15
+   resolved candidates that have a DR4 solution; N_eval < 15 is "not evaluable". A fail means the
+   pre-selection is too aggressive for DR4. Loosen only as a labelled post-hoc step, re-counting first.
 6. R3 (BH3) against its pre-registered rule.
 
 Mass direction, for interpreting rows without FLAME masses: M2 rises with M1 in
