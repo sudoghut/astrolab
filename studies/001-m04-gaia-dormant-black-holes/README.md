@@ -50,7 +50,9 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
 
 **Definitions used below.**
 - *Information barrier*: the release-day decisions below (astrometric types, non-validated types,
-  `covariance_trusted`, and the DR4 reference epoch used for `epoch_gap_yr`) are made from metadata and documentation only (TAP_SCHEMA, the
+  `covariance_trusted`, the DR4 reference epoch used for `epoch_gap_yr`, and - note 2026-11-14,
+  before the release - the RV-amplitude column and the DR3-DR4 cross-match table specification or
+  "none published") are made from metadata and documentation only (TAP_SCHEMA, the
   server-side type tally, an aggregate query that returns only counts per type, the DR4 data model
   and release papers; no source-level row or value is inspected) and logged in `log.md`, with the
   `PARAMS` / `RELEASES` / `screen.py` change committed, before any source-level DR4 data (targets,
@@ -58,8 +60,9 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
   without being reported as a post-hoc change.
 - *Astrometric types*: mechanically, the DR4 solution types for which the server-side tally
   `SELECT nss_solution_type, COUNT(*), COUNT(a_thiele_innes) ... GROUP BY nss_solution_type` shows
-  Thiele-Innes constants (COUNT(a_thiele_innes) > 0); `ASTROMETRIC_TYPES` in `screen.py` is set to
-  exactly this list (run-book step 1.4).
+  Thiele-Innes constants (COUNT(a_thiele_innes) > 0); `ASTROMETRIC_TYPES["dr4"]` in `screen.py`
+  (one list per release since 2026-11-14, so DR3 queries are unaffected) is set to exactly this list
+  (run-book step 1).
 - *Non-validated types*: `PARAMS["unvalidated_types"]`. For DR4 these are the solution types the
   DR4 documentation (data model or release papers) describes as not validated or of lower
   reliability, decided from the documentation, written into `log.md` and into `PARAMS` with a date

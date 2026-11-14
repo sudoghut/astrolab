@@ -18,7 +18,8 @@ _DR3_TYPES = (
 )
 # Per release, so setting DR4's list on release day never changes a DR3 query. DR4: set on release day by
 # the mechanical rule (types whose tally shows Thiele-Innes constants), under the information barrier.
-ASTROMETRIC_TYPES = {"dr3": _DR3_TYPES, "dr4": _DR3_TYPES}
+ASTROMETRIC_TYPES = {"dr3": _DR3_TYPES,
+                     "dr4": _DR3_TYPES}   # dr4: placeholder until release day (mechanical rule, run-book step 1)
 
 SCHEMAS = {"dr3": "gaiadr3", "dr4": "gaiadr4"}  # dr4 schema name: confirm via TAP_SCHEMA on release day
 

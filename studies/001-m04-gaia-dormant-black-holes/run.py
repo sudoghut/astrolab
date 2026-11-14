@@ -177,14 +177,17 @@ def check_neighbourhood(ctx, schema, label, nbs):
         return None
     tables = ctx.tap(f"SELECT table_name FROM tap_schema.tables WHERE schema_name = '{schema}'",
                      label="tables (TAP_SCHEMA)", release=label, max_rows=5000)
-    listed = {str(t).split(".")[-1].lower() for t in tables.table_name}
+    stored = {str(t).split(".")[-1].lower(): str(t) for t in tables.table_name}   # name as TAP_SCHEMA stores it
+    listed = set(stored)
     if not listed:
         raise SystemExit(f"TAP_SCHEMA lists no tables for {schema}: metadata unavailable; nothing written")
     if nbs["table"].lower() not in listed:
         raise SystemExit(f"cross-match table {schema}.{nbs['table']} is not in TAP_SCHEMA: correct "
                          f"RELEASES[...]['neighbourhood'] to the published table, or set it to None if the release "
                          f"publishes none (logged, information barrier); nothing written")
-    meta = ctx.tap(f"SELECT column_name FROM tap_schema.columns WHERE table_name = '{schema}.{nbs['table']}'",
+    full = stored[nbs["table"].lower()]
+    full = full if "." in full else f"{schema}.{full}"
+    meta = ctx.tap(f"SELECT column_name FROM tap_schema.columns WHERE table_name = '{full}'",
                    label="neighbourhood columns (TAP_SCHEMA)", release=label, max_rows=200)
     cols = {str(c).split(".")[-1].lower() for c in meta.column_name}
     missing = sorted({nbs["old"], nbs["new"], nbs["distance"]} - cols)
