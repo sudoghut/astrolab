@@ -41,7 +41,7 @@ structure Vocab where
   ExpDrop : Prop
   /-- On the same hosts, HST Cepheid and JWST (Cepheid, TRGB, JAGB) distances agree within errors. -/
   AgreeSameHost : Prop
-  /-- For every subsample, the H0 from the JWST distances, as recalibrated by the paper (Table 4), is consistent with the HST expectation on the same SNe (at or within 1 sigma, Sec. III.3). -/
+  /-- For every subsample, the H0 from the JWST distances, as recalibrated by the paper (Table 4), is consistent with the HST expectation on the same SNe (at or within 1 sigma, Sec. III.3, where sigma is the HST-JWST uncertainty excluding the SN term). -/
   ResidSmall : Prop
   /-- CCHP's own reported three-method combined H0 for the subsample (F24) is near the HST expectation for that subsample. -/
   F24Near : Prop

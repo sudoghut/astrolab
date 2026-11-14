@@ -44,10 +44,11 @@
   "reference": -0.0405,
   "reference_tol": 0.08614097555809269,
   "h0_shift_kms": -2.3948641848031684,
-  "verdict": "host selection significantly lowers H0, by the size the paper reports (supports the paper)",
   "status": "evaluated; amended (post-data labelling)",
   "preregistered_verdict": "not evaluable (host identification)",
   "labelling_mode": "amended (post-data labelling)",
-  "qualified_verdict": "host selection significantly lowers H0, by the size the paper reports (supports the paper) [post-data host labelling, with identification check (ii) changed to compare means; -2.2 sigma uses C-propagated errors; on the random-subset scale (Delta/sigma spread 1.33, itself uncertain) about -1.7 sigma, percentile 4.7]"
+  "qualified_verdict": "host selection significantly lowers H0, by the size the paper reports (supports the paper) [post-data host labelling, with identification check (ii) changed to compare means; -2.2 sigma uses C-propagated errors; on the random-subset scale (Delta/sigma spread 1.33, itself uncertain) about -1.7 sigma (post-hoc Delta/sigma percentile 4.7; pre-registered R4 Delta percentile 5.7); with sigma inflated by that spread the verdict table would give 'no host-selection effect detected']",
+  "criterion_outcome": "host selection significantly lowers H0, by the size the paper reports (supports the paper)",
+  "verdict": "host selection significantly lowers H0, by the size the paper reports (supports the paper) [post-data host labelling, with identification check (ii) changed to compare means; -2.2 sigma uses C-propagated errors; on the random-subset scale (Delta/sigma spread 1.33, itself uncertain) about -1.7 sigma (post-hoc Delta/sigma percentile 4.7; pre-registered R4 Delta percentile 5.7); with sigma inflated by that spread the verdict table would give 'no host-selection effect detected']"
  }
 }

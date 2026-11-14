@@ -49,7 +49,7 @@
  "R1_h0": 73.04281910198733,
  "R2_anchor": "reproduced",
  "R2_anchor_shift": -0.018430806133437727,
- "R2_host": "host selection significantly lowers H0, by the size the paper reports (supports the paper) [post-data host labelling, with identification check (ii) changed to compare means; -2.2 sigma uses C-propagated errors; on the random-subset scale (Delta/sigma spread 1.33, itself uncertain) about -1.7 sigma, percentile 4.7]",
+ "R2_host": "host selection significantly lowers H0, by the size the paper reports (supports the paper) [post-data host labelling, with identification check (ii) changed to compare means; -2.2 sigma uses C-propagated errors; on the random-subset scale (Delta/sigma spread 1.33, itself uncertain) about -1.7 sigma (post-hoc Delta/sigma percentile 4.7; pre-registered R4 Delta percentile 5.7); with sigma inflated by that spread the verdict table would give 'no host-selection effect detected']",
  "R2_host_status": "evaluated; amended (post-data labelling)",
  "R2_host_preregistered": "not evaluable (host identification)",
  "host_labelling_mode": "amended (post-data labelling)",
@@ -61,5 +61,5 @@
  "R3_sigma_d": 0.04783482196376176,
  "R4_percentile": 5.680000000000001,
  "R4_verdict": "consistent with random-subset fluctuations",
- "runtime_s": 781.899168800097
+ "runtime_s": 773.2529265999328
 }

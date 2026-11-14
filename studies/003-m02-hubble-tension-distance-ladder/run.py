@@ -571,9 +571,19 @@ def main(ctx):
         while i < draws:
             pick = rng.choice(NH, size=len(cchp), replace=False)
             rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
-            res = fit(L, y, C, rows)
+            res = fit(L, y, C, rows, est=(i == 0))
             deltas.append(float(res["q"][C_H0]) - qa)
-            # nested GLS with the same C: Var(shift) = sigma_sub^2 - sigma_full^2 (checked in R2)
+            # nested GLS with the same C: the full fit is efficient (BLUE) for a superset of the
+            # data, so Cov(full, sub) = Var(full) and Var(sub - full) = sigma_sub^2 - sigma_full^2
+            # (Hausman-type identity; checked exactly on R2's host step and on the first draw here)
+            if i == 0:
+                a1 = shift_vector(res, rows, res_a, rows_a)
+                exact = float(a1 @ C @ a1)
+                nested = float(res["sigma"][C_H0]) ** 2 - sa ** 2
+                r4["z_identity_check"] = {"exact_aCa": exact, "nested": nested,
+                                          "rel_diff": abs(exact - nested) / exact}
+                if abs(exact - nested) > 1e-6 * exact:
+                    raise RuntimeError(f"nested-variance identity failed: {exact} vs {nested}")
             zs.append(deltas[-1] / np.sqrt(max(float(res["sigma"][C_H0]) ** 2 - sa ** 2, 1e-30)))
             nsns.append(int(sum(n_sn[col_host[j]] for j in pick)))
             i += 1
@@ -626,8 +636,14 @@ def main(ctx):
     if r4.get("z_std"):
         qual.append(f"{z:.1f} sigma uses C-propagated errors; on the random-subset scale "
                     f"(Delta/sigma spread {r4['z_std']:.2f}, itself uncertain) about "
-                    f"{z / r4['z_std']:.1f} sigma, percentile {r4['z_percentile']:.1f}")
+                    f"{z / r4['z_std']:.1f} sigma (post-hoc Delta/sigma percentile "
+                    f"{r4['z_percentile']:.1f}; pre-registered R4 Delta percentile {r4['percentile']:.1f}); "
+                    f"with sigma inflated by that spread the verdict table would give 'no host-selection "
+                    f"effect detected'")
     r2h["qualified_verdict"] = v + (" [" + "; ".join(qual) + "]" if qual and ident["host_step_evaluable"] else "")
+    # the public verdict is the qualified one; the bare row of the verdict table is kept, labelled
+    r2h["criterion_outcome"] = r2h.pop("verdict")
+    r2h["verdict"] = r2h["qualified_verdict"]
     ctx.save("r2", {"anchor_step": r2a, "host_step": r2h})
 
     # ---- cross-paper comparison (descriptive)
