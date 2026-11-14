@@ -61,9 +61,9 @@ inductive Field where
   | mod_notrend
   /-- STAT [stated 2602.24035: "The $\Delta\chi^{2}$ of about $12-16$ implies a likelihood ratio"] Sec. 5 (Table 3) -/
   | stat_lr
-  /-- GAP [reconstructed] the per-bin median errors are calibrated; the paper gives the uncertainty of the median as MAD / sqrt(N) (Sec. 4.2.1) and defines sigma = 1.4826 MAD (Sec. 4.1.5) without saying which entered Table 3, while the asymptotic standard error of a median is 1/(2 f(m) sqrt(N)) (Cramer 1946, Mathematical Methods of Statistics, Sec. 28.5), 1.86 MAD / sqrt(N) for a Gaussian, that is 1.2533 times 1.4826 MAD / sqrt(N); under either reading the calibration for the actual distribution is not shown; the study tests this with a bootstrap (R2) -/
+  /-- GAP [reconstructed] the per-bin median errors are calibrated; the paper gives the uncertainty of the median as MAD / sqrt(N) (Sec. 4.2.1) (the stated formula; Sec. 4.1.5 separately defines sigma = 1.4826 MAD, considered only as a hypothetical alternative), while the asymptotic standard error of a median is 1/(2 f(m) sqrt(N)) (Cramer 1946, Mathematical Methods of Statistics, Sec. 28.5), 1.86 MAD / sqrt(N) for a Gaussian, that is 1.2533 times 1.4826 MAD / sqrt(N); under either reading the calibration for the actual distribution is not shown; the study tests this with a bootstrap (R2) -/
   | gap_err
-  /-- MOD [implied] statistical link: with calibrated Gaussian errors, a large Delta chi2 between two fitted models gives a valid likelihood ratio exp(Delta chi2 / 2) (e.g. Wasserman 2004, All of Statistics, ch. 10) -/
+  /-- MOD [implied] statistical link: under a Gaussian error model (a further assumption, not covered by gap_err) and with calibrated errors, a large Delta chi2 between two fitted models gives a valid likelihood ratio exp(Delta chi2 / 2) (e.g. Wasserman 2004, All of Statistics, ch. 10) -/
   | mod_lr
   /-- MOD [implied] interpretation: when the predicted step is absent from flat, unbiased data and the likelihood ratio is valid and large, the step model is disfavoured (likelihood-ratio reasoning, Wasserman 2004, ch. 10) -/
   | mod_rule

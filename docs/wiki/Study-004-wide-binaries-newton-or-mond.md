@@ -87,8 +87,8 @@ r_sky/r_M range.
 **Step 3 — the measurement.** The pairs are split into six bins of r_sky/r_M (bin medians 0.073,
 0.153, 0.348, 0.744, 1.419, 3.079; Table 2; edges not given). In each bin the median ṽ is taken,
 with uncertainty "MAD/√N" (§4.2.1; MAD is the median absolute deviation). §4.1.5 also defines a
-Gaussian-equivalent σ = 1.4826 MAD; §4.2.1 does not say whether its MAD is the raw or the scaled one,
-so which formula fed Table 3 is unresolved. The medians are flat; Figure 8 draws
+Gaussian-equivalent σ = 1.4826 MAD; the formula §4.2.1 states is MAD/√N with the raw MAD; the
+scaled version (1.4826 MAD/√N) is considered below only as a hypothetical alternative. The medians are flat; Figure 8 draws
 the fitted Newtonian normalisation at 0.489.
 
 **Step 4 — the comparison.** A χ² fit of each model, with the normalisation free, gives (Table 3):
@@ -197,8 +197,8 @@ about 900 in Figure 8's bins) is unexplained.
 |---|---|---|---|
 | `stat_flat`: the median ṽ shows no 20% step | STAT | stated 2602.24035: "does not exhibit the 20% enhancement expected from MOND and is consistent with Newtonian gravity across all separations" | Abstract |
 | `stat_lr`: Δχ² is about 12–16 | STAT | stated 2602.24035: "The $\Delta\chi^{2}$ of about $12-16$ implies a likelihood ratio" | §5, Table 3 |
-| `gap_err`: the per-bin median errors are not underestimated | GAP | reconstructed: the paper gives the median's uncertainty as MAD/√N (§4.2.1) and defines σ = 1.4826 MAD (§4.1.5) without saying which entered Table 3; the asymptotic standard error of a median is 1/(2 f(m) √N) (Cramér 1946, Mathematical Methods of Statistics, §28.5), which for a Gaussian is 1.86 MAD/√N, or 1.2533 times 1.4826 MAD/√N; under either reading the paper does not show its errors are calibrated for the actual ṽ distribution | — |
-| `mod_lr`: calibrated errors and a large Δχ² give a valid likelihood ratio | MOD | implied: likelihood-ratio reasoning (Wasserman 2004, ch. 10) | — |
+| `gap_err`: the per-bin median errors are not underestimated | GAP | reconstructed: the paper gives the median's uncertainty as MAD/√N (§4.2.1) (the stated formula; §4.1.5 separately defines σ = 1.4826 MAD, considered as a hypothetical alternative); the asymptotic standard error of a median is 1/(2 f(m) √N) (Cramér 1946, Mathematical Methods of Statistics, §28.5), which for a Gaussian is 1.86 MAD/√N, or 1.2533 times 1.4826 MAD/√N; under either reading the paper does not show its errors are calibrated for the actual ṽ distribution | — |
+| `mod_lr`: under a Gaussian error model, calibrated errors and a large Δχ² give a valid likelihood ratio (the Gaussian model is a further assumption, not covered by `gap_err`) | MOD | implied: likelihood-ratio reasoning (Wasserman 2004, ch. 10) | — |
 | `mod_rule`: flat, unbiased data with a valid, large likelihood ratio disfavour the step model | MOD | implied: likelihood-ratio reasoning (Wasserman 2004, ch. 10) | — |
 
 ```lean
@@ -325,7 +325,7 @@ C26 的样本（全部来自 Gaia DR3；C26 第 3–4 节，C24 第 2 节）：
 
 **第 2 步——样本。** 加上全部切割后，C26 表 3 给出 ṽ ≤ 2.5 时 N = 1421 对，最干净的变体（ṽ ≤ 1.5 且 ipd_frac_multi_peak = 0，即图像参数测定中出现多峰的比例（image parameter determination multi-peak fraction），Gaia 用它标记边缘可分辨的伴星）为 1216 对。他们图 8 中印出的各箱数目（368、228、144、99、33、28，这些数字只出现在图中）加起来为 900，论文没有说明它与 1421 的差别。可能的解释：图 8 用的是不同的切割或样本，或者六个箱没有覆盖全部 r_sky/r_M 范围。
 
-**第 3 步——测量。** 双星按 r_sky/r_M 分成六个箱（各箱中位数 0.073、0.153、0.348、0.744、1.419、3.079；表 2；没有给出边界）。每箱取 ṽ 的中位数，误差为"MAD/√N"（第 4.2.1 节；MAD 是中位数绝对偏差（median absolute deviation））。第 4.1.5 节还定义了高斯等效的 σ = 1.4826 MAD；第 4.2.1 节没有说它的 MAD 是原始的还是乘过系数的，所以表 3 用的是哪个公式没有定论。各箱中位数平坦；图 8 把拟合的牛顿归一化画在 0.489。
+**第 3 步——测量。** 双星按 r_sky/r_M 分成六个箱（各箱中位数 0.073、0.153、0.348、0.744、1.419、3.079；表 2；没有给出边界）。每箱取 ṽ 的中位数，误差为"MAD/√N"（第 4.2.1 节；MAD 是中位数绝对偏差（median absolute deviation））。第 4.1.5 节还定义了高斯等效的 σ = 1.4826 MAD；第 4.2.1 节写明的公式是用原始 MAD 的 MAD/√N；乘过系数的版本（1.4826 MAD/√N）下面只作为假设的另一种可能讨论。各箱中位数平坦；图 8 把拟合的牛顿归一化画在 0.489。
 
 **第 4 步——比较。** 每个模型在归一化自由时做 χ² 拟合，得到（表 3）：
 
@@ -397,8 +397,8 @@ E. （标准的似然比推理）⇒ 牛顿的可能性最高为 MOND 的 1500 �
 |---|---|---|---|
 | `stat_flat`：中位数 ṽ 没有 20% 的台阶 | STAT | stated 2602.24035："does not exhibit the 20% enhancement expected from MOND and is consistent with Newtonian gravity across all separations" | 摘要 |
 | `stat_lr`：Δχ² 约为 12–16 | STAT | stated 2602.24035："The $\Delta\chi^{2}$ of about $12-16$ implies a likelihood ratio" | 第 5 节，表 3 |
-| `gap_err`：各箱中位数的误差没有被低估 | GAP | reconstructed：论文把中位数的误差写成 MAD/√N（第 4.2.1 节），又定义了 σ = 1.4826 MAD（第 4.1.5 节），没有说表 3 用的是哪个；中位数的渐近标准误为 1/(2 f(m) √N)（Cramér 1946，Mathematical Methods of Statistics，第 28.5 节），对高斯分布为 1.86 MAD/√N，即 1.4826 MAD/√N 的 1.2533 倍；无论哪种读法，论文都没有说明它的误差对实际的 ṽ 分布是标定正确的 | — |
-| `mod_lr`：误差标定正确且 Δχ² 大时，似然比是有效的 | MOD | implied：似然比推理（Wasserman 2004，第 10 章） | — |
+| `gap_err`：各箱中位数的误差没有被低估 | GAP | reconstructed：论文把中位数的误差写成 MAD/√N（第 4.2.1 节），（论文写明的公式；第 4.1.5 节另外定义了 σ = 1.4826 MAD，作为假设的另一种可能）；中位数的渐近标准误为 1/(2 f(m) √N)（Cramér 1946，Mathematical Methods of Statistics，第 28.5 节），对高斯分布为 1.86 MAD/√N，即 1.4826 MAD/√N 的 1.2533 倍；无论哪种读法，论文都没有说明它的误差对实际的 ṽ 分布是标定正确的 | — |
+| `mod_lr`：在高斯误差模型下，误差标定正确且 Δχ² 大时，似然比是有效的（高斯模型是另一个假设，不在 `gap_err` 之内） | MOD | implied：似然比推理（Wasserman 2004，第 10 章） | — |
 | `mod_rule`：平坦、无偏的数据加上有效且大的似然比不支持台阶模型 | MOD | implied：似然比推理（Wasserman 2004，第 10 章） | — |
 
 ```lean
