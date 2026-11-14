@@ -26,6 +26,8 @@
   "epoch_gap_yr": 0.0
  },
  "optional_columns": "all",
+ "ambiguous_flame_sources": 0,
+ "sources_with_same_type_solutions": [],
  "astrometric_solutions_total": 169227,
  "rows_dropped_null_a0": 0,
  "S1_rows": 3343,
