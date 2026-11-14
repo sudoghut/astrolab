@@ -15,20 +15,24 @@ decision points and the fallbacks. ADQL how-to and archive quirks: `server-side-
 **DR4 is a new release, not a bigger DR3.** Every table name, column name and solution type the
 study uses is an assumption until TAP_SCHEMA confirms it.
 
-Commands below are single lines so they paste into both PowerShell and bash (in PowerShell set
-`$env:PYTHONIOENCODING='utf-8'` first). Ad-hoc queries go through the guarded channel:
+Queries go through `dr4_query.py` next to this file. It builds every ADQL string itself (ADQL
+literals contain quotes that do not survive shell quoting, least of all in PowerShell 5.1), sends it
+through `astrolab.fetch`, and always uses `refresh=True`, so an answer cached during a rehearsal
+is not served again on release day. Add `--print` to see the ADQL without touching the network.
+Run from the project root (in PowerShell set `$env:PYTHONIOENCODING='utf-8'` first):
 
 ```
-python -c "from astrolab import fetch; print(fetch.tap('<ADQL>', mode='async', refresh=True).data.to_string())"
+python .claude/skills/gaia-dr4-release-day/dr4_query.py <command> [arg] [--print]
 ```
 
-`refresh=True` matters for TAP_SCHEMA queries: an answer cached during a pre-release rehearsal
-would otherwise be served again on release day.
+Commands: `schemas`, `tables <schema>`, `columns <schema.table>`, `types <schema>`,
+`count <release>`, `ids`, `resolve <schema>` (see the script's docstring).
 
 ## 0. Preflight (before 2026-11-25, while the archive is still up)
 
-The study is not yet a one-parameter switch. `T-011` makes it one; check it is merged. If it is
-not, every site in this table must be changed by hand on the day, and each one has a failure mode:
+The study is not yet a one-parameter switch. `T-011` makes it one; check that `DONE.md` lists it
+as done (`[x]`). If not, every site in this table must be changed by hand on the day, and each one
+has a failure mode:
 
 | Site | Current DR3 assumption | Failure if left |
 |---|---|---|
@@ -36,6 +40,9 @@ not, every site in this table must be changed by hand on the day, and each one h
 | `run.py` `RELEASE` | `"dr3"` | runs DR3 again |
 | `run.py` `release="Gaia DR3"` in `reproduce_targets`, `run_screen`, `ns_recall`, `vet` | provenance label | results claim DR3 as their source |
 | `run.py` `TARGETS["Gaia BH3"]` | `m1: None, m1_err: None` | **`TypeError` in `reproduce_targets` as soon as BH3 has an orbit** (`rng.normal(None, ...)`), before anything is saved |
+| `run.py` `main()` `controls` | BH1, BH2 only | BH3 is never checked as a positive control; adding it makes `controls_checked` 24, but `test_post_hoc_vetoes_keep_all_positive_controls` asserts 23 |
+| `run.py` `reproduce_targets` | `rows.iloc[0]` | a target with more than one DR4 solution silently uses whichever row the server returns first |
+| `data/ns_candidates_elbadry2024.json`, `data/literature_vetting.json`, the 51 DR3 survivors in `results/bh_candidates.json` | DR3 source_ids | an id that changed in DR4 reads as a science result: a lost NS control lowers S2 recall, a lost refuted source loses its label, a lost survivor looks like "solution gone" |
 | `run.py` `UNVALIDATED_TYPES` | DR3 type names, exact match | if DR4 renames the families, `veto_type` silently never fires and the survivor count is inflated |
 | `run.py` result keys `period_dr3_d`, `gaia_dr3`, status `"no DR3 orbital solution ..."`; `D1_dr4_query_ok` literal `gaiadr4` | DR3 names | DR4 numbers stored under DR3 keys |
 | `results/` | overwritten in place by `python -m astrolab run 001` | the committed DR3 reproduction is replaced, and every DR3 assertion in `test_conclusions.py` is evaluated on DR4 numbers (`test_bh3_has_no_dr3_orbit` must then fail) |
@@ -54,7 +61,8 @@ a dated DR4 addendum written before 2026-12-02, at least:
   step 2, so the size estimate is written before the fetch.
 
 Rehearsal (safe, no network): `python -c "import sys; sys.path.insert(0,'studies/001-m04-gaia-dormant-black-holes'); from screen import screen_adql; print(screen_adql('dr4'))"`.
-The same string is in `results/dr4_screen_query.json`. A full rehearsal through
+The DR3 run stored the same string in `results/dr4_screen_query.json` (until `T-011` changes the
+results layout). `dr4_query.py <command> --print` rehearses every query below. A full rehearsal through
 `python -m astrolab explore` needs a `PARAMS` dict in `run.py` (also `T-011`).
 
 DR3 baseline to compare against (`results/summary.json`): 3,343 screen rows of 169,227 astrometric
@@ -69,21 +77,22 @@ what exists in `log.md` and the `T-002` item's `备注：`, and wait.
 
 Release-day load is expected: use `mode='async'`, retry patiently, no parallel query storms.
 
-1. Schema: `SELECT schema_name FROM tap_schema.schemas`.
-2. Tables: `SELECT table_name FROM tap_schema.tables WHERE schema_name = '<dr4 schema>'` -
-   `nss_two_body_orbit`, `gaia_source`, `astrophysical_parameters`.
-3. Columns: `SELECT column_name, unit, description FROM tap_schema.columns WHERE table_name = '<schema>.<table>'`.
+1. Schema: `dr4_query.py schemas`. If the DR4 schema is not `gaiadr4`, fix `SCHEMAS` in
+   `screen.py` now (step 2 builds its count from it), and the other schema rows of the preflight
+   table before step 3.
+2. Tables: `dr4_query.py tables <schema>` - `nss_two_body_orbit`, `gaia_source`,
+   `astrophysical_parameters` (Gaia returns schema-qualified names, e.g. `gaiadr4.gaia_source`).
+3. Columns: `dr4_query.py columns <schema>.<table>` for each table.
    Check every column the code selects - read them from the code, not from a list here:
    `ERR_PARAMS` and the two SELECTs in `reproduce_targets`, `vet` in `run.py`; `_COLS` and the
    SELECTs in `screen.py`. Write the confirmed mapping into `log.md` before fetching data.
-4. Solution types (a server-side aggregate, a handful of rows):
-   `SELECT nss_solution_type, COUNT(*) AS n FROM <schema>.nss_two_body_orbit GROUP BY nss_solution_type`.
+4. Solution types: `dr4_query.py types <schema>` (a server-side aggregate, a handful of rows).
    Compare with **both** `ASTROMETRIC_TYPES` (`screen.py`) and `UNVALIDATED_TYPES` (`run.py`):
    - a new astrometric type not in `ASTROMETRIC_TYPES` is silently excluded from the screen;
    - a renamed non-validated family makes `veto_type` silently stop firing;
    - `orbits.solution_parameters` raises `ValueError` on any type other than `Orbital`,
-     `AstroSpectroSB1`, or a name containing `OrbitalAlternative` / `OrbitalTargetedSearch` (each
-     with its own `corr_vec` order), so BH1/BH2/BH3 with a new type crash `reproduce_targets`.
+     `AstroSpectroSB1`, or a name containing `OrbitalAlternative` / `OrbitalTargetedSearch` (three
+     `corr_vec` orders: `Orbital`; the alternative / targeted-search families; `AstroSpectroSB1`), so BH1/BH2/BH3 with a new type crash `reproduce_targets`.
    Decide each new type explicitly, record the decision in `log.md`, and state it in the results.
 5. `corr_vec`: the DR3 order follows DPAC `nsstools` (`astrolab/orbits.py`). `tests/test_orbits.py`
    checks it only when `nsstools` is installed (otherwise it skips). A changed parameter count fails
@@ -94,10 +103,8 @@ Release-day load is expected: use `mode='async'`, retry patiently, no parallel q
 
 ## 2. Count before fetching
 
-Print the screen's `FROM ... WHERE`:
-`python -c "import sys; sys.path.insert(0,'studies/001-m04-gaia-dormant-black-holes'); from screen import screen_from_where; print(screen_from_where('<release>'))"`,
-then `python -c "from astrolab import fetch; print(fetch.tap_count('<that string>', refresh=True))"`.
-Also count the denominator (`<schema>.nss_two_body_orbit WHERE a_thiele_innes IS NOT NULL`).
+`dr4_query.py count dr4` counts the screen and the denominator (all astrometric orbits) on the
+server, using `SCHEMAS` from `screen.py`.
 Size estimate: rows x ~130 bytes (DR3: 3,343 rows -> 0.4 MB). Write count and estimate into
 README section 3 before running.
 
@@ -113,17 +120,23 @@ README section 3 before running.
   Unless `T-011` already separates results by release, copy it to `results/dr3/` (small JSON,
   ~0.5 MB) and commit before the DR4 run, and point the DR3 assertions of `test_conclusions.py`
   there. Never edit DR3 assertions to make them pass on DR4 numbers.
-- Confirm BH1, BH2, BH3 resolve in `<schema>.gaia_source` by source_id. A missing row is a
-  cross-match problem, not "no DR4 solution".
+- `dr4_query.py resolve <schema>`: one `IN (...)` query checks that every DR3 id the study is
+  keyed on (3 BHs, 21 NS controls, 6 literature-labelled, 51 survivors; `dr4_query.py ids` lists
+  them) exists in DR4 `gaia_source`, and lists their DR4 NSS solutions (more than one for a
+  target: decide which one R1-R3 use, preflight row). **Any missing id is a cross-match problem,
+  resolved before S2 or step 5 are computed**, never a science result. Use the DR3-DR4
+  neighbourhood / cross-match table if DR4 publishes one.
 
 ## 4. Run and check
 
 `python -m astrolab run 001`. Then, in order:
 
 1. The run finished. An over-size result raises `TooLarge` out of `ctx.tap` (it is never silently
-   truncated); go back to step 2.
+   truncated); go back to step 2. **After any failed run, restore `results/` from git** (or from
+   `results/dr3/`): `main()` saves files as it goes, so a crash leaves a DR3/DR4 mixture whose
+   `provenance.json` and `run_info.json` still describe the DR3 run.
 2. `rows_dropped_null_a0` is 0 (as in DR3). Non-zero: the screen loses rows to the `SQRT`.
-3. Positive controls (`results/vetting_controls.json`: BH1, BH2, 21 NS candidates; add BH3) all
+3. Positive controls (`results/vetting_controls.json`: BH1, BH2, 21 NS candidates; BH3 once added, preflight row) all
    `vetoed: false`. **If any is vetoed, the veto rules fail on DR4: report it, do not retune them
    to let the controls through.**
 4. `candidates_vetoed_type` > 0, or an explained 0 (step 1.4). A silent 0 is a finding to
@@ -158,7 +171,8 @@ No discovery claim comes out of this run. A surviving candidate is a candidate.
 | Symptom | First response |
 |---|---|
 | 503 / timeouts | Expected under load. `astrolab.fetch` retries with backoff and falls back to async. Wait. |
-| Schema or table name differs | Preflight table, first and last rows (`SCHEMAS`, D1 literal, test, footprint). |
+| Schema or table name differs | Every schema row of the preflight table: `SCHEMAS`, the D1 literal, `test_D1_dr4_query_generated`, `study.yaml` footprint. |
+| S2 recall drops, or a survivor's solution "vanished" | First `dr4_query.py resolve`: a changed source_id, not a science result. |
 | Column missing or renamed | Patch the code for that column; record in `log.md`. A missing `mass_flame` makes every row use M1 = 1 Msun: flag it (step 4 note on direction). |
 | `TypeError` in `reproduce_targets` | BH3 `m1` is still `None` (preflight). |
 | `ValueError` from `orbits` | New solution type or changed `corr_vec` length (step 1.4-1.5). |
@@ -178,4 +192,4 @@ item's `备注：` before pausing.
 - Web page: labels show the release of the numbers they sit on (preflight row).
 - `STATUS.md` time-point row; `python -m pytest`; `python -m astrolab atlas`; page renders.
 - Referee the DR4 run (`referee` skill) before calling anything reproduced.
-- Move `T-002` to `DONE.md`.
+- Move `T-002` to `DONE.md` (with the PR number and a one-line result, AGENTS.md section 2).
