@@ -30,6 +30,7 @@ NNN-<类型>_<核心内容>.md
 | 002 | plan | [路线图：2022–2026 代表性结果的文献核实](002-plan_roadmap-literature-verification-2022-2026-landmark-results.md) | 完成 |
 | 003 | plan | [M4：Gaia 休眠黑洞的 DR3 复现与 DR4 筛选管线](003-plan_m04-gaia-dormant-black-holes-dr3-reproduction-and-dr4-ready-screen.md) | 完成（DR3 部分） |
 | 004 | plan | [项目双语化，网页加英中切换按钮](004-plan_bilingual-project-and-web-pages-en-zh-toggle.md) | 完成 |
+| 005 | plan | [GitHub Wiki 双语科普综述：近五年天文学（2021–2026）](005-plan_wiki-article-plain-language-review-of-astronomy-2021-2026.md) | 执行中 |
 
 ## 术语约定
 

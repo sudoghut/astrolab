@@ -41,6 +41,12 @@ compute) do and advance real astronomical research using public survey data
 
 See [STATUS.md](STATUS.md) and the design documents in [`design/`](design/) (in Chinese).
 
+### Background reading
+
+- [Five Years of Astronomy (2021–2026): A Plain-Language Review](https://github.com/sudoghut/astrolab/wiki/Five-Years-of-Astronomy-2021-2026)
+  (wiki, English and Chinese): what changed in astronomy over the last five years, with the
+  emphasis on the results this project reproduces. Source: [`docs/wiki/`](docs/wiki/).
+
 ### Quick start
 
 ```bash
@@ -93,6 +99,11 @@ python -m astrolab serve           # Atlas and study pages at http://127.0.0.1:8
 | [001 · M4 Gaia 休眠黑洞（dormant black holes）](studies/001-m04-gaia-dormant-black-holes/) | 只用 DR3 天体测量（astrometry）就复现了 Gaia BH1、BH2 的质量；在服务器端筛选了 DR3 全部 169,227 个天体测量轨道解，只下载约 0.5 MB；经过独立审稿；否决规则（veto）在 23 个已知正样本（positive controls）上验证无误；已为 Gaia DR4（2026-12-02 发布）准备就绪 |
 
 详见 [STATUS.md](STATUS.md)，以及 [`design/`](design/) 中的设计文献。
+
+### 背景阅读
+
+- [近五年天文学（2021–2026）：科普综述](https://github.com/sudoghut/astrolab/wiki/Five-Years-of-Astronomy-2021-2026#中文)
+  （Wiki，中英双语）：用浅显的语言介绍近五年天文学的主要进展，重点是本项目复现的成果。源文件：[`docs/wiki/`](docs/wiki/)。
 
 ### 快速开始
 
