@@ -140,6 +140,8 @@ def footprint_errors(meta: dict[str, Any]) -> list[str]:
         if not isinstance(sky, dict):
             return errs + ["footprint.sky must be a mapping"]
         modes = sky_modes(sky.get("mode"))
+        if not modes:
+            errs.append("footprint.sky.mode is empty")
         bad = [m for m in modes if m not in SKY_MODES]
         if bad:
             errs.append(f"footprint.sky.mode: unknown {bad}; use {SKY_MODES} joined by ' + '")
