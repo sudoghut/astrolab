@@ -12,6 +12,7 @@
 
 ## 2026-11
 
+- [x] **T-005** Atlas 导航：天空视图与尺度视图，研究以足迹（footprint）形式出现在图上 · 完成 2026-11-14 · PR #11 · 计划 [011](design/011-plan_atlas-sky-and-scale-views-from-study-footprints.md) — `study.yaml` 的足迹模式（校验、坐标解析、银道坐标换算）进入 `atlas.json`；Atlas 增加尺度视图（对数距离轴）与天空视图（银道莫尔韦德投影），页面内 SVG、双语；研究 000–002 有了足迹
 - [x] **T-004** M1：DESI BAO 复现，引入 `cosmo` 与 `infer` 模块 · 完成 2026-11-14 · PR #10 · 计划 [010](design/010-plan_m01-desi-dr2-bao-evolving-dark-energy-cosmo-infer.md) — 研究 002 已复现：只用 BAO 的 Ωm、h·r_d 与不含 CMB 的三个 Δχ²（−4.65、−4.86、−10.03）复现；压缩 CMB 先验的 Δχ² 只在 ωbc 不含 ων 的解读下复现（−8.01 对 −6.59，有条件复现），分歧可能落在 θ* 标定误差之内（T-022）；Wiki 文章与 Lean 论证（`explicit_insufficient`：威尔克斯校准为缺口）；新增核心模块 `cosmo`、`infer`
 - [x] **T-010** 补做：按论文立项流程为 M4 补写 Wiki 文章与 Lean 论证拆解 · 完成 2026-11-14 · PR #9 · 计划 [009](design/009-plan_m04-retrofit-wiki-article-and-lean-argument.md) — 双语 Wiki 文章 `Study-001-gaia-dormant-black-holes`（第三部分为事后补写）与 Lean 论证（`argument/`）：论文明说的前提不足（`stated_insufficient`），加上标准知识仍有缺口（`explicit_insufficient`：BH3 论文没有排除三个以上致密天体，`gap_few3`）；BH1 质量的三条路径使 8 个前提多余；经独立审稿修订（按系统设定质量阈值、BH3 的白矮星一步）
 - [x] **T-011** M4：DR4 前的准备，把研究改成按数据发布参数化并预注册 DR4 判据 · 完成 2026-11-14 · PR #7 · 计划 [008](design/008-plan_m04-release-parameterisation-and-dr4-pre-registration.md) — `run.py` 按 `PARAMS`/`RELEASES` 参数化，README 中注明日期的 DR4 附录预注册了全部 DR4 判据并由代码计算；DR3 在 11-25 前重跑（数值不变，BH2 蒙特卡罗中位数差 0.004 M☉ 已说明）；网页支持 DR4/DR3 切换；运行手册按信息隔离重写

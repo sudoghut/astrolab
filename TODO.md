@@ -6,9 +6,6 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-005** Atlas 导航：天空视图与尺度视图，研究以足迹（footprint）形式出现在图上 · 登记 2026-11-14 · 分支 feat/atlas-sky-scale-views · 计划 [011](design/011-plan_atlas-sky-and-scale-views-from-study-footprints.md)
-  - 备注：分 2 个环节（见计划 011）：数据模型（足迹模式、`atlas_data`、校验与测试）；网页视图（尺度视图、天空视图）。
-
 ## 下一步（Next）
 
 按优先级排序，最重要的在最上面。
