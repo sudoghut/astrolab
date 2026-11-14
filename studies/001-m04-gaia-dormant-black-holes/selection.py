@@ -217,6 +217,12 @@ def apply_neighbourhood(res: pd.DataFrame, reference: pd.DataFrame, nb: pd.DataF
             dr4[k], reason[k] = new_id, "neighbourhood"
         else:
             reason[k] = f"neighbourhood-{why}"
+    # Two DR3 ids mapped to one DR4 source: neither is resolved (never two records on one solution).
+    taken = pd.Series([None if pd.isna(x) else int(x) for x in dr4], dtype="object")
+    counts = taken.dropna().value_counts()
+    for k, x in enumerate(taken):
+        if x is not None and counts.get(x, 0) > 1 and reason[k] == "neighbourhood":
+            dr4[k], reason[k] = None, "neighbourhood-collision"
     out["dr4_id"] = pd.array([None if pd.isna(x) else int(x) for x in dr4], dtype="Int64")
     out["reason"] = reason
     return out
