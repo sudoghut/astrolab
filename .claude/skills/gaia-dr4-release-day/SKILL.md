@@ -28,8 +28,8 @@ python .claude/skills/gaia-dr4-release-day/dr4_query.py <command> [arg] [--print
 Commands: `schemas`, `tables <schema>`, `columns <schema.table>`, `types <schema>`,
 `count <release>`, `ids`, `resolve <schema>`, `followup <schema>` (see the script's docstring).
 The helper reads `TARGETS`, the cuts and the `data/` files from the study, so it follows code
-changes; `tests/test_dr4_query.py` runs every command with `--print` and fails if the study
-changes under it.
+changes; `tests/test_dr4_query.py` runs every command with `--print` and fails if a renamed
+key, moved file or changed id count breaks it (it does not check each id or column).
 
 ## 0. Preflight (before 2026-11-25, while the archive is still up)
 

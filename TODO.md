@@ -6,8 +6,7 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-003** 技能：DR4 发布日运行手册（run-book） · 登记 2026-11-14 · 截止 2026-12-01 · 分支 skill/dr4-release-day-runbook
-  - 计划：把 T-002 的步骤、表名确认与失败时的回退写成 `.claude/skills/<name>/SKILL.md`，赶在发布日之前。
+（暂无）
 
 ## 下一步（Next）
 
