@@ -20,7 +20,10 @@ plan (`design/NNN-plan_*.md`) when there is one. Work on a branch (AGENTS.md / u
 - Make the edits and run the relevant checks yourself (`python -m pytest`, render pages, ...).
 - Commit the stage as a WIP commit (squash or keep later as the user prefers). This is
   required: it gives reviewers a clean diff (`git diff <base>..HEAD`) and lets you undo any
-  reviewer edits with `git checkout -- .` without losing the stage's own work.
+  reviewer edits with `git checkout -- .` without losing the stage's own work. That only
+  restores tracked files: files a reviewer CREATED must be removed one by one (list them with
+  `git clean -n -d` and `git status --short --ignored`; never `git clean -fdx`, which also
+  wipes legitimate ignored files).
 
 ## 2. Gate 1 - review subagents (loop)
 
@@ -39,8 +42,10 @@ plan (`design/NNN-plan_*.md`) when there is one. Work on a branch (AGENTS.md / u
 ## 3. Gate 2 - Codex CLI (loop)
 
 Run Codex non-interactively from the terminal (it is a CLI, not one of our agents), in the
-project root, with the PowerShell tool (`powershell.exe` when shelling out from Bash; then
-also pass `-C <project root>` to codex). Template:
+project root, with the PowerShell tool. Do not route it through Bash -> `powershell.exe` with
+a `.ps1` file: Windows PowerShell 5.1 reads a BOM-less UTF-8 script in the ANSI code page and
+silently corrupts Chinese text in the prompt (if you must, save the `.ps1` as UTF-8 with BOM
+and pass `-C <project root>` to codex). Template:
 
 ```powershell
 $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)  # keep Chinese intact
@@ -51,8 +56,12 @@ if ($proxy) { $env:HTTPS_PROXY = "http://127.0.0.1:7890"; $env:HTTP_PROXY = "htt
 else { Remove-Item Env:HTTPS_PROXY, Env:HTTP_PROXY -ErrorAction SilentlyContinue }
 Write-Output @'
 <review prompt - single-quoted here-string, so $ and backticks are not expanded>
-'@ | codex exec --dangerously-bypass-approvals-and-sandbox -o <scratchpad>/codex-review.md
+'@ | codex exec --dangerously-bypass-approvals-and-sandbox -o $out
+"exit code: $LASTEXITCODE"
 ```
+
+Set `$out` first to a NEW file per stage and round, e.g.
+`$out = "<scratchpad>/codex-stage2-round1.md"; Remove-Item $out -ErrorAction SilentlyContinue`.
 
 - `codex exec` = non-interactive; `--dangerously-bypass-approvals-and-sandbox` = no approval
   prompts. Pipe the prompt (`Write-Output ... |`) so Codex does not wait on stdin. Use a
@@ -63,14 +72,18 @@ Write-Output @'
   proxy settings. When nothing listens on that port, connect directly (no proxy variables).
   If Codex fails with a network error either way, retry once in the other mode before
   reporting the failure to the user; note which mode worked in the work-plan log.
-- `-o` writes Codex's final message to a file; read the verdict from there. Run the command
+- `-o` writes Codex's final message to a file; read the verdict from there, and only if the
+  exit code is 0 and the file was written by this run (fresh name, deleted beforehand), so a
+  failed run can never reuse an earlier `SERIOUS ISSUES: 0`. PowerShell 5.1 prefixes piped
+  stdin with a UTF-8 BOM; Chinese still arrives intact and Codex ignores it. Run the command
   with `run_in_background` (a review can exceed the tool's 10-minute foreground limit) and
   wait for the completion notification.
 - The prompt must say: review only; DO NOT modify files; DO NOT run network or data-fetching
   commands (`python -m astrolab run`, downloads; AGENTS.md section 1); the stage goal; the
   diff command and file list; findings ranked serious/minor with file:line and a failure
   scenario; end with `SERIOUS ISSUES: <n>`.
-- Afterwards run `git status --short --ignored`; revert anything Codex touched.
+- Afterwards run `git status --short --ignored`; revert anything Codex touched and remove
+  files it created (as in step 1).
 - Triage as in gate 1, fix serious issues (WIP commit), and re-run Codex until it reports
   none. If a fix is non-trivial, pass the changed code back through gate 1 as well.
 

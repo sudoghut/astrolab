@@ -22,12 +22,13 @@
 - `atlas/web/i18n.js`（在 `<head>` 中同步加载，自成一体，不依赖 `base.css`）：
   - 语言状态：`?lang=zh|en` 优先，其次本地存储（localStorage，读写包在 try/catch 中），默认 `en`。
   - 自己注入一段样式（CSS, Cascading Style Sheets）：`[data-lang="en"] .zh`、`[data-lang="zh"] .en` 隐藏规则，以及按钮样式。
-  - 在页面右上角插入切换按钮；切换时设置 `<html data-lang>` 与 `lang` 属性，按 `<html data-title-zh>` 更新 `<title>`，并调用页面用 `onLangChange(fn)` 注册的回调函数（callback），用于图表标题等无法用 CSS 切换的文字。
+  - 加载时立即设置 `data-lang` 并注入样式，避免先闪现错误的语言；按钮在 `DOMContentLoaded` 时插入页面右上角。
+  - 切换时用 `history.replaceState` 同步更新网址中的 `?lang=`，避免刷新后又被网址里的旧语言覆盖；切换时设置 `<html data-lang>` 与 `lang` 属性，按 `<html data-title-zh>` 更新 `<title>`，并调用页面用 `onLangChange(fn)` 注册的回调函数（callback），用于图表标题等无法用 CSS 切换的文字。
   - 点击站内相对链接时附加当前的 `?lang=`，这样即使本地存储不可用，跳转后语言也不变。
   - 接口：`i18n.L(en, zh)` 生成两种语言的 `<span>`（用于 HTML）；`i18n.t(en, zh)` 按当前语言返回纯文本（用于 `textContent`、属性、`<option>`、图表）；`i18n.onLangChange(fn)`；`i18n.lang()`。
 - 静态文字用 `<span class="en">…</span><span class="zh">…</span>` 成对书写；动态生成的 HTML 用 `L()`。这样切换语言不需要重绘，表格筛选等交互状态不会丢失。
 - `astrolab/claims.py`：文档字符串登记 `title_zh`、`statement_zh`；`validate()` 检查它们是非空字符串；`atlas_data()` 透传研究的 `title_zh`、`question_zh`。
-- 测试（`tests/test_core.py`）：每个 `web/` 下的 `.html`（含 Atlas 与模板）都引用 `i18n.js`；每个研究的 `study.yaml`（不含模板）有非空的 `title_zh`、`question_zh`。
+- 测试（`tests/test_core.py`）：已有的结论校验测试用例同步补上中文字段；每个 `web/` 下的 `.html`（含 Atlas 与模板）都引用 `i18n.js`；每个研究的 `study.yaml`（不含模板）有非空的 `title_zh`、`question_zh`。
 
 ## 4. 步骤
 
@@ -42,7 +43,7 @@
 ## 5. 验收标准
 
 - 所有页面（Atlas、研究 000、001、模板）都有切换按钮，默认英文；本地存储不可用时也默认英文。
-- 点击按钮切换到中文后，刷新或从 Atlas 跳转到研究页面仍保持中文；`?lang=zh` 直接打开中文。
+- 点击按钮切换到中文后，刷新或从 Atlas 跳转到研究页面仍保持中文；`?lang=zh` 直接打开中文；在中文页面切回英文后刷新仍是英文。
 - 中文模式下，页面说明、表头、判据、图表坐标轴与标题都显示中文；数据值不变。
 - 切换语言不重置候选表的筛选状态。
 - `python -m pytest` 全部通过，`python -m astrolab claims check` 无错误。
