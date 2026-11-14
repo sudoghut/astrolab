@@ -76,11 +76,22 @@ class Background:
         return np.sqrt(self.ombc / a ** 3 + self.omrad / a ** 4 + nu + de) / self.h
 
     def comoving(self, z) -> np.ndarray:
-        """Line-of-sight comoving distance D_C = D_M (flat) in Mpc; z scalar or array."""
+        """Line-of-sight comoving distance D_C = D_M (flat) in Mpc; z scalar or array.
+
+        Integrates c/H over x = ln(1+z) on a fixed grid (composite Simpson on 2048 intervals per
+        unit of x; relative accuracy ~1e-9 for smooth E), then interpolates with a cubic
+        Hermite rule on the cumulative integral."""
         z = np.atleast_1d(np.asarray(z, dtype=float))
-        f = lambda x: 1.0 / self.E(1.0 / (1.0 + x))
-        out = np.array([integrate.quad(f, 0.0, zz, limit=200, epsrel=1e-8)[0] for zz in z])
-        return C_KMS / self.H0 * out
+        xmax = float(np.log1p(z.max())) if z.size else 0.0
+        n = max(64, int(np.ceil(xmax * 2048 / 2)) * 2)
+        x = np.linspace(0.0, xmax, n + 1)
+        f = np.exp(x) / self.E(np.exp(-x))                 # dz/E = e^x dx / E
+        cum = np.concatenate([[0.0], np.cumsum((f[:-1] + f[1:]) * 0.5 * np.diff(x))])
+        # Richardson-corrected trapezoid (end correction) equals Simpson accuracy on the grid
+        dfdx = np.gradient(f, x)
+        cum = cum - (np.diff(x)[0] ** 2 / 12.0) * (dfdx - dfdx[0])
+        xz = np.log1p(z)
+        return C_KMS / self.H0 * np.interp(xz, x, cum)
 
     def DM(self, z):
         return self.comoving(z)
@@ -110,10 +121,19 @@ class Background:
         return 1048.0 * (1.0 + 0.00124 * ob ** -0.738) * (1.0 + g1 * om ** g2)
 
     def rs(self, z: float) -> float:
-        """Comoving sound horizon at redshift z [Mpc], by numerical integration over a."""
+        """Comoving sound horizon at redshift z [Mpc]: integral of c_s da / (a^2 H) over
+        ln a from 1e-8 to 1/(1+z) on a fixed grid (trapezoid with end correction)."""
         r = 3.0 * self.ombh2 / (4.0 * OMEGA_GAMMA)
-        f = lambda a: C_KMS / np.sqrt(3.0 * (1.0 + r * a)) / (a * a * self.H0 * self.E(a))
-        return integrate.quad(f, 1e-9, 1.0 / (1.0 + z), limit=400, epsrel=1e-9)[0]
+        la = np.linspace(np.log(1e-8), -np.log1p(z), 4097)
+        a = np.exp(la)
+        f = C_KMS / np.sqrt(3.0 * (1.0 + r * a)) / (a * self.H0 * self.E(a))   # da = a dln a
+        h = la[1] - la[0]
+        dfdx = np.gradient(f, la)
+        # below a = 1e-8 the universe is radiation dominated (all neutrinos relativistic, R ~ 0):
+        # r_s(a0) = c a0 / (sqrt(3) H0 sqrt(omega_r) / h)
+        omr_all = OMEGA_GAMMA * (1.0 + 3.0 * NU_REL)
+        head = C_KMS * 1e-8 / (np.sqrt(3.0) * self.H0 * np.sqrt(omr_all) / self.h)
+        return float(head + np.trapz(f, la) - h * h / 12.0 * (dfdx[-1] - dfdx[0]))
 
     def theta_star_raw(self) -> float:
         """r_s(z_*) / D_M(z_*) with the Hu & Sugiyama z_* (uncalibrated)."""

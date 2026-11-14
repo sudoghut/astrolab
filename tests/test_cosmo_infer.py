@@ -22,7 +22,7 @@ def test_theta_second_point_sanity():
 
 def test_rd_against_planck_best_fit():
     # Planck r_drag = 147.049 Mpc (N_eff = 3.046); Aubourg Eq. 16 is good to ~0.02%
-    assert cosmo.Background(**PLANCK_BF).rd() == pytest.approx(147.049, rel=1e-3)
+    assert cosmo.Background(**PLANCK_BF).rd() == pytest.approx(147.049, rel=3e-4)
 
 
 def test_matter_density_and_neutrinos():
@@ -71,12 +71,32 @@ def test_marginalised_offset_matches_brute_force():
 
 
 def test_multistart_respects_constraint():
+    cons = lambda x: -(x[0] + x[1]) - 1e-9                        # w0 + wa < 0
     f = lambda x: (x[0] + 0.5) ** 2 + (x[1] + 0.5) ** 2          # minimum at w0 + wa = -1
-    cons = [{"type": "ineq", "fun": lambda x: -(x[0] + x[1]) - 1e-6}]
-    x, fx, _ = infer.minimize_multistart(f, [(-3, 1), (-3, 2)], n_starts=5, constraints=cons,
-                                         start_ok=lambda x: x[0] + x[1] < 0)
-    assert fx == pytest.approx(0.0, abs=1e-8) and x[0] + x[1] < 0
+    r = infer.minimize_multistart(f, [(-3, 1), (-3, 2)], n_starts=5, constraint=cons)
+    assert r["f"] == pytest.approx(0.0, abs=1e-8) and r["x"].sum() < 0
     g = lambda x: (x[0] - 0.5) ** 2 + (x[1] - 0.5) ** 2           # unconstrained minimum excluded
-    x, fx, _ = infer.minimize_multistart(g, [(-3, 1), (-3, 2)], n_starts=5, constraints=cons,
-                                         start_ok=lambda x: x[0] + x[1] < 0)
-    assert x[0] + x[1] == pytest.approx(0.0, abs=1e-5) and fx == pytest.approx(0.5, abs=1e-4)
+    r = infer.minimize_multistart(g, [(-3, 1), (-3, 2)], n_starts=5, constraint=cons)
+    assert r["x"].sum() == pytest.approx(0.0, abs=1e-5) and r["f"] == pytest.approx(0.5, abs=1e-4)
+    assert r["x"].sum() < 0
+
+
+def test_multistart_badly_scaled():
+    # mimics the compressed-CMB problem: a tight constraint on a combination of a parameter of
+    # order 70 and one of order 0.02, inside wide bounds
+    f = lambda x: ((x[0] * x[1] - 1.5) / 1e-5) ** 2 + ((x[1] - 0.02) / 1e-4) ** 2
+    r = infer.minimize_multistart(f, [(20, 100), (0.005, 0.1)], n_starts=10, seed=3)
+    assert r["f"] < 1e-6
+    assert r["x"] == pytest.approx([75.0, 0.02], rel=1e-5)
+    assert r["n_agree"] >= 3
+
+
+def test_multistart_ignores_nan_and_nests():
+    f = lambda x: np.nan if x[0] < 0 else (x[0] - 0.3) ** 2
+    r = infer.minimize_multistart(f, [(-1, 1)], n_starts=5, x0_extra=[[-0.9]])
+    assert np.isfinite(r["f"]) and r["x"][0] == pytest.approx(0.3, abs=1e-5)
+    # the nested optimum as a start guarantees chi2(extended) <= chi2(nested)
+    h = lambda x: (x[0] - 1.0) ** 2 + 0.1 * (x[1] ** 2 - 1.0) ** 2   # nested model: x[1] = 0
+    nested = 0.1
+    r = infer.minimize_multistart(h, [(-3, 3), (-3, 3)], n_starts=3, x0_extra=[[1.0, 0.0]])
+    assert r["f"] <= nested + 1e-9

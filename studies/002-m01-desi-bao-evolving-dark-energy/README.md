@@ -31,12 +31,17 @@ Common definitions.
   Their sizes reflect expected differences in implementation: rounding in the paper (0.1 in Δχ²),
   our analytic background code versus CAMB, the θ* calibration factor K (section 4), and
   optimiser noise.
+- **Fit validity (required before any criterion is evaluated).** Every w0waCDM fit is also started
+  from its nested ΛCDM optimum (w0 = −1, wa = 0) and from the paper's reported point, so
+  χ²_min(w0waCDM) ≤ χ²_min(ΛCDM) + 10⁻³ must hold; and at least 3 starts must agree on each minimum
+  within 0.01. A fit that fails either check is reported as a failed fit (not as a result) and is
+  investigated before anything else.
 - Each criterion is reported as **reproduced** or **not reproduced**; R2 also has
   **conditionally reproduced** (below). A failure is reported with its size and our best
   explanation; tolerances are not changed afterwards.
 
 **R1 (BAO only, ΛCDM).** Fitting the DESI DR2 BAO (ALL tracers) with flat ΛCDM, sampling Ωm and
-h·r_d: |Ωm − 0.2975| ≤ 0.0026 (0.3σ) and |h·r_d − 101.54 Mpc| ≤ 0.22 Mpc (0.3σ), using the
+h·r_d (flat priors Ωm ∈ [0.01, 0.99], h·r_d ∈ [50, 150] Mpc): |Ωm − 0.2975| ≤ 0.0026 (0.3σ) and |h·r_d − 101.54 Mpc| ≤ 0.22 Mpc (0.3σ), using the
 posterior means; and our 1σ errors within 20% of 0.0086 and 0.73 Mpc. *Expectation:* same data,
 nearly Gaussian posterior, so this should pass; a failure points to the distance code.
 
@@ -63,7 +68,7 @@ reference point (sanity check only).
 ## 3. Data (with size estimate)
 
 File sizes from GitHub API metadata (no download), 2026-11-14. All fetched through `ctx.http`
-into the system cache (not the project folder). Total required input about 40 MB, below the
+into the system cache (not the project folder). Total required input about 34 MB, below the
 200 MB study budget; every file is below the 50 MB single-download limit.
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
@@ -72,7 +77,7 @@ into the system cache (not the project folder). Total required input about 40 MB
 | DESI DR2 BAO covariance | same folder, `desi_gaussian_bao_ALL_GCcomb_cov.txt` | | 13 × 13, 2.5 kB |
 | Pantheon+ distances | `raw.githubusercontent.com/CobayaSampler/sn_data/master/PantheonPlus/Pantheon+SH0ES.dat` | zHD > 0.01 | 1701 rows in the file (fewer after the cut), 0.58 MB |
 | Pantheon+ covariance | same folder, `Pantheon+SH0ES_STAT+SYS.cov` | submatrix for zHD > 0.01 | 1701², 33.3 MB |
-| Union3 | `sn_data/Union3/lcparam_full.txt`, `mag_covmat.txt` | all nodes | about 22 binned nodes, 11 kB |
+| Union3 | `raw.githubusercontent.com/CobayaSampler/sn_data/master/Union3/lcparam_full.txt` and `.../Union3/mag_covmat.txt` | all nodes | about 22 binned nodes, 1.6 kB + 9.2 kB |
 | Compressed CMB prior | paper Appendix A, Eqs. 35-36 (θ* mean to 6 digits from `cmbant/PlanckEarlyLCDM`) | in the code | 3 numbers + 3 × 3 |
 
 Exploration only (README section 8): DES-Dovekie (`DES-Dovekie_HD.csv` 0.11 MB,
@@ -97,16 +102,21 @@ Exploration only (README section 8): DES-Dovekie (`DES-Dovekie_HD.csv` 0.11 MB,
   table (posterior means 0.02229, 0.1197, 67.39; 100θ* = 1.04106). The same best-fit point checks
   the r_d formula against r_drag = 147.049 Mpc (Planck uses N_eff = 3.046).
 - **CMB prior (R2).** Gaussian in (θ*, ωb, ωbc) with the Eq. 36 covariance and mean
-  (0.0104103, 0.02223, 0.14208); ωbc compared to ωb + ωc + ων (reading A) or ωb + ωc (reading B).
+  (0.0104103, 0.02223, 0.14208); ωbc compared to ωb + ωc + ων (reading A, with ων = Σmν/93.14 eV
+  as in the paper's Eq. 7) or ωb + ωc (reading B). The BAO distances in R2 use the full background
+  (radiation and neutrinos included), not the late-time approximation of R1 and R3.
   Sampling parameters: H0, ωb, ωc (+ w0, wa) with flat priors H0 ∈ [20, 100],
   ωb ∈ [0.005, 0.1], ωc ∈ [0.001, 0.99].
 - **Supernovae (R3).** χ² with the absolute magnitude marginalised analytically:
   χ² = ΔᵀC⁻¹Δ − (1ᵀC⁻¹Δ)²/(1ᵀC⁻¹1). Pantheon+: zHD > 0.01, covariance submatrix before
   inversion, D_L with zHD and the (1+zHEL) factor, column `m_b_corr` (not `MU_SH0ES`). Union3: the
   binned nodes with `mag_covmat.txt`, following the Cobaya likelihood's column conventions
-  (checked against its `.dataset` file before use).
-- **Fits (`astrolab/infer.py`, new core module).** Bounded multi-start optimisation
-  (scipy, at least 20 starts per model) for χ²_min; emcee for posterior means (R1, R2 secondary),
+  (checked against its `.dataset` file before use; Cobaya reads only `zcmb` and `mb` and sets
+  zhel = zcmb).
+- **Fits (`astrolab/infer.py`, new core module).** Bounded multi-start optimisation for χ²_min:
+  at least 20 random starts plus the nested ΛCDM optimum and the paper's point, Nelder-Mead in
+  unit-scaled coordinates with polish restarts; non-finite values and points outside the priors
+  are rejected (validity checks in section 2); emcee for posterior means (R1, R2 secondary),
   with convergence checked by the integrated autocorrelation time (chains at least 50 τ).
 - **Tests.** Offline unit tests for `cosmo` (limits, Planck reference point, K) and `infer`
   (analytic marginalisation against a brute-force grid, Δχ² → σ conversion: 12.5 → 3.1σ,
