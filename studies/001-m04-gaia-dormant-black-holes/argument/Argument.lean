@@ -17,7 +17,8 @@ One chain per system i (1 = BH1, 2 = BH2, 3 = BH3):
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
 Masses are in tenths of a solar mass (Nat). Thresholds per system: BH1 more than 5 Msun
 (the RV-only bound), BH2 at least 8.0, BH3 at least 30.0 (BH2 and BH3: about 3 sigma below
-the published masses). Quotes follow the arXiv HTML text (math rendered as plain text). Hedged statements (very unlikely, unlikely to be stable) are encoded as assertions.
+the published masses). Quotes follow the arXiv HTML text (math rendered as plain text).
+Hedged statements (very unlikely, unlikely to be stable) are encoded as assertions.
 -/
 
 namespace Argument
@@ -119,7 +120,7 @@ inductive Field where
   | mod_other1
   /-- MOD [stated 2209.06833: "Scenarios involving more than two objects inside the G star's orbit are difficult to assemble and unlikely to be dynamically stable"] Sec. 8.2 -/
   | mod_few1
-  /-- LIT [implied] one or two compact objects without a black hole weigh at most about 5 Msun, and a dark compact object above that contains a black hole (no exotic compact objects): white dwarfs below the Chandrasekhar mass (Chandrasekhar 1931, 1931ApJ....74...81C), neutron stars at most about 2.2-2.5 Msun (Ozel and Freire 2016, arXiv:1603.02698; Rezzolla et al. 2018, arXiv:1711.00314), well below the causality bound of about 3 Msun (Kalogera and Baym 1996, arXiv:astro-ph/9608059); the paper names both limits without numbers (Sec. 8.1) -/
+  /-- LIT [implied] one or two compact objects without a black hole weigh at most about 5 Msun, and a dark compact object above that contains a black hole (no exotic compact objects): white dwarfs below the Chandrasekhar mass (Chandrasekhar 1931, 1931ApJ....74...81C), neutron stars at most about 2.2-2.3 Msun (Ozel and Freire 2016, arXiv:1603.02698; Rezzolla et al. 2018, arXiv:1711.00314), up to about 2.5 allowing for uncertainty, well below the causality bound of about 3 Msun (Kalogera and Baym 1996, arXiv:astro-ph/9608059); the paper names both limits without numbers (Sec. 8.1) -/
   | lit_ns1
   /-- OBS [stated 2302.07880: "The follow-up RVs are fully consistent with the Gaia-only solution"] Sec. 3.7.1 -/
   | obs_rv2
@@ -131,7 +132,7 @@ inductive Field where
   | mod_fit2
   /-- OBS [stated 2302.07880: "A companion contributing more than ≈2% of the total light at 4000-4300 Å would dilute the absorption lines beyond this value and is thus ruled out"] Sec. 3.8.1 -/
   | obs_faint2
-  /-- MOD [implied] a main-sequence star (or a close pair of them) carrying 8 Msun or more would exceed the 2% blue-light limit by far (mass-luminosity relation, textbook, e.g. Hilditch 2001, An Introduction to Close Binary Stars); the paper says this for a single 9 Msun star (Sec. 4: a 9Msun main-sequence star would outshine the giant at all wavelengths) -/
+  /-- MOD [implied] a main-sequence star (or a close pair of them) carrying 8 Msun or more would exceed the 2% blue-light limit by far (mass-luminosity relation, textbook, e.g. Kippenhahn, Weigert and Weiss 2012, Stellar Structure and Evolution); the paper says this for a single 9 Msun star (Sec. 4: a 9Msun main-sequence star would outshine the giant at all wavelengths) -/
   | mod_dark2
   /-- MOD [implied] non-main-sequence stars of several solar masses are at least as luminous as main-sequence stars of that mass (textbook, e.g. Kippenhahn, Weigert and Weiss 2012); the BH2 paper states it for red giants (Sec. 4) and limits hot companions with the UV (Sec. 3.3) -/
   | mod_other2
@@ -271,7 +272,7 @@ theorem final : ∀ v, Premises v → Conclusion v := by
   have s3 : v.NoMS3 := p .mod_dark3 (p .obs_faint3) m3          -- App. C, Sec. 3
   have n3 : v.NoStar3 := p .mod_other3 (p .obs_faint3) s3       -- textbook step
   have k3 : v.NoNS3 := p .mod_ns3 n3 (p .gap_few3) m3           -- Sec. 3 (three or more: not discussed)
-  have b3 : v.BH3 := p .lit_wd3 n3 k3 (p .gap_few3) m3             -- white dwarfs: textbook step
+  have b3 : v.BH3 := p .lit_wd3 n3 k3 (p .gap_few3) m3          -- white dwarfs: textbook step
   exact ⟨b1, b2, b3⟩
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
@@ -448,8 +449,10 @@ theorem lit_wd3_needed : ¬ ∀ v, Without .lit_wd3 v → Conclusion v := fun h 
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2
 
 /-- What the papers write is not enough: they rely on textbook mass determinations, on the
-white-dwarf and neutron-star mass limits (BH1 never gives them as numbers) and, for BH3, on the
-luminosity of non-main-sequence stars. -/
+white-dwarf and neutron-star mass limits (BH1 never gives them as numbers; BH3 the white-dwarf
+limit, lit_wd3), on the mass-luminosity scaling from the 9 Msun star BH2 names down to 8 Msun
+(mod_dark2) and, for BH2 beyond red giants and for BH3, on the luminosity of non-main-sequence
+stars. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   (h { full with BH1 := False } (by intro f hf; cases f <;> simp_all [prov, prem, full])).1
 
