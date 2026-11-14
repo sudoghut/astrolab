@@ -151,13 +151,17 @@ TRGB distance per host). (iii) Each host's fitted μ₀,i in the baseline fit wi
 excludes that host's SNe and column b all SNe, so the 3σ allowance also covers the pull of the
 host's own SNe). (iv) Each host's Cepheid row count (rows with a non-zero in that host column and
 in column 38) within 2 of R22 Table 3's "fit" count (e.g. M101 259, N1448 73, N5643 251; 2150 in
-all), typed into `run.py`; the allowance covers the public file not being exactly the printed
-fit. (v) **Swap test**: for every pair of host columns, swap their labels and re-apply (ii)–(iv);
-if any swapped labelling also passes all of them, the identification of that pair is ambiguous.
-An ambiguous pair that involves a CCHP host makes R2's host step, R3 and R4 **not evaluable**;
-other ambiguous pairs are reported (they affect only R4's random subsets, which treat all
-non-CCHP hosts alike, and only through which non-CCHP host carries which label). Reported: the
-worst host for each check and the list of ambiguous pairs.
+all), typed into `run.py` from the rendered table (the PDF text layer misaligns its columns), with
+an assertion that the typed counts sum to 2150; the allowance covers the public file not being
+exactly the printed fit. (v) **Swap test**, run only after (i)–(iv) pass under the labelling of this
+section (if they fail, the fit-validity rule applies: not evaluable): for every pair of host
+columns, swap their labels and re-apply (ii)–(iv); if the swapped labelling also passes all of
+them, that pair is ambiguous. A pair with exactly one CCHP host changes the CCHP set and makes
+R2's host step, R3 and R4 **not evaluable**. A pair of two CCHP hosts leaves the set unchanged
+and affects only R3's per-host Δμ table and its χ² (reported with that caveat). A pair of two
+non-CCHP hosts affects nothing (R4 treats non-CCHP hosts alike). The test covers pairwise swaps
+only, not longer cycles; the count fingerprint makes those unlikely. Reported: the worst host for
+each check and the list of ambiguous pairs.
 
 **Anchor rule (NGC 4258 only; R22 section 6.2: drop the other anchors' geometric distances, keep
 their Cepheids).** Drop the LMC detached-eclipsing-binary row (only non-zero in column 39, y = 0)
