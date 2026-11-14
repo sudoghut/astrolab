@@ -182,6 +182,11 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
    the same hosts.
 2. **`stated_insufficient`**: besides the gap, the rule from the facts to "consistent" (`mod_cons`)
    is left implicit; the conclusion itself is weak ("entirely consistent with").
+   What this does and does not show: `mod_cons` is a modelling assumption that we supply — our
+   reading of what "consistent with selection" means (the expected shift, agreement on the same
+   hosts, a within-1σ comparison, about the right quantity). Lean does not derive that rule; it
+   shows which inputs the rule needs and that one of them (`gap_same`) is not supplied by the paper
+   or by standard knowledge. A different reading of "consistent" would be a different encoding.
 3. **Every premise is needed** (seven `_needed` theorems): a single route. `gap_same` is the only
    reconstructed premise, which is why `explicit_insufficient` hinges on it.
 4. **Consistency** (`consistent`) holds trivially: no premise is negative.
@@ -217,8 +222,9 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 ### Changelog
 
 - 2026-11-14: first version: parts 1–3, written before implementation (T-012, plan 012); revised after
-  gate-1 review (TRGB agreement included; the within-1σ comparison is stated by the paper; Fig. 6;
-  GAP `gap_same`: the recalibrated JWST values versus CCHP's published H0, so `explicit_insufficient`).
+  review (gate 1: TRGB agreement included; the within-1σ comparison is stated by the paper; Fig. 6;
+  GAP `gap_same`: the recalibrated JWST values versus CCHP's published H0, so `explicit_insufficient`;
+  gate 2: reported central value 73.2, and the limits of what Lean shows about `mod_cons`).
 
 ---
 
@@ -322,7 +328,7 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 #### 2.4 Lean 检查的发现
 
 1. **`explicit_insufficient`**：即使加上标准知识，链条仍有一处缺口 `gap_same`。论文写明的 1σ 以内的比较，是在它自己对 CCHP 距离的重新标定上做的；而结论针对的是 CCHP 计划发表的 H0。两者可以互换，论文没有写，也不是标准知识（CCHP 的 Pantheon+ TRGB 为 69.29，表 4 为 70.1）。反例模型令 `SameQuantity := False`。本项目可以（描述性地）探索这一步：R3 在 R22 的框架内复现 CCHP 的 69.29，并与同一批宿主上的造父变星阶梯比较。
-2. **`stated_insufficient`**：除了这一缺口，由这些事实到"相容"的规则（`mod_cons`）也没有写出；结论本身很弱（"完全相容"）。
+2. **`stated_insufficient`**：除了这一缺口，由这些事实到"相容"的规则（`mod_cons`）也没有写出；结论本身很弱（"完全相容"）。这能说明什么、不能说明什么：`mod_cons` 是我们提供的建模假设——我们对"与选择相容"含义的理解（预期的移动、同宿主的一致、1σ 以内的比较、针对正确的量）。Lean 并不推出这一规则；它表明这一规则需要哪些输入，以及其中一个（`gap_same`）论文与标准知识都没有提供。对"相容"的另一种理解会是另一种编码。
 3. **每个前提都是必要的**（7 个 `_needed` 定理）：只有一条路径。`gap_same` 是唯一的补上前提，所以 `explicit_insufficient` 取决于它。
 4. **相容性**（`consistent`）是平凡成立的：没有否定形式的前提。
 5. **薄弱点**（我们的判断）：上述缺口；71.2 是在较新数据上的近似；"相容"依靠检验力不高的核对（距离约 0.05–0.10 mag，H0 约 1.5 km/s/Mpc）；"相容"不等于"由其造成"。研究（第三部分）直接检验第一点。
@@ -350,4 +356,4 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 
 ### 研究进展
 
-- 2026-11-14：第一版：第一至三部分，在实现之前写成（T-012，计划 012）；按闸门 1 审查修订（补上 TRGB 的一致性；1σ 以内的比较论文自己写明；图 6；GAP `gap_same`：重新标定的 JWST 数值与 CCHP 发表的 H0，因而 `explicit_insufficient`）。
+- 2026-11-14：第一版：第一至三部分，在实现之前写成（T-012，计划 012）；按审查修订（闸门 1：补上 TRGB 的一致性；1σ 以内的比较论文自己写明；图 6；GAP `gap_same`：重新标定的 JWST 数值与 CCHP 发表的 H0，因而 `explicit_insufficient`；闸门 2：报告的中心值 73.2，以及 Lean 对 `mod_cons` 能说明什么）。
