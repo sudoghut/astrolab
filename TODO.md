@@ -6,6 +6,10 @@
 
 ## 进行中（Doing）
 
+- [ ] **T-004** M1：DESI BAO 复现，引入 `cosmo` 与 `infer` 模块 · 登记 2026-11-14 · 分支 feat/m1-desi-bao
+  - 计划：复杂任务。先把 ROADMAP 中 M1 的 [S]/[U] 项核实为 [V]，再写 design 计划（编号取当时最大值加 1），然后新建研究。
+  - 备注：论文研究，按 `paper-study` 技能：核实 → design 计划 → Wiki 文章与 Lean → 预注册 → `cosmo`/`infer` 与 `run.py` → 网页 → 审稿。
+
 ## 下一步（Next）
 
 按优先级排序，最重要的在最上面。
@@ -13,8 +17,6 @@
 - [ ] **T-002** M4：Gaia DR4 发布日运行 · 登记 2026-11-14 · 截止 2026-12-02 · 前置 T-003、T-011
   - 计划：按技能 `gaia-dr4-release-day` 执行（确认模式与解类型、先计数、存档 DR3 结果、`PARAMS["release"] = "dr4"`、`--refresh` 运行），判据见研究 `README.md` 第 2–4 节的 DR4 附录（R1–R3、S1/S2-DR4、V-DR4、51 个幸存候选的 F-DR4 标签、S3-DR4）。Gaia 数据库 2026-11-25 至 12-02 下线，期间不做 DR3 查询。
   - 备注：DR4 运行后 `results/` 不再有 DR3 的 `post_hoc.R1b_*`，届时把 `argument/Argument.lean` 中 `num_astro1` 的绑定路径改为 `results/dr3/summary.json`，并且与 DR4 的 `results/` 放在同一个 PR 里，否则研究状态为 reproduced 时 Lean 测试会失败（来源 T-010）。
-- [ ] **T-004** M1：DESI BAO 复现，引入 `cosmo` 与 `infer` 模块 · 登记 2026-11-14
-  - 计划：复杂任务。先把 ROADMAP 中 M1 的 [S]/[U] 项核实为 [V]，再写 design 计划（编号取当时最大值加 1），然后新建研究。
 - [ ] **T-005** Atlas 导航：天空视图与尺度视图，研究以足迹（footprint）形式出现在图上 · 登记 2026-11-14
   - 计划：复杂任务，先写 design 计划；新视图遵守双语规则。
 - [ ] **T-012** M2：哈勃张力（SH0ES、CCHP、H0DN）的距离阶梯复现与跨论文元分析 · 登记 2026-11-14
