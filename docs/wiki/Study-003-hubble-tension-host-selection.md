@@ -79,7 +79,7 @@ the paper's recalibration, not CCHP's own published numbers (CCHP's Pantheon+ TR
 Table 4's is 70.1). (Reading the result as "about 2.0 expected from selection plus a small
 leftover" is our summary, not the paper's arithmetic.)
 
-Back of the envelope, from the paper (§III.2): 10 CCHP SNe with an intrinsic dispersion of 0.19 mag
+Back of the envelope, from the paper (§III.1): 10 CCHP SNe with an intrinsic dispersion of 0.19 mag
 give a 1σ uncertainty in H0 of 2.0 km/s/Mpc, so a 2 km/s/Mpc swing between 10-host subsets is not
 surprising. The paper also shows (Fig. 6) that about 5% of random 8-SN draws are as low as the CCHP
 JAGB subset: unusual, but within what selection can produce.
@@ -129,7 +129,7 @@ H0 values are whole numbers in tenths of km/s/Mpc (73.2 → 732).
 
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
-| `stat_full`: full HST sample H0 ≥ 73.1 | STAT | stated 2408.11770: "is not yet competitive with the HST set (42 SNe Ia and 4 anchors), which yields 73.2 $\pm$ 0.9" | Abstract |
+| `stat_full`: reported full HST sample H0 ≥ 73.2 (central value) | STAT | stated 2408.11770: "is not yet competitive with the HST set (42 SNe Ia and 4 anchors), which yields 73.2 $\pm$ 0.9" | Abstract |
 | `stat_sel`: HST Cepheids on the CCHP hosts H0 ≤ 71.2 | STAT | stated 2408.11770: "a corresponding value of H ${}_{0}=71.2$" | §III.2 |
 | `mod_drop`: these two → choosing the CCHP hosts and anchor lowers H0 by ~2 | MOD | stated 2408.11770: "thus 2.0 $\,\rm km\,s^{-1}\,Mpc^{-1}$ lower than the full HST sample—simply due to the choice of SN hosts and anchor" | §III.2 |
 
@@ -156,7 +156,7 @@ offset of a few percent cannot be excluded. The check has low power.
 | Premise | Tag | Provenance | Source |
 |---|---|---|---|
 | `stat_resid`: for every subsample the recalibrated JWST H0 is consistent with the HST expectation | STAT | stated 2408.11770: "we find the values inferred using JWST are consistent with expectations for every subsample" (next sentence: at or within 1σ of these smaller uncertainties) | §III.3, Table 4 |
-| `gap_same`: those recalibrated values stand for the CCHP program's own published H0 | GAP | reconstructed: the paper adopts CCHP's distances "at face-value" and derives H0 itself; CCHP's published values differ (69.29 vs 70.1 for Pantheon+ TRGB) and the paper does not show that the difference is immaterial | — |
+| `gap_same`: the CCHP JWST program, about which the conclusion speaks, is represented by those recalibrated values | GAP | reconstructed: the paper adopts CCHP's distances "at face-value" and derives H0 itself; CCHP's published values differ (69.29 vs 70.1 for Pantheon+ TRGB) and the paper does not show that the difference is immaterial | — |
 | `mod_cons`: expected drop + agreement + within-1σ + same quantity → consistent | MOD | implied: meaning of "consistent" (no significant residual; Taylor 1997) | — |
 
 ```lean
@@ -188,13 +188,17 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 5. **Weak points** (ours): the gap above; the 71.2 is an approximation on newer data; "consistent" is backed by
    low-power checks (≈ 0.05–0.10 mag in distance, ≈ 1.5 km/s/Mpc in H0); "consistent with" is not
    "caused by". The study (part 3) tests the first directly.
-6. **Limits**: Lean checks the structure under our encoding, not the astrophysics.
+6. **Limits**: Lean checks the structure under our encoding, not the astrophysics. In particular the
+   atoms are uninterpreted: `mod_cons` asserts that the selection shift, the same-host agreement and
+   the within-1σ comparison together imply "consistent"; whether the numbers behind those atoms
+   really support them is checked by reading the paper and, for the shift, by the study (R2), not by
+   Lean.
 
 ### Part 3 · What astrolab can test or explore
 
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
-| R1 · the SH0ES baseline | testable now | GLS fit of R22's y, L, C | C 46.5 MiB (Git LFS FITS), L 0.66 MB, y 17 kB, lstsq 0.7 kB | primary: reproduce the authors' `lstsq_results.txt` (47 parameters); secondary: 73.04 ± 1.01 (tolerances in README §2) | pending |
+| R1 · the SH0ES baseline | testable now | GLS fit of R22's y, L, C | C 46.5 MiB (Git LFS FITS), L 0.66 MB, y 17 kB, lstsq 0.7 kB; total about 47.2 MiB (below the 200 MB study budget) | primary: reproduce the authors' `lstsq_results.txt` (47 parameters); secondary: 73.04 ± 1.01 (tolerances in README §2) | pending |
 | R2 · stage A–B: anchor and host shifts | testable now | refit with NGC 4258 only (drop the other anchors' geometric rows), then restrict to the CCHP hosts; shifts in 5 log H0 with exact linear error propagation | same | anchor shift vs R22's −0.0158 mag; host shift: null "no shift", four-outcome table vs the paper's −0.0405 mag (README §2) | pending |
 | R3 · stages C and E (`gap_same`): same hosts, Cepheid vs TRGB | explorable (descriptive by default) | joint linear estimator with CCHP's JWST TRGB distances; reproduce 69.29 first | CCHP Table 3 (paper) | descriptive unless the full CCHP error budget can be mapped before data; see README §8 | pending |
 | R4 · is the CCHP choice unusual? | explorable (descriptive) | random 10-host subsets of the 37 hosts, ΔH0 percentile (the paper did an 8-SN version for JAGB, Fig. 6: ~5%) | same | none — exploration only, see README §8 | pending |
@@ -224,9 +228,9 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 
 #### 1.1 问题与意义
 
-哈勃常数（Hubble constant）H0 是宇宙今天的膨胀速率。它可以直接测量：测量近邻星系的距离与退行速度；也可以用宇宙微波背景（CMB, cosmic microwave background）在标准模型 ΛCDM（宇宙学常数 Λ 加冷暗物质（cold dark matter））下预测。直接测量给出约 73 km/s/Mpc，预测约 67–68（Planck 2018：67.4 ± 0.5；SPT-3G + ACT + Planck：67.19 ± 0.38）。如果两者都对，标准模型就缺了什么：这就是"哈勃张力"（Hubble tension）。
+哈勃常数（Hubble constant）H0 是宇宙今天的膨胀速率。它可以直接测量：测量近邻星系的距离与退行速度（recession velocity）；也可以用宇宙微波背景（CMB, cosmic microwave background）在标准模型 ΛCDM（宇宙学常数 Λ 加冷暗物质（cold dark matter））下预测。直接测量给出约 73 km/s/Mpc，预测约 67–68（Planck 2018：67.4 ± 0.5；SPT-3G + ACT + Planck：67.19 ± 0.38）。如果两者都对，标准模型就缺了什么：这就是"哈勃张力"（Hubble tension）。
 
-直接测量靠距离阶梯（distance ladder）。第一级：几个近邻"锚点"（anchor）的几何距离（银河系造父变星的视差、围绕 NGC 4258 中心黑洞的水脉泽、大麦哲伦云中的食双星）。第二级：造父变星（Cepheid），其周期给出光度，在锚点和曾出现 Ia 型超新星（SN Ia）的星系中都要测量。第三级：平滑哈勃流（Hubble flow）中遥远的 Ia 型超新星，红移给出膨胀速率。
+直接测量靠距离阶梯（distance ladder）。第一级：几个近邻"锚点"（anchor）的几何距离（geometric distance）（银河系造父变星的视差、围绕 NGC 4258 中心黑洞的水脉泽、大麦哲伦云中的食双星）。第二级：造父变星（Cepheid），其周期给出光度，在锚点和曾出现 Ia 型超新星（SN Ia）的星系中都要测量。第三级：平滑哈勃流（Hubble flow）中遥远的 Ia 型超新星，红移给出膨胀速率。
 
 #### 1.2 数据
 
@@ -244,7 +248,7 @@ SH0ES（Supernovae and H0 for the Equation of State of dark energy）团队（Ri
 
 **第 4 步——结论。** 论文对每个子样本比较由 JWST 距离得到的 H0（由论文自己重新标定：CCHP 的距离按原值采用，H0 由 Pantheon+ 超新星的平均光度换算）与在同样超新星上由 HST 造父变星预期的数值（表 4），发现"对每个子样本都与预期相容"，在差分不确定度（differential uncertainty，约 1.5–1.8 km/s/Mpc，因两边用同样的超新星而小于子样本的总误差）的 1σ 以内。所以摘要说，CCHP 的 JWST 计划与 HST 全样本约 2.5 km/s/Mpc 的差异"完全与样本选择的差异相容"。"约 2.5"只出现在摘要里，正文没有说明由哪两个数得到。而且表 4 中的"JWST"数值是论文的重新标定，不是 CCHP 自己发表的数值（CCHP 的 Pantheon+ TRGB 为 69.29，表 4 为 70.1）。（"约 2.0 由选择预期、剩下一小部分"是我们的概括，不是论文的算术。）
 
-粗估，取自论文（§III.2）：CCHP 的 10 颗超新星、内禀离散（intrinsic dispersion）0.19 mag，给出 H0 的 1σ 不确定度 2.0 km/s/Mpc，所以不同的 10 个宿主子样本之间相差 2 km/s/Mpc 并不奇怪。论文还表明（图 6）随机抽 8 颗超新星时约 5% 与 CCHP 的 JAGB 子样本一样低：不寻常，但在选择能造成的范围内。
+粗估，取自论文（§III.1）：CCHP 的 10 颗超新星、内禀离散（intrinsic dispersion）0.19 mag，给出 H0 的 1σ 不确定度 2.0 km/s/Mpc，所以不同的 10 个宿主子样本之间相差 2 km/s/Mpc 并不奇怪。论文还表明（图 6）随机抽 8 颗超新星时约 5% 与 CCHP 的 JAGB 子样本一样低：不寻常，但在选择能造成的范围内。
 
 #### 1.4 结论与把握程度
 
@@ -277,7 +281,7 @@ E. （我们补上的 GAP）这些重新标定的数值代表 CCHP 计划自己�
 
 | 前提（Lean 构造子） | 类型 | 出处性质 | 论文位置 |
 |---|---|---|---|
-| `stat_full`：HST 全样本 H0 ≥ 73.1 | STAT | stated 2408.11770："is not yet competitive with the HST set (42 SNe Ia and 4 anchors), which yields 73.2 $\pm$ 0.9" | 摘要 |
+| `stat_full`：HST 全样本报告的 H0 ≥ 73.2（中心值） | STAT | stated 2408.11770："is not yet competitive with the HST set (42 SNe Ia and 4 anchors), which yields 73.2 $\pm$ 0.9" | 摘要 |
 | `stat_sel`：CCHP 宿主上的 HST 造父变星 H0 ≤ 71.2 | STAT | stated 2408.11770："a corresponding value of H ${}_{0}=71.2$" | §III.2 |
 | `mod_drop`：两者 → 选 CCHP 的宿主与锚点使 H0 降低约 2 | MOD | stated 2408.11770："thus 2.0 $\,\rm km\,s^{-1}\,Mpc^{-1}$ lower than the full HST sample—simply due to the choice of SN hosts and anchor" | §III.2 |
 
@@ -300,7 +304,7 @@ have d : v.ExpDrop := p .mod_drop (p .stat_full) (p .stat_sel)   -- Sec. III.2
 | 前提 | 类型 | 出处性质 | 位置 |
 |---|---|---|---|
 | `stat_resid`：对每个子样本，重新标定的 JWST H0 与 HST 预期相容 | STAT | stated 2408.11770："we find the values inferred using JWST are consistent with expectations for every subsample"（下一句：在这些较小误差的 1σ 以内） | §III.3，表 4 |
-| `gap_same`：这些重新标定的数值代表 CCHP 计划自己发表的 H0 | GAP | reconstructed：论文按原值采用 CCHP 的距离并自己推出 H0；CCHP 发表的数值不同（Pantheon+ TRGB 69.29 对 70.1），论文没有说明这一差别无关紧要 | — |
+| `gap_same`：结论所说的 CCHP JWST 计划由这些重新标定的数值代表 | GAP | reconstructed：论文按原值采用 CCHP 的距离并自己推出 H0；CCHP 发表的数值不同（Pantheon+ TRGB 69.29 对 70.1），论文没有说明这一差别无关紧要 | — |
 | `mod_cons`：预期的移动 + 一致 + 1σ 以内 + 同一个量 → 相容 | MOD | implied："相容"的含义（没有显著的剩余；Taylor 1997） | — |
 
 ```lean
@@ -322,13 +326,13 @@ exact p .mod_cons d (p .stat_agree) (p .stat_resid) (p .gap_same)  -- Sec. II.3,
 3. **每个前提都是必要的**（7 个 `_needed` 定理）：只有一条路径。`gap_same` 是唯一的补上前提，所以 `explicit_insufficient` 取决于它。
 4. **相容性**（`consistent`）是平凡成立的：没有否定形式的前提。
 5. **薄弱点**（我们的判断）：上述缺口；71.2 是在较新数据上的近似；"相容"依靠检验力不高的核对（距离约 0.05–0.10 mag，H0 约 1.5 km/s/Mpc）；"相容"不等于"由其造成"。研究（第三部分）直接检验第一点。
-6. **局限**：Lean 检查的是我们编码下的结构，不是天体物理。
+6. **局限**：Lean 检查的是我们编码下的结构，不是天体物理。特别是原子没有解释：`mod_cons` 断言选择造成的移动、同宿主的一致与 1σ 以内的比较合起来推出"相容"；这些原子背后的数字是否真的支持它们，由阅读论文以及（对移动量而言）研究的 R2 来检查，而不是 Lean。
 
 ### 第三部分 · astrolab 能检验或探索的环节
 
 | 环节 / 论断 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
-| R1 · SH0ES 的基线 | 现在可检验 | 对 R22 的 y、L、C 做广义最小二乘（GLS, generalised least squares）拟合 | C 46.5 MiB（Git LFS 的 FITS），L 0.66 MB，y 17 kB，lstsq 0.7 kB | 主要：复现作者的 `lstsq_results.txt`（47 个参数）；次要：73.04 ± 1.01（容差见 README 第 2 节） | 待定 |
+| R1 · SH0ES 的基线 | 现在可检验 | 对 R22 的 y、L、C 做广义最小二乘（GLS, generalised least squares）拟合 | C 46.5 MiB（Git LFS 的 FITS），L 0.66 MB，y 17 kB，lstsq 0.7 kB；合计约 47.2 MiB（低于研究预算 200 MB） | 主要：复现作者的 `lstsq_results.txt`（47 个参数）；次要：73.04 ± 1.01（容差见 README 第 2 节） | 待定 |
 | R2 · 环节 A–B：锚点与宿主的移动 | 现在可检验 | 只用 NGC 4258（去掉其他锚点的几何约束行）重拟，再限于 CCHP 宿主；在 5 log H0 中用精确的线性误差传播 | 同上 | 锚点移动对 R22 的 −0.0158 mag；宿主移动：零假设（null hypothesis）"无移动"，四种结果的判定表，对该文的 −0.0405 mag（README 第 2 节） | 待定 |
 | R3 · 环节 C 与 E（`gap_same`）：同宿主上造父变星对 TRGB | 可探索（默认只作描述） | 与 CCHP 的 JWST TRGB 距离做联合线性估计；先复现 69.29 | CCHP 表 3（论文） | 只有在取数前能写出 CCHP 完整的误差预算时才作检验，否则只作描述；见 README 第 8 节 | 待定 |
 | R4 · CCHP 的选择是否不寻常 | 可探索（只作描述） | 37 个宿主中随机 10 个的子样本，ΔH0 的百分位（percentile）（论文对 JAGB 做过 8 颗超新星的版本，图 6：约 5%） | 同上 | 无——只作探索，见 README 第 8 节 | 待定 |
