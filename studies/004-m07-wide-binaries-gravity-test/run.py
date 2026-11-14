@@ -94,6 +94,17 @@ def _a2(ctx, P, name, r, near, neighbour_key, budget):
     return n, df
 
 
+def _a3(ctx, P, name, r, near, budget):
+    qc = Q.flame_query(r, P["parent"], "count", near=near)
+    n = _count(ctx, qc, f"A3 {name}")
+    if n >= P["max_rows"]:
+        raise RuntimeError(f"A3 {name}: {n} rows >= {P['max_rows']}; split this region (README section 3)")
+    budget.reserve(n * 24, f"A3 {name}")
+    df = ctx.tap(Q.flame_query(r, P["parent"], "rows", near=near), "gaia", label=f"A3 {name}",
+                 max_rows=P["max_rows"], mode="async", release="Gaia DR3")
+    return n, df
+
+
 def step_a(ctx, P):
     regs = _regions(P)
     t0 = time.time()
@@ -104,14 +115,16 @@ def step_a(ctx, P):
         name, r, near = item
         n1, d1 = _a1(ctx, P, name, r, near, budget)
         n2, d2 = _a2(ctx, P, name, r, near, "neighbour", budget)
-        return name, n1, d1, n2, d2
+        n3, d3 = _a3(ctx, P, name, r, near, budget)
+        return name, n1, d1, n2, d2, n3, d3
 
-    a1_parts, a2_parts = [], []
+    a1_parts, a2_parts, a3_parts = [], [], []
     with ThreadPoolExecutor(max_workers=int(P["workers"])) as ex:
-        for name, n1, d1, n2, d2 in ex.map(one, regs):
-            counts[name] = {"A1": n1, "A2": n2}
+        for name, n1, d1, n2, d2, n3, d3 in ex.map(one, regs):
+            counts[name] = {"A1": n1, "A2": n2, "A3": n3}
             a1_parts.append(d1)
             a2_parts.append(d2)
+            a3_parts.append(d3)
     a1 = pd.concat(a1_parts, ignore_index=True) if a1_parts else pd.DataFrame()
     a2 = pd.concat(a2_parts, ignore_index=True) if a2_parts else pd.DataFrame()
     if len(a1):
@@ -119,6 +132,7 @@ def step_a(ctx, P):
         a1 = a1.iloc[keep].reset_index(drop=True)
     c_band = hr_constant(a1)
     out = {"step": "A", "regions": len(regs), "n_pairs_a1": int(len(a1)), "n_stars_a2": int(len(a2)),
+           "n_flame_a3": int(sum(len(d) for d in a3_parts)),
            "est_bytes": int(budget.used), "hr_constant": c_band, "seconds": time.time() - t0,
            "counts_per_region": counts}
     ctx.save("step_a", out)

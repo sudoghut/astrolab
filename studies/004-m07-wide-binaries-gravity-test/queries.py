@@ -115,3 +115,13 @@ def neighbour_query(region, parent, neighbour, select, near=False):
     if select == "count":
         return f"SELECT COUNT(*) AS n FROM ({inner}) AS g"
     return inner
+
+
+def flame_query(region, parent, select, near=False):
+    """A3: FLAME masses of the region's parent stars (velocity-free)."""
+    sub = f"(SELECT source_id FROM gaiadr3.gaia_source WHERE {star_a_where(region, parent, near)}) AS g"
+    inner = (f"FROM {sub} JOIN gaiadr3.astrophysical_parameters AS ap ON ap.source_id = g.source_id "
+             f"WHERE ap.mass_flame IS NOT NULL")
+    if select == "count":
+        return f"SELECT COUNT(*) AS n {inner}"
+    return f"SELECT g.source_id AS source_id, ap.mass_flame AS mass_flame {inner}"

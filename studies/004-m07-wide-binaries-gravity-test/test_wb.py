@@ -176,3 +176,11 @@ def test_queries_have_no_velocity_condition_by_default():
     r = wb.strip_plan()[0]
     q = Q.pair_query(r, "parallax > 6.6667", None, "COUNT(*) AS n")
     assert "pmra" not in q.split("WHERE", 3)[-1]
+
+
+def test_flame_query_shape():
+    import queries as Q
+    r = wb.strip_plan()[0]
+    q = Q.flame_query(r, "parallax > 6.6667 AND parallax_over_error > 40", "count")
+    assert q.startswith("SELECT COUNT(*) AS n FROM (SELECT source_id FROM gaiadr3.gaia_source WHERE")
+    assert "astrophysical_parameters" in q and "mass_flame IS NOT NULL" in q
