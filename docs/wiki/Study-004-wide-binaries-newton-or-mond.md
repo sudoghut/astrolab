@@ -78,13 +78,15 @@ on the unknown eccentricity distribution, so both models get a free normalisatio
 
 **Step 2 — the sample.** With all cuts, C26 Table 3 lists N = 1421 pairs for ṽ ≤ 2.5 and 1216 for
 the cleanest variant (ṽ ≤ 1.5 and ipd_frac_multi_peak = 0, a Gaia flag for marginally resolved
-companions). The per-bin counts shown in their Figure 8 add up to about 900, which the paper does
-not reconcile with 1421.
+companions). The per-bin counts printed in their Figure 8 (368, 228, 144, 99, 33, 28; the numbers appear
+only in the figure image) add up to 900, which the paper does not reconcile with 1421. Possible
+explanations: Figure 8 may show a different cut or sample, or the six bins may not cover the whole
+r_sky/r_M range.
 
 **Step 3 — the measurement.** The pairs are split into six bins of r_sky/r_M (bin medians 0.073,
 0.153, 0.348, 0.744, 1.419, 3.079; Table 2; edges not given). In each bin the median ṽ is taken,
-with uncertainty "MAD/√N" (§4.2.1; MAD is the median absolute deviation). The medians are flat at
-about 0.489 (Figure 8).
+with uncertainty "MAD/√N" (§4.2.1; MAD is the median absolute deviation). The medians are flat; Figure 8 draws
+the fitted Newtonian normalisation at 0.489.
 
 **Step 4 — the comparison.** A χ² fit of each model, with the normalisation free, gives (Table 3):
 
@@ -96,10 +98,12 @@ about 0.489 (Figure 8).
 | ṽ ≤ 1.5 and ipd = 0 | 1216 | 1.46 | 16.09 | 1501× |
 
 The preference is the likelihood ratio exp(Δχ²/2). Back of the envelope: a 20% step on a median
-of 0.49 is 0.10; with a few hundred pairs per bin and errors of about 0.02–0.03, the outer bins
-alone would show the step at several σ.
+of 0.49 is 0.10. The bins are very unequal: Figure 8 shows 368, 228, 144, 99, 33 and 28 pairs
+(read from the figure image), so the two outer bins, where the step should be, have error bars of
+about ±0.06–0.075 and each shows a 0.10 step at only about 1.4–1.7σ; the constraint comes from all
+bins together, with the inner bins fixing the shared normalisation.
 
-**Step 5 — robustness.** Extending to 150 pc makes MOND 12× more likely; adding the ipd cut at
+**Step 5 — robustness (§7.2–7.3).** Extending to 150 pc makes MOND 12× more likely; adding the ipd cut at
 150 pc restores Newton (88×). Dropping the perspective correction raises the outer-bin median ṽ by
 about 0.15 (§7.2). C26 reads these as contamination and projection effects that can mimic MOND.
 
@@ -111,6 +115,23 @@ them to be wrong, either the cleaned sample would have to hide a real MOND step 
 separation-dependent change in eccentricities or hidden companions (which C26 explicitly assumes
 away, §5), or their quoted errors would have to be too small, inflating Δχ². The 130-pc choice
 also matters: at 150 pc without the ipd cut, the preference flips.
+
+#### 1.5 The two context papers
+
+**B24 (Banik et al. 2024).** Built its own sample from Gaia (not the El-Badry catalogue): stars
+within 250 pc, G < 17, |b| > 15°, per-star astrometric-quality and extinction cuts, an RV for at
+least one star, ṽ error below 0.1 (scaled at large ṽ); 8,611 pairs with r_sky = 2–30 kAU. Instead
+of medians it forward-models the full (r_sky, ṽ) distribution with a mixture of bound binaries
+(gravity interpolated by α_grav: 0 = Newton, 1 = MOND), undetected close companions (fitted
+fraction about 63%) and chance alignments (about 2%), and finds α_grav = −0.021 (+0.065/−0.045):
+MOND excluded at 16σ.
+
+**C23 (Chae 2023).** Took about 26,600 pairs within 200 pc from the El-Badry, Rix and Heintz 2021
+catalogue (chance-alignment probability below 1%, main-sequence pairs), estimated masses from
+magnitudes, deprojected the sky velocities by Monte Carlo with eccentricities from Hwang et al.
+2022, and calibrated the close-binary fraction on the high-acceleration bin. It reports the
+acceleration law g_obs/g_N = 1.43 ± 0.06 at low acceleration (about 10σ from Newton). C26's
+checklist scores it as "not valid" (no HR cut, no projection correction, no ṽ cap).
 
 ### Part 2 · The logic of the argument
 
@@ -151,7 +172,7 @@ the preference depends on them.
 
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
-| `mod_step`: MOND predicts a ~20% faster orbit beyond r_M | MOD | stated 2602.24035: "should orbit each other 20% faster than the Newtonian expectation if their separation exceeds" | §8, Eq. 7 |
+| `mod_step`: MOND predicts a ~20% faster orbit beyond r_M | MOD | stated 2602.24035: "should orbit each other 20% faster than the Newtonian expectation if their separation exceeds" | §8 (cites Eq. 3); step shape Eq. 7, Fig. 8 caption |
 | `stat_pure`: the 130 pc sample is high-purity | STAT | stated 2602.24035: "we compile a high-purity sample of WBs within 130 pc" | Abstract |
 | `mod_notrend`: eccentricities and hidden close binaries do not vary with separation | MOD | stated 2602.24035: "Our conclusion assumes that the WB eccentricity distribution and the incidence of undetected CBs do not vary with the WB separation" | §5 |
 
@@ -171,7 +192,7 @@ about 900 in Figure 8's bins) is unexplained.
 |---|---|---|---|
 | `stat_flat`: the median ṽ shows no 20% step | STAT | stated 2602.24035: "does not exhibit the 20% enhancement expected from MOND and is consistent with Newtonian gravity across all separations" | Abstract |
 | `stat_lr`: Δχ² is about 12–16 | STAT | stated 2602.24035: "The $\Delta\chi^{2}$ of about $12-16$ implies a likelihood ratio" | §5, Table 3 |
-| `gap_err`: the per-bin median errors are not underestimated | GAP | reconstructed: the paper uses MAD/√N (§4.2.1); for a Gaussian-like core the standard error of a median is about 1.2533 × 1.4826 MAD/√N ≈ 1.86 MAD/√N (Kendall and Stuart) | — |
+| `gap_err`: the per-bin median errors are not underestimated | GAP | reconstructed: the paper uses MAD/√N (§4.2.1); the standard error of a median is 1/(2 f(m) √N), about 1.4–2.1 MAD/√N for plausible shapes (1.86 for a Gaussian; Kendall and Stuart) | — |
 | `mod_rule`: flat, unbiased, calibrated data with large Δχ² disfavour the step model | MOD | implied: likelihood-ratio reasoning (Wasserman 2004, ch. 10) | — |
 
 ```lean
@@ -179,23 +200,35 @@ exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) (
   (p .stat_lr)  -- Abstract, Sec. 4.2.1, 5, 8; GAP
 ```
 
-**Critique.** If the errors were MAD/√N while the true standard error is about 1.86 times larger,
-every χ² would shrink by about 3.4 and Δχ² of 12.6 would become about 3.7: a likelihood ratio of
-about 6, not 548. The flat profile would still give no evidence for MOND, but "1500×" would not
-follow. Whether the formula in §4.2.1 is what fed Table 3 is not stated explicitly (§4.1.5 also
-defines σ = 1.4826 MAD); and for a skewed ṽ distribution the factor need not be 1.86. This repo
-tests it directly with a bootstrap (part 3, R2).
+**Critique.** The large-sample standard error of a median is 1/(2 f(m) √N), where f(m) is the
+probability density at the median; MAD/√N equals it only if f(m)·MAD = 0.5. For plausible shapes
+of the ṽ distribution the true error is larger by a factor of about 1.4–2.1 (Laplace 1.44,
+Gaussian 1.86, uniform 2.0, exponential 2.08). Two readings of the paper:
+- if Table 3 used MAD/√N (§4.2.1 says so), with the Gaussian factor every χ² shrinks by about 3.45:
+  Δχ² 12.6 → 3.7 (likelihood ratio about 6, not 548) and, for the cleanest row, 14.6 → 4.2 (about
+  8, not 1501);
+- if it used 1.4826 MAD/√N (the σ of §4.1.5), the factor 1.2533 remains: Δχ² 12.6 → 8.0 (about 55)
+  and 14.6 → 9.3 (about 107).
+
+Either way the stated ratio needs errors the paper does not justify. Counter-evidence: the Newton
+χ² values are already small (2.48 and 1.46 for 5 degrees of freedom); with errors 1.86 times larger
+they would be about 0.7 and 0.4, a suspiciously good fit (p ≈ 0.98–0.995), which weakly suggests
+the errors are not underestimated by that much. A flat profile would still give no evidence for
+MOND; only the size of the preference is at stake. This repo tests it directly with a bootstrap
+(part 3, R2).
 
 #### 2.3 What the Lean check found
 
 1. **`explicit_insufficient`** (a real gap): even with standard knowledge the chain needs
    `gap_err`, that the per-bin errors are not underestimated. The paper states its error formula
-   but does not show it is calibrated, and the standard result for a median suggests it is too
-   small by up to ~1.9×.
+   but does not show it is calibrated; the standard result for a median suggests it is too small
+   by a factor of about 1.4–2.1 for plausible ṽ shapes (with the small Newton χ² as weak
+   counter-evidence; see 2.2).
 2. **`stated_insufficient`**: besides the gap, the inference rule from "flat and Δχ² large" to
    "Newton preferred" is standard likelihood-ratio reasoning (`mod_rule`, implied).
 3. **Every premise is needed** (seven `_needed` theorems): a single route.
-4. **Consistency** (`consistent`) holds trivially: no premise is negative.
+4. **Consistency** (`consistent`) holds trivially: no premise is negative, and `mod_rule` is an
+   implication.
 5. **Weak points** (ours): the error calibration (`gap_err`); the assumption of no separation
    trends (`mod_notrend`); the distance limit (150 pc flips the result); the N = 1421 versus
    ~900 discrepancy; bin edges not published.
@@ -206,7 +239,7 @@ tests it directly with a bootstrap (part 3, R2).
 
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
-| R1 · the sample and the median profile (stages B–C) | testable now | rebuild C26's sample with Gaia DR3 server-side self-joins (no 1.8 GB El-Badry catalogue), same cuts, median ṽ in six bins | candidate pairs and per-star neighbour counts, provisionally 10–40 MB (counts first; plan 013) | N within ±20% of 1421 / 1216; per-bin comparison with Fig. 8 diagnostic only; overall median vs 0.489 | pending |
+| R1 · the sample and the median profile (stages B–C) | testable now | rebuild C26's sample with Gaia DR3 server-side self-joins (no 1.8 GB El-Badry catalogue), same cuts, median ṽ in six bins | candidate pairs and per-star neighbour counts, provisionally 10–40 MB (counts first; plan 013) | N within ±20% of 1421 / 1216; per-bin comparison with Fig. 8 diagnostic only (including which error formula reproduces Fig. 8's error bars, about ±0.013 at N = 368); overall median vs 0.489 | pending |
 | R2 · `gap_err` and stage D–E: does Δχ² survive calibrated errors? | testable now | same χ² comparison with a whole-sample bootstrap covariance of the six medians (primary) and C26's MAD/√N (reproduction column) | same | relative likelihood ≥ 100 → Newton preferred (agrees with C26); between 1/100 and 100 → cannot distinguish; ≤ 1/100 → MOND preferred | pending |
 | R3 · stage B: robustness of "high-purity" | explorable (descriptive) | switch C26's choices off one at a time (projection correction, HR cut, 150/200 pc, parallax S/N > 100, ipd = 0, degrouping) | same | none — exploration only, see README §8 | pending |
 | R4 · B24 cuts | explorable (descriptive) | median profile with B24's 250 pc, G < 17 selection | larger query (count first) | none — exploration only | pending |
@@ -229,8 +262,8 @@ velocity columns are fetched only after the study's pre-registration is committe
 
 ### Open questions
 
-- Which median-error formula fed Table 3, and why do the Figure 8 bin counts (~900) differ from
-  N = 1421?
+- Which median-error formula fed Table 3, and why do the Figure 8 bin counts (900, read from the
+  figure image) differ from N = 1421?
 - Does a MOND-like rise appear in any reasonable variant (R3), and is it step-like or a steady
   rise (C26 argues systematics give a steady rise)?
 
@@ -263,23 +296,23 @@ velocity columns are fetched only after the study's pre-registration is committe
 
 欧洲空间局的 Gaia 卫星为十亿多颗恒星测量了位置、距离（由视差（parallax），即恒星相对背景的周年微小位移）和天球上的运动（自行（proper motion））（第三次数据发布，DR3）。对距离相同、一起运动的两颗星，两者自行之差乘以距离，就是它们在天球平面内的相对速度 v_sky（km/s）；天球上的间距给出 r_sky（kAU，千天文单位）；亮度经质光关系（mass–luminosity relation）给出质量。
 
-关键量是缩放速度（scaled velocity）ṽ = v_sky / √(GM/r_sky)：测得的速度除以该间距上的牛顿圆周速度（C26 式 9）。由于轨道倾斜、有偏心率，而我们只看到三维中的两维，ṽ 是一个分布（牛顿束缚轨道的 ṽ < √2），但在牛顿引力中它的典型值不应随间距变化；在 MOND 中，r_sky 超过 r_M 时它应升高约 20%。
+关键量是缩放速度（scaled velocity）ṽ = v_sky / √(GM/r_sky)：测得的速度除以该间距上的牛顿圆周速度（C26 式 9）。由于轨道倾斜、有偏心率（eccentricity），而我们只看到三维中的两维，ṽ 是一个分布（牛顿束缚轨道的 ṽ < √2），但在牛顿引力中它的典型值不应随间距变化；在 MOND 中，r_sky 超过 r_M 时它应升高约 20%。
 
 C26 的样本（全部来自 Gaia DR3；C26 第 3–4 节，C24 第 2 节）：
 - 视差误差小于 2.5% 的恒星（星表"C25"），距离 130 pc 以内，间距 1–30 kAU；
 - 两颗星的 RUWE（renormalised unit weight error，单星模型拟合天体测量数据的好坏）都小于 1.25，以排除使恒星摆动的隐藏近伴星；
-- 两颗星都位于颜色—星等图（colour–magnitude diagram）主序上的一条带内（0.5 < BP−RP < 3.5，4 < M_G < 14），排除白矮星与可能藏有伴星的过亮恒星；
+- 两颗星都位于颜色—星等图（colour–magnitude diagram）主序（main sequence）上的一条带内（0.5 < BP−RP < 3.5，4 < M_G < 14），排除白矮星与可能藏有伴星的过亮恒星；
 - 两颗星都有视向速度（RV, radial velocity），相差小于 10 km/s；ṽ 的误差小于 0.1；ṽ ≤ 2.5；
-- "去群"（degrouping）：任一颗星在 100 kAU 以内还有其他恒星（包括数据很差的暗星）时，整对去掉，以排除三体与移动星群；
-- 两颗星放在同一个距离上，并做透视（"球面投影"）修正，去掉双星沿视线的运动在弯曲天球上造成的表观运动。
+- "去群"（degrouping）：任一颗星在 100 kAU 以内还有其他恒星（包括数据很差的暗星）时，整对去掉，以排除三合星（triple）与移动星群（moving group）；
+- 两颗星放在同一个距离上，并做透视修正（perspective correction，即"球面投影"修正），去掉双星沿视线的运动在弯曲天球上造成的表观运动。
 
 #### 1.3 一步一步：作者如何从数据走到结论
 
-**第 1 步——预测。** C26 式 7 给出 MOND 对圆周速度的增强（含银河系外场 g_N,e = 1.184 a0）：中位数 ṽ 应从 r_sky/r_M ≪ 1 到 r_sky/r_M ≳ 1 升高约 20%。牛顿的预测是平的；其高度（约 0.5）取决于未知的偏心率分布，所以两个模型都有一个自由的归一化。
+**第 1 步——预测。** C26 式 7 给出 MOND 对圆周速度的增强（含银河系外场 g_N,e = 1.184 a0）：中位数 ṽ 应从 r_sky/r_M ≪ 1 到 r_sky/r_M ≳ 1 升高约 20%。牛顿的预测是平的；其高度（约 0.5）取决于未知的偏心率分布，所以两个模型都有一个自由的归一化（normalisation）。
 
-**第 2 步——样本。** 加上全部切割后，C26 表 3 给出 ṽ ≤ 2.5 时 N = 1421 对，最干净的变体（ṽ ≤ 1.5 且 ipd_frac_multi_peak = 0，即 Gaia 标记边缘可分辨伴星的参数）为 1216 对。他们图 8 中各箱的数目加起来约 900，论文没有说明它与 1421 的差别。
+**第 2 步——样本。** 加上全部切割后，C26 表 3 给出 ṽ ≤ 2.5 时 N = 1421 对，最干净的变体（ṽ ≤ 1.5 且 ipd_frac_multi_peak = 0，即 Gaia 标记边缘可分辨伴星的参数）为 1216 对。他们图 8 中印出的各箱数目（368、228、144、99、33、28，这些数字只出现在图中）加起来为 900，论文没有说明它与 1421 的差别。可能的解释：图 8 用的是不同的切割或样本，或者六个箱没有覆盖全部 r_sky/r_M 范围。
 
-**第 3 步——测量。** 双星按 r_sky/r_M 分成六个箱（各箱中位数 0.073、0.153、0.348、0.744、1.419、3.079；表 2；没有给出边界）。每箱取 ṽ 的中位数，误差为"MAD/√N"（第 4.2.1 节；MAD 是中位数绝对偏差（median absolute deviation））。各箱中位数平坦，约为 0.489（图 8）。
+**第 3 步——测量。** 双星按 r_sky/r_M 分成六个箱（各箱中位数 0.073、0.153、0.348、0.744、1.419、3.079；表 2；没有给出边界）。每箱取 ṽ 的中位数，误差为"MAD/√N"（第 4.2.1 节；MAD 是中位数绝对偏差（median absolute deviation））。各箱中位数平坦；图 8 把拟合的牛顿归一化画在 0.489。
 
 **第 4 步——比较。** 每个模型在归一化自由时做 χ² 拟合，得到（表 3）：
 
@@ -290,13 +323,19 @@ C26 的样本（全部来自 Gaia DR3；C26 第 3–4 节，C24 第 2 节）：
 | ṽ ≤ 1.5 | 1408 | 1.92 | 15.49 | 883× |
 | ṽ ≤ 1.5 且 ipd = 0 | 1216 | 1.46 | 16.09 | 1501× |
 
-偏好倍数是似然比（likelihood ratio）exp(Δχ²/2)。粗估：在 0.49 的中位数上升高 20% 就是 0.10；每箱几百对、误差约 0.02–0.03 时，外侧几箱单独就能以几个 σ 看出这一台阶。
+偏好倍数是似然比（likelihood ratio）exp(Δχ²/2)。粗估：在 0.49 的中位数上升高 20% 就是 0.10。各箱的双星数很不均匀：图 8 中为 368、228、144、99、33、28 对（从图上读出），所以最该出现台阶的两个外侧箱误差约 ±0.06–0.075，各自只能以约 1.4–1.7σ 看出 0.10 的台阶；约束来自所有箱的合力，内侧几箱确定共同的归一化（normalisation）。
 
-**第 5 步——稳健性。** 扩展到 150 pc 时 MOND 受偏好约 12 倍；在 150 pc 加上 ipd 切割后牛顿恢复受偏好（88 倍）。不做透视修正会使外侧箱的中位数 ṽ 升高约 0.15（第 7.2 节）。C26 把这些解读为能模仿 MOND 的污染与投影效应。
+**第 5 步——稳健性（第 7.2–7.3 节）。** 扩展到 150 pc 时 MOND 受偏好约 12 倍；在 150 pc 加上 ipd 切割后牛顿恢复受偏好（88 倍）。不做透视修正会使外侧箱的中位数 ṽ 升高约 0.15（第 7.2 节）。C26 把这些解读为能模仿 MOND 的污染与投影效应。
 
 #### 1.4 结论与把握程度
 
 "宽双星中没有 MOND 引起的速度增强的观测证据"，以及"在我们最干净的样本中，牛顿引力的可能性最高为 MOND 的 1500 倍"（摘要）。要让他们错，要么干净样本中有随间距变化的偏心率或隐藏伴星恰好掩盖了真实的 MOND 台阶（C26 明确假设没有这种变化，第 5 节），要么他们给出的误差太小、夸大了 Δχ²。130 pc 的选择也很关键：在 150 pc、不加 ipd 切割时，偏好会翻转。
+
+#### 1.5 两篇背景论文
+
+**B24（Banik 等 2024）。** 自己从 Gaia 建样本（不用 El-Badry 星表）：250 pc 以内、G < 17、|b| > 15° 的恒星，逐星的天体测量质量与消光切割，至少一颗星有视向速度，ṽ 误差小于 0.1（ṽ 大时放宽）；r_sky = 2–30 kAU 的 8,611 对。它不用中位数，而是对整个 (r_sky, ṽ) 分布做前向建模：束缚双星（引力由 α_grav 插值：0 为牛顿，1 为 MOND）、未探测到的近伴星（拟合比例约 63%）与偶然成对（约 2%）的混合，得到 α_grav = −0.021（+0.065/−0.045）：以 16σ 排除 MOND。
+
+**C23（Chae 2023）。** 从 El-Badry、Rix 与 Heintz 2021 星表中取 200 pc 以内约 26,600 对（偶然成对概率小于 1%，主序对），由星等估计质量，用 Hwang 等 2022 的偏心率以蒙特卡罗方法对天球速度去投影，并用高加速度箱标定近伴星比例。它报告低加速度下的加速度关系 g_obs/g_N = 1.43 ± 0.06（与牛顿相差约 10σ）。C26 的清单把它评为"无效"（没有 HR 切割、没有投影修正、没有 ṽ 上限）。
 
 ### 第二部分 · 论证逻辑
 
@@ -319,7 +358,7 @@ E. （标准的似然比推理）⇒ 牛顿的可能性最高为 MOND 的 1500 �
 | `LIT` | 引自其他文献的结论 |
 | `GAP` | 推理需要、但论文和标准知识都没有提供的前提 |
 
-出处性质：`[stated <arXiv 编号>: "引文"]`、`[implied]`（标准知识，注明来源）、`[reconstructed]`（我们补上的，恰好是 `GAP` 前提）。Lean 检查结论能推出（`final`）、不是恒真（`final_nontrivial`）、前提相容、任何单个前提都不够、哪些前提必要，以及论文明说的（`stated_*`）或加上标准知识的（`explicit_*`）前提是否足够。它不检查前提里的物理：原子命题不作解释。
+出处性质：`[stated <arXiv 编号>: "引文"]`、`[implied]`（标准知识，注明来源）、`[reconstructed]`（我们补上的，恰好是 `GAP` 前提）。Lean 检查结论能推出（`final`）、不是恒真（`final_nontrivial`）、前提相容、任何单个前提都不够、哪些前提必要，以及论文明说的（`stated_*`）或加上标准知识的（`explicit_*`）前提是否足够。它不检查前提里的物理：原子命题（atom）不作解释。
 
 我们编码的是定量结论（"最高 1500 倍"），而不是定性的"没有 MOND 的证据"：无论误差如何，平坦的曲线都不是 MOND 的证据，但偏好的大小取决于误差。
 
@@ -327,7 +366,7 @@ E. （标准的似然比推理）⇒ 牛顿的可能性最高为 MOND 的 1500 �
 
 | 前提（Lean 构造子） | 标签 | 出处性质 | 论文出处 |
 |---|---|---|---|
-| `mod_step`：MOND 预测 r_M 以外轨道快约 20% | MOD | stated 2602.24035："should orbit each other 20% faster than the Newtonian expectation if their separation exceeds" | 第 8 节，式 7 |
+| `mod_step`：MOND 预测 r_M 以外轨道快约 20% | MOD | stated 2602.24035："should orbit each other 20% faster than the Newtonian expectation if their separation exceeds" | 第 8 节（引式 3）；台阶形状见式 7 与图 8 说明 |
 | `stat_pure`：130 pc 样本纯度高 | STAT | stated 2602.24035："we compile a high-purity sample of WBs within 130 pc" | 摘要 |
 | `mod_notrend`：偏心率与隐藏近伴星不随间距变化 | MOD | stated 2602.24035："Our conclusion assumes that the WB eccentricity distribution and the incidence of undetected CBs do not vary with the WB separation" | 第 5 节 |
 
@@ -345,7 +384,7 @@ E. （标准的似然比推理）⇒ 牛顿的可能性最高为 MOND 的 1500 �
 |---|---|---|---|
 | `stat_flat`：中位数 ṽ 没有 20% 的台阶 | STAT | stated 2602.24035："does not exhibit the 20% enhancement expected from MOND and is consistent with Newtonian gravity across all separations" | 摘要 |
 | `stat_lr`：Δχ² 约为 12–16 | STAT | stated 2602.24035："The $\Delta\chi^{2}$ of about $12-16$ implies a likelihood ratio" | 第 5 节，表 3 |
-| `gap_err`：各箱中位数的误差没有被低估 | GAP | reconstructed：论文用 MAD/√N（第 4.2.1 节）；对接近高斯的核心，中位数的标准误约为 1.2533 × 1.4826 MAD/√N ≈ 1.86 MAD/√N（Kendall 与 Stuart） | — |
+| `gap_err`：各箱中位数的误差没有被低估 | GAP | reconstructed：论文用 MAD/√N（第 4.2.1 节）；中位数的标准误为 1/(2 f(m) √N)，对合理的形状约为 1.4–2.1 MAD/√N（高斯为 1.86；Kendall 与 Stuart） | — |
 | `mod_rule`：平坦、无偏、误差标定正确且 Δχ² 大的数据不支持台阶模型 | MOD | implied：似然比推理（Wasserman 2004，第 10 章） | — |
 
 ```lean
@@ -353,14 +392,18 @@ exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) (
   (p .stat_lr)  -- Abstract, Sec. 4.2.1, 5, 8; GAP
 ```
 
-**评论。** 如果误差是 MAD/√N，而真实的标准误大约大 1.86 倍，每个 χ² 都会缩小约 3.4 倍，12.6 的 Δχ² 会变成约 3.7：似然比约为 6，而不是 548。平坦的曲线仍然不是 MOND 的证据，但"1500 倍"推不出来。表 3 用的是不是第 4.2.1 节的公式，论文没有明说（第 4.1.5 节还定义了 σ = 1.4826 MAD）；对偏斜的 ṽ 分布，这一倍数也不一定是 1.86。本项目用自助法（bootstrap）直接检验（第三部分 R2）。
+**评论。** 大样本下中位数的标准误为 1/(2 f(m) √N)，f(m) 是中位数处的概率密度；只有 f(m)·MAD = 0.5 时它才等于 MAD/√N。对 ṽ 分布各种合理的形状，真实误差要大约 1.4–2.1 倍（拉普拉斯分布 1.44，高斯分布 1.86，均匀分布 2.0，指数分布 2.08）。对论文有两种读法：
+- 如果表 3 用的是 MAD/√N（第 4.2.1 节如此写），按高斯的倍数，每个 χ² 缩小约 3.45 倍：Δχ² 12.6 → 3.7（似然比约 6，而不是 548），最干净的一行 14.6 → 4.2（约 8，而不是 1501）；
+- 如果用的是 1.4826 MAD/√N（第 4.1.5 节的 σ），仍差 1.2533 倍：Δχ² 12.6 → 8.0（约 55），14.6 → 9.3（约 107）。
+
+无论哪种读法，论文给出的倍数都依赖它没有论证的误差。反面证据：牛顿模型的 χ² 本来就小（5 个自由度下 2.48 与 1.46）；误差放大 1.86 倍后约为 0.7 与 0.4，拟合好得可疑（p ≈ 0.98–0.995），这弱地提示误差并没有被低估那么多。平坦的曲线仍然不是 MOND 的证据；受影响的只是偏好的大小。本项目用自助法（bootstrap）直接检验（第三部分 R2）。
 
 #### 2.3 Lean 检查的发现
 
-1. **`explicit_insufficient`**（真正的缺口）：即使加上标准知识，链条仍需要 `gap_err`，即各箱误差没有被低估。论文写出了误差公式，但没有说明它是标定正确的，而中位数的标准结果表明它可能小了约 1.9 倍。
+1. **`explicit_insufficient`**（真正的缺口）：即使加上标准知识，链条仍需要 `gap_err`，即各箱误差没有被低估。论文写出了误差公式，但没有说明它是标定正确的；中位数的标准结果表明，对合理的 ṽ 形状它小了约 1.4–2.1 倍（牛顿模型的小 χ² 是弱的反面证据，见 2.2）。
 2. **`stated_insufficient`**：除这一缺口外，从"平坦且 Δχ² 大"到"牛顿受偏好"的推理规则是标准的似然比推理（`mod_rule`，implied）。
 3. **每个前提都是必要的**（7 个 `_needed` 定理）：只有一条路径。
-4. **相容性**（`consistent`）平凡成立：没有否定形式的前提。
+4. **相容性**（`consistent`）平凡成立：没有否定形式的前提，`mod_rule` 是一个蕴涵。
 5. **薄弱点**（我们的判断）：误差标定（`gap_err`）；没有随间距变化的假设（`mod_notrend`）；距离上限（150 pc 时结果翻转）；N = 1421 与约 900 的差别；没有发表分箱边界。
 6. **局限**：Lean 检查的是我们编码的结构，不是原子背后的物理或数字。
 
@@ -368,7 +411,7 @@ exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) (
 
 | 环节 / 论断 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
-| R1 · 样本与中位数曲线（环节 B–C） | 现在可检验 | 用 Gaia DR3 服务器端自连接（self-join）重建 C26 的样本（不下载 1.8 GB 的 El-Badry 星表），同样的切割，六个箱的中位数 ṽ | 候选对与逐星的邻居计数，暂估 10–40 MB（先计数；计划 013） | N 在 1421 / 1216 的 ±20% 以内；逐箱与图 8 的比较只作诊断；总体中位数对 0.489 | 待定 |
+| R1 · 样本与中位数曲线（环节 B–C） | 现在可检验 | 用 Gaia DR3 服务器端自连接（self-join）重建 C26 的样本（不下载 1.8 GB 的 El-Badry 星表），同样的切割，六个箱的中位数 ṽ | 候选对与逐星的邻居计数，暂估 10–40 MB（先计数；计划 013） | N 在 1421 / 1216 的 ±20% 以内；逐箱与图 8 的比较只作诊断（包括哪个误差公式能复现图 8 的误差棒，N = 368 时约 ±0.013）；总体中位数对 0.489 | 待定 |
 | R2 · `gap_err` 与环节 D–E：误差标定正确时 Δχ² 是否仍成立 | 现在可检验 | 同样的 χ² 比较，主要误差为对全体双星整体自助法得到的六个中位数的协方差，C26 的 MAD/√N 作复现栏 | 同上 | 相对似然 ≥ 100 → 牛顿受偏好（与 C26 一致）；在 1/100 与 100 之间 → 不能区分；≤ 1/100 → MOND 受偏好 | 待定 |
 | R3 · 环节 B："纯度高"的稳健性 | 可探索（只作描述） | 逐项关闭 C26 的选择（透视修正、HR 切割、150/200 pc、视差信噪比 > 100、ipd = 0、去群） | 同上 | 无——只作探索，见 README 第 8 节 | 待定 |
 | R4 · B24 的切割 | 可探索（只作描述） | 用 B24 的 250 pc、G < 17 选择的中位数曲线 | 更大的查询（先计数） | 无——只作探索 | 待定 |
@@ -390,7 +433,7 @@ Gaia 档案 2026-11-25 至 12-02 下线，所以在此之前取数并缓存；�
 
 ### 开放问题
 
-- 表 3 用的是哪个中位数误差公式？图 8 各箱的数目（约 900）为什么与 N = 1421 不同？
+- 表 3 用的是哪个中位数误差公式？图 8 各箱的数目（900，从图上读出）为什么与 N = 1421 不同？
 - 在任何合理的变体（R3）中是否出现类似 MOND 的上升？它是台阶式的还是持续上升的（C26 认为系统误差会造成持续上升）？
 
 ### 研究进展

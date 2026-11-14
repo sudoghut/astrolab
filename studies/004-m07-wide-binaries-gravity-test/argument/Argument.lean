@@ -50,7 +50,7 @@ structure Vocab where
 inductive Field where
   /-- STAT [stated 2602.24035: "does not exhibit the 20% enhancement expected from MOND and is consistent with Newtonian gravity across all separations"] Abstract -/
   | stat_flat
-  /-- MOD [stated 2602.24035: "should orbit each other 20% faster than the Newtonian expectation if their separation exceeds"] Sec. 8 (with Eq. 7) -/
+  /-- MOD [stated 2602.24035: "should orbit each other 20% faster than the Newtonian expectation if their separation exceeds"] Sec. 8 (cites Eq. 3); step shape Eq. 7 -/
   | mod_step
   /-- STAT [stated 2602.24035: "we compile a high-purity sample of WBs within 130 pc"] Abstract -/
   | stat_pure
@@ -58,7 +58,7 @@ inductive Field where
   | mod_notrend
   /-- STAT [stated 2602.24035: "The $\Delta\chi^{2}$ of about $12-16$ implies a likelihood ratio"] Sec. 5 (Table 3) -/
   | stat_lr
-  /-- GAP [reconstructed] the per-bin median errors are calibrated; the paper takes the uncertainty of the median as MAD / sqrt(N) (Sec. 4.2.1), while for a Gaussian-like core the standard error of the median is about 1.2533 x 1.4826 MAD / sqrt(N), about 1.86 MAD / sqrt(N) (Kendall and Stuart, The Advanced Theory of Statistics, Vol. 1); the study tests this with a bootstrap (R2) -/
+  /-- GAP [reconstructed] the per-bin median errors are calibrated; the paper takes the uncertainty of the median as MAD / sqrt(N) (Sec. 4.2.1), while the standard error of a median is 1/(2 f(m) sqrt(N)), about 1.4 to 2.1 MAD / sqrt(N) for plausible shapes (1.86 for a Gaussian; Kendall and Stuart, The Advanced Theory of Statistics, Vol. 1); the study tests this with a bootstrap (R2) -/
   | gap_err
   /-- MOD [implied] standard model comparison: a model predicting a step is disfavoured when unbiased, calibrated data are flat and Delta chi2 is large (likelihood-ratio reasoning, e.g. Wasserman 2004, All of Statistics, ch. 10) -/
   | mod_rule
