@@ -140,7 +140,7 @@ and 46 and in no host column (R22: 277 SNe; the count is reported, and nothing d
 these rows are kept in every subsystem). Single-non-zero constraint rows (expected 5: two in
 column 38, one each in columns 37, 39, 45). The rest are Cepheid rows: rows with a non-zero in
 column 38 and in no column 42; those with a host column are SN-host Cepheids, expected
-2150 ± 37 (R22 Table 3 "fit" total; the allowance is check (iv)'s ±1 per host on average), and the
+2149 ± 37 (sum of R22 Table 3's per-host "fit" counts; see the dated note below; the allowance is check (iv)'s ±1 per host on average), and the
 count is asserted.
 
 **Host identification (structural checks; all required).** (i) 77 calibrator rows, every host
@@ -155,9 +155,9 @@ not expected to map one-to-one onto the 42 SNe, and several rows may match the s
 3σ_Ceph + 0.02 mag of Table 6 μ_Ceph (column a; Table 6 prints no full-fit distance: column a
 excludes that host's SNe and column b all SNe, so the 3σ allowance also covers the pull of the
 host's own SNe). (iv) Each host's Cepheid row count (rows with a non-zero in that host column and
-in column 38) within 2 of R22 Table 3's "fit" count (e.g. M101 259, N1448 73, N5643 251; 2150 in
+in column 38) within 2 of R22 Table 3's "fit" count (e.g. M101 259, N1448 73, N5643 251; 2149 in
 all), typed into `run.py` from the rendered table (the PDF text layer misaligns its columns), with
-an assertion that the typed counts sum to 2150; the allowance covers the public file not being
+an assertion that the typed counts sum to 2149; the allowance covers the public file not being
 exactly the printed fit. (v) **Uniqueness of the labelling (global assignment)**, run only after
 (i)–(iv) pass under the labelling of this section (if they fail, the fit-validity rule applies:
 not evaluable). Checks (ii)–(iv) each compare one column with one Table 3/6 host, so they define
@@ -231,6 +231,12 @@ two analyses: CCHP's 69.29 uses the same Pantheon+ magnitudes inside the R22 fra
 note d), so this term is expected to be small. Our CCHP-side estimate fits all 77 light-curve rows
 of the 11 SNe with C, whereas CCHP applied one peak m_B per SN to R22's NGC 4258 fit (fit 10,
 M_B = −19.269); the 0.02 mag "matched" tolerance in R3 is the guard for this difference.
+
+> **Dated note (2026-11-14, before any data were fetched).** Transcribing R22 Table 3 from the
+> rendered PDF table showed that its per-host "fit" counts sum to 2149, while the printed
+> "SN Total" is 2150; 2149 + 443 + 55 + 339 + 143 = 3129 equals the printed "Total All", so 2150
+> is the table's own inconsistency. The expected SN-host Cepheid count and the assertion in
+> `run.py` use 2149 (section 4). No criterion or tolerance changed.
 
 ## 5. Results
 

@@ -1,23 +1,590 @@
-"""Hubble tension: SH0ES distance ladder and host selection
+"""M2: Hubble tension, SH0ES distance ladder and host selection (pre-registration: README 1-4).
 
 Run with:      python -m astrolab run 003-m02-hubble-tension-distance-ladder
 Explore with:  python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --set KEY=VALUE
-"""
 
-# Tunable knobs (AGENTS.md section 2). Read them inside main() at call time, never into
-# module-level constants, and pass values to helper modules as arguments (a helper that does
-# `import run` gets a fresh copy without the override): `astrolab explore --set` overrides
-# this dict in memory.
+R1  GLS of the public SH0ES y, L, C (Riess et al. 2022, Eq. 6) against the authors' lstsq_results.txt.
+R2  Anchor step (all anchors -> NGC 4258 only) and host step (37 hosts -> the 10 CCHP hosts), in
+    5 log H0 with exact variances a^T C a; the host step is the test of arXiv:2408.11770.
+R3  Same 10 hosts: SH0ES Cepheid ladder vs CCHP JWST TRGB distances (descriptive).
+R4  Random 10-host subsets (descriptive).
+Cross-paper comparison of published H0 values (descriptive).
+"""
+import hashlib
+import time
+
+import numpy as np
+from scipy import linalg, optimize
+
+from astrolab import infer
+
+# Tunable knobs (AGENTS.md section 2). Read inside main() and passed on as arguments.
 PARAMS = {
-    "example_limit": 10,
+    "cchp_hosts": ["M101", "N1365", "N2442", "N3972", "N4038", "N4424", "N4536", "N4639",
+                   "N5643", "N7250"],
+    "r4_draws": 10000,
+    "r4_seed": 0,
+    "r4_max_minutes": 60.0,
+    "sn_match_tol": 0.15,       # mag, check (ii)
+    "trgb_tip_sys": 0.025,      # mag, NGC 4258 TRGB tip measurement (CCHP section X)
+    # pre-registered tolerances (README section 2)
+    "tol_r1": 1e-3,
+    "anchor_target": -0.0158, "anchor_tol": 0.005,
+    "anchor_sigma_target": 0.0461, "anchor_sigma_frac": 0.15,
+    "host_ref": -0.0405, "host_ref_extra": 0.02,
+    "cchp_target_5logh0": 9.2034, "cchp_match_tol": 0.02,
 }
 
+DR = "PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/"
+RAW = "https://raw.githubusercontent.com/" + DR
+MEDIA = "https://media.githubusercontent.com/media/" + DR
+F_C = "allc_shoes_ceph_topantheonwt6.0_112221.fits"
+F_L = "alll_shoes_ceph_topantheonwt6.0_112221.fits"
+F_Y = "ally_shoes_ceph_topantheonwt6.0_112221.fits"
+F_Q = "lstsq_results.txt"
+C_BYTES = 48_781_440
+C_SHA256 = "a42778672d25df7a559bd2949b1e412b99b2e35dd9a36895f6b38828be019172"
+N_ROWS, N_PAR = 3492, 47
 
+# parameter columns (README section 4)
+NH = 37
+C_N4258, C_MH, C_LMC, C_M31, C_BW, C_MB, C_ZW, C_X, C_ZP, C_H0 = range(37, 47)
+PAR_NAMES = None  # filled in main from HOSTS
+
+# R22 Table 6 (arXiv:2112.04510, PDF p. 30): host, SN, m0_B, sigma, mu_Ceph(a), sigma(a)
+TABLE6 = [
+    ("M101", "2011fe", 9.7800, 0.115, 29.193, 0.039),
+    ("M1337", "2006D", 13.655, 0.106, 32.922, 0.124),
+    ("N0105", "2007A", 15.250, 0.133, 34.531, 0.253),
+    ("N0691", "2005W", 13.602, 0.139, 32.846, 0.109),
+    ("N0976", "1999dq", 14.250, 0.103, 33.719, 0.151),
+    ("N1015", "2009ig", 13.350, 0.094, 32.570, 0.075),
+    ("N1309", "2002fk", 13.209, 0.082, 32.546, 0.060),
+    ("N1365", "2012fr", 11.900, 0.092, 31.379, 0.057),
+    ("N1448", "2001el", 12.254, 0.136, 31.290, 0.037),
+    ("N1448", "2021pit", 11.752, 0.200, 31.290, 0.037),
+    ("N1559", "2005df", 12.141, 0.086, 31.501, 0.062),
+    ("N2442", "2015F", 12.234, 0.082, 31.457, 0.065),
+    ("N2525", "2018gv", 12.728, 0.074, 32.067, 0.100),
+    ("N2608", "2001bg", 13.443, 0.166, 32.629, 0.155),
+    ("N3021", "1995al", 13.114, 0.116, 32.474, 0.160),
+    ("N3147", "2021hpr", 13.843, 0.159, 33.044, 0.165),
+    ("N3147", "1997bq", 13.821, 0.141, 33.044, 0.165),
+    ("N3147", "2008fv", 13.936, 0.200, 33.044, 0.165),
+    ("N3254", "2019np", 13.201, 0.074, 32.332, 0.077),
+    ("N3370", "1994ae", 12.937, 0.082, 32.123, 0.052),
+    ("N3447", "2012ht", 12.736, 0.089, 31.939, 0.035),
+    ("N3583", "ASASSN-15so", 13.509, 0.093, 32.808, 0.081),
+    ("N3972", "2011by", 12.548, 0.094, 31.644, 0.090),
+    ("N3982", "1998aq", 12.252, 0.078, 31.724, 0.072),
+    ("N4038", "2007sr", 12.409, 0.106, 31.615, 0.117),
+    ("N4424", "2012cg", 11.487, 0.192, 30.856, 0.130),
+    ("N4536", "1981B", 11.551, 0.133, 30.838, 0.051),
+    ("N4639", "1990N", 12.454, 0.124, 31.818, 0.085),
+    ("N4680", "1997bp", 13.173, 0.205, 32.606, 0.208),
+    ("N5468", "1999cp", 13.880, 0.080, 33.120, 0.075),
+    ("N5468", "2002cr", 13.993, 0.072, 33.120, 0.075),
+    ("N5584", "2007af", 12.804, 0.079, 31.775, 0.053),
+    ("N5643", "2013aa", 11.252, 0.079, 30.569, 0.050),
+    ("N5643", "2017cbv", 11.208, 0.074, 30.569, 0.050),
+    ("N5728", "2009Y", 13.514, 0.115, 33.116, 0.207),
+    ("N5861", "2017erp", 12.945, 0.107, 32.232, 0.101),
+    ("N5917", "2005cf", 13.079, 0.095, 32.363, 0.122),
+    ("N7250", "2013dy", 12.283, 0.178, 31.628, 0.126),
+    ("N7329", "2006bh", 14.030, 0.079, 33.274, 0.116),
+    ("N7541", "1998dh", 13.418, 0.128, 32.504, 0.121),
+    ("N7678", "2002dp", 14.090, 0.093, 33.196, 0.155),
+    ("U9391", "2003du", 13.525, 0.084, 32.849, 0.068),
+]
+# R22 Table 3 (PDF p. 22, read from the rendered table), Cepheids in the fit per SN host.
+# The column sums to 2149; the printed "SN Total" 2150 is inconsistent with it, while
+# 2149 + 443 + 55 + 339 + 143 = 3129 matches the printed "Total All".
+TABLE3_FIT = {
+    "M101": 259, "M1337": 15, "N0105": 8, "N0691": 28, "N0976": 33, "N1015": 18,
+    "N1309": 53, "N1365": 45, "N1448": 73, "N1559": 110, "N2442": 177, "N2525": 73,
+    "N2608": 22, "N3021": 16, "N3147": 27, "N3254": 48, "N3370": 73, "N3447": 101,
+    "N3583": 54, "N3972": 52, "N3982": 27, "N4038": 29, "N4424": 9, "N4536": 40,
+    "N4639": 30, "N4680": 11, "N5468": 93, "N5584": 165, "N5643": 251, "N5728": 20,
+    "N5861": 41, "N5917": 14, "N7250": 21, "N7329": 31, "N7541": 33, "N7678": 16,
+    "U9391": 33,
+}
+TABLE3_SUM = 2149
+# CCHP Table 2 (arXiv:2408.06153 v3): JWST TRGB distance modulus and sigma_T per host
+CCHP_TRGB = {
+    "M101": (29.151, 0.042), "N1365": (31.366, 0.069), "N2442": (31.646, 0.097),
+    "N3972": (31.747, 0.068), "N4038": (31.645, 0.078), "N4424": (30.926, 0.030),
+    "N4536": (30.923, 0.052), "N4639": (31.774, 0.073), "N5643": (30.643, 0.071),
+    "N7250": (31.629, 0.047),
+}
+CCHP_CSP_H0 = 68.81
+# Published H0 values for the cross-paper comparison (plan 012, section 2): value, -err, +err
+PUBLISHED = [
+    {"name": "SH0ES R22 baseline", "arxiv": "2112.04510", "h0": 73.04, "lo": 1.04, "hi": 1.04, "group": "ladder"},
+    {"name": "SH0ES + JWST (Riess et al. 2024), full HST sample", "arxiv": "2408.11770", "h0": 73.17, "lo": 0.86, "hi": 0.86, "group": "ladder"},
+    {"name": "H0DN local distance network", "arxiv": "2510.23823", "h0": 73.50, "lo": 0.81, "hi": 0.81, "group": "ladder"},
+    {"name": "CCHP TRGB (24 calibrators)", "arxiv": "2408.06153", "h0": 70.39, "lo": 1.94, "hi": 1.94, "group": "ladder",
+     "note": "1.22 stat, 1.33 sys, 0.70 sigma_SN in quadrature"},
+    {"name": "TDCOSMO 2025 (flat LCDM)", "arxiv": "2506.03023", "h0": 71.6, "lo": 3.3, "hi": 3.9, "group": "lensing"},
+    {"name": "Planck 2018", "arxiv": "1807.06209", "h0": 67.4, "lo": 0.5, "hi": 0.5, "group": "cmb"},
+    {"name": "SPT-3G + ACT + Planck (CMB only)", "arxiv": "2506.20707", "h0": 67.19, "lo": 0.38, "hi": 0.38, "group": "cmb"},
+]
+
+
+# ---------------------------------------------------------------- data
+def _fetch_fits(ctx, name, label):
+    path = ctx.http(RAW + name, label=label)
+    head = path.read_bytes()[:64]
+    if head.startswith(b"version https://git-lfs"):
+        ctx.log(f"{name}: raw URL returned an LFS pointer; fetching the media URL")
+        path = ctx.http(MEDIA + name, label=label + " (LFS)")
+    return path
+
+
+def _read_fits(path):
+    from astropy.io import fits
+    with fits.open(path, memmap=False) as hdul:
+        for hdu in hdul:
+            if hdu.data is not None:
+                return np.asarray(hdu.data, dtype=np.float64)
+    raise ValueError(f"no data in {path}")
+
+
+def load(ctx):
+    cpath = ctx.http(MEDIA + F_C, label="SH0ES C (LFS)")
+    size = cpath.stat().st_size
+    sha = hashlib.sha256(cpath.read_bytes()).hexdigest()
+    if size != C_BYTES or sha != C_SHA256:
+        raise RuntimeError(f"C download failed checks: {size} bytes, sha256 {sha}")
+    C = _read_fits(cpath)
+    L = _read_fits(_fetch_fits(ctx, F_L, "SH0ES L"))
+    y = _read_fits(_fetch_fits(ctx, F_Y, "SH0ES y")).ravel()
+    if L.shape == (N_PAR, N_ROWS):
+        L = L.T
+    if C.shape != (N_ROWS, N_ROWS) or L.shape != (N_ROWS, N_PAR) or y.shape != (N_ROWS,):
+        raise RuntimeError(f"unexpected shapes C {C.shape}, L {L.shape}, y {y.shape}")
+    qtxt = ctx.http(RAW + F_Q, label="SH0ES lstsq_results").read_text(encoding="utf-8")
+    rows = []
+    for line in qtxt.splitlines():
+        parts = line.split()
+        if len(parts) >= 2:
+            try:
+                rows.append((float(parts[0]), float(parts[1])))
+            except ValueError:
+                continue
+    lsq = np.array(rows)
+    if lsq.shape != (N_PAR, 2):
+        raise RuntimeError(f"lstsq_results.txt has {lsq.shape[0]} numeric rows, expected {N_PAR}")
+    return C, L, y, lsq
+
+
+# ---------------------------------------------------------------- structure
+def row_classes(L, y):
+    nz = L != 0.0
+    nhost = nz[:, :NH].sum(axis=1)
+    single = nz.sum(axis=1) == 1
+    calib = nz[:, C_MB] & (nhost == 1)
+    hflow = nz[:, C_MB] & nz[:, C_H0] & (nhost == 0)
+    ceph = nz[:, C_MH] & ~nz[:, C_MB] & ~single
+    cls = {
+        "calib": calib, "hflow": hflow, "single": single, "ceph": ceph,
+        "ceph_host": ceph & (nhost == 1),
+        "maser": single & nz[:, C_N4258], "lmc": single & nz[:, C_LMC],
+        "mw": single & nz[:, C_MH], "zp": single & nz[:, C_ZP],
+    }
+    known = calib | hflow | single | ceph
+    counts = {k: int(v.sum()) for k, v in cls.items()}
+    counts["other"] = int((~known).sum())
+    counts["total"] = int(len(y))
+    return nz, cls, counts
+
+
+def anchor_rows(nz, cls, y):
+    """Rows of the NGC 4258-only system (README section 4) and its structural checks."""
+    lmc, mw, maser = np.flatnonzero(cls["lmc"]), np.flatnonzero(cls["mw"]), np.flatnonzero(cls["maser"])
+    checks = {
+        "lmc_rows": lmc.tolist(), "mw_rows": mw.tolist(), "maser_rows": maser.tolist(),
+        "lmc_ok": len(lmc) == 1 and all(abs(y[i]) < 1e-9 for i in lmc),
+        "mw_ok": len(mw) == 2 and all(abs(y[i] + 5.85) <= 0.2 for i in mw),
+        "maser_ok": len(maser) == 1 and all(abs(y[i]) < 1e-9 for i in maser),
+        "mw_y": [float(y[i]) for i in mw],
+    }
+    checks["ok"] = bool(checks["lmc_ok"] and checks["mw_ok"] and checks["maser_ok"])
+    keep = np.ones(len(y), bool)
+    keep[lmc] = False
+    keep[mw] = False
+    return np.flatnonzero(keep), checks
+
+
+def host_compat(nz, cls, y, mu_fit, hosts, tol):
+    """Compatibility matrix compat[j, h]: column j passes checks (ii)-(iv) for host label h."""
+    sn = {}
+    for h, s, mb, smb, mua, sa in TABLE6:
+        sn.setdefault(h, {"mb": [], "mua": mua, "sa": sa})["mb"].append(mb)
+    calib = cls["calib"]
+    ncep = np.array([int((cls["ceph_host"] & nz[:, j]).sum()) for j in range(NH)])
+    rows_y = [y[calib & nz[:, j]] for j in range(NH)]
+    comp = np.zeros((NH, NH), bool)
+    detail = {"ii": np.zeros((NH, NH), bool), "iii": np.zeros((NH, NH), bool),
+              "iv": np.zeros((NH, NH), bool)}
+    for j in range(NH):
+        for k, h in enumerate(hosts):
+            mbs = np.array(sn[h]["mb"])
+            ry = rows_y[j]
+            ii = (len(ry) > 0 and all(np.min(np.abs(mbs - v)) <= tol for v in ry)
+                  and all(np.min(np.abs(ry - m)) <= tol for m in mbs))
+            iii = abs(mu_fit[j] - sn[h]["mua"]) <= 3 * sn[h]["sa"] + 0.02
+            iv = abs(ncep[j] - TABLE3_FIT[h]) <= 2
+            detail["ii"][j, k], detail["iii"][j, k], detail["iv"][j, k] = ii, iii, iv
+            comp[j, k] = ii and iii and iv
+    return comp, detail, ncep, rows_y, sn
+
+
+def assignment_alternatives(comp):
+    """Every compatible off-diagonal edge that belongs to another perfect matching (any cycle)."""
+    alts = []
+    cost0 = np.where(comp, 0.0, 1.0)
+    for j, h in zip(*np.nonzero(comp & ~np.eye(len(comp), dtype=bool))):
+        cost = cost0.copy()
+        cost[j, :] = 1.0
+        cost[:, h] = 1.0
+        cost[j, h] = 0.0
+        r, c = optimize.linear_sum_assignment(cost)
+        if cost[r, c].sum() == 0:
+            perm = np.empty(len(comp), int)
+            perm[r] = c
+            alts.append({"col": int(j), "label": int(h), "perm": perm.tolist()})
+    return alts
+
+
+# ---------------------------------------------------------------- estimators
+def fit(L, y, C, rows, est=False):
+    idx = np.asarray(rows)
+    return infer.gls(L[idx], y[idx], C[np.ix_(idx, idx)], return_estimator=est)
+
+
+def kpos(res, col):
+    kept = res["kept"]
+    i = int(np.searchsorted(kept, col))
+    if i >= len(kept) or kept[i] != col:
+        raise RuntimeError(f"column {col} not fitted")
+    return i
+
+
+def shift_vector(res_sub, rows_sub, res_full, rows_full, col=C_H0):
+    a = np.zeros(N_ROWS)
+    a[rows_sub] += res_sub["A"][kpos(res_sub, col)]
+    a[rows_full] -= res_full["A"][kpos(res_full, col)]
+    return a
+
+
+def to_h0(q):
+    return float(10 ** (q / 5.0))
+
+
+# ---------------------------------------------------------------- main
 def main(ctx):
-    # Fetch (cached, provenance-logged). Keep it MB-scale: filter/aggregate server-side.
-    # df = ctx.tap(f"SELECT TOP {PARAMS['example_limit']} source_id, ra, dec FROM gaiadr3.gaia_source",
-    #              "gaia", label="example", release="Gaia DR3")
+    P = dict(PARAMS)
+    t0 = time.perf_counter()
+    C, L, y, lsq = load(ctx)
+    hosts = [h for h, *_ in TABLE6]
+    hosts = list(dict.fromkeys(hosts))
+    assert len(hosts) == NH and sum(TABLE3_FIT.values()) == TABLE3_SUM
+    par_names = hosts + ["dmu_N4258", "M_H1_W", "dmu_LMC", "mu_M31", "b_W", "M0_B", "Z_W",
+                         "extra", "zp", "5logH0"]
+    cchp = [hosts.index(h) for h in P["cchp_hosts"]]
+    nz, cls, counts = row_classes(L, y)
+    ctx.log(f"row classes: {counts}")
+    validity = {"row_counts": counts, "notes": []}
 
-    summary = {"todo": "implement analysis", "params": dict(PARAMS)}
+    # ---- baseline and R1
+    cf = linalg.cho_factor(C, lower=True)
+    base = infer.gls(L, y, c_factor=cf)
+    full_rows = np.arange(N_ROWS)
+    dq = base["q"] - lsq[:, 0]
+    ds = base["sigma"] - lsq[:, 1]
+    unfit = np.isnan(base["q"])
+    dq[unfit] = np.abs(lsq[unfit, 0])
+    ds[unfit] = np.abs(lsq[unfit, 1])
+    worst = int(np.argmax(np.maximum(np.abs(dq), np.abs(ds))))
+    r1_ok = bool(np.all(np.abs(dq) <= P["tol_r1"]) and np.all(np.abs(ds) <= P["tol_r1"]))
+    q46 = float(base["q"][C_H0])
+    r1 = {
+        "verdict": "reproduced" if r1_ok else "not reproduced",
+        "max_abs_dq": float(np.max(np.abs(dq))), "max_abs_dsigma": float(np.max(np.abs(ds))),
+        "worst_param": par_names[worst], "unfitted_columns": [par_names[i] for i in np.flatnonzero(unfit)],
+        "params": [{"name": par_names[i], "q": None if unfit[i] else float(base["q"][i]),
+                    "sigma": None if unfit[i] else float(base["sigma"][i]),
+                    "file_q": float(lsq[i, 0]), "file_sigma": float(lsq[i, 1])} for i in range(N_PAR)],
+        "chi2": base["chi2"], "dof": base["dof"], "chi2_dof": base["chi2"] / base["dof"],
+        "fivelogh0": q46, "sigma_fivelogh0": float(base["sigma"][C_H0]), "h0": to_h0(q46),
+        "secondary": {"r22_fivelogh0": 9.318, "r22_h0": 73.04, "diff_mag": q46 - 9.318},
+    }
+    ctx.log(f"R1: {r1['verdict']} (max |dq| {r1['max_abs_dq']:.2e}, worst {r1['worst_param']}); "
+            f"5logH0 {q46:.5f} -> H0 {r1['h0']:.2f}")
+    ctx.save("r1", r1)
+
+    # ---- host identification (checks i-v)
+    mu_fit = base["q"][:NH]
+    comp, detail, ncep, rows_y, sn = host_compat(nz, cls, y, mu_fit, hosts, P["sn_match_tol"])
+    n_calib_host = [int(len(r)) for r in rows_y]
+    i_ok = counts["calib"] == 77 and min(n_calib_host) >= 1
+    diag = np.diag(comp)
+    ident = {
+        "i_calib_rows": counts["calib"], "i_ok": bool(i_ok),
+        "ii_ok": bool(np.all(np.diag(detail["ii"]))), "iii_ok": bool(np.all(np.diag(detail["iii"]))),
+        "iv_ok": bool(np.all(np.diag(detail["iv"]))),
+        "ceph_host_rows": counts["ceph_host"], "ceph_host_expected": [TABLE3_SUM - 37, TABLE3_SUM + 37],
+        "per_host": [{"host": h, "calib_rows": n_calib_host[j], "rows_y": [round(float(v), 3) for v in rows_y[j]],
+                      "table6_mb": sn[h]["mb"], "mu_fit": float(mu_fit[j]), "mu_ceph_a": sn[h]["mua"],
+                      "sigma_a": sn[h]["sa"], "dmu_over_sigma": float((mu_fit[j] - sn[h]["mua"]) / sn[h]["sa"]),
+                      "ceph_rows": int(ncep[j]), "table3_fit": TABLE3_FIT[h],
+                      "ii": bool(detail["ii"][j, j]), "iii": bool(detail["iii"][j, j]),
+                      "iv": bool(detail["iv"][j, j])} for j, h in enumerate(hosts)],
+    }
+    ceph_ok = TABLE3_SUM - 37 <= counts["ceph_host"] <= TABLE3_SUM + 37
+    id_ok = bool(i_ok and diag.all() and ceph_ok)
+    alts = assignment_alternatives(comp) if id_ok else []
+    cset = set(cchp)
+    changes_set, cchp_perm = False, False
+    for a in alts:
+        perm = a["perm"]
+        new_cchp_cols = {j for j in range(NH) if perm[j] in cset}
+        if new_cchp_cols != cset:
+            changes_set = True
+        elif any(perm[j] != j for j in cset):
+            cchp_perm = True
+    ident.update({"compatible_offdiag_edges": [[hosts[j], hosts[h]] for j, h in
+                                               zip(*np.nonzero(comp & ~np.eye(NH, dtype=bool)))],
+                  "alternatives": len(alts), "alt_changes_cchp_set": changes_set,
+                  "alt_permutes_cchp_only": cchp_perm, "ok": id_ok,
+                  "host_step_evaluable": bool(id_ok and not changes_set)})
+    ctx.log(f"host identification: ok={id_ok}, alternatives={len(alts)}, changes CCHP set={changes_set}")
+    ctx.save("host_identification", ident)
+    validity["host_identification_ok"] = id_ok
+
+    # ---- R2 anchor step
+    rows_a, achk = anchor_rows(nz, cls, y)
+    res_a = fit(L, y, C, rows_a, est=True)
+    res_b = infer.gls(L, y, c_factor=cf, return_estimator=True)
+    qa = float(res_a["q"][C_H0])
+    sa = float(res_a["sigma"][C_H0])
+    d_a = qa - q46
+    a_vec = shift_vector(res_a, rows_a, res_b, full_rows)
+    var_a = float(a_vec @ C @ a_vec)
+    anchor_repro = bool(achk["ok"] and abs(d_a - P["anchor_target"]) <= P["anchor_tol"]
+                        and abs(sa / P["anchor_sigma_target"] - 1) <= P["anchor_sigma_frac"])
+    r2a = {"structural": achk, "fivelogh0": qa, "sigma": sa, "h0": to_h0(qa), "shift": d_a,
+           "shift_sigma": float(np.sqrt(max(var_a, 0.0))), "shift_check_ay": float(a_vec @ y),
+           "target": P["anchor_target"], "sigma_target": P["anchor_sigma_target"],
+           "secondary_2024": 5 * np.log10(72.54 / 73.17),
+           "verdict": "reproduced" if anchor_repro else "not reproduced"}
+    ctx.log(f"R2 anchor: shift {d_a:+.4f} (target -0.0158), sigma {sa:.4f} (target 0.0461) -> {r2a['verdict']}")
+
+    # ---- R2 host step
+    other_hosts = [j for j in range(NH) if j not in cset]
+    drop = nz[:, other_hosts].any(axis=1)
+    rows_s = np.array([i for i in rows_a if not drop[i]])
+    res_s = fit(L, y, C, rows_s, est=True)
+    qs = float(res_s["q"][C_H0])
+    d_h = qs - qa
+    a_h = shift_vector(res_s, rows_s, res_a, rows_a)
+    var_h = float(a_h @ C @ a_h)
+    s_h = float(np.sqrt(var_h))
+    z = d_h / s_h
+    ref, extra = P["host_ref"], P["host_ref_extra"]
+    if z <= -2 and abs(d_h - ref) <= 2 * s_h + extra:
+        v = "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+    elif z <= -2:
+        v = "host selection significantly lowers H0, but by a different size"
+    elif abs(z) < 2:
+        v = "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    else:
+        v = "host selection raises H0 (contradicts the paper)"
+    if not ident["host_step_evaluable"]:
+        status = "not evaluable (host identification)"
+    elif not anchor_repro:
+        status = "conditional (anchor rule not validated)"
+    else:
+        status = "evaluated"
+    r2h = {"rows": int(len(rows_s)), "fivelogh0": qs, "sigma": float(res_s["sigma"][C_H0]), "h0": to_h0(qs),
+           "shift": d_h, "shift_sigma": s_h, "z": z, "shift_check_ay": float(a_h @ y),
+           "nested_var_check": float(res_s["sigma"][C_H0] ** 2 - sa ** 2),
+           "reference": ref, "reference_tol": 2 * s_h + extra,
+           "h0_shift_kms": to_h0(qs) - to_h0(qa), "verdict": v, "status": status}
+    ctx.log(f"R2 host: shift {d_h:+.4f} +- {s_h:.4f} (z {z:+.2f}); {v}; {status}")
+    ctx.save("r2", {"anchor_step": r2a, "host_step": r2h})
+
+    # ---- R3 (descriptive)
+    r3 = {"status": "evaluated"}
+    m_rows = np.flatnonzero(cls["maser"])
+    n4258_ceph = cls["ceph"] & nz[:, C_N4258]
+    cvals = np.unique(L[n4258_ceph, C_N4258])
+    if not ident["host_step_evaluable"] or len(m_rows) != 1 or len(cvals) != 1 or abs(abs(cvals[0]) - 1) > 1e-12 \
+            or abs(abs(L[m_rows[0], C_N4258]) - 1) > 1e-12:
+        r3["status"] = "not evaluable"
+    else:
+        m = int(m_rows[0])
+        k, c = float(L[m, C_N4258]), float(cvals[0])
+        sm2 = float(C[m, m])
+        t = np.array([CCHP_TRGB[hosts[j]][0] for j in cchp])
+        st = np.array([CCHP_TRGB[hosts[j]][1] for j in cchp])
+
+        def cchp_side(zp_terms):
+            Ct = np.diag(st ** 2) + ((P["trgb_tip_sys"] ** 2 + sm2) if zp_terms else 0.0)
+            cross = k * c * sm2 if zp_terms else 0.0
+            cep_drop = cls["ceph"] & nz[:, cchp].any(axis=1)
+            rows_c = np.array([i for i in rows_s if not cep_drop[i]])
+            nc = len(rows_c)
+            Lt = np.zeros((len(cchp), N_PAR))
+            Lt[np.arange(len(cchp)), cchp] = 1.0
+            Lz = np.vstack([L[rows_c], Lt])
+            yz = np.concatenate([y[rows_c], t])
+            Cz = np.zeros((nc + len(cchp),) * 2)
+            Cz[:nc, :nc] = C[np.ix_(rows_c, rows_c)]
+            Cz[nc:, nc:] = Ct
+            mp = int(np.searchsorted(rows_c, m))
+            assert rows_c[mp] == m
+            Cz[mp, nc:] = cross
+            Cz[nc:, mp] = cross
+            res = infer.gls(Lz, yz, Cz, return_estimator=True)
+            return res, rows_c, Ct, cross
+
+        def contrast(res_c, rows_c, Ct, cross, col_s, t_coef):
+            """b = b_S - b_C over z = (y, t); returns value and sigma via Cov(z)."""
+            by = np.zeros(N_ROWS)
+            by[rows_s] += res_s["A"][kpos(res_s, col_s)]
+            bt = np.array(t_coef, float)
+            if res_c is not None:
+                row = res_c["A"][kpos(res_c, C_H0)]
+                by[rows_c] -= row[:len(rows_c)]
+                bt = bt - row[len(rows_c):]
+            val = float(by @ y + bt @ t)
+            var = float(by @ C @ by + bt @ Ct @ bt + 2 * by[m] * cross * bt.sum())
+            return val, var, by, bt
+
+        res_c, rows_c, Ct, cross = cchp_side(True)
+        qc = float(res_c["q"][C_H0])
+        d, var_d, _, _ = contrast(res_c, rows_c, Ct, cross, C_H0, np.zeros(len(cchp)))
+        # per-host delta mu: mu_S,i (SH0ES host-step fit) - t_i
+        B_y = np.zeros((len(cchp), N_ROWS))
+        B_t = -np.eye(len(cchp))
+        for r, j in enumerate(cchp):
+            B_y[r, rows_s] = res_s["A"][kpos(res_s, j)]
+        dmu = B_y @ y + B_t @ t
+        cross_term = np.outer(B_y[:, m] * cross, B_t.sum(axis=1))
+        cov_dmu = B_y @ C @ B_y.T + B_t @ Ct @ B_t.T + cross_term + cross_term.T
+        chi2 = float(dmu @ np.linalg.solve(cov_dmu, dmu))
+        res_c0, rows_c0, Ct0, cross0 = cchp_side(False)
+        d0, var_d0, _, _ = contrast(res_c0, rows_c0, Ct0, cross0, C_H0, np.zeros(len(cchp)))
+        r3.update({
+            "k": k, "c": c, "maser_var": sm2,
+            "cchp_side_fivelogh0": qc, "cchp_side_h0": to_h0(qc),
+            "cchp_target_fivelogh0": P["cchp_target_5logh0"], "cchp_target_h0": 69.29,
+            "cchp_match": "matched" if abs(qc - P["cchp_target_5logh0"]) <= P["cchp_match_tol"] else "not matched",
+            "cchp_diff_mag": qc - P["cchp_target_5logh0"],
+            "d": d, "sigma_d": float(np.sqrt(var_d)), "d_check": qs - qc,
+            "d_kms_illustrative": to_h0(qs) - to_h0(qc),
+            "per_host": [{"host": hosts[j], "mu_ceph": float(res_s["q"][j]), "mu_trgb": float(t[r]),
+                          "dmu": float(dmu[r]), "sigma": float(np.sqrt(cov_dmu[r, r]))}
+                         for r, j in enumerate(cchp)],
+            "dmu_chi2": chi2, "dmu_dof": len(cchp),
+            "dmu_weighted_mean": float(np.sum(np.linalg.solve(cov_dmu, dmu)) / np.sum(np.linalg.solve(cov_dmu, np.ones(len(cchp))))),
+            "sensitivity_no_zp_terms": {"cchp_side_fivelogh0": float(res_c0["q"][C_H0]), "d": d0,
+                                        "sigma_d": float(np.sqrt(var_d0))},
+            "sensitivity_csp": {"cchp_h0": CCHP_CSP_H0, "d": qs - 5 * np.log10(CCHP_CSP_H0)},
+        })
+        ctx.log(f"R3: CCHP side H0 {to_h0(qc):.2f} ({r3['cchp_match']}); d {d:+.4f} +- {np.sqrt(var_d):.4f}; "
+                f"per-host chi2 {chi2:.1f}/{len(cchp)}")
+    ctx.save("r3", r3)
+
+    # ---- R4 (descriptive)
+    rng = np.random.default_rng(P["r4_seed"])
+    host_rows = [np.flatnonzero(nz[:, j]) for j in range(NH)]
+    any_host = nz[:, :NH].any(axis=1)
+    base_rows = np.array([i for i in rows_a if not any_host[i]])
+    n_sn = {h: len(sn[h]["mb"]) for h in hosts}
+    draws = int(P["r4_draws"])
+    deltas, nsns = [], []
+    r4 = {"status": "evaluated", "draws_requested": draws}
+    if not ident["host_step_evaluable"]:
+        r4["status"] = "not evaluable"
+    else:
+        t1 = time.perf_counter()
+        i = 0
+        while i < draws:
+            pick = rng.choice(NH, size=len(cchp), replace=False)
+            rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
+            res = fit(L, y, C, rows)
+            deltas.append(float(res["q"][C_H0]) - qa)
+            nsns.append(int(sum(n_sn[hosts[j]] for j in pick)))
+            i += 1
+            if i == 100:
+                per = (time.perf_counter() - t1) / 100
+                proj = per * draws / 60
+                r4["seconds_per_draw"] = per
+                if proj > P["r4_max_minutes"]:
+                    new = int(P["r4_max_minutes"] * 60 / per) // 1000 * 1000
+                    if new < 2000:
+                        r4["status"] = "not evaluated (runtime)"
+                        deltas, nsns = [], []
+                        break
+                    r4["draws_reduced_from"] = draws
+                    draws = new
+                    ctx.log(f"R4: projected {proj:.0f} min; draws reduced to {draws}")
+        if deltas:
+            dl = np.array(deltas)
+            pct = float(100.0 * np.mean(dl <= d_h))
+            if pct < 5:
+                rv = "the selection itself is systematically low"
+            elif pct > 95:
+                rv = "the selection itself is systematically high"
+            else:
+                rv = "consistent with random-subset fluctuations"
+            qs_ = np.percentile(dl, [2.5, 5, 16, 50, 84, 95, 97.5])
+            hist, edges = np.histogram(dl, bins=60)
+            r4.update({"draws": len(dl), "cchp_shift": d_h, "percentile": pct, "verdict": rv,
+                       "quantiles": dict(zip(["p2.5", "p5", "p16", "p50", "p84", "p95", "p97.5"],
+                                             [float(x) for x in qs_])),
+                       "mean": float(dl.mean()), "std": float(dl.std()),
+                       "hist_counts": hist.tolist(), "hist_edges": [float(e) for e in edges],
+                       "n_sn_mean": float(np.mean(nsns)),
+                       "shift_by_n_sn": {str(n): float(np.mean(dl[np.array(nsns) == n]))
+                                         for n in sorted(set(nsns))}})
+            ctx.log(f"R4: CCHP shift at percentile {pct:.1f} of {len(dl)} draws -> {rv}")
+    ctx.save("r4", r4)
+
+    # ---- cross-paper comparison (descriptive)
+    def pair(a, b):
+        hi_a = a["hi"] if b["h0"] > a["h0"] else a["lo"]
+        hi_b = b["hi"] if a["h0"] > b["h0"] else b["lo"]
+        return (a["h0"] - b["h0"]) / np.hypot(hi_a, hi_b)
+    pubs = {p["name"]: p for p in PUBLISHED}
+    cmb = pubs["SPT-3G + ACT + Planck (CMB only)"]
+    ladder = pubs["SH0ES R22 baseline"]
+    lens = pubs["TDCOSMO 2025 (flat LCDM)"]
+    cross = {
+        "values": PUBLISHED,
+        "interpreted_pairs": [
+            {"pair": "SH0ES R22 vs CMB-only", "nsigma": float(pair(ladder, cmb))},
+            {"pair": "TDCOSMO vs SH0ES R22", "nsigma": float(pair(lens, ladder))},
+            {"pair": "TDCOSMO vs CMB-only", "nsigma": float(pair(lens, cmb))},
+            {"pair": "CCHP TRGB vs CMB-only", "nsigma": float(pair(pubs["CCHP TRGB (24 calibrators)"], cmb))},
+        ],
+        "not_independent": ["SH0ES R22", "SH0ES + JWST 2024", "H0DN", "CCHP"],
+        "note": "SH0ES, H0DN and CCHP share data; listed, not interpreted, not averaged.",
+    }
+    ctx.save("cross_paper", cross)
+
+    summary = {
+        "params": P,
+        "validity": validity,
+        "R1": r1["verdict"], "R1_h0": r1["h0"],
+        "R2_anchor": r2a["verdict"], "R2_anchor_shift": d_a,
+        "R2_host": r2h["verdict"], "R2_host_status": r2h["status"],
+        "R2_host_shift": d_h, "R2_host_sigma": s_h, "R2_host_z": z,
+        "R3_cchp_match": r3.get("cchp_match"), "R3_d": r3.get("d"), "R3_sigma_d": r3.get("sigma_d"),
+        "R4_percentile": r4.get("percentile"), "R4_verdict": r4.get("verdict", r4["status"]),
+        "runtime_s": time.perf_counter() - t0,
+    }
     ctx.save("summary", summary)
     return summary
