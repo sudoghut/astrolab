@@ -134,7 +134,7 @@ DR4 的内容：
 | 早期宇宙：SPT-3G + ACT + Planck 组合（arXiv:2506.20707） | 67.19 ± 0.38 | [V] |
 | 早期宇宙：ACT DR6（P-ACT + CMB 透镜 + DESI DR1 BAO，arXiv:2503.14452） | 68.22 ± 0.36 | [V] |
 | 独立方法：TDCOSMO 2025 时间延迟透镜（time-delay lensing, A&A 704, A63 (2025), arXiv:2506.03023） | 71.6 (+3.9/−3.3) | [V] |
-| SH0ES 限于 CCHP JWST 样本（10 宿主、11 SN Ia，只用 NGC 4258 锚点，近似式；arXiv:2408.11770 表 4、第 III.2 节；子样本误差约 2.4，不含 NGC 4258 的 1.1） | 71.2 | [V] |
+| SH0ES 限于 CCHP JWST 样本（10 宿主、11 SN Ia，只用 NGC 4258 锚点，近似式；arXiv:2408.11770 表 4、第 III.2 节；子样本误差待核（表 4 列含义不清，附录表 A1 为 2.0），不含 NGC 4258 的 1.1） | 71.2 | [V]（数值）；误差 [U] |
 
 TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 
