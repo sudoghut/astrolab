@@ -21,6 +21,10 @@
   .qc { font: 11.5px var(--mono); color: var(--muted); }
   .note { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
   .banner { border-left: 3px solid var(--tension); padding: 8px 12px; background: var(--surface); margin: 12px 0; font-size: 14px; }
+  .switch { display: inline-flex; gap: 6px; margin: 4px 0 8px; }
+  .switch button { font: inherit; font-size: 13px; padding: 3px 10px; border: 1px solid var(--line); background: var(--surface);
+                   color: var(--text); border-radius: 4px; cursor: pointer; }
+  .switch button[aria-pressed=true] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
   @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -28,34 +32,10 @@
 <main>
   <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / L4 / M4</p>
   <h1><span class="en">Dormant black holes in Gaia astrometric orbits</span><span class="zh">Gaia 天体测量轨道中的休眠黑洞</span></h1>
-  <p class="muted"><span class="en">Reproducing Gaia BH1 and BH2 from DR3 non-single-star orbits alone, and a fully server-side screen of all
-    169,227 DR3 astrometric orbits for massive dark companions, built to rerun on Gaia DR4.</span><span class="zh">仅用 DR3 非单星（NSS）轨道复现 Gaia BH1 和 BH2；并在服务器端对全部 169,227 条 DR3 天体测量轨道筛选大质量暗伴星，设计为可在 Gaia DR4 上重跑。</span></p>
-  <div class="banner"><span class="en">Gaia DR4 is released <strong>2026-12-02</strong> (archive offline from 2026-11-25). The screen is parameterised by release.</span><span class="zh">Gaia DR4 将于 <strong>2026-12-02</strong> 发布（档案库自 2026-11-25 起暂停服务）。筛选按数据发布版本参数化。</span></div>
-
-  <h2><span class="en">Pre-registered criteria</span><span class="zh">预注册判据</span></h2>
-  <div class="card scroll"><table id="criteria"></table></div>
-
-  <h2><span class="en">Reproduction: companion mass from DR3 astrometry alone</span><span class="zh">复现：仅用 DR3 天体测量求伴星质量</span></h2>
-  <div class="two" id="repro"></div>
-  <p class="note"><span class="en">Histograms: Monte Carlo over the full DR3 covariance of (parallax, A, B, F, G, P) and the published luminous-star mass.
-    Band: published mass ±1σ (joint astrometry + RV fits).</span><span class="zh">直方图：对 (parallax, A, B, F, G, P) 的完整 DR3 协方差和已发表的可见星质量做蒙特卡罗（Monte Carlo）抽样。色带：已发表质量 ±1σ（天体测量与视向速度联合拟合）。</span></p>
-
-  <h2><span class="en">Screen: astrometric mass function vs period</span><span class="zh">筛选：天体测量质量函数与周期</span></h2>
-  <div class="controls">
-    <label><span class="en">Assumed M<sub>1</sub> for mass lines</span><span class="zh">质量参考线假定的 M<sub>1</sub></span> <input type="range" id="m1" min="0.3" max="2.5" step="0.05" value="1"> <span id="m1v">1.00</span> M☉</label>
-  </div>
-  <div class="card"><div id="screen" class="plot-big"></div></div>
-  <p class="note"><span class="en">3,343 solutions with f<sub>M</sub> &gt; 0.25 M☉ and parallax S/N &gt; 5 (computed on the Gaia server).
-    Horizontal lines: f<sub>M</sub> for a dark companion of the given mass around the assumed M<sub>1</sub>.</span><span class="zh">3,343 个 f<sub>M</sub> &gt; 0.25 M☉ 且视差信噪比 &gt; 5 的轨道解（在 Gaia 服务器端计算）。水平线：给定质量的暗伴星绕假定 M<sub>1</sub> 运行时的 f<sub>M</sub>。</span></p>
-
-  <h2><span class="en">Candidates with M<sub>2</sub> &gt; 3 M☉</span><span class="zh">M<sub>2</sub> &gt; 3 M☉ 的候选体</span></h2>
-  <div class="controls" id="filters"></div>
-  <div class="card scroll"><table id="cands"></table></div>
-  <p class="note"><span class="en">M<sub>2</sub> uses Gaia FLAME mass for M<sub>1</sub> (1 M☉ if missing). Quality labels (qc) were pre-registered except where marked post-hoc.
-    A large M<sub>2</sub> here is a lead, not a discovery: spurious orbits and triples can mimic it.</span><span class="zh">M<sub>2</sub> 用 Gaia FLAME 质量作为 M<sub>1</sub>（缺失时取 1 M☉）。质量控制标签（qc）除标明事后（post-hoc）添加的以外均为预注册。这里 M<sub>2</sub> 大只是线索，不是发现：虚假轨道和三合星系统也能造成同样的结果。</span></p>
-
-  <h2><span class="en">Recall: El-Badry et al. (2024) neutron-star candidates</span><span class="zh">召回率检验：El-Badry 等（2024）的中子星候选体</span></h2>
-  <div class="card scroll"><table id="ns"></table></div>
+  <p class="muted" id="intro"></p>
+  <div class="banner"><span class="en">Gaia DR4 is released <strong>2026-12-02</strong> (archive offline from 2026-11-25). The study is parameterised by release; the DR4 criteria were pre-registered on 2026-11-14 (README, DR4 addendum).</span><span class="zh">Gaia DR4 将于 <strong>2026-12-02</strong> 发布（档案库自 2026-11-25 起暂停服务）。研究按数据发布版本参数化；DR4 判据已于 2026-11-14 预注册（README 中的 DR4 附录）。</span></div>
+  <div class="switch" id="switch" hidden></div>
+  <div id="view"></div>
 </main>
 <script>
 // English-only fallback if i18n.js failed to load, so the page still renders.
@@ -66,18 +46,76 @@ const base = () => ({ paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,
   font: { color: css('--text'), size: 12 }, margin: { l: 56, r: 12, t: 30, b: 46 } });
 const ax = (t, extra = {}) => ({ title: t, gridcolor: css('--line'), zerolinecolor: css('--line'), ...extra });
 class MissingResult extends Error {}
-const get = n => fetch(`../results/${n}.json`).then(r => {
-  if (!r.ok) throw new MissingResult(`results/${n}.json: HTTP ${r.status}`);
+const getFrom = dir => n => fetch(`${dir}${n}.json`).then(r => {
+  if (!r.ok) throw new MissingResult(`${dir.replace('../', '')}${n}.json: HTTP ${r.status}`);
   return r.json();
 });
+const tryGet = (dir, n) => fetch(`${dir}${n}.json`).then(r => r.ok ? r.json() : null).catch(() => null);
 const f2 = (x, d = 2) => (x == null ? '' : Number(x).toFixed(d));
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-// solve M2^3 = f (M1+M2)^2  -> f(M2) for lines
-const fOf = (m2, m1) => m2 ** 3 / (m1 + m2) ** 2;
+const fOf = (m2, m1) => m2 ** 3 / (m1 + m2) ** 2;           // M2^3 = f (M1+M2)^2 -> f for a given M2
+const isPlaceholder = o => o && !Array.isArray(o) && typeof o.status === 'string' && Object.keys(o).length <= 2;
+const relLabel = r => ({ dr3: 'Gaia DR3', dr4: 'Gaia DR4' }[r] || r);
+const relShort = r => (r || '').toUpperCase();
+const verdictCell = v => {
+  // v: true/false/null (DR3 booleans) or 'pass'/'fail'/'not evaluable'/'reported'
+  const k = v === true || v === 'pass' ? 'ok' : v === false || v === 'fail' ? 'bad' : 'warn';
+  const txt = v === true || v === 'pass' ? L('pass', '通过') : v === false || v === 'fail' ? L('fail', '未通过')
+    : v === 'not evaluable' ? L('not evaluable', '不可评估') : L('report', '仅报告');
+  return `<td class="verdict ${k}">${txt}</td>`;
+};
+const critTable = rows => `<tr><th></th><th>${L('criterion', '判据')}</th><th>${L('verdict', '判定')}</th><th>${L('result', '结果')}</th></tr>` +
+  rows.map(([k, d, v, r]) => `<tr><td><strong>${k}</strong></td><td>${d}</td>${verdictCell(v)}<td>${r ?? ''}</td></tr>`).join('');
+const STATUS_ZH = { 'no Gaia DR3 orbital solution': 'DR3 中没有轨道解（BH3 预期如此）',
+                    'no Gaia DR4 orbital solution': 'DR4 中没有轨道解', 'unresolved': '编号未能在该发布中解析' };
+let cleanups = [];
 
-Promise.all([get('summary'), get('reproduction'), get('screen_points'), get('bh_candidates'), get('ns_recall')])
-.then(([s, rep, pts, cand, ns]) => {
-  // criteria
+// ------------------------------------------------------------------------------------------
+function sections(rel) {
+  const R = relShort(rel);
+  return `
+  <h2><span class="en">Pre-registered criteria (${R})</span><span class="zh">预注册判据（${R}）</span></h2>
+  <div class="card scroll"><table id="criteria"></table></div>
+  <div id="dr4extra"></div>
+  <h2><span class="en">Reproduction: companion mass from ${R} astrometry alone</span><span class="zh">复现：仅用 ${R} 天体测量求伴星质量</span></h2>
+  <div class="two" id="repro"></div>
+  <p class="note"><span class="en">Histograms: Monte Carlo over the full covariance of (parallax, A, B, F, G, P) and the published luminous-star mass
+    (shown only when the release's covariance is trusted; otherwise central values). Band: published mass ±1σ.</span><span class="zh">直方图：对 (parallax, A, B, F, G, P) 的完整协方差和已发表的可见星质量做蒙特卡罗（Monte Carlo）抽样（仅当该发布的协方差可信时显示，否则只给中心值）。色带：已发表质量 ±1σ。</span></p>
+  <div id="screenbox"></div>
+  <div id="candbox"></div>
+  <div id="nsbox"></div>`;
+}
+
+function render(dir, rel) {
+  cleanups.forEach(f => f()); cleanups = [];
+  const view = document.getElementById('view');
+  view.innerHTML = sections(rel);
+  const get = getFrom(dir);
+  return Promise.all([get('summary'), get('reproduction'), get('screen_points'), get('bh_candidates'), get('ns_recall')])
+    .then(([s, rep, pts, cand, ns]) => {
+      const R = relShort(s.release), RL = relLabel(s.release);
+      const total = s.astrometric_solutions_total;
+      document.getElementById('intro').innerHTML = L(
+        `Reproducing Gaia BH1 and BH2 from non-single-star orbits alone, and a fully server-side screen of all ${total?.toLocaleString?.() ?? '?'} ${R} astrometric orbits for massive dark companions.`,
+        `仅用非单星（NSS）轨道复现 Gaia BH1 和 BH2；并在服务器端对全部 ${total?.toLocaleString?.() ?? '?'} 条 ${R} 天体测量轨道筛选大质量暗伴星。`);
+      if (s.release === 'dr3') criteriaDR3(s); else criteriaDR4(s, get);
+      reproduction(rep, R);
+      if (isPlaceholder(pts) || isPlaceholder(cand)) {
+        document.getElementById('screenbox').innerHTML = `<p class="note">${L('Screen not available for this run: ', '本次运行没有筛选结果：')}${esc((pts && pts.status) || (cand && cand.status))}</p>`;
+      } else {
+        screenPlot(pts, cand, ns, RL, s);
+        candidates(cand, RL, s.release);
+      }
+      if (!isPlaceholder(ns)) nsTable(ns, R);
+    });
+}
+
+// ------------------------------------------------------------------------------------------
+function criteriaDR3(s) {
+  const ph = s.post_hoc;
+  const nWithout = (ph.controls_without_solution || []).length;
+  const noteEn = nWithout ? `; ${nWithout} control(s) without a DR3 solution (BH3)` : '';
+  const noteZh = nWithout ? `；${nWithout} 个对照没有 DR3 轨道解（BH3）` : '';
   const crit = [
     ['R1', L('BH1 mass within 2σ of 9.62 ± 0.18 M☉', 'BH1 质量与 9.62 ± 0.18 M☉ 相差 2σ 以内'), s.R1_BH1.pass_2sigma, `M2 = ${f2(s.R1_BH1.m2[1])} (${f2(s.R1_BH1.m2[0])}–${f2(s.R1_BH1.m2[2])}); ${f2(s.R1_BH1.deviation_sigma)}σ`],
     ['R2', L('BH2 mass within 2σ of 8.9 ± 0.3 M☉', 'BH2 质量与 8.9 ± 0.3 M☉ 相差 2σ 以内'), s.R2_BH2.pass_2sigma, `M2 = ${f2(s.R2_BH2.m2[1])} (${f2(s.R2_BH2.m2[0])}–${f2(s.R2_BH2.m2[2])}); ${f2(s.R2_BH2.deviation_sigma)}σ`],
@@ -88,88 +126,152 @@ Promise.all([get('summary'), get('reproduction'), get('screen_points'), get('bh_
       L(`${s.S3_candidates_m2_gt_3} total, ${s.S3_known} known, ${s.S3_unflagged_unknown_preregistered_labels} without pre-registered labels — but those labels also hit BH1 (low-significance) and BH2 (giant)`,
         `共 ${s.S3_candidates_m2_gt_3} 个，已知 ${s.S3_known} 个，${s.S3_unflagged_unknown_preregistered_labels} 个没有预注册标签——但这些标签也会把 BH1 标为 low-significance、把 BH2 标为 giant`)],
     ['D1', L('DR4 query generated', '已生成 DR4 查询'), s.D1_dr4_query_ok, L('results/dr4_screen_query.json; schema to confirm on release day', 'results/dr4_screen_query.json；schema 名称在发布日确认')],
-  ];
-  const ph = s.post_hoc;
-  crit.push(
-    ['R1b*', L('BH1 vs published DR3-only solution (|Δ| &lt; 0.5σ)', 'BH1 与已发表的纯 DR3 解对比（|Δ| &lt; 0.5σ）'), Math.abs(ph.R1b_bh1_vs_dr3_only_paper.m2_dev_sigma) < 0.5 && Math.abs(ph.R1b_bh1_vs_dr3_only_paper.a0_dev_sigma) < 0.5,
+    ['R1b*', L('BH1 vs published DR3-only solution (|Δ| &lt; 0.5σ)', 'BH1 与已发表的纯 DR3 解对比（|Δ| &lt; 0.5σ）'),
+      Math.abs(ph.R1b_bh1_vs_dr3_only_paper.m2_dev_sigma) < 0.5 && Math.abs(ph.R1b_bh1_vs_dr3_only_paper.a0_dev_sigma) < 0.5,
       `a0 ${f2(ph.R1b_bh1_vs_dr3_only_paper.a0_ours)} vs 3.00±0.22 mas; M2 ${f2(ph.R1b_bh1_vs_dr3_only_paper.m2_ours, 1)} vs 12.8±2.0 M☉`],
     ['V*', L('Post-hoc vetoes keep all positive controls', '事后否决规则保留全部已知天体对照样本'), ph.controls_vetoed.length === 0,
-      L(`${ph.controls_checked} controls (BH1, BH2, 21 NS), 0 vetoed; vetoed candidates: ${ph.candidates_vetoed_type} by solution type, ${ph.candidates_vetoed_rv} by RV amplitude`,
-        `${ph.controls_checked} 个已知天体对照样本（BH1、BH2、21 个中子星），0 个被否决；被否决的候选体：${ph.candidates_vetoed_type} 个因轨道解类型，${ph.candidates_vetoed_rv} 个因视向速度幅度`)],
+      L(`${ph.controls_checked} controls with a solution (BH1, BH2, 21 NS), 0 vetoed${noteEn}; vetoed candidates: ${ph.candidates_vetoed_type} by solution type, ${ph.candidates_vetoed_rv} by RV amplitude`,
+        `${ph.controls_checked} 个有轨道解的对照（BH1、BH2、21 个中子星），0 个被否决${noteZh}；被否决的候选体：${ph.candidates_vetoed_type} 个因轨道解类型，${ph.candidates_vetoed_rv} 个因视向速度幅度`)],
     ['S3*', L('Unknown candidates surviving vetoes and literature', '通过否决规则和文献检验的未知候选体'), null,
       L(`${ph.survivors_not_known_not_vetoed_not_refuted}, all giants or low-significance — none is an unlabelled main-sequence host`,
-        `${ph.survivors_not_known_not_vetoed_not_refuted} 个，全部是巨星或低显著性——没有一个是未被标记的主序可见星`)]);
-  const verdict = ok => ok === null ? L('report', '仅报告') : ok ? L('pass', '通过') : L('fail', '未通过');
-  document.getElementById('criteria').innerHTML = `<tr><th></th><th>${L('criterion', '判据')}</th><th>${L('verdict', '判定')}</th><th>${L('result', '结果')}</th></tr>` +
-    crit.map(([k, d, ok, r]) => `<tr><td><strong>${k}</strong></td><td>${d}</td>
-      <td class="verdict ${ok === null ? 'warn' : ok ? 'ok' : 'bad'}">${verdict(ok)}</td><td>${r}</td></tr>`).join('');
+        `${ph.survivors_not_known_not_vetoed_not_refuted} 个，全部是巨星或低显著性——没有一个是未被标记的主序可见星`)],
+  ];
+  document.getElementById('criteria').innerHTML = critTable(crit);
+}
 
-  // reproduction histograms
+function criteriaDR4(s, get) {
+  const d = s.dr4;
+  const r = d.R, rr = n => r[n] || {};
+  const m2s = x => x && x.m2 ? (x.m2[0] == null ? `M₂ ≈ ${f2(x.m2[1])} (${L('central value', '中心值')})` : `M₂ = ${f2(x.m2[1])}; ${f2(x.deviation_sigma)}σ`) : esc(x.status || '');
+  const crit = [
+    ['R1', L('BH1 within 2σ of 9.62 ± 0.18 M☉', 'BH1 与 9.62 ± 0.18 M☉ 相差 2σ 以内'), rr('Gaia BH1').verdict, m2s(rr('Gaia BH1'))],
+    ['R2', L('BH2 within 2σ of 8.9 ± 0.3 M☉', 'BH2 与 8.9 ± 0.3 M☉ 相差 2σ 以内'), rr('Gaia BH2').verdict, m2s(rr('Gaia BH2'))],
+    ['R3', L('BH3 within 2σ of 32.70 ± 0.82 M☉ (M₁ = 0.76)', 'BH3 与 32.70 ± 0.82 M☉ 相差 2σ 以内（M₁ = 0.76）'), rr('Gaia BH3').verdict, m2s(rr('Gaia BH3'))],
+    ['S1', L('Screen &lt; 50k rows; ≥ 2 targets evaluable, all with M₂ &gt; 3 M☉', '筛选 &lt; 50,000 行；≥ 2 个目标可评估且 M₂ 都 &gt; 3 M☉'), d.S1.verdict,
+      `${d.S1.screen_rows?.toLocaleString?.()} ${L('rows', '行')}; ${L('evaluable', '可评估')} ${d.S1.n_evaluable}`],
+    ['S2', L('≥ 90% of N_eval ≥ 15 NS candidates meet the cuts', 'N_eval ≥ 15 个中子星候选中 ≥ 90% 满足筛选条件'), d.S2.verdict,
+      `${d.S2.passed}/${d.S2.n_eval} (${L('needed', '需要')} ${d.S2.needed}); ${L('catalogue recall', '星表召回')} ${d.S2.catalogue_recall}`],
+    ['V', L('No counted control vetoed (N_ctrl ≥ 15)', '计入的对照无一被否决（N_ctrl ≥ 15）'), d.V.verdict,
+      `${d.V.n_vetoed}/${d.V.n_counted} ${L('vetoed', '被否决')}; ${L('RV veto applicable to', 'RV 否决适用于')} ${d.V.n_rv_applicable}${d.V.rv_half_weak ? L(' (weak)', '（偏弱）') : ''}`],
+    ['F', L('Labels of the 51 DR3 survivors', '51 个 DR3 幸存候选的标签'), 'reported',
+      Object.entries(d.F.counts).filter(([, n]) => n).map(([k, n]) => `${esc(k)} ${n}`).join(', ')],
+    ['S3', L('New candidates M₂ &gt; 3 M☉ (exploratory)', '新候选 M₂ &gt; 3 M☉（探索性）'), d.S3.verdict === 'reported' ? 'reported' : d.S3.verdict,
+      d.S3.verdict === 'reported' ? L(`${d.S3.n_new} new; ${d.S3.n_primary_m2_gt_min} with primary M₂ &gt; 3; ${d.S3.n_vetoed} vetoed`, `新增 ${d.S3.n_new} 个；主解 M₂ &gt; 3 的 ${d.S3.n_primary_m2_gt_min} 个；被否决 ${d.S3.n_vetoed} 个`) : esc(d.S3.reason || '')],
+    ['ID', L('DR3 ids resolved in this release', 'DR3 编号在本发布中的解析'), 'reported',
+      `${d.resolution.n - d.resolution.unresolved}/${d.resolution.n}; ${esc(d.resolution.neighbourhood || '')}`],
+  ];
+  document.getElementById('criteria').innerHTML = critTable(crit);
+  // survivors table
+  get('survivors_dr4').then(sv => {
+    if (isPlaceholder(sv) || !sv.rows) return;
+    document.getElementById('dr4extra').innerHTML =
+      `<h2><span class="en">The 51 DR3 survivors on DR4</span><span class="zh">51 个 DR3 幸存候选在 DR4 中的情况</span></h2>
+       <div class="card scroll"><table>` +
+      `<tr><th>source_id</th><th>${L('label', '标签')}</th><th class="num">P DR3 [d]</th><th class="num">P DR4 [d]</th><th class="num">M₂ DR4</th><th>${L('type', '类型')}</th><th>${L('notes', '备注')}</th></tr>` +
+      sv.rows.map(x => `<tr><td>${esc(x.source_id)}</td><td class="qc">${esc(x.label)}</td><td class="num">${f2(x.period_dr3, 1)}</td>
+        <td class="num">${f2(x.period_dr4, 1)}</td><td class="num">${f2(x.m2_dr4, 1)}</td><td>${esc(x.type_dr4 || '')}</td>
+        <td class="qc">${esc([x.resolution, x.possible_alias ? 'possible alias' : '', x.rv_veto_applicable ? 'RV veto applicable' : ''].filter(Boolean).join(', '))}</td></tr>`).join('') +
+      `</table></div><p class="note">${L('No discovery claim: "persists" means "still a candidate".', '不作发现声明："persists" 只表示"仍是候选"。')}</p>`;
+  }).catch(() => {});
+}
+
+// ------------------------------------------------------------------------------------------
+function reproduction(rep, R) {
   const box = document.getElementById('repro');
   const histIds = [];
-  rep.filter(r => r.status === 'computed').forEach((r, i) => {
+  rep.forEach((r, i) => {
+    if (r.status !== 'computed') {
+      box.insertAdjacentHTML('beforeend', `<div class="card"><strong>${esc(r.name)}</strong><p class="muted">${L(
+        `${esc(r.status)}. Published M₂ = ${r.m2_paper} ± ${r.m2_paper_err} M☉.`,
+        `${esc(STATUS_ZH[r.status] ?? r.status)}。已发表 M₂ = ${r.m2_paper} ± ${r.m2_paper_err} M☉。`)}</p></div>`);
+      return;
+    }
+    const head = `<strong>${esc(r.name)}</strong><span class="muted"> · ${esc(r.solution_type)} · P<sub>${R}</sub> = ${f2(r.period_d, 1)} d (${L('paper', '论文')} ${f2(r.p_paper_d, 1)})</span>`;
+    if (!r.m2_hist) {
+      box.insertAdjacentHTML('beforeend', `<div class="card">${head}<p class="muted">${L(
+        `Central M₂ ≈ ${f2(r.m2 && r.m2[1])} M☉ vs published ${r.m2_paper} ± ${r.m2_paper_err}. ${esc(r.note || '')}`,
+        `中心值 M₂ ≈ ${f2(r.m2 && r.m2[1])} M☉，已发表 ${r.m2_paper} ± ${r.m2_paper_err}。${esc(r.note || '')}`)}</p></div>`);
+      return;
+    }
     const id = 'h' + i;
     histIds.push(id);
-    box.insertAdjacentHTML('beforeend', `<div class="card"><strong>${esc(r.name)}</strong>
-      <span class="muted"> · ${esc(r.solution_type)} · P<sub>DR3</sub> = ${f2(r.period_dr3_d, 1)} d (${L('paper', '论文')} ${f2(r.p_paper_d, 1)})</span>
-      <div id="${id}" class="plot"></div></div>`);
+    box.insertAdjacentHTML('beforeend', `<div class="card">${head}<div id="${id}" class="plot"></div></div>`);
     const e = r.m2_hist.edges, c = r.m2_hist.counts;
     const mids = c.map((_, k) => (e[k] + e[k + 1]) / 2);
     Plotly.newPlot(id, [{ x: mids, y: c, type: 'bar', marker: { color: css('--accent') }, name: 'ours', hovertemplate: '%{x:.2f} M☉<extra></extra>' }],
-      { ...base(), showlegend: false, bargap: 0,
-        xaxis: ax('M₂ [M☉]'), yaxis: ax(t('MC samples', '蒙特卡罗样本数')),
+      { ...base(), showlegend: false, bargap: 0, xaxis: ax('M₂ [M☉]'), yaxis: ax(t('MC samples', '蒙特卡罗样本数')),
         shapes: [{ type: 'rect', xref: 'x', yref: 'paper', x0: r.m2_paper - r.m2_paper_err, x1: r.m2_paper + r.m2_paper_err, y0: 0, y1: 1,
                    fillcolor: css('--established'), opacity: 0.25, line: { width: 0 } },
                  { type: 'line', xref: 'x', yref: 'paper', x0: r.m2_paper, x1: r.m2_paper, y0: 0, y1: 1, line: { color: css('--established'), width: 2 } }],
         annotations: [{ x: r.m2_paper, y: 1, xref: 'x', yref: 'paper', text: t('paper', '论文值'), showarrow: false, yanchor: 'bottom', font: { color: css('--established') } }] },
       { responsive: true, displayModeBar: false });
   });
-  // Status strings written by run.py; unknown ones are shown in English in both modes.
-  const REPRO_STATUS_ZH = { 'no DR3 orbital solution (expected for BH3)': 'DR3 中没有轨道解（BH3 预期如此）' };
-  rep.filter(r => r.status !== 'computed').forEach(r => box.insertAdjacentHTML('beforeend',
-    `<div class="card"><strong>${esc(r.name)}</strong><p class="muted">${L(`${esc(r.status)}. Published M₂ = ${r.m2_paper} ± ${r.m2_paper_err} M☉ — rerun on DR4.`,
-      `${esc(REPRO_STATUS_ZH[r.status] ?? r.status)}。已发表 M₂ = ${r.m2_paper} ± ${r.m2_paper_err} M☉——待 DR4 重跑。`)}</p></div>`));
+  cleanups.push(() => histIds.forEach(id => { const el = document.getElementById(id); if (el) Plotly.purge(el); }));
+  i18nApi.onLangChange(() => histIds.forEach(id => document.getElementById(id) &&
+    Plotly.relayout(id, { 'yaxis.title.text': t('MC samples', '蒙特卡罗样本数'), 'annotations[0].text': t('paper', '论文值') })));
+}
 
-  // screen scatter
+function screenPlot(pts, cand, ns, RL, s) {
+  const thin = s.screen_points_rows || (s.screen_descriptive || {}).screen_points_rows;
+  document.getElementById('screenbox').innerHTML = `
+    <h2><span class="en">Screen: astrometric mass function vs period</span><span class="zh">筛选：天体测量质量函数与周期</span></h2>
+    <div class="controls"><label><span class="en">Assumed M<sub>1</sub> for mass lines</span><span class="zh">质量参考线假定的 M<sub>1</sub></span>
+      <input type="range" id="m1" min="0.3" max="2.5" step="0.05" value="1"> <span id="m1v">1.00</span> M☉</label></div>
+    <div class="card"><div id="screen" class="plot-big"></div></div>
+    <p class="note">${L(`${pts.source_id.length.toLocaleString()} solutions shown${thin && thin.sampled ? ` (sampled from ${thin.rows_total.toLocaleString()}; all with M₂ &gt; 3 kept)` : ''}, f<sub>M</sub> &gt; 0.25 M☉ and parallax S/N &gt; 5 (computed on the Gaia server). Horizontal lines: f<sub>M</sub> for a dark companion of the given mass around the assumed M<sub>1</sub>.`,
+      `显示 ${pts.source_id.length.toLocaleString()} 个轨道解${thin && thin.sampled ? `（从 ${thin.rows_total.toLocaleString()} 个中抽样，M₂ &gt; 3 的全部保留）` : ''}，f<sub>M</sub> &gt; 0.25 M☉ 且视差信噪比 &gt; 5（在 Gaia 服务器端计算）。水平线：给定质量的暗伴星绕假定 M<sub>1</sub> 运行时的 f<sub>M</sub>。`)}</p>`;
   const types = [...new Set(pts.nss_solution_type)];
   const palette = [css('--accent'), css('--tension'), css('--contested'), css('--hint'), css('--muted'), css('--established')];
-  const nsIds = new Set(ns.rows.gaia_dr3);
+  const nsIds = new Set(isPlaceholder(ns) ? [] : ns.rows.gaia_dr3);
   const known = new Set(cand.source_id.filter((_, i) => cand.known[i]));
   const traces = types.map((typ, k) => {
     const idx = pts.nss_solution_type.map((x, i) => x === typ ? i : -1).filter(i => i >= 0);
     return { x: idx.map(i => pts.period[i]), y: idx.map(i => pts.f_m[i]), mode: 'markers', type: 'scattergl', name: typ,
       marker: { size: 4, color: palette[k % palette.length], opacity: 0.55 },
-      text: idx.map(i => `Gaia DR3 ${pts.source_id[i]}<br>${typ}<br>P = ${f2(pts.period[i], 1)} d, f = ${f2(pts.f_m[i], 3)}<br>M₂(FLAME M₁) = ${f2(pts.m2[i])}`),
+      text: idx.map(i => `${RL} ${pts.source_id[i]}<br>${typ}<br>P = ${f2(pts.period[i], 1)} d, f = ${f2(pts.f_m[i], 3)}<br>M₂(FLAME M₁) = ${f2(pts.m2[i])}`),
       hoverinfo: 'text' };
   });
   const pick = pred => pts.source_id.map((id, i) => pred(id) ? i : -1).filter(i => i >= 0);
   const nsI = pick(id => nsIds.has(id)), kI = pick(id => known.has(id));
   traces.push({ x: nsI.map(i => pts.period[i]), y: nsI.map(i => pts.f_m[i]), mode: 'markers', type: 'scatter', name: t('NS candidates (El-Badry+24)', '中子星候选体（El-Badry+24）'),
     marker: { size: 9, symbol: 'diamond-open', color: css('--text'), line: { width: 1.5 } }, hoverinfo: 'skip' });
-  traces.push({ x: kI.map(i => pts.period[i]), y: kI.map(i => pts.f_m[i]), mode: 'markers+text', type: 'scatter', name: 'Gaia BH1 / BH2',
-    text: kI.map(i => cand.source_id.indexOf(pts.source_id[i]) >= 0 ? (pts.source_id[i].startsWith('4373') ? 'BH1' : 'BH2') : ''),
-    textposition: 'top center', marker: { size: 13, symbol: 'star', color: css('--refuted') }, hoverinfo: 'skip' });
-  const lines = m1 => [1.4, 3, 10].map(m2 => ({ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: fOf(m2, m1), y1: fOf(m2, m1),
-    line: { color: css('--muted'), dash: 'dot', width: 1 } }));
+  const BH = { '4373465352415301632': 'BH1', '5870569352746779008': 'BH2', '4318465066420528000': 'BH3' };
+  traces.push({ x: kI.map(i => pts.period[i]), y: kI.map(i => pts.f_m[i]), mode: 'markers+text', type: 'scatter', name: t('known black holes', '已知黑洞'),
+    text: kI.map(i => BH[pts.source_id[i]] || ''), textposition: 'top center', marker: { size: 13, symbol: 'star', color: css('--refuted') }, hoverinfo: 'skip' });
+  const lines = m1 => [1.4, 3, 10].map(m2 => ({ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: fOf(m2, m1), y1: fOf(m2, m1), line: { color: css('--muted'), dash: 'dot', width: 1 } }));
   const labels = m1 => [1.4, 3, 10].map(m2 => ({ xref: 'paper', x: 1, y: Math.log10(fOf(m2, m1)), text: `M₂ = ${m2}`, showarrow: false,
     xanchor: 'right', yanchor: 'bottom', font: { size: 11, color: css('--muted') } }));
-  const lay = m1 => ({ ...base(), legend: { orientation: 'h', y: -0.15 },
+  Plotly.newPlot('screen', traces, { ...base(), legend: { orientation: 'h', y: -0.15 },
     xaxis: ax(t('Orbital period [d]', '轨道周期 [d]'), { type: 'log' }), yaxis: ax(t('Astrometric mass function f_M [M☉]', '天体测量质量函数 f_M [M☉]'), { type: 'log' }),
-    shapes: lines(m1), annotations: labels(m1) });
-  Plotly.newPlot('screen', traces, lay(1), { responsive: true, displayModeBar: false });
+    shapes: lines(1), annotations: labels(1) }, { responsive: true, displayModeBar: false });
+  cleanups.push(() => { const el = document.getElementById('screen'); if (el) Plotly.purge(el); });
   const slider = document.getElementById('m1');
   slider.addEventListener('input', () => {
     const m1 = +slider.value; document.getElementById('m1v').textContent = m1.toFixed(2);
     Plotly.relayout('screen', { shapes: lines(m1), annotations: labels(m1) });
   });
+  i18nApi.onLangChange(() => {
+    if (!document.getElementById('screen')) return;
+    Plotly.relayout('screen', { 'xaxis.title.text': t('Orbital period [d]', '轨道周期 [d]'), 'yaxis.title.text': t('Astrometric mass function f_M [M☉]', '天体测量质量函数 f_M [M☉]') });
+    Plotly.restyle('screen', { name: t('NS candidates (El-Badry+24)', '中子星候选体（El-Badry+24）') }, [types.length]);
+    Plotly.restyle('screen', { name: t('known black holes', '已知黑洞') }, [types.length + 1]);
+  });
+}
 
-  // candidate table: pre-registered qc labels + post-hoc vetoes + literature verdicts
+function candidates(cand, RL, release) {
+  document.getElementById('candbox').innerHTML = `
+    <h2><span class="en">Candidates with M<sub>2</sub> &gt; 3 M☉</span><span class="zh">M<sub>2</sub> &gt; 3 M☉ 的候选体</span></h2>
+    <div class="controls" id="filters"></div>
+    <div class="card scroll"><table id="cands"></table></div>
+    <p class="note"><span class="en">M<sub>2</sub> uses Gaia FLAME mass for M<sub>1</sub> (1 M☉ if missing). Quality labels (qc) were pre-registered except where marked post-hoc.
+      A large M<sub>2</sub> here is a lead, not a discovery: spurious orbits and triples can mimic it.</span><span class="zh">M<sub>2</sub> 用 Gaia FLAME 质量作为 M<sub>1</sub>（缺失时取 1 M☉）。质量控制标签（qc）除标明事后（post-hoc）添加的以外均为预注册。这里 M<sub>2</sub> 大只是线索，不是发现：虚假轨道和三合星系统也能造成同样的结果。</span></p>`;
   // Labels are codes (kept in English in both languages, like catalogue flags).
   const candLabels = cand.source_id.map((_, i) => {
     const labs = (cand.qc[i] || '').split(',').filter(Boolean);
     if (cand.veto_type[i]) labs.push('veto: unvalidated type*');
     if (cand.veto_rv[i]) labs.push('veto: RV amplitude*');
     if (cand.literature[i] === 'refuted') labs.push('literature: refuted');
+    if (cand.vetted && cand.vetted[i] === false) labs.push('not vetted (S3 stop rule)');
     return labs;
   });
   const allQc = [...new Set(candLabels.flat())].sort();
@@ -177,10 +279,10 @@ Promise.all([get('summary'), get('reproduction'), get('screen_points'), get('bh_
   const fbox = document.getElementById('filters');
   fbox.innerHTML = L('Hide rows labelled:', '隐藏带以下标签的行：') + ' ' + allQc.map(q => `<label><input type="checkbox" data-q="${esc(q)}"> ${esc(q)}</label>`).join('') +
     `<span class="muted">${L('(* post-hoc, added after referee review)', '（* 为事后添加，来自独立审稿意见）')}</span>`;
-  const render = () => {
+  const draw = () => {
     const rows = cand.source_id.map((_, i) => i).filter(i => !candLabels[i].some(q => hidden.has(q)));
     document.getElementById('cands').innerHTML =
-      `<tr><th>Gaia DR3 source_id</th><th>${L('type', '类型')}</th><th class="num">P [d]</th><th class="num">e</th><th class="num">ϖ [mas]</th>
+      `<tr><th>${RL} source_id</th><th>${L('type', '类型')}</th><th class="num">P [d]</th><th class="num">e</th><th class="num">ϖ [mas]</th>
        <th class="num">${L('signif.', '显著性')}</th><th class="num">f_M</th><th class="num">M₁</th><th class="num">M₂</th><th class="num">M_G</th>
        <th class="num">${L('RV range obs / pred [km/s]', 'RV 变化幅度 观测 / 预测 [km/s]')}</th><th>${L('labels', '标签')}</th></tr>` +
       rows.map(i => `<tr class="${cand.known[i] ? 'known' : ''}"><td>${cand.source_id[i]}${cand.known[i] ? ' ★' : ''}</td><td>${esc(cand.nss_solution_type[i])}</td>
@@ -189,32 +291,49 @@ Promise.all([get('summary'), get('reproduction'), get('screen_points'), get('bh_
         <td class="num">${f2(cand.m2[i], 1)}</td><td class="num">${f2(cand.abs_g[i])}</td>
         <td class="num">${cand.rv_amplitude_robust[i] == null ? '–' : f2(cand.rv_amplitude_robust[i], 0)} / ${f2(cand.rv_range_pred[i], 0)}</td>
         <td class="qc">${esc(candLabels[i].join(', '))}</td></tr>`).join('') +
-      `<tr><td colspan="12" class="muted">${L(`${rows.length} of ${cand.source_id.length} shown · ★ = known (BH1, BH2)`, `显示 ${rows.length} / ${cand.source_id.length} 行 · ★ = 已知（BH1、BH2）`)}</td></tr>`;
+      `<tr><td colspan="12" class="muted">${L(`${rows.length} of ${cand.source_id.length} shown · ★ = known black hole`, `显示 ${rows.length} / ${cand.source_id.length} 行 · ★ = 已知黑洞`)}</td></tr>`;
   };
-  fbox.addEventListener('change', e => { const q = e.target.dataset.q; e.target.checked ? hidden.add(q) : hidden.delete(q); render(); });
-  render();
+  fbox.addEventListener('change', e => { const q = e.target.dataset.q; e.target.checked ? hidden.add(q) : hidden.delete(q); draw(); });
+  draw();
+}
 
-  // NS recall
+function nsTable(ns, R) {
   const r = ns.rows;
-  document.getElementById('ns').innerHTML =
-    `<tr><th>${L('name', '名称')}</th><th>Gaia DR3</th><th class="num">${L('M₂ paper', 'M₂ 论文值')}</th><th class="num">${L('P paper [d]', 'P 论文值 [d]')}</th><th>${L('DR3 type', 'DR3 类型')}</th><th class="num">${L('f_M (ours)', 'f_M（本研究）')}</th><th>${L('in screen', '在筛选样本中')}</th></tr>` +
+  document.getElementById('nsbox').innerHTML = `
+    <h2><span class="en">Recall: El-Badry et al. (2024) neutron-star candidates</span><span class="zh">召回率检验：El-Badry 等（2024）的中子星候选体</span></h2>
+    <div class="card scroll"><table>` +
+    `<tr><th>${L('name', '名称')}</th><th>Gaia DR3</th><th class="num">${L('M₂ paper', 'M₂ 论文值')}</th><th class="num">${L('P paper [d]', 'P 论文值 [d]')}</th><th>${L(`${R} type`, `${R} 类型`)}</th><th class="num">${L('f_M (ours)', 'f_M（本研究）')}</th><th>${L('in screen', '在筛选样本中')}</th></tr>` +
     r.name.map((n, i) => `<tr><td>${esc(n)}</td><td>${r.gaia_dr3[i]}</td><td class="num">${f2(r.m2[i])}</td><td class="num">${f2(r.period_d[i], 1)}</td>
       <td>${esc(r.nss_solution_type[i])}</td><td class="num">${f2(r.f_m[i], 3)}</td>
-      <td class="${r.in_screen[i] ? 'ok' : 'bad'}">${r.in_screen[i] ? L('yes', '是') : L('no', '否')}</td></tr>`).join('');
+      <td class="${r.in_screen[i] ? 'ok' : 'bad'}">${r.in_screen[i] ? L('yes', '是') : L('no', '否')}</td></tr>`).join('') + `</table></div>` +
+    (R === 'DR3' ? '' : `<p class="note">${L('Descriptive on this release (DR3 ids); the pre-registered DR4 recall is S2 above.', '在本发布上仅作描述（使用 DR3 编号）；预注册的 DR4 召回率见上方 S2。')}</p>`);
+}
 
-  // Plot text is plain text: update it when the language changes (HTML text switches by CSS).
-  i18nApi.onLangChange(() => {
-    histIds.forEach(id => Plotly.relayout(id, { 'yaxis.title.text': t('MC samples', '蒙特卡罗样本数'), 'annotations[0].text': t('paper', '论文值') }));
-    Plotly.relayout('screen', { 'xaxis.title.text': t('Orbital period [d]', '轨道周期 [d]'),
-      'yaxis.title.text': t('Astrometric mass function f_M [M☉]', '天体测量质量函数 f_M [M☉]') });
-    Plotly.restyle('screen', { name: t('NS candidates (El-Badry+24)', '中子星候选体（El-Badry+24）') }, [types.length]);
-  });
-}).catch(e => {
+// ------------------------------------------------------------------------------------------
+// Which results to show: results/ (current run) and, once archived, results/dr3/ (DR3 reproduction).
+const showError = e => {
   const msg = e instanceof MissingResult
     ? L('Results missing — run <code>python -m astrolab run 001</code>.', '缺少结果文件——请运行 <code>python -m astrolab run 001</code>。') + ` (${esc(e.message)})`
     : L('Page error while rendering results:', '渲染结果时页面出错：') + ` ${esc(e)}. ` + L('See the browser console.', '详见浏览器控制台。');
-  document.querySelector('main').insertAdjacentHTML('beforeend', `<p class="muted">${msg}</p>`);
-});
+  document.getElementById('view').insertAdjacentHTML('beforeend', `<p class="muted">${msg}</p>`);
+  console.error(e);
+};
+Promise.all([tryGet('../results/', 'release'), tryGet('../results/dr3/', 'release')]).then(([cur, arch]) => {
+  const curRel = cur ? cur.release : 'dr3';
+  const views = [{ dir: '../results/', rel: curRel }];
+  if (arch && arch.release === 'dr3' && curRel !== 'dr3') views.push({ dir: '../results/dr3/', rel: 'dr3' });
+  if (views.length > 1) {
+    const sw = document.getElementById('switch');
+    sw.hidden = false;
+    sw.innerHTML = views.map((v, k) => `<button type="button" data-k="${k}" aria-pressed="${k === 0}">${relShort(v.rel)}</button>`).join('');
+    sw.addEventListener('click', e => {
+      const k = e.target.dataset.k; if (k === undefined) return;
+      sw.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k)));
+      render(views[+k].dir, views[+k].rel).catch(showError);
+    });
+  }
+  return render(views[0].dir, views[0].rel);
+}).catch(showError);
 </script>
 </body>
 </html>
