@@ -15,9 +15,9 @@
 </main>
 <script>
 fetch('../results/summary.json')
-  .then(r => r.json())
+  .then(r => { if (!r.ok) throw new Error(`results/summary.json: HTTP ${r.status}`); return r.json(); })
   .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
-  .catch(e => { document.getElementById('out').textContent = 'Run the study first: ' + e; });
+  .catch(e => { document.getElementById('out').textContent = 'Could not load results (run the study first?) or render them: ' + e; });
 </script>
 </body>
 </html>

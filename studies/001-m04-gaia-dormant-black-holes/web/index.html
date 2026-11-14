@@ -61,7 +61,11 @@ const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).
 const base = () => ({ paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
   font: { color: css('--text'), size: 12 }, margin: { l: 56, r: 12, t: 30, b: 46 } });
 const ax = (t, extra = {}) => ({ title: t, gridcolor: css('--line'), zerolinecolor: css('--line'), ...extra });
-const get = n => fetch(`../results/${n}.json`).then(r => r.json());
+class MissingResult extends Error {}
+const get = n => fetch(`../results/${n}.json`).then(r => {
+  if (!r.ok) throw new MissingResult(`results/${n}.json: HTTP ${r.status}`);
+  return r.json();
+});
 const f2 = (x, d = 2) => (x == null ? '' : Number(x).toFixed(d));
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // solve M2^3 = f (M1+M2)^2  -> f(M2) for lines
@@ -183,7 +187,10 @@ Promise.all([get('summary'), get('reproduction'), get('screen_points'), get('bh_
       <td>${esc(r.nss_solution_type[i])}</td><td class="num">${f2(r.f_m[i], 3)}</td>
       <td class="${r.in_screen[i] ? 'ok' : 'bad'}">${r.in_screen[i] ? 'yes' : 'no'}</td></tr>`).join('');
 }).catch(e => {
-  document.querySelector('main').insertAdjacentHTML('beforeend', `<p class="muted">Results missing — run <code>python -m astrolab run 001</code>. (${e})</p>`);
+  const msg = e instanceof MissingResult
+    ? `Results missing — run <code>python -m astrolab run 001</code>. (${e.message})`
+    : `Page error while rendering results: ${e}. See the browser console.`;
+  document.querySelector('main').insertAdjacentHTML('beforeend', `<p class="muted">${msg}</p>`);
 });
 </script>
 </body>
