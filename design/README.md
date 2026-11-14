@@ -35,6 +35,7 @@ NNN-<类型>_<核心内容>.md
 | 007 | plan | [从论文立项的研究流程：Wiki 文章、Lean 论证拆解与对话式探索](007-plan_paper-to-study-workflow-wiki-article-lean-argument-and-chat-exploration.md) | 完成 |
 | 008 | plan | [M4 按数据发布参数化与 DR4 预注册](008-plan_m04-release-parameterisation-and-dr4-pre-registration.md) | 完成 |
 | 009 | plan | [为 M4 补写 Wiki 文章与 Lean 论证拆解](009-plan_m04-retrofit-wiki-article-and-lean-argument.md) | 完成 |
+| 010 | plan | [M1：DESI DR2 BAO 与演化暗能量（新增 `cosmo`、`infer`）](010-plan_m01-desi-dr2-bao-evolving-dark-energy-cosmo-infer.md) | 进行中 |
 
 ## 术语约定
 

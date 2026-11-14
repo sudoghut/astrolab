@@ -89,7 +89,7 @@ DR4 的内容：
 - DR1：DESI 2024 VI, JCAP 02 (2025) 021, arXiv:2404.03002 [V]
 - DR2：Abdul-Karim et al. 2025, PRD 112, 083515, arXiv:2503.14738 [V]
 - DR2 莱曼 α（Lyman-α）全形状（full-shape）分析：arXiv:2607.27410 (2026-07) [V]
-- DES-Dovekie 超新星（SN, supernova）重新校准：Popovic et al. 2026 MNRAS, arXiv:2511.07517 [S]
+- DES-Dovekie 超新星（SN, supernova）重新校准：Popovic et al. 2026 MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517 [V]
 
 **关键数值**（DR2）[V]
 - 仅用 BAO，在 ΛCDM 下：Ωm = 0.2975 ± 0.0086。
@@ -103,13 +103,13 @@ DR4 的内容：
 | + DES-SN5YR | 4.2σ |
 
 - 后续进展使信号**趋弱**：
-  - Dovekie 重新校准后，DES-SN 组合降至 3.2σ [S]。
+  - Dovekie 重新校准后，DES-SN 组合（DES-Dovekie + CMB + DESI DR2）降至 3.2σ [V]。
   - Lyα 全形状分析给出 DESI+CMB 2.7σ、加超新星后 3.2σ [V]。
 
 **数据**
 - BAO 均值向量（mean vector）与协方差，kB 级：github.com/CobayaSampler/bao_data 的 `desi_bao_dr2/` 目录 [V]。
-- 超新星距离模数（distance modulus）与协方差，MB 级：github.com/CobayaSampler/sn_data [S]。
-- CMB 部分用压缩先验（compressed prior）：(θ*, ωb, ωbc) 的高斯近似（Gaussian approximation）。
+- 超新星距离模数（distance modulus）与协方差：github.com/CobayaSampler/sn_data [V]（2026-11-14 按 GitHub API 元数据核对大小：Pantheon+ 协方差 33.3 MB，Union3 约 11 kB，DES-Dovekie 6.3 MB；DES-SN5YR 协方差 53.5 MB，超过单次 50 MB 上限，不取，以 Dovekie 代替）。
+- CMB 部分用压缩先验（compressed prior）：(θ*, ωb, ωbc) 的高斯近似（Gaussian approximation），均值与协方差见 DESI DR2 附录 A 式 35–36 [V]；论文用这一先验时给出 DESI + CMB 压缩先验的偏好为 2.4σ（Δχ² = −8.0，式 24、表 6）[V]。
 
 **方法**
 - 解析计算 D_M/r_d 和 D_H/r_d。
