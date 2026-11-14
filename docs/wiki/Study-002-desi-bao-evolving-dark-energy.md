@@ -78,9 +78,11 @@ and wa = −1.75 ± 0.58 (Eq. 25): w above −1 today, and lower in the past.
 **Step 4 — how much better is the fit?** The paper compares the best (maximum a posteriori, MAP)
 fits of the two models: Δχ²_MAP = χ²(w0waCDM) − χ²(ΛCDM). For DESI + CMB it is −12.5 (Table 6).
 The extended model has two extra parameters, so some improvement is expected by chance alone.
-Wilks' theorem says how much: if ΛCDM were true, −Δχ²_MAP would follow a χ² distribution with two
-degrees of freedom. The chance of −12.5 or less is then exp(−12.5/2) = exp(−6.25) ≈ 0.0019, which
-corresponds to 3.1σ for a two-sided Gaussian (Eq. 22). That is the headline number.
+To say how much, the paper assumes that Wilks' theorem applies: if ΛCDM were true, −Δχ²_MAP would
+follow a χ² distribution with two degrees of freedom. Under that assumption the chance of −12.5 or
+less is exp(−12.5/2) = exp(−6.25) ≈ 0.0019, which corresponds to 3.1σ for a two-sided Gaussian
+(Eq. 22). That is the headline number. The assumption is not checked in the paper; part 2 records it
+as a gap (`gap_regular`, §2.2).
 
 **Step 5 — other combinations (selected rows of Table 6).**
 
@@ -355,21 +357,21 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 #### 1.1 问题与意义
 
-1998 年起我们知道宇宙在加速膨胀。标准宇宙学模型 ΛCDM 用宇宙学常数（cosmological constant）Λ 解释这一点：每立方米真空都带有同样的能量，任何时候都不变。它的物态方程（equation of state）——压强与能量密度之比，记作 w——恒等于 −1。
+1998 年起我们知道宇宙在加速膨胀（accelerating expansion）。标准宇宙学模型 ΛCDM 用宇宙学常数（cosmological constant）Λ 解释这一点：每立方米真空都带有同样的能量，任何时候都不变。它的物态方程（equation of state）——压强与能量密度之比，记作 w——恒等于 −1。
 
-没有什么规定暗能量必须是常数。如果它是某种缓慢变化的场，w 就会随时间漂移。描述这种漂移的常见方式是两个数：w0 是今天的 w，wa 是它随宇宙尺度因子（scale factor）a 变化的快慢（w(a) = w0 + wa(1 − a)，称为 CPL 参数化）。ΛCDM 就是 w0 = −1、wa = 0 这一个点。
+没有什么规定暗能量（dark energy）必须是常数。如果它是某种缓慢变化的场，w 就会随时间漂移。描述这种漂移的常见方式是两个数：w0 是今天的 w，wa 是它随宇宙尺度因子（scale factor）a 变化的快慢（w(a) = w0 + wa(1 − a)，称为 CPL 参数化（parametrisation））。ΛCDM 就是 w0 = −1、wa = 0 这一个点。
 
 论文的问题是：迄今最精确的宇宙距离图，是否仍然落在这个点上。
 
 #### 1.2 数据
 
-**暗能量光谱仪（DESI, Dark Energy Spectroscopic Instrument）** 装在亚利桑那州 4 米 Mayall 望远镜上，一次可拍几千个天体的光谱并测出红移。第二次数据发布（DR2）包含三年的观测、超过 1400 万个星系和类星体，以及类星体光被星系际氢吸收形成的莱曼 α 森林（Lyman-α forest）。
+**暗能量光谱仪（DESI, Dark Energy Spectroscopic Instrument）** 装在亚利桑那州 4 米 Mayall 望远镜上，一次可拍几千个天体的光谱（spectra）并测出红移（redshift）。第二次数据发布（DR2）包含三年的观测、超过 1400 万个星系和类星体，以及类星体光被星系际氢吸收形成的莱曼 α 森林（Lyman-α forest）。
 
-DESI 用的尺子是 **重子声学振荡（BAO, baryon acoustic oscillations）** 的尺度。宇宙诞生后 38 万年之前，声波在炽热的等离子体中传播；等离子体变成中性气体时声波冻结，留下一个固定间距上星系对略多的痕迹，这个间距就是拖曳时期的声视界（sound horizon at the drag epoch）r_d ≈ 147 Mpc（约 4.8 亿光年）。在天空方向测这个间距，得到横向共动距离（transverse comoving distance）D_M(z)；沿视线方向测，得到哈勃距离（Hubble distance）D_H(z) = c/H(z)。两者都以 r_d 为单位。
+DESI 用的尺子是 **重子声学振荡（BAO, baryon acoustic oscillations）** 的尺度。宇宙诞生后 38 万年之前，声波在炽热的等离子体（plasma）中传播；等离子体变成中性气体时声波冻结，留下一个固定间距上星系对略多的痕迹，这个间距就是拖曳时期的声视界（sound horizon at the drag epoch）r_d ≈ 147 Mpc（约 4.8 亿光年）。在天空方向测这个间距，得到横向共动距离（transverse comoving distance）D_M(z)；沿视线方向测，得到哈勃距离（Hubble distance）D_H(z) = c/H(z)。两者都以 r_d 为单位。
 
 DR2 给出 7 个红移区间（论文表 4），有效红移（effective redshift）从亮星系样本的 z_eff = 0.295 到莱曼 α 森林的 z_eff = 2.33（星系与类星体样本覆盖 0.1 < z < 2.1）。例如 z = 0.510 处 D_M/r_d = 13.588 ± 0.167、D_H/r_d = 21.863 ± 0.425；z = 2.33 处 D_M/r_d = 38.988 ± 0.531、D_H/r_d = 8.632 ± 0.101。全部均值与协方差（covariance）约 3 kB。
 
-另外两组数据也参与。**宇宙微波背景（CMB, cosmic microwave background）**（Planck 加 ACT 透镜）确定早期宇宙：物质与重子的多少，以及声视界在天空上张开的角度 θ*。**Ia 型超新星（SNe）** 是标准烛光，给出 z < 2 的相对距离；论文用三个汇编：Pantheon+、Union3 和 DES-SN5YR（DESY5）。
+另外两组数据也参与。**宇宙微波背景（CMB, cosmic microwave background）**（Planck 加 ACT 透镜（lensing））确定早期宇宙：物质与重子的多少，以及声视界在天空上张开的角度 θ*。**Ia 型超新星（SNe）** 是标准烛光（standard candle），给出 z < 2 的相对距离；论文用三个汇编：Pantheon+、Union3 和 DES-SN5YR（DESY5）。
 
 #### 1.3 逐步讲解
 
@@ -379,14 +381,14 @@ DR2 给出 7 个红移区间（论文表 4），有效红移（effective redshif
 
 **第 3 步——让 w 变化。** 在 w0waCDM 中张力消失：低红移处不同的膨胀历史让 BAO 与 CMB 一致。DESI + CMB 偏好 w0 = −0.42 ± 0.21、wa = −1.75 ± 0.58（式 25）：今天 w 高于 −1，过去更低。
 
-**第 4 步——拟合好了多少？** 论文比较两个模型的最佳拟合（最大后验，MAP, maximum a posteriori）：Δχ²_MAP = χ²(w0waCDM) − χ²(ΛCDM)。DESI + CMB 为 −12.5（表 6）。扩展模型多两个参数，单靠运气也会改善一些。威尔克斯定理（Wilks' theorem）给出改善多少才算意外：若 ΛCDM 为真，−Δχ²_MAP 服从 2 个自由度的 χ² 分布。得到 −12.5 或更小的概率为 exp(−12.5/2) = exp(−6.25) ≈ 0.0019，对应双侧高斯的 3.1σ（式 22）。这就是标题数字。
+**第 4 步——拟合好了多少？** 论文比较两个模型的最佳拟合（最大后验，MAP, maximum a posteriori）：Δχ²_MAP = χ²(w0waCDM) − χ²(ΛCDM)。DESI + CMB 为 −12.5（表 6）。扩展模型多两个参数，单靠运气也会改善一些。改善多少才算意外，论文假设威尔克斯定理（Wilks' theorem）适用：若 ΛCDM 为真，−Δχ²_MAP 服从 2 个自由度（degrees of freedom）的 χ² 分布。在这一假设下，得到 −12.5 或更小的概率为 exp(−12.5/2) = exp(−6.25) ≈ 0.0019，对应双侧高斯的 3.1σ（式 22）。这就是标题数字。论文没有检验这一假设；第二部分把它记为缺口（`gap_regular`，§2.2）。
 
 **第 5 步——其他组合（表 6 的部分行）。**
 
 | 组合 | Δχ²_MAP | 显著性（significance） |
 |---|---|---|
 | 只用 DESI | −4.7 | 1.7σ |
-| DESI + 压缩 CMB 先验 (θ*, ωb, ωbc) | −8.0 | 2.4σ |
+| DESI + 压缩 CMB 先验（prior） (θ*, ωb, ωbc) | −8.0 | 2.4σ |
 | DESI + CMB（不含透镜） | −9.7 | 2.7σ |
 | DESI + CMB | −12.5 | 3.1σ |
 | DESI + Pantheon+ | −4.9 | 1.7σ |
@@ -396,15 +398,15 @@ DR2 给出 7 个红移区间（论文表 4），有效红移（effective redshif
 | DESI + CMB + Union3 | −17.4 | 3.8σ |
 | DESI + CMB + DESY5 | −21.0 | 4.2σ |
 
-有两行对本项目重要。**压缩 CMB 先验（compressed CMB prior）** 用 θ*、ωb、ωbc 三个数的高斯分布代替完整的 CMB 似然（附录 A，式 35–36）；用它时偏好降到 2.4σ，因为 CMB 透镜似然"贡献相当大"（§VII.3）。不含 CMB 的几行可以用几 MB 的公开文件重算。
+有两行对本项目重要。**压缩 CMB 先验（compressed CMB prior）** 用 θ*、ωb、ωbc 三个数的高斯分布代替完整的 CMB 似然（likelihood）（附录 A，式 35–36）；用它时偏好降到 2.4σ，因为 CMB 透镜似然"贡献相当大"（§VII.3）。不含 CMB 的几行可以用几 MB 的公开文件重算。
 
 **第 6 步——超新星重新校准（第二篇论文）。** 2025 年底（2026 年发表于 MNRAS）DES 超新星团队重新校准了测光（"Dovekie"）。DESY5 组合的偏好由 4.2σ 降到 3.2σ（DES-Dovekie + CMB + DESI DR2，其中 CMB 是 Planck + ACT + SPT），w0 = −0.803 ± 0.054、wa = −0.72 ± 0.21；摘要称剩下的偏好"较弱"。DESI + CMB 的结果本身不用超新星，不受影响。
 
 #### 1.4 结论与把握程度
 
-摘要的结论是有条件的："除非一个或多个数据集存在未知的系统误差，否则显然 ΛCDM 正受到 DESI BAO 与其他测量组合的挑战，而动力学暗能量（dynamical dark energy）提供了一种可能的解释。"
+摘要的结论是有条件的："除非一个或多个数据集存在未知的系统误差（systematic error），否则显然 ΛCDM 正受到 DESI BAO 与其他测量组合的挑战，而动力学暗能量（dynamical dark energy）提供了一种可能的解释。"
 
-作者自己给出的保留：显著性是 3–4σ，不是通常要求的 5σ（§VII.3）；它取决于用哪个超新星样本，说明近处与远处超新星的相对校准很关键；偏好的模型在中等红移进入"幽灵"（phantom）区域（w < −1），单个标量场很难做到；3.1σ 用了包括透镜在内的完整 CMB（用压缩先验时为 2.4σ）。
+作者自己给出的保留：显著性是 3–4σ，不是通常要求的 5σ（§VII.3）；它取决于用哪个超新星样本，说明近处与远处超新星的相对校准很关键；偏好的模型在中等红移进入"幽灵"（phantom）区域（w < −1），单个标量场（scalar field）很难做到；3.1σ 用了包括透镜在内的完整 CMB（用压缩先验时为 2.4σ）。
 
 作者可能错在：DESI BAO、CMB 或超新星存在未知系统误差；Δχ² 的高斯/威尔克斯校准高估了显著性（即第二部分的 `gap_regular`）；或者 3σ 只是涨落（在上述假设下概率 0.2%）。
 
@@ -469,7 +471,7 @@ have d : v.dchi2 ≥ 125 := p .stat_dchi2   -- Sec. VII.1, Table 6
 |---|---|---|---|
 | `mod_nested`：ΛCDM 是 w0 = −1、wa = 0 的 w0waCDM | MOD | stated 2503.14738："$\Lambda$ CDM is nested within $w_{0}w_{a}$ CDM, corresponding to $w_{0}=-1$ , $w_{a}=0$" | §VII |
 | `mod_gauss`：误差是高斯的（工作假设） | MOD | stated 2503.14738："assuming that errors are Gaussian and correctly estimated" | §VII |
-| `gap_regular`：在 ΛCDM 下，这一拟合的 Δχ²_MAP 按 χ²(2) 校准（假设） | GAP | reconstructed：Wilks 1938（1938AnMS....9...60W）只在渐近意义下、对光滑且零假设点远离边界的似然给出这一点；这里只能核对最后一条（ΛCDM 点在先验范围内部），光滑性（正则性，regularity）与大样本近似是否适用都没有验证；论文既没有讨论也没有模拟 | — |
+| `gap_regular`：在 ΛCDM 下，这一拟合的 Δχ²_MAP 按 χ²(2) 校准（假设） | GAP | reconstructed：Wilks 1938（1938AnMS....9...60W）只在渐近意义下、对光滑且零假设（null hypothesis）点远离边界的似然给出这一点；这里只能核对最后一条（ΛCDM 点在先验范围内部），光滑性（正则性，regularity）与大样本近似是否适用都没有验证；论文既没有讨论也没有模拟 | — |
 | `mod_wilks`：嵌套 + 高斯 + 正则 + 无系统误差 → Δχ²_MAP 服从 χ²（2 个自由度） | MOD | stated 2503.14738："implies that $\Delta\chi^{2}_{\mathrm{MAP}}$ should follow a $\chi^{2}$ distribution with two degrees of freedom under the assumption the null hypothesis ( $\Lambda$ CDM model) holds, and assuming that errors are Gaussian and correctly estimated" | §VII |
 | `mod_sig`：威尔克斯 + Δχ² ≤ −12.5 → 3.1σ | MOD | stated 2503.14738："corresponding to a 3.1 $\sigma$ preference for evolving dark energy" | §VII.1（经 §VII 的式 22） |
 
@@ -477,7 +479,7 @@ have d : v.dchi2 ≥ 125 := p .stat_dchi2   -- Sec. VII.1, Table 6
 
 | 其他解释 | 由哪个前提排除 | 论文是否明确排除 |
 |---|---|---|
-| 似然（likelihood）的非高斯尾部（低 ℓ 的 CMB 似然不是高斯的）让大的 Δχ² 比 χ²(2) 更常见 | `mod_gauss`（明说的假设）、`gap_regular` | 否：论文写的是"假设误差是高斯的"，没有讨论校准 |
+| 似然的非高斯尾部（低 ℓ 的 CMB 似然不是高斯的）让大的 Δχ² 比 χ²(2) 更常见 | `mod_gauss`（明说的假设）、`gap_regular` | 否：论文写的是"假设误差是高斯的"，没有讨论校准 |
 | 先验边界或参数空间体积扭曲 Δχ² 的分布 | `gap_regular` | 否（没有讨论） |
 | 误差被低估 | `NoSys`（结论的条件） | 是，作为明说的保留 |
 
@@ -506,7 +508,7 @@ have s : v.sig ≥ 31 := p .mod_sig w d                                  -- Eq. 
 | 其他解释 | 由哪个前提排除 | 论文是否明确排除 |
 |---|---|---|
 | 统计涨落（在上述假设下概率 0.2%） | 不排除；`mod_challenge` 只说"不能轻易忽略" | 否：讨论了但没有排除（§VII.3） |
-| 另一种扩展（曲率、中微子质量）拟合得同样好 | 未编码 | 部分：ΛCDM + Ω_K 中曲率没有显著偏好（§VI） |
+| 另一种扩展（曲率（curvature）、中微子（neutrino）质量）拟合得同样好 | 未编码 | 部分：ΛCDM + Ω_K 中曲率没有显著偏好（§VI） |
 | w0–wa 参数化本身造成偏好 | 未编码 | 部分：论文认为幽灵穿越"相当独立于参数化的选择" |
 
 **推理（Lean 摘录）。**
