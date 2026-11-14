@@ -63,7 +63,9 @@ SOLUTION_KEY = ["source_id", "nss_solution_type", "period", "a_thiele_innes", "b
 # Every result file this study writes; a run writes all of them (placeholders where not applicable),
 # so results/ never mixes files of two releases.
 OUTPUTS = ["targets", "reproduction", "vetting_controls", "bh_candidates", "screen_points", "ns_recall",
-           "dr4_screen_query", "reference_ids", "survivors_dr4", "new_candidates_dr4", "summary", "release"]
+           "dr4_screen_query", "reference_ids", "survivors_dr4", "new_candidates_dr4", "new_candidate_ids_dr4_a",
+           "new_candidate_ids_dr4_b", "summary", "release"]
+IDS_PER_FILE = 25000   # S3 ids in full over two files: < 50,000 screen rows -> each file < 1 MB
 
 RESULT_MAX_BYTES = 1024**2       # AGENTS.md section 1: each results file < 1 MB
 SCREEN_ROWS_MAX = 50000          # pre-registered S1 (and S1-DR4, S3-DR4 stop rule) bound
@@ -440,7 +442,9 @@ def dr4_criteria(params, rel, res, sol_all, target_recs, screen_df, screen_n, re
               "n_vetoed": int(new_rows.vetoed.sum()) if len(new_rows) else 0,
               "known_targets_among_new": [str(i) for i in new_rows.source_id[new_rows.known_target]]
               if len(new_rows) else [],
-              "ids": [str(i) for i in new_ids], "n_candidate_solutions_counted": s3_count}
+              "ids_files": ["new_candidate_ids_dr4_a", "new_candidate_ids_dr4_b"],
+              "n_candidate_solutions_counted": s3_count}
+        s3["_ids"] = [str(i) for i in new_ids]   # moved out of the summary by main()
 
     return {"R": r, "S1": s1, "S2": s2, "V": v, "F": f, "S3": s3,
             "resolution": {"n": len(res), "unresolved": int(res.dr4_id.isna().sum()),
@@ -637,6 +641,12 @@ def main(ctx):
             "Descriptive only: DR3-style counts on this release's screen (raw DR3 ids for the NS recall). "
             "The pre-registered DR4 verdicts are in summary.dr4."))
         dr4, f_rows, new_rows = dr4_criteria(params, rel, res, sol, repro, sc, screen_n, ref_dir, s3_sol, s3_count)
+        ids = dr4["S3"].pop("_ids", None)
+        if ids is not None:
+            out["new_candidate_ids_dr4_a"] = {"release": release, "part": 1, "ids": ids[:IDS_PER_FILE]}
+            out["new_candidate_ids_dr4_b"] = {"release": release, "part": 2, "ids": ids[IDS_PER_FILE:2 * IDS_PER_FILE]}
+            if len(ids) > 2 * IDS_PER_FILE:   # cannot happen below the 50,000-row screen bound
+                raise SystemExit(f"{len(ids)} S3 ids exceed the two id files; nothing written")
         summary["dr4"] = dr4
         out["survivors_dr4"] = {"release": release, "rows": f_rows}
         if len(new_rows):

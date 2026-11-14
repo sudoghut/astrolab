@@ -48,9 +48,10 @@ def primary_solutions(sol: pd.DataFrame, unvalidated_types, astrometric_types) -
     s["_k6"] = s.period.astype(float).fillna(big)
     ti = []
     for i, c in enumerate(("a_thiele_innes", "b_thiele_innes", "f_thiele_innes", "g_thiele_innes")):
-        if c in s:
-            s[f"_k7{i}"] = s[c].astype(float).fillna(big)
-            ti.append(f"_k7{i}")
+        if c not in s:   # without them a full tie would fall back on row order
+            raise ValueError(f"R-sel needs column {c}")
+        s[f"_k7{i}"] = s[c].astype(float).fillna(big)
+        ti.append(f"_k7{i}")
     s = s.sort_values(["source_id", "_k1", "_k2", "_k3", "_k4", "_k5", "_k6"] + ti, kind="mergesort")
     out = s.drop_duplicates("source_id", keep="first")
     return out.drop(columns=[c for c in out if c.startswith("_k")]).reset_index(drop=True)
@@ -235,7 +236,8 @@ def label_survivor(resolved: bool, primary, ref: dict, unvalidated_types, plx_sn
 
     plx, plx_err = primary["parallax"], primary["parallax_error"]
     if (bad(plx) or bad(plx_err) or plx <= 0 or plx_err <= 0 or plx / plx_err <= plx_snr_min
-            or bad(primary["period"]) or bad(primary["period_error"]) or bad(primary["a0_mas"])):
+            or bad(primary["period"]) or bad(primary["period_error"]) or bad(primary["a0_mas"])
+            or bad(ref.get("period")) or bad(ref.get("period_error"))):
         return "insufficient"
     if bool(primary["veto_rv"]):
         return "rv-vetoed"

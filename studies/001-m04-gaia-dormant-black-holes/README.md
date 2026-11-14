@@ -158,7 +158,8 @@ and not refuted gets exactly one label, the first that applies:
 2. `solution-gone`: no DR4 solution of astrometric type;
 3. `type-vetoed`: the primary solution is of a non-validated type;
 4. `insufficient`: the primary solution's parallax <= 0 or parallax S/N <= 5, or a missing
-   period, period error or a0;
+   period, period error or a0 (of the DR4 primary solution, or of the archived DR3 values; note
+   2026-11-14, before the release);
 5. `rv-vetoed`: the RV veto applies and fires;
 6. `mass-below`: M2 <= 3 Msun with M1 = DR4 FLAME `mass_flame` if it is a finite number for that source (a missing column or
    a NULL value counts as absent), else the DR3 `m1_used`;
@@ -174,7 +175,7 @@ discovery claim: `persists` means "still a candidate".
 M2 > 3 Msun (FLAME M1, fallback 1 Msun) that are not one of the 87 DR3 rows with M2 > 3 Msun after
 resolution. Their primary solution is chosen among all their DR4 solutions (fetched for these
 sources, not only the screen rows); labels, vetoes and the reported "primary M2 > 3" count use the
-primary. Their ids are saved in full. They are checked
+primary. Their ids are saved in full (in their own result files, so each stays under 1 MB). They are checked
 against literature published after DR3 (including the Gaia DR4 release papers). No prior
 expectation and no discovery claim.
 

@@ -76,7 +76,7 @@ def test_dr4_criteria_on_synthetic_release(tmp_path):
     assert out["V"]["n_counted"] == 20 and out["V"]["verdict"] == "pass"
     assert str(BH3) in out["V"]["without_solution_or_unresolved"]
     assert all(r["verdict"] == "not evaluable" for r in out["R"].values())
-    assert out["S3"]["n_new"] == 1 and out["S3"]["ids"] == [str(NEW)] and len(new_rows) == 1
+    assert out["S3"]["n_new"] == 1 and out["S3"]["_ids"] == [str(NEW)] and len(new_rows) == 1
     assert int(new_rows.source_id.iloc[0]) == NEW
     assert out["resolution"]["unresolved"] == 1
 
