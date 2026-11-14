@@ -64,8 +64,8 @@ would add its own lines, or dilute the visible star's lines.
 2. **RV follow-up.** The authors took 39 spectra over four months with six spectrographs (MagE, GMOS,
    X-shooter, HIRES, FEROS, ESI), plus two archival LAMOST spectra. The RVs "span most of the orbit's
    predicted dynamic range and broadly validate the Gaia solution". On their own, without Gaia, "the
-   spectroscopic orbit alone sets a minimum companion mass of M2 > 5 M⊙" (abstract); a stricter treatment
-   in §4.3 still requires at least 4 Msun.
+   spectroscopic orbit alone sets a minimum companion mass of M2 > 5 M⊙" (abstract, using the G star's mass from its SED); for any visible-star mass the RVs still
+   require at least about 4 Msun (§4.3).
 3. **Masses.** The visible star's mass, M1 = 0.93 ± 0.05 Msun, comes from fitting its spectral energy
    distribution (SED) and comparing with stellar evolution models. A joint fit of the Gaia astrometry and
    the RVs gives P = 185.59 ± 0.05 d, e = 0.451 ± 0.005 and **M2 = 9.62 ± 0.18 Msun**, consistent with the
@@ -243,7 +243,7 @@ the RVs alone, which give a minimum mass for any inclination and do not need the
 | `stat_fit2`: fit2 ≥ 8.0 Msun | STAT | stated 2302.07880: "M2 = 8.9 ± 0.3 Msun" | §3.7.3 |
 | `mod_fit2` | MOD | implied: Kepler's third law with a dark companion and the reported uncertainty | — |
 | `stat_fit3`: fit3 ≥ 30.0 Msun | STAT | stated 2404.10486: "implies the presence of a 32.70±0.82 M⊙ BH" | Abstract, Eq. 5 |
-| `mod_fit3` | MOD | stated 2404.10486: "can be used to solve for the mass of the dark companion" | §2.2 (Eq. 2) |
+| `mod_fit3` | MOD | stated 2404.10486: "can be used to solve for the mass of the dark companion" | §2.2–2.3 (Eqs. 2, 5) |
 
 **Rival explanations.**
 
@@ -258,7 +258,7 @@ the RVs alone, which give a minimum mass for any inclination and do not need the
 have m1 : v.mass1 ≥ 50 := p .mod_fit1 o1 (p .stat_fit1)   -- Sec. 4.1
 ```
 
-**Critique.** The thresholds are far below the measured values (9.6, 8.9, 32.7 against 5.0). The `mod_fit*`
+**Critique.** The thresholds are far below the measured values (9.6, 8.9, 32.7 against 5.0). BH1's RV-only route needs no Gaia orbit but does use the G star's mass from its SED: with no M1 at all the bound is about 4 Msun (§4.3), and 4 Msun would no longer exclude two neutron stars (2 × 2.3 = 4.6). The `mod_fit*`
 premises carry more than Kepler: the dark-companion assumption (no light in the photocentre fit) and the
 step from a published estimate with its error to a bound on the true mass. For BH2 the 5 Msun bound rests
 on the Gaia inclination; the paper's inclination-free fallback (2.6 Msun, still above white-dwarf and
@@ -279,7 +279,7 @@ stars are a separate step.
 | `mod_other1`: … nor any other luminous star | MOD | stated 2209.06833: "This and the GALEX + WISE photometry allow us to rule out pathological companions that are hot and small or cool and large" | §5.1.1 |
 | `obs_faint2` | OBS | stated 2302.07880: "A companion contributing more than ≈2% of the total light at 4000-4300 Å would dilute the absorption lines beyond this value and is thus ruled out" | §3.8.1 |
 | `mod_dark2` | MOD | stated 2302.07880: "a 9Msun main-sequence star would outshine the giant at all wavelengths" | §4 |
-| `mod_other2` | MOD | stated 2302.07880: "But one or more red giant companions would outshine the giant in the optical" | §4 |
+| `mod_other2` | MOD | implied: non-main-sequence stars of several solar masses are at least as luminous (textbook); the paper states it for red giants ("But one or more red giant companions would outshine the giant in the optical", §4) and limits hot companions with the UV (§3.3) | — |
 | `obs_faint3` | OBS | stated 2404.10486: "The spectra do not show any sign of the presence of a second component, nor any emission line" | App. C |
 | `mod_dark3` | MOD | stated 2404.10486: "too low by several orders of magnitude to be compatible with the hypothesis that the companion is a main sequence star or even two main sequence stars in a close orbit" | §3 |
 | `mod_other3` | MOD | implied: non-main-sequence stars of several solar masses are at least as luminous (textbook, e.g. Kippenhahn, Weigert and Weiss 2012) | — |
@@ -290,7 +290,7 @@ stars are a separate step.
 |---|---|---|
 | A massive main-sequence star | `mod_dark*` | yes, all three |
 | An inner pair of ordinary stars | `mod_dark1`, `mod_dark3` | BH1 (each star > 0.4 Msun would show); BH2 (§4, for the 2.6 Msun case); BH3 yes |
-| A giant companion | `mod_other2` | BH2 yes; BH1 via "cool and large"; BH3 no (textbook step) |
+| A giant companion | `mod_other*` | BH2 yes (red giants); BH1 via "cool and large"; BH3 no (textbook step) |
 | A rapidly rotating hot star (broad, shallow lines) | `mod_other*`, `obs_faint*` | BH1 rules out "hot and small" companions with UV-to-IR data; BH2 notes rotating secondaries are harder to detect and uses the UV |
 
 **Inference (Lean excerpt).**
@@ -340,7 +340,7 @@ exact ⟨b1, b2, b3⟩
 **Critique.** The BH1 paper never gives the white-dwarf or neutron-star mass limits as numbers; they are
 textbook (`[implied]`). The BH3 paper lists the remaining possibilities as a single black hole, two black
 holes, or a black hole plus another compact object, without arguing away three or more compact objects:
-that step is our `GAP`.
+that step is our `GAP`. For BH2, `mod_ns2` ("any plausible combination") already covers three or more objects, so it overlaps `mod_few2`; the encoding keeps both.
 
 #### 2.5 What the Lean check found
 
@@ -351,8 +351,8 @@ that step is our `GAP`.
    stars, so the gap is small in practice, but it is a missing step.
 2. **`stated_insufficient`.** What the papers write needs textbook knowledge: the Kepler mass relations for
    BH1 and BH2 (BH3 states its own, `mod_fit3`), the inclination-free lower limit from the RV mass function,
-   the white-dwarf and neutron-star mass limits for BH1, and, for BH3, the luminosity of non-main-sequence
-   stars.
+   the white-dwarf and neutron-star mass limits for BH1, and, for BH2 (beyond red giants) and BH3, the
+   luminosity of non-main-sequence stars.
 3. **BH1 is over-determined.** `obs_rv1`, `mod_rv1`, `stat_fit1`, `mod_fit1`, `num_astro1`, `mod_astro1`,
    `stat_rvmin1` and `mod_rvmin1` are each redundant: the RV-only minimum mass gives stage B without the
    Gaia orbit, and the joint fit gives it without the RV-only bound. This matches the BH1 paper's own
@@ -453,7 +453,7 @@ Newest first.
 ##### 1.3a Gaia BH1（El-Badry 等 2023a）
 
 1. **Gaia 给出的候选。** 在 DR3 的天体测量轨道中，一颗距离 480 pc、G = 13.8 星等的类太阳恒星有约 186 天的轨道，a0 = 3.00 ± 0.22 毫角秒；只用 Gaia 天体测量，暗伴星质量为 12.8 ± 2.0 M☉。它的解刚好越过 DR3 按周期设定的视差精度门槛（§9），而 Gaia 的观测只覆盖了约半个轨道，所以需要核查。
-2. **视向速度后续观测。** 作者在四个月里用六台光谱仪（MagE、GMOS、X-shooter、HIRES、FEROS、ESI）拍了 39 条光谱，另有两条 LAMOST 存档光谱。视向速度覆盖了轨道预期变化范围的大部分，并大体证实了 Gaia 的解。不用 Gaia，单凭光谱轨道就给出伴星质量下限 M2 > 5 M☉（摘要）；§4.3 更严格的处理仍要求至少 4 M☉。
+2. **视向速度后续观测。** 作者在四个月里用六台光谱仪（MagE、GMOS、X-shooter、HIRES、FEROS、ESI）拍了 39 条光谱，另有两条 LAMOST 存档光谱。视向速度覆盖了轨道预期变化范围的大部分，并大体证实了 Gaia 的解。不用 Gaia，单凭光谱轨道就给出伴星质量下限 M2 > 5 M☉（摘要，用到由 SED 得到的 G 型星质量）；无论可见星质量多少，视向速度仍要求至少约 4 M☉（§4.3）。
 3. **质量。** 可见星质量 M1 = 0.93 ± 0.05 M☉，来自对其光谱能量分布（SED）的拟合与恒星演化模型的比较。Gaia 天体测量与视向速度联合拟合给出 P = 185.59 ± 0.05 天、e = 0.451 ± 0.005、**M2 = 9.62 ± 0.18 M☉**，与只用天体测量的结果在 1.6σ 水平上一致。
 4. **伴星不发光。** 光谱里"没有另一颗发光恒星的迹象"。只贡献连续谱的伴星最多提供约 10% 的光；论文所用的光谱匹配方法对贡献超过约 3% 光的伴星有 90% 的探测率。任何质量超过约 0.4 M☉ 的普通恒星都会在光谱中轻易被看到；从紫外到红外的光谱，加上 GALEX 与 WISE 的测光，排除了"热而小或冷而大"的异常伴星。一颗 5 M☉ 的恒星会比整个系统亮约 500 倍。
 5. **还可能是什么？** 不是普通恒星（太暗）。不是白矮星或中子星（太重）。不是一群致密天体：轨道内有两个以上天体的情形难以形成，也不太可能动力学稳定。一两个不含黑洞的致密天体到不了几个太阳质量。剩下的只有单个黑洞，或含有黑洞的一对天体。
@@ -560,7 +560,7 @@ have o1 : v.Orbit1 := p .mod_rv1 (p .obs_rv1)   -- Sec. 3.2, 4.2.1
 | `stat_fit2`：fit2 ≥ 8.0 M☉ | STAT | stated 2302.07880："M2 = 8.9 ± 0.3 Msun" | §3.7.3 |
 | `mod_fit2` | MOD | implied：开普勒第三定律加暗伴星假设与给出的不确定度 | — |
 | `stat_fit3`：fit3 ≥ 30.0 M☉ | STAT | stated 2404.10486："implies the presence of a 32.70±0.82 M⊙ BH" | 摘要，式 5 |
-| `mod_fit3` | MOD | stated 2404.10486："can be used to solve for the mass of the dark companion" | §2.2（式 2） |
+| `mod_fit3` | MOD | stated 2404.10486："can be used to solve for the mass of the dark companion" | §2.2–2.3（式 2、5） |
 
 **其他解释。**
 
@@ -575,7 +575,7 @@ have o1 : v.Orbit1 := p .mod_rv1 (p .obs_rv1)   -- Sec. 3.2, 4.2.1
 have m1 : v.mass1 ≥ 50 := p .mod_fit1 o1 (p .stat_fit1)   -- Sec. 4.1
 ```
 
-**评析。** 阈值远低于测量值（9.6、8.9、32.7 对 5.0）。`mod_fit*` 前提不只是开普勒定律：还包含暗伴星假设（光心拟合中伴星不发光），以及从带误差的发表值到真实质量下限的一步。对 BH2，5 M☉ 的下限依赖 Gaia 的倾角；论文给出的、与倾角无关的退路（2.6 M☉，仍高于白矮星和中子星质量）需要另一个环节 D，本编码没有包含。
+**评析。** 阈值远低于测量值（9.6、8.9、32.7 对 5.0）。BH1 只用视向速度的路径不需要 Gaia 轨道，但用到了由 SED 得到的 G 型星质量：完全不用 M1 时下限约为 4 M☉（§4.3），而 4 M☉ 已不足以排除两颗中子星（2 × 2.3 = 4.6）。`mod_fit*` 前提不只是开普勒定律：还包含暗伴星假设（光心拟合中伴星不发光），以及从带误差的发表值到真实质量下限的一步。对 BH2，5 M☉ 的下限依赖 Gaia 的倾角；论文给出的、与倾角无关的退路（2.6 M☉，仍高于白矮星和中子星质量）需要另一个环节 D，本编码没有包含。
 
 #### 2.3 环节 C · 这些质量不在发光恒星中
 
@@ -590,7 +590,7 @@ have m1 : v.mass1 ≥ 50 := p .mod_fit1 o1 (p .stat_fit1)   -- Sec. 4.1
 | `mod_other1`：……也没有其他发光恒星 | MOD | stated 2209.06833："This and the GALEX + WISE photometry allow us to rule out pathological companions that are hot and small or cool and large" | §5.1.1 |
 | `obs_faint2` | OBS | stated 2302.07880："A companion contributing more than ≈2% of the total light at 4000-4300 Å would dilute the absorption lines beyond this value and is thus ruled out" | §3.8.1 |
 | `mod_dark2` | MOD | stated 2302.07880："a 9Msun main-sequence star would outshine the giant at all wavelengths" | §4 |
-| `mod_other2` | MOD | stated 2302.07880："But one or more red giant companions would outshine the giant in the optical" | §4 |
+| `mod_other2` | MOD | implied：几个太阳质量的非主序恒星至少同样明亮（教科书）；论文对红巨星明确说明（"But one or more red giant companions would outshine the giant in the optical"，§4），并用紫外限制热的伴星（§3.3） | — |
 | `obs_faint3` | OBS | stated 2404.10486："The spectra do not show any sign of the presence of a second component, nor any emission line" | 附录 C |
 | `mod_dark3` | MOD | stated 2404.10486："too low by several orders of magnitude to be compatible with the hypothesis that the companion is a main sequence star or even two main sequence stars in a close orbit" | §3 |
 | `mod_other3` | MOD | implied：几个太阳质量的非主序恒星至少与同质量主序星一样亮（教科书，如 Kippenhahn、Weigert 与 Weiss 2012） | — |
@@ -601,7 +601,7 @@ have m1 : v.mass1 ≥ 50 := p .mod_fit1 o1 (p .stat_fit1)   -- Sec. 4.1
 |---|---|---|
 | 一颗大质量主序星 | `mod_dark*` | 是，三篇都排除 |
 | 一对普通恒星 | `mod_dark1`、`mod_dark3` | BH1（每颗 > 0.4 M☉ 都会显现）；BH2（§4，针对 2.6 M☉ 的情形）；BH3 是 |
-| 一颗巨星伴星 | `mod_other2` | BH2 是；BH1 通过"冷而大"；BH3 否（教科书步骤） |
+| 一颗巨星伴星 | `mod_other*` | BH2 是（红巨星）；BH1 通过"冷而大"；BH3 否（教科书步骤） |
 | 快速自转的热星（谱线宽而浅） | `mod_other*`、`obs_faint*` | BH1 用紫外到红外数据排除"热而小"的伴星；BH2 指出自转快的伴星较难探测，并用紫外加以限制 |
 
 **推理（Lean 摘录）。**
@@ -645,12 +645,12 @@ have b3 : v.BH3 := p .mod_ns3 n3 (p .gap_few3) m3   -- Sec. 3 (three or more: no
 exact ⟨b1, b2, b3⟩
 ```
 
-**评析。** BH1 论文从未给出白矮星或中子星质量上限的数值；它们属于教科书知识（`[implied]`）。BH3 论文把剩下的可能列为单个黑洞、两个黑洞、或一个黑洞加另一个致密天体，没有论证排除三个以上的致密天体：这一步是我们的 `GAP`。
+**评析。** BH1 论文从未给出白矮星或中子星质量上限的数值；它们属于教科书知识（`[implied]`）。BH3 论文把剩下的可能列为单个黑洞、两个黑洞、或一个黑洞加另一个致密天体，没有论证排除三个以上的致密天体：这一步是我们的 `GAP`。对 BH2，`mod_ns2`（"任何合理组合"）本身已涵盖三个以上天体，与 `mod_few2` 有重叠；本编码两者都保留。
 
 #### 2.5 Lean 检查发现的问题
 
 1. **`explicit_insufficient`：一个真正的缺口。** 即使加上标准知识，BH3 的结论仍需要 `gap_few3`：BH3 论文没有排除三个以上不含黑洞的致密天体。BH1 和 BH2 论文论证了这一点（作为合理性陈述），所以缺口只在 BH3，引用它们的论证即可补上。对 33 M☉ 的伴星需要十几颗中子星，所以实际影响很小，但它确实是缺失的一步。
-2. **`stated_insufficient`。** 论文写出的内容需要教科书知识补充：BH1 与 BH2 的开普勒质量关系（BH3 自己写出了，`mod_fit3`）、光谱质量函数给出的与倾角无关的下限、BH1 所需的白矮星与中子星质量上限，以及 BH3 所需的非主序恒星的光度。
+2. **`stated_insufficient`。** 论文写出的内容需要教科书知识补充：BH1 与 BH2 的开普勒质量关系（BH3 自己写出了，`mod_fit3`）、光谱质量函数给出的与倾角无关的下限、BH1 所需的白矮星与中子星质量上限，以及 BH2（红巨星之外）与 BH3 所需的非主序恒星的光度。
 3. **BH1 是超定的。** `obs_rv1`、`mod_rv1`、`stat_fit1`、`mod_fit1`、`num_astro1`、`mod_astro1`、`stat_rvmin1` 与 `mod_rvmin1` 各自都是多余的：只用视向速度的最小质量不需要 Gaia 轨道就能给出环节 B，联合拟合不需要视向速度下限也能给出。这与 BH1 论文自己的说法一致：即使不用天体测量，视向速度也要求一个黑洞质量的伴星。联合拟合与只用天体测量的两条路径彼此并不独立（都需要 Gaia 轨道）；只用视向速度的路径是独立的。
 4. **薄弱之处在物理。** 起决定作用的前提是被编码为断言的、留有余地的句子：`mod_rv2`（"very unlikely"）、`mod_few1` 与 `mod_few2`（"difficult to assemble"、"unlikely to be dynamically stable"）。BH2 论文本身就把结论写成以 Gaia 解为条件，而且 5 M☉ 的下限依赖 Gaia 的倾角。
 5. **`num_astro1` 与本项目结果的联系较弱。** 它绑定的是我们只用 DR3 的质量的后验中位数（13.3 M☉）；用 1σ 下界（约 11）检查更严格，但结果文件把它存在列表里，绑定无法寻址。
