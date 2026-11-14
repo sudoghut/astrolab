@@ -125,7 +125,7 @@ def test_fetch_solutions_keeps_same_type_solutions_and_blanks_doubled_flame():
     df = run.fetch_solutions(FakeCtx({"nss_two_body_orbit": rows}), "gaiadr4", "Gaia DR4", [NEW, BH1], "x")
     assert (df.source_id == NEW).sum() == 2                      # both Orbital solutions kept for R-sel
     b = df[df.source_id == BH1]
-    assert len(b) == 1 and np.isnan(b.mass_flame.iloc[0]) and df.attrs["ambiguous_flame_sources"] == 2
+    assert len(b) == 1 and np.isnan(b.mass_flame.iloc[0]) and df.attrs["ambiguous_flame_sources"] == 1
     prim = sel.primary_solutions(df, run.PARAMS["unvalidated_types"], run.ASTROMETRIC_TYPES)
     assert prim[prim.source_id == NEW].period.iloc[0] == 300.0   # R-sel, not row order
 
@@ -146,3 +146,25 @@ def test_screen_selects_only_available_flame_columns():
     q = screen_adql("dr4", flame=["mass_flame"])
     assert "ap.mass_flame " in q and "mass_flame_lower" not in q and "astrophysical_parameters" in q
     assert "astrophysical_parameters" not in screen_adql("dr4", flame=[])
+
+
+def test_run_screen_collapses_doubled_flame_join():
+    class Ctx(FakeCtx):
+        def count(self, q):
+            return 2
+        def log(self, m):
+            pass
+    base = dict(source_id=NEW, nss_solution_type="Orbital", period=300.0, period_error=1.0, eccentricity=0.2,
+                parallax=2.0, parallax_error=0.05, significance=40.0, goodness_of_fit=0.1, flags=0, a0_mas=5.0,
+                f_m=1.0, ra=1.0, dec=1.0, l=1.0, b=1.0, phot_g_mean_mag=12.0, bp_rp=0.8, ruwe=1.0,
+                mass_flame=1.0, mass_flame_lower=0.9, mass_flame_upper=1.1, radius_flame=1.0)
+    rows = pd.DataFrame([base, dict(base, mass_flame=2.0), dict(base, source_id=BH1, period=185.0)])
+    df, n = run.run_screen(Ctx({"WHERE q.f_m": rows}), run.PARAMS, "gaiadr4", "Gaia DR4", "dr4")
+    assert n == 2 and len(df) == 2 and df.attrs["ambiguous_flame_sources"] == 1
+    assert np.isnan(df[df.source_id == NEW].mass_flame.iloc[0]) and df[df.source_id == NEW].m1_used.iloc[0] == 1.0
+
+
+def test_screen_adql_partial_flame_list_is_well_formed():
+    from screen import screen_adql
+    q = screen_adql("dr4", flame=["mass_flame", "radius_flame"])
+    assert "g.ruwe, ap.mass_flame, ap.radius_flame FROM" in q and "mass_flame_upper" not in q

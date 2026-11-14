@@ -183,11 +183,12 @@ def fetch_solutions(ctx, schema, label, ids, what, optional=None):
     # its FLAME values as absent (ambiguous). Distinct solutions, even of the same type, all stay:
     # R-sel chooses between them, never the server's row order (README DR4 addendum).
     dup = df.duplicated(SOLUTION_KEY, keep=False)
+    n_amb = int(df.source_id[dup].nunique())
     if dup.any():
         for c in OPTIONAL_COLUMNS["astrophysical_parameters"]:
             df.loc[dup, c] = np.nan
         df = df.drop_duplicates(SOLUTION_KEY).reset_index(drop=True)
-    df.attrs["ambiguous_flame_sources"] = int(dup.sum())
+    df.attrs["ambiguous_flame_sources"] = n_amb
     if len(df):
         _, a0, fm = sel.solution_m2(df, 1.0)
         df["a0_mas"], df["f_m"] = a0, fm
@@ -213,10 +214,18 @@ def run_screen(ctx, params, schema, label, release, flame=True):
         return None, n
     df = ctx.tap(screen_adql(release, params["fm_min"], params["plx_snr_min"], flame=flame),
                  label=f"screen f_M>{params['fm_min']}", release=label, max_rows=SCREEN_ROWS_MAX, mode="async")
-    assert len(df) == n, (len(df), n)
-    for c in ("mass_flame", "mass_flame_lower", "mass_flame_upper", "radius_flame"):
+    for c in FLAME_COLS:
         if c not in df:
             df[c] = np.nan
+    # A doubled LEFT JOIN (several FLAME rows per source) repeats screen rows: keep one, FLAME absent.
+    key = ["source_id", "nss_solution_type", "period", "a0_mas"]
+    dup = df.duplicated(key, keep=False)
+    df.attrs["ambiguous_flame_sources"] = int(df.source_id[dup].nunique())
+    if dup.any():
+        df.loc[dup, list(FLAME_COLS)] = np.nan
+        df = df.drop_duplicates(key).reset_index(drop=True)
+    if len(df) != n:   # explicit check (not assert): it must also hold under python -O
+        raise SystemExit(f"screen returned {len(df)} distinct rows, server count {n}; nothing written")
     df["m1_used"] = df.mass_flame.where(np.isfinite(df.mass_flame), 1.0)
     df["m2"] = orbits.companion_mass(df.f_m.to_numpy(), df.m1_used.to_numpy())
     df["abs_g"] = df.phot_g_mean_mag + 5 * np.log10(df.parallax / 100.0)
@@ -295,6 +304,7 @@ def reproduce_targets(ctx, params, rel, id_map, sol, positions):
             except (ValueError, KeyError, np.linalg.LinAlgError) as e:
                 # corr_vec length, unfitted G, unknown type, missing field, non-PSD covariance
                 rec["covariance_error"] = f"{type(e).__name__}: {e}"
+                ctx.log(f"{name}: covariance Monte Carlo failed ({rec['covariance_error']})")
         if mc is not None:
             q = lambda a: np.percentile(a, [16, 50, 84])
             m2_lo, m2, m2_hi = q(mc["m2"])
@@ -469,6 +479,7 @@ def main(ctx):
     flame = True if optional is None else [c for c in FLAME_COLS if c in optional]
 
     sc, screen_n = run_screen(ctx, params, schema, label, release, flame=flame)
+    ambiguous_screen = sc.attrs.get("ambiguous_flame_sources", 0) if sc is not None else 0
     cand = sc[sc.m2 > params["m2_bh_min"]].sort_values("m2", ascending=False) if sc is not None else None
 
     # Solutions, vetted per row. DR3: controls + candidates (as before). DR4: controls and resolved
@@ -518,8 +529,8 @@ def main(ctx):
 
     summary = {"release": release, "params": params, "astrometric_types": list(ASTROMETRIC_TYPES),
                "release_constants": rel, "optional_columns": sorted(optional) if optional is not None else "all",
-               "ambiguous_flame_sources": int(ambiguous_flame),
-               "sources_with_same_type_solutions": [str(i) for i, n in
+               "ambiguous_flame_sources": {"screen": int(ambiguous_screen), "solutions": int(ambiguous_flame)},
+               "sources_with_same_type_solutions": [{"source_id": str(i), "type": t} for (i, t), n in
                                                     sol.groupby(["source_id", "nss_solution_type"]).size().items()
                                                     if n > 1] if len(sol) else []}
     screen_desc = {}
@@ -534,7 +545,9 @@ def main(ctx):
         vcols = ["source_id", "nss_solution_type", "rv_amplitude_robust", "rv_range_pred", "rv_ratio", "veto_type",
                  "veto_rv", "vetoed"]
         # one screen row = one solution: match on the solution, not only its type
-        cand = cand.merge(sol[vcols + ["period"]], how="left", on=["source_id", "nss_solution_type", "period"])
+        sol_key = sol[vcols + ["period", "a0_mas"]].copy()
+        cand = cand.merge(sol_key, how="left", on=["source_id", "nss_solution_type", "period", "a0_mas"],
+                          suffixes=("", "_sol"))
         cand["vetted"] = cand.vetoed.notna()                # False only if the S3 stop rule fired
         cand["vetoed"] = cand.vetoed.fillna(False).astype(bool)
         cand = cand.sort_values("m2", ascending=False)

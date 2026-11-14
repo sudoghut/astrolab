@@ -77,6 +77,11 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
   `unresolved`, with the reason (not found / offset / magnitude), and is never counted as a
   scientific outcome. Large-amplitude variable giants can fail the magnitude check; this errs
   towards `unresolved`, and the count is reported.
+- *Missing data* (note 2026-11-14, design plan 008, before the release): a FLAME value that is
+  NULL, a FLAME column the release lacks, and a FLAME value that is ambiguous (several FLAME rows for
+  one source) all count as absent. A missing `gaia_source` or `astrophysical_parameters` table (or
+  a TAP_SCHEMA lookup that lists neither) stops the run before any source-level data are fetched:
+  it needs a release-day decision, logged under the information barrier.
 - *Primary solution (R-sel)*, applied per source everywhere (targets, controls, survivors, new
   candidates): among the source's solutions of astrometric type, prefer validated over
   non-validated; among those prefer `AstroSpectroSB1`, then `Orbital`, then the other types; ties
