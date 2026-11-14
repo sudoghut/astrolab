@@ -133,10 +133,10 @@ H0 values are whole numbers in tenths of km/s/Mpc (73.2 → 732).
 |---|---|---|---|
 | `stat_full`: reported full HST sample H0 ≥ 73.2 (a lower bound at the reported central value) | STAT | stated 2408.11770: "is not yet competitive with the HST set (42 SNe Ia and 4 anchors), which yields 73.2 $\pm$ 0.9" | Abstract |
 | `stat_sel`: HST Cepheids on the CCHP hosts H0 ≤ 71.2 | STAT | stated 2408.11770: "a corresponding value of H ${}_{0}=71.2$" | §III.2 |
-| `mod_drop`: these two → choosing the CCHP hosts and anchor lowers H0 by ~2 | MOD | stated 2408.11770: "thus 2.0 $\,\rm km\,s^{-1}\,Mpc^{-1}$ lower than the full HST sample—simply due to the choice of SN hosts and anchor" | §III.2 |
+| `stat_drop`: the paper attributes the 2.0 lower value to the choice of hosts and anchor (the paper's stated inference; Lean takes it as given and does not derive the shift from the two numbers) | STAT | stated 2408.11770: "thus 2.0 $\,\rm km\,s^{-1}\,Mpc^{-1}$ lower than the full HST sample—simply due to the choice of SN hosts and anchor" | §III.2 |
 
 ```lean
-have d : v.ExpDrop := p .mod_drop (p .stat_full) (p .stat_sel)   -- Sec. III.2
+-- stat_full, stat_sel, stat_drop are atoms; they are combined only in gap_rule (2.3)
 ```
 
 **Critique.** The 71.2 comes from M_B = −19.32 ± 0.05 and the paper's scaling formula on 2024 data,
@@ -159,10 +159,11 @@ offset of a few percent cannot be excluded. The check has low power.
 |---|---|---|---|
 | `stat_resid`: for every subsample the recalibrated JWST H0 is consistent with the HST expectation | STAT | stated 2408.11770: "we find the values inferred using JWST are consistent with expectations for every subsample" (next sentence: at or within 1σ of these smaller uncertainties) | §III.3, Table 4 |
 | `stat_f24`: CCHP's own reported three-method combined value is near the HST expectation for the subsample | STAT | stated 2408.11770: "For the combination of these three methods, F24 reports $70$ $\,\rm km\,s^{-1}\,Mpc^{-1}$ , near the HST -expected value of $\sim$ 70.8 $\pm 2.3$" | §III.2 |
-| `gap_rule`: expected drop + agreement + within-1σ + same quantity → consistent | GAP | reconstructed: our reading of the paper's inference; the paper states only the conclusion, and a textbook definition of consistency within errors (Taylor 1997) covers only the last comparison | — |
+| `gap_rule`: the two values + their attributed drop + agreement + within-1σ + CCHP's combined value near → consistent | GAP | reconstructed: our reading of the paper's inference; the paper states only the conclusion, and a textbook definition of consistency within errors (Taylor 1997) covers only the last comparison | — |
 
 ```lean
-exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .stat_f24)  -- Sec. II.3, III.2-3; GAP
+exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p .stat_resid)
+  (p .stat_f24)  -- Abstract, Sec. II.3, III.2-3; GAP
 ```
 
 **Rival explanations.**
@@ -171,7 +172,7 @@ exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .stat_f24)  -- Sec. II.3,
 |---|---|---|
 | A real TRGB/JAGB–Cepheid offset of a few percent | `stat_agree`, only to ~0.05–0.10 mag | partly: agreement within those errors |
 | The CCHP hosts are an unusual draw | not encoded (the conclusion does not need it) | yes, for the JAGB subset: ~5% of random 8-SN draws are as low (Fig. 6) |
-| The full refit gives a smaller host shift than 71.2 suggests | `stat_sel`, `mod_drop` | partly: the approximation is said to be accurate to ~0.01 mag |
+| The full refit gives a smaller host shift than 71.2 suggests | `stat_sel`, `stat_drop` | partly: the approximation is said to be accurate to ~0.01 mag |
 
 #### 2.4 What the Lean check found
 
@@ -270,7 +271,7 @@ D. 对每个子样本，JWST 的 H0（论文重新标定）与 HST 预期相容�
 E. CCHP 自己报告的三种方法合并值（2024 年版本）接近该子样本的 HST 预期 →
 F. （我们补上的 GAP：推理规则）⇒ 约 2.5 的差异完全与样本选择相容。
 
-检查方法：论证写成 Lean 4（[`studies/003-m02-hubble-tension-distance-ladder/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/argument/Argument.lean)）。每个前提是 `Field` 的一个构造子（不用公理），标注类型与出处性质：
+检查方法：论证写成 Lean 4（[`studies/003-m02-hubble-tension-distance-ladder/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/argument/Argument.lean)）。每个前提是 `Field` 的一个构造子（constructor）（不用公理），标注类型与出处性质：
 
 | 标记 | 前提类型 |
 |---|---|
@@ -289,10 +290,10 @@ F. （我们补上的 GAP：推理规则）⇒ 约 2.5 的差异完全与样本�
 |---|---|---|---|
 | `stat_full`：HST 全样本报告的 H0 ≥ 73.2（在报告的中心值处取下界） | STAT | stated 2408.11770："is not yet competitive with the HST set (42 SNe Ia and 4 anchors), which yields 73.2 $\pm$ 0.9" | 摘要 |
 | `stat_sel`：CCHP 宿主上的 HST 造父变星 H0 ≤ 71.2 | STAT | stated 2408.11770："a corresponding value of H ${}_{0}=71.2$" | §III.2 |
-| `mod_drop`：两者 → 选 CCHP 的宿主与锚点使 H0 降低约 2 | MOD | stated 2408.11770："thus 2.0 $\,\rm km\,s^{-1}\,Mpc^{-1}$ lower than the full HST sample—simply due to the choice of SN hosts and anchor" | §III.2 |
+| `stat_drop`：论文把低 2.0 归因于宿主与锚点的选择（论文明说的推断；Lean 把它当作给定，不由两个数推出这一移动） | STAT | stated 2408.11770："thus 2.0 $\,\rm km\,s^{-1}\,Mpc^{-1}$ lower than the full HST sample—simply due to the choice of SN hosts and anchor" | §III.2 |
 
 ```lean
-have d : v.ExpDrop := p .mod_drop (p .stat_full) (p .stat_sel)   -- Sec. III.2
+-- stat_full, stat_sel, stat_drop are atoms; they are combined only in gap_rule (2.3)
 ```
 
 **评析。** 71.2 来自 M_B = −19.32 ± 0.05 与论文在 2024 年数据上的换算公式，不是完整的重新拟合；它混合了锚点的改变（约 −0.6）与宿主的改变（约 −1.3）。这正是本项目能用 R22 的矩阵重新计算的（第三部分 R2）。
@@ -311,10 +312,11 @@ have d : v.ExpDrop := p .mod_drop (p .stat_full) (p .stat_sel)   -- Sec. III.2
 |---|---|---|---|
 | `stat_resid`：对每个子样本，重新标定的 JWST H0 与 HST 预期相容 | STAT | stated 2408.11770："we find the values inferred using JWST are consistent with expectations for every subsample"（下一句：在这些较小误差的 1σ 以内） | §III.3，表 4 |
 | `stat_f24`：CCHP 自己报告的三种方法合并值接近该子样本的 HST 预期 | STAT | stated 2408.11770："For the combination of these three methods, F24 reports $70$ $\,\rm km\,s^{-1}\,Mpc^{-1}$ , near the HST -expected value of $\sim$ 70.8 $\pm 2.3$" | §III.2 |
-| `gap_rule`：预期的移动 + 一致 + 1σ 以内 + 同一个量 → 相容 | GAP | reconstructed：我们对论文推理的理解；论文只写出结论，教科书中"误差内相容"的定义（Taylor 1997）只涵盖最后一项比较 | — |
+| `gap_rule`：两个数值 + 论文归因的降低 + 一致 + 1σ 以内 + CCHP 合并值接近 → 相容 | GAP | reconstructed：我们对论文推理的理解；论文只写出结论，教科书中"误差内相容"的定义（Taylor 1997）只涵盖最后一项比较 | — |
 
 ```lean
-exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .stat_f24)  -- Sec. II.3, III.2-3; GAP
+exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p .stat_resid)
+  (p .stat_f24)  -- Abstract, Sec. II.3, III.2-3; GAP
 ```
 
 **其他解释。**
@@ -323,7 +325,7 @@ exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .stat_f24)  -- Sec. II.3,
 |---|---|---|
 | 真实的 TRGB/JAGB 与造父变星之间百分之几的偏差 | `stat_agree`，只到约 0.05–0.10 mag | 部分：在这些误差内一致 |
 | CCHP 的宿主是一次不寻常的抽样 | 未编码（结论不需要） | 是，针对 JAGB 子样本：随机 8 颗超新星约 5% 一样低（图 6） |
-| 完整重新拟合给出的宿主移动小于 71.2 所示 | `stat_sel`、`mod_drop` | 部分：论文说近似准确到约 0.01 mag |
+| 完整重新拟合给出的宿主移动小于 71.2 所示 | `stat_sel`、`stat_drop` | 部分：论文说近似准确到约 0.01 mag |
 
 #### 2.4 Lean 检查的发现
 
@@ -339,7 +341,7 @@ exact p .gap_rule d (p .stat_agree) (p .stat_resid) (p .stat_f24)  -- Sec. II.3,
 | 环节 / 论断 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
 | R1 · SH0ES 的基线 | 现在可检验 | 对 R22 的 y、L、C 做广义最小二乘（GLS, generalised least squares）拟合 | C 46.5 MiB（Git LFS 的 FITS），L 0.66 MB，y 17 kB，lstsq 0.7 kB；合计约 47.2 MiB（低于研究预算 200 MB） | 主要：复现作者的 `lstsq_results.txt`（47 个参数）；次要：73.04 ± 1.01（容差见 README 第 2 节） | 待定 |
-| R2 · 环节 A–B：锚点与宿主的移动 | 现在可检验 | 只用 NGC 4258（去掉其他锚点的几何约束行）重拟，再限于 CCHP 宿主；在 5 log H0 中用精确的线性误差传播 | 同上 | 锚点移动对 R22 的 −0.0158 mag；宿主移动：零假设（null hypothesis）"无移动"，四种结果的判定表，对 −0.0405 mag（我们把该文的 72.54 → 71.2 换算到 5 log H0；README 第 2 节） | 待定 |
+| R2 · 环节 A–B：锚点与宿主的移动 | 现在可检验 | 只用 NGC 4258（去掉其他锚点的几何约束行）重拟，再限于 CCHP 宿主；在 5 log H0 中用精确的线性误差传播（linear error propagation） | 同上 | 锚点移动对 R22 的 −0.0158 mag；宿主移动：零假设（null hypothesis）"无移动"，四种结果的判定表，对 −0.0405 mag（我们把该文的 72.54 → 71.2 换算到 5 log H0；README 第 2 节） | 待定 |
 | R3 · 环节 C 与 E：同宿主上造父变星对 TRGB | 可探索（默认只作描述） | 与 CCHP 的 JWST TRGB 距离做联合线性估计；先复现 CCHP 的 TRGB + Pantheon+ 数值 69.29（不是论文重新标定的表 4 数值 70.1） | CCHP 表 3（论文） | 只有在取数前能写出 CCHP 完整的误差预算时才作检验，否则只作描述；见 README 第 8 节 | 待定 |
 | R4 · CCHP 的选择是否不寻常 | 可探索（只作描述） | 37 个宿主中随机 10 个的子样本，ΔH0 的百分位（percentile）（论文对 JAGB 做过 8 颗超新星的版本，图 6：约 5%） | 同上 | 无——只作探索，见 README 第 8 节 | 待定 |
 | 跨论文比较 | 可探索（只作描述） | 只对近似独立的组合给出两两之差（距离阶梯对 CMB、TDCOSMO 对其他） | 论文数字 | 无——见 README 第 8 节 | 待定 |
