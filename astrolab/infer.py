@@ -139,7 +139,8 @@ def run_emcee(log_prob, p0, nwalkers: int = 32, nsteps: int = 4000, seed: int = 
             "acceptance": float(np.mean(sampler.acceptance_fraction))}
 
 
-def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rtol: float = 1e-12):
+def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rtol: float = 1e-12,
+        sym_rtol: float = 1e-8):
     """Generalised least squares for y = L q + e, e ~ N(0, C) (Riess et al. 2022 Eq. 6):
     q = (L^T C^-1 L)^-1 L^T C^-1 y, cov(q) = (L^T C^-1 L)^-1. Solved with Cholesky factors,
     never an explicit inverse of C.
@@ -148,6 +149,7 @@ def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rto
     entries in ``q``/``sigma`` are NaN and ``kept`` lists the columns that were fitted. The reduced
     system must have full column rank (ValueError otherwise). Pass ``c_factor`` (it must be the unmodified result of
     ``scipy.linalg.cho_factor(C, lower=True)``) to reuse a factorisation; then ``C`` may be None.
+    ``C`` must be symmetric to ``sym_rtol`` x max|C| (Cholesky reads only one triangle).
 
     Returns dict: q, sigma (NaN for dropped columns), cov (kept x kept), kept, chi2, dof, and, with
     ``return_estimator``, ``A`` (kept x n_rows, q_kept = A y) for exact linear error propagation.
@@ -179,12 +181,16 @@ def gls(L, y, C=None, *, c_factor=None, return_estimator: bool = False, rank_rto
             raise ValueError(f"C has shape {C.shape}, expected ({n}, {n})")
         if not np.all(np.isfinite(C)):
             raise ValueError("C must be finite")
+        scale = np.max(np.abs(C))
+        if np.max(np.abs(C - C.T)) > sym_rtol * scale:
+            raise ValueError(f"C is not symmetric (tolerance {sym_rtol} x max|C|)")
         try:
             c_factor = linalg.cho_factor(C, lower=True)
         except linalg.LinAlgError as exc:
             raise ValueError(f"C is not positive definite: {exc}") from exc
     else:
-        if not (isinstance(c_factor, tuple) and len(c_factor) == 2):
+        if not (isinstance(c_factor, tuple) and len(c_factor) == 2
+                and isinstance(c_factor[1], (bool, np.bool_)) and np.ndim(c_factor[0]) == 2):
             raise ValueError("c_factor must be the (matrix, lower) tuple from scipy.linalg.cho_factor")
         if c_factor[0].shape != (n, n):
             raise ValueError(f"c_factor has shape {c_factor[0].shape}, expected ({n}, {n})")

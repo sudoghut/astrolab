@@ -35,7 +35,8 @@ Tolerances are fixed here and are not changed after results are seen. Each crite
 verdict, the numbers, and our explanation of any failure.
 
 **Fit validity (before any criterion).** Every GLS fit must have full column rank after dropping
-all-zero columns (`infer.gls` raises otherwise) and finite errors. The host-identification and
+all-zero columns (`infer.gls` raises otherwise: the smallest eigenvalue of the column-normalised
+LᵀC⁻¹L must exceed `rank_rtol` = 10⁻¹² times the largest) and finite errors. The host-identification and
 anchor rules of section 4 must pass their structural checks; if a check fails, every criterion
 that depends on it is reported as **not evaluable**, with the reason.
 
