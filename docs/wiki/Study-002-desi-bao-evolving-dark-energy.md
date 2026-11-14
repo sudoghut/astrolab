@@ -6,11 +6,11 @@
 BAO cosmology); Popovic et al. 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517 (DES
 supernova recalibration, "Dovekie"). Study:
 [`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy).
-Status: planned. Last updated: 2026-11-14 (see the changelog at the end). The source of this page
+Status: reproduced (2026-11-14; R2 conditionally). Last updated: 2026-11-14 (see the changelog at the end). The source of this page
 lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：DESI DR2：暗能量在演化吗？状态：计划中。论文：DESI 合作组 Abdul-Karim 等 2025, PRD 112, 083515, arXiv:2503.14738（DESI DR2 BAO 宇宙学）；Popovic 等 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517（DES 超新星重新校准，"Dovekie"）。研究：[`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：DESI DR2：暗能量在演化吗？状态：已复现（2026-11-14；R2 为有条件复现）。论文：DESI 合作组 Abdul-Karim 等 2025, PRD 112, 083515, arXiv:2503.14738（DESI DR2 BAO 宇宙学）；Popovic 等 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517（DES 超新星重新校准，"Dovekie"）。研究：[`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -320,15 +320,37 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
-| R1 · Stage A input: BAO alone in ΛCDM | testable now | fit Ωm and h·r_d to the DR2 means and covariance | DESI DR2 BAO ALL, ~3 kB | reproduced if Ωm and h·r_d agree with 0.2975 ± 0.0086 and 101.54 ± 0.73 Mpc within the tolerance pre-registered in README §2 | pending |
-| R2 · Stage A–B with the compressed CMB prior | testable now | MAP fits of ΛCDM and w0waCDM to DESI + (θ*, ωb, ωbc); Δχ² → σ; both readings of the prior (ωbc with and without ων) | BAO ~3 kB; prior in the code | reproduced if Δχ²_MAP is within the pre-registered tolerance of −8.0 under both readings; conditionally reproduced if under one | pending |
-| R3 · Stage A–B without CMB | testable now | MAP fits for DESI, DESI + Pantheon+, DESI + Union3 | Pantheon+ 34 MB, Union3 11 kB | reproduced if Δχ²_MAP is within the pre-registered tolerance of −4.7, −4.9, −10.1 | pending |
+| R1 · Stage A input: BAO alone in ΛCDM | testable now | fit Ωm and h·r_d to the DR2 means and covariance | DESI DR2 BAO ALL, ~3 kB | reproduced if Ωm and h·r_d agree with 0.2975 ± 0.0086 and 101.54 ± 0.73 Mpc within the tolerance pre-registered in README §2 | reproduced: Ωm = 0.2979 ± 0.0086, h·r_d = 101.52 ± 0.73 Mpc |
+| R2 · Stage A–B with the compressed CMB prior | testable now | MAP fits of ΛCDM and w0waCDM to DESI + (θ*, ωb, ωbc); Δχ² → σ; both readings of the prior (ωbc with and without ων) | BAO ~3 kB; prior in the code | reproduced if Δχ²_MAP is within the pre-registered tolerance of −8.0 under both readings; conditionally reproduced if under one | conditionally reproduced (reading B): −8.01 (B), −6.59 (A) |
+| R3 · Stage A–B without CMB | testable now | MAP fits for DESI, DESI + Pantheon+, DESI + Union3 | Pantheon+ 34 MB, Union3 11 kB | reproduced if Δχ²_MAP is within the pre-registered tolerance of −4.7, −4.9, −10.1 | reproduced: −4.65, −4.86, −10.03 |
 | Stage A with the full CMB (−12.5) | out of scope | needs the full Planck and ACT likelihoods (not a compressed data product) | — | — | — |
 | Stage B · Wilks calibration (`gap_regular`) | explorable (not decisive) | simulate DESI + compressed-prior data under the ΛCDM best fit, refit both models, compare the Δχ² distribution with χ²(2); this informs the gap but cannot close it, which concerns the full-CMB fit | no new data | none — exploration only, see README §8 | — |
 | `NoSys` · supernova calibration | explorable (not decisive) | DESI + compressed CMB + Pantheon+ / Union3 / DES-Dovekie; compare the spread | Dovekie `DES-Dovekie_HD.csv` 0.11 MB + `covtot_inv_000.npz` 6.2 MB (the only files needed) | none — exploration only | — |
 | `NoSys` · single tracers | explorable (not decisive) | leave one DESI redshift bin out | per-tracer files, ~1 kB | none — exploration only | — |
 | Stage C · parametrisation | explorable (not decisive) | replace CPL by binned w(z) or other forms | no new data | none — exploration only | — |
 | DES-SN5YR combinations | out of scope for now | its covariance is 53.5 MB, above the 50 MB single-download limit; Dovekie replaces it | — | — | — |
+
+#### What we found (2026-11-14)
+
+The study ([`README` section 5](https://github.com/sudoghut/astrolab/blob/main/studies/002-m01-desi-bao-evolving-dark-energy/README.md),
+[`results/summary.json`](https://github.com/sudoghut/astrolab/blob/main/studies/002-m01-desi-bao-evolving-dark-energy/results/summary.json))
+recomputed every number it could from about 34 MB of public files, with its own background code.
+
+- **R1, BAO alone in ΛCDM: reproduced.** Ωm = 0.2979 ± 0.0086 and h·r_d = 101.52 ± 0.73 Mpc,
+  within 0.05σ of Eq. 17.
+- **R3, no CMB: reproduced.** Δχ²_MAP = −4.65 (DESI), −4.86 (+ Pantheon+), −10.03 (+ Union3),
+  against −4.7, −4.9, −10.1. The supernova-dependent spread of the preference, which part 2 ranks
+  as the main weak point, is real and reproducible.
+- **R2, compressed CMB prior: conditionally reproduced.** With the prior's ωbc mean read as
+  ωb + ωc (the paper's definition next to Eq. 2), Δχ²_MAP = −8.01 (2.4σ) and the posterior means
+  w0 = −0.44 ± 0.23, wa = −1.69 ± 0.66 match Eq. 24. With the reading we had pre-registered as
+  primary (the mean includes ων, supported only by indirect numerical evidence), Δχ²_MAP = −6.59
+  (2.1σ). The θ* calibration shifts Δχ² by only ±0.4, so it cannot explain the difference. The
+  significance of the compressed-prior result therefore depends at the 0.3σ level on a parameter
+  convention the paper does not pin down.
+- Not tested: the full-CMB Δχ² = −12.5 behind the headline 3.1σ (needs the full Planck and ACT
+  likelihoods), the DES-SN5YR rows, and the Wilks calibration (`gap_regular`), which stays an
+  exploration (README section 8).
 
 ### Glossary
 
@@ -348,6 +370,8 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 - 2026-11-14: first version: parts 1–3, written before implementation (T-004, plan 010); revised after
   gate-1 review (Gaussian errors are a stated assumption; Wilks regularity added as the GAP `gap_regular`, so `explicit_insufficient`).
+- 2026-11-14: study run: R1 and R3 reproduced; R2 conditionally reproduced (only with the prior's
+  ωbc mean read as ωb + ωc); part 3 results and "What we found" added.
 
 ---
 
@@ -544,15 +568,24 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | 环节 / 论断 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
-| R1 · 环节 A 的输入：只用 BAO 的 ΛCDM | 现在可检验 | 用 DR2 均值与协方差拟合 Ωm 与 h·r_d | DESI DR2 BAO ALL，约 3 kB | Ωm 与 h·r_d 在 README 第 2 节预注册的容差内与 0.2975 ± 0.0086、101.54 ± 0.73 Mpc 一致即为复现 | 待定 |
-| R2 · 用压缩 CMB 先验的环节 A–B | 现在可检验 | 对 DESI + (θ*, ωb, ωbc) 做 ΛCDM 与 w0waCDM 的 MAP 拟合；Δχ² → σ；先验的两种解读（ωbc 含与不含 ων） | BAO 约 3 kB；先验写在代码中 | 两种解读下 Δχ²_MAP 都在 −8.0 的预注册容差内为复现；只有一种为有条件复现 | 待定 |
-| R3 · 不含 CMB 的环节 A–B | 现在可检验 | DESI、DESI + Pantheon+、DESI + Union3 的 MAP 拟合 | Pantheon+ 34 MB，Union3 11 kB | Δχ²_MAP 在 −4.7、−4.9、−10.1 的预注册容差内为复现 | 待定 |
+| R1 · 环节 A 的输入：只用 BAO 的 ΛCDM | 现在可检验 | 用 DR2 均值与协方差拟合 Ωm 与 h·r_d | DESI DR2 BAO ALL，约 3 kB | Ωm 与 h·r_d 在 README 第 2 节预注册的容差内与 0.2975 ± 0.0086、101.54 ± 0.73 Mpc 一致即为复现 | 已复现：Ωm = 0.2979 ± 0.0086，h·r_d = 101.52 ± 0.73 Mpc |
+| R2 · 用压缩 CMB 先验的环节 A–B | 现在可检验 | 对 DESI + (θ*, ωb, ωbc) 做 ΛCDM 与 w0waCDM 的 MAP 拟合；Δχ² → σ；先验的两种解读（ωbc 含与不含 ων） | BAO 约 3 kB；先验写在代码中 | 两种解读下 Δχ²_MAP 都在 −8.0 的预注册容差内为复现；只有一种为有条件复现 | 有条件复现（解读 B）：−8.01（B），−6.59（A） |
+| R3 · 不含 CMB 的环节 A–B | 现在可检验 | DESI、DESI + Pantheon+、DESI + Union3 的 MAP 拟合 | Pantheon+ 34 MB，Union3 11 kB | Δχ²_MAP 在 −4.7、−4.9、−10.1 的预注册容差内为复现 | 已复现：−4.65、−4.86、−10.03 |
 | 用完整 CMB 的环节 A（−12.5） | 不在范围内 | 需要完整的 Planck 与 ACT 似然（不是压缩数据产品） | — | — | — |
 | 环节 B · 威尔克斯校准（`gap_regular`） | 可探索（不作判决） | 在 ΛCDM 最佳拟合下模拟 DESI + 压缩先验数据，重拟两个模型，把 Δχ² 分布与 χ²(2) 比较；这能为该缺口提供信息，但不能填补它，因为缺口针对的是完整 CMB 的拟合 | 不需新数据 | 无——只作探索，见 README §8 | — |
 | `NoSys` · 超新星校准 | 可探索（不作判决） | DESI + 压缩 CMB + Pantheon+ / Union3 / DES-Dovekie，比较离散程度 | Dovekie `DES-Dovekie_HD.csv` 0.11 MB + `covtot_inv_000.npz` 6.2 MB（只需这两个文件） | 无——只作探索 | — |
 | `NoSys` · 单个示踪体（tracer） | 可探索（不作判决） | 逐一去掉 DESI 的一个红移区间 | 分示踪体文件约 1 kB | 无——只作探索 | — |
 | 环节 C · 参数化 | 可探索（不作判决） | 把 CPL 换成分箱 w(z) 或其他形式 | 不需新数据 | 无——只作探索 | — |
 | DES-SN5YR 的组合 | 暂不在范围内 | 其协方差 53.5 MB，超过单次 50 MB 上限；以 Dovekie 代替 | — | — | — |
+
+#### 我们的发现（2026-11-14）
+
+研究（[`README` 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/002-m01-desi-bao-evolving-dark-energy/README.md)、[`results/summary.json`](https://github.com/sudoghut/astrolab/blob/main/studies/002-m01-desi-bao-evolving-dark-energy/results/summary.json)）用本项目自己的背景宇宙学代码，从约 34 MB 的公开文件重算了所有能重算的数字。
+
+- **R1，只用 BAO 的 ΛCDM：已复现。** Ωm = 0.2979 ± 0.0086，h·r_d = 101.52 ± 0.73 Mpc，与式 17 相差不到 0.05σ。
+- **R3，不含 CMB：已复现。** Δχ²_MAP = −4.65（DESI）、−4.86（加 Pantheon+）、−10.03（加 Union3），论文为 −4.7、−4.9、−10.1。第二部分列为主要薄弱点的、偏好程度随超新星样本变化的现象是真实且可复现的。
+- **R2，压缩 CMB 先验：有条件复现。** 把先验的 ωbc 均值按 ωb + ωc 解读（论文式 2 旁的定义）时，Δχ²_MAP = −8.01（2.4σ），后验均值 w0 = −0.44 ± 0.23、wa = −1.69 ± 0.66，与式 24 一致。按我们预注册为"主要"的解读（均值含 ων，只有间接数值证据）时，Δχ²_MAP = −6.59（2.1σ）。θ* 标定只让 Δχ² 移动 ±0.4，解释不了这一差别。所以压缩先验结果的显著性在 0.3σ 的量级上取决于一个论文没有说清的参数约定。
+- 未检验：标题数字 3.1σ 背后的完整 CMB 的 Δχ² = −12.5（需要完整的 Planck 与 ACT 似然）、DES-SN5YR 的组合，以及威尔克斯校准（`gap_regular`），后者仍是探索项（README 第 8 节）。
 
 ### 术语表
 
@@ -571,3 +604,4 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 ### 研究进展
 
 - 2026-11-14：第一版：第一至三部分，在实现之前写成（T-004，计划 010）；按闸门 1 审查修订（高斯误差是明说的假设；威尔克斯正则性作为 GAP `gap_regular` 补上，因而 `explicit_insufficient`）。
+- 2026-11-14：研究运行：R1、R3 已复现；R2 有条件复现（只有把先验的 ωbc 均值按 ωb + ωc 解读时才复现）；补上第三部分的结果与"我们的发现"。

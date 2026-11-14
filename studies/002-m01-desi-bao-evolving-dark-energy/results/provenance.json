@@ -1,0 +1,59 @@
+{
+  "generated_at": "2026-11-14T17:25:03+00:00",
+  "inputs": [
+    {
+      "source": "http",
+      "request": "https://raw.githubusercontent.com/CobayaSampler/bao_data/master/desi_bao_dr2/desi_gaussian_bao_ALL_GCcomb_mean.txt",
+      "retrieved_at": "2026-11-14T16:57:46+00:00",
+      "sha256": "9ac154ab583ce759c0f7eef3c978c7c70a6ead2d18774caceadf1a350a640585",
+      "bytes": 472,
+      "cache_key": "d7f1cd4272da7a6fbaf15e9f",
+      "label": "DESI DR2 BAO mean"
+    },
+    {
+      "source": "http",
+      "request": "https://raw.githubusercontent.com/CobayaSampler/bao_data/master/desi_bao_dr2/desi_gaussian_bao_ALL_GCcomb_cov.txt",
+      "retrieved_at": "2026-11-14T16:57:46+00:00",
+      "sha256": "252a143274c8a07c78694c119617d36594f6d7965d00319ca611c6ffb886e509",
+      "bytes": 2547,
+      "cache_key": "f015d221c51b74a08e890ccb",
+      "label": "DESI DR2 BAO cov"
+    },
+    {
+      "source": "http",
+      "request": "https://raw.githubusercontent.com/CobayaSampler/sn_data/master/PantheonPlus/Pantheon+SH0ES.dat",
+      "retrieved_at": "2026-11-14T16:57:47+00:00",
+      "sha256": "1cb0fc379ef066afdc2ffd1857681cc478024570d8a3eba284fb645775198cf8",
+      "bytes": 579283,
+      "cache_key": "cb344c27240a9076fa319419",
+      "label": "pantheonplus data"
+    },
+    {
+      "source": "http",
+      "request": "https://raw.githubusercontent.com/CobayaSampler/sn_data/master/PantheonPlus/Pantheon+SH0ES_STAT+SYS.cov",
+      "retrieved_at": "2026-11-14T16:59:56+00:00",
+      "sha256": "abf806d966485e64afdb359c87bffc0ecc00d05eff0a31ced66f247385df0fdc",
+      "bytes": 33284960,
+      "cache_key": "c101b3cf6cd1d693cef36851",
+      "label": "pantheonplus covariance"
+    },
+    {
+      "source": "http",
+      "request": "https://raw.githubusercontent.com/CobayaSampler/sn_data/master/Union3/lcparam_full.txt",
+      "retrieved_at": "2026-11-14T16:57:46+00:00",
+      "sha256": "a840fe71c606bda11b869dbfcacc21c0199a5dc393f3790d10a7b58de97deae7",
+      "bytes": 1556,
+      "cache_key": "be176b03f2b85f04bd5d13a4",
+      "label": "union3 data"
+    },
+    {
+      "source": "http",
+      "request": "https://raw.githubusercontent.com/CobayaSampler/sn_data/master/Union3/mag_covmat.txt",
+      "retrieved_at": "2026-11-14T16:57:47+00:00",
+      "sha256": "64c79abd24bf5154bc1e38ad0c031e31dd6247cdcc5ca930829698169809a146",
+      "bytes": 9199,
+      "cache_key": "4fecfcf69a3c66fc3f64c5d0",
+      "label": "union3 covariance"
+    }
+  ]
+}

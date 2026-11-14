@@ -160,18 +160,36 @@ def theta_calibration() -> float:
     return THETA_REF["theta100"] / 100.0 / ref.theta_star_raw()
 
 
-def bao_late(Om: float, hrd: float, z, w0: float = -1.0, wa: float = 0.0):
-    """BAO-only distances in units of r_d for a late-time universe (matter + CPL dark energy,
-    radiation neglected, neutrinos counted as matter). Returns (DM/rd, DH/rd, DV/rd); hrd in Mpc."""
+def late_E(Om: float, z, w0: float = -1.0, wa: float = 0.0):
+    """E(z) of a late-time flat universe: matter (neutrinos counted as matter) + CPL dark energy,
+    radiation neglected (relative error ~5e-4 in E at z = 2.33)."""
+    a = 1.0 / (1.0 + np.asarray(z, dtype=float))
+    de = (1.0 - Om) * a ** (-3.0 * (1.0 + w0 + wa)) * np.exp(-3.0 * wa * (1.0 - a))
+    return np.sqrt(Om / a ** 3 + de)
+
+
+def late_dc(Om: float, z, w0: float = -1.0, wa: float = 0.0) -> np.ndarray:
+    """Dimensionless comoving distance integral of dz / E(z) for ``late_E``, on a fixed grid in
+    x = ln(1+z) (end-corrected trapezoid, linear interpolation between nodes)."""
     z = np.atleast_1d(np.asarray(z, dtype=float))
+    xmax = float(np.log1p(z.max())) if z.size else 0.0
+    if xmax <= 0.0:
+        return np.zeros_like(z)
+    n = max(64, int(np.ceil(xmax * 2048 / 2)) * 2)
+    x = np.linspace(0.0, xmax, n + 1)
+    f = np.exp(x) / late_E(Om, np.expm1(x), w0, wa)
+    cum = np.concatenate([[0.0], np.cumsum((f[:-1] + f[1:]) * 0.5 * np.diff(x))])
+    dfdx = np.gradient(f, x)
+    cum = cum - (np.diff(x)[0] ** 2 / 12.0) * (dfdx - dfdx[0])
+    return np.interp(np.log1p(z), x, cum)
 
-    def E(x):
-        a = 1.0 / (1.0 + x)
-        de = (1.0 - Om) * a ** (-3.0 * (1.0 + w0 + wa)) * np.exp(-3.0 * wa * (1.0 - a))
-        return np.sqrt(Om / a ** 3 + de)
 
+def bao_late(Om: float, hrd: float, z, w0: float = -1.0, wa: float = 0.0):
+    """BAO-only distances in units of r_d for a late-time universe (``late_E``). hrd = h r_d in
+    Mpc. Returns (DM/rd, DH/rd, DV/rd)."""
+    z = np.atleast_1d(np.asarray(z, dtype=float))
     scale = C_KMS / 100.0 / hrd
-    dm = scale * np.array([integrate.quad(lambda x: 1.0 / E(x), 0.0, zz, epsrel=1e-9)[0] for zz in z])
-    dh = scale / E(z)
+    dm = scale * late_dc(Om, z, w0, wa)
+    dh = scale / late_E(Om, z, w0, wa)
     dv = (z * dm ** 2 * dh) ** (1.0 / 3.0)
     return dm, dh, dv
