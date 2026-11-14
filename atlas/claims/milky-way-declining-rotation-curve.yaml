@@ -1,9 +1,11 @@
 id: milky-way-declining-rotation-curve
 title: "Declining outer rotation curve of the Milky Way"
+title_zh: "银河系外区旋转曲线下降"
 statement: >
   Gaia DR3-based rotation curves decline beyond ~15-20 kpc (about 30 km/s from
   19.5 to 26.5 kpc), implying a lighter Galaxy (~2e11 Msun); the Keplerian
   interpretation is disputed.
+statement_zh: "基于 Gaia DR3 的旋转曲线在约 15–20 kpc 以外下降（从 19.5 到 26.5 kpc 下降约 30 km/s），意味着银河系质量较小（约 2×10¹¹ M☉）；开普勒式下降的解释存在争议。"
 level: L3
 grade: contested
 sources:

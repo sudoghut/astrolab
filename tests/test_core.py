@@ -1,5 +1,6 @@
 """Offline tests of the core library."""
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -93,4 +94,43 @@ def test_claim_validation_catches_errors():
     bad = {"_file": "x.yaml", "id": "y", "title": "t", "statement": "s", "level": "L9",
            "grade": "maybe", "sources": [], "reproduction": {"status": "?"}}
     errs = claims.validate(bad)
-    assert len(errs) == 5
+    assert len(errs) == 7  # 5 schema errors + missing title_zh / statement_zh
+    good = {**bad, "_file": "y.yaml", "level": "L3", "grade": "hint", "sources": [{"cite": "c"}],
+            "reproduction": {"status": "not-started"}, "title_zh": "标题", "statement_zh": "陈述"}
+    assert claims.validate(good) == []
+    assert claims.validate({**good, "title_zh": "TODO: 中文标题"}) == \
+        ["'title_zh' is still the template placeholder; fill in the Chinese text"]
+    assert claims.validate({**good, "statement_zh": "   "}) == ["'statement_zh' must be a non-empty Chinese string"]
+
+
+def test_validate_all_reports_study_placeholders(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "STUDIES", tmp_path / "studies")
+    monkeypatch.setattr(config, "TEMPLATE", Path(__file__).parent.parent / "studies" / "_template")
+    s = study.new("fresh", "Fresh", "L3")  # template placeholders, Chinese not filled in yet
+    errs = claims.validate_all()[f"studies/{s.id}/study.yaml"]
+    assert len(errs) == 2 and all("placeholder" in e for e in errs)
+
+
+def test_studies_have_chinese_fields():
+    for s in study.discover():
+        assert claims.zh_errors(s.meta, claims.STUDY_ZH_FIELDS) == [], s.id
+
+
+def test_every_web_page_loads_i18n():
+    """Bilingual rule (AGENTS.md): every page loads the shared English/Chinese switch."""
+    root = config.ROOT
+    pages = [root / "atlas" / "web" / "index.html"]
+    for d in sorted((root / "studies").iterdir()):
+        if (d / "web").is_dir():
+            pages += sorted((d / "web").rglob("*.html"))
+    assert len(pages) >= 4
+    for p in pages:
+        text = p.read_text(encoding="utf-8")
+        head = text.split("</head>", 1)[0]
+        tag = re.search(r'<script[^>]*\ssrc="[^"]*i18n\.js"', head)
+        assert tag, f"{p} does not load i18n.js in <head>"
+        title = head.find("<title>")
+        assert title < 0 or title < tag.start(), f"{p}: load i18n.js after <title>"
+        assert 'class="zh"' in text or "L(" in text or "t(" in text, f"{p} has no Chinese text"
+        if "_template" not in p.parts:
+            assert "TODO: 中文" not in text, f"{p} still has the template's Chinese placeholder"

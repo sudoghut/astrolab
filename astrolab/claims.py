@@ -4,7 +4,9 @@ One YAML file per claim in ``atlas/claims/``. Required fields::
 
     id: desi-dr2-bao                # = file stem
     title: short English title
+    title_zh: 中文标题                # Chinese for the web pages' zh mode (AGENTS.md bilingual rule)
     statement: one-sentence claim as made in the literature
+    statement_zh: 中文陈述
     level: L0 | L1 | L2 | L3 | L4 | X
     grade: established | tension | hint | contested | refuted
     sources:                        # at least one
@@ -20,6 +22,7 @@ One YAML file per claim in ``atlas/claims/``. Required fields::
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +34,20 @@ from .study import LEVELS, discover
 GRADES = ("established", "tension", "hint", "contested", "refuted")
 REPRO_STATUSES = ("not-started", "in-progress", "reproduced", "partial", "failed")
 REQUIRED = ("id", "title", "statement", "level", "grade", "sources", "reproduction")
+ZH_FIELDS = ("title_zh", "statement_zh")  # required Chinese twins of title / statement
+STUDY_ZH_FIELDS = ("title_zh", "question_zh")  # required in every studies/*/study.yaml
+
+
+def zh_errors(data: dict[str, Any], fields: tuple[str, ...]) -> list[str]:
+    """Chinese fields must contain Chinese text and must not be template placeholders."""
+    errs = []
+    for k in fields:
+        v = data.get(k)
+        if not isinstance(v, str) or not re.search(r"[\u4e00-\u9fff]", v):
+            errs.append(f"'{k}' must be a non-empty Chinese string")
+        elif v.strip().upper().startswith("TODO"):
+            errs.append(f"'{k}' is still the template placeholder; fill in the Chinese text")
+    return errs
 
 
 def load_all(root: Path | None = None) -> list[dict[str, Any]]:
@@ -44,8 +61,8 @@ def load_all(root: Path | None = None) -> list[dict[str, Any]]:
 
 
 def validate(claim: dict[str, Any], study_ids: set[str] | None = None) -> list[str]:
-    errs = [f"missing field '{k}'" for k in REQUIRED if k not in claim]
-    if errs:
+    errs = [f"missing field '{k}'" for k in REQUIRED if k not in claim] + zh_errors(claim, ZH_FIELDS)
+    if any(e.startswith("missing field") for e in errs):
         return errs
     if claim["_file"] != f"{claim['id']}.yaml":
         errs.append(f"id '{claim['id']}' does not match file name")
@@ -67,6 +84,10 @@ def validate_all() -> dict[str, list[str]]:
     ids = {s.id for s in discover()}
     claims = load_all()
     problems = {c["_file"]: validate(c, ids) for c in claims}
+    for s in discover():  # studies must carry Chinese title/question too (bilingual rule)
+        errs = zh_errors(s.meta, STUDY_ZH_FIELDS)
+        if errs:
+            problems[f"studies/{s.id}/study.yaml"] = errs
     known = {c.get("id") for c in claims}
     for c in claims:
         for dep in c.get("depends_on") or []:
@@ -86,9 +107,11 @@ def atlas_data() -> dict[str, Any]:
         studies.append({
             "id": s.id,
             "title": meta.get("title", s.id),
+            "title_zh": meta.get("title_zh"),
             "level": meta.get("level"),
             "status": meta.get("status"),
             "question": meta.get("question"),
+            "question_zh": meta.get("question_zh"),
             "claims": meta.get("claims", []),
             "has_web": (s.path / "web" / "index.html").exists(),
             "last_run": run_info.exists(),

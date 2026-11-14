@@ -87,10 +87,20 @@ LRU 指最近最少使用（Least Recently Used）的清理策略。
   - 在 `design/README.md` 索引中登记。
   - 执行过程中，在计划文末的"执行记录"一节追加进度。
 - **先写假设与判据，再跑分析**：研究的 `README.md` 第 1–4 节必须在写 `run.py` 之前完成，相当于预注册（pre-registration）。
-- **术语括注英文**：设计文献与研究日志用中文书写，任何术语第一次出现时都要在括号中注明英文原文，缩写写出全称。代码、注释、网页和结论条目（claims）用英文。
+- **术语括注英文**：设计文献与研究日志用中文书写，任何术语第一次出现时都要在括号中注明英文原文，缩写写出全称。代码与注释用英文。
+- **项目保持中英双语**（见 `design/004-plan_*`）：
+  - 对外说明文档（如 `README.md`）中英双语，两种语言内容对应。
+  - **每个网页都要有英文/中文切换按钮，默认英文。** 一律在 `<head>` 中引用共享的 `atlas/web/i18n.js`；它自带切换按钮和隐藏样式，不依赖 `base.css`。用法：
+    - 静态文字成对写成 `<span class="en">…</span><span class="zh">…</span>`。
+    - 脚本生成的 HTML 用 `i18n.L(en, zh)`。
+    - 纯文本场合（`textContent`、属性、`<option>`、图表标题与悬停文字）用 `i18n.t(en, zh)`，并在 `i18n.onLangChange(fn)` 中更新。
+    - 中文页面标题写在 `<html data-title-zh="…">`。
+  - 测试会检查每个 `web/` 下的 `.html` 是否引用了 `i18n.js`。
+  - 中文字段：结论条目（claims）加 `title_zh`、`statement_zh`，`study.yaml` 加 `title_zh`、`question_zh`。新建结论或研究时必须同时填写；`python -m astrolab claims check` 与测试会检查它们含有中文、且不是模板占位符（`TODO…`）。网页在中文模式下显示中文字段。
+  - 天体名称、星表编号、数值、单位、文献引用、代码与命令不翻译。
 - **引用前先核实**：路线图中标为 [S] 或 [U] 的条目，动手前要提升到 [V]，即对照原文核实。
 - **及时抽出技能（skills）**：某个研究动作第二次出现，或者步骤多、容易做错时，就把它写成技能，放在 `.claude/skills/<name>/SKILL.md`。
-  - 已规划的技能：独立审稿（referee）、服务器端查询（server-side query）、新建研究、文献核实、出报告。
+  - 已有技能：独立审稿（referee）、服务器端查询（server-side query）、双闸代码审查（dual-gate review）。已规划：新建研究、文献核实、出报告。
   - 技能里只写流程与检查清单；具体规则仍以本文件为准，两者不重复。
 
 ## 第三条：运行命令
@@ -127,7 +137,7 @@ python -m pytest                          # 核心库测试 + 各研究的结论
 | `log.md` | 研究日志（research log），按时间倒序追加 |
 | `run.py` | `def main(ctx)`，用 `ctx.tap / ctx.http / ctx.save / ctx.log` |
 | `test_conclusions.py` | 读取 `results/`，断言结论仍然成立 |
-| `web/` | 为该问题设计的网页，读取 `../results/*.json`。形式完全按研究需要来：可以是可视化、交互式数据分析、多页面或专用工具，**不必拘泥于 Atlas 的样式或结构**；`atlas/web/base.css` 可用可不用 |
+| `web/` | 为该问题设计的网页，读取 `../results/*.json`。形式完全按研究需要来：可以是可视化、交互式数据分析、多页面或专用工具，**不必拘泥于 Atlas 的样式或结构**；`atlas/web/base.css` 可用可不用，但必须引用 `atlas/web/i18n.js`（见第二条双语规则） |
 
 **Atlas 与研究网页的分工**：Atlas 是总图，只负责宏观导航（各尺度的结论与研究落在哪里）。局部的研究、可视化与数据分析都在各自的 `studies/<id>/web/` 中灵活设计。
 
