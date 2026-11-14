@@ -58,14 +58,16 @@ if ($proxy) { $env:HTTPS_PROXY = "http://127.0.0.1:7890"; $env:HTTP_PROXY = "htt
 else { Remove-Item Env:HTTPS_PROXY, Env:HTTP_PROXY -ErrorAction SilentlyContinue }
 Write-Output @'
 <review prompt - single-quoted here-string, so $ and backticks are not expanded>
-'@ | codex exec --dangerously-bypass-approvals-and-sandbox -o $out
+'@ | codex exec --dangerously-bypass-approvals-and-sandbox -o $out *> $log
 "exit code: $LASTEXITCODE"
 ```
 
 `<scratchpad>` is a placeholder: replace it with this session's scratchpad directory (or
 another existing temp directory outside the project). Set `$out` first to a NEW file per
 stage and round, e.g.
-`$out = "<scratchpad>/codex-stage2-round1.md"; Remove-Item $out -ErrorAction SilentlyContinue`.
+`$out = "<scratchpad>/codex-stage2-round1.md"; $log = "<scratchpad>/codex-stage2-round1.log"; Remove-Item $out -ErrorAction SilentlyContinue`.
+(`'@ | codex ...` on the closing line is valid in PowerShell 5.1: the terminator must start at
+column 0, and a pipeline may follow it.)
 
 - `codex exec` = non-interactive; `--dangerously-bypass-approvals-and-sandbox` = no approval
   prompts. Pipe the prompt (`Write-Output ... |`) so Codex does not wait on stdin. Use a
@@ -81,8 +83,8 @@ stage and round, e.g.
   failed run can never reuse an earlier `SERIOUS ISSUES: 0`. PowerShell 5.1 prefixes piped
   stdin with a UTF-8 BOM; Chinese still arrives intact and Codex ignores it. Start the PowerShell
   tool call with its `run_in_background: true` parameter (a review can exceed the tool's
-  10-minute foreground limit); the harness notifies you when it exits. Redirect codex's
-  console output to a log file (`*> <scratchpad>/codex-....log`) to keep it out of context.
+  10-minute foreground limit); the harness notifies you when it exits. The `*> $log`
+  redirect keeps codex's console output out of your context; read the log only on failure.
 - The prompt must say: review only; DO NOT modify files; DO NOT run network or data-fetching
   commands (`python -m astrolab run`, downloads; AGENTS.md section 1); the stage goal; the
   diff command and file list; findings ranked serious/minor with file:line and a failure

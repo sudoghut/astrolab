@@ -38,6 +38,12 @@
 2. **双语机制与数据**：`atlas/web/i18n.js`；`claims.py` 透传与校验中文字段；10 条结论条目与 2 个研究补中文字段，模板 `study.yaml` 加中文字段；新增测试。
 3. **网页改造**：Atlas 页面、研究 000 与 001 页面、研究模板；重新生成 `atlas.json`；用无头浏览器（headless browser）分别检查英文与中文两种模式。
 
+各环节验收标准：
+
+- 环节 1：规则、计划、技能之间以及与 `AGENTS.md` 已有规则之间没有矛盾；技能中的命令在本机 Windows PowerShell 5.1 和 codex 下可直接运行。
+- 环节 2：`python -m pytest` 全部通过；`python -m astrolab claims check` 无错误；删掉任一结论的 `title_zh` 时 `claims check` 报错；`i18n.js` 单独引用（不引用 `base.css`）时也能隐藏非当前语言。
+- 环节 3：见第 5 节。
+
 全部通过后提交、推送、合并。
 
 ## 5. 验收标准
