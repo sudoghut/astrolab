@@ -127,19 +127,20 @@ DR4 的内容：
 | 测量 | H0 (km/s/Mpc) | 核实 |
 |---|---|---|
 | SH0ES (Riess et al. 2022, ApJL, doi:10.3847/2041-8213/ac5c5b, arXiv:2112.04510) | 73.04 ± 1.04 | [V]；卷页号 [U] |
-| SH0ES 的 JWST 复核 (arXiv:2408.11770) | 73.2 ± 0.9 | [V] |
+| SH0ES HST 全样本（42 SN Ia、4 个锚点；arXiv:2408.11770 表 4） | 73.2 ± 0.9 | [V] |
+| SH0ES 的 JWST 三方法合并（arXiv:2408.11770 摘要） | 72.6 ± 2.0 | [V] |
 | CCHP (Freedman et al. 2025, ApJ 985, 182, arXiv:2408.06153)，TRGB 方法，24 个 SN Ia 校准 | 70.39 ± 1.22(stat) ± 1.33(sys) ± 0.70(σ_SN) | [V]（摘要；卷页号 [U]） |
 | H0DN 本地距离网络（Local Distance Network, A&A 708, A166 (2026), arXiv:2510.23823） | 73.50 ± 0.81 | [V] |
 | 早期宇宙：SPT-3G + ACT + Planck 组合（arXiv:2506.20707） | 67.19 ± 0.38 | [V] |
 | 早期宇宙：ACT DR6（P-ACT + CMB 透镜 + DESI DR1 BAO，arXiv:2503.14452） | 68.22 ± 0.36 | [V] |
 | 独立方法：TDCOSMO 2025 时间延迟透镜（time-delay lensing, A&A 704, A63 (2025), arXiv:2506.03023） | 71.6 (+3.9/−3.3) | [V] |
-| SH0ES 限于 CCHP JWST 样本（10 宿主、11 SN Ia；arXiv:2408.11770 表 4） | 71.2 | [V] |
+| SH0ES 限于 CCHP JWST 样本（10 宿主、11 SN Ia，只用 NGC 4258 锚点，近似式；arXiv:2408.11770 表 4、第 III.2 节；子样本误差约 2.4，不含 NGC 4258 的 1.1） | 71.2 | [V] |
 
 TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 
 **方法**
 - 用 Pantheon+SH0ES 公开的设计矩阵（design matrix）做距离阶梯的广义最小二乘（GLS, Generalised Least Squares）拟合。
-- 对 24–42 个校准星系（calibrator hosts）做自助法（bootstrap）重采样。
+- 对 37 个校准宿主（calibrator hosts，含 42 颗 SN Ia）做无放回的子抽样与留一宿主（有放回的自助法（bootstrap）会复制相关的行）。
 
 **开放问题**
 - CCHP 与 SH0ES 的差异，是否主要来自校准星系样本的选择（host selection）？
