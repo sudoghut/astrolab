@@ -59,8 +59,19 @@ ERR_PARAMS = ["ra", "dec", "parallax", "pmra", "pmdec", "a_thiele_innes", "b_thi
 # no RV column -> RV veto not applicable; no FLAME mass -> counts as absent).
 OPTIONAL_COLUMNS = {"gaia_source": ["rv_amplitude_robust", "rv_nb_transits"],
                     "astrophysical_parameters": list(FLAME_COLS)}
-# Columns that must exist; if TAP_SCHEMA does not list them, the metadata lookup failed: stop.
-CORE_COLUMNS = {"gaia_source": "source_id", "astrophysical_parameters": "source_id"}
+# Columns the queries need; if TAP_SCHEMA does not list one, stop before any source-level data
+# (a renamed column is a release-day decision under the information barrier, not a query error).
+CORE_COLUMNS = {
+    "gaia_source": ["source_id", "ra", "dec", "l", "b", "pmra", "pmdec", "parallax", "phot_g_mean_mag",
+                    "bp_rp", "ruwe"],
+    "astrophysical_parameters": ["source_id"],
+    "nss_two_body_orbit": ["source_id", "nss_solution_type", "significance", "goodness_of_fit", "flags",
+                           "bit_index", "corr_vec", "parallax_error", "period_error"]
+                          + [c for p in ["ra", "dec", "parallax", "pmra", "pmdec", "a_thiele_innes", "b_thiele_innes",
+                                         "f_thiele_innes", "g_thiele_innes", "c_thiele_innes", "h_thiele_innes",
+                                         "center_of_mass_velocity", "eccentricity", "period", "t_periastron"]
+                             for c in (p, f"{p}_error")],
+}
 # Orbit columns identifying one solution (a LEFT JOIN that doubles a row repeats these exactly).
 SOLUTION_KEY = ["source_id", "nss_solution_type", "period", "a_thiele_innes", "b_thiele_innes",
                 "f_thiele_innes", "g_thiele_innes"]
@@ -144,11 +155,12 @@ def dr3_reference_dir(ctx) -> Path:
 
 def available_columns(ctx, schema, label):
     """Which optional per-row columns this release has (TAP_SCHEMA: metadata, barrier-safe)."""
-    names = ", ".join(f"'{schema}.{t}'" for t in OPTIONAL_COLUMNS)
+    names = ", ".join(f"'{schema}.{t}'" for t in CORE_COLUMNS)
     meta = ctx.tap(f"SELECT table_name, column_name FROM tap_schema.columns WHERE table_name IN ({names})",
-                   label="optional columns (TAP_SCHEMA)", release=label, max_rows=2000)
-    have = {(str(t).split(".")[-1], str(c).lower()) for t, c in zip(meta.table_name, meta.column_name)}
-    missing_core = [f"{t}.{c}" for t, c in CORE_COLUMNS.items() if (t, c) not in have]
+                   label="columns (TAP_SCHEMA)", release=label, max_rows=5000)
+    have = {(str(t).split(".")[-1].lower(), str(c).split(".")[-1].lower())
+            for t, c in zip(meta.table_name, meta.column_name)}
+    missing_core = [f"{t}.{c}" for t, cols in CORE_COLUMNS.items() for c in cols if (t, c) not in have]
     if missing_core:
         raise SystemExit(f"TAP_SCHEMA lists no {missing_core} for schema {schema}: the metadata lookup failed "
                          f"(table renamed or table_name format differs). Fix before running; nothing written.")
@@ -350,14 +362,25 @@ def resolve_dr3_ids(ctx, schema, label, rel, ref_dir):
     failed = [int(i) for i in res.dr3_id[res.dr4_id.isna()]]
     if not nbs or not failed:
         return res
-    meta = ctx.tap(f"SELECT column_name FROM tap_schema.columns WHERE table_name = '{schema}.{nbs['table']}'",
-                   label="neighbourhood table (TAP_SCHEMA)", release=label, max_rows=200)
-    cols = {str(c).lower() for c in meta.column_name}
-    if not {nbs["old"], nbs["new"], nbs["distance"]} <= cols:
-        note = f"{schema}.{nbs['table']} not listed: direct-id resolution only"
+    # Three cases: metadata unavailable -> stop; table listed but spec does not match -> stop (fix the
+    # spec on release day, under the barrier); table genuinely absent -> direct-id resolution only.
+    tables = ctx.tap(f"SELECT table_name FROM tap_schema.tables WHERE schema_name = '{schema}'",
+                     label="tables (TAP_SCHEMA)", release=label, max_rows=5000)
+    listed = {str(t).split(".")[-1].lower() for t in tables.table_name}
+    if not listed:
+        raise SystemExit(f"TAP_SCHEMA lists no tables for {schema}: metadata unavailable; nothing written")
+    if nbs["table"].lower() not in listed:
+        note = f"{schema}.{nbs['table']} not published: direct-id resolution only"
         ctx.log(note)
         res.attrs["neighbourhood"] = note
         return res
+    meta = ctx.tap(f"SELECT column_name FROM tap_schema.columns WHERE table_name = '{schema}.{nbs['table']}'",
+                   label="neighbourhood columns (TAP_SCHEMA)", release=label, max_rows=200)
+    cols = {str(c).split(".")[-1].lower() for c in meta.column_name}
+    missing = sorted({nbs["old"], nbs["new"], nbs["distance"]} - cols)
+    if missing:
+        raise SystemExit(f"{schema}.{nbs['table']} is published but lacks {missing}: correct "
+                         f"RELEASES[...]['neighbourhood'] from TAP_SCHEMA (logged) before running; nothing written")
     nb = pd.concat([ctx.tap(f"SELECT {nbs['old']} AS old_id, {nbs['new']} AS new_id, {nbs['distance']} AS dist "
                             f"FROM {schema}.{nbs['table']} WHERE {nbs['old']} IN ({_ids(c)})",
                             label="DR3-DR4 neighbourhood", release=label, max_rows=50 * len(c))

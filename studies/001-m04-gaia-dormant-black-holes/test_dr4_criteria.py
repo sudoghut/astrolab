@@ -135,10 +135,14 @@ def test_available_columns_stops_when_metadata_lookup_fails():
     meta = pd.DataFrame({"table_name": ["gaiadr4.gaia_source"], "column_name": ["source_id"]})
     with pytest.raises(SystemExit, match="metadata lookup failed"):
         run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4")
-    meta = pd.DataFrame({"table_name": ["gaiadr4.gaia_source"] * 2 + ["gaiadr4.astrophysical_parameters"] * 2,
-                         "column_name": ["source_id", "rv_amplitude_robust", "source_id", "mass_flame"]})
+    rows = [(f"gaiadr4.{tb}", c) for tb, cols in run.CORE_COLUMNS.items() for c in cols]
+    rows += [("gaiadr4.gaia_source", "rv_amplitude_robust"), ("gaiadr4.astrophysical_parameters", "MASS_FLAME")]
+    meta = pd.DataFrame(rows, columns=["table_name", "column_name"])
     assert run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4") == {"rv_amplitude_robust",
                                                                                            "mass_flame"}
+    meta = meta[meta.column_name != "period_error"]          # a needed NSS column missing: stop
+    with pytest.raises(SystemExit, match="period_error"):
+        run.available_columns(FakeCtx({"tap_schema": meta}), "gaiadr4", "Gaia DR4")
 
 
 def test_screen_selects_only_available_flame_columns():
@@ -168,3 +172,51 @@ def test_screen_adql_partial_flame_list_is_well_formed():
     from screen import screen_adql
     q = screen_adql("dr4", flame=["mass_flame", "radius_flame"])
     assert "g.ruwe, ap.mass_flame, ap.radius_flame FROM" in q and "mass_flame_upper" not in q
+
+
+def _res_one_unresolved():
+    ref = pd.DataFrame({"source_id": [NEW], "ra": [10.0], "dec": [0.0], "phot_g_mean_mag": [12.0]})
+    return ref
+
+
+def test_neighbourhood_metadata_cases(tmp_path):
+    import json as _json
+    import pytest
+    d = tmp_path / "dr3"
+    d.mkdir()
+    (d / "reference_ids.json").write_text(_json.dumps({"source_id": [str(NEW)], "ra": [10.0], "dec": [0.0],
+                                                       "phot_g_mean_mag": [12.0]}), encoding="utf-8")
+    empty_gs = pd.DataFrame({"source_id": pd.Series(dtype="int64"), "ra": [], "dec": [], "pmra": [], "pmdec": [],
+                             "phot_g_mean_mag": []})
+    rel = run.RELEASES["dr4"]
+
+    class Ctx(FakeCtx):
+        def log(self, m):
+            pass
+
+    # metadata unavailable: stop
+    ctx = Ctx({"FROM gaiadr4.gaia_source": empty_gs, "tap_schema.tables": pd.DataFrame({"table_name": []})})
+    with pytest.raises(SystemExit, match="metadata unavailable"):
+        run.resolve_dr3_ids(ctx, "gaiadr4", "Gaia DR4", rel, d)
+    # table genuinely absent: direct only
+    ctx = Ctx({"FROM gaiadr4.gaia_source": empty_gs,
+               "tap_schema.tables": pd.DataFrame({"table_name": ["gaiadr4.gaia_source"]})})
+    res = run.resolve_dr3_ids(ctx, "gaiadr4", "Gaia DR4", rel, d)
+    assert "not published" in res.attrs["neighbourhood"] and res.dr4_id.isna().all()
+    # table listed, columns do not match the spec: stop
+    ctx = Ctx({"FROM gaiadr4.gaia_source": empty_gs,
+               "tap_schema.tables": pd.DataFrame({"table_name": ["gaiadr4.dr3_neighbourhood"]}),
+               "tap_schema.columns": pd.DataFrame({"column_name": ["dr3_id", "dr4_id", "angular_distance"]})})
+    with pytest.raises(SystemExit, match="lacks"):
+        run.resolve_dr3_ids(ctx, "gaiadr4", "Gaia DR4", rel, d)
+    # table listed and matching (qualified, upper-case names): fallback used
+    nb = pd.DataFrame({"old_id": [NEW], "new_id": [NEW + 2], "dist": [50.0]})
+    found_new = pd.DataFrame({"source_id": [NEW + 2], "ra": [10.0], "dec": [0.0], "pmra": [0.0], "pmdec": [0.0],
+                              "phot_g_mean_mag": [12.0]})
+    ctx = Ctx({"FROM gaiadr4.dr3_neighbourhood": nb, f"IN ({NEW + 2})": found_new,
+               "FROM gaiadr4.gaia_source": empty_gs,
+               "tap_schema.tables": pd.DataFrame({"table_name": ["gaiadr4.dr3_neighbourhood"]}),
+               "tap_schema.columns": pd.DataFrame({"column_name": ["gaiadr4.dr3_neighbourhood.DR3_SOURCE_ID",
+                                                                   "DR4_SOURCE_ID", "ANGULAR_DISTANCE"]})})
+    res = run.resolve_dr3_ids(ctx, "gaiadr4", "Gaia DR4", rel, d)
+    assert int(res.dr4_id.iloc[0]) == NEW + 2 and res.reason.iloc[0] == "neighbourhood"
