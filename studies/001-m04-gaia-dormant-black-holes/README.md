@@ -80,7 +80,9 @@ criteria are computed by `run.py` (design plan 008), not by hand on the day.
 - *Primary solution (R-sel)*, applied per source everywhere (targets, controls, survivors, new
   candidates): among the source's solutions of astrometric type, prefer validated over
   non-validated; among those prefer `AstroSpectroSB1`, then `Orbital`, then the other types; ties
-  by the highest `significance`, then the smallest |`goodness_of_fit`|. All solutions are saved; the
+  by the highest `significance`, then the smallest |`goodness_of_fit`|, then the lexicographically
+  smallest `nss_solution_type`, then the smallest `period` (missing values sort last), so the choice
+  never depends on row order. All solutions are saved; the
   criteria use the primary.
 - *Vetoes*: (i) type veto: the primary solution is of a non-validated type; (ii) RV veto: DR4
   `rv_amplitude_robust` < `PARAMS["rv_ratio_min"]` (0.5) x the min-to-max RV range predicted from
@@ -150,7 +152,8 @@ and not refuted gets exactly one label, the first that applies:
 4. `insufficient`: the primary solution's parallax <= 0 or parallax S/N <= 5, or a missing
    period, period error or a0;
 5. `rv-vetoed`: the RV veto applies and fires;
-6. `mass-below`: M2 <= 3 Msun with M1 = DR4 FLAME `mass_flame` if present, else the DR3 `m1_used`;
+6. `mass-below`: M2 <= 3 Msun with M1 = DR4 FLAME `mass_flame` if it is a finite number for that source (a missing column or
+   a NULL value counts as absent), else the DR3 `m1_used`;
 7. `period-changed`: |P_DR4 - P_DR3| >= 3 sqrt(sigma_P,DR3^2 + sigma_P,DR4^2);
 8. `persists`: none of the above.
 Also reported, not used for labels: P_DR4/P_DR3 (values near 0.5 or 2 flagged as possible
