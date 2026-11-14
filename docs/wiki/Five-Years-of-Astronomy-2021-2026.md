@@ -263,8 +263,9 @@ That is astrolab's starting point. The next chance is Gaia DR4, on 2 December 20
 - Numbers not in the roadmap: Gaia BH1 distance, El-Badry et al. 2023, MNRAS 518, 1057
   (arXiv:2209.06833); Radcliffe Wave length and motion, Konietzka et al. 2024, Nature 628, 62;
   GWTC-4.0 event count, LIGO–Virgo–KAGRA (LVK) Collaboration 2025 (arXiv:2508.18082);
-  Gaia DR3 source count, Gaia Collaboration (Vallenari et al.) 2023, A&A 674, A1; age of the
-  z ≈ 14 galaxies, Carniani et al. 2024, Nature 633, 318.
+  Gaia DR3 source count, Gaia Collaboration (Vallenari et al.) 2023, A&A 674, A1; cosmic time at which we see the
+  z ≈ 14 galaxies, Carniani et al. 2024, Nature 633, 318 (JADES-GS-z14-0) and Naidu et al. 2026, OJAp 9
+  (arXiv:2505.11263, MoM-z14).
 
 ---
 
@@ -393,7 +394,7 @@ S8 描述物质"抱团"的程度。
 
 - astrolab 只用 Gaia DR3 的公开轨道数据：
   - BH2 算出 8.5 倍太阳质量，与论文一致；
-  - BH1 算出 13.3 倍太阳质量，与论文中"只用天体测量（astrometry-only）"的解（12.8）一致。论文的 9.6 还用了地面视向速度（radial velocity，即恒星朝向或背离我们运动的速度，由光的多普勒频移测得）观测，使结果更精确；我们只用天体测量得到的值与它相差约 1.4σ；
+  - BH1 算出 13.3 倍太阳质量，与论文中"只用天体测量（astrometry-only）"的解（12.8）一致。论文的 9.6 还用了地面视向速度（radial velocity，即恒星朝向或背离我们运动的速度，由光的多普勒频移（Doppler shift）测得）观测，使结果更精确；我们只用天体测量得到的值与它相差约 1.4σ；
   - 服务器端筛选保留了 El-Badry 等人（2024）已知的全部 21 个中子星（neutron star）候选体。
 - **Gaia DR4 会包含多得多的轨道。** astrolab 的筛选程序已经为 2026 年 12 月 2 日的发布日准备好，只要确认新数据表的名称就能运行。这是个人研究者少有的、能和大团队一样快的机会。
 
@@ -430,4 +431,4 @@ S8 描述物质"抱团"的程度。
 - [ROADMAP.md](https://github.com/sudoghut/astrolab/blob/main/ROADMAP.md)：全部里程碑，附文献、数值及其核实状态（中文）。
 - [结论登记表（claims registry）](https://github.com/sudoghut/astrolab/tree/main/atlas/claims)：每条带等级的结论一个文件。
 - [研究 001 · Gaia 休眠黑洞](https://github.com/sudoghut/astrolab/tree/main/studies/001-m04-gaia-dormant-black-holes)：第一个完成的复现。
-- 路线图之外的数字：Gaia BH1 的距离，El-Badry et al. 2023, MNRAS 518, 1057（arXiv:2209.06833）；Radcliffe 波的长度与运动，Konietzka et al. 2024, Nature 628, 62；GWTC-4.0 事件数，LIGO–Virgo–KAGRA（LVK）合作组 2025（arXiv:2508.18082）；Gaia DR3 的天体数，Gaia Collaboration (Vallenari et al.) 2023, A&A 674, A1；z ≈ 14 星系的年龄，Carniani et al. 2024, Nature 633, 318。
+- 路线图之外的数字：Gaia BH1 的距离，El-Badry et al. 2023, MNRAS 518, 1057（arXiv:2209.06833）；Radcliffe 波的长度与运动，Konietzka et al. 2024, Nature 628, 62；GWTC-4.0 事件数，LIGO–Virgo–KAGRA（LVK）合作组 2025（arXiv:2508.18082）；Gaia DR3 的天体数，Gaia Collaboration (Vallenari et al.) 2023, A&A 674, A1；z ≈ 14 星系所处的宇宙时间，Carniani et al. 2024, Nature 633, 318（JADES-GS-z14-0）与 Naidu et al. 2026, OJAp 9（arXiv:2505.11263，MoM-z14）。
