@@ -109,7 +109,7 @@ DR4 的内容：
 **数据**
 - BAO 均值向量（mean vector）与协方差，kB 级：github.com/CobayaSampler/bao_data 的 `desi_bao_dr2/` 目录 [V]。
 - 超新星距离模数（distance modulus）与协方差：github.com/CobayaSampler/sn_data [V]（2026-11-14 按 GitHub API 元数据核对大小：Pantheon+ 协方差 33.3 MB，Union3 约 11 kB，DES-Dovekie 6.2 MB；DES-SN5YR 协方差 53.5 MB，超过单次 50 MB 上限，不取，以 Dovekie 代替）。
-- CMB 部分用压缩先验（compressed prior）：(θ*, ωb, ωbc) 的高斯近似（Gaussian approximation），均值与协方差见 DESI DR2 附录 A 式 35–36 [V]（θ* 的完整精度 0.0104103 取自 github.com/cmbant/PlanckEarlyLCDM [V]）；论文用这一先验时给出 DESI + CMB 压缩先验的偏好为 2.4σ（Δχ² = −8.0，式 24、表 6）[V]。
+- CMB 部分用压缩先验（compressed prior）：(θ*, ωb, ωbc) 的高斯近似（Gaussian approximation），均值与协方差见 DESI DR2 附录 A 式 35–36 [V]（θ* 的 6 位有效数字 0.0104103 取自 github.com/cmbant/PlanckEarlyLCDM [V]；式 35 的 ωbc 均值看来包含 ων）；论文用这一先验时给出 DESI + CMB 压缩先验的偏好为 2.4σ（Δχ² = −8.0，式 24、表 6）[V]。
 
 **方法**
 - 解析计算 D_M/r_d 和 D_H/r_d。
