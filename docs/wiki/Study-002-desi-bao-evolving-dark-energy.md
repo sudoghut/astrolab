@@ -120,7 +120,7 @@ intermediate redshift, which is hard to obtain from a single scalar field; and t
 uses the full CMB including lensing (2.4σ with the compressed prior).
 
 The authors would be wrong if: an unknown systematic error affects DESI BAO, the CMB or the
-supernovae; the Gaussian/Wilks calibration of Δχ² overstates the significance; or the 3σ is a
+supernovae; the Gaussian/Wilks calibration of Δχ² overstates the significance (our `gap_regular`, part 2); or the 3σ is a
 fluctuation (a 0.2% chance under the stated assumptions).
 
 ### Part 2 · The logic of the argument
@@ -293,7 +293,9 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
    the encoding because the paper writes it into the conclusion ("unless there is an unknown
    systematic error"); without that condition the chain would need a second GAP "no unknown
    systematics", which no paper can supply.
-2. **`stated_insufficient`**: for the same reason, what the paper writes is not enough. Gaussian
+2. **`stated_insufficient`**: for the same reason, what the paper writes is not enough. With no
+   `[implied]` premise left, the stated and the explicit premise sets coincide; the only missing premise
+   is the GAP. Gaussian
    errors, by contrast, are a stated assumption (`mod_gauss`).
 3. **Every premise is needed** (eight `_needed` theorems; `mod_gauss` is needed only because we encode the
    paper's own sufficient condition for Wilks, which does not itself require Gaussian errors). There is a single route from data to
@@ -317,7 +319,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | R2 · Stage A–B with the compressed CMB prior | testable now | MAP fits of ΛCDM and w0waCDM to DESI + (θ*, ωb, ωbc); Δχ² → σ; both readings of the prior (ωbc with and without ων) | BAO ~3 kB; prior in the code | reproduced if Δχ²_MAP is within the pre-registered tolerance of −8.0 under both readings; conditionally reproduced if under one | pending |
 | R3 · Stage A–B without CMB | testable now | MAP fits for DESI, DESI + Pantheon+, DESI + Union3 | Pantheon+ 34 MB, Union3 11 kB | reproduced if Δχ²_MAP is within the pre-registered tolerance of −4.7, −4.9, −10.1 | pending |
 | Stage A with the full CMB (−12.5) | out of scope | needs the full Planck and ACT likelihoods (not a compressed data product) | — | — | — |
-| Stage B · Wilks calibration | explorable (not decisive) | simulate DESI + compressed-prior data under the ΛCDM best fit, refit both models, compare the Δχ² distribution with χ²(2) | no new data | none — exploration only, see README §8 | — |
+| Stage B · Wilks calibration (`gap_regular`) | explorable (not decisive) | simulate DESI + compressed-prior data under the ΛCDM best fit, refit both models, compare the Δχ² distribution with χ²(2); this informs the gap but cannot close it, which concerns the full-CMB fit | no new data | none — exploration only, see README §8 | — |
 | `NoSys` · supernova calibration | explorable (not decisive) | DESI + compressed CMB + Pantheon+ / Union3 / DES-Dovekie; compare the spread | Dovekie 6.2 MB | none — exploration only | — |
 | `NoSys` · single tracers | explorable (not decisive) | leave one DESI redshift bin out | per-tracer files, ~1 kB | none — exploration only | — |
 | Stage C · parametrisation | explorable (not decisive) | replace CPL by binned w(z) or other forms | no new data | none — exploration only | — |
@@ -401,7 +403,7 @@ DR2 给出 7 个红移区间（论文表 4），从 z = 0.295 的亮星系样本
 
 作者自己给出的保留：显著性是 3–4σ，不是通常要求的 5σ（§VII.3）；它取决于用哪个超新星样本，说明近处与远处超新星的相对校准很关键；偏好的模型在中等红移进入"幽灵"（phantom）区域（w < −1），单个标量场很难做到；3.1σ 用了包括透镜在内的完整 CMB（用压缩先验时为 2.4σ）。
 
-作者可能错在：DESI BAO、CMB 或超新星存在未知系统误差；Δχ² 的高斯/威尔克斯校准高估了显著性；或者 3σ 只是涨落（在上述假设下概率 0.2%）。
+作者可能错在：DESI BAO、CMB 或超新星存在未知系统误差；Δχ² 的高斯/威尔克斯校准高估了显著性（即第二部分的 `gap_regular`）；或者 3σ 只是涨落（在上述假设下概率 0.2%）。
 
 ### 第二部分 · 论证逻辑
 
@@ -527,7 +529,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 ```
 
 1. **`explicit_insufficient`**：即使加上标准知识，链条仍有一处真正的缺口 `gap_regular`：对这一非线性拟合，Δχ²_MAP 按 2 个自由度的 χ² 分布校准。威尔克斯定理只在正则性条件下给出这一点，论文既没有讨论也没有模拟。反例模型令 `Regular := False`：威尔克斯定理不适用，没有显著性，结论不成立。这个缺口在本项目可以探索（第三部分"环节 B · 威尔克斯校准"）。论文的主要保留——未知系统误差——不是编码中的缺口，因为论文把它写进了结论（"除非存在未知系统误差"）；去掉这个条件，链条就需要第二个"没有未知系统误差"的 GAP，而这是任何论文都无法提供的。
-2. **`stated_insufficient`**：同样的原因，论文写出的内容不够。高斯误差则是论文明说的假设（`mod_gauss`）。
+2. **`stated_insufficient`**：同样的原因，论文写出的内容不够。由于没有 `[implied]` 前提，明说的前提集合与加上标准知识后的集合相同；唯一缺少的前提就是这个 GAP。高斯误差则是论文明说的假设（`mod_gauss`）。
 3. **每个前提都是必要的**（8 个 `_needed` 定理；`mod_gauss` 之所以必要，只是因为我们编码了论文自己给出的威尔克斯定理的充分条件，而该定理本身并不要求高斯误差）。从数据到结论只有一条路径：Δχ²、威尔克斯定理与两个解释步骤。这部分是我们编码选择的结果（§2.0）：摘要的结论针对"DESI BAO 与其他测量的组合"，依据的是 2.8–4.2σ 的范围，其中包括低于 3σ 的组合；我们只编码了 DESI + CMB。特别是，结论依赖一个用包括透镜在内的完整 CMB 似然算出的数（−12.5）；用压缩 CMB 先验时同一链条给出 2.4σ，低于 `mod_challenge` 的 3σ。
 4. **按重要性排序的薄弱点**（我们的判断，不是 Lean 的）：(i) "没有未知系统误差"这一条件正是争论所在——超新星给出的 2.8–4.2σ 范围和 Dovekie 降到 3.2σ，说明校准对答案影响很大；(ii) 威尔克斯校准（`gap_regular`）是假设的，没有模拟；(iii) 显著性依赖 CMB 透镜；(iv) "可能的解释"包含幽灵行为。
 5. **相容性**（`consistent`）在这里是平凡成立的：没有否定形式的前提。
@@ -541,7 +543,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | R2 · 用压缩 CMB 先验的环节 A–B | 现在可检验 | 对 DESI + (θ*, ωb, ωbc) 做 ΛCDM 与 w0waCDM 的 MAP 拟合；Δχ² → σ；先验的两种解读（ωbc 含与不含 ων） | BAO 约 3 kB；先验写在代码中 | 两种解读下 Δχ²_MAP 都在 −8.0 的预注册容差内为复现；只有一种为有条件复现 | 待定 |
 | R3 · 不含 CMB 的环节 A–B | 现在可检验 | DESI、DESI + Pantheon+、DESI + Union3 的 MAP 拟合 | Pantheon+ 34 MB，Union3 11 kB | Δχ²_MAP 在 −4.7、−4.9、−10.1 的预注册容差内为复现 | 待定 |
 | 用完整 CMB 的环节 A（−12.5） | 不在范围内 | 需要完整的 Planck 与 ACT 似然（不是压缩数据产品） | — | — | — |
-| 环节 B · 威尔克斯校准 | 可探索（不作判决） | 在 ΛCDM 最佳拟合下模拟 DESI + 压缩先验数据，重拟两个模型，把 Δχ² 分布与 χ²(2) 比较 | 不需新数据 | 无——只作探索，见 README §8 | — |
+| 环节 B · 威尔克斯校准（`gap_regular`） | 可探索（不作判决） | 在 ΛCDM 最佳拟合下模拟 DESI + 压缩先验数据，重拟两个模型，把 Δχ² 分布与 χ²(2) 比较；这能为该缺口提供信息，但不能填补它，因为缺口针对的是完整 CMB 的拟合 | 不需新数据 | 无——只作探索，见 README §8 | — |
 | `NoSys` · 超新星校准 | 可探索（不作判决） | DESI + 压缩 CMB + Pantheon+ / Union3 / DES-Dovekie，比较离散程度 | Dovekie 6.2 MB | 无——只作探索 | — |
 | `NoSys` · 单个示踪体（tracer） | 可探索（不作判决） | 逐一去掉 DESI 的一个红移区间 | 分示踪体文件约 1 kB | 无——只作探索 | — |
 | 环节 C · 参数化 | 可探索（不作判决） | 把 CPL 换成分箱 w(z) 或其他形式 | 不需新数据 | 无——只作探索 | — |
