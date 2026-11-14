@@ -132,7 +132,7 @@ H0 values are whole numbers in tenths of km/s/Mpc (73.2 → 732).
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
 | `stat_full`: reported full HST sample H0 ≥ 73.2 (a lower bound at the reported central value) | STAT | stated 2408.11770: "is not yet competitive with the HST set (42 SNe Ia and 4 anchors), which yields 73.2 $\pm$ 0.9" | Abstract |
-| `stat_sel`: HST Cepheids on the CCHP hosts H0 ≤ 71.2 | STAT | stated 2408.11770: "a corresponding value of H ${}_{0}=71.2$" | §III.2 |
+| `stat_sel`: HST Cepheids on the CCHP hosts H0 ≤ 71.2 (an upper bound at the reported central value; both values are deliberately encoded as weak bounds) | STAT | stated 2408.11770: "a corresponding value of H ${}_{0}=71.2$" | §III.2 |
 | `stat_drop`: the paper attributes the 2.0 lower value to the choice of hosts and anchor (the paper's stated inference; Lean takes it as given and does not derive the shift from the two numbers) | STAT | stated 2408.11770: "thus 2.0 $\,\rm km\,s^{-1}\,Mpc^{-1}$ lower than the full HST sample—simply due to the choice of SN hosts and anchor" | §III.2 |
 
 ```lean
@@ -172,7 +172,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 |---|---|---|
 | A real TRGB/JAGB–Cepheid offset of a few percent | `stat_agree`, only to ~0.05–0.10 mag | partly: agreement within those errors |
 | The CCHP hosts are an unusual draw | not encoded (the conclusion does not need it) | yes, for the JAGB subset: ~5% of random 8-SN draws are as low (Fig. 6) |
-| The full refit gives a smaller host shift than 71.2 suggests | `stat_sel`, `stat_drop` | partly: the approximation is said to be accurate to ~0.01 mag |
+| The full refit gives a smaller host shift than 71.2 suggests | `stat_sel`, `stat_drop` | partly: the paper says its approximation matches its own full fit to ~0.01 mag, which does not show that a full fit on R22's public matrices gives the same shift (R2 checks this) |
 
 #### 2.4 What the Lean check found
 
@@ -291,7 +291,7 @@ F. （我们补上的 GAP：推理规则）⇒ 约 2.5 的差异完全与样本�
 | 前提（Lean 构造子） | 类型 | 出处性质 | 论文位置 |
 |---|---|---|---|
 | `stat_full`：HST 全样本报告的 H0 ≥ 73.2（在报告的中心值处取下界） | STAT | stated 2408.11770："is not yet competitive with the HST set (42 SNe Ia and 4 anchors), which yields 73.2 $\pm$ 0.9" | 摘要 |
-| `stat_sel`：CCHP 宿主上的 HST 造父变星 H0 ≤ 71.2 | STAT | stated 2408.11770："a corresponding value of H ${}_{0}=71.2$" | §III.2 |
+| `stat_sel`：CCHP 宿主上的 HST 造父变星 H0 ≤ 71.2（在报告的中心值处取上界；两个数值都有意编码为弱的界） | STAT | stated 2408.11770："a corresponding value of H ${}_{0}=71.2$" | §III.2 |
 | `stat_drop`：论文把低 2.0 归因于宿主与锚点的选择（论文明说的推断；Lean 把它当作给定，不由两个数推出这一移动） | STAT | stated 2408.11770："thus 2.0 $\,\rm km\,s^{-1}\,Mpc^{-1}$ lower than the full HST sample—simply due to the choice of SN hosts and anchor" | §III.2 |
 
 ```lean
@@ -327,7 +327,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 |---|---|---|
 | 真实的 TRGB/JAGB 与造父变星之间百分之几的偏差 | `stat_agree`，只到约 0.05–0.10 mag | 部分：在这些误差内一致 |
 | CCHP 的宿主是一次不寻常的抽样 | 未编码（结论不需要） | 是，针对 JAGB 子样本：随机 8 颗超新星约 5% 一样低（图 6） |
-| 完整重新拟合给出的宿主移动小于 71.2 所示 | `stat_sel`、`stat_drop` | 部分：论文说近似准确到约 0.01 mag |
+| 完整重新拟合给出的宿主移动小于 71.2 所示 | `stat_sel`、`stat_drop` | 部分：论文说其近似与它自己的完整拟合相差约 0.01 mag，但这并不说明对 R22 公开矩阵的完整拟合给出同样的移动（R2 检验这一点） |
 
 #### 2.4 Lean 检查的发现
 
