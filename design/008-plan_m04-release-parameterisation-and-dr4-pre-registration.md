@@ -44,10 +44,12 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
 
 另设一张不属于可调参数的发布表 `RELEASES`，属于预注册内容：
 
-| 发布 | 来源标签（provenance label） | RV 否决适用的周期上限 |
-|---|---|---|
-| `dr3` | `"Gaia DR3"` | 无（保持 DR3 的事后规则不变） |
-| `dr4` | `"Gaia DR4"` | 2000 d |
+| 发布 | 来源标签（provenance label） | RV 否决的适用条件 | `covariance_trusted` |
+|---|---|---|---|
+| `dr3` | `"Gaia DR3"` | 无限制（保持 DR3 的事后规则不变） | True（`nsstools` 顺序，已测试） |
+| `dr4` | `"Gaia DR4"` | P < 1000 d 且 e < 0.8 | False，发布日确认顺序后改为 True 并记入 `log.md` |
+
+`RELEASES` 的其他改动等同于修改预注册。
 
 `TARGETS`（论文给出的数值）仍是常量。BH3 的 M1 = 0.76 ± 0.05 M☉，取自 Gaia Collaboration, Panuzzo et al. 2024（arXiv:2404.10486v2，表 3），已核实 [V]。
 
@@ -63,10 +65,11 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
   - R1b 只在 DR3 运行时计算；
   - 在 DR4 运行中，这几项都记为"不适用（not applicable）"。
 - `bh_candidates.json` 增加 `period_error`，供 F-DR4 的周期检验使用。这必须在 DR3 重跑时加入。
+- DR3 重跑新增 `reference_ids.json`：79 个 DR3 编号的 DR3 位置、自行（proper motion）与 G 星等，供 DR4 的身份核对（identity check）。这需要一次小查询（< 100 行），也必须在 11-25 前完成。
 
 ### 2.3 主解（primary solution）、对照与 DR4 判据的计算
 
-- 主解规则 R-sel 写成一个函数，对目标、对照、幸存候选、新候选统一使用。所有解都保存，判据只用主解。
+- 主解规则 R-sel 写成一个函数，对目标、对照、幸存候选（survivors）、新候选统一使用。所有解都保存，判据只用主解。
 - 正样本对照（positive controls）加入 BH3：
   - 对照"被否决"按主解判断；
   - 没有解或找不到编号的对照单独列出，不计入；
@@ -75,22 +78,25 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
 - DR4 运行时（`release != "dr3"`），`main()` 额外计算 DR4 附录中的各项：
   - **编号解析（resolution）**：一次 `IN (...)` 查询 DR4 `gaia_source`；
   - **判据**：R1–R3、S1-DR4、S2-DR4、V-DR4，以及 F-DR4 的 51 个标签；
-  - **新候选** S3-DR4。
-  - DR3 参考值读自 `results/dr3/`（周期及其误差、a0、所用 M1）；
+  - **新候选**（new candidates）S3-DR4：对 M2 > 3 的筛选源再取一次它们的全部轨道解（`vet` 查询已按编号取全部行），在全部解中选主解。
+  - 先在服务器端计数：≥ 50,000 时记 S1-DR4 失败，不取筛选结果，S2-DR4、S3-DR4 与 `screen_points` 记为"不可评估"，其余判据照常计算。
+  - DR3 参考值（reference values）读自 `results/dr3/`（周期及其误差、a0、所用 M1、`reference_ids.json`）；还没存档时，若 `results/` 的发布是 DR3，就读 `results/`（与测试相同的回退），所以存档前的对话探索也能运行；
   - 结果写入 `summary.json` 的 `dr4` 小节，以及 `survivors_dr4.json`。
 - RV 否决的适用条件按 `RELEASES` 的周期上限判断，并要求该列存在。
 
 ### 2.4 结果按发布分开，文件大小
 
 - `results/` 存放当前发布的正式运行结果。`main()` 第一步保存 `release.json`（只含发布名），作为运行所属发布的标记。
-- 存档：`dr4_query.py archive-dr3` 把 DR3 的 `results/*.json` 复制到 `results/dr3/`。它不联网；`results/` 不是 DR3 结果或目标目录已存在时拒绝执行。
-- 保护（双向）：正式运行（不是对话探索）如果要写的发布与 `results/release.json` 记录的不同，而后者还没存档到 `results/<旧发布>/`，就拒绝运行。缺少 `release.json` 时按 `summary.json` 的 `release` 判断。
+- 存档：`dr4_query.py archive <release>` 把 `results/*.json` 复制到 `results/<release>/`。它不联网；`results/` 的发布与参数不符、或目标目录已存在时拒绝执行。
+- 保护（双向）：正式运行（不是对话探索，以 `ctx.results == ctx.study.results_dir` 判断）如果要写的发布与 `results/release.json` 记录的不同，而后者还没存档到 `results/<旧发布>/`，就拒绝运行。缺少 `release.json` 时按 `summary.json` 的 `release` 判断。
+- 运行中途失败时，`results/` 会混有两个发布的文件，而 `release.json` 已标为新发布。恢复办法是 `git restore` 该目录（运行手册第 4 步），不是再跑一次旧发布。
 - `test_conclusions.py`：
   - DR3 判据读 `results/dr3/`（存在时），否则读 `results/`（其发布为 DR3 时）；
   - DR4 判据只在 `results/` 的发布为 DR4 时检查，否则跳过。
 - 文件大小（每个结果文件 < 1 MB，`AGENTS.md` 第一条）：
-  - 筛选点超过 5,000 行时，`screen_points.json` 保留 M2 > 1 M☉ 的全部行，其余按固定随机种子抽样到总数 5,000，并记录总行数与抽样标记；
-  - 其他文件在保存前检查大小，超出则报错。
+  - `screen_points.json` 硬上限 5,000 行：保留 M2 > 3 M☉ 的全部行（至多 2,000 行，超出时按 M2 从大到小取前 2,000），其余按固定随机种子抽样（sampling）补足到 5,000，并记录总行数与抽样标记。DR3 的 3,343 行不受影响；
+  - `bh_candidates.json` 硬上限 2,500 行（约 0.9 MB），超出时按 M2 从大到小保留，并记录总数；F-DR4 与 S3-DR4 的计数在截断之前算好；
+  - 所有结果先算完，保存前统一检查大小，超出 1 MB 则在任何文件写出之前报错，不留下写了一半的目录。
 
 ### 2.5 对话探索（exploring via chat）
 
@@ -105,14 +111,15 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
 - **运行手册与 `dr4_query.py`**：
   - 预检表改为"已由 T-011 处理"的核对清单；
   - 第 0、2、3、4、5 步与失败表中提到旧常量、BH3 TypeError、手工复制、手工判定幸存候选的地方，全部改为新机制。第 5 步改为直接读 F-DR4 结果；
-  - `dr4_query.py` 读 `PARAMS`，新增 `archive-dr3`；
+  - 第 1 步：第 1.3 步要核对的列加入新的解析、全部解与 FLAME 查询；第 1.4 步改为"非验证类型按 DR4 文档决定并记入 `log.md`、`PARAMS`"（README 的预注册规则）；
+  - `dr4_query.py` 读 `PARAMS`，新增 `archive <release>`；`followup` 删除（F-DR4 已在 `run.py` 中），`resolve` 保留为运行前的检查。`dr4_query.py` 导入 `run` 是技能脚本，不是研究的辅助模块，`AGENTS.md` 中"辅助模块不 `import run`"的规则针对的是后者（覆盖 `PARAMS` 后不生效的问题），这里只读取，不受影响；
   - 发布日要在 `study.yaml` 的 `footprint.data` 中加入 DR4 表名，运行手册保留这一步。
 - **日志与状态**：`log.md` 与 `STATUS.md`。
 
 ## 3. 环节（每个环节过双闸审查，dual-gate review）
 
 1. **计划与 DR4 预注册**：本文件；研究 `README.md` 第 2–4 节注明日期的 DR4 附录与 D1 注记；`TODO.md`。
-2. **代码**：
+2. **代码**（`run.py` 中的新判据都配不联网的单元测试）：
    - `run.py`（2.1–2.4）、`test_conclusions.py`、`dr4_query.py` 与测试；
    - 重跑 DR3（11-25 之前），核对 DR3 数值与改动前一致；
    - 用人工构造的 DR4 形状数据做不联网的单元测试，检验 R-sel、F-DR4 标签与 S2-DR4 的计数规则。
@@ -126,7 +133,7 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
   - 联合解 `AstroSpectroSB1`（表 2）：P = 4253.1 ± 98.5 d，e = 0.7291 ± 0.0048，f_M = 31.23 ± 0.81 M☉；
   - 纯天体测量解 f_M = 32.03 ± 0.64 M☉；
   - 数据来自 DR4 之前的预发布 NSS 4.1 运行。
-- 2026-11-14 · 环节 1 闸门 1 第 1 轮：两位审查者（科学、规则与可行性）共 6 个严重问题，全部成立，已修改：
+- 2026-11-14 · 环节 1 闸门 1（gate 1）第 1 轮：两位审查者（科学、规则与可行性）共 6 个严重问题，全部成立，已修改：
   - S2-DR4 固定计数遇上可变分母，改为 N_eval ≥ 15 且 ≥ 90%；
   - 主解规则对对照、幸存候选含糊，标签 `type-vetoed` 不可达，改为逐源统一的 R-sel，对照按主解判否决；
   - `persists` 缺 DR3 周期误差与 DR4 FLAME 质量，2.2 节保存 `period_error`，查询加入 `astrophysical_parameters`；
@@ -137,3 +144,16 @@ Gaia DR4 于 2026-12-02 发布，Gaia 数据库（archive）在 2026-11-25 至 1
   次要意见同时采纳：
   - 修正 R3 的预期推理（`AstroSpectroSB1` 的 a0/ϖ 等于 a1，没有方法偏差）；
   - 补 corr_vec 无法确认时的处理、交叉匹配后再判 `unresolved`、S3-DR4、类型否决名单的事先规则、D1 注记、R1b 只用于 DR3、双向保护、11-25 时限、运行手册需要更新的全部位置、术语括注英文。
+- 2026-11-14 · 环节 1 闸门 1 第 2 轮：科学审查者无严重问题；规则审查者 1 个严重问题，成立：`screen_points` 的抽样规则保留 M2 > 1 的全部行，而 DR3 中 97.6% 的行 M2 > 1，等于没有上限，改为硬上限 5,000 行。同轮次要意见全部采纳：
+  - 交叉匹配取最近邻居，并按归档的 DR3 位置与星等做身份核对；
+  - RV 否决限于 P < 1000 d 且 e < 0.8；
+  - V-DR4 要求至少 15 个计入的对照；
+  - S1-DR4 中缺失的目标记为不可评估；超过 50,000 行时不中断其余判据；
+  - `covariance_trusted` 开关；
+  - `archive <release>` 与 `git restore` 恢复；
+  - S3-DR4 在全部解中选主解；
+  - 存档前回退读 `results/`；
+  - 保存前统一检查大小；
+  - 运行手册第 1 步列入更新；
+  - DR3 对照规则改为按主解，加注日期；
+  - 术语括注英文。
