@@ -296,8 +296,8 @@ def main(ctx):
     if crossing is not None:
         b = np.clip((R - P["ramp_start"]) / (P["ramp_end"] - P["ramp_start"]), 0, 1) * crossing
         f = 1.0 / (1 - b)
-        r3["ramp"]["at_crossing"] = {"log_a": powerlaw_fit(R, V * f, sig * f, P, log_a=True)["S"],
-                                     "pivot": powerlaw_fit(R, V * f, sig * f, P, pivot=pivot, a_max=P["a_max_pivot"])["S"]}
+        r3["ramp"]["at_crossing"] = {"log_a": powerlaw_fit(R, V * f, sig * f, P, log_a=True),
+                                     "pivot": powerlaw_fit(R, V * f, sig * f, P, pivot=pivot, a_max=P["a_max_pivot"])}
     for q in P["quad_frac"]:
         r3["quadrature"][str(q)] = powerlaw_fit(R, V, np.hypot(sig, q * V), P, nsteps=P["nsteps_scan"])["S"]
     outer = R >= P["corr_r_min"]
@@ -322,10 +322,12 @@ def main(ctx):
                               "pull": d.tolist(), "chi2": float(np.sum(d ** 2)), "n": int(inside.sum())}
     so = o24["R"] > P["r_min_powerlaw"]
     po = float(np.sum(o24["R"][so] / o24["sig"][so] ** 2) / np.sum(1 / o24["sig"][so] ** 2))
-    r4["r1_on_O24"] = {"base": powerlaw_fit(o24["R"][so], o24["V"][so], o24["sig"][so], P),
-                       "log_a": powerlaw_fit(o24["R"][so], o24["V"][so], o24["sig"][so], P, log_a=True)["S"],
-                       "pivot": powerlaw_fit(o24["R"][so], o24["V"][so], o24["sig"][so], P, pivot=po,
-                                             a_max=P["a_max_pivot"])["S"],
+    Ro, Vo, so_sig = o24["R"][so], o24["V"][so], o24["sig"][so]
+    r4["r1_on_O24"] = {"base": powerlaw_fit(Ro, Vo, so_sig, P),
+                       "seed_check": powerlaw_fit(Ro, Vo, so_sig, P, seed=P["seed_check"]),
+                       "log_a": powerlaw_fit(Ro, Vo, so_sig, P, log_a=True),
+                       "pivot": dict(powerlaw_fit(Ro, Vo, so_sig, P, pivot=po, a_max=P["a_max_pivot"]), pivot_kpc=po),
+                       "delta_chi2": delta_chi2(Ro, Vo, so_sig),
                        "n_bins": int(so.sum()), "j23_gamma": -0.56}
     sr = o24["R"] >= P["r_min_o24_r2"]
     r4["r2_on_O24"] = {}
