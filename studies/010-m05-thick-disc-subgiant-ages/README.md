@@ -147,7 +147,8 @@ advance.
 - **Budget (all mock sets: R1, the R3/R4 recovery, sample B):** R1 has, per bin and sample, 4 null
   sets and 2 power sets of 50 mocks (300 mocks; 3,000 over 5 bins and 2 samples). run.py runs the
   first mock of every set, takes the projected total as the sum over sets of (number of mocks × time
-  of that set's first mock) and prints it. Sequence: if the total exceeds 4 h, every mock set drops to 30
+  of that set's first mock) and prints it (the projection covers the mock sets only; the robustness refits are timed and
+  reported separately). Sequence: if the total exceeds 4 h, every mock set drops to 30
   (R1 q_s = 2nd smallest with the same strict rule, at most 1 of 30, a nominal 3.3%); the total is then re-projected with 30 per set, and if it still exceeds 8 h, run.py runs in the background
   and the elapsed time is reported. The counts used are written to the results.
 - Reported without verdict: the eq. 1 cross-fractions (late stars older than 8 Gyr; early stars
@@ -184,7 +185,8 @@ advance.
   Age_i ~ N(τ̄0 + a[Fe/H]_i, σ² + e_Age,i²) (XR22's), is also fitted.
 - **Recovery (before the verdicts are read):** 50 mocks with the real [Fe/H] and e_Age/Age of
   sample A's Full parent, generated from the fitted (τ̄0, a, σ) under both error mechanisms of 2.1,
-  with the S15 cut applied. Tolerance: bias ≤ 0.1 Gyr in σ and ≤ 0.2 Gyr/dex in a. If the e = r·A
+  with the S15 cut applied. Tolerance: per mechanism, |bias| ≤ 0.1 Gyr in σ and ≤ 0.2 Gyr/dex in a, where bias = mean over
+  the 50 mocks of (recovered − generating value). If the e = r·A
   mechanism breaks the tolerance, the S15 verdicts are reported as not robust and the Full fits
   become primary; if the e = r·τ mechanism also breaks it, R3 and R4 are **cannot determine**.
 - **R4 (verdict, on σ_sel = the M0 σ of sample A at f = 1):** **reproduced** if |σ_sel − 0.82| ≤ 0.1 Gyr.
@@ -215,7 +217,9 @@ advance.
     stars take [Fe/H] resampled from sample B and latent ages from the fitted old component. Each mock
     star then gets a relative error resampled from the Full stars of its [Fe/H] slice, an observed
     age under each error mechanism, truncation to [0, 20] and the S15 cut, in the fitted proportions.
-  - If either mock set shows a bias in σ_int above 0.1 Gyr, the verdict is **cannot determine**;
+  - Bias of a mock set = mean over its mocks of (recovered σ_int − generating σ_int), signed. There
+    are four sets (identifiability and misspecification, each under both error mechanisms). If
+    |bias| > 0.1 Gyr in any set, the verdict is **cannot determine**;
     otherwise **confirmed** if σ_int < 0.82 Gyr (plan 019's criterion), **not confirmed** if not.
   - The physical claim depends on the error scale: the fit is repeated at f = 0.8 and f_max, and the
     verdict is "robust" only if all three give the same verdict.
