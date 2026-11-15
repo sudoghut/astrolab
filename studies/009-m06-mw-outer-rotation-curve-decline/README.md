@@ -127,8 +127,9 @@ scales the errors too).
 - R1 on O24: the 11 bins with R > 19 kpc (19.22–27.31 kpc), symmetrised errors, the same prior,
   pivot and sensitivity runs as R1; J23's −0.56 (+0.23/−0.22) is compared approximately (J23 does not
   say which O24 bins it used).
-- R2 on O24, descriptive: the seven models fitted to O24's 37 bins with symmetrised errors, compared
-  with Table 4's O23 column. We cannot tell which errors J23 used for O24 (J23 Sec. 4.1 says that
+- R2 on O24, descriptive: the seven models fitted to O24's bins with R ≥ 9.5 kpc (where the bulge
+  approximations hold) with symmetrised errors, compared approximately with Table 4's O23 column (J23
+  does not say which O24 bins its fits used). We cannot tell which errors J23 used for O24 (J23 Sec. 4.1 says that
   error bars account for systematic uncertainties in both studies, while O24 publishes no
   systematic-error column), so differences are reported, not judged.
 
