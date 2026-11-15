@@ -180,7 +180,36 @@ L8's posterior; the KDE was built with L8's noise model and pulsar set, which we
 
 ## 5. Results
 
-Filled after running. Link to `web/index.html` and key numbers in `results/`.
+Run of 2026-11-15 (`python -m astrolab run 005`, 12 s; inputs 3.0 MB + 5.3 MB from Zenodo, cached;
+page: [`web/index.html`](web/index.html)). v2.0.0 product: directory `ceffyl_data/30f_fs{hd}_ceffyl`,
+log10 ρ grid −9.00 … −4.00 (10,000 points), T = 16.03 yr from the file.
+
+| Criterion | Result (v2.0.0, 14 frequencies) | L8 | Verdict |
+|---|---|---|---|
+| R1 amplitude, γ = 13/3 | A = 2.31 [1.82, 2.92] × 10⁻¹⁵ (median, 5–95%); H = 0.099 | 2.4 [1.8, 3.1] × 10⁻¹⁵ | **consistent with L8's interval** (H < 0.15) |
+| R2 HPD level of γ = 13/3 | q = 0.979 (same with "≥") | "included in the 99% credible region" | same order as L8's stated tension (descriptive category) |
+| R2 free fit (descriptive) | A = 6.33 [3.46, 10.79] × 10⁻¹⁵; γ = 3.25 [2.65, 3.89]; 1-D HPD level of 13/3 = 0.993 | A = 6.4 [3.7, 10.6] × 10⁻¹⁵; γ = 3.2 [2.6, 3.8] | – |
+| R2b Table A1 (Lean `NUM`) | 8 of 24 rows overlap our 90% interval (8 of 23 after merging the identical rows); 5 contain our median | "within the range of some of these model predictions" | binding `n_models_overlap_ci90 >= 1` **holds** |
+| R3 v1.1.0 vs v2.0.0 | **not evaluable** under the pre-registered rule: the v1.1.0 archive has two directories containing `30f_fs{hd}` (`30f_fs{hd}_ceffyl` and `30f_fs{hd}_100fDMGP_ceffyl`) | – | – |
+| R4 turnover vs γ = 13/3 power law | ln BF = 2.37 (ln Z_turn = −4.93, ln Z_PL = −7.30); edge mass f_b 0.008, κ 0.004 | – | descriptive (prior-dependent) |
+
+Every edge mass is negligible (log10 A and γ below 10⁻¹⁰). The overlapping Table A1 rows: Sesana
+et al. 2008, McWilliams et al. 2014, Ravi et al. 2014, Kulier et al. 2015, Ravi et al. 2015, Rosado et
+al. 2015, Zhu et al. 2019, Simon 2023 (median inside: Sesana 2008, McWilliams, Kulier, Ravi 2015,
+Zhu).
+
+**Post-hoc exploration (not a pre-registered result; 2026-11-15).** With the exact directory name
+(`--set dir_key=30f_fs{hd}_ceffyl`, tag `v1-exact-dir`), v1.1.0 gives R1 A = 2.52 [1.91, 3.11] × 10⁻¹⁵,
+H = 0.143 against L8's reference (just under 0.15), and R2 q = 0.992, γ = 3.08 [2.52, 3.71],
+A = 7.61 × 10⁻¹⁵. The Hellinger distance between the v1.1.0 and v2.0.0 R1 posteriors is 0.195: the
+2026 sampler fix lowers the γ = 13/3 amplitude by about 8% and raises γ by about 0.17, moving
+the refit slightly further from L8's published median but leaving all statements qualitatively
+unchanged. Note that the v1.1.0 grid spans −15.1 … −0.9, the v2.0.0 grid −9.0 … −4.0.
+
+Reading: on this compressed product the refit lands on L8's numbers (amplitude within the
+pre-registered fidelity, free-γ medians within 0.05 in γ and 1% in A), the spectral-index tension
+is of the same order (q ≈ 0.98 here against "within 99%"), and route 1 of the Lean argument holds
+on our data. The two gaps (`gap_overlap`, `gap_repr`) are untouched by these numbers.
 
 ## 6. Referee notes
 

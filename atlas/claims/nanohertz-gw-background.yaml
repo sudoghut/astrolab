@@ -14,10 +14,13 @@ sources:
   - cite: "Antoniadis et al. 2023, A&A 678, A50 (EPTA DR2)"
     arxiv: "2306.16214"
 reproduction:
-  status: not-started
-  study: null
+  status: partial
+  study: 005-m09-nanograv-gwb-power-law
   quantities:
-    - {name: "A_GWB (NANOGrav)", paper: "2.4 +0.7/-0.6 e-15", ours: null, verified: S}
+    - {name: "A_GWB at gamma = 13/3 (NANOGrav, KDE refit v2.0.0, median and 90%)", paper: "2.4 +0.7/-0.6 e-15", ours: "2.31 [1.82, 2.92] e-15 (Hellinger 0.099 to L8's interval)"}
+    - {name: "gamma, free power law", paper: "3.2 +/- 0.6 (5-95%)", ours: "3.25 [2.65, 3.89]"}
+    - {name: "HPD level of gamma = 13/3 (2-D)", paper: "within the 99% region", ours: "0.979 (factorised likelihood)"}
+    - {name: "Hellings-Downs significance", paper: "Bayes factor 200-1000", ours: null, verified: S}
 open_questions:
   - "Is the SMBHB amplitude consistent with galaxy-merger and BH mass-function priors?"
-notes: "Milestone M9. Grade 'hint' here means strong evidence below 5 sigma. Use the NANOGrav KDE free-spectrum release (Zenodo 10344086, v1.1.0)."
+notes: "Milestone M9. Grade 'hint' here means strong evidence below 5 sigma. Study 005 refits the NANOGrav KDE free spectrum (Zenodo 21844115 v2.0.0; v1.1.0 = Zenodo 10344086 as a post-hoc comparison). The HD significance is not reproduced (needs the full timing data)."
