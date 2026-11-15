@@ -22,10 +22,11 @@ import wb
 PARAMS = {
     "step": "A",                       # "A" (velocity-free) or "B" (after the pre-registration commit)
     "parent": "parallax > 6.6667 AND parallax_over_error > 40",
-    "neighbour": ("parallax_over_error > 40 AND phot_g_mean_flux_over_error > 5"
+    # main degrouping uses relaxed neighbours (C26 section 3.2.2); C25-only is a diagnostic
+    "neighbour": ("parallax_over_error > 5 AND phot_g_mean_flux_over_error > 5"
                   " AND parallax + 3 * parallax_error > 6.6667"),
-    "neighbour_relaxed": ("parallax_over_error > 5 AND phot_g_mean_flux_over_error > 5"
-                          " AND parallax + 3 * parallax_error > 6.6667"),
+    "neighbour_c25": ("parallax_over_error > 40 AND phot_g_mean_flux_over_error > 5"
+                      " AND parallax + 3 * parallax_error > 6.6667"),
     "near_plx": 100.0, "near_b": "parallax + 3 * parallax_error > 80",
     "vcap_kms": None,                  # no velocity condition in A1 (README section 3)
     "max_rows": 50000,
@@ -34,6 +35,11 @@ PARAMS = {
     "workers": 4,
     "region_limit": None,              # exploration only: run the first N regions
 }
+
+
+def _max_bytes():
+    from astrolab import config
+    return config.HTTP_MAX_BYTES
 
 
 def _count(ctx, q, label):
@@ -89,6 +95,8 @@ def _a1(ctx, P, name, r, near, budget):
             f"FROM gaiadr3.gaia_source WHERE {parent} AND {P['near_b']}) AS b")
     n = _count(ctx, qc, f"A1 {name}")
     if n >= P["max_rows"]:
+        return _split(ctx, P, name, r, near, budget, _a1)
+    if n * 600 > _max_bytes():
         return _split(ctx, P, name, r, near, budget, _a1)
     budget.reserve(n * 600, f"A1 {name}")
     q = qc.replace("SELECT COUNT(*) AS n", "SELECT " + Q.a1_select(), 1)

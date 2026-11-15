@@ -90,10 +90,7 @@ Newtonian χ² and its p-value (n_bins − 1 degrees of freedom; 5 if no bins ar
 
 **R3 (descriptive).** Each variant changes one choice from the main sample: no perspective
 correction; no HR cut; HR constant c ± 0.2 mag; d < 150 pc; d < 200 pc (needs its own A/B queries beyond the 150 pc parent cut; run only if their counts fit, otherwise reported as not run); parallax S/N > 100
-(catalogue C10); ipd = 0 at 130 pc and at 150 pc; no degrouping; degrouping with relaxed neighbours
-(any star with parallax_over_error > 5 and phot_g_mean_flux_over_error > 5, C24's download filter;
-a required variant: its A2-relaxed count query is run first, and it is fetched if it fits the budget,
-otherwise reported as not run with its count); perspective correction
+(catalogue C10); ipd = 0 at 130 pc and at 150 pc; no degrouping; degrouping with C25 neighbours only (diagnostic); perspective correction
 from the inverse-variance-weighted mean RV of both stars instead of the primary's; ṽ ≤ 1.5 and ≤ 2. All are reported together in one table with
 L (primary errors), compared with C26's quantitative statements (150 pc: MOND 12×; 150 pc with
 ipd = 0: Newton 88×; no projection correction raises the outer-bin median by about 0.15). No
@@ -108,12 +105,15 @@ All from the Gaia archive (gea.esac.esa.int, `gaiadr3.gaia_source`, plus
 `gaiadr3.astrophysical_parameters` for FLAME masses), through `ctx.tap` (async), never El-Badry's
 catalogue. Parent star: parallax > 6.6667 mas and parallax_over_error > 40 (C25; 824,463 stars,
 counted 2026-11-14; C24's own download stopped at 7 mas, 143 pc, but 150 pc is needed for the R3
-variants). Neighbours for degrouping follow C24's reading (§2.2.2: C25 "allows more potential faint
-companion stars through the selection process for the purposes of deselecting potential triple
-systems"; §2.3: "Where any star appeared in more than one pair, all such matching pairs were
-rejected"): a neighbour is any star of the C25 set (parallax_over_error > 40 and
-phot_g_mean_flux_over_error > 5, as in C24 §2.2.2; BP/RP unrestricted; no RUWE or RV requirement) with parallax + 3·parallax_error > 6.6667 mas, under the same projected rule (≤ 0.5 pc at the
-two stars' weighted parallax) and the same pairwise 3σ parallax rule, applied between the parent
+variants). Neighbours for degrouping (dated change, 2026-11-14, before any data): C26 §3.2.2 asks that the
+initial selection be relaxed before degrouping so that faint stars, stars without RVs and stars with
+missing BP/RP can still flag contaminated systems ("It is important to include such stars at the
+degrouping stage"). So the main sample uses relaxed neighbours: any star with
+parallax_over_error > 5 and phot_g_mean_flux_over_error > 5 (C24's download filter, §2.2.1;
+BP/RP unrestricted; no RUWE or RV requirement) and parallax + 3·parallax_error > 6.6667 mas, under the
+same projected rule (≤ 0.5 pc at the two stars' weighted parallax) and the same pairwise 3σ parallax
+rule, applied between the parent star and each candidate neighbour. Degrouping with C25 neighbours
+only (parallax_over_error > 40, C24 §2.2.2) is a diagnostic variant.
 star and each candidate neighbour.
 
 | Query | Content | Selection (server side) | Est. rows / size |
@@ -142,11 +142,13 @@ or R4 variant that needs its own query), `run.py` runs the same FROM/WHERE as a 
 `COUNT(*)` (through `ctx.count`), converts it to bytes at 600 B per A1 row (20 columns, VOTable), 300 B per B1 row (17 columns), 40 B
 per A2 row and 24 B per A3 row (conservative schema-based estimates; the
 actual guarded downloads are still subject to the hard per-download and study limits in `astrolab`),
-and fetches only if the query fits under 50,000 rows and 50 MiB and the cumulative estimate stays
+and fetches only if the query fits under 50,000 rows and under `config.HTTP_MAX_BYTES` (the exact
+single-download limit used by `astrolab.fetch`) and the cumulative estimate stays
 under the 200 MB study budget; a strip over 50,000 rows is split in two in right ascension and
 counted again. The budget counts unique fetched inputs (a cached result is not counted again; a
 failed attempt that returns nothing counts nothing). If the cumulative estimate would exceed the budget, the run stops and the user is
-asked. The cache (`%LOCALAPPDATA%`, ~30 MB) must not be cleared until the study is closed.
+asked. The cache (`%LOCALAPPDATA%`, ~30 MB) must not be cleared until the study is closed: step A's
+rows (A1, A2, A3) live only there, and step B re-issues the same queries, which are then cache hits.
 Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-24).
 
 ## 4. Method
@@ -165,8 +167,10 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
 4. **Velocity (C24 Eqs. 2–8, C26 §4.1.6).** The primary's (brighter star's) space velocity is
    built from its pmra, pmdec, the common parallax ϖ̄ and its radial velocity; its components along
    the secondary's local east and north unit vectors are the expected proper-motion terms, and
-   v_sky = |(κ/ϖ̄)·(μ_α*,2, μ_δ,2) − (expected terms)| with κ = 4.740470464 (C24 Eqs. 2–6; C26
-   speaks of the "systemic RV"; the mean-RV version is an R3 variant). σ(v_sky), and σ(ṽ) =
+   v_sky = |(κ/ϖ̄)·(μ_α*,2, μ_δ,2) − (expected terms)| with κ = 4.740470464 (C24 Eqs. 2–6). Using the
+   primary's RV is this study's convention (C26 §4.1.6 says one star's RV suffices and speaks of the
+   "systemic RV"; the mean-RV version is an R3 variant); both stars need an RV anyway because of
+   C26's ΔRV < 10 km/s cut. σ(v_sky), and σ(ṽ) =
    σ(v_sky)/v_c, by the Jacobian of C24 Appendix A over each star's (ϖ, μ_α*, μ_δ) with Gaia's
    parallax_error, pmra_error, pmdec_error, parallax_pmra_corr, parallax_pmdec_corr and
    pmra_pmdec_corr; positions are treated as exact (their errors are sub-mas and enter only through
