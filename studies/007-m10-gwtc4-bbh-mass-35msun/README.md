@@ -103,7 +103,8 @@ the R2–R4 sample defined under R2 (all masses, GW231123 included) (not P26's
 | GWTC-2.1-marginal, GWTC-3-marginal | GWOSC `https://gwosc.org/eventapi/json/<list>/` via `ctx.http` | marginal events (for type ii) | each < 0.5 MB |
 | P26 O4a event list | Zenodo 16911563 `o4a_event_list.tar` via `ctx.http`, read in memory (bounded reads) | event names | 10 kB |
 
-Total under 3 MB; the guarded fetch checks each size. Nothing from the 35 GB population release
+Total under 3.5 MB (six lists at under 0.5 MB each plus 10 kB), far below the 200 MB study budget; the
+guarded fetch checks each size. Nothing from the 35 GB population release
 other than the 10 kB list; no injection files, no posterior files, no per-event JSON loops
 (AGENTS.md 1.2, 1.5).
 
