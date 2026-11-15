@@ -300,13 +300,22 @@ def full_space_gaussian(xa, wa, xb, wb, max_cond):
     """Gaussian parameter difference over columns of xa, xb (same order)."""
     if xa.ndim != 2 or xa.shape[1] == 0:
         return {"status": "no parameters left after the exclusions"}
+    try:
+        return _full_space_gaussian(xa, wa, xb, wb, max_cond)
+    except (np.linalg.LinAlgError, ValueError, ZeroDivisionError) as exc:
+        return {"status": f"not evaluable ({type(exc).__name__}: {exc})"}
+
+
+def _full_space_gaussian(xa, wa, xb, wb, max_cond):
     ma = np.average(xa, axis=0, weights=wa)
     mb = np.average(xb, axis=0, weights=wb)
     ca = np.atleast_2d(np.cov(xa.T, aweights=wa))
     cb = np.atleast_2d(np.cov(xb.T, aweights=wb))
     c = ca + cb
+    if not np.all(np.isfinite(c)):
+        return {"status": "not evaluable (non-finite covariance)"}
     cond = float(np.linalg.cond(c))
-    if cond > max_cond:
+    if not np.isfinite(cond) or cond > max_cond:
         return {"status": f"condition number {cond:.3g} > {max_cond:.0e}"}
     d = ma - mb
     chi2 = float(d @ np.linalg.solve(c, d))
