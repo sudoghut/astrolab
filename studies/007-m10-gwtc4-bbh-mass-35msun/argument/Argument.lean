@@ -19,9 +19,9 @@ The chain has two routes to the feature, with two gaps shared by both:
   route 1 (strongly modeled): lambda2 > lambda1 at 97.7% credibility
   route 2 (weakly modeled): the B-Spline shows a local peak near 33.5 Msun, consistent with the
       other weakly modeled approaches
-  [stated] either route, with the sample, selection and systematics as above, gives a feature at
-      35 Msun in the Sec. 6.1 sense (a break counts as one form of the feature; the B-Spline peak
-      supports it)
+  [gap] either route, with the sample, selection and systematics as above, gives a feature at
+      35 Msun in the Sec. 6.1 sense (P26 asserts the feature after presenting both results but does
+      not state the bridging rule)
   -> a feature at 35 Msun
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
@@ -65,7 +65,7 @@ inductive Field where
   | mod_sel
   /-- GAP [reconstructed] the injection-based selection function is adequate at high mass; P26 does not test this at the masses that matter for the 35 Msun feature -/
   | gap_sel
-  /-- STAT [stated 2508.18083: "at 97.7% credibility"] Sec. 6.1 (subject: the index above 35 Msun exceeds the one below; our threshold of 950 per mille is a convention) -/
+  /-- STAT [stated 2508.18083: "at 97.7% credibility"] Sec. 6.1 (subject: the index above 35 Msun exceeds the one below; the body is the reported 97.7%) -/
   | stat_steep
   /-- STAT [stated 2508.18083: "which exhibits a local peak at"] Sec. 6.1 (B-Spline, 33.5 Msun) -/
   | stat_bspline
@@ -73,10 +73,10 @@ inductive Field where
   | stat_weak
   /-- GAP [reconstructed] parameter-estimation systematics and residual noise events (about 6.7 expected among the 161 candidates with FAR below 1 per yr, Sec. 3.2.1) do not make a spurious feature near 35 Msun; P26 does not propagate either into the mass spectrum -/
   | gap_syst
-  /-- MOD [stated 2508.18083: "or (ii) a broken power law with break"] Sec. 6.1: route 1, the paper counts a break as one form of the 35 Msun feature; the body adds the conditions on sample, selection and systematics, so it is no stronger than the quote (Callister and Farr 2024, arXiv:2310.12148, for the broken-power-law reading) -/
-  | mod_route1
-  /-- MOD [stated 2508.18083: "former conclusion is supported by the B-Spline model"] Sec. 6.1: route 2, the B-Spline local peak supports the feature (as an over-density); the body adds the conditions on sample, selection and systematics -/
-  | mod_route2
+  /-- GAP [reconstructed] route 1: with the sample, an adequate selection function and no spurious systematics, the credible slope change is a feature at 35 Msun in the Sec. 6.1 sense; P26 presents the slope result and then identifies a feature, which it says may be a break (Sec. 6.1: or (ii) a broken power law with break), but does not state this bridging rule -/
+  | gap_route1
+  /-- GAP [reconstructed] route 2: under the same conditions, a local peak in a flexible model that agrees with the other flexible models is a feature at 35 Msun; P26 says the B-Spline peak supports the over-density reading (Sec. 6.1) but does not state this bridging rule -/
+  | gap_route2
   deriving DecidableEq, Repr
 
 def prov : Field → Prov
@@ -87,19 +87,19 @@ def prov : Field → Prov
   | .stat_bspline => .stated
   | .stat_weak => .stated
   | .gap_syst => .reconstructed
-  | .mod_route1 => .stated
-  | .mod_route2 => .stated
+  | .gap_route1 => .reconstructed
+  | .gap_route2 => .reconstructed
 
 def prem : Field → Vocab → Prop
   | .obs_sample, v => v.Sample
   | .mod_sel, v => v.SelUsed
   | .gap_sel, v => v.SelOK
-  | .stat_steep, v => v.cred_pm ≥ 950
+  | .stat_steep, v => v.cred_pm ≥ 977
   | .stat_bspline, v => v.BsplinePeak
   | .stat_weak, v => v.WeakAgree
   | .gap_syst, v => v.SystOK
-  | .mod_route1, v => v.Sample → v.SelUsed → v.SelOK → v.cred_pm ≥ 950 → v.SystOK → v.Feature35
-  | .mod_route2, v => v.Sample → v.SelUsed → v.SelOK → v.BsplinePeak → v.WeakAgree → v.SystOK → v.Feature35
+  | .gap_route1, v => v.Sample → v.SelUsed → v.SelOK → v.cred_pm ≥ 977 → v.SystOK → v.Feature35
+  | .gap_route2, v => v.Sample → v.SelUsed → v.SelOK → v.BsplinePeak → v.WeakAgree → v.SystOK → v.Feature35
 
 /-- [stated 2508.18083: "features persist at primary masses of 10 M⊙ and 35 M⊙"] Abstract; only the 35 Msun part is encoded, in the Sec. 6.1 sense (We identify a feature at 35 M⊙, an over-density or a break) -/
 def Conclusion (v : Vocab) : Prop := v.Feature35
@@ -114,7 +114,7 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 /-- The paper's chain, step by step (route 1; route 2 is shown in the _redundant proofs). -/
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  exact p .mod_route1 (p .obs_sample) (p .mod_sel) (p .gap_sel) (p .stat_steep)
+  exact p .gap_route1 (p .obs_sample) (p .mod_sel) (p .gap_sel) (p .stat_steep)
     (p .gap_syst)  -- Sec. 3.3, 6, 6.1; two GAPs
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
@@ -126,8 +126,8 @@ theorem consistent : ∃ v, Premises v :=
 theorem alone_insufficient : ∀ g, ¬ ∀ v, prem g v → Conclusion v := by
   intro g h
   cases g
-  case mod_route1 => exact h ⟨False, False, False, 0, False, False, False, False⟩ (by simp [prem])
-  case mod_route2 => exact h ⟨False, False, False, 0, False, False, False, False⟩ (by simp [prem])
+  case gap_route1 => exact h ⟨False, False, False, 0, False, False, False, False⟩ (by simp [prem])
+  case gap_route2 => exact h ⟨False, False, False, 0, False, False, False, False⟩ (by simp [prem])
   all_goals exact h ⟨True, True, True, 977, True, True, True, False⟩ (by simp [prem])
 
 theorem obs_sample_needed : ¬ ∀ v, Without .obs_sample v → Conclusion v := fun h =>
@@ -145,42 +145,43 @@ theorem gap_syst_needed : ¬ ∀ v, Without .gap_syst v → Conclusion v := fun 
 /-- Redundant: route 2 (weakly modeled) gives the feature without the slope credibility. -/
 theorem stat_steep_redundant : ∀ v, Without .stat_steep v → Conclusion v := by
   intro v p
-  exact p .mod_route2 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
+  exact p .gap_route2 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
     (p .gap_sel (by decide)) (p .stat_bspline (by decide)) (p .stat_weak (by decide))
     (p .gap_syst (by decide))
 
 /-- Redundant for the same reason. -/
-theorem mod_route1_redundant : ∀ v, Without .mod_route1 v → Conclusion v := by
+theorem gap_route1_redundant : ∀ v, Without .gap_route1 v → Conclusion v := by
   intro v p
-  exact p .mod_route2 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
+  exact p .gap_route2 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
     (p .gap_sel (by decide)) (p .stat_bspline (by decide)) (p .stat_weak (by decide))
     (p .gap_syst (by decide))
 
 /-- Redundant: route 1 (strongly modeled) gives the feature without the B-Spline peak. -/
 theorem stat_bspline_redundant : ∀ v, Without .stat_bspline v → Conclusion v := by
   intro v p
-  exact p .mod_route1 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
+  exact p .gap_route1 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
     (p .gap_sel (by decide)) (p .stat_steep (by decide)) (p .gap_syst (by decide))
 
 /-- Redundant for the same reason. -/
 theorem stat_weak_redundant : ∀ v, Without .stat_weak v → Conclusion v := by
   intro v p
-  exact p .mod_route1 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
+  exact p .gap_route1 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
     (p .gap_sel (by decide)) (p .stat_steep (by decide)) (p .gap_syst (by decide))
 
 /-- Redundant for the same reason. -/
-theorem mod_route2_redundant : ∀ v, Without .mod_route2 v → Conclusion v := by
+theorem gap_route2_redundant : ∀ v, Without .gap_route2 v → Conclusion v := by
   intro v p
-  exact p .mod_route1 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
+  exact p .gap_route1 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
     (p .gap_sel (by decide)) (p .stat_steep (by decide)) (p .gap_syst (by decide))
 
-/-- What the paper writes is not enough: neither the high-mass selection nor the systematics are
-established. -/
+/-- What the paper writes is not enough: the bridging rules of both routes, the high-mass selection
+and the systematics are not established. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   h ⟨True, True, False, 977, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
-/-- Even with standard knowledge both routes need the same two gaps: an adequate high-mass
-selection function and no spurious feature from systematics or noise events. -/
+/-- Even with standard knowledge the chain needs the two shared gaps (an adequate high-mass
+selection function; no spurious feature from systematics or noise events) and the bridging rule of
+at least one route. -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
   h ⟨True, True, False, 977, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
