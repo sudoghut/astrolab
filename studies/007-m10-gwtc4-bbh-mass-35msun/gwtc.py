@@ -26,6 +26,8 @@ def load_list(path):
     events = raw.get("events", raw)
     rows = {}
     for key, ev in events.items():
+        if not isinstance(ev, dict):          # tolerate a null event entry
+            continue
         name = ev.get("commonName") or key.split("-v")[0]
 
         def g(field):
