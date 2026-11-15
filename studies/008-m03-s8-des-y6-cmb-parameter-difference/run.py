@@ -343,6 +343,12 @@ def main(ctx):
                         and max(_corr(xa, wa_fs, i, j), _corr(xb, wb_fs, i, j)) > P["corr_max"]}
                 keep = [i for i in range(n_c) if i not in drop]
                 names = [cand[i] for i in keep]
+                if len(keep) < 2 or not any(n.split("--")[-1] in ("omega_m", "omegam") for n in names):
+                    fs = {"status": "after the correlation exclusions, Omega_m or a second sampled "
+                                        "parameter is missing; stopped (README 2.4)", "candidates": cand,
+                                        "kept": names}
+                    keep = None
+            if xa is not None and len(cand) >= 2 and has_om and keep is not None:
                 fs = {"parameters": names, "rows_dropped_nonfinite": fs_dropped,
                       "all": s8diff.full_space_gaussian(xa[:, keep], wa_fs, xb[:, keep], wb_fs, P["max_cond"])}
                 if ranges["des_3x2pt"]:

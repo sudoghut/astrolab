@@ -122,15 +122,17 @@ def load_chain(path, cmap, burn):
     finite = np.all(np.isfinite(used), axis=1)
     good = finite & (w > 0)
     s8 = sg * np.sqrt(om / 0.3)
-    stored_ok = None
+    stored_ok, stored_nonfinite = None, 0
     if cmap.get("s_8") is not None:
         stored = data[:, cmap["s_8"]]
-        stored_ok = bool(np.all(np.abs(stored[good] - s8[good]) < 1e-4))
+        fin = good & np.isfinite(stored)
+        stored_ok = bool(np.all(np.abs(stored[fin] - s8[fin]) < 1e-4))
+        stored_nonfinite = int(np.sum(good & ~np.isfinite(stored)))
     out = {"omega_m": om[good], "sigma_8": sg[good], "s8": s8[good], "w": w[good] / w[good].sum(),
            "data": data[good]}
     info = {"rows_read": n0, "rows_after_burn": int(len(data)), "nonfinite_any_column": nonfinite_any,
             "nonfinite_used_columns": int(np.sum(~finite)), "zero_weight": int(np.sum(finite & ~(w > 0))),
-            "stored_s8_consistent": stored_ok,
+            "stored_s8_consistent": stored_ok, "stored_s8_nonfinite_rows": stored_nonfinite,
             "ess": float(1.0 / np.sum(out["w"] ** 2))}
     return out, info
 
