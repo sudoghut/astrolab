@@ -136,7 +136,8 @@ Rows 15 and 16 are identical in all four printed columns (also the A_10yr column
    before the grid axis; any other shape makes that data product not evaluable). NaN densities
    are set to −36 as in ceffyl. Checks of section 2 "Validity". The zip is untrusted: each
    member is read with a bounded read of 50 MB + 1 byte and rejected if longer (the declared
-   `file_size` is not trusted), and member names containing
+   `file_size` is not trusted); only the three needed members are read (at most 150 MB in
+   total), and an archive listing more than 10,000 members is rejected; and member names containing
    ".." or starting with "/" are rejected.
 2. **Likelihood** (Lamb+2023 eq. 8–11; ceffyl `ln_likelihood`). For a model PSD S(f), ρ_k² =
    S(f_k)/T with T = 1/f₁ from the file (seconds), log10 ρ_k = ½ log10 ρ_k². Bin index
@@ -151,8 +152,9 @@ Rows 15 and 16 are identical in all four printed columns (also the A_10yr column
    trapezoid integral with linear interpolation. Reference q as in section 2, evaluated on the
    same grid and renormalised there; H by the trapezoid rule.
 4. **R2.** Grid log10 A on [−18, −11] (1401 points, step 0.005) × γ on [0, 7] (1401 points,
-   step 0.005); uniform priors (L8 Appendix B). Posterior on the grid, cell masses w_ij =
-   p_ij ΔxΔγ normalised to 1. Line density: p along γ = 13/3 evaluated directly at the
+   step 0.005); uniform priors (L8 Appendix B). Posterior on the grid, node masses w_ij =
+   p_ij t_i t_j ΔxΔγ normalised to 1, with trapezoid weights t = ½ on the first and last node
+   of each axis and 1 elsewhere (the same weights for normalisation, q and the marginals). Line density: p along γ = 13/3 evaluated directly at the
    log10 A grid points, with the same normalising constant as p_ij; p* = its maximum.
    q = Σ w_ij over cells with p_ij > p* (strict, as intended; "≥" is reported descriptively).
    Evaluated in chunks over the γ axis (memory). Marginals by
