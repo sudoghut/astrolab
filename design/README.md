@@ -41,7 +41,7 @@ NNN-<类型>_<核心内容>.md
 | 014 | plan | [M9：纳赫兹引力波背景——NANOGrav 15 年自由谱的幂律拟合与谱指数](014-plan_m09-nanograv-free-spectrum-power-law-and-spectral-index.md) | 已完成 |
 | 015 | plan | [M8：z ≈ 14 星系——数密度与所需的紫外弥散](015-plan_m08-z14-galaxies-number-density-and-required-uv-scatter.md) | 已完成 |
 | 016 | plan | [M10：GWTC-4.0 双黑洞质量谱——35 M☉ 特征与事件计数](016-plan_m10-gwtc4-bbh-mass-spectrum-35msun-feature-and-event-counts.md) | 已完成 |
-| 017 | plan | [M3：S8 张力——DES Y6 与 CMB 的参数差异检验及多探针汇总](017-plan_m03-s8-tension-des-y6-cmb-parameter-difference-and-multiprobe-summary.md) | 进行中 |
+| 017 | plan | [M3：S8 张力——DES Y6 与 CMB 的参数差异检验及多探针汇总](017-plan_m03-s8-tension-des-y6-cmb-parameter-difference-and-multiprobe-summary.md) | 已完成 |
 
 ## 术语约定
 

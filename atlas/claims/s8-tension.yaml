@@ -18,8 +18,8 @@ reproduction:
   quantities:
     - {name: "S8 DES Y6 3x2pt (mean, public chain)", paper: "0.789 +/- 0.012", ours: "0.7893 [0.7777, 0.8019]"}
     - {name: "S8 CMB (Planck+ACT+SPT, D26)", paper: "0.836 +0.012/-0.013", ours: "0.8357 [0.8229, 0.8481]"}
-    - {name: "DES Y6 3x2pt - CMB difference in S8", paper: "2.6 sigma", ours: "2.67 sigma (s 0.002; 2.44-2.55 with D26's projection-effect shifts)"}
-    - {name: "DES Y6 3x2pt - CMB difference in S8-Omega_m", paper: "2.2 sigma", ours: "2.18 sigma"}
+    - {name: "DES Y6 3x2pt - CMB difference in S8", paper: "2.6 sigma", ours: "2.67 +/- 0.03 sigma (bootstrap; 2.44-2.55 with D26's projection-effect shifts)"}
+    - {name: "DES Y6 3x2pt - CMB difference in S8-Omega_m", paper: "2.2 sigma", ours: "2.18 +/- 0.03 sigma"}
     - {name: "S8 KiDS-Legacy", paper: "0.815 +0.016/-0.021 (mode); mean 0.813 +/- 0.018", ours: "1.04 sigma from the CMB chain (summary only)", verified: V}
 open_questions:
   - "Same-prior, same-S8-definition meta-comparison across probes."

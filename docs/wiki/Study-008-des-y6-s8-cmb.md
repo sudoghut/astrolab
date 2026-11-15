@@ -310,20 +310,24 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
 - **The numbers behind D26's conclusion are reproduced from the public chains.** S8 means: CMB
   0.8357, DES 3x2pt 0.7893, DES cosmic shear 0.7834, each within 0.001 of the published values. The
   parameter difference, computed directly from D26's equations 17–19 with a calibrated binned density
-  estimate: **2.67σ in S8** (D26: 2.6σ) and **2.18σ in S8–Ωm** (D26: 2.2σ), both within the
-  pre-registered tolerance. Prior support (Ωm, A_s) passed; a numerical convolution gives 2.64σ.
+  estimate: **2.67σ ± 0.03 in S8** (D26: 2.6σ) and **2.18σ ± 0.03 in S8–Ωm** (D26: 2.2σ), both within
+  the pre-registered tolerance (uncertainties from a bootstrap over chain rows, added after the
+  referee). Prior support (Ωm, A_s) passed. Three estimators agree on about 2.67σ, so the small excess
+  over 2.6 lies between the public chains and D26's flow estimate.
 - **How close to 3σ depends on projection effects.** Shifting DES by D26's own simulated bias
   (+0.17σ) gives 2.55σ; centring it on the MAP gives 2.44σ. So the S8 number sits between about
   2.4σ and 2.7σ: below the informal 3σ line in every variant, but by 0.3–0.6σ. Whether that is "no
   substantial evidence" is the gap `gap_conv` of part 2.
-- **The full space needs the flows.** A Gaussian approximation in the sampled parameters gives only
-  0.89σ (0.32σ in A_s–Ωm), well below the 2.18σ we find in the S8–Ωm plane. S8 is a nonlinear
-  combination of A_s and Ωm, so the DES posterior is curved in the sampled parameters, and a Gaussian
-  smears out the difference. This explains why D26 uses normalizing flows; it does not test the 1.8σ.
+- **The full space needs the flows.** A Gaussian approximation in the sampled parameters gives
+  0.89σ, and it depends on the coordinates: 0.32σ in (A_s, Ωm) but 2.21σ in (S8, Ωm), 1.48σ with S8
+  in place of A_s (post hoc, after the referee). S8 is a nonlinear combination of A_s and Ωm and
+  several parameters are prior-dominated in DES, so a Gaussian in sampled coordinates dilutes the
+  difference. This is why D26 uses normalizing flows; no Gaussian number tests the 1.8σ.
 - **"Easing", measured on one ruler.** Against the same CMB chain, the previous generation sits at
   2.8–3.1σ (DES Y3 2.83σ, KiDS-1000 2.92–3.14σ), other current probes at 0.2–1.9σ (KiDS-Legacy
   1.04σ, HSC Y3 1.4–1.9σ, ACT lensing 0.18σ, eROSITA 1.51σ above the CMB), and DES Y6 3x2pt at 2.67σ.
-  The field has moved towards the CMB; DES Y6 has moved less than KiDS.
+  The field has moved towards the CMB; DES Y6 has moved less than KiDS. (If the older papers quote
+  modes rather than means, KiDS-1000 3x2pt is at 2.93σ instead of 3.14σ.)
 
 ### Glossary
 
@@ -351,6 +355,7 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
 
 Newest first.
 
+- 2026-11-15: referee: bootstrap uncertainties (±0.03), the Gaussian full-space number depends on the parametrization, the step-A amendment labelled as procedural, R5 with modes.
 - 2026-11-15: results: R1 and R2 reproduced (2.67σ in S8, 2.18σ in S8–Ωm); projection-effect variants 2.44–2.55σ; the Gaussian full-space approximation fails for the curved posterior; previous generation 2.8–3.1σ against the same CMB.
 - 2026-11-15: gate-2 review: no authoritative source fixes "below 3σ means no evidence" (Lyons 2013 discusses 5σ and argues against uniform thresholds), so the step is a gap (`gap_conv`) again; headline `explicit_insufficient`.
 - 2026-11-15: gate-1 review: the step to "no substantial evidence" is the standard 3σ convention (`[implied]`), not a gap; D26's combination criterion is redundant for the conclusion; S8 is not claimed to be pre-chosen or best-constrained (footnote 7); Table 6 PTEs; part 3 rows for the previous generation.
@@ -552,10 +557,10 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 
 **结果（运行后补写，2026-11-15；上表保留预注册时的设计）。** 细节见 [研究 README 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/README.md#5-results)；网页：[`web/index.html`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/index.html)。
 
-- **D26 结论所依据的数字由公开链复现。** S8 均值：CMB 0.8357，DES 3x2pt 0.7893，DES 宇宙剪切 0.7834，与发表值之差都在 0.001 以内。直接按 D26 的式 17–19、用校准过的分箱密度估计计算参数差异：**S8 上 2.67σ**（D26：2.6σ），**S8–Ωm 上 2.18σ**（D26：2.2σ），都在预注册容差内。先验支撑（Ωm、A_s）检验通过；数值卷积给出 2.64σ。
+- **D26 结论所依据的数字由公开链复现。** S8 均值：CMB 0.8357，DES 3x2pt 0.7893，DES 宇宙剪切 0.7834，与发表值之差都在 0.001 以内。直接按 D26 的式 17–19、用校准过的分箱密度估计计算参数差异：**S8 上 2.67σ ± 0.03**（D26：2.6σ），**S8–Ωm 上 2.18σ ± 0.03**（D26：2.2σ），都在预注册容差内（不确定度来自审稿后补做的、对链的行的自助法重抽样）。先验支撑（Ωm、A_s）检验通过。三种估计量都给出约 2.67σ，所以比 2.6 略高的部分来自公开链与 D26 的流估计之间，而不是我们的估计量。
 - **离 3σ 多近取决于投影效应。** 按 D26 自己的模拟偏差（+0.17σ）平移 DES 得 2.55σ；以 MAP 为中心得 2.44σ。所以 S8 的数字在约 2.4σ 到 2.7σ 之间：每种变体都低于非正式的 3σ 线，但只差 0.3–0.6σ。这算不算"没有实质证据"，正是第二部分的缺口 `gap_conv`。
-- **全空间需要归一化流。** 在采样参数中作高斯近似只得到 0.89σ（A_s–Ωm 上 0.32σ），远低于我们在 S8–Ωm 平面上得到的 2.18σ。S8 是 A_s 与 Ωm 的非线性组合，DES 后验在采样参数中是弯曲的，高斯近似抹平了差别。这解释了 D26 为何用归一化流；它不是对 1.8σ 的检验。
-- **用同一把尺子量"减弱"。** 对同一条 CMB 链，上一代为 2.8–3.1σ（DES Y3 2.83σ，KiDS-1000 2.92–3.14σ），当前其他探针为 0.2–1.9σ（KiDS-Legacy 1.04σ，HSC Y3 1.4–1.9σ，ACT 透镜 0.18σ，eROSITA 在 CMB 之上 1.51σ），DES Y6 3x2pt 为 2.67σ。整个领域向 CMB 靠拢；DES Y6 移动得比 KiDS 少。
+- **全空间需要归一化流。** 在采样参数中作高斯近似得到 0.89σ，而且它依赖坐标：(A_s, Ωm) 上 0.32σ，(S8, Ωm) 上 2.21σ，以 S8 代替 A_s 时 1.48σ（审稿后事后补做）。S8 是 A_s 与 Ωm 的非线性组合，DES 中好几个参数主要由先验决定，所以在采样坐标中作高斯近似会冲淡差别。这就是 D26 用归一化流的原因；没有哪个高斯数字能检验 1.8σ。
+- **用同一把尺子量"减弱"。** 对同一条 CMB 链，上一代为 2.8–3.1σ（DES Y3 2.83σ，KiDS-1000 2.92–3.14σ），当前其他探针为 0.2–1.9σ（KiDS-Legacy 1.04σ，HSC Y3 1.4–1.9σ，ACT 透镜 0.18σ，eROSITA 在 CMB 之上 1.51σ），DES Y6 3x2pt 为 2.67σ。整个领域向 CMB 靠拢；DES Y6 移动得比 KiDS 少。（若较早的论文给出的是众数而不是均值，KiDS-1000 3x2pt 为 2.93σ 而不是 3.14σ。）
 
 ### 术语表
 
@@ -581,6 +586,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 
 按时间倒序。
 
+- 2026-11-15：审稿：自助法不确定度（±0.03），全空间高斯数字依赖参数化，第 A 步修订标注为程序性说明，R5 的众数读法。
 - 2026-11-15：结果：R1 与 R2 复现（S8 上 2.67σ，S8–Ωm 上 2.18σ）；投影效应变体 2.44–2.55σ；全空间高斯近似对弯曲的后验失效；上一代对同一 CMB 为 2.8–3.1σ。
 - 2026-11-15：闸门 2 审查：没有权威来源规定"低于 3σ 即没有证据"（Lyons 2013 讨论 5σ 并反对统一阈值），这一步重新标为缺口（`gap_conv`）；主要结果为 `explicit_insufficient`。
 - 2026-11-15：闸门 1 审查：走到"没有实质证据"的一步是标准的 3σ 约定（`[implied]`），不是缺口；D26 的合并判据对结论是多余的；不再说 S8 是事先选定或约束最好的方向（脚注 7）；表 6 的 PTE；第三部分加上一代的比较。
