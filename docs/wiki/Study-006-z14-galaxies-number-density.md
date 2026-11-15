@@ -263,7 +263,8 @@ Bouwens et al. 2021 and frozen, predicts φ = 2.2 × 10⁻⁷ Mpc⁻³ mag⁻¹ 
 baseline (the observed density is then about 19 times this prediction, and two sources have a
 Poisson probability of about 0.5%). Across 72 pre-declared variants the factor ranges from 2.5 to 37
 (61 "higher", 11 "same order"), so the verdict is calibration-dependent. The largest effects are the
-scatter assumed at calibration and how the efficiency is extended to small halos. With the median
+scatter assumed at calibration, how the efficiency is extended to small halos, and the halo mass
+function (all 11 "same order" variants use Reed et al. 2007). With the median
 relation fixed, the scatter that reproduces the observed density is σ_UV ≈ 1.4 mag (1.15–1.57 within
 the Poisson range; 1.07–1.60 across variants): at the low end of, or just below, N26's 1.5–2 mag,
 and above the ≈ 0.7 mag inferred to z ≈ 9. The three gaps of the argument (decision rule, cosmic
@@ -490,7 +491,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 数密度由两个源与 N26 的体积得出：用 Gehrels 泊松限，log φ = −5.364（+0.365/−0.451）；由 388 arcmin² 在 Planck 2018 下复算的体积相差不到 0.5%。在 N26 的基准下，看到两个或更多源的泊松概率为 6 × 10⁻⁵（比值为 100 时为 2 × 10⁻⁴），所以 Lean 论证中用到的界成立。
 
-一个独立的恒定恒星形成效率模型，用 Bouwens 等 2021 的 JWST 之前 z ≈ 8 光度函数校准后冻结，在同一箱中预言 φ = 2.2 × 10⁻⁷ Mpc⁻³ mag⁻¹：为 N26 基准的 9.4 倍（观测数密度约为这一预言的 19 倍，看到两个源的泊松概率约 0.5%）。在 72 个预先列出的变体中，这个倍数从 2.5 到 37（61 个"更高"、11 个"同一量级"），所以判定依赖校准。影响最大的是校准时假定的弥散，以及效率如何外推到小晕。固定中位数关系时，再现观测数密度所需的弥散为 σ_UV ≈ 1.4 mag（泊松范围内 1.15–1.57；各变体 1.07–1.60）：位于 N26 的 1.5–2 mag 的低端或略低，并高于推断到 z ≈ 9 的约 0.7 mag。论证的三个缺口（判决规则、宇宙方差、有效面积）以及审稿人发现的第四个缺口（`gap_bin`）都不受这些数字影响。
+一个独立的恒定恒星形成效率模型，用 Bouwens 等 2021 的 JWST 之前 z ≈ 8 光度函数校准后冻结，在同一箱中预言 φ = 2.2 × 10⁻⁷ Mpc⁻³ mag⁻¹：为 N26 基准的 9.4 倍（观测数密度约为这一预言的 19 倍，看到两个源的泊松概率约 0.5%）。在 72 个预先列出的变体中，这个倍数从 2.5 到 37（61 个"更高"、11 个"同一量级"），所以判定依赖校准。影响最大的是校准时假定的弥散、效率如何外推到小晕，以及晕质量函数（11 个"同一量级"的变体都用 Reed 等 2007）。固定中位数关系时，再现观测数密度所需的弥散为 σ_UV ≈ 1.4 mag（泊松范围内 1.15–1.57；各变体 1.07–1.60）：位于 N26 的 1.5–2 mag 的低端或略低，并高于推断到 z ≈ 9 的约 0.7 mag。论证的三个缺口（判决规则、宇宙方差、有效面积）以及审稿人发现的第四个缺口（`gap_bin`）都不受这些数字影响。
 
 结果：[`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r1.json)、[`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r2.json)、[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r3.json)、[`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json)。交互网页在本地用 `python -m astrolab serve` 打开。
 
