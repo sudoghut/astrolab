@@ -120,13 +120,16 @@ def _import_run():
 
 def test_parse_priors_long_params_block(tmp_path):
     run = _import_run()
-    lines = ["## START_OF_PARAMS_INI"] + [f"## key{i} = {i}" for i in range(300)] + ["## END_OF_PARAMS_INI",
+    lines = ["## START_OF_PARAMS_INI", "## [some_module]", "## omega_m = 0.2 0.3 0.4"] + \
+        [f"## key{i} = {i}" for i in range(300)] + ["## END_OF_PARAMS_INI",
              "## START_OF_VALUES_INI", "## [cosmological_parameters]", "## omega_m = 0.1 0.3 0.9 ; comment",
              "## n_s = 0.87 0.97 1.07", "## h0 = 0.7", "## END_OF_VALUES_INI",
              "## START_OF_PRIORS_INI", "## [cosmological_parameters]", "## n_s = gaussian 0.96 0.01",
+             "## omega_m = uniform 0.15 0.8",
              "## END_OF_PRIORS_INI"]
     pr = run._parse_priors(lines)
-    assert pr["cosmological_parameters--omega_m"]["range"] == (0.1, 0.9)
+    assert pr["cosmological_parameters--omega_m"]["range"] == (0.15, 0.8)
+    assert "some_module--omega_m" not in pr
     assert pr["cosmological_parameters--n_s"]["gaussian_sigma"] == 0.01
     assert "cosmological_parameters--h0" not in pr
     text = "#omega_m sigma_8 weight\n" + "\n".join(lines) + "\n0.3 0.8 1\n"
