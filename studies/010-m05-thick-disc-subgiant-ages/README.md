@@ -3,6 +3,9 @@
 > Write sections 1–4 BEFORE writing run.py (pre-registration). Edit them later only
 > with a dated note explaining the change.
 
+**Frozen 2026-11-15** after dual-gate review (gate 1: 3 rounds; Codex: 9 rounds; history in
+`design/019-plan_*` section 6). Only a 5-row format trial of the catalogue had been seen.
+
 ## 1. Question
 
 Paper: Xiang & Rix 2022, Nature 603, 599, arXiv:2203.12110 ("XR22"). Wiki article (the source of
