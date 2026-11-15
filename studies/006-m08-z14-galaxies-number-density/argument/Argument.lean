@@ -13,8 +13,10 @@ The chain:
   at least two spectroscopically confirmed sources (MoM-z14, JADES-GS-z14-0) lie at z = 14-15
       with -21 < M_UV < -20 in the declared PRIMER and JOF area (388 arcmin2)
   over that area N26's constructed LF underestimates their incidence by about 200x (182x)
-  [implied] the expected count is then n_obs / 182 and the Poisson probability of at least two
-      sources is below 2e-4 (our computation)
+  [implied] Poisson mathematics: with at least two sources observed and a ratio of at least 100,
+      the expected count is at most n_obs / 100 and the probability of at least n_obs sources is
+      at most 2e-4 (197 ppm at n_obs = 2 and ratio 100; smaller for larger n_obs or ratio; 60 ppm
+      at the stated 182, computed in results/r1.json)
   [gap] the counts in that area follow Poisson statistics about the model mean (no
       cosmic-variance excess; N26 does not discuss cosmic variance)
   [gap] the declared area is the full effective search for this bin (the fields are those where
@@ -48,7 +50,7 @@ structure Vocab where
   n_obs : Nat
   /-- Ratio of the observed number density to that of N26's pre-JWST LF in the same bin and area (rounded down). -/
   ratio : Nat
-  /-- Poisson probability, in parts per million, of observing at least n_obs sources when the expected count is n_obs / ratio. -/
+  /-- Poisson probability, in parts per million, of observing at least n_obs sources when the expected count is n_obs / ratio (a function of n_obs and ratio). -/
   tail_ppm : Nat
   /-- The source counts in the declared area follow Poisson statistics about the model mean (no excess field-to-field variance). -/
   PoissonOK : Prop
@@ -59,12 +61,12 @@ structure Vocab where
 
 /-- The premises. -/
 inductive Field where
-  /-- OBS [stated 2505.11263: "we assume MoM-z14 and JADES-GS-z14-0 are the only −21<MUV<−20 sources"] Sec. 4.1 (z = 14-15, PRIMER and JOF area); the spectroscopic confirmations are N26 Sec. 3 and C24; the body uses only that there are at least two -/
+  /-- OBS [stated 2505.11263: "we assume MoM-z14 and JADES-GS-z14-0 are the only −21<MUV<−20 sources"] Sec. 4.1 (z = 14-15, PRIMER and JOF area); the quote is N26 counting assumption for the LF estimate; the body keeps only its observational part, that at least two such sources are spectroscopically confirmed (N26 Sec. 3, C24) -/
   | obs_count
   /-- STAT [stated 2505.11263: "Such an LF underestimates the incidence of observed sources by ≈200×"] Sec. 4.1 (182, interval +329 and -105, presumably from the Poisson uncertainty of the observed count; N26 does not say) -/
   | stat_ratio
-  /-- NUM [implied] Poisson tail P(N >= 2) for expected count 2/182 in the declared area; textbook Poisson statistics (e.g. Gehrels 1986, ApJ 303, 336) NUM[results/r1.json:p_tail_n26_ppm <= 200] -/
-  | num_tail
+  /-- MOD [implied] Poisson mathematics: if at least two sources are observed and the ratio is at least 100, the probability of at least n_obs sources for expected count n_obs / ratio is at most 2e-4 (the tail decreases with n_obs and with the ratio; 197 ppm at 2 and 100); textbook Poisson statistics (e.g. Gehrels 1986, ApJ 303, 336); the value at the stated 182 (60 ppm) is computed in results/r1.json -/
+  | mod_poisson
   /-- MOD [implied] a model under which the observed count of at least two sources in the full effective search has a Poisson tail probability of at most 2e-4, with Poisson counts, is disfavored at high confidence (significance testing, Wasserman 2004, All of Statistics, ch. 10) -/
   | mod_test
   /-- GAP [reconstructed] the counts in 388 arcmin2 follow Poisson statistics about the model mean; N26 does not discuss cosmic variance, which for rare, strongly clustered halos at z ~ 14 can exceed Poisson noise (e.g. Somerville et al. 2004, ApJ 600, L171; Trenti and Stiavelli 2008, ApJ 676, 767) -/
@@ -76,7 +78,7 @@ inductive Field where
 def prov : Field → Prov
   | .obs_count => .stated
   | .stat_ratio => .stated
-  | .num_tail => .implied
+  | .mod_poisson => .implied
   | .mod_test => .implied
   | .gap_poisson => .reconstructed
   | .gap_area => .reconstructed
@@ -84,7 +86,7 @@ def prov : Field → Prov
 def prem : Field → Vocab → Prop
   | .obs_count, v => v.n_obs ≥ 2
   | .stat_ratio, v => v.ratio ≥ 100
-  | .num_tail, v => v.tail_ppm ≤ 200
+  | .mod_poisson, v => v.n_obs ≥ 2 → v.ratio ≥ 100 → v.tail_ppm ≤ 200
   | .mod_test, v =>
       v.n_obs ≥ 2 → v.ratio ≥ 100 → v.tail_ppm ≤ 200 → v.PoissonOK → v.AreaFull → v.ModelDisfavored
   | .gap_poisson, v => v.PoissonOK
@@ -103,8 +105,8 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 /-- The paper's chain, step by step. -/
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  exact p .mod_test (p .obs_count) (p .stat_ratio) (p .num_tail) (p .gap_poisson)
-    (p .gap_area)  -- Sec. 4.1; two GAPs
+  have h1 : v.tail_ppm ≤ 200 := p .mod_poisson (p .obs_count) (p .stat_ratio)  -- Poisson tail
+  exact p .mod_test (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)  -- Sec. 4.1
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
   fun h => h ⟨0, 0, 0, False, False, False⟩
@@ -124,7 +126,7 @@ theorem obs_count_needed : ¬ ∀ v, Without .obs_count v → Conclusion v := fu
 theorem stat_ratio_needed : ¬ ∀ v, Without .stat_ratio v → Conclusion v := fun h =>
   h ⟨2, 0, 60, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-theorem num_tail_needed : ¬ ∀ v, Without .num_tail v → Conclusion v := fun h =>
+theorem mod_poisson_needed : ¬ ∀ v, Without .mod_poisson v → Conclusion v := fun h =>
   h ⟨2, 182, 1000, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem mod_test_needed : ¬ ∀ v, Without .mod_test v → Conclusion v := fun h =>
@@ -136,8 +138,8 @@ theorem gap_poisson_needed : ¬ ∀ v, Without .gap_poisson v → Conclusion v :
 theorem gap_area_needed : ¬ ∀ v, Without .gap_area v → Conclusion v := fun h =>
   h ⟨2, 182, 60, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-/-- What the paper writes is not enough: the significance step is standard background (implied),
-and the Poisson and area assumptions are not stated. -/
+/-- What the paper writes is not enough: the Poisson tail and the significance step are standard
+background (implied), and the Poisson and area assumptions are not stated. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   h ⟨2, 182, 1000, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 

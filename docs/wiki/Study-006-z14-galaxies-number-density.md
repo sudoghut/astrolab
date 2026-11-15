@@ -143,7 +143,7 @@ would strengthen the conclusion. The opposite direction runs through the area, a
 
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
-| `obs_count`: at least two confirmed sources at z = 14–15, −21 < M_UV < −20 | OBS | stated 2505.11263: "we assume MoM-z14 and JADES-GS-z14-0 are the only −21<MUV<−20 sources" | §4.1 (confirmations: N26 §3, C24) |
+| `obs_count`: at least two confirmed sources at z = 14–15, −21 < M_UV < −20 | OBS | stated 2505.11263: "we assume MoM-z14 and JADES-GS-z14-0 are the only −21<MUV<−20 sources" (N26's counting assumption for the LF estimate; we keep only its observational part, at least two confirmed) | §4.1 (confirmations: N26 §3, C24) |
 
 **Rival explanations.**
 
@@ -163,7 +163,7 @@ that into "disfavored".
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
 | `stat_ratio`: observed / baseline ≥ 100 | STAT | stated 2505.11263: "Such an LF underestimates the incidence of observed sources by ≈200×" | §4.1 (182, +329/−105) |
-| `num_tail`: P(N ≥ 2 \| expected 2/182) ≤ 2 × 10⁻⁴ | NUM | implied (Poisson statistics; Gehrels 1986); bound to `results/r1.json:p_tail_n26_ppm <= 200` | – |
+| `mod_poisson`: with ≥ 2 observed and ratio ≥ 100, P(N ≥ n_obs \| expected n_obs/ratio) ≤ 2 × 10⁻⁴ | MOD | implied (Poisson mathematics; Gehrels 1986): 197 ppm at 2 and 100, smaller for larger values; 60 ppm at the stated 182 (computed in `results/r1.json`) | – |
 | `mod_test`: with Poisson counts over the full effective search, a model with such a tail probability is disfavored at high confidence | MOD | implied (significance testing; Wasserman 2004, ch. 10) | – |
 | `gap_poisson`: the counts are Poisson about the model mean (no cosmic-variance excess) | GAP | reconstructed | not in the paper |
 | `gap_area`: the declared area is the full effective search for this bin | GAP | reconstructed | not in the paper |
@@ -174,15 +174,15 @@ that into "disfavored".
 |---|---|---|
 | The fields are overdense (cosmic variance) | `gap_poisson` | no: N26 does not discuss cosmic variance |
 | Further comparable area without detections belongs in the census | `gap_area` | no |
-| A two-count fluctuation | `num_tail` | implicitly ("high confidence") |
+| A two-count fluctuation | `mod_poisson` | implicitly ("high confidence") |
 
 **Inference (Lean excerpt).**
 
 ```lean
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  exact p .mod_test (p .obs_count) (p .stat_ratio) (p .num_tail) (p .gap_poisson)
-    (p .gap_area)  -- Sec. 4.1; two GAPs
+  have h1 : v.tail_ppm ≤ 200 := p .mod_poisson (p .obs_count) (p .stat_ratio)  -- Poisson tail
+  exact p .mod_test (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)  -- Sec. 4.1
 ```
 
 **Critique.** The Poisson tail (≈ 6 × 10⁻⁵) is our reading of "high confidence". It treats the
@@ -206,9 +206,11 @@ LF", the encoded conclusion is about that LF.
 1. **`explicit_insufficient`**: even with standard background added, the chain needs two gaps:
    Poisson counts with no cosmic-variance excess (`gap_poisson`) and the declared area being the
    full effective search (`gap_area`). Neither is discussed in N26 §4.
-2. **`stated_insufficient`**: the paper states the count and the ratio; the significance step and
-   its number are unstated background.
-3. **Every premise is needed** (six `_needed` countermodels); none is redundant.
+2. **`stated_insufficient`**: the paper states the count and the ratio; the Poisson tail bound, the
+   significance step and its number are unstated background.
+3. **Every premise is needed** (six `_needed` countermodels); none is redundant. The Poisson tail is
+   tied to the count and the ratio by `mod_poisson` (after Codex review: a free-standing number
+   would not have connected them).
 4. **The census assumption cuts both ways**: through the count it can only strengthen the
    conclusion (further sources inside the declared area enter as "at least two"); through the area it can weaken it (more searched
    area without detections, `gap_area`).
@@ -220,7 +222,7 @@ LF", the encoded conclusion is about that LF.
 inductive Field where
   | obs_count    -- OBS [stated 2505.11263]
   | stat_ratio   -- STAT [stated 2505.11263]
-  | num_tail     -- NUM [implied] NUM[results/r1.json:p_tail_n26_ppm <= 200]
+  | mod_poisson  -- MOD [implied] (Poisson tail bound)
   | mod_test     -- MOD [implied]
   | gap_poisson  -- GAP [reconstructed]
   | gap_area     -- GAP [reconstructed]
@@ -234,13 +236,13 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
 | A: the number density (R1) | testable now | φ = N/(V Δm) with N = 2, V = 462,648 Mpc³; Gehrels 84% Poisson limits; recompute V from 388 arcmin² and z = 14–15 (Planck 2018) | N26 §4.1 numbers (~1 KB) | reproduced if log φ within 0.01 dex and each error within 0.05 dex; volume within 5% | pending |
-| B: Poisson tail under the baseline (Lean `NUM`) | testable now | P(N ≥ 2 \| μ = 2/182) | – | `p_tail_n26_ppm <= 200` | pending |
+| B: Poisson tail under the baseline (checks the Lean `mod_poisson` bound numerically) | testable now | P(N ≥ 2 \| μ = 2/182), and at ratio 100 | – | tail at 182 and at 100 both ≤ 200 ppm (reported as `p_tail_n26_ppm`, `p_tail_ratio100_ppm`) | pending |
 | B: an independent constant-SFE prediction (R2) | testable now (comparison, not a reproduction of N26's baseline) | Eisenstein–Hu P(k) → Sheth–Tormen halo mass function; SFR = ε(M_h) f_b Ṁ_h (Fakhouri et al. 2010); ε calibrated at z ≈ 8 by deconvolved abundance matching (σ_cal = 0.7 mag) and frozen; predict φ at z = 14–15 | pre-JWST z ≈ 8 LF parameters (paper table, ~1 KB) | φ_model(ours)/φ_model(N26 ≈ 2.4 × 10⁻⁸) within 1/3–3: "same order"; verdict conditional on the fiducial model, with robustness over a pre-declared variant grid | pending |
 | D: the σ_UV needed (R3) | testable now | with the median relation fixed, solve φ_model(σ) = φ_obs (and its Poisson limits) | same | central σ reported; interval overlaps N26's ≈ 1.5–2 mag: "consistent"; conditional on R2 | pending |
 | H25's z ~ 14 point (R4) | context only | H25's z ~ 14 bin contains only GS-z14-0 (shared with N26) and includes cosmic variance | H25 Table 2 | none (background) | pending |
 | Model ingredients (R5) | explorable (not decisive) | halo mass function, accretion fit, calibration redshift, σ_cal, ε extrapolation, dust, completeness c | same | none - exploration only, see README §8 | pending |
 | D: cosmic variance (`gap_poisson`) | explorable (not decisive) | halo-bias estimate of the field-to-field variance for two counts | same | none - exploration only | pending |
-| E: effective area (`gap_area`) | explorable (not decisive) | tail probability as a function of the effective area (ratio): crosses 2 × 10⁻⁴ at ≈ 1.8× (ratio ≈ 99) and 1.35 × 10⁻³ at ≈ 4.8× (ratio ≈ 38) the declared area | – | none - exploration only | pending |
+| E: effective area (`gap_area`) | explorable (not decisive) | tail probability as a function of the effective area (ratio): crosses 2 × 10⁻⁴ at ≈ 1.8× (ratio ≈ 99) and 1.35 × 10⁻³ at ≈ 4.8× (ratio ≈ 38) the declared area (these are properties of the Poisson tail, reported for orientation, not decision thresholds) | – | none - exploration only | pending |
 | The baseline represents the consensus (2.3) | out of scope as a test | would need the pre-JWST model ensemble | – | – | – |
 
 ### Glossary
@@ -269,6 +271,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 Newest first.
 
+- 2026-11-15: gate-2 review: the Poisson tail is now a bound tied to the count and the ratio (`mod_poisson`), not a free-standing number; `obs_count` labelled as N26's counting assumption, observational part kept.
 - 2026-11-15: gate-1 review: the area dependence made explicit (`gap_area`; the volume does not
   "cancel"); the encoded conclusion is about the LF N26 constructs (the step to "the consensus" is
   discussed, not encoded).
@@ -355,7 +358,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 
 | 前提（Lean 构造子） | 标签 | 出处性质 | 论文出处 |
 |---|---|---|---|
-| `obs_count`：至少两个确认的 z = 14–15、−21 < M_UV < −20 的源 | OBS | stated 2505.11263："we assume MoM-z14 and JADES-GS-z14-0 are the only −21<MUV<−20 sources" | 第 4.1 节（光谱确认：N26 第 3 节、C24） |
+| `obs_count`：至少两个确认的 z = 14–15、−21 < M_UV < −20 的源 | OBS | stated 2505.11263："we assume MoM-z14 and JADES-GS-z14-0 are the only −21<MUV<−20 sources"（这是 N26 估计光度函数时的计数假设；我们只保留其观测部分：至少两个已确认） | 第 4.1 节（光谱确认：N26 第 3 节、C24） |
 
 **其他解释（rival explanations）。**
 
@@ -374,7 +377,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 | 前提（Lean 构造子） | 标签 | 出处性质 | 论文出处 |
 |---|---|---|---|
 | `stat_ratio`：观测 / 基准 ≥ 100 | STAT | stated 2505.11263："Such an LF underestimates the incidence of observed sources by ≈200×" | 第 4.1 节（182，+329/−105） |
-| `num_tail`：P(N ≥ 2 \| 预期 2/182) ≤ 2 × 10⁻⁴ | NUM | implied（泊松统计；Gehrels 1986）；绑定 `results/r1.json:p_tail_n26_ppm <= 200` | – |
+| `mod_poisson`：观测 ≥ 2 且比值 ≥ 100 时，P(N ≥ n_obs \| 预期 n_obs/比值) ≤ 2 × 10⁻⁴ | MOD | implied（泊松数学；Gehrels 1986）：2 与 100 时为 197 ppm，数值更大时更小；按所述的 182 为 60 ppm（在 `results/r1.json` 中计算） | – |
 | `mod_test`：在完整的有效搜索上计数服从泊松分布时，尾概率如此小的模型以高置信度被排除 | MOD | implied（显著性检验（significance testing）；Wasserman 2004，第 10 章） | – |
 | `gap_poisson`：计数相对模型平均值服从泊松分布（没有宇宙方差的额外弥散） | GAP | reconstructed | 论文没有写 |
 | `gap_area`：所述面积就是这一箱的完整有效搜索 | GAP | reconstructed | 论文没有写 |
@@ -385,15 +388,15 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 |---|---|---|
 | 视场过密（宇宙方差） | `gap_poisson` | 否：N26 没有讨论宇宙方差 |
 | 还有同等条件、没有探测的面积应计入普查 | `gap_area` | 否 |
-| 两个计数的涨落 | `num_tail` | 隐含（"高置信度"） |
+| 两个计数的涨落 | `mod_poisson` | 隐含（"高置信度"） |
 
 **推理（Lean 摘录）。**
 
 ```lean
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  exact p .mod_test (p .obs_count) (p .stat_ratio) (p .num_tail) (p .gap_poisson)
-    (p .gap_area)  -- Sec. 4.1; two GAPs
+  have h1 : v.tail_ppm ≤ 200 := p .mod_poisson (p .obs_count) (p .stat_ratio)  -- Poisson tail
+  exact p .mod_test (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)  -- Sec. 4.1
 ```
 
 **评析。** 泊松尾概率（约 6 × 10⁻⁵）是我们对"高置信度"的解读。它把预期计数当作精确值，并假定计数服从泊松分布。z ≈ 14 的稀有亮星系位于稀有晕中，这些晕的成团性使视场之间的弥散大于泊松（Somerville 等 2004；Trenti & Stiavelli 2008）；H25 的误差包含这一项，N26 没有。预期计数 2/182 只对所述面积成立，而该面积是在有探测的地方选的。余量很小：比值约 100（有效面积约 1.8 倍）时尾概率达到 2 × 10⁻⁴，比值约 38（约 4.8 倍面积）时达到单侧 3σ 的 1.35 × 10⁻³。
@@ -405,8 +408,8 @@ N26 构造了一个光度函数"to represent the pre-JWST theoretical consensus"
 #### 2.4 Lean 检查发现的问题
 
 1. **`explicit_insufficient`**：即使加上标准背景知识，链条仍需要两个缺口：计数服从泊松分布、没有宇宙方差的额外弥散（`gap_poisson`），以及所述面积就是完整的有效搜索（`gap_area`）。N26 第 4 节都没有讨论它们。
-2. **`stated_insufficient`**：论文明说了计数与比值；显著性一步及其数值是没写出的背景知识。
-3. **每个前提都是必要的**（六个 `_needed` 反例模型），没有多余的前提。
+2. **`stated_insufficient`**：论文明说了计数与比值；泊松尾概率的界、显著性一步及其数值是没写出的背景知识。
+3. **每个前提都是必要的**（六个 `_needed` 反例模型），没有多余的前提。泊松尾概率经由 `mod_poisson` 与计数和比值相连（Codex 审查后改：单独的数值无法把它们连起来）。
 4. **普查假设在两个方向上起作用**：经由计数，只会加强结论（所述面积内更多的源以"至少两个"进入）；经由面积，可能削弱结论（搜索了更多面积却没有探测，`gap_area`）。
 5. **相容性**成立，但在这里分量很弱：所有前提都是肯定命题。
 6. **局限。** Lean 检查的是在我们的编码下的逻辑结构，不检查每个前提内部的物理；原子命题不加解释时，"必要"指"本编码用到了它"。
@@ -415,7 +418,7 @@ N26 构造了一个光度函数"to represent the pre-JWST theoretical consensus"
 inductive Field where
   | obs_count    -- OBS [stated 2505.11263]
   | stat_ratio   -- STAT [stated 2505.11263]
-  | num_tail     -- NUM [implied] NUM[results/r1.json:p_tail_n26_ppm <= 200]
+  | mod_poisson  -- MOD [implied] (Poisson tail bound)
   | mod_test     -- MOD [implied]
   | gap_poisson  -- GAP [reconstructed]
   | gap_area     -- GAP [reconstructed]
@@ -429,13 +432,13 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
 | A：数密度（R1） | 现在可检验 | φ = N/(V Δm)，N = 2、V = 462,648 Mpc³；Gehrels 84% 泊松限；由 388 arcmin² 与 z = 14–15 复算 V（Planck 2018） | N26 第 4.1 节的数字（约 1 KB） | log φ 差 0.01 dex 以内、各误差差 0.05 dex 以内、体积差 5% 以内 → 复现 | 待定 |
-| B：基准下的泊松尾概率（Lean `NUM`） | 现在可检验 | P(N ≥ 2 \| μ = 2/182) | – | `p_tail_n26_ppm <= 200` | 待定 |
+| B：基准下的泊松尾概率（数值核对 Lean 的 `mod_poisson` 界） | 现在可检验 | P(N ≥ 2 \| μ = 2/182)，以及比值 100 时 | – | 182 与 100 时的尾概率都 ≤ 200 ppm（报告为 `p_tail_n26_ppm`、`p_tail_ratio100_ppm`） | 待定 |
 | B：独立的恒定 SFE 预言（R2） | 现在可检验（比较，不是复现 N26 的基准） | Eisenstein–Hu 功率谱 → Sheth–Tormen 晕质量函数；SFR = ε(M_h) f_b Ṁ_h（Fakhouri 等 2010）；ε 在 z ≈ 8 用去卷积的丰度匹配（abundance matching，σ_cal = 0.7 mag）校准后冻结；预言 z = 14–15 的 φ | JWST 之前 z ≈ 8 光度函数的参数（论文表格，约 1 KB） | φ_model(本研究)/φ_model(N26 ≈ 2.4 × 10⁻⁸) 在 1/3–3 之间："同一量级"；判定以基准组合为条件，并报告在预先列出的变体网格上是否稳健 | 待定 |
 | D：所需的 σ_UV（R3） | 现在可检验 | 固定中位数关系，解 φ_model(σ) = φ_obs（及其泊松限） | 同上 | 报告中心值；区间与 N26 的 ≈ 1.5–2 mag 重叠："一致"；以 R2 为前提 | 待定 |
 | H25 的 z ~ 14 点（R4） | 只作背景 | H25 的 z ~ 14 箱只含 GS-z14-0（与 N26 共用），误差含宇宙方差 | H25 表 2 | 无（背景） | 待定 |
 | 模型组成（R5） | 可探索（不能判决） | 晕质量函数、吸积拟合式、校准红移、σ_cal、ε 外推、尘埃、完备性 c | 同上 | 无——仅供探索，见 README 第 8 节 | 待定 |
 | D：宇宙方差（`gap_poisson`） | 可探索（不能判决） | 用晕偏置（halo bias）估计两个计数的视场间弥散 | 同上 | 无——仅供探索 | 待定 |
-| E：有效面积（`gap_area`） | 可探索（不能判决） | 尾概率随有效面积（比值）的变化：约为所述面积的 1.8 倍（比值约 99）时越过 2 × 10⁻⁴，约 4.8 倍（比值约 38）时越过 1.35 × 10⁻³ | – | 无——仅供探索 | 待定 |
+| E：有效面积（`gap_area`） | 可探索（不能判决） | 尾概率随有效面积（比值）的变化：约为所述面积的 1.8 倍（比值约 99）时越过 2 × 10⁻⁴，约 4.8 倍（比值约 38）时越过 1.35 × 10⁻³（这是泊松尾概率本身的性质，用于参照，不是判决门槛） | – | 无——仅供探索 | 待定 |
 | 基准代表共识（2.3） | 不在检验范围内 | 需要 JWST 之前的模型集合 | – | – | – |
 
 ### 术语表
@@ -463,6 +466,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 按时间倒序。
 
+- 2026-11-15：闸门 2 审查：泊松尾概率改为与计数和比值相连的界（`mod_poisson`），不再是单独的数值；`obs_count` 注明是 N26 的计数假设，只保留观测部分。
 - 2026-11-15：闸门 1 审查：写明面积的依赖（`gap_area`；体积并不"相消"）；编码的结论说的是 N26 构造的光度函数（到"共识"的一步只讨论、不编码）。
 - 2026-11-15：第一版：第一至三部分（预注册的来源；计划 `design/015-plan_*`）。
 
