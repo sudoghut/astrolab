@@ -157,7 +157,8 @@ Run 2026-11-15 (`python -m astrolab run 007`, 13 s; seven guarded fetches, 0.46 
   10⁻⁷ to 4.2×10⁻⁵ /yr, except GW151012 (7.9×10⁻³ /yr) and GW170729 (0.02 /yr). These match the
   lowest-over-pipelines values in GWTC-1 (arXiv:1811.12907, Sec. IV: GW151012 has 0.17 /yr in PyCBC
   and 7.92×10⁻³ /yr in GstLAL; GW170729 has 1.36, 0.18 and 0.02 /yr in PyCBC, GstLAL and cWB).
-  The run then gives |S_O3| = 69 and R1 "reproduced": 84 + 69 = 153, P26's sample.
+  The run then gives |S_O3| = 69 and R1 "reproduced": 84 + 69 = 153, the same total as P26's
+  sample (the O4a part is the same set; whether the 69 are the same set is open question 1).
 - *Reading.* The registered verdict stays "not reproduced". The shortfall comes from how the public
   lists store FARs (no FAR on the re-analysed rows), not from P26's selection; the rule did not
   anticipate a FAR on a lower-precedence list only. The R2–R4 numbers below use the registered
