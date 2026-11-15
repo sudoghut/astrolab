@@ -53,8 +53,10 @@ named checks below must all pass. Named checks (each must be excluded, with the 
 GW190814, GW190917_114630, GW190426_152155, GW200105_162426, GW200115_042309. An event excluded
 because it has no PE masses in the lists counts as "excluded (no PE)", not as a failed check.
 
-**R1 verdict:** "reproduced" if both parts are reproduced; "described" if the O4a target is
-ambiguous; otherwise "not reproduced", with every difference listed. The FAR cut uses GWOSC's
+**R1 verdict:** "not reproduced" if the GWTC-3.0 part fails or the O4a part fails with an
+unambiguous target; "described" if the GWTC-3.0 part is reproduced and the O4a target is ambiguous
+(the O4a part is then reported descriptively); "reproduced" if both parts are reproduced. Every
+difference is listed. The FAR cut uses GWOSC's
 top-level `far`, documented as the lowest FAR over search pipelines (event-portal documentation;
 checked on GW150914). The list JSONs carry no per-pipeline FAR, so this rests on the documentation;
 GWOSC's minimum may include a pipeline P26 did not use, which would show up as an extra outside
@@ -70,8 +72,9 @@ M☉. With I_lo = ∫_10^35 p and I_hi = ∫_35^100 p: the predicted fraction f 
 reported per M_t: N_hi/(N_lo + N_hi) against f, and the binomial probability of ≤ N_hi events in
 n = N_lo + N_hi trials with probability f. Caveat: [10, 35) contains the 10 M☉ peak, which is not a
 λ1 power law, so the prediction is biased and a ratio below 1 is expected even without a 35 M☉
-feature. Also reported: the median fractional 90% width of m1 for events with median m1 in
-[30, 40] M☉.
+feature. Also reported: the median over events with median m1 in [30, 40] M☉ of the fractional 90% width
+(upper offset − lower offset)/median m1, i.e. (m1,95 − m1,5)/m1,50; events without both offsets are
+skipped and counted.
 
 **R3 (exploration, no verdict).** Unbinned maximum likelihood on the medians in [10, 100] M☉,
 p(m1) = f(m1) VT(m1) / ∫_10^100 f VT, with f ∝ m1^(−λ) (larger λ is steeper) and the same VT family
