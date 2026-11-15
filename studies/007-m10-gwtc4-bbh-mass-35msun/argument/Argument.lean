@@ -19,8 +19,9 @@ The chain has two routes to the feature, with two gaps shared by both:
   route 1 (strongly modeled): lambda2 > lambda1 at 97.7% credibility
   route 2 (weakly modeled): the B-Spline shows a local peak near 33.5 Msun, consistent with the
       other weakly modeled approaches
-  [implied] either route, with the sample, selection and systematics as above, gives a feature at
-      35 Msun in the Sec. 6.1 sense
+  [stated] either route, with the sample, selection and systematics as above, gives a feature at
+      35 Msun in the Sec. 6.1 sense (a break counts as one form of the feature; the B-Spline peak
+      supports it)
   -> a feature at 35 Msun
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
@@ -72,9 +73,9 @@ inductive Field where
   | stat_weak
   /-- GAP [reconstructed] parameter-estimation systematics and residual noise events (about 6.7 expected among the 161 candidates with FAR below 1 per yr, Sec. 3.2.1) do not make a spurious feature near 35 Msun; P26 does not propagate either into the mass spectrum -/
   | gap_syst
-  /-- MOD [implied] route 1: with the sample and an adequate selection function, and no spurious systematics, a credible change of slope near 35 Msun is a feature in the Sec. 6.1 sense, which includes a break; the broken-power-law reading follows Callister and Farr 2024 (arXiv:2310.12148), and reading a posterior probability as credibility is standard Bayesian inference (Gelman et al. 2013, Bayesian Data Analysis, 3rd ed., ch. 1) -/
+  /-- MOD [stated 2508.18083: "or (ii) a broken power law with break"] Sec. 6.1: route 1, the paper counts a break as one form of the 35 Msun feature; the body adds the conditions on sample, selection and systematics, so it is no stronger than the quote (Callister and Farr 2024, arXiv:2310.12148, for the broken-power-law reading) -/
   | mod_route1
-  /-- MOD [implied] route 2: under the same conditions, a local peak in a flexible model that agrees with the other flexible models is a feature in the Sec. 6.1 sense (P26 own usage in Sec. 6.1 and App. D.4; Gelman et al. 2013, ch. 1 for the Bayesian reading) -/
+  /-- MOD [stated 2508.18083: "former conclusion is supported by the B-Spline model"] Sec. 6.1: route 2, the B-Spline local peak supports the feature (as an over-density); the body adds the conditions on sample, selection and systematics -/
   | mod_route2
   deriving DecidableEq, Repr
 
@@ -86,8 +87,8 @@ def prov : Field → Prov
   | .stat_bspline => .stated
   | .stat_weak => .stated
   | .gap_syst => .reconstructed
-  | .mod_route1 => .implied
-  | .mod_route2 => .implied
+  | .mod_route1 => .stated
+  | .mod_route2 => .stated
 
 def prem : Field → Vocab → Prop
   | .obs_sample, v => v.Sample
@@ -173,8 +174,8 @@ theorem mod_route2_redundant : ∀ v, Without .mod_route2 v → Conclusion v := 
   exact p .mod_route1 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
     (p .gap_sel (by decide)) (p .stat_steep (by decide)) (p .gap_syst (by decide))
 
-/-- What the paper writes is not enough: both routes need standard inference steps (implied),
-and neither the high-mass selection nor the systematics are established. -/
+/-- What the paper writes is not enough: neither the high-mass selection nor the systematics are
+established. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   h ⟨True, True, False, 977, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 

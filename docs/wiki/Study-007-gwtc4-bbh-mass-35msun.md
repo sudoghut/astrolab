@@ -139,12 +139,12 @@ high mass is assumed, and it matters directly for a slope above 35 M☉.
 
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
-| `stat_steep`: λ2 > λ1 with credibility ≥ 95% (our threshold) | STAT | stated 2508.18083: "at 97.7% credibility" | §6.1 |
+| `stat_steep`: λ2 > λ1 with credibility ≥ 95% (P26 reports 97.7%; the 95% threshold is our deliberately weaker convention) | STAT | stated 2508.18083: "at 97.7% credibility" | §6.1 |
 | `stat_bspline`: the B-spline has a local peak near 33.5 M☉ | STAT | stated 2508.18083: "which exhibits a local peak at" | §6.1 |
 | `stat_weak`: it agrees with the other weakly modeled approaches | STAT | stated 2508.18083: "consistent with other models that employ a weakly modeled approach" | §6.1, App. D.4 |
 | `gap_syst`: PE systematics and noise events make no spurious feature near 35 M☉ | GAP | reconstructed | not propagated in the paper |
-| `mod_route1`: a credible slope change (with the above) is a feature in the §6.1 sense | MOD | implied (Bayesian inference; Gelman et al. 2013, ch. 1) | – |
-| `mod_route2`: an agreed flexible-model peak (with the above) is a feature | MOD | implied (Gelman et al. 2013, ch. 1) | – |
+| `mod_route1`: a credible slope change (with the above) is a feature in the §6.1 sense | MOD | stated 2508.18083: "or (ii) a broken power law with break" (a break is one form of the feature) | §6.1 |
+| `mod_route2`: an agreed flexible-model peak (with the above) is a feature | MOD | stated 2508.18083: "former conclusion is supported by the B-Spline model" | §6.1 |
 
 **Rival explanations.**
 
@@ -184,8 +184,10 @@ gate-1 review showed it followed from our own encoding of the rule, so we remove
    lies near 35 M☉ (a break in one, a peak in the other); that each route alone suffices is our
    encoding, following §6.1's broad sense of feature, and the flexible fits carry their own
    smoothness priors.
-2. **`stated_insufficient`**: the stated premises omit the inference steps of both routes (standard
-   Bayesian reading) and both gaps.
+2. **`stated_insufficient`**: everything the paper states, including both routes from evidence to
+   feature (§6.1), still leaves the two gaps; nothing standard closes them, so `stated_*` and
+   `explicit_*` coincide here. (An earlier version labelled the route steps as implied; Codex's
+   review pointed out that §6.1 states them.)
 3. **Two independent routes**: `stat_steep` and `mod_route1` are redundant given route 2, and
    `stat_bspline`, `stat_weak` and `mod_route2` are redundant given route 1. The feature does not
    rest on either model family alone. Four premises are needed: the sample, the injection selection
@@ -205,8 +207,8 @@ inductive Field where
   | stat_bspline  -- STAT [stated 2508.18083]
   | stat_weak     -- STAT [stated 2508.18083]
   | gap_syst      -- GAP [reconstructed]
-  | mod_route1    -- MOD [implied]
-  | mod_route2    -- MOD [implied]
+  | mod_route1    -- MOD [stated 2508.18083]
+  | mod_route2    -- MOD [stated 2508.18083]
 
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
   h ⟨True, True, False, 977, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
@@ -216,7 +218,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
-| A: the 153-event sample (R1) | testable now | rebuild from GWOSC lists (GWTC-4.0, GWTC-1/2.1/3) with P26's cuts (FAR < 1/yr, 90% lower bound as a proxy for the 1% bound, exclusions); compare with the O4a list on Zenodo | GWOSC JSON (~0.25 MB + < 1 MB each), O4a list 10 kB | "reproduced" if the O4a events match P26's list and the counts are 84 and 69, with only pre-declared, direction-known differences; downgraded to "described" if the meaning of GWOSC's `far` cannot be confirmed | pending |
+| A: the 153-event sample (R1) | testable now | rebuild from GWOSC lists (GWTC-4.0, GWTC-1/2.1/3) with P26's cuts (FAR < 1/yr, 90% lower bound as a proxy for the 1% bound, exclusions); compare with the O4a list on Zenodo | GWOSC JSON (~0.25 MB + < 1 MB each), O4a list 10 kB | "reproduced" if the O4a events match P26's list and the counts are 84 and 69, with only pre-declared, direction-known differences; downgraded to "described" if the meaning of GWOSC's `far` cannot be confirmed (the `far` definition and the allowed number of discrepant events are fixed in the pre-registration before R1 runs) | pending |
 | Sample-level counts above and below 35 M☉ (R2) | explorable (descriptive) | median m1 counts against a single power law (λ1 = 1.7) times a toy VT(m1) with a turnover, scanning the turnover | same | none - descriptive (medians blur a break; 1-D VT is a toy) | pending |
 | Steepening vs selection curvature (R3) | explorable (not decisive) | point-estimate toy fit of a broken power law, with and without a peak, scanning the VT turnover | same | none - exploration only | pending |
 | GW231123 (R4) | descriptive | its total mass within the rebuilt sample (not P26's quantity) | same | none | pending |
@@ -244,6 +246,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 Newest first.
 
+- 2026-11-15: gate-2 review: the route steps are stated in §6.1 (relabelled from implied); the gaps are the finding.
 - 2026-11-15: gate-1 review: two routes (strongly and weakly modeled) with two shared gaps (`gap_sel`, `gap_syst`); the over-density theorem removed (it followed from our own rule); quotes re-sourced.
 - 2026-11-15: first version: parts 1–3 (pre-registration source; plan `design/016-plan_*`).
 
@@ -324,12 +327,12 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 
 | 前提（Lean 构造子） | 标签 | 出处性质 | 论文出处 |
 |---|---|---|---|
-| `stat_steep`：λ2 > λ1 的可信度 ≥ 95%（我们的门槛） | STAT | stated 2508.18083："at 97.7% credibility" | 第 6.1 节 |
+| `stat_steep`：λ2 > λ1 的可信度 ≥ 95%（P26 报告 97.7%；95% 是我们有意取弱的约定） | STAT | stated 2508.18083："at 97.7% credibility" | 第 6.1 节 |
 | `stat_bspline`：B 样条在约 33.5 M☉ 有局部峰 | STAT | stated 2508.18083："which exhibits a local peak at" | 第 6.1 节 |
 | `stat_weak`：它与其他弱模型化方法一致 | STAT | stated 2508.18083："consistent with other models that employ a weakly modeled approach" | 第 6.1 节、附录 D.4 |
 | `gap_syst`：参数估计的系统误差与噪声事件不会在 35 M☉ 附近造成虚假的特征 | GAP | reconstructed | 论文没有传播 |
-| `mod_route1`：（在上述条件下）可信的斜率变化即第 6.1 节意义上的特征 | MOD | implied（贝叶斯推断（Bayesian inference）；Gelman 等 2013，第 1 章） | – |
-| `mod_route2`：（在上述条件下）各灵活模型一致的峰即特征 | MOD | implied（Gelman 等 2013，第 1 章） | – |
+| `mod_route1`：（在上述条件下）可信的斜率变化即第 6.1 节意义上的特征 | MOD | stated 2508.18083："or (ii) a broken power law with break"（折断是特征的一种形式） | 第 6.1 节 |
+| `mod_route2`：（在上述条件下）各灵活模型一致的峰即特征 | MOD | stated 2508.18083："former conclusion is supported by the B-Spline model" | 第 6.1 节 |
 
 **其他解释（rival explanations）。**
 
@@ -355,7 +358,7 @@ P26 第 6.1 节说 35 M☉ 的特征"consistent with either"峰值约 32.7 M☉ 
 #### 2.4 Lean 检查发现的问题
 
 1. **`explicit_insufficient`**：两条途径都需要同样的两个缺口：高质量处的选择函数适当（`gap_sel`），以及参数估计的系统误差与噪声事件不会造成虚假的特征（`gap_syst`）。这里模型形状不是缺口，因为两条途径都在约 35 M☉ 处有东西（一个是折断，一个是峰）；每条途径单独就足够，是我们按第 6.1 节宽泛的"特征"含义所作的编码，而且灵活模型也有它们自己的平滑先验。
-2. **`stated_insufficient`**：论文明说的前提缺少两条途径的推理步骤（标准的贝叶斯解读）与两个缺口。
+2. **`stated_insufficient`**：论文明说的一切，包括从证据到特征的两条途径（第 6.1 节），仍然留下两个缺口；没有标准知识能补上，所以这里 `stated_*` 与 `explicit_*` 一致。（早期版本把途径的推理步骤标为 implied；Codex 审查指出第 6.1 节明说了它们。）
 3. **两条独立的途径**：有途径 2 时 `stat_steep` 与 `mod_route1` 多余，有途径 1 时 `stat_bspline`、`stat_weak` 与 `mod_route2` 多余。特征不只依赖某一类模型。必要的前提有四个：样本、注入的选择效应与两个缺口。
 4. **相容性**成立；在这里分量较弱（所有前提都是肯定命题）。`stated_insufficient` 与 `explicit_insufficient` 共用一个反例模型（两个缺口都不成立）；各自的 `_needed` 定理表明每个缺口单独都起作用。
 5. **局限。** Lean 检查的是在我们的编码下的逻辑结构，不检查物理；可信度的 95% 门槛是我们的约定。
@@ -369,8 +372,8 @@ inductive Field where
   | stat_bspline  -- STAT [stated 2508.18083]
   | stat_weak     -- STAT [stated 2508.18083]
   | gap_syst      -- GAP [reconstructed]
-  | mod_route1    -- MOD [implied]
-  | mod_route2    -- MOD [implied]
+  | mod_route1    -- MOD [stated 2508.18083]
+  | mod_route2    -- MOD [stated 2508.18083]
 
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
   h ⟨True, True, False, 977, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
@@ -380,7 +383,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
-| A：153 个事件的样本（R1） | 现在可检验 | 按 P26 的条件（FAR < 1/yr、以 90% 下限近似 1% 下限、排除项）由 GWOSC 列表（GWTC-4.0、GWTC-1/2.1/3）重建；与 Zenodo 上的 O4a 列表比较 | GWOSC JSON（约 0.25 MB，其余各 < 1 MB），O4a 列表 10 kB | O4a 事件与 P26 列表一致、计数为 84 与 69，只允许预先声明且方向已知的差别 → "复现"；若不能确认 GWOSC `far` 的含义则降为"描述" | 待定 |
+| A：153 个事件的样本（R1） | 现在可检验 | 按 P26 的条件（FAR < 1/yr、以 90% 下限近似 1% 下限、排除项）由 GWOSC 列表（GWTC-4.0、GWTC-1/2.1/3）重建；与 Zenodo 上的 O4a 列表比较 | GWOSC JSON（约 0.25 MB，其余各 < 1 MB），O4a 列表 10 kB | O4a 事件与 P26 列表一致、计数为 84 与 69，只允许预先声明且方向已知的差别 → "复现"；若不能确认 GWOSC `far` 的含义则降为"描述"（`far` 的定义与允许的不一致事件数在 R1 运行前的预注册中写定） | 待定 |
 | 35 M☉ 上下的样本计数（R2） | 可探索（描述） | 中位数 m1 的计数，与单一幂律（λ1 = 1.7）乘以带转折的玩具 VT(m1) 比较，扫描转折质量 | 同上 | 无——描述（中位数会抹平折断；一维 VT 是玩具） | 待定 |
 | 变陡对选择函数曲率的敏感度（R3） | 可探索（不能判决） | 折断幂律（加或不加峰）的点估计玩具拟合，扫描 VT 的转折 | 同上 | 无——仅供探索 | 待定 |
 | GW231123（R4） | 描述 | 它的总质量在重建样本中的位置（与 P26 的量不同） | 同上 | 无 | 待定 |
@@ -408,6 +411,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 按时间倒序。
 
+- 2026-11-15：闸门 2 审查：途径的推理步骤在第 6.1 节中明说（由 implied 改标）；两个缺口才是发现。
 - 2026-11-15：闸门 1 审查：两条途径（强模型化与弱模型化）与两个共同的缺口（`gap_sel`、`gap_syst`）；删除过密定理（它由我们自己的规则推出）；引文改换出处。
 - 2026-11-15：第一版：第一至三部分（预注册的来源；计划 `design/016-plan_*`）。
 
