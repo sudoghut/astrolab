@@ -2,12 +2,12 @@
 
 [English](#english) · [中文](#中文)
 
-*Paper: DES Collaboration (T. M. C. Abbott et al.) 2026, "Dark Energy Survey Year 6 Results: Cosmological Constraints from Galaxy Clustering and Weak Lensing", arXiv:2601.14559 (v2; accepted in PRD). Study:
+*Paper: DES Collaboration (T. M. C. Abbott et al.) 2026, "Dark Energy Survey Year 6 Results: Cosmological Constraints from Galaxy Clustering and Weak Lensing", arXiv:2601.14559 (v2). Study:
 [`studies/008-m03-s8-des-y6-cmb-parameter-difference`](https://github.com/sudoghut/astrolab/tree/main/studies/008-m03-s8-des-y6-cmb-parameter-difference).
 Status: planned. Last updated: 2026-11-15 (see the changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：S8 张力减弱了吗？DES Y6 与 CMB 的比较。状态：计划中。论文：DES Collaboration（T. M. C. Abbott 等）2026，arXiv:2601.14559（v2，已被 PRD 接收）。研究：[`studies/008-m03-s8-des-y6-cmb-parameter-difference`](https://github.com/sudoghut/astrolab/tree/main/studies/008-m03-s8-des-y6-cmb-parameter-difference)。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：S8 张力减弱了吗？DES Y6 与 CMB 的比较。状态：计划中。论文：DES Collaboration（T. M. C. Abbott 等）2026，arXiv:2601.14559（v2）。研究：[`studies/008-m03-s8-des-y6-cmb-parameter-difference`](https://github.com/sudoghut/astrolab/tree/main/studies/008-m03-s8-des-y6-cmb-parameter-difference)。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -87,11 +87,17 @@ In many dimensions DES estimates the densities with **normalizing flows** (a mac
 density estimator) in the tensiometer code.
 
 **Step 5 · The numbers.** DES compares the two posteriors in the S8 direction (1-D), in the
-S8–Ωm plane (2-D), and in the full parameter space, and finds **2.6σ, 2.2σ and 1.8σ** (Sec. V.2;
-Table 6). The S8 direction is the one 3x2pt measures best, so a separation shows up most
-clearly there. Against Planck 2018 alone the full-space difference is 1.0σ (DES Y3: 1.5σ).
-The 2-D difference against Planck alone fell from 1.9σ (Y3) to 1.4σ (Y6), but rose to 2.2σ
-against the combined CMB, because the combined CMB is tighter and prefers a slightly higher S8.
+S8–Ωm plane (2-D), and in the full parameter space, and finds **2.6σ, 2.2σ and 1.8σ** (Sec. V.2).
+Table 6 gives the full-space numbers with a probability to exceed (PTE): 1.8σ (PTE 0.08) against
+the CMB combination, 1.0σ (0.319) against Planck 2018 alone (DES Y3: 1.5σ). DES says 3x2pt is
+most sensitive to directions like S8, so separations show up more clearly there. S8 (with the
+exponent 0.5) is the conventional summary, not exactly the best-constrained direction: DES's
+footnote 7 finds that σ8 (Ωm/0.3)^0.617 is best constrained, giving 0.799 (+0.011/−0.010) and
+2.5σ from the CMB. In the S8–Ωm plane the difference against Planck alone fell from 1.9σ (Y3) to
+1.4σ (Y6) and is 2.2σ against the combined CMB. In D26's words, from Y3 to Y6 both DES and the CMB
+tightened and both shifted to higher S8, with "a slight increase in separation" as the net result.
+Other DES combinations come closer to 3σ against the CMB: 3x2pt + supernovae + BAO 2.5σ
+(PTE 0.012), all DES probes 2.8σ (PTE 0.006).
 
 **Step 6 · The decision rule.** D26 sets n_σ < 3 as "the criterion for different data sets
 agreeing well enough that it makes sense to examine their combined constraint" (Sec. IV.6). All
@@ -106,8 +112,8 @@ parameters of interest.
 **Step 8 · Other probes.** In Sec. VII.3 DES compares itself with KiDS-Legacy cosmic shear
 (S8 = 0.815 +0.016/−0.021) and finds them consistent with its own cosmic shear
 (0.783 +0.019/−0.015). It quotes HSC Y3 as 0.804 ± 0.051. That number does not appear in the
-paper DES cites (Zhang et al. 2025, arXiv:2507.01386, which gives 0.780 +0.029/−0.030); we use
-the cited paper directly.
+paper DES cites for it (its reference 153, Zhang et al. 2025, arXiv:2507.01386, identified from
+D26's reference list; it gives 0.780 +0.029/−0.030); we use the cited paper directly.
 
 #### 1.4 What they conclude, and how sure they are
 
@@ -116,14 +122,16 @@ the cited paper directly.
   about 1σ to at most 3σ. DES also notes that the field is "in a similar place as it was in
   previous years": D26 does not say the tension has gone away.
 - **Strength:** the 1.8σ full-space number is free of any choice of direction; the 2.6σ is in the
-  direction DES chose a priori as its best-measured one.
+  conventional S8 direction, one of three projections DES reports (plus an optimised direction
+  in footnote 7, 2.5σ).
 - **What would make them wrong:**
   - the metric or its numerical estimate could be off (the normalizing-flow estimate has noise
     that D26 does not quote);
   - an unrecognised systematic could shift DES S8 (lens bin 2 already had to be dropped);
-  - "below 3σ" may not mean "no evidence": 2.6σ corresponds to a chance probability of about
-    1%, which many would call mild evidence. The rule D26 states is a criterion for combining, not
-    a statement about evidence.
+  - "below 3σ" means "no evidence" only by convention: 2.6σ corresponds to a chance probability
+    of about 1%. The rule D26 states is a criterion for combining, not a statement about evidence;
+    the step to "no substantial evidence" rests on the usual 3σ convention, which D26 does not
+    write out.
 
 ### Part 2 · The logic of the argument
 
@@ -132,10 +140,10 @@ the cited paper directly.
 A. The reference: the primary CMB combination (no lensing).
 B. The measure: the parameter-difference probability, converted to n_σ.
 C. The numbers: 1.8σ (full space) and 2.6σ (S8), with small projection effects.
-D. The rule: below 3σ, the data sets agree well enough to combine.
-E. [gap] Combinable, with the S8 projection also below 3σ ⇒ no substantial evidence for a
-discrepancy.
+D. [implied] The significance convention: a result below 3σ is not called evidence.
 ⇒ No substantial evidence for a discrepancy with the CMB.
+(D26's own rule, below 3σ the data sets agree well enough to combine, licenses combining; it
+does not carry the conclusion.)
 
 How we check it: the argument is written in Lean 4
 ([`studies/008-m03-s8-des-y6-cmb-parameter-difference/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/argument/Argument.lean)).
@@ -163,8 +171,8 @@ enough (`stated_*`), and whether they are enough once standard knowledge is adde
 `explicit_insufficient` means a real gap). What Lean does not check: the physics inside each
 premise — that is what parts 1 and 3 and the study are for.
 
-Numbers are encoded in tenths of a σ as natural numbers; "at most 18 tenths" is no stronger than
-the reported, rounded "1.8".
+Numbers are encoded in tenths of a σ as natural numbers, meaning the reported values rounded to
+one decimal; "at most 18 tenths" restates the reported "1.8".
 
 #### 2.1 Stage A · Reference and measure
 
@@ -194,9 +202,9 @@ the combination 1.8σ. The conclusion is about "the CMB" in the sense of the com
 
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
-| `stat_full`: full-space difference at most 1.8σ | STAT | stated: "we find a full parameter space difference of 1.8" | §VIII (also §V.2, Table 6) |
+| `stat_full`: full-space difference at most 1.8σ | STAT | stated: "we find a full parameter space difference of 1.8" | §VIII (also §V.2; Table 6, PTE 0.08) |
 | `stat_s8`: difference projected onto S8 at most 2.6σ | STAT | stated: "the difference increases to 2.6" | §VIII (also §V.2) |
-| `stat_proj`: projection effects below 0.5σ | STAT | stated: "exhibits minor prior-volume effects of less than" | App. B |
+| `stat_proj`: projection effects below 0.5σ | STAT | stated: "exhibits minor prior-volume effects of less than $0.5\sigma$ for all parameters of interest" | App. B |
 
 **Rival explanations.**
 
@@ -205,9 +213,11 @@ the combination 1.8σ. The conclusion is about "the CMB" in the sense of the com
 | Prior-volume effects shift the DES mean enough to change the numbers | `stat_proj` | yes (App. B, Table 9: +0.17 in S8) |
 | The normalizing-flow estimate is noisy | none | no; the numerical error is not quoted |
 
-**Critique.** These are the numbers our study can recompute (part 3). The 2.6σ is in a direction
-chosen before the comparison (the best-measured one), so a trials correction is arguable either
-way; the 1.8σ full-space number needs none.
+**Critique.** These are the numbers our study can recompute (part 3). D26 reports three
+projections (1-D, 2-D, full space) and, in footnote 7, an optimised direction (2.5σ). Choosing
+which projection to quote is a look-elsewhere question, but a correction for it could only lower
+the significance, so it would not change a no-evidence conclusion; the 1.8σ full-space number
+needs no such correction.
 
 #### 2.3 Stage C · From the numbers to the conclusion
 
@@ -215,14 +225,14 @@ way; the 1.8σ full-space number needs none.
 
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
-| `mod_crit`: below 3σ (full space), the data sets agree well enough to combine | MOD | stated: "as the criterion for different data sets agreeing well enough that it makes sense to examine their combined constraint" | §IV.6 |
-| `gap_bridge`: with the reference and metric above, combinable data sets whose S8 projection is also below 3σ and whose projection effects are small show no substantial evidence for a discrepancy | GAP | reconstructed | — |
+| `mod_crit`: below 3σ, the data sets agree well enough to combine | MOD | stated: "We set $n_{\sigma}<3$ as the criterion for different data sets agreeing well enough that it makes sense to examine their combined constraint" | §IV.6 (applied to the full space, §V.2) |
+| `mod_conv`: the significance convention: below 3σ is not reported as evidence (applied to the Gaussian-equivalent n_σ of both projections, given small projection effects) | MOD | implied (Lyons 2013, arXiv:1310.1284: evidence at 3σ, discovery at 5σ) | — |
 
 **Rival explanations.**
 
 | Alternative | Excluded by premise | Excluded explicitly by the paper? |
 |---|---|---|
-| 2.6σ (chance probability about 1%) is mild evidence for a discrepancy, even if combining is allowed | `gap_bridge` | no |
+| 2.6σ (chance probability about 1%) is mild evidence for a discrepancy | `mod_conv` (by convention) | no; D26 cites a range of significances, "from ∼1σ to ≲3σ" |
 
 **Inference (Lean excerpt).**
 
@@ -231,31 +241,43 @@ theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have hfull : v.n_full_x10 ≤ 18 := p .stat_full          -- Sec. V.2, VIII: 1.8 sigma
   have hs8 : v.n_s8_x10 ≤ 26 := p .stat_s8                -- Sec. V.2, VIII: 2.6 sigma
-  have hcomb : v.Combinable := p .mod_crit (by omega)     -- Sec. IV.6: below 3, combinable
-  exact p .gap_bridge (p .obs_cmb) (p .mod_metric) hcomb (by omega) (p .stat_proj)  -- GAP
+  exact p .mod_conv (p .mod_metric) (p .stat_proj) (by omega) (by omega)  -- 3 sigma convention
 ```
 
-**Critique.** D26 uses its criterion only to justify combining ("As such, we are able to
+**Critique.** D26 uses its own criterion only to justify combining ("As such, we are able to
 combine", §V.2). The "no substantial evidence" sentence in §VIII cites a range of significances
-across experiments, not the criterion. The step between the two is ours.
+across experiments, not that criterion. What links the numbers to the sentence is the community
+convention that 3σ marks "evidence"; it is standard, so we encode it as `[implied]`, not as a gap.
+Three caveats about applying it here:
+
+- the convention is written for the significance of one pre-specified test; here it is applied to
+  a Gaussian-equivalent number from a Bayesian posterior comparison;
+- it is a labelling convention: 3σ is where one starts to *claim* evidence, so falling short of it
+  says the evidence is not strong enough to claim, not that the two data sets agree;
+- the conclusion depends on the threshold: at 2.5σ the S8 projection (2.6σ) would fail it, and
+  the all-probes DES number (2.8σ) is close to 3σ.
 
 #### 2.4 What the Lean check found
 
-1. **Headline: `explicit_insufficient`.** Even with standard statistical knowledge, the
-   premises do not give the conclusion without `gap_bridge`. A sub-3σ difference is a convention
-   for combining data, not a theorem that no discrepancy exists. `stated_insufficient` holds for
-   the same reason. No `[implied]` premise was needed.
-2. **Every premise is needed** in this encoding (seven `_needed` theorems); none is redundant.
-   With uninterpreted atoms, "needed" means "used by this encoding": for example `stat_proj` is
-   needed because we put small projection effects into the bridge.
-3. **Where the conclusion is fragile.** It depends on the threshold. All reported numbers are
-   below 3σ, so it survives any of D26's three projections, but with a threshold of 2.5σ the S8
-   projection would fail. It also depends on the reference (Planck alone gives 1.0σ) and on the
-   accuracy of the numerical estimate, which D26 does not quote.
-4. **Consistency** (`consistent`) is a weak check here: no premise is negative.
-5. **Limits:** Lean checks the logical structure under our encoding, not the statistics inside
-   each premise. Whether 2.6σ is "substantial" is a judgement; the machine check only shows that
-   the paper does not supply a rule for it.
+1. **Headline: `stated_insufficient` and `explicit_sufficient`.** What D26 writes does not give its
+   conclusion: it never states the rule that turns sub-3σ numbers into "no substantial evidence".
+   With the standard significance convention added (`mod_conv`, `[implied]`), the conclusion
+   follows. There is no gap premise: the argument is complete once the convention is made
+   explicit, and its strength is exactly the strength of that convention (see the caveats in 2.3).
+2. **D26's own criterion does not carry the conclusion** (`mod_crit_redundant`). The n_σ < 3 rule
+   of §IV.6 licenses combining DES with the CMB; the no-evidence statement needs the evidence
+   convention instead. The two use the same number, 3, for different purposes.
+3. **Needed premises:** the metric, both numbers, the small projection effects and the convention
+   (five `_needed` theorems). `obs_cmb` is redundant only because its atom appears nowhere else
+   (an artefact of the encoding): the choice of CMB reference changes the numbers (1.0σ against
+   Planck alone), not the logic.
+4. **Where the conclusion is fragile.** It rests on the threshold (2.6σ is 0.4σ below it; the
+   all-probes 2.8σ is 0.2σ below it) and on the accuracy of the numerical estimate, which D26
+   does not quote. Our study recomputes the 1-D and 2-D numbers to check that accuracy.
+5. **Consistency** (`consistent`) is a weak check here: no premise is negative.
+6. **Limits:** Lean checks the logical structure under our encoding, not the statistics inside
+   each premise. Whether the 3σ convention is the right yardstick for a discrepancy between
+   cosmological data sets is a judgement the machine check cannot make.
 
 ### Part 3 · What astrolab can test or explore
 
@@ -265,13 +287,14 @@ cosmic-shear chain (14.9 MB) are under the limit. Other probes enter only as pub
 
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
-| Inputs: the S8 means of the CMB (0.836 +0.012/−0.013), DES 3x2pt (0.789 ± 0.012) and DES cosmic shear (0.783 +0.019/−0.015) (R1) | testable now | weighted mean and 68% interval from each public chain | DES chains: 144 + 11.8 + 14.9 MB | each mean within a pre-registered tolerance of the published value | pending |
-| Stage B: 2.6σ (S8) and 2.2σ (S8–Ωm) (R2) | testable now | eqs. 17–19 from the two chains: weighted independent draws, pairwise differences, one kernel density estimate evaluated at the differences and at zero (split halves), n_σ = √2 erf⁻¹(Δ); convergence and bandwidth diagnostics fixed in advance | same | reproduced if within the pre-registered tolerance (Monte Carlo error plus a stated allowance) | pending |
+| Inputs: the S8 means of the CMB (0.836 +0.012/−0.013), DES 3x2pt (0.789 ± 0.012) and DES cosmic shear (0.783 +0.019/−0.015) (R1) | testable now | weighted mean and 68% interval from each public chain | DES chains: 144 + 11.8 + 14.9 MB | each mean within a tolerance fixed in README §2 before running (planned: Monte Carlo error plus a stated allowance) | pending |
+| Stage B: 2.6σ (S8) and 2.2σ (S8–Ωm) (R2) | testable now | eqs. 17–19 from the two chains: weighted independent draws, pairwise differences, one kernel density estimate evaluated at the differences and at zero (split halves), n_σ = √2 erf⁻¹(Δ); convergence and bandwidth diagnostics fixed in advance | same | reproduced if within a tolerance fixed in README §2 before running (planned: Monte Carlo error plus an allowance of about ±0.15σ for D26's unquoted flow noise) | pending |
 | Stage B: 1.8σ (full space) | explorable (not decisive) | Gaussian approximation over the shared parameters, with and without the directions dominated by the prior; no normalizing flows | same | none - exploration only | pending |
-| DES cosmic shear against the CMB (R3) | testable now (if R1 confirms the chain) | as R2, chain against chain | same | none unless D26 quotes a number - descriptive | pending |
+| DES cosmic shear against the CMB (R3) | explorable (not decisive; D26 quotes no number for it) | as R2, chain against chain | same | none - descriptive | pending |
 | Stage B: projection effects; Stage C: threshold and metric (R4) | explorable (not decisive) | shift DES by +0.17σ (Table 9) or use the MAP; compare iso-density, equal-tail and Gaussian versions of the same 1-D comparison; report where the threshold flips the classification | same | none - exploration only | pending |
 | Other probes against the CMB (R5) | explorable (not decisive) | each published S8 summary (split-normal) against the CMB chain; no averaging (probes are correlated and constrain different directions) | published values (kB) | none - descriptive | pending |
-| `gap_bridge` (is below 3σ "no evidence"?) | out of scope | a judgement about evidence, not a computation; the study reports the numbers that feed it | – | – | – |
+| Previous generation ("easing") | explorable (not decisive) | published S8 of DES Y3 3x2pt (0.776 ± 0.017), KiDS-1000 (0.766 +0.020/−0.014 3x2pt; 0.759 +0.024/−0.021 shear) and HSC Y3 against the same CMB chain, beside the new values | published values (kB) | none - descriptive | pending |
+| `mod_conv` (is below 3σ "no evidence"?) | out of scope | a convention about evidence, not a computation; the study reports the numbers it is applied to and where the threshold flips the classification (R4) | – | – | – |
 | DES systematics, blinding, the flow estimator itself | out of scope | needs the data vectors, simulations and the analysis pipeline | – | – | – |
 
 ### Glossary
@@ -300,12 +323,14 @@ cosmic-shear chain (14.9 MB) are under the limit. Other probes enter only as pub
 
 Newest first.
 
+- 2026-11-15: gate-1 review: the step to "no substantial evidence" is the standard 3σ convention (`[implied]`), not a gap; D26's combination criterion is redundant for the conclusion; S8 is not claimed to be pre-chosen or best-constrained (footnote 7); Table 6 PTEs; part 3 rows for the previous generation.
 - 2026-11-15: first version: parts 1–3 (pre-registration source; plan `design/017-plan_*`).
 
 ### Sources
 
 - DES Collaboration 2026, arXiv:2601.14559 (v2), the paper studied.
 - Raveri & Hu 2019, PRD 99, 043506; Raveri & Doux 2021, arXiv:2105.03324: the parameter-difference metric.
+- Lyons 2013, arXiv:1310.1284: the 3σ (evidence) and 5σ (discovery) conventions.
 - Wright et al. 2025, A&A 703, A158, arXiv:2503.19441 (KiDS-Legacy).
 - Zhang et al. 2025, arXiv:2507.01386 (HSC Y3, the reference cited by D26 for HSC).
 - Madhavacheril et al. 2024, ApJ 962, 113, arXiv:2304.05203 (ACT DR6 lensing).
@@ -355,22 +380,22 @@ DES 用智利 4 米 Blanco 望远镜上的暗能量相机，六年间拍摄了�
 
 在高维时，DES 用 tensiometer 代码中的**归一化流（normalizing flow，一种机器学习的密度估计器）**估计密度。
 
-**第 5 步 · 数字。** DES 在 S8 方向（1 维）、S8–Ωm 平面（2 维）和全参数空间比较两个后验，得到 **2.6σ、2.2σ 与 1.8σ**（第 V.2 节，表 6）。S8 方向是 3x2pt 测得最好的方向，所以差别在那里最明显。与单独的 Planck 2018 相比，全空间差别为 1.0σ（DES Y3 为 1.5σ）。与单独的 Planck 比，2 维差别从 Y3 的 1.9σ 降到 Y6 的 1.4σ；但与 CMB 组合比则升到 2.2σ，因为组合的 CMB 更紧、偏好稍高的 S8。
+**第 5 步 · 数字。** DES 在 S8 方向（1 维）、S8–Ωm 平面（2 维）和全参数空间比较两个后验，得到 **2.6σ、2.2σ 与 1.8σ**（第 V.2 节）。表 6 给出全空间数字及其超出概率（PTE, probability to exceed）：对 CMB 组合为 1.8σ（PTE 0.08），对单独的 Planck 2018 为 1.0σ（0.319；DES Y3 为 1.5σ）。DES 说 3x2pt 对 S8 这类方向最敏感，所以差别在那里更明显。S8（指数 0.5）是约定俗成的汇总量，并不恰好是约束最好的方向：DES 的脚注 7 发现 σ8 (Ωm/0.3)^0.617 约束最好，得到 0.799 (+0.011/−0.010)，与 CMB 相差 2.5σ。在 S8–Ωm 平面上，与单独的 Planck 相比，差别从 Y3 的 1.9σ 降到 Y6 的 1.4σ，与 CMB 组合相比为 2.2σ。按 D26 的说法，从 Y3 到 Y6，DES 与 CMB 都更紧、都移向较高的 S8，净结果是"分离略有增加"。DES 的其他组合离 3σ 更近：3x2pt + 超新星 + BAO 为 2.5σ（PTE 0.012），全部 DES 探针为 2.8σ（PTE 0.006）。
 
 **第 6 步 · 判据。** D26 把 n_σ < 3 定为"两组数据足够一致、可以考察其联合约束"的判据（第 IV.6 节）。三个数字都低于 3，所以 DES 接着与 CMB 联合。
 
 **第 7 步 · 对 DES 后验的检查。** 高维时，边缘均值可能被先验的形状拉离真值（"先验体积"效应，又称投影效应（projection effects））。DES 在其最佳拟合点生成无噪声的模拟数据向量，跑同样的流程，测量位移（真值 − 均值）/σ（附录 B 表 9）：基准分析中 S8 为 +0.17，所有关心的参数都低于 0.5σ。
 
-**第 8 步 · 其他探针。** 第 VII.3 节中 DES 与 KiDS-Legacy 的宇宙剪切（S8 = 0.815 +0.016/−0.021）比较，认为与自己的宇宙剪切（0.783 +0.019/−0.015）一致。DES 引用 HSC Y3 为 0.804 ± 0.051；这个数在 DES 所引的论文（Zhang et al. 2025，arXiv:2507.01386，给出 0.780 +0.029/−0.030）中找不到，我们直接用所引论文的数值。
+**第 8 步 · 其他探针。** 第 VII.3 节中 DES 与 KiDS-Legacy 的宇宙剪切（S8 = 0.815 +0.016/−0.021）比较，认为与自己的宇宙剪切（0.783 +0.019/−0.015）一致。DES 引用 HSC Y3 为 0.804 ± 0.051；这个数在 DES 为它所引的论文（参考文献 153，Zhang et al. 2025，arXiv:2507.01386，由 D26 的参考文献表查得；给出 0.780 +0.029/−0.030）中找不到，我们直接用所引论文的数值。
 
 #### 1.4 结论与把握程度
 
 - **结论（第 VIII 节）：** 在 S8 和全参数空间上都"没有与 CMB 不一致的实质证据"，各弱透镜实验的显著性在约 1σ 到至多 3σ 之间。DES 也说整个领域"与前几年处在相似的位置"：D26 并没有说张力已经消失。
-- **把握程度：** 全空间的 1.8σ 不依赖方向的选择；2.6σ 是 DES 事先选定的、测得最好的方向上的数字。
+- **把握程度：** 全空间的 1.8σ 不依赖方向的选择；2.6σ 是约定俗成的 S8 方向上的数字，是 DES 报告的三种投影之一（脚注 7 另有一个优化方向，2.5σ）。
 - **作者可能错在哪里：**
   - 度量或其数值估计可能有偏差（归一化流的估计有噪声，D26 没有报告）；
   - 未识别的系统误差可能移动 DES 的 S8（透镜第 2 个红移区间已经不得不去掉）；
-  - "低于 3σ"未必等于"没有证据"：2.6σ 对应约 1% 的偶然概率，很多人会称之为弱证据。D26 写下的规则是是否合并的判据，而不是关于证据的陈述。
+  - "低于 3σ"等于"没有证据"只是一种约定：2.6σ 对应约 1% 的偶然概率。D26 写下的规则是是否合并的判据，而不是关于证据的陈述；走到"没有实质证据"这一步靠的是通常的 3σ 约定，D26 没有写出来。
 
 ### 第二部分 · 论证逻辑
 
@@ -379,9 +404,9 @@ DES 用智利 4 米 Blanco 望远镜上的暗能量相机，六年间拍摄了�
 A. 参照：主 CMB 组合（不含透镜）。
 B. 度量：参数差异概率，换算成 n_σ。
 C. 数字：1.8σ（全空间）与 2.6σ（S8），投影效应小。
-D. 规则：低于 3σ 时两组数据足够一致、可以合并。
-E. [缺口] 可以合并，且 S8 投影也低于 3σ ⇒ 没有不一致的实质证据。
+D. [implied] 显著性约定：低于 3σ 的结果不称为证据。
 ⇒ 没有与 CMB 不一致的实质证据。
+（D26 自己的规则"低于 3σ 时两组数据足够一致、可以合并"是合并的许可，不承载结论。）
 
 检查方法：论证用 Lean 4 写成（[`studies/008-m03-s8-des-y6-cmb-parameter-difference/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/argument/Argument.lean)）。每个前提是 `Field` 的一个构造子（不用公理），标注类型与出处性质：
 
@@ -398,7 +423,7 @@ E. [缺口] 可以合并，且 S8 投影也低于 3σ ⇒ 没有不一致的实�
 
 Lean 检查的内容：结论由这些前提推出（`final`）且不是恒真（`final_nontrivial`）；前提可以同时成立（`consistent`）；任何单个前提都推不出结论（`alone_insufficient`）；每个前提是必要的（有不含它的反例模型）还是多余的；论文明说的前提是否足够（`stated_*`），加上标准知识后是否足够（`explicit_*`；`explicit_insufficient` 表示真正的缺口）。Lean 不检查每个前提内部的物理——那是第一、三部分和研究本身的任务。
 
-数字以十分之一个 σ 编码为自然数；"至多 18 个十分之一"不强于报告的、已四舍五入的"1.8"。
+数字以十分之一个 σ 编码为自然数，指报告的、四舍五入到一位小数的值；"至多 18 个十分之一"就是报告的"1.8"。
 
 #### 2.1 环节 A · 参照与度量
 
@@ -426,9 +451,9 @@ Lean 检查的内容：结论由这些前提推出（`final`）且不是恒真�
 
 | 前提（Lean 构造子） | 标注 | 出处性质 | 论文出处 |
 |---|---|---|---|
-| `stat_full`：全空间差异至多 1.8σ | STAT | stated: "we find a full parameter space difference of 1.8" | §VIII（又见 §V.2、表 6） |
+| `stat_full`：全空间差异至多 1.8σ | STAT | stated: "we find a full parameter space difference of 1.8" | §VIII（又见 §V.2；表 6，PTE 0.08） |
 | `stat_s8`：投影到 S8 的差异至多 2.6σ | STAT | stated: "the difference increases to 2.6" | §VIII（又见 §V.2） |
-| `stat_proj`：投影效应低于 0.5σ | STAT | stated: "exhibits minor prior-volume effects of less than" | 附录 B |
+| `stat_proj`：投影效应低于 0.5σ | STAT | stated: "exhibits minor prior-volume effects of less than $0.5\sigma$ for all parameters of interest" | 附录 B |
 
 **其他解释。**
 
@@ -437,7 +462,7 @@ Lean 检查的内容：结论由这些前提推出（`final`）且不是恒真�
 | 先验体积效应使 DES 的均值移动到足以改变数字 | `stat_proj` | 是（附录 B 表 9：S8 为 +0.17） |
 | 归一化流的估计有噪声 | 无 | 否；数值误差没有报告 |
 
-**评述。** 这些是本研究可以复算的数字（第三部分）。2.6σ 是在比较之前选定的方向（测得最好的方向）上的数字，是否要做试验次数修正两种看法都有；全空间的 1.8σ 不需要。
+**评述。** 这些是本研究可以复算的数字（第三部分）。D26 报告了三种投影（1 维、2 维、全空间），并在脚注 7 中给出一个优化方向（2.5σ）。引用哪种投影是多重检验（look-elsewhere）问题，但修正只会降低显著性，不会改变"没有证据"的结论；全空间的 1.8σ 不需要这种修正。
 
 #### 2.3 环节 C · 从数字到结论
 
@@ -445,14 +470,14 @@ Lean 检查的内容：结论由这些前提推出（`final`）且不是恒真�
 
 | 前提（Lean 构造子） | 标注 | 出处性质 | 论文出处 |
 |---|---|---|---|
-| `mod_crit`：（全空间）低于 3σ 时两组数据足够一致、可以合并 | MOD | stated: "as the criterion for different data sets agreeing well enough that it makes sense to examine their combined constraint" | §IV.6 |
-| `gap_bridge`：在上述参照与度量下，可以合并、S8 投影也低于 3σ 且投影效应小的数据，没有不一致的实质证据 | GAP | reconstructed | — |
+| `mod_crit`：低于 3σ 时两组数据足够一致、可以合并 | MOD | stated: "We set $n_{\sigma}<3$ as the criterion for different data sets agreeing well enough that it makes sense to examine their combined constraint" | §IV.6（用于全空间，§V.2） |
+| `mod_conv`：显著性约定：低于 3σ 不报告为证据（用于两种投影的高斯等效 n_σ，前提是投影效应小） | MOD | implied（Lyons 2013，arXiv:1310.1284：3σ 为证据，5σ 为发现） | — |
 
 **其他解释。**
 
 | 其他可能 | 由哪个前提排除 | 论文是否明确排除 |
 |---|---|---|
-| 即使允许合并，2.6σ（偶然概率约 1%）也是不一致的弱证据 | `gap_bridge` | 否 |
+| 2.6σ（偶然概率约 1%）是不一致的弱证据 | `mod_conv`（按约定） | 否；D26 引用的是显著性的范围"from ∼1σ to ≲3σ" |
 
 **推理（Lean 摘录）。**
 
@@ -461,19 +486,23 @@ theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have hfull : v.n_full_x10 ≤ 18 := p .stat_full          -- Sec. V.2, VIII: 1.8 sigma
   have hs8 : v.n_s8_x10 ≤ 26 := p .stat_s8                -- Sec. V.2, VIII: 2.6 sigma
-  have hcomb : v.Combinable := p .mod_crit (by omega)     -- Sec. IV.6: below 3, combinable
-  exact p .gap_bridge (p .obs_cmb) (p .mod_metric) hcomb (by omega) (p .stat_proj)  -- GAP
+  exact p .mod_conv (p .mod_metric) (p .stat_proj) (by omega) (by omega)  -- 3 sigma convention
 ```
 
-**评述。** D26 只用它的判据来说明可以合并（"As such, we are able to combine"，§V.2）。§VIII 中"没有实质证据"一句引用的是各实验显著性的范围，而不是这个判据。两者之间的这一步是我们补上的。
+**评述。** D26 只用它自己的判据来说明可以合并（"As such, we are able to combine"，§V.2）。§VIII 中"没有实质证据"一句引用的是各实验显著性的范围，而不是这个判据。把数字和这句话联系起来的，是学界"3σ 才算证据"的约定；它是标准知识，所以我们把它编码为 `[implied]`，而不是缺口。在这里套用它有三点保留：
+
+- 这个约定是为单个事先指定的检验的显著性写的；这里用于贝叶斯后验比较得出的高斯等效数字；
+- 它是一种措辞约定：3σ 是开始*宣称*证据的门槛，达不到它说明证据不足以宣称，而不是说两组数据一致；
+- 结论依赖阈值：阈值取 2.5σ 时 S8 投影（2.6σ）就不满足了，DES 全部探针的数字（2.8σ）也接近 3σ。
 
 #### 2.4 Lean 检查发现的问题
 
-1. **主要结果：`explicit_insufficient`。** 即使加上标准的统计知识，没有 `gap_bridge` 这些前提也推不出结论。低于 3σ 是合并数据的约定，而不是"不存在不一致"的定理。`stated_insufficient` 因同样的原因成立。不需要任何 `[implied]` 前提。
-2. **在这种编码下每个前提都是必要的**（七个 `_needed` 定理），没有多余的。对未解释的原子命题而言，"必要"指"被这种编码用到"：例如 `stat_proj` 之所以必要，是因为我们把"投影效应小"放进了桥接规则。
-3. **结论脆弱的地方。** 它依赖阈值：报告的数字都低于 3σ，所以在 D26 的三种投影下都成立；但阈值若取 2.5σ，S8 投影就不满足了。它也依赖参照（单独的 Planck 给出 1.0σ），以及 D26 没有报告的数值估计精度。
-4. **相容性**（`consistent`）在这里是弱检查：没有否定形式的前提。
-5. **局限：** Lean 检查的是我们编码下的逻辑结构，不是每个前提内部的统计。2.6σ 算不算"实质"是判断问题；机器检查只表明论文没有给出这个判断的规则。
+1. **主要结果：`stated_insufficient` 与 `explicit_sufficient`。** D26 写出的前提推不出它的结论：它从未写出把低于 3σ 的数字变成"没有实质证据"的规则。加上标准的显著性约定（`mod_conv`，`[implied]`）后，结论成立。没有缺口前提：把约定写明后论证是完整的，它的强度正是这个约定的强度（见 2.3 的保留意见）。
+2. **D26 自己的判据并不承载结论**（`mod_crit_redundant`）。§IV.6 的 n_σ < 3 规则允许 DES 与 CMB 合并；"没有证据"的陈述需要的是证据约定。两者用了同一个数字 3，目的不同。
+3. **必要的前提：** 度量、两个数字、投影效应小与约定（五个 `_needed` 定理）。`obs_cmb` 之所以多余，只是因为它的原子命题在别处没有出现（编码的产物）：CMB 参照的选择改变的是数字（与单独的 Planck 比为 1.0σ），而不是逻辑。
+4. **结论脆弱的地方。** 它依赖阈值（2.6σ 离阈值 0.4σ；全部探针的 2.8σ 离阈值 0.2σ），也依赖 D26 没有报告的数值估计精度。本研究复算 1 维与 2 维的数字，正是为了检查这个精度。
+5. **相容性**（`consistent`）在这里是弱检查：没有否定形式的前提。
+6. **局限：** Lean 检查的是我们编码下的逻辑结构，不是每个前提内部的统计。3σ 约定是否是衡量宇宙学数据集之间不一致的合适标尺，是机器检查无法作出的判断。
 
 ### 第三部分 · 本项目可检验或探索的环节
 
@@ -481,13 +510,14 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
-| 输入：CMB（0.836 +0.012/−0.013）、DES 3x2pt（0.789 ± 0.012）与 DES 宇宙剪切（0.783 +0.019/−0.015）的 S8 均值（R1） | 现在可检验 | 由每条公开链算加权均值与 68% 区间 | DES 链：144 + 11.8 + 14.9 MB | 每个均值与发表值之差在预注册容差内 | 待定 |
-| 环节 B：2.6σ（S8）与 2.2σ（S8–Ωm）（R2） | 现在可检验 | 由两条链按式 17–19 计算：按权重独立抽样、逐对相减，用同一个核密度估计在差值样本与零点求值（拆分两半），n_σ = √2 erf⁻¹(Δ)；收敛与带宽诊断事先写定 | 同上 | 在预注册容差（蒙特卡罗误差加写明的余量）内 → 复现 | 待定 |
+| 输入：CMB（0.836 +0.012/−0.013）、DES 3x2pt（0.789 ± 0.012）与 DES 宇宙剪切（0.783 +0.019/−0.015）的 S8 均值（R1） | 现在可检验 | 由每条公开链算加权均值与 68% 区间 | DES 链：144 + 11.8 + 14.9 MB | 每个均值与发表值之差在运行前于 README 第 2 节写定的容差内（计划：蒙特卡罗误差加写明的余量） | 待定 |
+| 环节 B：2.6σ（S8）与 2.2σ（S8–Ωm）（R2） | 现在可检验 | 由两条链按式 17–19 计算：按权重独立抽样、逐对相减，用同一个核密度估计在差值样本与零点求值（拆分两半），n_σ = √2 erf⁻¹(Δ)；收敛与带宽诊断事先写定 | 同上 | 在运行前于 README 第 2 节写定的容差内（计划：蒙特卡罗误差加约 ±0.15σ 的余量，涵盖 D26 未报告的流噪声）→ 复现 | 待定 |
 | 环节 B：1.8σ（全空间） | 可探索（不能判决） | 对共有参数作高斯近似，包含与不含主要由先验决定的方向；不用归一化流 | 同上 | 无——仅供探索 | 待定 |
-| DES 宇宙剪切对 CMB（R3） | 现在可检验（若 R1 确认该链） | 同 R2，链对链 | 同上 | 除非 D26 给出数字，否则无——描述 | 待定 |
+| DES 宇宙剪切对 CMB（R3） | 可探索（不能判决；D26 没有给出对应的数字） | 同 R2，链对链 | 同上 | 无——描述 | 待定 |
 | 环节 B 的投影效应；环节 C 的阈值与度量（R4） | 可探索（不能判决） | DES 上移 +0.17σ（表 9）或改用 MAP；同一个 1 维比较的等密度、等尾与高斯三种算法；报告阈值在哪里改变分类 | 同上 | 无——仅供探索 | 待定 |
 | 其他探针对 CMB（R5） | 可探索（不能判决） | 各已发表的 S8 汇总值（分裂正态）对 CMB 链；不做平均（探针相关，且约束的方向不同） | 发表值（kB） | 无——描述 | 待定 |
-| `gap_bridge`（低于 3σ 是否等于"没有证据"） | 不在范围内 | 是关于证据的判断，不是计算；研究只报告它所依据的数字 | – | – | – |
+| 上一代（"减弱"） | 可探索（不能判决） | DES Y3 3x2pt（0.776 ± 0.017）、KiDS-1000（3x2pt 0.766 +0.020/−0.014；剪切 0.759 +0.024/−0.021）与 HSC Y3 发表的 S8 对同一条 CMB 链，与新值并列 | 发表值（kB） | 无——描述 | 待定 |
+| `mod_conv`（低于 3σ 是否等于"没有证据"） | 不在范围内 | 是关于证据的约定，不是计算；研究报告它所作用的数字，以及阈值在哪里改变分类（R4） | – | – | – |
 | DES 的系统误差、盲化与流估计器本身 | 不在范围内 | 需要数据向量、模拟与分析流程 | – | – | – |
 
 ### 术语表
@@ -514,12 +544,14 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 
 按时间倒序。
 
+- 2026-11-15：闸门 1 审查：走到"没有实质证据"的一步是标准的 3σ 约定（`[implied]`），不是缺口；D26 的合并判据对结论是多余的；不再说 S8 是事先选定或约束最好的方向（脚注 7）；表 6 的 PTE；第三部分加上一代的比较。
 - 2026-11-15：第一版：第一至三部分（预注册的来源；计划 `design/017-plan_*`）。
 
 ### 来源
 
 - DES Collaboration 2026，arXiv:2601.14559（v2），本文研究的论文。
 - Raveri & Hu 2019，PRD 99, 043506；Raveri & Doux 2021，arXiv:2105.03324：参数差异度量。
+- Lyons 2013，arXiv:1310.1284：3σ（证据）与 5σ（发现）的约定。
 - Wright et al. 2025，A&A 703, A158，arXiv:2503.19441（KiDS-Legacy）。
 - Zhang et al. 2025，arXiv:2507.01386（HSC Y3，D26 为 HSC 所引的文献）。
 - Madhavacheril et al. 2024，ApJ 962, 113，arXiv:2304.05203（ACT DR6 透镜）。
