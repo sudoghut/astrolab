@@ -1,0 +1,88 @@
+{
+ "bins": [
+  19.5,
+  20.5,
+  21.5,
+  22.5,
+  23.5,
+  24.5,
+  25.5,
+  26.5
+ ],
+ "base": {
+  "median_gamma": -0.46602586589802564,
+  "p16": -0.6144249058740439,
+  "p84": -0.3182713078030457,
+  "S": 3.154054073908527,
+  "p_gamma_ge_0": 0.00071875,
+  "one_sided_sigma": 3.1870136310072428,
+  "one_sided_is_lower_bound": false,
+  "tau": 32.41713919134538,
+  "converged": true,
+  "steps_doubled": false,
+  "sampling_radius_kpc": 21.5028669628447,
+  "contains_minus_half": true
+ },
+ "seed_check": {
+  "median_gamma": -0.4652009709493894,
+  "p16": -0.615473291958411,
+  "p84": -0.31854851925573924,
+  "S": 3.172132245843197,
+  "p_gamma_ge_0": 0.00083125,
+  "one_sided_sigma": 3.1447127150151952,
+  "one_sided_is_lower_bound": false,
+  "tau": 30.39019246290106,
+  "converged": true,
+  "steps_doubled": false,
+  "sampling_radius_kpc": 21.5028669628447,
+  "contains_minus_half": true
+ },
+ "seed_rerun": null,
+ "seed_check_S_diff": 0.01807817193466965,
+ "converged": true,
+ "verdict": "reproduced",
+ "sensitivity_log_a": {
+  "median_gamma": -0.4021004699505281,
+  "p16": -0.551368638133458,
+  "p84": -0.2534297653325916,
+  "S": 2.70463822031295,
+  "p_gamma_ge_0": 0.00303125,
+  "one_sided_sigma": 2.744381705113341,
+  "one_sided_is_lower_bound": false,
+  "tau": 30.953893250145903,
+  "converged": true,
+  "steps_doubled": false,
+  "sampling_radius_kpc": 21.5028669628447,
+  "contains_minus_half": true
+ },
+ "sensitivity_pivot": {
+  "median_gamma": -0.40107401904457995,
+  "p16": -0.5461907186878483,
+  "p84": -0.2535649354298793,
+  "S": 2.7189784467253593,
+  "p_gamma_ge_0": 0.00335,
+  "one_sided_sigma": 2.711398748758828,
+  "one_sided_is_lower_bound": false,
+  "tau": 32.29325739269945,
+  "converged": true,
+  "steps_doubled": false,
+  "sampling_radius_kpc": 21.5028669628447,
+  "contains_minus_half": true,
+  "pivot_kpc": 21.5028669628447
+ },
+ "delta_chi2": {
+  "delta_chi2": 7.196513076560484,
+  "sigma_1dof": 2.6826317444928,
+  "gamma_best": -0.39681703482303626
+ },
+ "leave_one_out": {
+  "19.5": 2.74225740739281,
+  "20.5": 3.007577055734429,
+  "21.5": 3.061929628346749,
+  "22.5": 3.2269438674573974,
+  "23.5": 3.0907192635846235,
+  "24.5": 2.7564359082223455,
+  "25.5": 3.0462018463693354,
+  "26.5": 3.001847219003264
+ }
+}

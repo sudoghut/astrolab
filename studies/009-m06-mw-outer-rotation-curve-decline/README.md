@@ -175,13 +175,139 @@ systematic error budget, the Gaia sample and its distances.
 
 ## 5. Results
 
-Filled after running. Link to `web/index.html` and key numbers in `results/`.
+Run 2026-11-15 (`python -m astrolab run 009`, 399 s; no downloads). All MCMC runs converged (more than
+50 autocorrelation times after burn-in). Page: [`web/index.html`](web/index.html). Numbers from
+`results/*.json`; post-hoc items are labelled.
+
+**R1 (verdict): reproduced, under the stated reading.** On the 8 bins beyond 19 kpc with J23's
+literal priors (flat γ, flat A at a 1 kpc pivot): median γ = −0.466 (16–84%: −0.614 to −0.318),
+S = 3.15 (J23: −0.47 ± 0.15, 3σ); seed-1 check −0.465, S = 3.17. As fixed in advance, this means
+J23's numbers follow from the published table under that prior, **not** that the data alone reject a
+flat curve at 3σ:
+- log-uniform A: γ = −0.402, S = 2.70; flat A at the data's own pivot (21.5 kpc; the
+  pre-registration's "about 22.9 kpc" was an arithmetic slip, the rule computes it from the table):
+  γ = −0.401, S = 2.72; Δχ² flat versus power law = 7.20 (2.68σ, best γ = −0.397). About 0.45σ of the
+  "3σ" comes from the prior on A.
+- Leave-one-bin-out (flat A): S between 2.74 and 3.23; the 1σ interval of γ contains −0.5.
+
+**R2 (descriptive).** Einasto plus baryons fitted to the 18 points with Table 3's combined errors:
+
+| Model | M_dyn ours (10¹¹ M☉) | Table 4 | n | R_vir DM-only / total (kpc) |
+|---|---|---|---|---|
+| E dJ | 1.969 | 1.97 | 0.40 | 106.7 / 120.6 |
+| E J | 1.970 | 1.97 | 0.41 | 106.8 / 120.6 |
+| E CM | 1.972 | 1.97 | 0.44 | 107.2 / 120.7 |
+| G dJ | 1.970 | 1.98 | 0.43 | 107.5 / 120.6 |
+| G J | 1.980 | 1.98 | 0.45 | 107.9 / 120.8 |
+| G CM | 1.976 | 1.99 | 0.47 | 108.1 / 120.7 |
+| B2 | 2.039 | 2.05 | 0.41 | 108.2 / 122.0 |
+
+The six-model mean is 1.973 against Table 4's 1.977. J23's masses are reproduced to within 0.7% using
+the combined errors, which supports reading its fit as using them (despite eq. 11). R_vir: J23's
+121.03 kpc matches the **total-density** definition (120.6–122.0 kpc), not the dark-matter-only
+definition its text states (≈107 kpc), as predicted before fitting; M_dyn is identical under both,
+because the fitted halo has converged (n ≈ 0.4: the density falls by a factor of about 10⁻⁶ from
+20 to 40 kpc). A log-uniform M0 prior gives 1.975 × 10¹¹ (E dJ). On O24's curve (R ≥ 9.5 kpc,
+statistical errors) the seven models give 2.12–2.18 × 10¹¹ against Table 4's O23 column 2.07–2.19.
+
+**R3 (exploration, no verdict).**
+- (a) Constant bias: γ unchanged (−0.464 to −0.470, null control passed); M_dyn(E dJ) = 1.61, 1.77,
+  2.20, 2.46 × 10¹¹ M☉ for b = −0.10, −0.05, +0.05, +0.10.
+- (b) Outer ramp (stress test): S falls monotonically; it drops below 2 at **b_max = 0.06** (a bias
+  rising to 6% at 26.5 kpc, about 11 km/s there and 2.4 km/s at 21.5 kpc, smaller than Table 3's
+  errors). At that point the log-A and pivot runs give S ≈ 1.5. For context only: Koop et al. 2024
+  report Jeans biases of 10–15%, Ou et al. 2025 5–20%.
+- (c) Errors enlarged in quadrature by 5/10/15% of V: S = 2.54, 2.38, 2.67 with the flat-A prior, but
+  the median γ runs away (the prior effect grows with the errors); this case is not evidence of
+  robustness. Correlated outer errors: ρ = 0.5 gives S = 2.85; ρ = 0.99 gives 6.07, an artefact of a
+  near-singular covariance that pins the differences between the outer bins, not a stronger decline.
+
+**R4 (descriptive).** J23 against O24 (18 radii): χ² = 16.9, the largest pulls at 9.5–12.5 kpc
+(−2.5 to −1.0σ, J23 lower); against E19 (16 radii): χ² = 8.2. R1 on O24's 11 bins beyond 19 kpc
+(statistical errors only): γ = −0.408, S = 5.4 (log-A 5.3, pivot 5.3, Δχ² 27.6). J23 reports
+γ = −0.56 (+0.23/−0.22) for O24, three times wider, so J23 must have used larger errors or other bins
+for O24. The three curves share Gaia-based kinematics and equilibrium modelling, so their agreement is
+not independent confirmation.
+
+**R5 (descriptive).** E dJ baryons:
+
+| Mass (10¹¹ M☉) | Einasto | NFW |
+|---|---|---|
+| V²R/G at 26.5 kpc (model-free) | 1.90 | 1.90 |
+| M(<26.5 kpc) | 1.97 | 2.33 |
+| M(<32.4 kpc) | 1.97 | 2.69 |
+| M(<100 kpc) | 1.97 | 5.35 |
+| M_vir (DM-only / total R_vir) | 1.97 / 1.97 | 7.05 / 7.16 |
+
+With n ≈ 0.4 the Einasto halo stops growing beyond about 30 kpc: 99.8% of its M_vir lies inside
+26.5 kpc. The total mass is therefore the measured enclosed mass plus the assumption that the halo
+ends there. Stream masses (cross-model, order of magnitude): Koposov et al. 2023 M(<32.4) = 2.85 ±
+0.10 is far above the Einasto value and close to NFW's; Vasiliev et al. 2021 M(<100) = 5.6 ± 0.4
+likewise.
+
+*Post hoc (2026-11-15, `explore/halo_fit_quality.py`):* best-fit χ² on the 18 points is 1.30 for
+Einasto (15 degrees of freedom; p ≈ 10⁻⁶ for being so small) and 21.1 for NFW (16 degrees of freedom,
+p ≈ 0.18). The Einasto fit is too good: Table 3's errors cannot be independent per-bin errors (they
+include smooth, correlated systematics), so every significance above that treats them as independent,
+including R1's, is mis-scaled. NFW is an acceptable fit on its own terms.
+
+**Reading.**
+1. *The decline* is reproduced as J23 computed it, but its 3σ depends on the prior on A (2.7σ from the
+   likelihood) and on correlated errors that the analysis treats as independent; a 6% outer bias
+   would remove it.
+2. *"Keplerian"* rests on the 1σ interval of γ containing −0.5; that interval also contains clearly
+   non-Keplerian declines.
+3. *The total mass* of about 2 × 10¹¹ M☉ is reproduced to 0.7%, but it is the enclosed mass at 26.5 kpc
+   (1.90 × 10¹¹ from V²R/G) plus a halo shape that ends just beyond the data. An NFW halo that fits
+   acceptably gives 7 × 10¹¹ M☉ and agrees with the stream masses.
 
 ## 6. Referee notes
 
-Independent critique: selection effects, systematics, alternative explanations.
+Independent referee, 2026-11-15 (subagent with the pre-registration, code, data and results only; it
+ran checks with the study's own modules; no downloads). Triage:
+
+1. **Table 3's errors cannot be independent** (the most serious point). Best-fit χ² = 1.30 for 15
+   degrees of freedom (Einasto) and 0.47 for 6 (power law beyond 19 kpc). *Accepted*; confirmed post
+   hoc (`explore/halo_fit_quality.py`) and stated in section 5. All significances that treat the σ as
+   independent are mis-scaled; with ad-hoc correlated kernels the referee finds a likelihood-only flat
+   rejection of 2.3–3.7σ. The proper test (a physically motivated full covariance) is registered as
+   T-028.
+2. **The 3σ is partly a prior effect.** *Accepted*; already fixed in the pre-registration and
+   reported (likelihood alone 2.7σ; log-A and pivot runs 2.70 and 2.72). The referee adds that under
+   the quadrature cases the flat-A median runs to γ = −0.69, −1.04, −1.39, while log-A gives S = 1.70,
+   1.14, 0.81: R3(c) is not evidence of robustness (section 5 says so).
+3. **The total mass is set by the halo shape.** *Accepted*. The fitted Einasto halo (1/n ≈ 2.5) has a
+   density slope of −8.7 at 20 kpc and −17 at 26.5 kpc; 99.8% of M_vir lies inside 26.5 kpc. With
+   1/n fixed at 0.17 (ΛCDM-like), 0.25, 0.5 and 1 the referee finds χ² = 23.2, 21.0, 15.3, 7.65 and
+   M_vir = 8.1, 5.7, 3.3, 2.3 × 10¹¹ M☉.
+4. **NFW is acceptable on its own** (χ² = 21.1 for 16, p = 0.18); its rejection relative to Einasto
+   (Δχ² ≈ 20) relies on independent errors; the Einasto preference survives the referee's correlated
+   kernels (Δχ² 11–29). *Accepted*; NFW M_vir = 7.1 × 10¹¹, close to Eilers et al. 2019's NFW value
+   (recalled by the referee, unverified).
+5. **Stream masses** favour NFW (within 1.6σ and 0.6σ) over the truncated Einasto (about 9σ low).
+   *Accepted*, as a cross-model, order-of-magnitude comparison.
+6. **Start radius and leverage.** Likelihood-only: R > 14 kpc gives γ = −0.30 ± 0.04 (flat rejected
+   at 6.7σ, Keplerian rejected); R > 16 kpc γ = −0.34 ± 0.07; R > 19 kpc −0.40 ± 0.15; R > 21 kpc
+   −0.44 ± 0.30 (1.5σ). Dropping the 19.5 or 24.5 kpc bin gives 2.05σ or 2.2σ. *Accepted*: the
+   decline is robust, "Keplerian" depends on the 19 kpc cut.
+7. **O24 errors.** J23's quoted O24 width is three times ours; the curves share systematics.
+   *Accepted*; section 5.
+8. **Minor:** the pre-registered "about 22.9 kpc" pivot is 21.5 kpc as computed by the rule
+   (arithmetic slip, not a change); the two M_dyn definitions give identical numbers because the
+   halo has converged; the leave-one-out runs use the scan length (not fixed by the pre-registration).
+   *Accepted*.
+9. **Checked and fine:** disc rotation and sphere mass, Einasto (including the underflow series), NFW
+   and R_vir, the reparametrised posterior's Jacobians, seeding, B2 mass sum.
+
 
 ## 7. Open questions
+
+1. Under a physically motivated full covariance for Table 3 (statistical plus smooth systematic
+   components), what are the likelihood-only flat rejection, the Keplerian-versus-γ = −0.2
+   distinction, and the Einasto-versus-NFW-versus-ΛCDM-like preference? (T-028)
+2. How large are departures from equilibrium at 20–27 kpc (warp, flare, Sagittarius, LMC)? Beyond
+   this repository.
+3. Can any halo shape fit the rotation curve and the stream masses together?
 
 ## 8. Exploring via chat
 
@@ -190,14 +316,25 @@ How a coding agent answers "what if" questions about this study without touching
 
 | Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
 |---|---|---|---|
-| TODO | | | |
+| `r_min_powerlaw` | inner radius of the power-law fit (kpc) | 12–22 | none needed (local tables) |
+| `a_max`, `a_max_pivot` | upper bounds of the A prior | 10³–10⁶ | none needed |
+| `bmax_grid`, `ramp_start` | bias-ramp grid and its start radius | 0–0.3; 15–22 kpc | none needed |
+| `corr_rho`, `corr_r_min` | correlated-error cases | 0–0.95; 19–25 kpc | none needed |
+| `models` | baryon models fitted | any of the seven | none needed |
+| `nfw_rhos_range`, `nfw_rs_range` | NFW priors | wide | none needed |
 
 - Rerun with an override: `python -m astrolab explore 009-m06-mw-outer-rotation-curve-decline --tag <topic> --set KEY=VALUE`
-  (outputs in `explore/<date>-<topic>/`, not committed; about N s from cache).
-- Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
-  `python -m astrolab explore 009-m06-mw-outer-rotation-curve-decline --tag <topic> --script explore/<name>.py`.
-- Results files and keys: TODO (`results/<file>.json`: key - meaning).
-- Example questions: TODO (question -> knob or script an agent would use).
+  (outputs in `explore/<date>-<topic>/`, not committed; about 7 minutes for a full run).
+- Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`. Existing:
+  `explore/halo_fit_quality.py` (post hoc: best-fit χ² of Einasto and NFW).
+- Results files and keys: `results/r1.json` (`base`: `median_gamma`, `S`, `p16`, `p84`; `verdict`;
+  `sensitivity_log_a`; `sensitivity_pivot`; `delta_chi2`; `leave_one_out`); `results/r2.json`
+  (`models`: per model `mdyn_dm`, `mdyn_tot`, `rvir_dm`, `rvir_tot`, `n`, `h`, `M0`, `table4_mdyn`;
+  `six_mean`); `results/r3.json` (`constant_gamma`, `constant_mass_EdJ`, `ramp`, `quadrature`,
+  `correlated`); `results/r4.json` (`diff_O24`, `diff_E19`, `r1_on_O24`, `r2_on_O24`);
+  `results/r5.json` (`einasto_EdJ`, `nfw_EdJ`, `v2r_over_G_26.5`).
+- Example questions: "what if the power law starts at 16 kpc?" → `--set r_min_powerlaw=16`; "how does a
+  ΛCDM-like halo extrapolate?" → a script fixing 1/n = 0.17.
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.
 

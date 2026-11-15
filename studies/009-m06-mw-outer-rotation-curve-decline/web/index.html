@@ -4,27 +4,112 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>M6 Milky Way outer rotation curve: Keplerian decline, mass and systematics</title>
-<!-- Bilingual rule (AGENTS.md): keep this script, write text as <span class="en">…</span><span class="zh">…</span>,
-     use i18n.L(en, zh) for generated HTML and i18n.t(en, zh) + i18n.onLangChange for plain text / charts. -->
 <script src="../../../atlas/web/i18n.js"></script>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
+<style>
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin: 12px 0; }
+  .card { border: 1px solid var(--line, #ccc); border-radius: 8px; padding: 10px 12px; }
+  .card .big { font-size: 1.5em; font-weight: 600; }
+  .good { color: #1b7f3b; } .muted { opacity: .75; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td { border-bottom: 1px solid var(--line, #ddd); padding: 4px 6px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  .scroll { overflow-x: auto; }
+  svg text { font-size: 11px; fill: currentColor; }
+  .j23 { stroke: #e45756; fill: #e45756; } .o24 { stroke: #4c78a8; fill: #4c78a8; } .e19 { stroke: #54a24b; fill: #54a24b; }
+</style>
 </head>
 <body>
 <main>
   <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 009-m06-mw-outer-rotation-curve-decline</p>
-  <h1><span class="en">M6 Milky Way outer rotation curve: Keplerian decline, mass and systematics</span><span class="zh">M6 银河系外区旋转曲线：开普勒式下降、质量与系统误差</span></h1>
-  <p class="muted"><span class="en">Replace this page freely: design whatever this question needs (visualization, interactive analysis, several pages). It does not have to follow the Atlas. Data comes from <code>../results/*.json</code>.</span><span class="zh">可以完全替换本页面：按研究问题的需要来设计（可视化、交互式分析、多个页面），不必遵循 Atlas 的样式。数据来自 <code>../results/*.json</code>。</span></p>
-  <pre id="out"><span class="en">loading…</span><span class="zh">加载中……</span></pre>
+  <h1><span class="en">Is the Milky Way light? The outer rotation curve</span><span class="zh">银河系很轻吗？外区旋转曲线</span></h1>
+  <p class="muted"><span class="en">Paper: Jiao et al. 2023 (J23, arXiv:2309.00048). Pre-registration in the study <code>README.md</code> sections 1–4. Only R1 carries a verdict.</span><span class="zh">论文：Jiao 等 2023（J23，arXiv:2309.00048）。预注册见研究 <code>README.md</code> 第 1–4 节。只有 R1 给出判决。</span></p>
+  <div class="grid" id="cards"></div>
+
+  <h2><span class="en">Rotation curves</span><span class="zh">旋转曲线</span></h2>
+  <p class="muted"><span class="en">Red: J23 (errors include systematics); blue: Ou et al. 2024; green: Eilers et al. 2019 (statistical errors). The shaded region is where J23 fits its power law.</span><span class="zh">红色：J23（误差含系统误差）；蓝色：Ou 等 2024；绿色：Eilers 等 2019（统计误差）。阴影区是 J23 拟合幂律的范围。</span></p>
+  <div class="scroll"><svg id="rc" viewBox="0 0 680 300" width="100%" role="img"></svg></div>
+
+  <h2><span class="en">R3 · How much bias removes the decline?</span><span class="zh">R3 · 多大的偏差能消去下降？</span></h2>
+  <p class="muted"><span class="en">S (the R1 statistic) as a function of an injected bias rising from 0 at 19 kpc to b_max at 26.5 kpc (a stress test, not a verdict).</span><span class="zh">R1 统计量 S 随注入偏差的变化，偏差从 19 kpc 的 0 线性增加到 26.5 kpc 的 b_max（压力测试，不是判决）。</span></p>
+  <div class="scroll"><svg id="ramp" viewBox="0 0 680 220" width="100%" role="img"></svg></div>
+
+  <h2><span class="en">R2 and R5 · Masses</span><span class="zh">R2 与 R5 · 质量</span></h2>
+  <div class="scroll"><table id="r2"></table></div>
+  <div class="scroll"><table id="r5"></table></div>
+  <p class="muted" id="note"></p>
+  <p class="muted" id="err"></p>
 </main>
 <script>
-fetch('../results/summary.json')
-  .then(r => { if (!r.ok) throw new Error(`results/summary.json: HTTP ${r.status}`); return r.json(); })
-  .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
-  .catch(e => {
-    const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
-    // Both languages in the DOM, so the message follows later language switches.
-    document.getElementById('out').innerHTML = i18n.L('Could not load results (run the study first?) or render them: ', '无法加载或显示结果（是否已运行研究？）：') + msg;
+const L = (en, zh) => i18n.L(en, zh);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const f = (x, d = 2) => (x === null || x === undefined || Number.isNaN(x)) ? '–' : Number(x).toFixed(d);
+const getJ = n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`${n}.json: HTTP ${r.status}`); return r.json(); });
+const getC = n => fetch(`../data/${n}`).then(r => { if (!r.ok) throw new Error(`${n}: HTTP ${r.status}`); return r.text(); })
+  .then(t => { const rows = t.trim().split(/\r?\n/).map(l => l.split(',')); const h = rows[0]; return rows.slice(1).map(r => Object.fromEntries(h.map((k, i) => [k, parseFloat(r[i])]))); });
+const card = (t, v, cls, note) => `<div class="card"><div class="muted">${t}</div><div class="big ${cls || ''}">${v}</div><div class="muted">${note || ''}</div></div>`;
+
+function render(d) {
+  const {r1, r2, r3, r5, j23, o24, e19} = d;
+  const b = r1.base;
+  document.getElementById('cards').innerHTML =
+    card(L('R1 verdict', 'R1 判决'), L(esc(r1.verdict), r1.verdict === 'reproduced' ? '复现' : '未复现'), 'good',
+         L(`γ = ${f(b.median_gamma, 3)}, S = ${f(b.S)} under J23's flat-A prior`, `γ = ${f(b.median_gamma, 3)}，S = ${f(b.S)}（J23 的平坦 A 先验）`)) +
+    card(L('Likelihood alone', '只用似然'), `${f(r1.delta_chi2.sigma_1dof)}σ`, '',
+         L(`log-A S = ${f(r1.sensitivity_log_a.S)}, pivot S = ${f(r1.sensitivity_pivot.S)}`, `对数 A S = ${f(r1.sensitivity_log_a.S)}，换支点 S = ${f(r1.sensitivity_pivot.S)}`)) +
+    card(L('Bias that removes 2σ', '消去 2σ 的偏差'), `${f(100 * r3.ramp.first_below_2, 1)}%`, '', L('outer ramp at 26.5 kpc', '26.5 kpc 处的外区斜坡')) +
+    card(L('Mass: Einasto vs NFW', '质量：爱纳斯托对 NFW'), `${f(r5.einasto_EdJ.mdyn_dm.median / 1e11)} / ${f(r5.nfw_EdJ.mdyn_dm.median / 1e11)}`, '',
+         L('× 10¹¹ M☉ (E dJ baryons)', '× 10¹¹ M☉（E dJ 重子）'));
+
+  // rotation curves
+  const W = 680, H = 300, pl = 46, pr = 12, pt = 10, pb = 34, x0 = 5, x1 = 28, y0 = 150, y1 = 250;
+  const X = v => pl + (W - pl - pr) * (v - x0) / (x1 - x0), Y = v => H - pb - (H - pt - pb) * (v - y0) / (y1 - y0);
+  let s = `<rect x="${X(19)}" y="${pt}" width="${X(x1) - X(19)}" height="${H - pt - pb}" fill="currentColor" opacity="0.06"/>`;
+  const draw = (rows, cls, rk, vk, lo, hi) => rows.forEach(r => {
+    const R = r[rk], V = r[vk], e1 = r[lo], e2 = r[hi];
+    s += `<line class="${cls}" x1="${X(R)}" x2="${X(R)}" y1="${Y(V - e1)}" y2="${Y(V + e2)}"/>`;
+    s += `<circle class="${cls}" cx="${X(R)}" cy="${Y(V)}" r="2.6"><title>${R} kpc: ${V} km/s</title></circle>`;
   });
+  draw(e19, 'e19', 'R_kpc', 'vc_kms', 'sigma_minus_kms', 'sigma_plus_kms');
+  draw(o24, 'o24', 'R_kpc', 'vc_kms', 'sigma_minus_kms', 'sigma_plus_kms');
+  draw(j23, 'j23', 'R_kpc', 'Vc_kms', 'sigma_Vc_kms', 'sigma_Vc_kms');
+  for (let v = 5; v <= x1; v += 5) s += `<text x="${X(v)}" y="${H - pb + 14}" text-anchor="middle">${v}</text>`;
+  for (let v = y0; v <= y1; v += 25) s += `<text x="${pl - 4}" y="${Y(v) + 4}" text-anchor="end">${v}</text>`;
+  s += `<line x1="${pl}" x2="${W - pr}" y1="${H - pb}" y2="${H - pb}" stroke="currentColor"/>`;
+  s += `<text x="${(W + pl) / 2}" y="${H - 4}" text-anchor="middle">R (kpc)</text>`;
+  s += `<text x="12" y="${(H) / 2}" transform="rotate(-90 12 ${H / 2})" text-anchor="middle">V_c (km/s)</text>`;
+  document.getElementById('rc').innerHTML = s;
+
+  // ramp
+  const W2 = 680, H2 = 220, bx = v => pl + (W2 - pl - pr) * v / 0.2, sy = v => H2 - pb - (H2 - pt - pb) * v / 3.5;
+  let g = `<line x1="${pl}" x2="${W2 - pr}" y1="${sy(2)}" y2="${sy(2)}" stroke="currentColor" stroke-dasharray="4 3"/>`;
+  g += `<polyline fill="none" stroke="#e45756" stroke-width="2" points="${r3.ramp.b_max.map((x, i) => `${bx(x)},${sy(r3.ramp.S[i])}`).join(' ')}"/>`;
+  for (let v = 0; v <= 0.2001; v += 0.05) g += `<text x="${bx(v)}" y="${H2 - pb + 14}" text-anchor="middle">${(100 * v).toFixed(0)}%</text>`;
+  for (let v = 0; v <= 3.5; v += 1) g += `<text x="${pl - 4}" y="${sy(v) + 4}" text-anchor="end">${v}</text>`;
+  g += `<text x="${(W2 + pl) / 2}" y="${H2 - 4}" text-anchor="middle">b_max</text>`;
+  document.getElementById('ramp').innerHTML = g;
+
+  let h = `<tr><th>${L('Baryon model', '重子模型')}</th><th>${L('M_dyn ours', 'M_dyn 本研究')}</th><th>${L('Table 4', '表 4')}</th><th>n</th><th>R_vir DM / total (kpc)</th></tr>`;
+  for (const [m, v] of Object.entries(r2.models)) {
+    h += `<tr><td>${esc(m)}</td><td>${f(v.mdyn_dm.median / 1e11, 3)}</td><td>${f(v.table4_mdyn / 1e11, 2)}</td><td>${f(v.n.median)}</td><td>${f(v.rvir_dm.median, 1)} / ${f(v.rvir_tot.median, 1)}</td></tr>`;
+  }
+  document.getElementById('r2').innerHTML = h;
+  const e = r5.einasto_EdJ, n = r5.nfw_EdJ;
+  let k = `<tr><th>${L('Mass (10¹¹ M☉)', '质量（10¹¹ M☉）')}</th><th>Einasto</th><th>NFW</th></tr>`;
+  for (const [key, lab] of [['m_lt_26.5', 'M(<26.5 kpc)'], ['m_lt_32.4', 'M(<32.4 kpc)'], ['m_lt_100.0', 'M(<100 kpc)'], ['mdyn_dm', 'M_vir']]) {
+    k += `<tr><td>${lab}</td><td>${f(e[key].median / 1e11)}</td><td>${f(n[key].median / 1e11)}</td></tr>`;
+  }
+  k += `<tr><td>V²R/G (26.5 kpc)</td><td colspan="2">${f(r5['v2r_over_G_26.5'] / 1e11)}</td></tr>`;
+  document.getElementById('r5').innerHTML = k;
+  document.getElementById('note').innerHTML = L(
+    'Post hoc: the best-fit χ² is 1.3 for 15 degrees of freedom (Einasto) and 21 for 16 (NFW). Table 3\'s errors are not independent, so all significances that treat them as independent are mis-scaled; the NFW halo fits acceptably and extrapolates to about 7 × 10¹¹ M☉, close to stellar-stream masses.',
+    '事后：最佳拟合 χ² 为 1.3（爱纳斯托，15 个自由度）与 21（NFW，16 个自由度）。表 3 的误差不是独立的，凡是把它们当作独立误差的显著性都标度不对；NFW 晕拟合可以接受，外推到约 7 × 10¹¹ M☉，与恒星星流的质量接近。');
+}
+
+let data = null;
+Promise.all([getJ('r1'), getJ('r2'), getJ('r3'), getJ('r5'), getC('j23_table3.csv'), getC('o24_table1.csv'), getC('e19_table1.csv')])
+  .then(([r1, r2, r3, r5, j23, o24, e19]) => { data = {r1, r2, r3, r5, j23, o24, e19}; render(data); i18n.onLangChange(() => render(data)); })
+  .catch(err => { document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + esc(err); });
 </script>
 </body>
 </html>
