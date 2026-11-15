@@ -91,7 +91,7 @@ reported as such, not as support for a 35 M☉ peak. No p-value is attached (w =
 m_break and M_t are expected to be degenerate when M_t lies in [20, 60]. Not a reproduction of P26.
 
 **R4 (descriptive).** Percentile of GW231123's median total mass among the median total masses of
-the full sample S_O4a ∪ S_O3 (all masses, GW231123 included) (not P26's
+the R2–R4 sample defined under R2 (all masses, GW231123 included) (not P26's
 "maximum detectable mass" statistic).
 
 ## 3. Data (with size estimate)
