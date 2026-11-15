@@ -72,10 +72,34 @@ def test_select_o4a_window_and_exclusion(tmp_path):
 
 
 def test_merge_precedence():
-    a = {"GW1": {"src": "a"}}
-    b = {"GW1": {"src": "b"}, "GW2": {"src": "b"}}
-    out = gw.merge_lists([a, b])
+    a = {"GW1": {"src": "a", "m1": 1, "m2": 1, "far": 0.1}}
+    b = {"GW1": {"src": "b", "m1": 2, "m2": 2, "far": 0.2}, "GW2": {"src": "b"}}
+    out, overlaps = gw.merge_lists([a, b], ["A", "B"])
     assert out["GW1"]["src"] == "a" and out["GW2"]["src"] == "b"
+    assert overlaps == [{"name": "GW1", "kept": "A", "dropped": "B", "kept_m1_m2_far": [1, 1, 0.1],
+                         "dropped_m1_m2_far": [2, 2, 0.2]}]
+
+
+def test_same_event():
+    assert gw.same_event("GW200105_162426-v2", "GW200105_162426")
+    assert gw.same_event("GW200105", "GW200105_162426")
+    assert not gw.same_event("GW200105_162426", "GW200106_000000")
+
+
+def test_r1_verdict_edges():
+    base = dict(target_size=84, n_target_expected=84, missing=[], extras=[], extra_m2_max=5.0, m_min=3.0,
+                max_extras=2, n_o3=69, n_o3_target=69, n_o3_tol=2, n_type_i=0, named_pass=[True] * 7)
+    assert gw.r1_verdict(**base)["verdict"] == "reproduced"
+    assert gw.r1_verdict(**dict(base, n_o3=71, n_type_i=1))["verdict"] == "not reproduced"
+    assert gw.r1_verdict(**dict(base, n_o3=71, n_type_i=2))["verdict"] == "reproduced"
+    assert gw.r1_verdict(**dict(base, n_o3=67))["verdict"] == "reproduced"
+    assert gw.r1_verdict(**dict(base, n_o3=72, n_type_i=5))["verdict"] == "not reproduced"
+    assert gw.r1_verdict(**dict(base, extras=[5.0]))["verdict"] == "reproduced"
+    assert gw.r1_verdict(**dict(base, extras=[5.01]))["verdict"] == "not reproduced"
+    assert gw.r1_verdict(**dict(base, extras=[4.0, 4.0, 4.0]))["verdict"] == "not reproduced"
+    assert gw.r1_verdict(**dict(base, target_size=83))["verdict"] == "described"
+    assert gw.r1_verdict(**dict(base, target_size=83, named_pass=[False] + [True] * 6))["verdict"] == "not reproduced"
+    assert gw.r1_verdict(**dict(base, missing=["GW1"]))["verdict"] == "not reproduced"
 
 
 def test_tar_names(tmp_path):
@@ -87,6 +111,13 @@ def test_tar_names(tmp_path):
         tf.addfile(info, io.BytesIO(data))
     names, members = gw.tar_names(p)
     assert names == {"GW230601_000000", "GW231123_135430"} and members == ["o4a/events.txt"]
+    q = tmp_path / "y.tar"
+    with tarfile.open(q, "w") as tf:
+        info = tarfile.TarInfo("GW230702_000000.h5")
+        info.size = 0
+        tf.addfile(info, io.BytesIO(b""))
+    assert gw.tar_names(q)[0] == {"GW230702_000000"}
+    assert not gw.NAME_RE.fullmatch("GW2306011")
 
 
 def test_vt_continuous_and_r2_prediction():
@@ -107,7 +138,7 @@ def test_model_density_normalised():
     grid = np.linspace(10, 100, 2000)
     for kind, th in (("A", [1.7, 4.5, 35.0]), ("B", [1.7, 4.5, 35.0, 33.0, 4.0, 0.3])):
         d = gw.model_density(th, kind, grid, 2.2, 50.0)
-        assert abs(np.trapz(d, grid) - 1) < 1e-9 and np.all(d > 0)
+        assert abs(gw.trapz(d, grid) - 1) < 1e-9 and np.all(d > 0)
 
 
 def test_fit_recovers_break():

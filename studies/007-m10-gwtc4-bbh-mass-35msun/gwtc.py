@@ -13,7 +13,8 @@ from scipy import optimize, stats
 
 GPS_EPOCH = datetime.datetime(1980, 1, 6, tzinfo=datetime.timezone.utc)
 LEAP_SECONDS_SINCE_GPS_EPOCH = 18      # valid from 2017-01-01 onwards (covers O4a)
-NAME_RE = re.compile(r"GW(\d{6})(?:_(\d{6}))?")
+NAME_RE = re.compile(r"(?<!\d)GW(\d{6})(?:_(\d{6}))?(?!\d)")
+trapz = getattr(np, "trapezoid", None) or np.trapz
 
 
 # ---------------------------------------------------------------- parsing ----
@@ -50,6 +51,8 @@ def tar_names(path, max_member_bytes=2 ** 20, max_members=1000):
             raise ValueError(f"tar has {len(infos)} members")
         for info in infos:
             members.append(info.name)
+            for m in NAME_RE.finditer(info.name):
+                names.add(m.group(0))
             if ".." in info.name or info.name.startswith("/") or not info.isfile():
                 continue
             fh = tf.extractfile(info)
@@ -112,13 +115,51 @@ def select_o4a(rows, gps_lo, gps_hi, far_max, m_min, mass_bound, exclude):
     return sel, reasons
 
 
-def merge_lists(lists_in_precedence):
-    """Union by name; earlier lists take precedence."""
-    out = {}
-    for rows in lists_in_precedence:
+def merge_lists(lists_in_precedence, labels=None):
+    """Union by name; earlier lists take precedence. Returns (merged, overlaps)."""
+    out, src, overlaps = {}, {}, []
+    labels = labels or [str(i) for i in range(len(lists_in_precedence))]
+    for label, rows in zip(labels, lists_in_precedence):
         for name, row in rows.items():
-            out.setdefault(name, row)
-    return out
+            if name in out:
+                kept = out[name]
+                overlaps.append({"name": name, "kept": src[name], "dropped": label,
+                                 "kept_m1_m2_far": [kept["m1"], kept["m2"], kept["far"]],
+                                 "dropped_m1_m2_far": [row.get("m1"), row.get("m2"), row.get("far")]})
+                continue
+            out[name] = row
+            src[name] = label
+    return out, overlaps
+
+
+def stem(name):
+    m = NAME_RE.search(name)
+    return m.group(1) if m else name
+
+
+def same_event(a, b):
+    """Names match exactly, or one is the date-only stem of the other."""
+    a, b = a.split("-v")[0], b.split("-v")[0]
+    if a == b:
+        return True
+    return (a.startswith(b) or b.startswith(a)) and stem(a) == stem(b)
+
+
+def r1_verdict(target_size, n_target_expected, missing, extras, extra_m2_max, m_min, max_extras,
+               n_o3, n_o3_target, n_o3_tol, n_type_i, named_pass):
+    """README section 2 R1. extras: list of m2 90% lower bounds of the extra O4a events."""
+    ambiguous = target_size == 0 or target_size != n_target_expected
+    type_a = [b is not None and m_min < b <= extra_m2_max for b in extras]
+    o4a_ok = (not ambiguous) and not missing and all(type_a) and len(extras) <= max_extras
+    count_ok = abs(n_o3 - n_o3_target) <= n_o3_tol and (n_o3 <= n_o3_target or n_type_i >= n_o3 - n_o3_target)
+    o3_ok = count_ok and all(named_pass)
+    if not o3_ok:
+        verdict = "not reproduced"
+    elif ambiguous:
+        verdict = "described"
+    else:
+        verdict = "reproduced" if o4a_ok else "not reproduced"
+    return {"ambiguous": ambiguous, "o4a_ok": o4a_ok, "o3_ok": o3_ok, "verdict": verdict}
 
 
 def select_o3(merged, far_max, m_min, mass_bound):
@@ -145,8 +186,8 @@ def r2_prediction(lam1, slope, m_t, m_lo, m_split, m_hi, n_grid):
     grid = np.linspace(m_lo, m_hi, n_grid)
     p = grid ** (-lam1) * vt(grid, slope, m_t)
     lo = grid < m_split
-    i_lo = np.trapz(np.where(lo, p, 0.0), grid)
-    i_hi = np.trapz(np.where(~lo, p, 0.0), grid)
+    i_lo = trapz(np.where(lo, p, 0.0), grid)
+    i_hi = trapz(np.where(~lo, p, 0.0), grid)
     return float(i_hi / (i_lo + i_hi))
 
 
@@ -160,7 +201,7 @@ def bpl(m, lam1, lam2, m_break):
 
 
 def _norm(f, grid):
-    return f / np.trapz(f, grid)
+    return f / trapz(f, grid)
 
 
 def model_density(theta, kind, grid, slope, m_t):
@@ -172,7 +213,7 @@ def model_density(theta, kind, grid, slope, m_t):
         lam1, lam2, mb, mu, sig, w = theta
         f = (1 - w) * _norm(bpl(grid, lam1, lam2, mb), grid) + w * _norm(stats.norm.pdf(grid, mu, sig), grid)
     q = f * vt(grid, slope, m_t)
-    return q / np.trapz(q, grid)
+    return q / trapz(q, grid)
 
 
 def nll(theta, kind, masses, grid, slope, m_t):

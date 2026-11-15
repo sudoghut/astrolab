@@ -91,7 +91,10 @@ reported as such, not as support for a 35 M☉ peak. No p-value is attached (w =
 m_break and M_t are expected to be degenerate when M_t lies in [20, 60]. Not a reproduction of P26.
 
 **R4 (descriptive).** Percentile of GW231123's median total mass among the median total masses of
-the R2–R4 sample defined under R2 (all masses, GW231123 included) (not P26's
+the R2–R4 sample defined under R2 (all masses, GW231123 included). *Dated amendment, 2026-11-15,
+before any data were fetched:* GWOSC gives no `total_mass_source` for some events (for example the
+GWTC-1 list); for those the sum of the medians m1 + m2 is used and the number of such events is
+reported (found by the code review, not from the data) (not P26's
 "maximum detectable mass" statistic).
 
 ## 3. Data (with size estimate)

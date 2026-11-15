@@ -71,54 +71,57 @@ def main(ctx):
         g = gwtc.name_to_gps(n)
         if g is not None and lo <= g < hi:
             target.add(n)
-    ambiguous = (len(target) == 0) or (len(target) != P["n_o4a_target"])
     s_names = {_strip(n) for n in s_o4a}
     missing = sorted(target - s_names)
+    missing_reasons = {n: why_o4a.get(n, "not in GWTC-4.0 list") for n in missing}
     extra = sorted(s_names - target)
     extra_rows = []
     for n in extra:
         r = next(v for k, v in s_o4a.items() if _strip(k) == n)
         b2 = gwtc.lower_bound(r["m2"], r["m2_lo"])
-        extra_rows.append({"name": n, "m2_p5": b2, "type_a": bool(b2 is not None and P["m_min"] < b2 <= P["extra_m2_max"])})
-    o4a_ok = (not ambiguous) and not missing and all(e["type_a"] for e in extra_rows) and len(extra_rows) <= P["max_extras"]
+        extra_rows.append({"name": n, "m2_p5": b2,
+                           "type_a": bool(b2 is not None and P["m_min"] < b2 <= P["extra_m2_max"])})
 
-    merged = gwtc.merge_lists([rows[k] for k in P["o3_precedence"]])
+    labels = P["o3_precedence"]
+    merged, overlaps = gwtc.merge_lists([rows[k] for k in labels], labels)
     s_o3, why_o3 = gwtc.select_o3(merged, P["far_max"], P["m_min"], P["mass_bound"])
     n_o3 = len(s_o3)
     n_type_i = sum(1 for r in s_o3.values()
                    if gwtc.lower_bound(r["m2"], r["m2_lo"]) is not None
                    and P["m_min"] < gwtc.lower_bound(r["m2"], r["m2_lo"]) <= P["extra_m2_max"])
-    o3_count_ok = abs(n_o3 - P["n_o3_target"]) <= P["n_o3_tol"] and (
-        n_o3 <= P["n_o3_target"] or n_type_i >= n_o3 - P["n_o3_target"])
     named = {}
     for n in P["named_checks"]:
-        hit = [k for k in merged if _strip(k) == n or _strip(k).startswith(n)]
-        if not hit:
-            named[n] = {"status": "not in lists", "pass": True}
+        hits = [k for k in merged if gwtc.same_event(k, n)]
+        if not hits:
+            named[n] = {"status": "not in lists", "pass": False}
             continue
-        k = hit[0]
-        if k in s_o3:
-            named[n] = {"status": "selected", "pass": False}
-        else:
-            reason = why_o3.get(k, "")
-            named[n] = {"status": "excluded (no PE)" if reason == "no PE or FAR" else f"excluded: {reason}",
-                        "pass": True}
-    gwtc1_missing = [n for n in P["gwtc1_bbhs"] if not any(_strip(k) == n for k in merged)]
-    o3_ok = o3_count_ok and all(v["pass"] for v in named.values())
-    if not o3_ok:
-        verdict = "not reproduced"
-    elif ambiguous:
-        verdict = "described"
-    else:
-        verdict = "reproduced" if o4a_ok else "not reproduced"
+        statuses, ok = [], True
+        for k in hits:
+            if k in s_o3:
+                statuses.append(f"{k}: selected")
+                ok = False
+            else:
+                reason = why_o3.get(k, "")
+                statuses.append(f"{k}: " + ("excluded (no PE)" if reason == "no PE or FAR" else f"excluded: {reason}"))
+        named[n] = {"status": "; ".join(statuses), "pass": ok}
+    gwtc1 = {n: {"in_lists": any(_strip(k) == n for k in merged), "in_sample": any(_strip(k) == n for k in s_o3)}
+             for n in P["gwtc1_bbhs"]}
+    v = gwtc.r1_verdict(len(target), P["n_o4a_target"], missing, [e["m2_p5"] for e in extra_rows],
+                        P["extra_m2_max"], P["m_min"], P["max_extras"], n_o3, P["n_o3_target"],
+                        P["n_o3_tol"], n_type_i, [x["pass"] for x in named.values()])
     r1 = {"tar_members": members, "tar_names": sorted(names), "target_size": len(target),
-          "target_ambiguous": ambiguous, "n_o4a": len(s_o4a), "missing": missing, "extra": extra_rows,
-          "o4a_part": "ambiguous" if ambiguous else ("reproduced" if o4a_ok else "not reproduced"),
-          "n_o3": n_o3, "n_o3_type_i_candidates": n_type_i, "o3_part": "reproduced" if o3_ok else "not reproduced",
-          "named_checks": named, "gwtc1_missing": gwtc1_missing, "verdict": verdict,
+          "target_ambiguous": v["ambiguous"], "n_o4a": len(s_o4a), "missing": missing,
+          "missing_reasons": missing_reasons, "extra": extra_rows,
+          "o4a_part": "ambiguous" if v["ambiguous"] else ("reproduced" if v["o4a_ok"] else "not reproduced"),
+          "n_o3": n_o3, "n_o3_type_i_candidates": n_type_i,
+          "o3_part": "reproduced" if v["o3_ok"] else "not reproduced",
+          "named_checks": named, "gwtc1": gwtc1,
+          "gwtc1_missing": [n for n, x in gwtc1.items() if not x["in_lists"]],
+          "excluded_o4a": {k: why for k, why in why_o4a.items() if why != "outside O4a"},
+          "excluded_o3": why_o3, "precedence_overlaps": overlaps, "verdict": v["verdict"],
           "far_note": "GWOSC far is documented as the lowest FAR over search pipelines"}
     ctx.log(f"R1: O4a {len(s_o4a)} (target {len(target)}), missing {len(missing)}, extra {len(extra)}; "
-            f"O3 {n_o3}; verdict {verdict}")
+            f"O3 {n_o3}; verdict {v['verdict']}")
     ctx.save("r1", r1)
 
     # sample for R2-R4
@@ -139,11 +142,12 @@ def main(ctx):
         f = gwtc.r2_prediction(P["lambda1"], P["vt_slope"], mt, m_lo, P["m_split"], m_hi, P["n_grid"])
         per_mt.append({"m_t": mt, "f_pred": f, "frac_obs": n_hi / (n_lo + n_hi),
                        "ratio": (n_hi / (n_lo + n_hi)) / f, "binom_p": gwtc.binom_le(n_hi, n_lo + n_hi, f)})
-    widths = [(r["m1_hi"] - r["m1_lo"]) / r["m1"] for r in sample
-              if r["m1"] is not None and 30 <= r["m1"] <= 40 and r["m1_hi"] is not None and r["m1_lo"] is not None]
+    in_3040 = [r for r in sample if r["m1"] is not None and 30 <= r["m1"] <= 40]
+    widths = [(r["m1_hi"] - r["m1_lo"]) / r["m1"] for r in in_3040 if r["m1_hi"] is not None and r["m1_lo"] is not None]
     r2 = {"n_lo": n_lo, "n_hi": n_hi, "n_outside_range": int(np.sum(~inside)),
           "outside": [r["name"] for r, ok in zip(sample, inside) if not ok], "per_turnover": per_mt,
           "width_30_40": float(np.median(widths)) if widths else None, "n_width": len(widths),
+          "n_width_skipped": len(in_3040) - len(widths),
           "caveat": "descriptive; [10, 35) contains the 10 Msun peak, so the prediction is biased"}
     ctx.log(f"R2: n_lo {n_lo}, n_hi {n_hi}; " + "; ".join(f"Mt {p['m_t']}: ratio {p['ratio']:.2f}" for p in per_mt))
     ctx.save("r2", r2)
@@ -162,12 +166,25 @@ def main(ctx):
     ctx.save("r3", {"fits": r3, "note": "exploration only; point estimates, toy VT, no injections"})
 
     # ---------------- R4 ----------------
-    mt_all = np.array([r["mtot"] for r in sample if r["mtot"] is not None])
-    g = [r for r in sample if r["name"].startswith(P["gw231123"].split("_")[0])]
-    r4 = {"in_sample": bool(g)}
-    if g and g[0]["mtot"] is not None:
-        r4.update({"mtot": g[0]["mtot"], "percentile": float(100 * np.mean(mt_all <= g[0]["mtot"])),
-                   "n": int(mt_all.size)})
+    # dated pre-data amendment (2026-11-15, README section 2 R4): a null total mass is replaced by
+    # m1 + m2 (sum of the medians) and counted
+    mt_rows = []
+    n_filled = []
+    for r in sample:
+        mt = r["mtot"]
+        if mt is None and r["m1"] is not None and r["m2"] is not None:
+            mt = r["m1"] + r["m2"]
+            n_filled.append(r["name"])
+        if mt is not None:
+            mt_rows.append((r["name"], mt))
+    mt_all = np.array([m for _, m in mt_rows])
+    exact = [(n, m) for n, m in mt_rows if _strip(n) == P["gw231123"]]
+    if not exact:
+        stem_hits = [(n, m) for n, m in mt_rows if gwtc.same_event(n, P["gw231123"])]
+        exact = stem_hits if len(stem_hits) == 1 else []
+    r4 = {"in_sample": bool(exact), "n": int(mt_all.size), "n_mtot_filled": len(n_filled), "filled": n_filled}
+    if exact:
+        r4.update({"mtot": exact[0][1], "percentile": float(100 * np.mean(mt_all <= exact[0][1]))})
     ctx.save("r4", r4)
     summary = {"params": {k: v for k, v in P.items() if k not in ("lists",)},
                "r1": {k: r1[k] for k in ("verdict", "n_o4a", "target_size", "n_o3", "o4a_part", "o3_part")},
