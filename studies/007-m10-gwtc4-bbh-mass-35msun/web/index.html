@@ -1,29 +1,148 @@
 <!doctype html>
-<html lang="en" data-title-zh="M10 GWTC-4.0 双黑洞质量谱：35 M☉ 特征">
+<html lang="en" data-title-zh="M10 GWTC-4.0 双黑洞质量谱：35 M☉ 特征与事件样本">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>M10 GWTC-4.0 BBH mass spectrum: the 35 Msun feature and the event sample</title>
-<!-- Bilingual rule (AGENTS.md): keep this script, write text as <span class="en">…</span><span class="zh">…</span>,
-     use i18n.L(en, zh) for generated HTML and i18n.t(en, zh) + i18n.onLangChange for plain text / charts. -->
 <script src="../../../atlas/web/i18n.js"></script>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
+<style>
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 12px 0; }
+  .card { border: 1px solid var(--line, #ccc); border-radius: 8px; padding: 10px 12px; }
+  .card .big { font-size: 1.6em; font-weight: 600; }
+  .bad { color: #b3261e; } .good { color: #1b7f3b; } .muted { opacity: .75; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td { border-bottom: 1px solid var(--line, #ddd); padding: 4px 6px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  .scroll { overflow-x: auto; }
+  svg text { font-size: 11px; fill: currentColor; }
+  .bar { fill: #4c78a8; } .bar.gw { fill: #e45756; }
+  code { font-size: .92em; }
+</style>
 </head>
 <body>
 <main>
   <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 007-m10-gwtc4-bbh-mass-35msun</p>
-  <h1><span class="en">M10 GWTC-4.0 BBH mass spectrum: the 35 Msun feature and the event sample</span><span class="zh">M10 GWTC-4.0 双黑洞质量谱：35 M☉ 特征</span></h1>
-  <p class="muted"><span class="en">Replace this page freely: design whatever this question needs (visualization, interactive analysis, several pages). It does not have to follow the Atlas. Data comes from <code>../results/*.json</code>.</span><span class="zh">可以完全替换本页面：按研究问题的需要来设计（可视化、交互式分析、多个页面），不必遵循 Atlas 的样式。数据来自 <code>../results/*.json</code>。</span></p>
-  <pre id="out"><span class="en">loading…</span><span class="zh">加载中……</span></pre>
+  <h1><span class="en">GWTC-4.0 binary black holes: the 35 M☉ feature and the event sample</span><span class="zh">GWTC-4.0 双黑洞：35 M☉ 特征与事件样本</span></h1>
+  <p class="muted"><span class="en">Paper: LVK, GWTC-4.0 population (arXiv:2508.18083). Pre-registration in the study <code>README.md</code> sections 1–4. R1 carries a verdict; R2–R4 are descriptive or exploratory (toy selection function, posterior medians, no injections).</span><span class="zh">论文：LVK，GWTC-4.0 群体分析（arXiv:2508.18083）。预注册见研究 <code>README.md</code> 第 1–4 节。只有 R1 给出判决；R2–R4 是描述性或探索性的（玩具选择函数、后验中位数、不使用注入样本）。</span></p>
+
+  <h2><span class="en">R1 · Rebuilding the 153-event sample</span><span class="zh">R1 · 重建 153 个事件的样本</span></h2>
+  <div class="grid" id="r1cards"></div>
+  <div id="r1text"></div>
+
+  <h2><span class="en">Primary masses of the rebuilt sample</span><span class="zh">重建样本的主星质量</span></h2>
+  <p class="muted"><span class="en">Histogram of posterior-median source-frame m1 (5 M☉ bins; the dashed line is the 35 M☉ split of R2; red: GW231123).</span><span class="zh">源坐标系主星质量 m1 后验中位数的直方图（每格 5 M☉；虚线为 R2 的 35 M☉ 分界；红色：GW231123）。</span></p>
+  <div class="scroll"><svg id="hist" viewBox="0 0 640 230" width="100%" role="img"></svg></div>
+
+  <h2><span class="en">R2 · Counts above and below 35 M☉ (descriptive)</span><span class="zh">R2 · 35 M☉ 上下的事件数（描述性）</span></h2>
+  <div id="r2text"></div>
+  <div class="scroll"><table id="r2"></table></div>
+
+  <h2><span class="en">R3 · Toy fits: broken power law (A) vs. plus a movable peak (B)</span><span class="zh">R3 · 玩具拟合：折断幂律（A）对比加一个可移动峰（B）</span></h2>
+  <p class="muted"><span class="en">Point estimates only, no p-values (w = 0 is a boundary). λ is the slope magnitude (larger is steeper). Values at a parameter bound are marked ⊣.</span><span class="zh">只有点估计，不给 p 值（w = 0 位于边界上）。λ 为斜率大小（越大越陡）。落在参数边界上的值标记 ⊣。</span></p>
+  <div class="scroll"><table id="r3"></table></div>
+
+  <h2><span class="en">R4 · Where GW231123 sits</span><span class="zh">R4 · GW231123 的位置</span></h2>
+  <div id="r4text"></div>
+  <p class="muted" id="err"></p>
 </main>
 <script>
-fetch('../results/summary.json')
-  .then(r => { if (!r.ok) throw new Error(`results/summary.json: HTTP ${r.status}`); return r.json(); })
-  .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
+const L = (en, zh) => i18n.L(en, zh);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const fmt = (x, d = 2) => (x === null || x === undefined) ? '–' : Number(x).toFixed(d);
+const sci = x => x < 1e-3 ? Number(x).toExponential(1) : Number(x).toFixed(3);
+const get = n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`${n}.json: HTTP ${r.status}`); return r.json(); });
+
+function card(title, value, cls, note) {
+  return `<div class="card"><div class="muted">${title}</div><div class="big ${cls || ''}">${value}</div><div class="muted">${note || ''}</div></div>`;
+}
+
+function renderR1(r1) {
+  const v = r1.verdict;
+  const cls = v === 'reproduced' ? 'good' : (v === 'not reproduced' ? 'bad' : '');
+  const vz = {'reproduced': '复现', 'not reproduced': '未复现', 'described': '仅描述'}[v] || v;
+  const noFar = Object.entries(r1.excluded_o3).filter(([, w]) => w === 'no FAR').map(([k]) => k);
+  document.getElementById('r1cards').innerHTML =
+    card(L('R1 verdict (pre-registered)', 'R1 判决（预注册）'), L(esc(v), vz), cls) +
+    card(L('O4a part', 'O4a 部分'), `${r1.n_o4a} / ${r1.target_size}`, r1.o4a_part === 'reproduced' ? 'good' : 'bad',
+         L(`missing ${r1.missing.length}, extra ${r1.extra.length}`, `缺 ${r1.missing.length}，多 ${r1.extra.length}`)) +
+    card(L('O1–O3 part', 'O1–O3 部分'), `${r1.n_o3} / 69 ± 2`, r1.o3_part === 'reproduced' ? 'good' : 'bad',
+         L(`named checks passed: ${Object.values(r1.named_checks).filter(x => x.pass).length} / 7`,
+           `指名检查通过：${Object.values(r1.named_checks).filter(x => x.pass).length} / 7`)) +
+    card(L('Excluded for a missing FAR', '因缺少 FAR 而排除'), `${noFar.length}`, '',
+         L('kept GWTC-2.1 rows have no <code>far</code>', '保留的 GWTC-2.1 行没有 <code>far</code>'));
+  document.getElementById('r1text').innerHTML = `<p>` + L(
+    `The O4a events selected from the GWOSC GWTC-4.0 list match the paper's list exactly. The O1–O3 part falls short by ${69 - r1.n_o3}. Under the registered list precedence the O1/O2 events come from GWTC-2.1-confident (their re-analysis), whose GWOSC rows carry no <code>far</code>; the pre-registered rule ("no FAR → excluded") removes ${noFar.length} of them (${noFar.map(esc).join(', ')}). The GWTC-1-confident rows of the same events do carry FARs below 1 per year. A post-hoc exploration that takes the FAR from that lower-precedence list gives 69 O1–O3 events and 153 in total, the paper's sample. The pre-registered verdict stays "not reproduced": the gap is in how the public lists store FARs, not in the paper's selection.`,
+    `从 GWOSC 的 GWTC-4.0 列表选出的 O4a 事件与论文的列表完全一致。O1–O3 部分少了 ${69 - r1.n_o3} 个。按预注册的列表优先级，O1/O2 事件取自 GWTC-2.1-confident（重新分析的版本），而 GWOSC 的这些行没有 <code>far</code> 值；预注册规则（"没有 FAR → 排除"）因此去掉了其中 ${noFar.length} 个（${noFar.map(esc).join('、')}）。同一批事件在 GWTC-1-confident 列表中的行带有低于每年 1 次的误报率（FAR, false alarm rate）。事后（post hoc）探索从这个优先级较低的列表取 FAR，得到 69 个 O1–O3 事件、合计 153 个，正是论文的样本。预注册的判决仍是"未复现"：缺口出在公开列表存放 FAR 的方式上，而不是论文的选择。`) + `</p>`;
+}
+
+function renderHist(sample, gwName) {
+  const ev = sample.events.filter(e => e.m1 !== null);
+  const W = 640, H = 230, pl = 36, pr = 10, pt = 10, pb = 34, xmax = 140, bw = 5;
+  const nb = Math.ceil(xmax / bw);
+  const counts = new Array(nb).fill(0), gwBin = new Array(nb).fill(false);
+  for (const e of ev) {
+    const i = Math.min(nb - 1, Math.floor(e.m1 / bw));
+    counts[i]++;
+    if (e.name.split('-v')[0] === gwName) gwBin[i] = true;
+  }
+  const cmax = Math.max(...counts);
+  const x = m => pl + (W - pl - pr) * m / xmax, y = c => H - pb - (H - pt - pb) * c / cmax;
+  let s = '';
+  counts.forEach((c, i) => {
+    if (!c) return;
+    s += `<rect class="bar${gwBin[i] ? ' gw' : ''}" x="${x(i * bw) + 0.5}" y="${y(c)}" width="${x(bw) - x(0) - 1}" height="${H - pb - y(c)}"><title>${i * bw}–${(i + 1) * bw} M☉: ${c}</title></rect>`;
+  });
+  for (let m = 0; m <= xmax; m += 20) s += `<text x="${x(m)}" y="${H - pb + 14}" text-anchor="middle">${m}</text>`;
+  for (let c = 0; c <= cmax; c += 5) s += `<text x="${pl - 4}" y="${y(c) + 4}" text-anchor="end">${c}</text>`;
+  s += `<line x1="${x(35)}" x2="${x(35)}" y1="${pt}" y2="${H - pb}" stroke="currentColor" stroke-dasharray="4 3"/>`;
+  s += `<line x1="${pl}" x2="${W - pr}" y1="${H - pb}" y2="${H - pb}" stroke="currentColor"/>`;
+  s += `<text x="${(W + pl) / 2}" y="${H - 4}" text-anchor="middle">m1 (M☉)</text>`;
+  document.getElementById('hist').innerHTML = s;
+}
+
+function renderR2(r2) {
+  document.getElementById('r2text').innerHTML = `<p>` + L(
+    `N(10–35 M☉) = ${r2.n_lo}, N(35–100 M☉) = ${r2.n_hi}; ${r2.n_outside_range} events outside 10–100 M☉. Prediction: a single power law with λ1 = 1.7 times a toy VT ∝ m1^2.2 that turns over at M_t. The low bin contains the 10 M☉ peak, so a ratio below 1 is expected even without a 35 M☉ feature. Median fractional 90% width of m1 for events at 30–40 M☉: ${fmt(r2.width_30_40)} (n = ${r2.n_width}).`,
+    `N(10–35 M☉) = ${r2.n_lo}，N(35–100 M☉) = ${r2.n_hi}；${r2.n_outside_range} 个事件在 10–100 M☉ 之外。预测：λ1 = 1.7 的单一幂律乘以在 M_t 处转平的玩具时空体积（VT, sensitive volume-time）∝ m1^2.2。低质量格包含 10 M☉ 峰，所以即使没有 35 M☉ 特征，比值也应低于 1。30–40 M☉ 事件的 m1 相对 90% 宽度中位数：${fmt(r2.width_30_40)}（n = ${r2.n_width}）。`) + `</p>`;
+  let h = `<tr><th>M_t (M☉)</th><th>${L('predicted fraction ≥ 35', '预测 ≥35 比例')}</th><th>${L('observed', '观测')}</th><th>${L('ratio', '比值')}</th><th>P(≤ N_hi)</th></tr>`;
+  for (const p of r2.per_turnover) {
+    h += `<tr><td>${p.m_t === null ? '∞' : p.m_t}</td><td>${fmt(p.f_pred, 3)}</td><td>${fmt(p.frac_obs, 3)}</td><td>${fmt(p.ratio)}</td><td>${sci(p.binom_p)}</td></tr>`;
+  }
+  document.getElementById('r2').innerHTML = h;
+}
+
+function renderR3(r3) {
+  const b = (v, at, d = 2) => fmt(v, d) + (at ? ' ⊣' : '');
+  let h = `<tr><th>M_t (M☉)</th><th>A: λ1</th><th>A: λ2</th><th>A: m_break</th><th>λ2 − λ1</th><th>B: μ</th><th>B: σ</th><th>B: w</th><th>B: m_break</th><th>2Δln L</th></tr>`;
+  for (const f of r3.fits) {
+    const A = f.A, B = f.B;
+    h += `<tr><td>${f.m_t === null ? '∞' : f.m_t}</td><td>${b(A.theta[0], A.at_bound[0])}</td><td>${b(A.theta[1], A.at_bound[1])}</td><td>${b(A.theta[2], A.at_bound[2], 1)}</td><td>${fmt(f.dlam)}</td>` +
+         `<td>${b(B.theta[3], B.at_bound[3], 1)}</td><td>${b(B.theta[4], B.at_bound[4], 1)}</td><td>${b(B.theta[5], B.at_bound[5])}</td><td>${b(B.theta[2], B.at_bound[2], 1)}</td><td>${fmt(f.two_dlnl, 1)}</td></tr>`;
+  }
+  document.getElementById('r3').innerHTML = h;
+}
+
+function renderR4(r4) {
+  document.getElementById('r4text').innerHTML = `<p>` + (r4.in_sample ? L(
+    `GW231123's median total mass is ${fmt(r4.mtot, 0)} M☉, at the ${fmt(r4.percentile, 1)}th percentile of the ${r4.n} events in the rebuilt sample (the heaviest). Total masses filled from m1 + m2: ${r4.n_mtot_filled}.`,
+    `GW231123 的总质量中位数为 ${fmt(r4.mtot, 0)} M☉，位于重建样本 ${r4.n} 个事件的第 ${fmt(r4.percentile, 1)} 百分位（最重）。用 m1 + m2 补上的总质量：${r4.n_mtot_filled} 个。`) :
+    L('GW231123 is not in the rebuilt sample.', 'GW231123 不在重建样本中。')) + `</p>`;
+}
+
+let data = null;
+function render() {
+  if (!data) return;
+  renderR1(data.r1); renderHist(data.sample, data.gw); renderR2(data.r2); renderR3(data.r3); renderR4(data.r4);
+}
+Promise.all(['r1', 'r2', 'r3', 'r4', 'sample', 'summary'].map(get))
+  .then(([r1, r2, r3, r4, sample, summary]) => {
+    data = {r1, r2, r3, r4, sample, gw: summary.params.gw231123};
+    render();
+    i18n.onLangChange(render);
+  })
   .catch(e => {
-    const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
-    // Both languages in the DOM, so the message follows later language switches.
-    document.getElementById('out').innerHTML = i18n.L('Could not load results (run the study first?) or render them: ', '无法加载或显示结果（是否已运行研究？）：') + msg;
+    document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + esc(e);
   });
 </script>
 </body>

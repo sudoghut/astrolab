@@ -1,0 +1,85 @@
+{
+ "params": {
+  "o3_precedence": [
+   "GWTC-3-confident",
+   "GWTC-3-marginal",
+   "GWTC-2.1-confident",
+   "GWTC-2.1-marginal",
+   "GWTC-1-confident"
+  ],
+  "o4a_tar": "https://zenodo.org/records/16911563/files/o4a_event_list.tar?download=1",
+  "gps_o4a": [
+   1368975618,
+   1389456018
+  ],
+  "exclude_o4a": [
+   "GW230630_070659"
+  ],
+  "far_max": 1.0,
+  "m_min": 3.0,
+  "mass_bound": "p90",
+  "extra_m2_max": 5.0,
+  "max_extras": 2,
+  "n_o4a_target": 84,
+  "n_o3_target": 69,
+  "n_o3_tol": 2,
+  "named_checks": [
+   "GW170817",
+   "GW190425",
+   "GW190814",
+   "GW190917_114630",
+   "GW190426_152155",
+   "GW200105_162426",
+   "GW200115_042309"
+  ],
+  "gwtc1_bbhs": [
+   "GW150914",
+   "GW151012",
+   "GW151226",
+   "GW170104",
+   "GW170608",
+   "GW170729",
+   "GW170809",
+   "GW170814",
+   "GW170818",
+   "GW170823"
+  ],
+  "lambda1": 1.7,
+  "vt_slope": 2.2,
+  "turnovers": [
+   30.0,
+   50.0,
+   80.0,
+   null
+  ],
+  "m_range": [
+   10.0,
+   100.0
+  ],
+  "m_split": 35.0,
+  "n_grid": 2000,
+  "n_starts": 20,
+  "seed": 0,
+  "gw231123": "GW231123_135430"
+ },
+ "r1": {
+  "verdict": "not reproduced",
+  "n_o4a": 84,
+  "target_size": 84,
+  "n_o3": 59,
+  "o4a_part": "reproduced",
+  "o3_part": "not reproduced"
+ },
+ "r2": {
+  "n_lo": 60,
+  "n_hi": 79
+ },
+ "r4": {
+  "in_sample": true,
+  "n": 143,
+  "n_mtot_filled": 0,
+  "filled": [],
+  "mtot": 236.0,
+  "percentile": 100.0
+ }
+}

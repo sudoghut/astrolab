@@ -1,0 +1,13 @@
+{
+ "study": "007-m10-gwtc4-bbh-mass-35msun",
+ "finished_at": "2026-11-15T07:39:31+00:00",
+ "seconds": 13.52,
+ "outputs": [
+  "r1.json",
+  "sample.json",
+  "r2.json",
+  "r3.json",
+  "r4.json",
+  "summary.json"
+ ]
+}

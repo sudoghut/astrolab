@@ -19,7 +19,7 @@ walkthrough of the paper, its argument checked step by step in Lean, and what as
 - [The Hubble tension: does host selection explain the lower JWST values?](Study-003-hubble-tension-host-selection) (SH0ES, CCHP; study 003)
 - [NANOGrav 15 yr: how loud is the gravitational-wave background?](Study-005-nanograv-gwb-power-law) (NANOGrav 15-yr GWB amplitude and spectral index; study 005)
 - [Galaxies at z ≈ 14: too many, too bright, too early?](Study-006-z14-galaxies-number-density) (MoM-z14, JADES-GS-z14-0; study 006)
-- [Black-hole masses in GWTC-4.0: a peak at 35 M☉, or just a bend?](Study-007-gwtc4-bbh-mass-35msun) (GWTC-4.0 population; study 007, in progress)
+- [Black-hole masses in GWTC-4.0: a peak at 35 M☉, or just a bend?](Study-007-gwtc4-bbh-mass-35msun) (GWTC-4.0 population; study 007, concluded: sample rebuilt with a FAR fallback, R1 not reproduced as registered)
 
 The sources of these pages are kept in the main repository under
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) and reviewed there
@@ -38,6 +38,6 @@ before being published here.
 - [哈勃张力：校准星系的选择能否解释 JWST 的较低数值？](Study-003-hubble-tension-host-selection#中文)（SH0ES、CCHP；研究 003）
 - [NANOGrav 15 年：引力波背景有多强？](Study-005-nanograv-gwb-power-law#中文)（NANOGrav 15 年引力波背景的振幅与谱指数；研究 005）
 - [z ≈ 14 的星系：太多、太亮、太早？](Study-006-z14-galaxies-number-density#中文)（MoM-z14、JADES-GS-z14-0；研究 006）
-- [GWTC-4.0 中的黑洞质量：35 M☉ 处是一个峰，还是只是一处弯折？](Study-007-gwtc4-bbh-mass-35msun#中文)（GWTC-4.0 群体；研究 007，进行中）
+- [GWTC-4.0 中的黑洞质量：35 M☉ 处是一个峰，还是只是一处弯折？](Study-007-gwtc4-bbh-mass-35msun#中文)（GWTC-4.0 群体；研究 007，已完成：加 FAR 回退后样本可重建，按预注册 R1 未复现）
 
 这些页面的源文件保存在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，在那里审查后再发布到这里。
