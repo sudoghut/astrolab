@@ -21,7 +21,8 @@ How lumpy is the matter in the Universe today? Cosmologists measure this with on
 **S8 = σ8 (Ωm/0.3)^0.5**. Here σ8 is the typical size of density fluctuations on scales of about
 8 h⁻¹ Mpc (roughly 11 Mpc), and Ωm is the fraction of the Universe's energy density in matter. The
 square-root combination is used because weak gravitational lensing, the main low-redshift probe,
-measures almost exactly this combination.
+measures approximately this combination (the best-constrained exponent depends on the survey: 0.617 for
+DES Y6 3x2pt, D26 footnote 7).
 
 There are two ways to get S8:
 
@@ -41,7 +42,8 @@ asks how far that statement holds for the newest Dark Energy Survey (DES) result
 
 #### 1.2 The data
 
-DES imaged about 5,000 square degrees of the southern sky with the Dark Energy Camera on the 4-m
+DES imaged about 5,000 square degrees of the southern sky (the Y6 analysis uses about 4,300 square
+degrees, with about 140 million source galaxies and 9 million lens galaxies, D26 Sec. VIII) with the Dark Energy Camera on the 4-m
 Blanco telescope in Chile, over six years (Y6 is the full survey). D26 combines three measurements,
 called **3x2pt** because each is a two-point correlation function (a measurement of how two
 quantities co-vary with angular separation):
@@ -254,8 +256,9 @@ Three caveats about applying it here:
   a Gaussian-equivalent number from a Bayesian posterior comparison;
 - it is a labelling convention: 3σ is where one starts to *claim* evidence, so falling short of it
   says the evidence is not strong enough to claim, not that the two data sets agree;
-- the conclusion depends on the threshold: at 2.5σ the S8 projection (2.6σ) would fail it, and
-  the all-probes DES number (2.8σ) is close to 3σ.
+- the conclusion depends on the threshold: at 2.5σ the S8 projection (2.6σ) would fail it. (A
+  neighbouring DES combination, all DES probes against the CMB, is at 2.8σ; it is not the subject
+  of the conclusion, which is about 3x2pt.)
 
 #### 2.4 What the Lean check found
 
@@ -272,7 +275,7 @@ Three caveats about applying it here:
    (an artefact of the encoding): the choice of CMB reference changes the numbers (1.0σ against
    Planck alone), not the logic.
 4. **Where the conclusion is fragile.** It rests on the threshold (2.6σ is 0.4σ below it; the
-   all-probes 2.8σ is 0.2σ below it) and on the accuracy of the numerical estimate, which D26
+   neighbouring all-probes combination, not the subject of the conclusion, is 0.2σ below it) and on the accuracy of the numerical estimate, which D26
    does not quote. Our study recomputes the 1-D and 2-D numbers to check that accuracy.
 5. **Consistency** (`consistent`) is a weak check here: no premise is negative.
 6. **Limits:** Lean checks the logical structure under our encoding, not the statistics inside
@@ -293,7 +296,7 @@ cosmic-shear chain (14.9 MB) are under the limit. Other probes enter only as pub
 | DES cosmic shear against the CMB (R3) | explorable (not decisive; D26 quotes no number for it) | as R2, chain against chain | same | none - descriptive | pending |
 | Stage B: projection effects; Stage C: threshold and metric (R4) | explorable (not decisive) | shift DES by +0.17σ (Table 9) or use the MAP; compare iso-density, equal-tail and Gaussian versions of the same 1-D comparison; report where the threshold flips the classification | same | none - exploration only | pending |
 | Other probes against the CMB (R5) | explorable (not decisive) | each published S8 summary (split-normal) against the CMB chain; no averaging (probes are correlated and constrain different directions) | published values (kB) | none - descriptive | pending |
-| Previous generation ("easing") | explorable (not decisive) | published S8 of DES Y3 3x2pt (0.776 ± 0.017), KiDS-1000 (0.766 +0.020/−0.014 3x2pt; 0.759 +0.024/−0.021 shear) and HSC Y3 against the same CMB chain, beside the new values | published values (kB) | none - descriptive | pending |
+| Previous generation ("easing") | explorable (not decisive) | published S8 of DES Y3 3x2pt (0.776 ± 0.017), KiDS-1000 (0.766 +0.020/−0.014 3x2pt; 0.759 +0.024/−0.021 shear) and HSC Y3 (2023: cosmic shear 0.769 +0.031/−0.034, Li et al., arXiv:2304.00702, and 0.776 +0.032/−0.033, Dalal et al., arXiv:2304.00701; 3x2pt 0.775 +0.043/−0.038, Sugiyama et al., arXiv:2304.00705) against the same CMB chain, beside the new values | published values (kB) | none - descriptive | pending |
 | `mod_conv` (is below 3σ "no evidence"?) | out of scope | a convention about evidence, not a computation; the study reports the numbers it is applied to and where the threshold flips the classification (R4) | – | – | – |
 | DES systematics, blinding, the flow estimator itself | out of scope | needs the data vectors, simulations and the analysis pipeline | – | – | – |
 
@@ -301,7 +304,7 @@ cosmic-shear chain (14.9 MB) are under the limit. Other probes enter only as pub
 
 | Term | Meaning |
 |---|---|
-| S8 | σ8 (Ωm/0.3)^0.5: the amplitude of matter clustering, in the combination weak lensing measures best |
+| S8 | σ8 (Ωm/0.3)^0.5: the amplitude of matter clustering, in a combination close to the one weak lensing constrains best |
 | σ8 | rms amplitude of linear matter fluctuations in spheres of 8 h⁻¹ Mpc today |
 | Ωm | matter density as a fraction of the critical density |
 | 3x2pt | the joint analysis of cosmic shear, galaxy–galaxy lensing and galaxy clustering |
@@ -345,7 +348,7 @@ Newest first.
 
 #### 1.1 问题与意义
 
-今天宇宙中的物质有多"成团"？宇宙学家用一个数来衡量：**S8 = σ8 (Ωm/0.3)^0.5**。σ8 是约 8 h⁻¹ Mpc（约 11 Mpc）尺度上密度涨落的典型幅度，Ωm 是物质在宇宙能量密度中所占的比例。之所以用这种平方根组合，是因为低红移的主要探针弱引力透镜（weak gravitational lensing）几乎正好测量这个组合。
+今天宇宙中的物质有多"成团"？宇宙学家用一个数来衡量：**S8 = σ8 (Ωm/0.3)^0.5**。σ8 是约 8 h⁻¹ Mpc（约 11 Mpc）尺度上密度涨落的典型幅度，Ωm 是物质在宇宙能量密度中所占的比例。之所以用这种平方根组合，是因为低红移的主要探针弱引力透镜（weak gravitational lensing）大致测量这个组合（约束最好的指数因巡天而异：DES Y6 3x2pt 为 0.617，D26 脚注 7）。
 
 得到 S8 有两种途径：
 
@@ -356,7 +359,7 @@ Newest first.
 
 #### 1.2 数据
 
-DES 用智利 4 米 Blanco 望远镜上的暗能量相机，六年间拍摄了约 5000 平方度的南天（Y6 是完整巡天）。D26 联合三种测量，因为每一种都是两点相关函数（two-point correlation function，即两个量随角距离的协变），所以叫 **3x2pt**：
+DES 用智利 4 米 Blanco 望远镜上的暗能量相机，六年间拍摄了约 5000 平方度的南天（Y6 分析使用约 4300 平方度，约 1.4 亿个源星系与 900 万个透镜星系，D26 第 VIII 节）（Y6 是完整巡天）。D26 联合三种测量，因为每一种都是两点相关函数（two-point correlation function，即两个量随角距离的协变），所以叫 **3x2pt**：
 
 1. **宇宙剪切（cosmic shear，ξ±）：** 上亿个背景星系的形状被透镜轻微拉伸；这些畸变的相关性测量投影的物质分布。
 2. **星系–星系透镜（galaxy–galaxy lensing，γt）：** 前景（"透镜"）星系周围背景星系的拉伸，测量这些星系周围的物质。
@@ -493,14 +496,14 @@ theorem final : ∀ v, Premises v → Conclusion v := by
 
 - 这个约定是为单个事先指定的检验的显著性写的；这里用于贝叶斯后验比较得出的高斯等效数字；
 - 它是一种措辞约定：3σ 是开始*宣称*证据的门槛，达不到它说明证据不足以宣称，而不是说两组数据一致；
-- 结论依赖阈值：阈值取 2.5σ 时 S8 投影（2.6σ）就不满足了，DES 全部探针的数字（2.8σ）也接近 3σ。
+- 结论依赖阈值：阈值取 2.5σ 时 S8 投影（2.6σ）就不满足了。（相邻的 DES 组合，即全部 DES 探针对 CMB，为 2.8σ；它不是结论的对象，结论说的是 3x2pt。）
 
 #### 2.4 Lean 检查发现的问题
 
 1. **主要结果：`stated_insufficient` 与 `explicit_sufficient`。** D26 写出的前提推不出它的结论：它从未写出把低于 3σ 的数字变成"没有实质证据"的规则。加上标准的显著性约定（`mod_conv`，`[implied]`）后，结论成立。没有缺口前提：把约定写明后论证是完整的，它的强度正是这个约定的强度（见 2.3 的保留意见）。
 2. **D26 自己的判据并不承载结论**（`mod_crit_redundant`）。§IV.6 的 n_σ < 3 规则允许 DES 与 CMB 合并；"没有证据"的陈述需要的是证据约定。两者用了同一个数字 3，目的不同。
 3. **必要的前提：** 度量、两个数字、投影效应小与约定（五个 `_needed` 定理）。`obs_cmb` 之所以多余，只是因为它的原子命题在别处没有出现（编码的产物）：CMB 参照的选择改变的是数字（与单独的 Planck 比为 1.0σ），而不是逻辑。
-4. **结论脆弱的地方。** 它依赖阈值（2.6σ 离阈值 0.4σ；全部探针的 2.8σ 离阈值 0.2σ），也依赖 D26 没有报告的数值估计精度。本研究复算 1 维与 2 维的数字，正是为了检查这个精度。
+4. **结论脆弱的地方。** 它依赖阈值（2.6σ 离阈值 0.4σ；不是结论对象的相邻组合，即全部探针的 2.8σ，离阈值 0.2σ），也依赖 D26 没有报告的数值估计精度。本研究复算 1 维与 2 维的数字，正是为了检查这个精度。
 5. **相容性**（`consistent`）在这里是弱检查：没有否定形式的前提。
 6. **局限：** Lean 检查的是我们编码下的逻辑结构，不是每个前提内部的统计。3σ 约定是否是衡量宇宙学数据集之间不一致的合适标尺，是机器检查无法作出的判断。
 
@@ -516,7 +519,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 | DES 宇宙剪切对 CMB（R3） | 可探索（不能判决；D26 没有给出对应的数字） | 同 R2，链对链 | 同上 | 无——描述 | 待定 |
 | 环节 B 的投影效应；环节 C 的阈值与度量（R4） | 可探索（不能判决） | DES 上移 +0.17σ（表 9）或改用 MAP；同一个 1 维比较的等密度、等尾与高斯三种算法；报告阈值在哪里改变分类 | 同上 | 无——仅供探索 | 待定 |
 | 其他探针对 CMB（R5） | 可探索（不能判决） | 各已发表的 S8 汇总值（分裂正态）对 CMB 链；不做平均（探针相关，且约束的方向不同） | 发表值（kB） | 无——描述 | 待定 |
-| 上一代（"减弱"） | 可探索（不能判决） | DES Y3 3x2pt（0.776 ± 0.017）、KiDS-1000（3x2pt 0.766 +0.020/−0.014；剪切 0.759 +0.024/−0.021）与 HSC Y3 发表的 S8 对同一条 CMB 链，与新值并列 | 发表值（kB） | 无——描述 | 待定 |
+| 上一代（"减弱"） | 可探索（不能判决） | DES Y3 3x2pt（0.776 ± 0.017）、KiDS-1000（3x2pt 0.766 +0.020/−0.014；剪切 0.759 +0.024/−0.021）与 HSC Y3（2023：宇宙剪切 0.769 +0.031/−0.034，Li et al.，arXiv:2304.00702；0.776 +0.032/−0.033，Dalal et al.，arXiv:2304.00701；3x2pt 0.775 +0.043/−0.038，Sugiyama et al.，arXiv:2304.00705）发表的 S8 对同一条 CMB 链，与新值并列 | 发表值（kB） | 无——描述 | 待定 |
 | `mod_conv`（低于 3σ 是否等于"没有证据"） | 不在范围内 | 是关于证据的约定，不是计算；研究报告它所作用的数字，以及阈值在哪里改变分类（R4） | – | – | – |
 | DES 的系统误差、盲化与流估计器本身 | 不在范围内 | 需要数据向量、模拟与分析流程 | – | – | – |
 
@@ -524,7 +527,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 
 | 术语 | 含义 |
 |---|---|
-| S8 | σ8 (Ωm/0.3)^0.5：物质成团幅度，取弱透镜测得最好的组合 |
+| S8 | σ8 (Ωm/0.3)^0.5：物质成团幅度，取接近弱透镜约束最好方向的组合 |
 | σ8 | 今天 8 h⁻¹ Mpc 球内线性物质涨落的均方根幅度 |
 | Ωm | 物质密度与临界密度之比 |
 | 3x2pt | 宇宙剪切、星系–星系透镜与星系成团的联合分析 |
