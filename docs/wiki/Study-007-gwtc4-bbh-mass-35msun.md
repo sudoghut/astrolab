@@ -216,11 +216,45 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
-| A: the 153-event sample (R1) | testable now | rebuild from GWOSC lists (GWTC-4.0, GWTC-1/2.1/3) with P26's cuts (FAR < 1/yr, 90% lower bound as a proxy for the 1% bound, exclusions); compare with the O4a list on Zenodo | GWOSC JSON (~0.25 MB + < 1 MB each), O4a list 10 kB | "reproduced" if the O4a events match P26's list and the counts are 84 and 69, with only pre-declared, direction-known differences; downgraded to "described" if the meaning of GWOSC's `far` cannot be confirmed (the `far` definition and the allowed number of discrepant events are fixed in the pre-registration before R1 runs) | pending |
-| Sample-level counts above and below 35 M☉ (R2) | explorable (descriptive) | median m1 counts against a single power law (λ1 = 1.7) times a toy VT(m1) with a turnover, scanning the turnover | same | none - descriptive (medians blur a break; 1-D VT is a toy) | pending |
-| Steepening vs selection curvature (R3) | explorable (not decisive) | point-estimate toy fit of a broken power law, with and without a peak, scanning the VT turnover | same | none - exploration only | pending |
-| GW231123 (R4) | descriptive | its total mass within the rebuilt sample (not P26's quantity) | same | none | pending |
+| A: the 153-event sample (R1) | testable now | rebuild from GWOSC lists (GWTC-4.0, GWTC-1/2.1/3) with P26's cuts (FAR < 1/yr, 90% lower bound as a proxy for the 1% bound, exclusions); compare with the O4a list on Zenodo | GWOSC JSON (~0.25 MB + < 1 MB each), O4a list 10 kB | "reproduced" if the O4a events match P26's list and the counts are 84 and 69, with only pre-declared, direction-known differences; downgraded to "described" if the meaning of GWOSC's `far` cannot be confirmed (the `far` definition and the allowed number of discrepant events are fixed in the pre-registration before R1 runs) | **not reproduced** as registered: O4a 84/84 exact; O1–O3 59 of 69 ± 2 (null FARs on the GWTC-2.1 rows of the ten O1/O2 BBHs); 69 and 153 post hoc |
+| Sample-level counts above and below 35 M☉ (R2) | explorable (descriptive) | median m1 counts against a single power law (λ1 = 1.7) times a toy VT(m1) with a turnover, scanning the turnover | same | none - descriptive (medians blur a break; 1-D VT is a toy) | 79 of 139 above 35 M☉ (0.57); deficit against the prediction unless VT turns over near 30 M☉ (ratio 0.69–0.80, or 1.15 at M_t = 30) |
+| Steepening vs selection curvature (R3) | explorable (not decisive) | point-estimate toy fit of a broken power law, with and without a peak, scanning the VT turnover | same | none - exploration only | A steepens at 42–45 M☉ for M_t ≥ 50 (reverses at M_t = 30); a peak adds 2Δln L = 15–25 at μ = 33–40 M☉, but fits sit on bounds; with wider bounds (post hoc) the bump is at 34–39 M☉ for M_t ≤ 80 and broad at M_t = ∞ |
+| GW231123 (R4) | descriptive | its total mass within the rebuilt sample (not P26's quantity) | same | none | 236 M☉, the heaviest of 143 (and of 153) |
 | `gap_sel`, `gap_syst`, population inference | out of scope | needs posterior samples and injections (hundreds of MB to tens of GB; AGENTS.md 1.5) | – | – | – |
+
+**Results (added after the run, 2026-11-15; the table above keeps the pre-registered design).**
+Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main/studies/007-m10-gwtc4-bbh-mass-35msun/README.md#5-results); page:
+[`web/index.html`](https://github.com/sudoghut/astrolab/blob/main/studies/007-m10-gwtc4-bbh-mass-35msun/web/index.html).
+
+- **R1 is "not reproduced" by the frozen rule, and the reason is mundane.** The O4a half matches
+  P26 exactly: 84 events, none missing and none extra. The O1–O3 half gives 59 instead of 69.
+  - Under our registered precedence (newest catalogue first), the ten O1/O2 BBHs are taken from
+    GWTC-2.1, which re-analysed their masses.
+  - GWOSC stores no false-alarm rate on those re-analysed rows, while the GWTC-1 rows of the same
+    events carry one.
+  - Our rule "no FAR → excluded" therefore drops all ten. Taking the FAR from GWTC-1 for them (a
+    labelled post-hoc exploration) gives exactly 69, and 84 + 69 = 153, P26's sample.
+  - The sample can be rebuilt; the public lists just need a FAR fallback that the pre-registration
+    did not foresee. The independent referee found the same cause without seeing our diagnosis.
+- **R2 (counts).** 79 of 139 events lie above 35 M☉.
+  - Against a single power law times a toy selection function, that is a deficit unless the
+    selection stops rising near 30 M☉.
+  - The low bin contains the 10 M☉ peak, and ten medians pile up just above 35 M☉, so this is
+    descriptive only.
+  - Single-event mass uncertainties at 30–40 M☉ are about 45% of the mass (median 90% width).
+- **R3 (toy fits).** The answer depends on the toy selection function, which is what
+  section 2.3 predicted.
+  - A plain broken power law steepens at 42–45 M☉ when the selection keeps rising.
+  - Adding a Gaussian bump improves the fit by 2Δln L = 15–25 (27 with the post-hoc 153 events).
+  - With the registered bounds the bump fits sit on the bounds. With wider bounds (post hoc) the
+    bump sits at 34–39 M☉ when the toy selection turns over by 80 M☉, but becomes a broad
+    (σ ≈ 15 M☉) shoulder near 25 M☉ when it does not.
+  - Whether "35 M☉" is a peak or a bend therefore cannot be settled without the real,
+    injection-based selection function. That needs data this project does not download.
+- **R4.** GW231123 (236 M☉ total) is the heaviest event in the sample by a wide margin, so its
+  percentile (100) carries little information.
+- **Side effect.** The first run exposed a cache bug in the core library: a `.json` download
+  overwrote its own metadata file. It was fixed, with a regression test, in the same pull request.
 
 ### Glossary
 
@@ -244,6 +278,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 Newest first.
 
+- 2026-11-15: results: R1 not reproduced as registered (O4a 84/84 exact; O1–O3 59, because the GWTC-2.1 rows of the ten O1/O2 BBHs have no FAR on GWOSC; 153 post hoc); R2–R4 results; referee notes; R3 wide-bounds exploration.
 - 2026-11-15: gate-2 review: the route bridging rules are neither standard knowledge nor stated in P26; they are now gaps (`gap_route1`, `gap_route2`); the slope premise encodes the reported 97.7%.
 - 2026-11-15: gate-1 review: two routes (strongly and weakly modeled) with two shared gaps (`gap_sel`, `gap_syst`); the over-density theorem removed (it followed from our own rule); quotes re-sourced.
 - 2026-11-15: first version: parts 1–3 (pre-registration source; plan `design/016-plan_*`).
@@ -381,11 +416,31 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
-| A：153 个事件的样本（R1） | 现在可检验 | 按 P26 的条件（FAR < 1/yr、以 90% 下限近似 1% 下限、排除项）由 GWOSC 列表（GWTC-4.0、GWTC-1/2.1/3）重建；与 Zenodo 上的 O4a 列表比较 | GWOSC JSON（约 0.25 MB，其余各 < 1 MB），O4a 列表 10 kB | O4a 事件与 P26 列表一致、计数为 84 与 69，只允许预先声明且方向已知的差别 → "复现"；若不能确认 GWOSC `far` 的含义则降为"描述"（`far` 的定义与允许的不一致事件数在 R1 运行前的预注册中写定） | 待定 |
-| 35 M☉ 上下的样本计数（R2） | 可探索（描述） | 中位数 m1 的计数，与单一幂律（λ1 = 1.7）乘以带转折的玩具 VT(m1) 比较，扫描转折质量 | 同上 | 无——描述（中位数会抹平折断；一维 VT 是玩具） | 待定 |
-| 变陡对选择函数曲率的敏感度（R3） | 可探索（不能判决） | 折断幂律（加或不加峰）的点估计玩具拟合，扫描 VT 的转折 | 同上 | 无——仅供探索 | 待定 |
-| GW231123（R4） | 描述 | 它的总质量在重建样本中的位置（与 P26 的量不同） | 同上 | 无 | 待定 |
+| A：153 个事件的样本（R1） | 现在可检验 | 按 P26 的条件（FAR < 1/yr、以 90% 下限近似 1% 下限、排除项）由 GWOSC 列表（GWTC-4.0、GWTC-1/2.1/3）重建；与 Zenodo 上的 O4a 列表比较 | GWOSC JSON（约 0.25 MB，其余各 < 1 MB），O4a 列表 10 kB | O4a 事件与 P26 列表一致、计数为 84 与 69，只允许预先声明且方向已知的差别 → "复现"；若不能确认 GWOSC `far` 的含义则降为"描述"（`far` 的定义与允许的不一致事件数在 R1 运行前的预注册中写定） | 按预注册规则**未复现**：O4a 84/84 完全一致；O1–O3 为 59，目标 69 ± 2（十个 O1/O2 双黑洞的 GWTC-2.1 行没有 FAR）；事后为 69 与 153 |
+| 35 M☉ 上下的样本计数（R2） | 可探索（描述） | 中位数 m1 的计数，与单一幂律（λ1 = 1.7）乘以带转折的玩具 VT(m1) 比较，扫描转折质量 | 同上 | 无——描述（中位数会抹平折断；一维 VT 是玩具） | 139 个中 79 个在 35 M☉ 以上（0.57）；除非 VT 在约 30 M☉ 转平，否则少于预测（比值 0.69–0.80；M_t = 30 时为 1.15） |
+| 变陡对选择函数曲率的敏感度（R3） | 可探索（不能判决） | 折断幂律（加或不加峰）的点估计玩具拟合，扫描 VT 的转折 | 同上 | 无——仅供探索 | M_t ≥ 50 时 A 在 42–45 M☉ 变陡（M_t = 30 时反向）；加峰使 2Δln L 增加 15–25，μ = 33–40 M☉，但拟合落在边界；放宽边界后（事后），M_t ≤ 80 时峰在 34–39 M☉，M_t = ∞ 时变成宽包 |
+| GW231123（R4） | 描述 | 它的总质量在重建样本中的位置（与 P26 的量不同） | 同上 | 无 | 236 M☉，143 个（以及 153 个）中最重 |
 | `gap_sel`、`gap_syst`、群体推断 | 不在范围内 | 需要后验样本与注入（数百 MB 到数十 GB；AGENTS.md 1.5） | – | – | – |
+
+**结果（运行后补写，2026-11-15；上表保留预注册时的设计）。** 细节见
+[研究 README 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/007-m10-gwtc4-bbh-mass-35msun/README.md#5-results)；网页：[`web/index.html`](https://github.com/sudoghut/astrolab/blob/main/studies/007-m10-gwtc4-bbh-mass-35msun/web/index.html)。
+
+- **按冻结的规则，R1 为"未复现"，原因很平常。** O4a 一半与 P26 完全一致：84 个事件，不缺不多。O1–O3 一半得到 59 个而不是 69 个。
+  - 按我们预注册的优先级（较新的星表优先），十个 O1/O2 双黑洞取自重新分析过质量的 GWTC-2.1。
+  - GWOSC 在这些重新分析的行上没有存误报率（FAR, false alarm rate），而同一批事件在 GWTC-1 中的行有。
+  - 规则"没有 FAR → 排除"于是去掉了这十个。为它们改从 GWTC-1 取 FAR（标明为事后（post hoc）探索），得到正好 69 个，84 + 69 = 153，正是 P26 的样本。
+  - 样本可以重建，只是公开列表需要一条预注册没有预见到的 FAR 回退规则。独立审稿在看不到我们诊断的情况下找到了同一原因。
+- **R2（计数）。** 139 个事件中有 79 个在 35 M☉ 以上。
+  - 与单一幂律乘以玩具选择函数相比，除非选择效应在约 30 M☉ 就不再上升，否则高质量端偏少。
+  - 低质量格包含 10 M☉ 峰，而且有十个中位数扎堆在 35 M☉ 稍上方，所以这只是描述。
+  - 30–40 M☉ 处单个事件的质量不确定度约为质量的 45%（90% 宽度中位数）。
+- **R3（玩具拟合）。** 答案取决于玩具选择函数，正如第 2.3 节所预料。
+  - 选择效应持续上升时，普通折断幂律在 42–45 M☉ 变陡。
+  - 加一个高斯包使拟合改善 2Δln L = 15–25（事后 153 个事件时为 27）。
+  - 用预注册的边界时，加包的拟合落在边界上。放宽边界后（事后），玩具选择函数在 80 M☉ 以内转平时包位于 34–39 M☉；不转平时变成约 25 M☉ 处的宽肩（σ ≈ 15 M☉）。
+  - 所以"35 M☉"是峰还是弯折，没有真实的、基于注入（injection）的选择函数就无法确定，而那需要本项目不下载的数据。
+- **R4。** GW231123（总质量 236 M☉）在样本中遥遥领先地最重，所以它的百分位（100）几乎没有信息量。
+- **附带发现。** 第一次运行暴露了核心库的缓存缺陷：`.json` 下载会覆盖自己的元数据文件。已在同一个拉取请求（PR, pull request）中修复并加回归测试。
 
 ### 术语表
 
@@ -409,6 +464,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 按时间倒序。
 
+- 2026-11-15：结果：R1 按预注册规则未复现（O4a 84/84 完全一致；O1–O3 为 59，因为十个 O1/O2 双黑洞的 GWTC-2.1 行在 GWOSC 上没有 FAR；事后为 153）；R2–R4 结果；审稿意见；R3 放宽边界的探索。
 - 2026-11-15：闸门 2 审查：途径的桥接规则既不是标准知识，也没有在 P26 中明说，现在是缺口（`gap_route1`、`gap_route2`）；斜率前提按报告的 97.7% 编码。
 - 2026-11-15：闸门 1 审查：两条途径（强模型化与弱模型化）与两个共同的缺口（`gap_sel`、`gap_syst`）；删除过密定理（它由我们自己的规则推出）；引文改换出处。
 - 2026-11-15：第一版：第一至三部分（预注册的来源；计划 `design/016-plan_*`）。

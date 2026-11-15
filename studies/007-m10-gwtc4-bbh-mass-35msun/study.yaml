@@ -2,11 +2,11 @@ title: "M10 GWTC-4.0 BBH mass spectrum: the 35 Msun feature and the event sample
 title_zh: "M10 GWTC-4.0 双黑洞质量谱：35 M☉ 特征与事件样本"
 id: "007-m10-gwtc4-bbh-mass-35msun"
 level: X              # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
-status: planned               # planned | active | reproduced | concluded | paused | abandoned
+status: concluded             # planned | active | reproduced | concluded | paused | abandoned
 created: 2026-11-15
 question: "Does the 153-event BBH sample of the GWTC-4.0 population paper follow from the public event lists, and does its claim of a feature at 35 Msun establish a steepening only, or an over-density?"
 question_zh: "GWTC-4.0 群体论文的 153 个双黑洞样本能否由公开的事件列表重建？它关于 35 M☉ 特征的结论能推出的是变陡，还是过密？"
-claims: []                    # claim ids in atlas/claims/ this study reproduces or tests
+claims: ["gwtc4-bbh-mass-spectrum"]                  # claim ids in atlas/claims/ this study reproduces or tests
 milestone: M10                # roadmap milestone id, e.g. M1
 papers: ["2508.18083", "2508.18082", "2507.08219"]            # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
 wiki: Study-007-gwtc4-bbh-mass-35msun            # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3

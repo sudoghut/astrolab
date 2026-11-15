@@ -1,0 +1,420 @@
+{
+ "tar_members": [
+  "events_list_bbh_only.txt",
+  "events_list_full_spectrum.txt"
+ ],
+ "tar_names": [
+  "GW230601_224134",
+  "GW230605_065343",
+  "GW230606_004305",
+  "GW230608_205047",
+  "GW230609_064958",
+  "GW230624_113103",
+  "GW230627_015337",
+  "GW230628_231200",
+  "GW230630_125806",
+  "GW230630_234532",
+  "GW230702_185453",
+  "GW230704_021211",
+  "GW230704_212616",
+  "GW230706_104333",
+  "GW230707_124047",
+  "GW230708_053705",
+  "GW230708_230935",
+  "GW230709_122727",
+  "GW230712_090405",
+  "GW230723_101834",
+  "GW230726_002940",
+  "GW230729_082317",
+  "GW230731_215307",
+  "GW230803_033412",
+  "GW230805_034249",
+  "GW230806_204041",
+  "GW230811_032116",
+  "GW230814_061920",
+  "GW230814_230901",
+  "GW230819_171910",
+  "GW230820_212515",
+  "GW230824_033047",
+  "GW230825_041334",
+  "GW230831_015414",
+  "GW230904_051013",
+  "GW230911_195324",
+  "GW230914_111401",
+  "GW230919_215712",
+  "GW230920_071124",
+  "GW230922_020344",
+  "GW230922_040658",
+  "GW230924_124453",
+  "GW230927_043729",
+  "GW230927_153832",
+  "GW230928_215827",
+  "GW230930_110730",
+  "GW231001_140220",
+  "GW231004_232346",
+  "GW231005_021030",
+  "GW231005_091549",
+  "GW231008_142521",
+  "GW231014_040532",
+  "GW231018_233037",
+  "GW231020_142947",
+  "GW231028_153006",
+  "GW231029_111508",
+  "GW231102_071736",
+  "GW231104_133418",
+  "GW231108_125142",
+  "GW231110_040320",
+  "GW231113_122623",
+  "GW231113_200417",
+  "GW231114_043211",
+  "GW231118_005626",
+  "GW231118_071402",
+  "GW231118_090602",
+  "GW231119_075248",
+  "GW231123_135430",
+  "GW231127_165300",
+  "GW231129_081745",
+  "GW231206_233134",
+  "GW231206_233901",
+  "GW231213_111417",
+  "GW231221_135041",
+  "GW231223_032836",
+  "GW231223_075055",
+  "GW231223_202619",
+  "GW231224_024321",
+  "GW231226_101520",
+  "GW231230_170116",
+  "GW231231_154016",
+  "GW240104_164932",
+  "GW240107_013215",
+  "GW240109_050431"
+ ],
+ "target_size": 84,
+ "target_ambiguous": false,
+ "n_o4a": 84,
+ "missing": [],
+ "missing_reasons": {},
+ "extra": [],
+ "o4a_part": "reproduced",
+ "n_o3": 59,
+ "n_o3_type_i_candidates": 5,
+ "o3_part": "not reproduced",
+ "named_checks": {
+  "GW170817": {
+   "status": "GW170817: excluded: mass bound 1.18 <= 3.0",
+   "pass": true
+  },
+  "GW190425": {
+   "status": "GW190425: excluded: mass bound 1.10 <= 3.0",
+   "pass": true
+  },
+  "GW190814": {
+   "status": "GW190814: excluded: mass bound 2.50 <= 3.0",
+   "pass": true
+  },
+  "GW190917_114630": {
+   "status": "GW190917_114630: excluded: mass bound 1.70 <= 3.0",
+   "pass": true
+  },
+  "GW190426_152155": {
+   "status": "GW190426_152155: excluded (no PE)",
+   "pass": true
+  },
+  "GW200105_162426": {
+   "status": "GW200105_162426: excluded: mass bound 1.67 <= 3.0",
+   "pass": true
+  },
+  "GW200115_042309": {
+   "status": "GW200115_042309: excluded: mass bound 1.16 <= 3.0",
+   "pass": true
+  }
+ },
+ "gwtc1": {
+  "GW150914": {
+   "in_lists": true,
+   "in_sample": false
+  },
+  "GW151012": {
+   "in_lists": true,
+   "in_sample": false
+  },
+  "GW151226": {
+   "in_lists": true,
+   "in_sample": false
+  },
+  "GW170104": {
+   "in_lists": true,
+   "in_sample": false
+  },
+  "GW170608": {
+   "in_lists": true,
+   "in_sample": false
+  },
+  "GW170729": {
+   "in_lists": true,
+   "in_sample": false
+  },
+  "GW170809": {
+   "in_lists": true,
+   "in_sample": false
+  },
+  "GW170814": {
+   "in_lists": true,
+   "in_sample": false
+  },
+  "GW170818": {
+   "in_lists": true,
+   "in_sample": false
+  },
+  "GW170823": {
+   "in_lists": true,
+   "in_sample": false
+  }
+ },
+ "gwtc1_missing": [],
+ "excluded_o4a": {
+  "GW240105_151143": "no PE",
+  "GW231231_120147": "no PE",
+  "GW231220_173406": "no PE",
+  "GW231206_010629": "no PE",
+  "GW231204_090648": "no PE",
+  "GW231126_010928": "no PE",
+  "GW231120_022103": "no PE",
+  "GW231113_150041": "no PE",
+  "GW231102_232433": "no PE",
+  "GW231102_052214": "no PE",
+  "GW231026_130704": "no PE",
+  "GW231013_135504": "no PE",
+  "GW231005_144455": "no PE",
+  "GW231002_143916": "no PE",
+  "GW230925_143957": "no PE",
+  "GW230920_064709": "no PE",
+  "GW230904_152545": "no PE",
+  "GW230902_224555": "no PE",
+  "GW230902_172430": "no PE",
+  "GW230902_122814": "no PE",
+  "GW230831_134621": "no PE",
+  "GW230830_064744": "no PE",
+  "GW230824_135331": "no PE",
+  "GW230823_142524": "no PE",
+  "GW230822_230337": "no PE",
+  "GW230817_212349": "no PE",
+  "GW230807_205045": "no PE",
+  "GW230728_083628": "no PE",
+  "GW230723_084820": "no PE",
+  "GW230721_222634": "no PE",
+  "GW230717_102139": "no PE",
+  "GW230709_063445": "no PE",
+  "GW230708_071859": "no PE",
+  "GW230702_162025": "no PE",
+  "GW230630_070659": "excluded (P26)",
+  "GW230625_211655": "no PE",
+  "GW230624_214944": "no PE",
+  "GW230618_102550": "no PE",
+  "GW230615_160825": "no PE",
+  "GW230609_010824": "no PE",
+  "GW230606_024545": "no PE",
+  "GW230603_174756": "no PE",
+  "GW230531_141100": "no PE",
+  "GW230529_181500": "mass bound 1.20 <= 3.0"
+ },
+ "excluded_o3": {
+  "GW200322_091133": "far 140 >= 1.0",
+  "GW200308_173609": "far 2.4 >= 1.0",
+  "GW200306_093714": "far 24 >= 1.0",
+  "GW200220_124850": "far 30 >= 1.0",
+  "GW200220_061928": "far 6.8 >= 1.0",
+  "GW200210_092254": "far 1.2 >= 1.0",
+  "GW200208_222617": "far 4.8 >= 1.0",
+  "GW200115_042309": "mass bound 1.16 <= 3.0",
+  "GW191219_163120": "far 4 >= 1.0",
+  "GW191204_110529": "far 3.3 >= 1.0",
+  "GW191126_115259": "far 3.2 >= 1.0",
+  "GW191113_071753": "far 26 >= 1.0",
+  "GW200311_103121": "no PE",
+  "200219_201407": "no PE",
+  "200214_224526": "no PE",
+  "GW200201_203549": "no PE",
+  "200121_031748": "no PE",
+  "GW200105_162426": "mass bound 1.67 <= 3.0",
+  "GW191118_212859": "no PE",
+  "GW190926_050336": "far 1.1 >= 1.0",
+  "GW190917_114630": "mass bound 1.70 <= 3.0",
+  "GW190916_200658": "far 4.7 >= 1.0",
+  "GW190814": "mass bound 2.50 <= 3.0",
+  "GW190514_065416": "far 2.8 >= 1.0",
+  "GW190426_190642": "far 4.1 >= 1.0",
+  "GW190425": "mass bound 1.10 <= 3.0",
+  "GW190403_051519": "far 7.7 >= 1.0",
+  "GW170823": "no FAR",
+  "GW170818": "no FAR",
+  "GW170814": "no FAR",
+  "GW170809": "no FAR",
+  "GW170729": "no FAR",
+  "GW170608": "no FAR",
+  "GW170104": "no FAR",
+  "GW151226": "no FAR",
+  "GW151012": "no FAR",
+  "GW150914": "no FAR",
+  "GW190531_023648": "no PE",
+  "GW190426_152155": "no PE",
+  "GW170817": "mass bound 1.18 <= 3.0"
+ },
+ "precedence_overlaps": [
+  {
+   "name": "GW170823",
+   "kept": "GWTC-2.1-confident",
+   "dropped": "GWTC-1-confident",
+   "kept_m1_m2_far": [
+    38.3,
+    29.0,
+    null
+   ],
+   "dropped_m1_m2_far": [
+    39.5,
+    29.0,
+    1e-07
+   ]
+  },
+  {
+   "name": "GW170818",
+   "kept": "GWTC-2.1-confident",
+   "dropped": "GWTC-1-confident",
+   "kept_m1_m2_far": [
+    34.8,
+    27.6,
+    null
+   ],
+   "dropped_m1_m2_far": [
+    35.4,
+    26.7,
+    4.2000000000000004e-05
+   ]
+  },
+  {
+   "name": "GW170814",
+   "kept": "GWTC-2.1-confident",
+   "dropped": "GWTC-1-confident",
+   "kept_m1_m2_far": [
+    30.9,
+    24.9,
+    null
+   ],
+   "dropped_m1_m2_far": [
+    30.6,
+    25.2,
+    1e-07
+   ]
+  },
+  {
+   "name": "GW170809",
+   "kept": "GWTC-2.1-confident",
+   "dropped": "GWTC-1-confident",
+   "kept_m1_m2_far": [
+    34.1,
+    24.2,
+    null
+   ],
+   "dropped_m1_m2_far": [
+    35.0,
+    23.8,
+    1e-07
+   ]
+  },
+  {
+   "name": "GW170729",
+   "kept": "GWTC-2.1-confident",
+   "dropped": "GWTC-1-confident",
+   "kept_m1_m2_far": [
+    54.7,
+    30.2,
+    null
+   ],
+   "dropped_m1_m2_far": [
+    50.2,
+    34.0,
+    0.02
+   ]
+  },
+  {
+   "name": "GW170608",
+   "kept": "GWTC-2.1-confident",
+   "dropped": "GWTC-1-confident",
+   "kept_m1_m2_far": [
+    10.6,
+    7.8,
+    null
+   ],
+   "dropped_m1_m2_far": [
+    11.0,
+    7.6,
+    1e-07
+   ]
+  },
+  {
+   "name": "GW170104",
+   "kept": "GWTC-2.1-confident",
+   "dropped": "GWTC-1-confident",
+   "kept_m1_m2_far": [
+    28.7,
+    20.8,
+    null
+   ],
+   "dropped_m1_m2_far": [
+    30.8,
+    20.0,
+    1e-07
+   ]
+  },
+  {
+   "name": "GW151226",
+   "kept": "GWTC-2.1-confident",
+   "dropped": "GWTC-1-confident",
+   "kept_m1_m2_far": [
+    14.2,
+    7.5,
+    null
+   ],
+   "dropped_m1_m2_far": [
+    13.7,
+    7.7,
+    1e-07
+   ]
+  },
+  {
+   "name": "GW151012",
+   "kept": "GWTC-2.1-confident",
+   "dropped": "GWTC-1-confident",
+   "kept_m1_m2_far": [
+    24.8,
+    13.6,
+    null
+   ],
+   "dropped_m1_m2_far": [
+    23.2,
+    13.6,
+    0.00792
+   ]
+  },
+  {
+   "name": "GW150914",
+   "kept": "GWTC-2.1-confident",
+   "dropped": "GWTC-1-confident",
+   "kept_m1_m2_far": [
+    34.6,
+    30.0,
+    null
+   ],
+   "dropped_m1_m2_far": [
+    35.6,
+    30.6,
+    1e-07
+   ]
+  }
+ ],
+ "verdict": "not reproduced",
+ "date_only_names_o4a": [],
+ "invalid_tar_tokens": [],
+ "named_check_rule": "an event absent from every list fails its check (strict reading)",
+ "far_note": "GWOSC far is documented as the lowest FAR over search pipelines"
+}

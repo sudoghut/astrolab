@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-11-15T07:39:31+00:00",
+  "inputs": [
+    {
+      "source": "http",
+      "request": "https://gwosc.org/eventapi/json/GWTC-4.0/",
+      "retrieved_at": "2026-11-15T07:39:18+00:00",
+      "sha256": "8d16fe7c53e6f23eda875f9f99c736579c8d4edb36932f9d5736414b777cb913",
+      "bytes": 243131,
+      "cache_key": "4b4400742ff0f91313f80976",
+      "label": "GWOSC GWTC-4.0"
+    },
+    {
+      "source": "http",
+      "request": "https://gwosc.org/eventapi/json/GWTC-1-confident/",
+      "retrieved_at": "2026-11-15T07:39:19+00:00",
+      "sha256": "23492954554aac562906cd0d84356be599760e400ac65f50d3d814ec7a856a3d",
+      "bytes": 20950,
+      "cache_key": "541f0818b75c7895b9afb344",
+      "label": "GWOSC GWTC-1-confident"
+    },
+    {
+      "source": "http",
+      "request": "https://gwosc.org/eventapi/json/GWTC-2.1-confident/",
+      "retrieved_at": "2026-11-15T07:39:20+00:00",
+      "sha256": "93f8e0fd6aba115f81dc953d30adc66d048aba23682271ed9218283233d5f659",
+      "bytes": 102977,
+      "cache_key": "d4b6d287cbcd61bb5a219dab",
+      "label": "GWOSC GWTC-2.1-confident"
+    },
+    {
+      "source": "http",
+      "request": "https://gwosc.org/eventapi/json/GWTC-3-confident/",
+      "retrieved_at": "2026-11-15T07:39:20+00:00",
+      "sha256": "e892790dd548e4b41248c771bbe658f9edc8b41cedbfbe0c0ebea7a55f3ccdb7",
+      "bytes": 66630,
+      "cache_key": "824baaacb263c547ca46f1a7",
+      "label": "GWOSC GWTC-3-confident"
+    },
+    {
+      "source": "http",
+      "request": "https://gwosc.org/eventapi/json/GWTC-2.1-marginal/",
+      "retrieved_at": "2026-11-15T07:39:21+00:00",
+      "sha256": "b6c79d0938cbf45211a4c31dc1dd09554d09de5b99a91a4e1c7f17a471972d61",
+      "bytes": 3802,
+      "cache_key": "16a0b597eba0f05aef6cf53c",
+      "label": "GWOSC GWTC-2.1-marginal"
+    },
+    {
+      "source": "http",
+      "request": "https://gwosc.org/eventapi/json/GWTC-3-marginal/",
+      "retrieved_at": "2026-11-15T07:39:21+00:00",
+      "sha256": "8da8e0978812db9ca2dddb23284d2cfc90d7c72d989c1800b2e3b41d62a8b53c",
+      "bytes": 13196,
+      "cache_key": "f288b5555429929b250610c0",
+      "label": "GWOSC GWTC-3-marginal"
+    },
+    {
+      "source": "http",
+      "request": "https://zenodo.org/records/16911563/files/o4a_event_list.tar?download=1",
+      "retrieved_at": "2026-11-15T07:37:59+00:00",
+      "sha256": "702b60985d5b8ff7fefe86d135762aa6fabb60828714b51a8707a48fceec3863",
+      "bytes": 10240,
+      "cache_key": "41814eaa16dd6e11ded635ba",
+      "label": "P26 o4a_event_list.tar"
+    }
+  ]
+}
