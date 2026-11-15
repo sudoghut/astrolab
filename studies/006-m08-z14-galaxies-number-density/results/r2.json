@@ -81,6 +81,7 @@
   6918309709187.7295
  ],
  "bin_halos_inside_calibrated_range": false,
+ "bin_abundance_fraction_inside_calibrated_range": 0.9999999999998604,
  "robustness": "calibration-dependent",
  "variant_counts": {
   "evaluable": 72,

@@ -57,6 +57,8 @@ structure Vocab where
   PoissonOK : Prop
   /-- The declared area is the full effective search for this bin (no further area of comparable depth and follow-up without a detection). -/
   AreaFull : Prop
+  /-- The redshift and magnitude bin was fixed independently of the two detections (no look-elsewhere inflation of the significance). -/
+  BinPrior : Prop
   /-- N26's constructed pre-JWST LF is disfavored at high confidence by the counts. -/
   ModelDisfavored : Prop
 
@@ -74,6 +76,8 @@ inductive Field where
   | gap_poisson
   /-- GAP [reconstructed] the declared area (PRIMER-COSMOS, PRIMER-UDS, JOF: the fields where the two sources were found) is the full effective search for this bin; the tail exceeds 2e-4 if the effective area is about 1.8 times larger (ratio about 100) and 1.35e-3 (one-sided 3 sigma) at about 4.8 times (ratio about 38) -/
   | gap_area
+  /-- GAP [reconstructed] the bin (z = 14-15, -21 < M_UV < -20) was chosen independently of the two detections; it is drawn around them, so the tail probability of a bin chosen after the fact overstates the significance (look-elsewhere effect); added after the independent referee, 2026-11-15 -/
+  | gap_bin
   deriving DecidableEq, Repr
 
 def prov : Field → Prov
@@ -83,15 +87,18 @@ def prov : Field → Prov
   | .gap_rule => .reconstructed
   | .gap_poisson => .reconstructed
   | .gap_area => .reconstructed
+  | .gap_bin => .reconstructed
 
 def prem : Field → Vocab → Prop
   | .obs_count, v => v.n_obs ≥ 2
   | .stat_ratio, v => v.ratio ≥ 100
   | .mod_poisson, v => v.n_obs ≥ 2 → v.ratio ≥ 100 → v.tail_ppm ≤ 200
   | .gap_rule, v =>
-      v.n_obs ≥ 2 → v.ratio ≥ 100 → v.tail_ppm ≤ 200 → v.PoissonOK → v.AreaFull → v.ModelDisfavored
+      v.n_obs ≥ 2 → v.ratio ≥ 100 → v.tail_ppm ≤ 200 → v.PoissonOK → v.AreaFull → v.BinPrior →
+        v.ModelDisfavored
   | .gap_poisson, v => v.PoissonOK
   | .gap_area, v => v.AreaFull
+  | .gap_bin, v => v.BinPrior
 
 /-- [stated 2505.11263: "and is disfavored at high confidence"] Sec. 4.1; the subject of the sentence is Such an LF, the pre-JWST LF that N26 constructs -/
 def Conclusion (v : Vocab) : Prop := v.ModelDisfavored
@@ -107,47 +114,51 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have h1 : v.tail_ppm ≤ 200 := p .mod_poisson (p .obs_count) (p .stat_ratio)  -- Poisson tail
-  exact p .gap_rule (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)  -- Sec. 4.1; GAP
+  exact p .gap_rule (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)
+    (p .gap_bin)  -- Sec. 4.1; GAPs
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
-  fun h => h ⟨0, 0, 0, False, False, False⟩
+  fun h => h ⟨0, 0, 0, False, False, False, False⟩
 
 theorem consistent : ∃ v, Premises v :=
-  ⟨⟨2, 182, 60, True, True, True⟩, by intro f; cases f <;> simp [prem]⟩
+  ⟨⟨2, 182, 60, True, True, True, True⟩, by intro f; cases f <;> simp [prem]⟩
 
 theorem alone_insufficient : ∀ g, ¬ ∀ v, prem g v → Conclusion v := by
   intro g h
   cases g
-  case gap_rule => exact h ⟨0, 0, 1000, False, False, False⟩ (by simp [prem])
-  all_goals exact h ⟨2, 182, 60, True, True, False⟩ (by simp [prem])
+  case gap_rule => exact h ⟨0, 0, 1000, False, False, False, False⟩ (by simp [prem])
+  all_goals exact h ⟨2, 182, 60, True, True, True, False⟩ (by simp [prem])
 
 theorem obs_count_needed : ¬ ∀ v, Without .obs_count v → Conclusion v := fun h =>
-  h ⟨0, 182, 60, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨0, 182, 60, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_ratio_needed : ¬ ∀ v, Without .stat_ratio v → Conclusion v := fun h =>
-  h ⟨2, 0, 60, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨2, 0, 60, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem mod_poisson_needed : ¬ ∀ v, Without .mod_poisson v → Conclusion v := fun h =>
-  h ⟨2, 182, 1000, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨2, 182, 1000, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem gap_rule_needed : ¬ ∀ v, Without .gap_rule v → Conclusion v := fun h =>
-  h ⟨2, 182, 60, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨2, 182, 60, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem gap_poisson_needed : ¬ ∀ v, Without .gap_poisson v → Conclusion v := fun h =>
-  h ⟨2, 182, 60, False, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨2, 182, 60, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem gap_area_needed : ¬ ∀ v, Without .gap_area v → Conclusion v := fun h =>
-  h ⟨2, 182, 60, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨2, 182, 60, True, False, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+
+theorem gap_bin_needed : ¬ ∀ v, Without .gap_bin v → Conclusion v := fun h =>
+  h ⟨2, 182, 60, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 /-- What the paper writes is not enough: the Poisson tail is standard background (implied), and
 the decision rule, the Poisson and the area assumptions are not stated. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
-  h ⟨2, 182, 1000, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨2, 182, 1000, False, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
-/-- Even with standard knowledge the chain has three gaps: the decision rule from tail probability
-to high confidence, Poisson counts (no cosmic-variance excess) and the declared area being the full
-effective search. -/
+/-- Even with standard knowledge the chain has four gaps: the decision rule from tail probability
+to high confidence, Poisson counts (no cosmic-variance excess), the declared area being the full
+effective search and a bin fixed independently of the detections. -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
-  h ⟨2, 182, 60, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨2, 182, 60, False, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
 end Argument

@@ -186,6 +186,10 @@ def run_model(S, P, combo, phi_obs, fixed=None):
         lo, hi = shape_cal["m_cal_lo"], shape_cal["m_cal_hi"]
         out["bin_halo_mass_range_z14_5"] = [float(mb.min()), float(mb.max())]
         out["bin_halos_inside_calibrated_range"] = bool(lo is not None and mb.min() >= lo and mb.max() <= hi)
+        # abundance-weighted: fraction of the bin's halos (by number) inside the calibrated range
+        w = hmf_z[i_mid][in_bin]
+        inside = (mb >= (lo or np.inf)) & (mb <= hi)
+        out["bin_abundance_fraction_inside_calibrated_range"] = float(w[inside].sum() / w.sum())
     # R3: required sigma
     sg = np.arange(P["sigma_range"][0], P["sigma_range"][1] + 1e-9, P["sigma_step"])
     phis = np.array([phi_bin(s) for s in sg])
@@ -262,7 +266,9 @@ def main(ctx):
                    "median_shape_zcal": fres["median_shape_zcal"],
                    "median_shape_z14_5": fres["median_shape_z14_5"],
                    "bin_halo_mass_range_z14_5": fres.get("bin_halo_mass_range_z14_5"),
-                   "bin_halos_inside_calibrated_range": fres.get("bin_halos_inside_calibrated_range")})
+                   "bin_halos_inside_calibrated_range": fres.get("bin_halos_inside_calibrated_range"),
+                   "bin_abundance_fraction_inside_calibrated_range":
+                       fres.get("bin_abundance_fraction_inside_calibrated_range")})
         ctx.log(f"R2 fiducial: phi_ours = {fres['phi_ours']:.3e}, ratio to N26 baseline = {ratio:.2f} -> {r2['verdict']}")
     else:
         r2["verdict"] = "not evaluable"
