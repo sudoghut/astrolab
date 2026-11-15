@@ -27,7 +27,7 @@
 
   <h2><span class="en">Verdicts</span><span class="zh">判定</span></h2>
   <div class="table-wrap" id="criteria"><span class="en">loading…</span><span class="zh">加载中……</span></div>
-  <p class="note"><span class="en">Errors are Poisson only (two sources); cosmic variance and the effective search area are open gaps of the argument (Lean <code>gap_poisson</code>, <code>gap_area</code>, <code>gap_bin</code>). <b>After the independent referee:</b> moving one z ≈ 8 LF parameter by its 1σ error, or removing 0.3 mag of z ≈ 8 dust, flips both R2 and R3 (post-hoc explorations; README section 6). The robust statement: our constant-SFE model predicts 2–37× N26's baseline, and needs σ_UV ≈ 1–2 mag.</span><span class="zh">误差只含泊松部分（两个源）；宇宙方差、有效搜索面积与围绕探测选取的箱是论证中未解决的缺口（Lean 的 <code>gap_poisson</code>、<code>gap_area</code>、<code>gap_bin</code>）。<b>独立审稿之后：</b>把 z ≈ 8 光度函数的任一参数按 1σ 移动，或去掉 0.3 mag 的 z ≈ 8 尘埃消光，R2 与 R3 都会翻转（事后探索；README 第 6 节）。稳健的说法：我们的恒定 SFE 模型预言为 N26 基准的 2–37 倍，需要 σ_UV ≈ 1–2 mag。</span></p>
+  <p class="note"><span class="en">Errors are Poisson only (two sources); cosmic variance and the effective search area are open gaps of the argument (Lean <code>gap_poisson</code>, <code>gap_area</code>, <code>gap_bin</code>). <b>After the independent referee:</b> a ±1σ shift of φ*, M* or α flips R3; φ* −1σ also flips R2 (ratio 1.9, "same order"); removing z ≈ 8 dust raises the ratio (R2 stays "higher") and flips R3 (post-hoc explorations; README section 6). The robust statement: our constant-SFE model predicts 2–37× N26's baseline, and needs σ_UV ≈ 1–2 mag.</span><span class="zh">误差只含泊松部分（两个源）；宇宙方差、有效搜索面积与围绕探测选取的箱是论证中未解决的缺口（Lean 的 <code>gap_poisson</code>、<code>gap_area</code>、<code>gap_bin</code>）。<b>独立审稿之后：</b>φ*、M*、α 任一参数按 1σ 移动都会使 R3 翻转；φ* 减 1σ 还会使 R2 翻转（比值 1.9，"同一量级"）；去掉 z ≈ 8 的尘埃消光会提高比值（R2 仍为"更高"）并使 R3 翻转（事后探索；README 第 6 节）。稳健的说法：我们的恒定 SFE 模型预言为 N26 基准的 2–37 倍，需要 σ_UV ≈ 1–2 mag。</span></p>
 
   <div class="grid2">
     <div>
@@ -59,7 +59,7 @@ const load = n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new
 const ZH = {
   'reproduced': '复现', 'not reproduced': '未复现', 'higher': '更高', 'lower': '更低',
   "same order as N26's baseline": '与 N26 基准同一量级', 'consistent with N26': '与 N26 一致', 'different': '不同',
-  'robust': '稳健', 'calibration-dependent': '依赖校准', 'not assessable': '无法评估', 'not evaluable': '不可评估',
+  'robust': '稳健', 'holds': '成立', 'fails': '不成立', 'calibration-dependent': '依赖校准', 'not assessable': '无法评估', 'not evaluable': '不可评估',
 };
 const tr = s => i18n.L(esc(s), ZH[s] || esc(s));
 
@@ -67,13 +67,13 @@ let D = null;
 function render() {
   if (!D) return;
   const {r1, r2, r3, variants, curves} = D;
-  const cls = v => ['reproduced', 'consistent with N26', "same order as N26's baseline", 'robust'].includes(v) ? 'ok'
+  const cls = v => ['reproduced', 'holds', 'consistent with N26', "same order as N26's baseline", 'robust'].includes(v) ? 'ok'
     : (['calibration-dependent', 'not assessable', 'not evaluable'].includes(v) ? 'warn' : 'bad');
   const roots = r3.sigma_roots || {};
   const rows = [
     [i18n.L('R1 number density', 'R1 数密度'), `log φ = ${fmt(r1.log_phi, 4)} (+${fmt(r1.err_hi, 2)}/−${fmt(r1.err_lo, 2)})`, '−5.36 (+0.37/−0.45)', r1.verdict_density],
     [i18n.L('R1 volume', 'R1 体积'), `${Math.round(r1.volume_mpc3).toLocaleString()} Mpc³`, '462,648 Mpc³', r1.verdict_volume],
-    [i18n.L('R1 Poisson tail (Lean bound)', 'R1 泊松尾概率（Lean 的界）'), `${fmt(r1.p_tail_n26_ppm)} / ${fmt(r1.p_tail_ratio100_ppm)} ppm`, '≤ 200 ppm', r1.mod_poisson_bound_holds ? 'reproduced' : 'not reproduced'],
+    [i18n.L('R1 Poisson tail (Lean bound)', 'R1 泊松尾概率（Lean 的界）'), `${fmt(r1.p_tail_n26_ppm)} / ${fmt(r1.p_tail_ratio100_ppm)} ppm`, '≤ 200 ppm', r1.mod_poisson_bound_holds ? 'holds' : 'fails'],
     [i18n.L('R2 constant-SFE vs N26 baseline', 'R2 恒定 SFE 对 N26 基准'), `${fmt(r2.ratio_to_n26)}× (${i18n.L('variants', '变体')} ${fmt(r2.envelope_phi_ours[0] / r2.phi_n26_baseline, 2)}–${fmt(r2.envelope_phi_ours[1] / r2.phi_n26_baseline, 2)}×)`, i18n.L('within 3×', '3 倍以内'), r2.verdict],
     [i18n.L('R2 robustness', 'R2 稳健性'), JSON.stringify(r2.variant_counts.by_verdict).replace(/[{}"]/g, ''), '72', r2.robustness],
     [i18n.L('R3 σ_UV needed', 'R3 所需 σ_UV'), `${fmt((roots.central || {}).value)} mag [${fmt((roots.lower || {}).value)}, ${fmt((roots.upper || {}).value)}]`, '1.5–2 mag', r3.verdict],
