@@ -225,16 +225,16 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 
 | 测量 | S8 | 核实 |
 |---|---|---|
-| KiDS-Legacy (Wright et al. 2025, A&A 703, A158) | 0.815 (+0.016/−0.021)，与 Planck 相差 0.73σ | [S] |
+| KiDS-Legacy (Wright et al. 2025, A&A 703, A158, arXiv:2503.19441) | 0.815 (+0.016/−0.021)，S8 与 Planck 相差 0.76σ（赫林格距离；摘要中的 0.73σ 是 Σ8 = σ8(Ωm/0.3)^0.58 的值） | [V] |
 | DES Y6 3x2pt (arXiv:2601.14559) | 0.789 ± 0.012，在 S8 上相差 2.6σ | [V] |
-| CMB（Planck+ACT+SPT） | 0.836 (+0.012/−0.013) | [V] |
-| ACT DR6 透镜（ACT 与 Planck 组合） | 0.831 ± 0.023 | [S] |
-| eROSITA 星系团计数（cluster counts，Ghirardini et al. 2024） | 0.86 ± 0.01 | [S] |
+| CMB（Planck+ACT+SPT，TT/TE/EE，不含透镜；DES Y6 表 4 自己运行） | 0.836 (+0.012/−0.013) | [V] |
+| ACT DR6 透镜（ACT + Planck 透镜 + BAO；Madhavacheril et al. 2024, arXiv:2304.05203） | 0.831 ± 0.023 | [V] |
+| eROSITA 星系团计数（cluster counts，Ghirardini et al. 2024, arXiv:2402.08458；质量标定用 DES/HSC/KiDS 弱透镜） | 0.86 ± 0.01 | [V] |
 
 **修正：** 草案中的 ACT DR6 透镜值 0.840 ± 0.028 无法找到出处，已改为上表数值。
 
 **方法**
-- 在统一的 S8 定义下，比较各探针公开的后验分布与链文件（chains）。
+- 在统一的 S8 定义下，比较各探针公开的后验分布与链文件（chains）。DES Y6 的基准 3x2pt 链为 144 MB，超过单次下载上限，改用其发布的 CMB 链（11.8 MB）、宇宙剪切链（10 MB）与汇总值（计划 017）。
 
 ### M6 · 银河系外区旋转曲线（L3，contested）
 
