@@ -22,6 +22,7 @@ walkthrough of the paper, its argument checked step by step in Lean, and what as
 - [Black-hole masses in GWTC-4.0: a peak at 35 M☉, or just a bend?](Study-007-gwtc4-bbh-mass-35msun) (GWTC-4.0 population; study 007, concluded: R1 not reproduced as registered; 153 post hoc with a FAR fallback)
 - [Has the S8 tension eased? DES Y6 against the CMB](Study-008-des-y6-s8-cmb) (DES Y6 3x2pt; study 008, reproduced: 2.67σ in S8, 2.18σ in S8–Ωm)
 - [Is the Milky Way light? The Keplerian decline of its rotation curve](Study-009-mw-rotation-curve-decline) (Gaia DR3 rotation curve; study 009, reproduced under J23's prior; the mass is set by the halo shape)
+- [When did the Milky Way's disc begin? Ages of a quarter of a million subgiants](Study-010-thick-disc-early-formation) (LAMOST/Gaia subgiant ages; study 010, in progress)
 
 The sources of these pages are kept in the main repository under
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) and reviewed there
@@ -43,5 +44,6 @@ before being published here.
 - [GWTC-4.0 中的黑洞质量：35 M☉ 处是一个峰，还是只是一处弯折？](Study-007-gwtc4-bbh-mass-35msun#中文)（GWTC-4.0 群体；研究 007，已完成：按预注册 R1 未复现；事后加 FAR 回退得到 153）
 - [S8 张力减弱了吗？DES Y6 与 CMB 的比较](Study-008-des-y6-s8-cmb#中文)（DES Y6 3x2pt；研究 008，已复现：S8 上 2.67σ，S8–Ωm 上 2.18σ）
 - [银河系很轻吗？其旋转曲线的开普勒式下降](Study-009-mw-rotation-curve-decline#中文)（Gaia DR3 旋转曲线；研究 009，在 J23 的先验下复现；质量由晕的形状决定）
+- [银河系的盘何时开始形成？二十五万颗亚巨星的年龄](Study-010-thick-disc-early-formation#中文)（LAMOST/Gaia 亚巨星年龄；研究 010，进行中）
 
 这些页面的源文件保存在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，在那里审查后再发布到这里。

@@ -13,13 +13,13 @@ The chain:
       presumably the oldest thick-disc stars
   a Gaussian fit to their ages gives a mean of 13 Gyr (Extended Data Fig. 1)
   at the old end the YY ages are consistent with the age of the universe
-  the universe is 13.8 Gyr old (Planck 2018)
+  the universe is 13.8 Gyr old (Planck, as XR22 state in Methods)
   [gap] consistency with the age of the universe establishes the absolute YY age scale at 13 Gyr
       to better than about 0.5 Gyr (it only rules out ages far above 13.8 Gyr; MIST isochrones give
       ages 0.5 Gyr older, XR22 Extended Data Fig. 4)
   [gap] the mean age of the surviving local stars in that bin dates the start of disc formation
       (the mean of a 1.8 Gyr wide distribution is not an onset; survivors and radial migration;
-      halo contamination of the bin)
+      the J_phi cut does not cleanly separate components; selection and error-cut biases)
   -> the old disc started forming about 13 Gyr ago, about 0.8 Gyr after the Big Bang
 
 Ages are encoded in tenths of a Gyr (Nat): mean_x10 = 130 states the reported, rounded 13 Gyr (the
@@ -43,7 +43,7 @@ inductive Prov where
 structure Vocab where
   /-- Ages come from Bayesian fits to alpha-enhanced YY isochrones (weighted over [alpha/Fe] = 0, 0.2, 0.4). -/
   AgesYY : Prop
-  /-- Early-phase stars with J_phi above 500 kpc km/s and [Fe/H] between -1.05 and -0.95 are the oldest thick-disc stars. -/
+  /-- Early-phase stars with J_phi above 500 kpc km/s and [Fe/H] between -1.05 and -0.95 are the oldest thick-disc stars (XR22 take this bin as such). -/
   OldestBin : Prop
   /-- Mean age of a Gaussian fitted to the ages of that bin, in tenths of a Gyr (reported, rounded). -/
   mean_x10 : Nat
@@ -60,17 +60,17 @@ structure Vocab where
 inductive Field where
   /-- MOD [stated: "We adopt the YY isochrones, and take the weighted-mean ages from isochrones with"] Extended Data Fig. 4 ([alpha/Fe] = 0, 0.2 and 0.4; Methods: Bayesian age estimation) -/
   | mod_ages
-  /-- MOD [stated: "presumably the oldest thick disk stars"] Extended Data Fig. 1 (early phase, J_phi above 500 kpc km/s, -1.05 to -0.95 in [Fe/H]); the hedge is encoded as an assertion -/
+  /-- MOD [stated: "presumably the oldest thick disk stars"] Extended Data Fig. 1 (early phase, J_phi above 500 kpc km/s, -1.05 to -0.95 in [Fe/H]); a MOD premise is an assumption the paper adopts, which is what presumably signals; the hedge is encoded as an assertion -/
   | mod_bin
   /-- STAT [stated: "A Gaussian fit to the distribution (red curve) yields a mean age of 13 Gyr"] Extended Data Fig. 1 (inset: mean 13.03, sigma 1.81); encoded as the reported, rounded 130 tenths -/
   | stat_mean
   /-- OBS [stated: "they are consistent with the age of the universe at the old end"] Methods (Ages from the YY isochrones seem to be reasonable; Figure 2) -/
   | obs_scale
-  /-- LIT [implied] age of the universe 13.8 Gyr: Planck Collaboration 2020, A&A 641, A6, arXiv:1807.06209 (XR22 cites a reference, ref. 19, for 0.8 Gyr after the Big Bang) -/
+  /-- LIT [stated: "CMB measurements of Planck (13.8 Gyr)"] Methods (no age prior); XR22 ref. 19 is Planck Collaboration 2016, A&A 594, A13, arXiv:1502.01589 -/
   | lit_universe
-  /-- GAP [reconstructed] consistency with the age of the universe establishes the absolute YY age scale at 13 Gyr to better than about 0.5 Gyr. It only rules out ages far above 13.8 Gyr: XR22 imposes no age prior, MIST isochrones give ages 0.5 Gyr older (Extended Data Fig. 4), and a scale older or younger by a few tenths of a Gyr would remain consistent with 13.8 Gyr; a later re-analysis finds ages younger by 12.9 percent (Chen, Sun and Ye 2025, arXiv:2510.10092) -/
+  /-- GAP [reconstructed] consistency with the age of the universe establishes the absolute YY age scale at 13 Gyr to better than about 0.5 Gyr, well below the 0.8 Gyr margin to the Big Bang. XR22 state only the qualitative version (the ages seem to be reasonable). Consistency only rules out ages far above 13.8 Gyr: XR22 imposes no age prior, MIST isochrones give ages 0.5 Gyr older (Extended Data Fig. 4), and a scale older or younger by a few tenths of a Gyr would remain consistent with 13.8 Gyr; a later re-analysis finds ages younger by 12.9 percent (Chen, Sun and Ye 2025, arXiv:2510.10092) -/
   | gap_scale
-  /-- GAP [reconstructed] with these ages, the mean age of the surviving local stars in the most metal-poor old-disc bin dates the start of disc formation. XR22 does not argue this step: the mean of a distribution 1.8 Gyr wide is not its onset, the stars observed near the Sun are survivors that may have migrated, and the bin may contain halo stars (XR22 Extended Data Fig. 2 shows a low J_phi tail at these metallicities) -/
+  /-- GAP [reconstructed] with these ages, the mean age of the surviving local stars in the most metal-poor old-disc bin dates the start of disc formation. XR22 do not argue this step. (i) The mean of a distribution 1.8 Gyr wide is not its onset; read as an onset, it is later than the first stars. (ii) The stars observed near the Sun are survivors that may have migrated. (iii) A single J_phi cut does not cleanly separate components: halo stars with prograde orbits can enter J_phi above 500, and old splashed disc stars (XR22 Extended Data Fig. 2: a low J_phi tail at -1 to -0.4 in [Fe/H]) are removed from it (our reasoning). (iv) The observed-age mean of an error-truncated sample can be biased: the 15 percent relative-error cut, fainter old subgiants, and asymmetric errors near the 20 Gyr grid edge; age errors produce an Eddington-like bias toward older ages (Lu et al. 2026, arXiv:2607.02940) -/
   | gap_onset
   deriving DecidableEq, Repr
 
@@ -79,7 +79,7 @@ def prov : Field → Prov
   | .mod_bin => .stated
   | .stat_mean => .stated
   | .obs_scale => .stated
-  | .lit_universe => .implied
+  | .lit_universe => .stated
   | .gap_scale => .reconstructed
   | .gap_onset => .reconstructed
 
@@ -106,7 +106,7 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have hm : v.mean_x10 = 130 := p .stat_mean                    -- Extended Data Fig. 1
-  have hu : v.universe_x10 = 138 := p .lit_universe             -- Planck 2018
+  have hu : v.universe_x10 = 138 := p .lit_universe             -- Planck, Methods
   have hs : v.ScaleAccurate := p .gap_scale (p .obs_scale)       -- GAP: age scale
   exact p .gap_onset (p .mod_ages) hs (p .mod_bin) hm (by omega)  -- GAP: mean as onset
 
@@ -144,11 +144,11 @@ theorem gap_onset_needed : ¬ ∀ v, Without .gap_onset v → Conclusion v := fu
   h ⟨True, True, 130, True, True, 138, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 /-- What the paper writes is not enough: the accuracy of the absolute age scale and the step from a
-mean age to an onset are not stated, and the age of the universe is only cited. -/
+mean age to an onset are not stated. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   h ⟨True, True, 130, True, False, 138, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
-/-- Standard knowledge (the age of the universe) does not close the argument: two gaps remain. -/
+/-- No premise is merely implied, so Explicit coincides with Stated: the two gaps remain. -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
   h ⟨True, True, 130, True, False, 138, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 

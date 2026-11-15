@@ -4,10 +4,10 @@
 
 *Paper: Xiang & Rix 2022, "A time-resolved picture of our Milky Way's early formation history", Nature 603, 599, arXiv:2203.12110. Study:
 [`studies/010-m05-thick-disc-subgiant-ages`](https://github.com/sudoghut/astrolab/tree/main/studies/010-m05-thick-disc-subgiant-ages).
-Status: planned. Last updated: 2026-11-15 (see the changelog at the end). The source of this page lives in the main repository at
+Status: in progress (planned). Last updated: 2026-11-15 (see the changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：银河系的盘何时开始形成？二十五万颗亚巨星的年龄。状态：计划中。论文：Xiang & Rix 2022，Nature 603, 599，arXiv:2203.12110。研究：[`studies/010-m05-thick-disc-subgiant-ages`](https://github.com/sudoghut/astrolab/tree/main/studies/010-m05-thick-disc-subgiant-ages)。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：银河系的盘何时开始形成？二十五万颗亚巨星的年龄。状态：进行中（计划阶段）。论文：Xiang & Rix 2022，Nature 603, 599，arXiv:2203.12110。研究：[`studies/010-m05-thick-disc-subgiant-ages`](https://github.com/sudoghut/astrolab/tree/main/studies/010-m05-thick-disc-subgiant-ages)。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -35,7 +35,7 @@ are crossing from the main sequence to the red-giant branch. In this short phase
 luminosity depends steeply on its mass, and hence its age, so luminosity plus temperature and
 chemistry give a precise age. They combined:
 
-- spectra from the LAMOST survey (data release 7), giving temperature, metallicity [Fe/H], [α/Fe] and
+- spectra from the LAMOST survey (Large Sky Area Multi-Object Fiber Spectroscopic Telescope; data release 7), giving temperature, metallicity [Fe/H], [α/Fe] and
   a spectroscopic absolute magnitude in the near-infrared K band;
 - Gaia eDR3 parallaxes and proper motions, giving distances, a geometric absolute magnitude and,
   with LAMOST radial velocities, orbits. The orbits are summarised by **actions**; the azimuthal
@@ -89,7 +89,7 @@ the next 5–6 Gyr the Galaxy enriched continuously, by a factor of 10 in metall
 
 Caveats the paper itself discusses (Methods, Extended Data):
 
-- **The absolute age scale.** MIST isochrones give ages about 0.5 Gyr older than YY at solar α;
+- **The absolute age scale.** MIST (MESA Isochrones and Stellar Tracks) isochrones give ages about 0.5 Gyr older than YY at solar α;
   ignoring α enhancement would overestimate old-star ages by up to 2 Gyr (XR22 do include it). No
   prior forces ages below 13.8 Gyr; XR22 note that ages "are consistent with the age of the universe
   at the old end".
@@ -152,10 +152,13 @@ universe.
 - `obs_scale` (OBS, stated, Methods): at the old end the ages are consistent with the age of the
   universe.
 - `gap_scale` (GAP, reconstructed): this consistency establishes the absolute scale at 13 Gyr to
-  better than about 0.5 Gyr.
+  better than about 0.5 Gyr, well below the 0.8 Gyr margin to the Big Bang.
 
-*What Lean shows.* The step from `obs_scale` to an accurate scale is not in the paper and is not
-standard knowledge. Consistency with 13.8 Gyr only excludes scales far too old; a scale off by a few
+*What Lean shows.* The paper states a qualitative version: the ages "seem to be reasonable as they
+are consistent with the age of the universe at the old end" (XR22 impose no age prior precisely so
+that stellar ages give an independent check on the age of the universe). What neither the paper nor
+standard knowledge gives is the quantitative accuracy the onset needs, well below the 0.8 Gyr margin
+(we take about 0.5 Gyr). Consistency with 13.8 Gyr only excludes scales far too old; a scale off by a few
 tenths of a Gyr in either direction is equally consistent, and XR22's own comparison with MIST gives
 0.5 Gyr; a later re-analysis finds ages 12.9% younger (about 1.7 Gyr at 13 Gyr; Chen, Sun & Ye 2025). An onset "0.8 Gyr after the Big Bang" is a difference of two numbers, 13.8 − 13.0, and is
 as uncertain as the age scale.
@@ -165,24 +168,37 @@ as uncertain as the age scale.
 *Summary.* The 13 Gyr is the mean of a Gaussian fitted to stars in one narrow metallicity bin
 (−1.05 to −0.95) of the early phase with J_φ > 500. The fitted width is 1.81 Gyr, wider than the
 typical age error at this age (about 1 Gyr), so the bin spans several Gyr of real ages, or contains
-stars with larger errors, or both.
+stars with larger errors, or both. The main text supports the onset qualitatively with Fig. 2 (the
+panel-e sequence reaches [Fe/H] ≲ −1 at about 13 Gyr); Extended Data Fig. 1 is the quantitative route,
+and it is the one encoded.
 
 *Premises.*
 - `mod_bin` (MOD, stated, "presumably the oldest thick disk stars"; the hedge is encoded as an
   assertion).
 - `stat_mean` (STAT, stated): the Gaussian mean is 13 Gyr (encoded as 130 tenths of a Gyr).
-- `lit_universe` (LIT, implied: Planck 2018, arXiv:1807.06209): the universe is 13.8 Gyr old.
+- `lit_universe` (LIT, stated, Methods: "CMB measurements of Planck (13.8 Gyr)"; XR22's ref. 19 is
+  Planck 2015, arXiv:1502.01589): the universe is 13.8 Gyr old.
 - `gap_onset` (GAP, reconstructed): the mean age of surviving local stars in this bin dates the start
   of disc formation.
 
-*What Lean shows.* `gap_onset` carries three unstated steps: (i) a mean is not a start; if the disc
-started 13 Gyr ago, half the bin is younger, so the mean dates the bin's typical star, and the
-"onset" is the mean only if the bin samples just the first episode; (ii) stars seen today within a
-few kpc of the Sun are survivors, some of which migrated outward or inward, so their ages describe
-where stars now are, not where the disc first formed; (iii) at [Fe/H] ≈ −1 a J_φ > 500 cut can admit
-halo stars (XR22's Extended Data Fig. 2 shows a low-J_φ tail in this metallicity range), which are
-about 2 Gyr *younger* at this metallicity and pull the mean down, while old metal-poor stars from
-other components could pull it up.
+*What Lean shows.* `gap_onset` carries four unstated steps:
+
+1. **A mean is not a start.** If the disc started 13 Gyr ago, about half the bin is younger, so the
+   mean dates the bin's typical star; read as an onset it is later than the first stars, which is
+   conservative for "early". The other way round, a fitted width of 1.81 Gyr around 13.03 Gyr with
+   errors of about 1 Gyr implies some true ages above 13.8 Gyr, which points back to the age scale
+   (`gap_scale`).
+2. **Survivors and migration.** Stars seen today within a few kpc of the Sun are survivors, some of
+   which migrated outward or inward, so their ages describe where stars now are, not where the disc
+   first formed.
+3. **The J_φ cut does not cleanly separate components** (our reasoning): halo stars on prograde
+   orbits can pass J_φ > 500 and are about 2 Gyr *younger* at this metallicity, pulling the mean
+   down; old "splashed" disc stars, which XR22's Extended Data Fig. 2 shows as a low-J_φ tail at
+   −1 ≲ [Fe/H] ≲ −0.4, are removed by the cut, which also pulls the mean down; the size of either effect is unknown.
+4. **The observed-age mean can be biased.** The 15% relative-error cut, the faintness of old
+   subgiants (a volume effect) and asymmetric errors near the 20 Gyr grid edge (with no age prior) can
+   shift a mean of observed ages; age errors produce an Eddington-like bias (scatter of a truncated or steep distribution shifts its observed mean) toward older ages in a
+   truncated distribution (Lu et al. 2026, arXiv:2607.02940). Our R2 tests the error-cut part.
 
 #### 2.3 The other claims (discussed, not encoded)
 
@@ -206,8 +222,12 @@ other components could pull it up.
    bin's fitted width (1.8 Gyr) is larger than the 0.8 Gyr margin to the Big Bang. `gap_scale` is the
    known isochrone systematic (0.5 Gyr between YY and MIST).
 3. **All seven premises are needed** in this encoding; none is redundant.
-4. **`stated_insufficient`** holds as well: the age of the universe is only cited, and the two gaps are
-   not stated.
+4. **`stated_insufficient`** holds as well, for the same reason: no premise is merely implied (the
+   age of the universe is stated in Methods), so the stated and the explicit premises coincide and
+   only the two gaps are missing.
+7. **Deviation from the plan.** Plan 019 foresaw a NUM premise bound to an R2 result; the mean is
+   encoded as XR22's stated number (STAT) instead, because the argument is the paper's, and our R2
+   result is reported in part 3.
 5. **Consistency** (`consistent`) is a weak check here: no premise is negative.
 6. **Limits:** Lean checks the logical structure under our encoding, not the stellar physics inside
    each premise.
@@ -226,9 +246,9 @@ measured age Gaussian around the true one with its e_Age, truncated to the grid,
 
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
-| Stage B: onset at 13 Gyr (R2) | testable now | Gaussian fit to observed ages in XR22's Extended Data Fig. 1 selection (early phase, J_φ > 500, −1.05 < [Fe/H] < −0.95); also the deconvolved mean (M0), the fraction of ages above 13.8 Gyr and near the 20 Gyr grid edge, and sensitivity to the J_φ cut and the error cut | catalogue (16 MB) | reproduced if the observed-age Gaussian mean is 12.5–13.5 Gyr (a tolerance for the rounded "13 Gyr") | pending |
+| Stage B: onset at 13 Gyr (R2) | testable now | Gaussian fit to observed ages in XR22's Extended Data Fig. 1 selection (early phase, J_φ > 500, −1.05 < [Fe/H] < −0.95), and the same without the early-phase filter; also the deconvolved mean (M0), the fraction of ages above 13.8 Gyr and near the 20 Gyr grid edge, and sensitivity to the J_φ cut and the error cut | catalogue (16 MB) | reproduced if the observed-age Gaussian mean is 12.5–13.5 Gyr (a tolerance for the rounded "13 Gyr") | pending |
 | Stage A: absolute scale (`gap_scale`) | explorable (not decisive) | envelope from literature magnitudes: MIST +0.5 Gyr, [α/Fe] error and LAMOST–APOGEE α offset through XR22's age–α sensitivity, LAMOST [Fe/H]/Teff offsets, parallax zero point | – | none - exploration only | pending |
-| 8 Gyr split (R1) | testable now | without the chemical split: in 0.2 dex [Fe/H] bins, deconvolved age density (Gaussian mixture, K = 1–4 by BIC, M0); count modes and measure valley depth; null calibrated by simulation from a unimodal skew-normal fit; young-side upper edge compared with 8 Gyr | catalogue | "almost disjoint" threshold on valley depth fixed in the pre-registration, 5% false-positive rate | pending |
+| 8 Gyr split (R1) | testable now | without the chemical split: in 0.2 dex [Fe/H] bins, deconvolved age density (Gaussian mixture, K = 1–4 by the Bayesian information criterion, BIC, M0); count modes and measure valley depth; null calibrated by simulation from a unimodal skew-normal fit; young-side upper edge compared with 8 Gyr | catalogue | "almost disjoint" threshold on valley depth fixed in the pre-registration, 5% false-positive rate | pending |
 | Old-disc sequence: slope, 5–6 Gyr span, σ_int (R3/R4) | testable now | XR22's linear-plus-scatter model inside M0 on the high-α, J_φ > 500 sample (σ_sel, a reproduction of XR22's number); a background-mixture fit without the α cut for the intrinsic scatter; version with [Fe/H] errors as a bracket; error-scale checks in both directions | catalogue | σ_sel compared with 0.82 Gyr (rule fixed after checking XR22's estimator); span compared with 5–6 Gyr | pending |
 | Tension with Miglio et al. 2021 (R7) | explorable (qualified comparison) | deconvolved total age spread of the high-α disc: central 95% width and the largest fraction in any 1.5 Gyr window, for XR22's sample and an APOGEE-like high-α cut | catalogue | none - comparison across tracers | pending |
 | Halo–disc offset at [Fe/H] ≈ −1 (R5) | explorable (plots only) | age–[Fe/H] density split by J_φ | catalogue | none | pending |
@@ -264,6 +284,7 @@ threshold) without touching the formal results; see the study README section 8.
 
 Newest first.
 
+- 2026-11-15: gate-1 review: the age of the universe is stated by XR22 (Planck 2015), so no premise is merely implied; `gap_onset` now lists four steps, and the Extended Data Fig. 2 tail is described as splashed disc stars, not halo contamination.
 - 2026-11-15: first version: parts 1–3 (pre-registration source; plan `design/019-plan_*`).
 
 ### Sources
@@ -273,7 +294,7 @@ Newest first.
 - Montalbán et al. 2021, Nature Astronomy, arXiv:2006.01783; Queiroz et al. 2023, A&A 673, A155, arXiv:2303.09926; Gallart et al. 2024, A&A 687, A168, arXiv:2402.09399.
 - Chen, Sun & Ye 2025, arXiv:2510.10092; Shariat, El-Badry & Bhattacharjee 2025, OJAp, arXiv:2510.08675 (the subgiant age scale and errors).
 - Feltzing, Feuillet & Bensby 2026, arXiv:2605.20959; Lu et al. 2026, arXiv:2607.02940.
-- Planck Collaboration 2020, A&A 641, A6, arXiv:1807.06209 (age of the universe).
+- Planck Collaboration 2016, A&A 594, A13, arXiv:1502.01589 (age of the universe, XR22's ref. 19).
 
 ---
 
@@ -291,7 +312,7 @@ Newest first.
 
 Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽核心氢、正从主序走向红巨星支的恒星。在这一短暂阶段，光度对质量、从而对年龄非常敏感，所以光度加上温度与化学组成就能给出精确的年龄。他们结合了：
 
-- LAMOST 巡天第 7 次数据发布的光谱：温度、金属丰度 [Fe/H]、[α/Fe]，以及近红外 K 波段的光谱绝对星等；
+- LAMOST 巡天（大天区面积多目标光纤光谱天文望远镜，Large Sky Area Multi-Object Fiber Spectroscopic Telescope）第 7 次数据发布的光谱：温度、金属丰度 [Fe/H]、[α/Fe]，以及近红外 K 波段的光谱绝对星等；
 - Gaia eDR3 的视差与自行：距离、几何绝对星等，以及（加上 LAMOST 视向速度的）轨道。轨道用**作用量**（action）概括；方位作用量 J_φ 就是绕银河系转轴的角动量（太阳附近近圆轨道的盘星 J_φ ≈ 1800–2000 kpc km/s，晕星的 J_φ 接近零或为负）。
 
 清洗之后（双星检验、Gaia 天体测量质量、光变、LAMOST 信噪比大于 20、温度低于 6800 K，以及去除水平支（horizontal branch）星的截断——它同时去掉了几乎所有约 1.5 Gyr 以下的星），剩下 **247,104 颗亚巨星**。年龄由**延世–耶鲁（Yonsei-Yale, YY）等年龄线**（isochrone，同一年龄的恒星模型曲线）的贝叶斯拟合得到，并按 [α/Fe] = 0、0.2、0.4 的等年龄线加权以匹配每颗星的 α 增丰。年龄误差的中位数为 7.5%；分析只用相对年龄误差低于 15% 的星。星表公开在 VizieR（J/other/Nat/603.599）。
@@ -312,7 +333,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 论文自己讨论的注意事项（方法部分、扩展数据）：
 
-- **绝对年龄标尺。** 在太阳 α 配比下，MIST 等年龄线给出的年龄比 YY 老约 0.5 Gyr；忽略 α 增丰会把老星的年龄高估至多 2 Gyr（XR22 考虑了 α 增丰）。没有先验强制年龄低于 13.8 Gyr；XR22 指出年龄"are consistent with the age of the universe at the old end"。
+- **绝对年龄标尺。** 在太阳 α 配比下，MIST（MESA Isochrones and Stellar Tracks）等年龄线给出的年龄比 YY 老约 0.5 Gyr；忽略 α 增丰会把老星的年龄高估至多 2 Gyr（XR22 考虑了 α 增丰）。没有先验强制年龄低于 13.8 Gyr；XR22 指出年龄"are consistent with the age of the universe at the old end"。
 - **选择效应。** 老的亚巨星更暗，所以只能在更近的距离内看到。XR22 用 Gaia 模拟星表与体积改正检查，认为选择效应"negligible impact"。
 
 其他工作提供了背景（2026-11-15 对照 arXiv 摘要与全文核实）：
@@ -344,21 +365,26 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 *前提（Lean 的 `Field`）。*
 - `mod_ages`（MOD，论文明说，扩展数据图 4）：年龄来自按 [α/Fe] = 0、0.2、0.4 加权的 YY 等年龄线。
 - `obs_scale`（OBS，论文明说，方法部分）：老端的年龄与宇宙年龄相容。
-- `gap_scale`（GAP，我们补上的）：这种相容性确立了 13 Gyr 处的绝对标尺，误差小于约 0.5 Gyr。
+- `gap_scale`（GAP，我们补上的）：这种相容性确立了 13 Gyr 处的绝对标尺，误差小于约 0.5 Gyr，远小于到大爆炸的 0.8 Gyr 余量。
 
-*Lean 的发现。* 从 `obs_scale` 到准确的标尺这一步不在论文中，也不是标准知识。与 13.8 Gyr 相容只排除了老得太多的标尺；向任一方向偏几个 0.1 Gyr 的标尺同样相容，而 XR22 自己与 MIST 的比较就差 0.5 Gyr；后来的重新分析得到的年龄年轻 12.9%（在 13 Gyr 处约 1.7 Gyr；Chen, Sun & Ye 2025）。"大爆炸之后 0.8 Gyr"是两个数之差（13.8 − 13.0），其不确定度与年龄标尺一样大。
+*Lean 的发现。* 论文写出了定性的说法：年龄"seem to be reasonable as they are consistent with the age of the universe at the old end"（XR22 不加年龄先验，正是为了让恒星年龄独立地检验宇宙年龄）。论文与标准知识都没有给出的，是起点结论所需的定量准确度：远小于 0.8 Gyr 的余量（我们取约 0.5 Gyr）。与 13.8 Gyr 相容只排除了老得太多的标尺；向任一方向偏几个 0.1 Gyr 的标尺同样相容，而 XR22 自己与 MIST 的比较就差 0.5 Gyr；后来的重新分析得到的年龄年轻 12.9%（在 13 Gyr 处约 1.7 Gyr；Chen, Sun & Ye 2025）。"大爆炸之后 0.8 Gyr"是两个数之差（13.8 − 13.0），其不确定度与年龄标尺一样大。
 
 #### 2.2 环节 B · 从平均年龄到起点
 
-*概述。* 13 Gyr 是对早期中 J_φ > 500、一个很窄的金属丰度箱（−1.05 到 −0.95）的星拟合高斯所得的均值。拟合宽度为 1.81 Gyr，大于这个年龄上典型的年龄误差（约 1 Gyr），所以该箱跨越数 Gyr 的真实年龄，或含有误差更大的星，或两者兼有。
+*概述。* 13 Gyr 是对早期中 J_φ > 500、一个很窄的金属丰度箱（−1.05 到 −0.95）的星拟合高斯所得的均值。拟合宽度为 1.81 Gyr，大于这个年龄上典型的年龄误差（约 1 Gyr），所以该箱跨越数 Gyr 的真实年龄，或含有误差更大的星，或两者兼有。正文用图 2 定性地支持这个起点（e 面板的序列在约 13 Gyr 处达到 [Fe/H] ≲ −1）；扩展数据图 1 是定量的途径，编码的是它。
 
 *前提。*
 - `mod_bin`（MOD，论文明说，"presumably the oldest thick disk stars"；保留措辞被编码为断言）。
 - `stat_mean`（STAT，论文明说）：高斯均值为 13 Gyr（编码为 130 个 0.1 Gyr）。
-- `lit_universe`（LIT，标准知识：Planck 2018，arXiv:1807.06209）：宇宙年龄 13.8 Gyr。
+- `lit_universe`（LIT，论文明说，方法部分："CMB measurements of Planck (13.8 Gyr)"；XR22 的参考文献 19 是 Planck 2015，arXiv:1502.01589）：宇宙年龄 13.8 Gyr。
 - `gap_onset`（GAP，我们补上的）：该箱中幸存的本地恒星的平均年龄标定了盘开始形成的时间。
 
-*Lean 的发现。* `gap_onset` 承载三个没写出的步骤：(i) 均值不是起点；如果盘在 13 Gyr 前开始形成，该箱一半的星更年轻，所以均值标定的是该箱的典型星，只有当该箱只取样了第一次形成时，"起点"才等于均值；(ii) 今天在太阳附近几 kpc 内看到的星是幸存者，其中一些向外或向内迁移过，它们的年龄描述的是恒星现在在哪里，而不是盘最先在哪里形成；(iii) 在 [Fe/H] ≈ −1，J_φ > 500 的截断可能混入晕星（XR22 扩展数据图 2 显示这个金属丰度范围有低 J_φ 的尾巴），它们在这个金属丰度下约*年轻* 2 Gyr，会把均值拉低，而其他成分的老贫金属星又可能把它拉高。
+*Lean 的发现。* `gap_onset` 承载四个没写出的步骤：
+
+1. **均值不是起点。** 如果盘在 13 Gyr 前开始形成，该箱约一半的星更年轻，所以均值标定的是该箱的典型星；把它读作起点会晚于最早的星，这对"早"的结论是保守的。反过来，以 13.03 Gyr 为中心、宽 1.81 Gyr、误差约 1 Gyr 的分布意味着一些真实年龄超过 13.8 Gyr，这又指回年龄标尺（`gap_scale`）。
+2. **幸存者与迁移。** 今天在太阳附近几 kpc 内看到的星是幸存者，其中一些向外或向内迁移过，它们的年龄描述的是恒星现在在哪里，而不是盘最先在哪里形成。
+3. **J_φ 截断不能干净地分开各成分**（我们的推理）：顺行轨道的晕星可以通过 J_φ > 500，它们在这个金属丰度下约*年轻* 2 Gyr，会把均值拉低；而老的"溅出"盘星（XR22 扩展数据图 2 显示为 −1 ≲ [Fe/H] ≲ −0.4 的低 J_φ 尾巴）被截断去掉，这同样把均值拉低；两种效应的大小都不清楚。
+4. **观测年龄的均值可能有偏。** 15% 相对误差截断、老亚巨星更暗（体积效应）以及 20 Gyr 网格边缘附近不对称的误差（没有年龄先验）都会移动观测年龄的均值；年龄误差会使截断后的分布向更老偏移，即类似爱丁顿偏差（Eddington-like bias）的效应（Lu et al. 2026，arXiv:2607.02940）。我们的 R2 检验其中误差截断的部分。
 
 #### 2.3 其他结论（只讨论，不编码）
 
@@ -371,7 +397,8 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 1. **最重要的结论：`explicit_insufficient`，有两个缺口。** 起点结论需要准确的绝对年龄标尺（`gap_scale`），并把一个箱的平均年龄读作盘开始形成的时间（`gap_onset`）。没有标准知识能补上其中任何一个。
 2. **排序。** `gap_onset` 最重要：它是论文没有讨论的建模选择，而该箱的拟合宽度（1.8 Gyr）大于到大爆炸的 0.8 Gyr 余量。`gap_scale` 是已知的等年龄线系统误差（YY 与 MIST 差 0.5 Gyr）。
 3. **在本编码下七个前提都是必要的**，没有多余的。
-4. **`stated_insufficient`** 也成立：宇宙年龄只是引用，两个缺口没有写出。
+4. **`stated_insufficient`** 也成立，原因相同：没有只属标准知识的前提（宇宙年龄在方法部分写明），所以论文明说的前提与显式前提相同，缺的只是两个缺口。
+7. **与计划的偏离。** 计划 019 设想一个绑定 R2 结果的 NUM 前提；这里均值按 XR22 明说的数字编码（STAT），因为论证是论文的论证，我们的 R2 结果在第三部分报告。
 5. **相容性**（`consistent`）在这里是弱检查：没有否定形式的前提。
 6. **局限：** Lean 检查的是在我们的编码下论证的逻辑结构，不检查每个前提内部的恒星物理。
 
@@ -381,11 +408,11 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 | 环节 / 结论 | 能否检验或探索 | 怎么做 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
-| 环节 B：13 Gyr 的起点（R2） | 现在可检验 | 在 XR22 扩展数据图 1 的选择（早期、J_φ > 500、−1.05 < [Fe/H] < −0.95）中对观测年龄拟合高斯；另报告去卷积的均值（M0）、年龄超过 13.8 Gyr 与靠近 20 Gyr 网格边缘的比例，以及对 J_φ 截断与误差截断的敏感度 | 星表（16 MB） | 观测年龄的高斯均值在 12.5–13.5 Gyr 即复现（对取整的"13 Gyr"的容差） | 待定 |
+| 环节 B：13 Gyr 的起点（R2） | 现在可检验 | 在 XR22 扩展数据图 1 的选择（早期、J_φ > 500、−1.05 < [Fe/H] < −0.95）以及不加早期过滤的选择中对观测年龄拟合高斯；另报告去卷积的均值（M0）、年龄超过 13.8 Gyr 与靠近 20 Gyr 网格边缘的比例，以及对 J_φ 截断与误差截断的敏感度 | 星表（16 MB） | 观测年龄的高斯均值在 12.5–13.5 Gyr 即复现（对取整的"13 Gyr"的容差） | 待定 |
 | 环节 A：绝对标尺（`gap_scale`） | 可探索（不能判决） | 由文献幅度构成的包络：MIST +0.5 Gyr，[α/Fe] 误差与 LAMOST–APOGEE 的 α 偏移经 XR22 的年龄–α 敏感度传播，LAMOST [Fe/H]/Teff 偏移，视差零点 | – | 无，只作探索 | 待定 |
-| 8 Gyr 分界（R1） | 现在可检验 | 不用化学分群：在 0.2 dex 的 [Fe/H] 箱中，用 M0 去卷积的年龄密度（高斯混合，K = 1–4 按 BIC），数众数并测量谷深；零分布由单峰偏斜正态拟合模拟标定；年轻一侧上缘与 8 Gyr 比较 | 星表 | "几乎不相交"的谷深阈值在预注册中写定，假阳性率 5% | 待定 |
+| 8 Gyr 分界（R1） | 现在可检验 | 不用化学分群：在 0.2 dex 的 [Fe/H] 箱中，用 M0 去卷积的年龄密度（高斯混合（Gaussian mixture），K = 1–4 按贝叶斯信息准则（Bayesian information criterion, BIC）选取），数众数（mode）并测量谷深（valley depth）；零分布由单峰偏斜正态（skew-normal）拟合模拟标定；年轻一侧上缘与 8 Gyr 比较 | 星表 | "几乎不相交"的谷深阈值在预注册中写定，假阳性率 5% | 待定 |
 | 老盘序列：斜率、5–6 Gyr 跨度、σ_int（R3/R4） | 现在可检验 | 在 M0 中、对高 α 且 J_φ > 500 的样本拟合 XR22 的线性加弥散模型（σ_sel，复现 XR22 的数字）；不加 α 截断、带背景分量的混合模型判定本征弥散；含 [Fe/H] 误差的版本作区间；两个方向的误差标尺检查 | 星表 | σ_sel 与 0.82 Gyr 比较（规则在核实 XR22 的估计量后写定）；跨度与 5–6 Gyr 比较 | 待定 |
-| 与 Miglio et al. 2021 的张力（R7） | 可探索（有限定的比较） | 高 α 盘去卷积的总年龄跨度：中心 95% 宽度与任一 1.5 Gyr 窗口内的最大比例，分别用 XR22 的样本与类 APOGEE 的高 α 截断 | 星表 | 无，跨示踪体的比较 | 待定 |
+| 与 Miglio et al. 2021 的张力（R7） | 可探索（有限定的比较） | 高 α 盘去卷积的总年龄跨度：中心 95% 宽度与任一 1.5 Gyr 窗口内的最大比例，分别用 XR22 的样本与类 APOGEE 的高 α 截断 | 星表 | 无，跨示踪体（tracer）的比较 | 待定 |
 | [Fe/H] ≈ −1 处晕与盘的偏移（R5） | 可探索（只作图） | 按 J_φ 分面的年龄–[Fe/H] 密度 | 星表 | 无 | 待定 |
 | 11 Gyr / GSE（R6） | 可描述，不能检验 | 低 J_φ 老盘星年龄的 5% 与 10% 分位数；未做体积改正的年龄峰 | 星表 | 无，体积改正未公开 | 待定 |
 | `gap_onset` 本身（幸存者、迁移） | 不在范围内 | 需要化学演化与迁移模型 | – | – | – |
@@ -415,6 +442,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 按时间倒序。
 
+- 2026-11-15：闸门 1 审查：宇宙年龄由 XR22 写明（Planck 2015），没有只属标准知识的前提；`gap_onset` 列出四个步骤，扩展数据图 2 的尾巴描述为溅出的盘星，而不是晕的混入。
 - 2026-11-15：第一版：第一至第三部分（预注册的来源；计划 `design/019-plan_*`）。
 
 ### 来源
@@ -424,4 +452,4 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 - Montalbán 等 2021，Nature Astronomy，arXiv:2006.01783；Queiroz 等 2023，A&A 673, A155，arXiv:2303.09926；Gallart 等 2024，A&A 687, A168，arXiv:2402.09399。
 - Chen, Sun & Ye 2025，arXiv:2510.10092；Shariat, El-Badry & Bhattacharjee 2025，OJAp，arXiv:2510.08675（亚巨星年龄标尺与误差）。
 - Feltzing, Feuillet & Bensby 2026，arXiv:2605.20959；Lu 等 2026，arXiv:2607.02940。
-- Planck Collaboration 2020，A&A 641, A6，arXiv:1807.06209（宇宙年龄）。
+- Planck Collaboration 2016，A&A 594, A13，arXiv:1502.01589（宇宙年龄，XR22 的参考文献 19）。
