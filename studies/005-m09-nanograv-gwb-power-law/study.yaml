@@ -1,0 +1,23 @@
+title: "M9 NANOGrav 15-yr GWB: power-law amplitude and spectral index from the KDE free spectrum"
+title_zh: "M9 NANOGrav 15 年引力波背景：由 KDE 自由谱拟合幂律振幅与谱指数"
+id: "005-m09-nanograv-gwb-power-law"
+level: X               # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
+status: planned               # planned | active | reproduced | concluded | paused | abandoned
+created: 2026-11-15
+question: "Does a laptop refit of the NANOGrav 15-yr KDE free spectrum agree with the power-law amplitude and spectral-index statements of Agazie et al. 2023 (ApJL 951 L8), and how does the amplitude overlap with the SMBHB-population prediction of the companion paper L37?"
+question_zh: "在本机用 NANOGrav 15 年 KDE 自由谱重拟幂律，振幅与谱指数是否与 Agazie et al. 2023（ApJL 951 L8）的陈述一致？振幅与姊妹论文 L37 的 SMBHB 群体预测重叠多少？"
+claims: []                    # claim ids in atlas/claims/ this study reproduces or tests
+milestone: M9                 # roadmap milestone id, e.g. M1
+papers: ["2306.16213", "2306.16220", "2303.15442", "2306.16219"]            # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
+wiki: Study-005-nanograv-gwb-power-law            # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3
+
+# Where this study sits on the Atlas (optional; schema in design plan 011). Remove or fill.
+# footprint:
+#   scale: {min_pc: 1.0, max_pc: 1000.0, note: "distance range the study probes"}
+#   sky:
+#     mode: all-sky | survey | targets | none    # combine with ' + ', e.g. "survey + targets"
+#     survey: {name: "...", note: "..."}
+#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS; ra/dec may be omitted if
+#                                                  # results/targets.json gives them by name
+#   (write exponents as 4.0e+8: PyYAML reads 4e8 as a string; both are accepted)
+#   data: [...]
