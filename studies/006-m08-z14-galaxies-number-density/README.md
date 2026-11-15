@@ -70,8 +70,9 @@ bounds). If φ_model(0.7) already exceeds a target, that end is reported as "σ 
   **"different"**. Reported with the R2 verdict it is conditional on, and with the envelope of the
   central σ over the variant grid ("robust" under the same rule as R2: over evaluable combinations,
   at least 48 of 72 evaluable; non-monotonic φ(σ) and "σ > 4.0" cases are counted and reported).
-- The roots at large σ depend on the lowest halo mass included; they are reported for the
-  fiducial floor M_min and for 10 M_min (section 4, step 2).
+- The roots at large σ depend on the lowest halo mass included; the verdict uses the roots at the
+  fiducial floor M_min, and the roots at 10 M_min are descriptive (a verdict that would change
+  under 10 M_min is reported, not substituted).
 - S23's 2.0 mag (z ≈ 12) and 2.5 mag (z ≈ 16) are descriptive comparisons.
 
 **R4 (context, no criterion).** H25 Table 2, z ~ 14 bin (13.5–15.0), M = −20.8:
@@ -109,7 +110,7 @@ Nothing is downloaded (all values hand-transcribed and verified against the pape
    M_UV = 51.595 − 2.5 log10 L_ν (AB). Scatter: M_UV is Gaussian about the median with σ (mag).
    ε(M_h) is a double power law 2ε₀ / [(M_h/M₁)^{−β} + (M_h/M₁)^{γ}] with ε₀ ∈ [10⁻⁶, 1],
    log10 M₁ ∈ [9, 13], β ∈ [0, 3], γ ∈ [0, 3]. The median M_UV(M_h) need not be monotonic: if γ
-   exceeds the growth-rate exponent (1.1 for Fakhouri), the median turns over at a peak halo mass
+   exceeds the growth-rate exponent (1.1 for Fakhouri, 1.0 for Dekel), the median turns over at a peak halo mass
    M_peak and fainter medians above it are allowed; the median relation, M_peak and the brightest
    median are reported at z_cal and z = 14.5. The model LF at z is
    φ(M_UV) = ∫ dn/dln M · N(M_UV; M_med(M_h, z), σ) d ln M.
@@ -136,7 +137,8 @@ Nothing is downloaded (all values hand-transcribed and verified against the pape
    double power law; ε held constant below the low-mass edge of the calibrated range at its value
    there, with the fitted double power law kept above it (including above M_peak)}. Dekel et al.
    2013 eq. 8: Ṁ_h/M_h = s (1 + z)^{5/2} with s = 0.030 Gyr⁻¹ × (0.82/σ8) (their s ≃ 0.030 Gyr⁻¹
-   for σ8 = 0.82, scaling as σ8⁻¹; β → 0 as in their eq. 8).
+   for σ8 = 0.82 and the σ8⁻¹ scaling they state; β → 0 as in their eq. 8; Ṁ_h converted to M☉ yr⁻¹
+   before it multiplies f_b).
    2 × 3 × 2 × 3 × 2 = 72 combinations. Fiducial: Sheth–Tormen, Fakhouri mean, z ~ 8, σ_cal = 0.7,
    double power law.
 8. **Dust.** ε absorbs the z ≈ 8 attenuation (the calibration LF is observed); no dust evolution is
@@ -149,7 +151,9 @@ Sheth–Tormen analytic limit (descriptive).
 
 Systematics to keep in view: the S23-type baseline of N26 is not public in detail, so R2 compares
 two constructions; the z ≈ 8 calibration constrains ε only over a limited halo-mass range, and the
-z = 14–15 bin needs smaller halos; Poisson errors only; completeness and cosmic variance not
+z = 14–15 bin needs smaller halos than at z ≈ 8 at fixed M_UV (whether their z ≈ 8 medians lie
+inside the calibrated range is reported, step 4; at large σ the result depends on ε below the
+calibrated range and on M_min); Poisson errors only; completeness and cosmic variance not
 modelled (section 8).
 
 ## 5. Results
@@ -176,8 +180,8 @@ How a coding agent answers "what if" questions about this study without touching
 | `eps_extrap` | ε outside the calibrated range | `"dpl"`, `"const"` | no data |
 | `completeness` | spectroscopic completeness c (φ_obs → φ_obs/c) | 0.1–1 | no data |
 | `area_factor` | effective area / declared area (`gap_area`) | 1–10 | no data |
-| `dust_auv_z8` | remove dust at z ≈ 8 only: A_UV = 4.43 + 1.99 β (Meurer et al. 1999) with β(M_UV) at z ~ 8 from Bouwens et al. 2014 (ApJ 793, 115), values transcribed and verified in the exploration script; `false` = none | `true` / `false` | no data |
-| `m_h_min` | lowest halo mass included (M☉) | 10⁷–10⁹ | no data |
+| `dust_auv_z8` | remove dust at z ≈ 8 only: A_UV = 4.43 + 1.99 β (Meurer et al. 1999) clipped at zero, A_UV = max(0, 4.43 + 1.99 β), with β(M_UV) at z ~ 8 from Bouwens et al. 2014 (ApJ 793, 115), transcribed and verified into `inputs.py` before use; scatter in β ignored; `false` = none | `true` / `false` | no data |
+| `m_h_min` | lowest halo mass included (M☉); values below 10⁸ include halos not assumed to host galaxies | 10⁷–10⁹ | no data |
 
 - Rerun with an override: `python -m astrolab explore 006-m08-z14-galaxies-number-density --tag <topic> --set KEY=VALUE`
   (outputs in `explore/<date>-<topic>/`, not committed; seconds to a minute).
