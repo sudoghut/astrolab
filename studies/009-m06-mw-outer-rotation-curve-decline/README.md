@@ -206,7 +206,7 @@ The six-model mean is 1.973 against Table 4's 1.977. J23's masses are reproduced
 the combined errors, which supports reading its fit as using them (despite eq. 11). R_vir: J23's
 121.03 kpc matches the **total-density** definition (120.6–122.0 kpc), not the dark-matter-only
 definition its text states (≈107 kpc), as predicted before fitting; M_dyn is identical under both,
-because the fitted halo has converged (n ≈ 0.4: the density falls by a factor of about 10⁻⁶ from
+because the fitted halo has converged (n ≈ 0.4: the density falls by a factor of about 10⁻⁷ from
 20 to 40 kpc). A log-uniform M0 prior gives 1.975 × 10¹¹ (E dJ). On O24's curve (R ≥ 9.5 kpc,
 statistical errors) the seven models give 2.12–2.18 × 10¹¹ against Table 4's O23 column 2.07–2.19.
 
@@ -214,11 +214,12 @@ statistical errors) the seven models give 2.12–2.18 × 10¹¹ against Table 4'
 - (a) Constant bias: γ unchanged (−0.464 to −0.470, null control passed); M_dyn(E dJ) = 1.61, 1.77,
   2.20, 2.46 × 10¹¹ M☉ for b = −0.10, −0.05, +0.05, +0.10.
 - (b) Outer ramp (stress test): S falls monotonically; it drops below 2 at **b_max = 0.06** (a bias
-  rising to 6% at 26.5 kpc, about 11 km/s there and 2.4 km/s at 21.5 kpc, smaller than Table 3's
+  rising to 6% at 26.5 kpc, about 11 km/s there and 4.0 km/s at 21.5 kpc, smaller than Table 3's
   errors). At that point the log-A and pivot runs give S ≈ 1.5. For context only: Koop et al. 2024
   report Jeans biases of 10–15%, Ou et al. 2025 5–20%.
 - (c) Errors enlarged in quadrature by 5/10/15% of V: S = 2.54, 2.38, 2.67 with the flat-A prior, but
-  the median γ runs away (the prior effect grows with the errors); this case is not evidence of
+  (referee, section 6) the flat-A median γ runs away to −0.69, −1.04, −1.39 and a log-uniform A gives
+  S = 1.70, 1.14, 0.81: the prior effect grows with the errors; this case is not evidence of
   robustness. Correlated outer errors: ρ = 0.5 gives S = 2.85; ρ = 0.99 gives 6.07, an artefact of a
   near-singular covariance that pins the differences between the outer bins, not a stronger decline.
 
@@ -239,8 +240,8 @@ not independent confirmation.
 | M(<100 kpc) | 1.97 | 5.35 |
 | M_vir (DM-only / total R_vir) | 1.97 / 1.97 | 7.05 / 7.16 |
 
-With n ≈ 0.4 the Einasto halo stops growing beyond about 30 kpc: 99.8% of its M_vir lies inside
-26.5 kpc. The total mass is therefore the measured enclosed mass plus the assumption that the halo
+With n ≈ 0.4 the Einasto halo stops growing beyond about 30 kpc: 99.8% of the total M_vir (baryons
+plus halo) lies inside 26.5 kpc. The total mass is therefore the measured enclosed mass plus the assumption that the halo
 ends there. Stream masses (cross-model, order of magnitude): Koposov et al. 2023 M(<32.4) = 2.85 ±
 0.10 is far above the Einasto value and close to NFW's; Vasiliev et al. 2021 M(<100) = 5.6 ± 0.4
 likewise.
@@ -249,7 +250,10 @@ likewise.
 Einasto (15 degrees of freedom; p ≈ 10⁻⁶ for being so small) and 21.1 for NFW (16 degrees of freedom,
 p ≈ 0.18). The Einasto fit is too good: Table 3's errors cannot be independent per-bin errors (they
 include smooth, correlated systematics), so every significance above that treats them as independent,
-including R1's, is mis-scaled. NFW is an acceptable fit on its own terms.
+including R1's, is mis-scaled. Under that same independent-error scaling NFW looks acceptable
+(p ≈ 0.18), but the data prefer Einasto by Δχ² ≈ 20, a preference that the referee finds survives
+correlated-error kernels (Δχ² 11–29); if the errors were rescaled to make Einasto's χ² equal its
+degrees of freedom, NFW would be strongly rejected. So NFW is disfavoured, not excluded.
 
 **Reading.**
 1. *The decline* is reproduced as J23 computed it, but its 3σ depends on the prior on A (2.7σ from the
@@ -258,8 +262,9 @@ including R1's, is mis-scaled. NFW is an acceptable fit on its own terms.
 2. *"Keplerian"* rests on the 1σ interval of γ containing −0.5; that interval also contains clearly
    non-Keplerian declines.
 3. *The total mass* of about 2 × 10¹¹ M☉ is reproduced to 0.7%, but it is the enclosed mass at 26.5 kpc
-   (1.90 × 10¹¹ from V²R/G) plus a halo shape that ends just beyond the data. An NFW halo that fits
-   acceptably gives 7 × 10¹¹ M☉ and agrees with the stream masses.
+   (1.90 × 10¹¹ from V²R/G) plus a halo shape that ends just beyond the data. The data prefer that
+   truncated shape (Δχ² ≈ 20 over NFW), but an NFW (Navarro–Frenk–White) halo, disfavoured relative to Einasto (Δχ² ≈ 20; 11–29 under the referee's correlated-error kernels) but not excluded gives 7 × 10¹¹ M☉ and
+   agrees with the stream masses; which shape is right is what T-028 tests.
 
 ## 6. Referee notes
 
@@ -289,7 +294,8 @@ ran checks with the study's own modules; no downloads). Triage:
 6. **Start radius and leverage.** Likelihood-only: R > 14 kpc gives γ = −0.30 ± 0.04 (flat rejected
    at 6.7σ, Keplerian rejected); R > 16 kpc γ = −0.34 ± 0.07; R > 19 kpc −0.40 ± 0.15; R > 21 kpc
    −0.44 ± 0.30 (1.5σ). Dropping the 19.5 or 24.5 kpc bin gives 2.05σ or 2.2σ. *Accepted*: the
-   decline is robust, "Keplerian" depends on the 19 kpc cut.
+   decline is robust to the start radius (under independent errors); "Keplerian" depends on the
+   19 kpc cut.
 7. **O24 errors.** J23's quoted O24 width is three times ours; the curves share systematics.
    *Accepted*; section 5.
 8. **Minor:** the pre-registered "about 22.9 kpc" pivot is 21.5 kpc as computed by the rule

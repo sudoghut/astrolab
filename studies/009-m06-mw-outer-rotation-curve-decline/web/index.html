@@ -57,7 +57,7 @@ function render(d) {
          L(`γ = ${f(b.median_gamma, 3)}, S = ${f(b.S)} under J23's flat-A prior`, `γ = ${f(b.median_gamma, 3)}，S = ${f(b.S)}（J23 的平坦 A 先验）`)) +
     card(L('Likelihood alone', '只用似然'), `${f(r1.delta_chi2.sigma_1dof)}σ`, '',
          L(`log-A S = ${f(r1.sensitivity_log_a.S)}, pivot S = ${f(r1.sensitivity_pivot.S)}`, `对数 A S = ${f(r1.sensitivity_log_a.S)}，换支点 S = ${f(r1.sensitivity_pivot.S)}`)) +
-    card(L('Bias that removes 2σ', '消去 2σ 的偏差'), `${f(100 * r3.ramp.first_below_2, 1)}%`, '', L('outer ramp at 26.5 kpc', '26.5 kpc 处的外区斜坡')) +
+    card(L('Bias that brings S below 2', '使 S 降到 2 以下的偏差'), `${f(100 * r3.ramp.first_below_2, 1)}%`, '', L('outer ramp at 26.5 kpc', '26.5 kpc 处的外区斜坡')) +
     card(L('Mass: Einasto vs NFW', '质量：爱纳斯托对 NFW'), `${f(r5.einasto_EdJ.mdyn_dm.median / 1e11)} / ${f(r5.nfw_EdJ.mdyn_dm.median / 1e11)}`, '',
          L('× 10¹¹ M☉ (E dJ baryons)', '× 10¹¹ M☉（E dJ 重子）'));
 
@@ -81,15 +81,18 @@ function render(d) {
   document.getElementById('rc').innerHTML = s;
 
   // ramp
-  const W2 = 680, H2 = 220, bx = v => pl + (W2 - pl - pr) * v / 0.2, sy = v => H2 - pb - (H2 - pt - pb) * v / 3.5;
+  const W2 = 680, H2 = 220, sMin = -1.5, sMax = 3.5, bx = v => pl + (W2 - pl - pr) * v / 0.2,
+        sy = v => H2 - pb - (H2 - pt - pb) * (Math.max(sMin, Math.min(sMax, v)) - sMin) / (sMax - sMin);
   let g = `<line x1="${pl}" x2="${W2 - pr}" y1="${sy(2)}" y2="${sy(2)}" stroke="currentColor" stroke-dasharray="4 3"/>`;
   g += `<polyline fill="none" stroke="#e45756" stroke-width="2" points="${r3.ramp.b_max.map((x, i) => `${bx(x)},${sy(r3.ramp.S[i])}`).join(' ')}"/>`;
   for (let v = 0; v <= 0.2001; v += 0.05) g += `<text x="${bx(v)}" y="${H2 - pb + 14}" text-anchor="middle">${(100 * v).toFixed(0)}%</text>`;
-  for (let v = 0; v <= 3.5; v += 1) g += `<text x="${pl - 4}" y="${sy(v) + 4}" text-anchor="end">${v}</text>`;
+  for (let v = -1; v <= 3.5; v += 1) g += `<text x="${pl - 4}" y="${sy(v) + 4}" text-anchor="end">${v}</text>`;
+  g += `<line x1="${pl}" x2="${W2 - pr}" y1="${H2 - pb}" y2="${H2 - pb}" stroke="currentColor"/>`;
+  g += `<text x="12" y="${H2 / 2}" transform="rotate(-90 12 ${H2 / 2})" text-anchor="middle">S</text>`;
   g += `<text x="${(W2 + pl) / 2}" y="${H2 - 4}" text-anchor="middle">b_max</text>`;
   document.getElementById('ramp').innerHTML = g;
 
-  let h = `<tr><th>${L('Baryon model', '重子模型')}</th><th>${L('M_dyn ours', 'M_dyn 本研究')}</th><th>${L('Table 4', '表 4')}</th><th>n</th><th>R_vir DM / total (kpc)</th></tr>`;
+  let h = `<tr><th>${L('Baryon model', '重子模型')}</th><th>${L('M_dyn ours (10¹¹ M☉)', 'M_dyn 本研究（10¹¹ M☉）')}</th><th>${L('Table 4 (10¹¹ M☉)', '表 4（10¹¹ M☉）')}</th><th>n</th><th>${L('R_vir DM-only / total (kpc)', 'R_vir 暗物质 / 总密度（kpc）')}</th></tr>`;
   for (const [m, v] of Object.entries(r2.models)) {
     h += `<tr><td>${esc(m)}</td><td>${f(v.mdyn_dm.median / 1e11, 3)}</td><td>${f(v.table4_mdyn / 1e11, 2)}</td><td>${f(v.n.median)}</td><td>${f(v.rvir_dm.median, 1)} / ${f(v.rvir_tot.median, 1)}</td></tr>`;
   }
@@ -102,8 +105,8 @@ function render(d) {
   k += `<tr><td>V²R/G (26.5 kpc)</td><td colspan="2">${f(r5['v2r_over_G_26.5'] / 1e11)}</td></tr>`;
   document.getElementById('r5').innerHTML = k;
   document.getElementById('note').innerHTML = L(
-    'Post hoc: the best-fit χ² is 1.3 for 15 degrees of freedom (Einasto) and 21 for 16 (NFW). Table 3\'s errors are not independent, so all significances that treat them as independent are mis-scaled; the NFW halo fits acceptably and extrapolates to about 7 × 10¹¹ M☉, close to stellar-stream masses.',
-    '事后：最佳拟合 χ² 为 1.3（爱纳斯托，15 个自由度）与 21（NFW，16 个自由度）。表 3 的误差不是独立的，凡是把它们当作独立误差的显著性都标度不对；NFW 晕拟合可以接受，外推到约 7 × 10¹¹ M☉，与恒星星流的质量接近。');
+    'Post hoc: the best-fit χ² is 1.3 for 15 degrees of freedom (Einasto) and 21 for 16 (NFW, Navarro–Frenk–White). Table 3\'s errors are not independent, so all significances that treat them as independent are mis-scaled. The data prefer Einasto (Δχ² ≈ 20; 11–29 under the referee\'s correlated kernels); NFW is disfavoured but not excluded, and extrapolates to about 7 × 10¹¹ M☉, close to stellar-stream masses.',
+    '事后：最佳拟合 χ² 为 1.3（爱纳斯托，15 个自由度）与 21（NFW，16 个自由度）。表 3 的误差不是独立的，凡是把它们当作独立误差的显著性都标度不对。数据偏好爱纳斯托（Δχ² ≈ 20；在审稿的相关误差核下为 11–29）；NFW 较差但未被排除，外推到约 7 × 10¹¹ M☉，与恒星星流的质量接近。');
 }
 
 let data = null;
