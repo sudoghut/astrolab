@@ -1,0 +1,93 @@
+{
+ "cmb": {
+  "mean": 0.8357234749103956,
+  "lo": 0.8229264670995192,
+  "hi": 0.8480563796753102,
+  "equal_lo": 0.8229524490038643,
+  "equal_hi": 0.8480803946966315,
+  "kde_mode": 0.8354429100426739,
+  "published": [
+   0.836,
+   0.012,
+   0.013
+  ],
+  "mean_ok": true,
+  "ends_ok": true,
+  "verdict": "reproduced",
+  "omega_m_mean": 0.32356314229619043,
+  "chain": {
+   "rows_read": 36000,
+   "rows_after_burn": 36000,
+   "nonfinite_any_column": 36000,
+   "nonfinite_used_columns": 677,
+   "zero_weight": 8309,
+   "stored_s8_consistent": true,
+   "stored_s8_nonfinite_rows": 0,
+   "ess": 10401.375262430354,
+   "burn_in": 0.0,
+   "burn_reason": "nested or importance",
+   "ess_flag": false
+  }
+ },
+ "des_3x2pt": {
+  "mean": 0.7892813778620317,
+  "lo": 0.7777206865567441,
+  "hi": 0.8019307225790029,
+  "equal_lo": 0.7771048264953447,
+  "equal_hi": 0.8013051076327049,
+  "kde_mode": 0.7894420948421687,
+  "published": [
+   0.789,
+   0.012,
+   0.012
+  ],
+  "mean_ok": true,
+  "ends_ok": true,
+  "verdict": "reproduced",
+  "omega_m_mean": 0.3328112314654874,
+  "chain": {
+   "rows_read": 115920,
+   "rows_after_burn": 115920,
+   "nonfinite_any_column": 226,
+   "nonfinite_used_columns": 226,
+   "zero_weight": 13263,
+   "stored_s8_consistent": true,
+   "stored_s8_nonfinite_rows": 0,
+   "ess": 10472.38245165822,
+   "burn_in": 0.0,
+   "burn_reason": "nested or importance",
+   "ess_flag": false
+  }
+ },
+ "des_xipm": {
+  "mean": 0.7833963248714182,
+  "lo": 0.7671317083744602,
+  "hi": 0.8009675573754417,
+  "equal_lo": 0.765363033161785,
+  "equal_hi": 0.7994878063633911,
+  "kde_mode": 0.7838482290118499,
+  "published": [
+   0.783,
+   0.019,
+   0.015
+  ],
+  "mean_ok": true,
+  "ends_ok": true,
+  "verdict": "reproduced",
+  "omega_m_mean": 0.3207565030297596,
+  "chain": {
+   "rows_read": 19456,
+   "rows_after_burn": 19456,
+   "nonfinite_any_column": 41,
+   "nonfinite_used_columns": 41,
+   "zero_weight": 403,
+   "stored_s8_consistent": true,
+   "stored_s8_nonfinite_rows": 0,
+   "ess": 10060.671640473916,
+   "burn_in": 0.0,
+   "burn_reason": "nested or importance",
+   "ess_flag": false
+  }
+ },
+ "r3_chain": "des_xipm"
+}

@@ -2,11 +2,11 @@ title: "M3 S8 tension: DES Y6 3x2pt vs CMB parameter difference and multi-probe 
 title_zh: "M3 S8 张力：DES Y6 3x2pt 与 CMB 的参数差异及多探针汇总"
 id: "008-m03-s8-des-y6-cmb-parameter-difference"
 level: L0              # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
-status: planned               # planned | active | reproduced | concluded | paused | abandoned
+status: reproduced             # planned | active | reproduced | concluded | paused | abandoned
 created: 2026-11-15
 question: "Do the public DES Y6 chains reproduce the 2.6 sigma (S8) and 2.2 sigma (S8-Omega_m) DES-CMB parameter differences, and does the paper's no-substantial-evidence conclusion follow from them?"
 question_zh: "公开的 DES Y6 链文件能否复现 DES 与 CMB 在 S8 上 2.6σ、在 S8–Ωm 平面上 2.2σ 的参数差异？论文\"没有实质证据表明不一致\"的结论能否由此推出？"
-claims: []                    # claim ids in atlas/claims/ this study reproduces or tests
+claims: ["s8-tension"]                  # claim ids in atlas/claims/ this study reproduces or tests
 milestone: M3                  # roadmap milestone id, e.g. M1
 papers: ["2601.14559"]                  # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
 wiki: Study-008-des-y6-s8-cmb                  # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3

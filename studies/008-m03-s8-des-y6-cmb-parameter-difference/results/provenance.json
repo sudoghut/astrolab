@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-11-15T09:55:33+00:00",
+  "inputs": [
+    {
+      "source": "http",
+      "request": "https://desdr-server.ncsa.illinois.edu/despublic/y6a2_files/y6_key/chains_release/32pt_wolensbin2_lin_lcdm_DV0723_R0723.txt",
+      "retrieved_at": "2026-11-15T09:53:30+00:00",
+      "sha256": "ee2728c487e4295ff49981cb6ee1765fdb2a7a601bb788b8bbb48597207bb606",
+      "bytes": 144252036,
+      "cache_key": "7caf47c457d5746e81abaf2b",
+      "label": "DES Y6 chain 32pt_wolensbin2_lin_lcdm_DV0723_R0723.txt"
+    },
+    {
+      "source": "http",
+      "request": "https://desdr-server.ncsa.illinois.edu/despublic/y6a2_files/y6_key/chains_release/fiducial_cmb_tp_external_R1006.txt",
+      "retrieved_at": "2026-11-15T09:53:31+00:00",
+      "sha256": "195f5a15ce573e1882cbb6af86aa0a4037b68ac4bcc2ebf9275b0ec55846e226",
+      "bytes": 11782940,
+      "cache_key": "2216f577ef42b184dba9e5f4",
+      "label": "DES Y6 chain fiducial_cmb_tp_external_R1006.txt"
+    },
+    {
+      "source": "http",
+      "request": "https://desdr-server.ncsa.illinois.edu/despublic/y6a2_files/y6_key/chains_release/12pt_wolensbin2_lin_lcdm_DV0723_R0723.txt",
+      "retrieved_at": "2026-11-15T09:53:32+00:00",
+      "sha256": "5aa0377d2953f2f32b8e8943215e6b8f5950883007ea27447ca0f88079a7d6ad",
+      "bytes": 14875711,
+      "cache_key": "0fae016283160d05f72bd889",
+      "label": "DES Y6 chain 12pt_wolensbin2_lin_lcdm_DV0723_R0723.txt"
+    }
+  ]
+}
