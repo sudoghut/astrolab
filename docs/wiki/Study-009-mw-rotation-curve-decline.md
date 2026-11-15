@@ -234,7 +234,7 @@ Table 3's total errors as J23's power-law test does, and R2 is a descriptive fit
 | Stage C: masses of the six fully specified baryon models (R2) | explorable (descriptive; J23's statistical errors are not published) | Einasto + baryons fitted to Table 3 with total errors, J23's priors and R_vir definition; compared with Table 4 | J23 Tables 1, 2, 4 (5 kB) | none - descriptive (difference to Table 4 reported) | 1.969–1.980 × 10¹¹ M☉ (Table 4: 1.97–1.99); B2 2.039 (2.05); J23's 121 kpc is the total-density R_vir |
 | Stage A: systematics (R3) | explorable (not decisive) | (a) constant bias: null control for γ, refits of the mass for b = ±5%, ±10%; (b) bias rising linearly from 0 at 19 kpc to b_max at 26.5 kpc, scanned 0–20%, smallest b_max that brings R1 below 2σ (an injected stress test; literature magnitudes only as context); (c) correlated outer errors | same | none - exploration only | constant bias: Δγ = 0; an outer ramp of 6% brings S below 2; quadrature and ρ = 0.99 cases not evidence of robustness |
 | Other curves (R4) | explorable (descriptive) | J23 against O24 and Eilers et al. 2019 in the overlap; R1 on O24 (J23: γ = −0.56) | O24 Table 1, Eilers Table 1 (2 kB) | none - descriptive | O24 χ² = 16.9 (18 radii), E19 8.2 (16); on O24 γ = −0.41, S = 5.4 with statistical errors (J23 quotes −0.56 ± 0.23) |
-| Stage C: extrapolation (R5) | explorable (descriptive) | M(<26.5 kpc) from the data against extrapolated M(<32.4), M(<100), M_vir; an NFW-like halo fitted for comparison; stream masses as an order-of-magnitude, cross-model comparison | as above | none - descriptive | Einasto: 99.8% of M_vir inside 26.5 kpc (1.97 × 10¹¹); NFW: 7.05 × 10¹¹, acceptable fit (χ² 21 for 16), close to stream masses |
+| Stage C: extrapolation (R5) | explorable (descriptive) | M(<26.5 kpc) from the data against extrapolated M(<32.4), M(<100), M_vir; an NFW-like halo fitted for comparison; stream masses as an order-of-magnitude, cross-model comparison | as above | none - descriptive | Einasto: 99.8% of M_vir inside 26.5 kpc (1.97 × 10¹¹); NFW (Navarro–Frenk–White): 7.05 × 10¹¹, disfavoured (Δχ² ≈ 20) but not excluded, close to stream masses |
 | `gap_jeans` itself (non-equilibrium dynamics) | out of scope | needs 6-D stellar data and dynamical modelling beyond the Jeans equation | – | – | – |
 
 **Results (added after the run, 2026-11-15; the table above keeps the pre-registered design).**
@@ -247,18 +247,20 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
 - **The error bars cannot be independent.** The best fits are far too good (χ² = 1.3 for 15 degrees
   of freedom for the Einasto model; 0.47 for 6 for the power law). Table 3's errors contain smooth,
   correlated systematics, so every significance that treats them as independent, J23's 3σ included,
-  is mis-scaled. A bias in the outer bins rising to 6% (smaller than the error bars) removes the 2σ
-  level.
-- **"Keplerian" depends on where the fit starts.** The referee found that starting at 14–16 kpc gives
-  γ ≈ −0.3 and rejects γ = −0.5; starting at 19 kpc widens the interval enough to include −0.5. The
-  decline itself is robust; its Keplerian shape is not established.
+  is mis-scaled. A bias in the outer bins rising to 6% (smaller than the error bars) brings the
+  statistic below 2.
+- **"Keplerian" depends on where the fit starts.** The referee found that starting at 14 kpc gives
+  γ = −0.30 ± 0.04 and rejects γ = −0.5 (16 kpc: −0.34 ± 0.07); starting at 19 kpc widens the interval
+  enough to include −0.5. The decline is robust to the start radius (under independent errors); its
+  Keplerian shape is not established.
 - **The total mass is an assumption about the halo, not a measurement.** We reproduce Table 4 to
   0.7% (six models 1.969–1.980 × 10¹¹ M☉), and J23's R_vir of 121 kpc corresponds to the total-density
   definition, not the dark-matter-only one its text states. But the fitted Einasto halo falls off so
-  steeply that 99.8% of its mass lies inside 26.5 kpc, where V²R/G already gives 1.90 × 10¹¹ M☉. An NFW
-  halo fits the same points acceptably (χ² = 21 for 16) and gives 7.1 × 10¹¹ M☉, consistent with the
-  stellar-stream masses (Koposov et al. 2023, Vasiliev et al. 2021); ΛCDM-like Einasto shapes give
-  3–8 × 10¹¹ M☉ (referee).
+  steeply that 99.8% of its mass lies inside 26.5 kpc, where V²R/G already gives 1.90 × 10¹¹ M☉. The data
+  prefer this truncated shape: an NFW (Navarro–Frenk–White) halo is disfavoured by Δχ² ≈ 20 (11–29
+  under the referee's correlated-error kernels), though not excluded; it gives 7.1 × 10¹¹ M☉,
+  consistent with the stellar-stream masses (Koposov et al. 2023, Vasiliev et al. 2021). ΛCDM-like
+  Einasto shapes (1/n = 0.17–0.25) give 5.7–8.1 × 10¹¹ M☉ but fit worse (χ² 21–23; referee).
 - **Next test (T-028):** refit with a physically motivated full covariance for Table 3, which decides
   how significant the decline is and how strongly the data prefer a truncated halo.
 
@@ -433,15 +435,15 @@ J23 的质量并不来自下降检验。它来自用球对称爱纳斯托晕（�
 | 环节 C：六个参数完整的重子模型的质量（R2） | 可探索（描述；J23 的统计误差未发表） | 用总误差、J23 的先验与 R_vir 定义，以爱纳斯托晕加重子拟合表 3，与表 4 比较 | J23 表 1、2、4（5 kB） | 无——描述（报告与表 4 之差） | 1.969–1.980 × 10¹¹ M☉（表 4：1.97–1.99）；B2 2.039（2.05）；J23 的 121 kpc 是总密度定义的 R_vir |
 | 环节 A：系统误差（R3） | 可探索（不能判决） | (a) 常数偏差：γ 的零对照，b = ±5%、±10% 时重拟质量；(b) 从 19 kpc 的 0 线性增加到 26.5 kpc 的 b_max 的偏差，扫描 0–20%，找使 R1 降到 2σ 以下的最小 b_max（人为注入的压力测试，文献幅度只作背景）；(c) 外区误差相关 | 同上 | 无——仅供探索 | 常数偏差：Δγ = 0；外区 6% 的斜坡使 S < 2；平方和与 ρ = 0.99 的情形不是稳健性的证据 |
 | 其他曲线（R4） | 可探索（描述） | J23 与 O24、Eilers 等 2019 在重叠区的差异；在 O24 上做 R1（J23：γ = −0.56） | O24 表 1，Eilers 表 1（2 kB） | 无——描述 | O24 χ² = 16.9（18 个半径），E19 8.2（16 个）；在 O24 上用统计误差得 γ = −0.41，S = 5.4（J23 给出 −0.56 ± 0.23） |
-| 环节 C：外推（R5） | 可探索（描述） | 数据约束的 M(<26.5 kpc) 对外推的 M(<32.4)、M(<100)、M_vir；拟合类似 NFW 的晕作对比；星流质量作跨模型的量级比较 | 同上 | 无——描述 | 爱纳斯托：99.8% 的 M_vir 在 26.5 kpc 以内（1.97 × 10¹¹）；NFW：7.05 × 10¹¹，拟合可接受（χ² 21，16 个自由度），与星流质量接近 |
+| 环节 C：外推（R5） | 可探索（描述） | 数据约束的 M(<26.5 kpc) 对外推的 M(<32.4)、M(<100)、M_vir；拟合类似 NFW 的晕作对比；星流质量作跨模型的量级比较 | 同上 | 无——描述 | 爱纳斯托：99.8% 的 M_vir 在 26.5 kpc 以内（1.97 × 10¹¹）；NFW（Navarro–Frenk–White）：7.05 × 10¹¹，较差（Δχ² ≈ 20）但未被排除，与星流质量接近 |
 | `gap_jeans` 本身（非平衡动力学） | 不在范围内 | 需要六维恒星数据与超出金斯方程的动力学建模 | – | – | – |
 
 **结果（运行后补写，2026-11-15；上表保留预注册时的设计）。** 细节见 [研究 README 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/009-m06-mw-outer-rotation-curve-decline/README.md#5-results)；网页：[`web/index.html`](https://github.com/sudoghut/astrolab/blob/main/studies/009-m06-mw-outer-rotation-curve-decline/web/index.html)。
 
 - **J23 的数字可由它的表格在它的先验下推出。** 19 kpc 以外的幂律在以 1 kpc 为支点、对振幅取平坦先验时给出 γ = −0.466、S = 3.15，与 J23 一致。只用似然（或对数均匀的振幅，或以数据本身为支点）时，平坦曲线约以 2.7σ 被拒绝："3σ"中约 0.45σ 来自先验。
-- **误差棒不可能是独立的。** 最佳拟合好得离谱（爱纳斯托模型 χ² = 1.3，15 个自由度；幂律 0.47，6 个自由度）。表 3 的误差含平滑、相关的系统误差，所以凡是把它们当作独立误差的显著性（包括 J23 的 3σ）都标度不对。外区箱上升到 6%（小于误差棒）的偏差就能去掉 2σ 的水平。
-- **"开普勒式"取决于拟合从哪里开始。** 审稿发现从 14–16 kpc 开始拟合得 γ ≈ −0.3 并拒绝 γ = −0.5；从 19 kpc 开始，区间变宽到足以包含 −0.5。下降本身是稳健的；开普勒式的形状没有确立。
-- **总质量是对晕的假设，而不是测量。** 我们以 0.7% 的精度复现了表 4（六个模型 1.969–1.980 × 10¹¹ M☉），J23 的 R_vir = 121 kpc 对应总密度定义，而不是它文中写明的暗物质定义。但拟合的爱纳斯托晕下降得如此之陡，以致 99.8% 的质量在 26.5 kpc 以内，那里 V²R/G 已给出 1.90 × 10¹¹ M☉。NFW 晕对同样的点拟合可以接受（χ² = 21，16 个自由度），给出 7.1 × 10¹¹ M☉，与恒星星流的质量（Koposov 等 2023，Vasiliev 等 2021）相容；类 ΛCDM 的爱纳斯托形状给出 3–8 × 10¹¹ M☉（审稿）。
+- **误差棒不可能是独立的。** 最佳拟合好得离谱（爱纳斯托模型 χ² = 1.3，15 个自由度；幂律 0.47，6 个自由度）。表 3 的误差含平滑、相关的系统误差，所以凡是把它们当作独立误差的显著性（包括 J23 的 3σ）都标度不对。外区箱上升到 6%（小于误差棒）的偏差就能使统计量降到 2 以下。
+- **"开普勒式"取决于拟合从哪里开始。** 审稿发现从 14 kpc 开始拟合得 γ = −0.30 ± 0.04 并拒绝 γ = −0.5（16 kpc：−0.34 ± 0.07）；从 19 kpc 开始，区间变宽到足以包含 −0.5。在独立误差下，下降对起点是稳健的；开普勒式的形状没有确立。
+- **总质量是对晕的假设，而不是测量。** 我们以 0.7% 的精度复现了表 4（六个模型 1.969–1.980 × 10¹¹ M☉），J23 的 R_vir = 121 kpc 对应总密度定义，而不是它文中写明的暗物质定义。但拟合的爱纳斯托晕下降得如此之陡，以致 99.8% 的质量在 26.5 kpc 以内，那里 V²R/G 已给出 1.90 × 10¹¹ M☉。数据偏好这种截断的形状：NFW（Navarro–Frenk–White）晕差 Δχ² ≈ 20（在审稿的相关误差核下为 11–29），但未被排除；它给出 7.1 × 10¹¹ M☉，与恒星星流的质量（Koposov 等 2023，Vasiliev 等 2021）相容。类 ΛCDM 的爱纳斯托形状（1/n = 0.17–0.25）给出 5.7–8.1 × 10¹¹ M☉，但拟合更差（χ² 21–23；审稿）。
 - **下一步检验（T-028）：** 用物理上合理的表 3 全协方差重新拟合，决定下降有多显著、数据多强烈地偏好截断的晕。
 
 ### 术语表
