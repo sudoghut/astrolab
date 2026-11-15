@@ -30,7 +30,10 @@ def load_list(path):
 
         def g(field):
             v = ev.get(field)
-            return None if v is None else float(v)
+            try:
+                return None if v is None or v == "" else float(v)
+            except (TypeError, ValueError):
+                return None
 
         row = {"name": name, "key": key, "version": ev.get("version"), "far": g("far"),
                "gps": g("GPS"), "m1": g("mass_1_source"), "m1_lo": g("mass_1_source_lower"),
@@ -69,7 +72,10 @@ def name_to_gps(name):
     m = NAME_RE.fullmatch(name)
     if not m or not m.group(2):
         return None
-    dt = datetime.datetime.strptime(m.group(1) + m.group(2), "%y%m%d%H%M%S").replace(tzinfo=datetime.timezone.utc)
+    try:
+        dt = datetime.datetime.strptime(m.group(1) + m.group(2), "%y%m%d%H%M%S").replace(tzinfo=datetime.timezone.utc)
+    except ValueError:             # not a valid date (placeholder or typo): not an event time
+        return None
     return (dt - GPS_EPOCH).total_seconds() + LEAP_SECONDS_SINCE_GPS_EPOCH
 
 
@@ -83,8 +89,10 @@ def lower_bound(value, offset):
 
 def passes(row, far_max, m_min, mass_bound):
     """FAR and mass cuts; returns (ok, reason)."""
-    if row["far"] is None or row["m1"] is None or row["m2"] is None:
-        return False, "no PE or FAR"
+    if row["m1"] is None or row["m2"] is None:
+        return False, "no PE"
+    if row["far"] is None:
+        return False, "no FAR"
     if row["far"] >= far_max:
         return False, f"far {row['far']:.3g} >= {far_max}"
     if mass_bound == "p90":
