@@ -156,6 +156,7 @@ def main(ctx):
         b = gwtc.fit("B", mm, grid, P["vt_slope"], mt, P["n_starts"], P["seed"],
                      extra_starts=[a["theta"] + [35.0, 5.0, 0.0]])
         r3.append({"m_t": mt, "A": a, "B": b, "dlam": a["theta"][1] - a["theta"][0],
+                   "peak_mu": b["theta"][3], "peak_sigma": b["theta"][4], "peak_w": b["theta"][5],
                    "two_dlnl": 2 * (a["nll"] - b["nll"]), "break_at_bound": a["at_bound"][2]})
     ctx.log("R3: " + "; ".join(f"Mt {r['m_t']}: dlam {r['dlam']:.2f}, 2dlnL {r['two_dlnl']:.2f}" for r in r3))
     ctx.save("r3", {"fits": r3, "note": "exploration only; point estimates, toy VT, no injections"})

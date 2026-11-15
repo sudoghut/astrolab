@@ -62,8 +62,9 @@ checked on GW150914). The list JSONs carry no per-pipeline FAR, so this rests on
 GWOSC's minimum may include a pipeline P26 did not use, which would show up as an extra outside
 type (a) and give "not reproduced".
 
-**R2 (descriptive, no verdict).** Sample: S_O4a ∪ S_O3 (T in place of S_O4a when the O4a part is
-reproduced). Events with median m1 outside [10, 100] M☉ are excluded from R2 and R3 and counted
+**R2 (descriptive, no verdict).** Sample (also for R3 and R4): T ∪ S_O3 when the O4a part is
+reproduced, so that the O4a events are exactly P26's (any allowed type-a extras are dropped);
+otherwise S_O4a ∪ S_O3. Events with median m1 outside [10, 100] M☉ are excluded from R2 and R3 and counted
 (GW231123, m1 ≈ 137 M☉, is one). N_lo = number with median m1 in [10, 35) M☉, N_hi = number in
 [35, 100] M☉. Observed-frame density p(m1) ∝ m1^(−λ1) VT(m1) with λ1 = 1.7 (P26's value, fitted
 with the real injection-based selection, not this toy), VT(m1) = (m1/10)^2.2 for m1 < M_t and
@@ -73,7 +74,8 @@ reported per M_t: N_hi/(N_lo + N_hi) against f, and the binomial probability of 
 n = N_lo + N_hi trials with probability f. Caveat: [10, 35) contains the 10 M☉ peak, which is not a
 λ1 power law, so the prediction is biased and a ratio below 1 is expected even without a 35 M☉
 feature. Also reported: the median over events with median m1 in [30, 40] M☉ of the fractional 90% width
-(upper offset − lower offset)/median m1, i.e. (m1,95 − m1,5)/m1,50; events without both offsets are
+(upper offset − lower offset)/median m1, i.e. (m1,95 − m1,5)/m1,50 with the 90% interval taken as
+the 5th to 95th percentiles; events without both offsets are
 skipped and counted.
 
 **R3 (exploration, no verdict).** Unbinned maximum likelihood on the medians in [10, 100] M☉,
@@ -83,7 +85,9 @@ and M_t values. (A) broken power law: λ1, λ2 ∈ [−2, 10], m_break ∈ [20, 
 σ ∈ [1, 10], w ∈ [0, 1]. scipy `minimize` (L-BFGS-B) from 20 starting points drawn uniformly within the parameter bounds with
 seed 0 (the bounds stay fixed when `m_range` changes), plus
 for (B) the best (A) fit with w = 0, so that 2Δln L ≥ 0. Reported per M_t: λ2 − λ1 of (A) (flagged when
-m_break is at a bound) and 2Δln L of (B) against (A). No p-value is attached (w = 0 is a boundary).
+m_break is at a bound), 2Δln L of (B) against (A), and the fitted μ, σ and w of (B). The peak centre
+is free in [25, 45] M☉, so this is a movable-peak exploration: a gain from a peak away from 35 M☉ is
+reported as such, not as support for a 35 M☉ peak. No p-value is attached (w = 0 is a boundary).
 m_break and M_t are expected to be degenerate when M_t lies in [20, 60]. Not a reproduction of P26.
 
 **R4 (descriptive).** Percentile of GW231123's median total mass among the median total masses of
