@@ -63,8 +63,10 @@ advance.
     the R1 calibration needs about 10³ fits; the main R2 and R3/R4 fits and the R1 fit of the bin
     [−0.3, −0.1) are repeated at 0.02 Gyr (float32, in chunks) as a check.
   - *Compression:* since L_i depends only on (Age_i, e_Age,i), stars are grouped into cells of
-    0.05 Gyr in Age and 20 quantile classes of e_Age (per sample or bin), and the likelihood is a
-    weighted sum over occupied cells (for the R3/R4 models, also 0.05 dex in [Fe/H]).
+    0.05 Gyr in Age and 20 quantile classes of the relative error r = e_Age/Age (per sample or bin),
+    and the likelihood is a weighted sum over occupied cells (for the R3/R4 models, also 0.05 dex in
+    [Fe/H]). Each cell uses e = (class median r) × (cell-centre Age); on S15 every class median is
+    below 0.15, so every star passes its cell's cut by construction.
   - *Limitations:* treating e_Age as given is an approximation (if errors scale with the age
     estimate, S15 is a cut on relative precision and P_i is misspecified; tested below); catalogue
     ages are isochrone posterior summaries shaped by the prior and the grid edge, not Gaussian
@@ -75,7 +77,8 @@ advance.
   model: for a K-component mixture, means at the (j + 0.5)/K quantiles of the observed ages with
   widths 1.5 Gyr and equal weights, plus 7 starts perturbing these (seeded, seed 0); the highest
   likelihood is kept, ties (within 0.01) broken by the earlier start. K is then chosen by BIC.
-  Mock fits use the generating parameters plus 2 seeded perturbations as starts. Uncertainties from a
+  Mock fits start from the corresponding data fit (for R1, the bin's data-fit mixture for each K;
+  for R3/R4, the fitted parameters) plus 2 seeded perturbations. Uncertainties from a
   finite-difference Hessian at the optimum (flat priors make this the large-sample posterior; plan
   019 spoke of posterior medians, replaced because the grid likelihood is too slow for MCMC at this
   sample size), checked by 50 bootstrap resamples for σ_sel.
@@ -105,8 +108,8 @@ advance.
   with the true age) and e = r·A (errors scale with the observed age, computed iteratively from the
   draw); observed ages Gaussian around τ, truncated to [0, 20]; for S15 the cut e/A < 0.15 is applied
   and draws continue until the bin's observed count is reached. Null and power results are reported
-  per mechanism; the verdict uses the e = r·τ mechanism, and the bin counts as resolvable only if
-  power ≥ 80% under both.
+  per mechanism; d_crit is the smaller of the two mechanisms' values, and the bin counts as
+  resolvable only if power ≥ 80% under both.
 - **Null:** a skew-normal latent distribution (unimodal, non-Gaussian) fitted to the bin in M0;
   50 mocks; d_crit = the 3rd smallest null d (empirical 5%; with 50 mocks the binomial uncertainty of
   the false-positive rate is about ±3%). If fewer than 3 null mocks have a valley, d_crit = 1 and the
@@ -114,18 +117,22 @@ advance.
 - **Power:** per bin, a two-component latent model built from XR22's numbers: an old component
   N(τ̄0 + a·[Fe/H]_centre, 0.82²) with τ̄0 = 9.38, a = −3.8 (8.6 Gyr at +0.2, 11.7 Gyr at −0.6), and a
   young component uniform from 1.5 Gyr to 7 Gyr (XR22's late phase, ending before 8 Gyr), with
-  the old weight equal to the eq. 1 early fraction of the bin. The true d of each generating model
-  is computed and printed; where it exceeds 0.1, the young edge is moved down by 0.5 Gyr steps until
-  it is ≤ 0.1 (the generating models are recorded). 50 mocks; power = fraction with d < d_crit and
+  the old weight equal to the fraction of the bin's stars that are early with JPHI > 500 and above
+  the α line (minimum 10%, so that the valley rule can apply). The true d of each generating model
+  is computed and printed with the old weight; where it exceeds 0.1, the young edge is moved down by
+  0.5 Gyr steps until it is ≤ 0.1 (expected only for [0.1, 0.3), to 6.5 Gyr). The edge is not moved
+  further if mock power is low (for example because the Gaussian fit smooths the uniform edge); the
+  generating models are recorded. 50 mocks; power = fraction with d < d_crit and
   d ≤ 0.25. Bins with power < 80% are "cannot resolve" and excluded.
 - **Per bin:** "almost disjoint" if d < d_crit **and** d ≤ 0.25. Young-side upper edge = 97.5th
   percentile of the latent mass younger than the valley (our proxy; XR22 give no definition).
 - **Verdict:** **reproduced** if at least 3 bins are resolvable, at least 3 of them are almost
   disjoint, and the median young-side upper edge of the almost-disjoint bins lies in 6.5–9.5 Gyr.
   **Undetermined** if fewer than 3 bins are resolvable. **Not reproduced** otherwise.
-- **Budget:** run.py times the first null mock and the first data fit and prints the projected
-  calibration time. If S15 plus Full calibration would exceed 4 h, the mock counts drop to 30 per
-  set (d_crit = 2nd smallest), reported with their binomial uncertainty.
+- **Budget (all mock sets: R1, the R3/R4 recovery, sample B):** run.py times the first mock of each
+  set and prints the projected total. If the total would exceed 4 h, every mock set drops to 30
+  (R1 d_crit = 2nd smallest, a nominal 6.7%); if it still exceeds 8 h, run.py runs in the background
+  and the elapsed time is reported. The counts used are written to the results.
 - Reported without verdict: the eq. 1 cross-fractions (late stars older than 8 Gyr; early stars
   younger than 8 Gyr), as a descriptive reproduction of XR22 Fig. 2.
 
@@ -162,17 +169,19 @@ advance.
   sample A's Full parent, generated from the fitted (τ̄0, a, σ) under both error mechanisms of 2.1,
   with the S15 cut applied. Tolerance: bias ≤ 0.1 Gyr in σ and ≤ 0.2 Gyr/dex in a. If the e = r·A
   mechanism breaks the tolerance, the S15 verdicts are reported as not robust and the Full fits
-  become primary.
-- **R4 (verdict, on σ_sel = the M0 σ of sample A):** **reproduced** if |σ_sel − 0.82| ≤ 0.1 Gyr.
+  become primary; if the e = r·τ mechanism also breaks it, R3 and R4 are **cannot determine**.
+- **R4 (verdict, on σ_sel = the M0 σ of sample A at f = 1):** **reproduced** if |σ_sel − 0.82| ≤ 0.1 Gyr.
   This is the tentative rule of plan 019, frozen without XR22's supplement, which could not be
   accessed. σ_sel is the scatter of an α-selected sample (the α cut trims the young side at fixed
   [Fe/H] and lowers it), not the intrinsic scatter.
 - **R3 (verdict):** **reproduced** if |a| × 1.5 dex (the span from −1 to +0.5) lies in 4.5–6.5 Gyr
   (XR22: "5–6 Gyr", ±0.5 Gyr). τ̄0 and a are reported against 9.38 and −3.8 without verdict (XR22's
   values come from all of Fig. 2e, so the like-for-like comparison is the Fig. 2e fit below).
-- Each verdict is "robust" only if it also holds on Full, in the version with a² e_[Fe/H]² added to
-  the variance (which lowers σ; the unpublished age–[Fe/H] error covariance is not modelled in either
-  version), and at f = 0.8 and f_max. The span is also reported with the sample truncated at
+- Each verdict is "robust" only if it also holds on Full and in the version with a² e_[Fe/H]² added
+  to the variance (which lowers σ; the unpublished age–[Fe/H] error covariance is not modelled in
+  either version); R3 also at f = 0.8 and f_max. R4 checks XR22's number under XR22's error scale,
+  and rescaling the errors moves σ_sel almost one for one (at f_max it tends to 0 by construction),
+  so σ_sel at f = 0.8 and f_max is reported without entering R4's robustness. The span is also reported with the sample truncated at
   [Fe/H] < −0.2 and < 0.
 - **Fig. 2e fit (no verdict):** S15, early, any JPHI, same model; τ̄0, a and σ compared with XR22's.
 - **Intrinsic scatter (verdict):** sample B: S15, early, JPHI > 500, no α cut. Model: mixture of the
@@ -184,6 +193,8 @@ advance.
     cut, in the fitted proportions.
   - If either mock set shows a bias in σ_int above 0.1 Gyr, the verdict is **cannot determine**;
     otherwise **confirmed** if σ_int < 0.82 Gyr (plan 019's criterion), **not confirmed** if not.
+  - The physical claim depends on the error scale: the fit is repeated at f = 0.8 and f_max, and the
+    verdict is "robust" only if all three give the same verdict.
 
 ### 2.4 R7, R5, R6 (no verdict)
 
@@ -216,9 +227,12 @@ of 2.0 and runs R1, R2, R3/R4, R7, R5, R6 with the M0 likelihood on the latent g
 selection terms are precomputed for the occupied (Age, e_Age) cells (about 10³–10⁴ per sample, cells ×
 400 latent cells), so each likelihood evaluation is a weighted matrix–vector product; kernels stay in
 memory and are never written to the project directory. Mock samples for R1 and the recovery checks
-use their own generator, independent of the likelihood code. Cost estimate: one evaluation about
-1–3 ms; one mixture fit a few hundred evaluations; R1 calibration about 5 bins × 2 samples × 2
-mechanisms × 100 mocks × 4–5 fits, i.e. 1–3 h, with the budget rule of 2.1. All tunable numbers (cuts, bins,
+use their own generator, independent of the likelihood code. Analytic gradients are used for the
+mixtures and the R3/R4 models. Cost estimate: one R1 evaluation about 1–3 ms, one R3/R4 evaluation
+about 10–20 ms (cells are nearly one per star); a fit takes a few hundred evaluations. R1
+calibration is 5 bins × 2 samples × 2 mechanisms × 100 mocks × about 12–15 fits (K and starts), about
+3–10 h; the R3/R4 and sample-B mocks (200 fits) and the robustness refits add about 1–2 h. The budget
+rule of 2.1 therefore probably applies (30 mocks per set). All tunable numbers (cuts, bins,
 grid, K range, mock counts, thresholds, seeds) are in `PARAMS`, saved with the results. Results go to
 `results/` as small JSON files (no per-star output). A web page shows the age–[Fe/H] densities, the
 R1 bin densities with valleys, the R2 histogram and fits, the R3/R4 sequence and the R7 spreads.
