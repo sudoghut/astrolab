@@ -39,7 +39,7 @@ NNN-<类型>_<核心内容>.md
 | 011 | plan | [Atlas 的天空视图与尺度视图（研究以足迹出现在图上）](011-plan_atlas-sky-and-scale-views-from-study-footprints.md) | 完成 |
 | 012 | plan | [M2：哈勃张力——距离阶梯 GLS 复现与校准星系选择](012-plan_m02-hubble-tension-distance-ladder-gls-and-host-selection.md) | 已完成 |
 | 014 | plan | [M9：纳赫兹引力波背景——NANOGrav 15 年自由谱的幂律拟合与谱指数](014-plan_m09-nanograv-free-spectrum-power-law-and-spectral-index.md) | 进行中 |
-| 014 | plan | [M9：纳赫兹引力波背景——NANOGrav 15 年自由谱的幂律拟合与谱指数](015-plan_m08-z14-galaxies-number-density-and-required-uv-scatter.md) | 进行中 |
+| 015 | plan | [M8：z ≈ 14 星系——数密度与所需的紫外弥散](015-plan_m08-z14-galaxies-number-density-and-required-uv-scatter.md) | 进行中 |
 
 ## 术语约定
 
