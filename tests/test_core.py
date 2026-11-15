@@ -67,6 +67,43 @@ def test_tap_refuses_result_above_download_limit(tmp_cache, monkeypatch):
         fetch.tap("SELECT a FROM big", "gaia", max_rows=10000)
 
 
+def test_streamed_votable_download_capped(tmp_cache, monkeypatch):
+    class _Resp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def raise_for_status(self):
+            pass
+
+        def iter_content(self, n):
+            for _ in range(100):
+                yield b"x" * 1000
+
+    class _Sess:
+        def get(self, uri, stream=True, timeout=0):
+            return _Resp()
+
+    class _Svc:
+        _session = _Sess()
+
+    monkeypatch.setattr(config, "HTTP_MAX_BYTES", 5000)
+    with pytest.raises(fetch.TooLarge):
+        fetch._download_votable(_Svc(), "http://example.invalid/result")
+
+
+def test_cached_tap_result_over_limit_refused(tmp_cache, monkeypatch):
+    key = cache.key_for("tap", {"url": fetch.tap_url("gaia"), "adql": "SELECT b FROM t"})
+    tmp = cache.staging_path(".parquet")
+    pd.DataFrame({"b": np.arange(20000.0)}).to_parquet(tmp)
+    cache.put_file(key, ".parquet", tmp, {"provenance": {"source": "tap:gaia", "request": "SELECT b FROM t"}})
+    monkeypatch.setattr(config, "HTTP_MAX_BYTES", 1000)
+    with pytest.raises(fetch.TooLarge):
+        fetch.tap("SELECT b FROM t", "gaia")
+
+
 def test_study_budget_enforced(monkeypatch):
     monkeypatch.setattr(config, "STUDY_BUDGET_BYTES", 1000)
     ctx = study.Context(study.Study(Path(".")))

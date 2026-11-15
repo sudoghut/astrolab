@@ -64,6 +64,52 @@ def _transient(exc: Exception) -> bool:
     return any(code in text for code in ("500", "502", "503", "504", "timed out", "Connection"))
 
 
+class _VOResult:
+    """Minimal stand-in for pyvo's result: to_table() and query_status."""
+
+    def __init__(self, table, status):
+        self._table, self.query_status = table, status
+
+    def to_table(self):
+        return self._table
+
+
+def _download_votable(svc, uri: str):
+    """Stream an async job's VOTable with the per-download byte cap enforced during transfer."""
+    from astropy.io import votable
+
+    session = getattr(svc, "_session", None)
+    if session is None:
+        import requests
+        session = requests.Session()
+    tmp = cache.staging_path(".xml")
+    written = 0
+    try:
+        with session.get(uri, stream=True, timeout=600) as r:
+            r.raise_for_status()
+            with open(tmp, "wb") as fh:
+                for chunk in r.iter_content(1 << 16):
+                    written += len(chunk)
+                    if written > config.HTTP_MAX_BYTES:
+                        raise TooLarge(f"TAP result exceeded {config.HTTP_MAX_BYTES / 1024**2:.0f} MB while "
+                                       "downloading; narrow the query.")
+                    fh.write(chunk)
+        vot = votable.parse(str(tmp))
+        status = None
+        for res in vot.resources:
+            for info in res.infos:
+                if info.name == "QUERY_STATUS":
+                    status = info.value
+        table = (vot.get_first_table().to_table(use_names_over_ids=True)
+                 if vot.resources and vot.resources[0].tables else None)
+        if table is None:
+            from astropy.table import Table
+            table = Table()
+        return _VOResult(table, status)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
 def _run_async(svc, query: str, maxrec: int):
     """Async TAP job that reports the server's own error message when the job fails."""
     job = svc.submit_job(query, maxrec=maxrec)
@@ -89,7 +135,7 @@ def _run_async(svc, query: str, maxrec: int):
             except Exception:  # noqa: BLE001 - best effort
                 msg = None
             raise RuntimeError(f"TAP async job {phase}: {msg or 'no error message'}")
-        return job.fetch_result()
+        return _download_votable(svc, job.result_uri)
     finally:
         try:
             job.delete()
@@ -148,7 +194,13 @@ def tap(
     if not refresh and (hit := cache.get(key, ".parquet")):
         meta = hit.meta
         prov = Provenance(**meta["provenance"])
-        return Fetched(pd.read_parquet(hit.payload), prov, True)
+        if hit.payload.stat().st_size > config.HTTP_MAX_BYTES:
+            raise TooLarge(f"cached TAP result {hit.payload.stat().st_size / 1024**2:.1f} MB exceeds the "
+                           "per-download limit; narrow the query (or clear this entry deliberately).")
+        df = pd.read_parquet(hit.payload)
+        if int(df.memory_usage(deep=True).sum()) > config.HTTP_MAX_BYTES:
+            raise TooLarge("cached TAP result exceeds the per-download limit in memory; narrow the query.")
+        return Fetched(df, prov, True)
 
     result = _run_tap(url, query, max_rows + 1, mode)
     table = result.to_table()
@@ -162,10 +214,11 @@ def tap(
     tmp = cache.staging_path(".parquet")
     df.to_parquet(tmp, index=False)
     mem = int(df.memory_usage(deep=True).sum())
-    if max(tmp.stat().st_size, mem) > config.HTTP_MAX_BYTES:
+    stored = tmp.stat().st_size
+    if max(stored, mem) > config.HTTP_MAX_BYTES:
         tmp.unlink(missing_ok=True)
         raise TooLarge(
-            f"TAP result is {max(tmp.stat().st_size if tmp.exists() else 0, mem) / 1024**2:.1f} MB "
+            f"TAP result is {max(stored, mem) / 1024**2:.1f} MB "
             f"> per-download limit {config.HTTP_MAX_BYTES / 1024**2:.0f} MB; narrow the query."
         )
     prov = Provenance(
