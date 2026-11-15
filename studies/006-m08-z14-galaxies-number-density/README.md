@@ -192,11 +192,14 @@ How a coding agent answers "what if" questions about this study without touching
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 006-m08-z14-galaxies-number-density --tag <topic> --script explore/<name>.py`
   (for example a halo-bias estimate of cosmic variance for `gap_poisson`).
-- Results files and keys (planned): `results/r1.json` (`log_phi`, `err_hi`, `err_lo`, `volume_mpc3`,
-  `volume_ratio`, `p_tail_n26_ppm`, `p_tail_ratio100_ppm`, verdicts); `results/r2.json`
-  (`phi_ours`, `ratio_to_n26`, `verdict`, `robustness`, `envelope`, `p_tail_ours`);
-  `results/r3.json` (`sigma_central`, `sigma_lo`, `sigma_hi`, `verdict`, `envelope`);
-  `results/r4.json`; `results/variants.json` (per-combination numbers); `results/curves.json`.
+- Results files and keys: `results/r1.json` (`log_phi`, `err_hi`, `err_lo`, `volume_mpc3`,
+  `volume_ratio`, `p_tail_n26_ppm`, `p_tail_ratio100_ppm`, `verdict_density`, `verdict_volume`,
+  `mod_poisson_bound_holds`); `results/r2.json` (`phi_ours`, `ratio_to_n26`, `verdict`, `robustness`,
+  `variant_counts`, `envelope_phi_ours`, `envelope_p_tail`, `p_tail_ours`, `phi_ours_by_sigma`,
+  `median_shape_zcal`, `median_shape_z14_5`, `checks`); `results/r3.json` (`sigma_roots`, `verdict`,
+  `robustness`, `variant_counts`, `envelope_sigma_central_uncensored`, `sigma_roots_10mmin`,
+  `verdict_10mmin`); `results/r4.json`; `results/variants.json` (per-combination rows);
+  `results/curves.json`.
 - Example questions: "what if completeness is 50%?" → `--set completeness=0.5`; "what if the
   effective area is twice as large?" → `--set area_factor=2`; "how much does the halo mass function
   matter?" → `--set hmf=reed07`.

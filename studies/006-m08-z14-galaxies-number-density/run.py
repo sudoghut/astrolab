@@ -41,6 +41,7 @@ PARAMS = {
     "r2_factor": 3.0,
     "r3_target": [1.5, 2.0],
     "robust_min_evaluable": 48,
+    "sigma8_tol": 1e-3,
     # variant grid (README section 4, step 7)
     "variants": {
         "hmf": ["st", "reed07"],
@@ -113,13 +114,43 @@ class Setup:
         return zm.dndlnm(self.lnM, self.sig0, self.D(z), self.rho_m, kind)
 
 
-def run_model(S, P, combo, phi_obs):
-    """Calibrate, predict R2 and solve R3 for one model combination."""
+def solve_sigma(sg, phis, targets, phi_fn):
+    """R3 roots on an increasing phi(sigma) (README section 2): censoring and equality rules."""
+    roots = {}
+    for key, tgt in targets.items():
+        if phis[0] >= tgt:
+            roots[key] = {"value": float(sg[0]), "censored": "le" if phis[0] > tgt else None}
+        elif phis[-1] <= tgt:
+            roots[key] = {"value": float(sg[-1]), "censored": "gt" if phis[-1] < tgt else None}
+        else:
+            f = lambda s: np.log(phi_fn(s)) - np.log(tgt)  # noqa: E731
+            roots[key] = {"value": float(optimize.brentq(f, sg[0], sg[-1], xtol=1e-4)), "censored": None}
+    return roots
+
+
+def monotonic_kind(phis):
+    d = np.diff(phis)
+    if np.all(d > 0):
+        return "increasing"
+    if np.all(d < 0):
+        return "decreasing"
+    return "not monotonic"
+
+
+def run_model(S, P, combo, phi_obs, fixed=None):
+    """Calibrate (or take a fixed calibration), predict R2 and solve R3 for one combination.
+
+    `fixed` = {"theta": ..., "m_cal_lo": ..., "calibration": ...} keeps the median relation of a
+    previous calibration (used for the descriptive 10 M_min roots).
+    """
     lf = inp.BOUWENS21[combo["cal"]]
     z_cal = lf["z"]
-    m_grid = np.arange(P["cal_m_bright"], P["cal_m_faint"] + 1e-9, P["cal_dm"])
-    hmf_cal = S.hmf(z_cal, combo["hmf"])
-    cal = zm.calibrate(S.lnM, hmf_cal, z_cal, S.c, combo["accretion"], combo["sigma_cal"], lf, m_grid)
+    if fixed is None:
+        m_grid = np.arange(P["cal_m_bright"], P["cal_m_faint"] + 1e-9, P["cal_dm"])
+        hmf_cal = S.hmf(z_cal, combo["hmf"])
+        cal = zm.calibrate(S.lnM, hmf_cal, z_cal, S.c, combo["accretion"], combo["sigma_cal"], lf, m_grid)
+    else:
+        cal = fixed["calibration"]
     out = {"combo": combo, "calibration": cal}
     if cal["rms"] >= P["rms_max"]:
         out["evaluable"] = False
@@ -128,7 +159,12 @@ def run_model(S, P, combo, phi_obs):
     theta = cal["theta"]
     med_cal = zm.muv_median(S.M, z_cal, S.c, theta, combo["accretion"])
     shape_cal = zm.median_shape(S.M, med_cal, P["cal_m_bright"], P["cal_m_faint"])
-    floor = shape_cal["m_cal_lo"] if combo["eps_extrap"] == "const" else None
+    m_cal_lo = fixed["m_cal_lo"] if fixed is not None else shape_cal["m_cal_lo"]
+    if combo["eps_extrap"] == "const" and m_cal_lo is None:
+        out["evaluable"] = False
+        out["reason"] = "no median <= -17 on the rising branch: calibrated range undefined for 'const'"
+        return out
+    floor = m_cal_lo if combo["eps_extrap"] == "const" else None
     hmf_z = [zm.dndlnm(S.lnM, S.sig0, d, S.rho_m, combo["hmf"]) for d in S.D_pred]
     med_z = [zm.muv_median(S.M, z, S.c, theta, combo["accretion"], floor) for z in S.z_pred]
     n = inp.N26
@@ -136,15 +172,14 @@ def run_model(S, P, combo, phi_obs):
     def phi_bin(sigma):
         return zm.bin_average(S.lnM, hmf_z, med_z, sigma, S.dvdz, n["m_lo"], n["m_hi"], P["n_m"])[0]
 
-    phi_ours = phi_bin(combo["sigma_cal"])
     i_mid = len(S.z_pred) // 2
     out.update({
         "evaluable": True,
         "median_shape_zcal": shape_cal,
         "median_shape_z14_5": zm.median_shape(S.M, med_z[i_mid], P["cal_m_bright"], P["cal_m_faint"]),
-        "phi_ours": phi_ours,
+        "phi_ours": phi_bin(combo["sigma_cal"]),
+        "m_cal_lo": m_cal_lo,
     })
-    # halos in the target bin at z = 14.5: are their z_cal medians inside the calibrated range?
     in_bin = (med_z[i_mid] >= n["m_lo"]) & (med_z[i_mid] <= n["m_hi"])
     if in_bin.any():
         mb = S.M[in_bin]
@@ -155,24 +190,16 @@ def run_model(S, P, combo, phi_obs):
     sg = np.arange(P["sigma_range"][0], P["sigma_range"][1] + 1e-9, P["sigma_step"])
     phis = np.array([phi_bin(s) for s in sg])
     out["phi_vs_sigma"] = {"sigma": sg.tolist(), "phi": phis.tolist()}
-    if not np.all(np.diff(phis) > 0):
+    kind = monotonic_kind(phis)
+    if kind != "increasing":
         out["r3_evaluable"] = False
-        out["r3_reason"] = "phi(sigma) not monotonic on the search range"
+        out["r3_reason"] = f"phi(sigma) {kind} on the search range"
         return out
     out["r3_evaluable"] = True
     lam_lo, lam_hi = zm.gehrels(n["n_sources"])
     targets = {"central": phi_obs, "lower": phi_obs * lam_lo / n["n_sources"],
                "upper": phi_obs * lam_hi / n["n_sources"]}
-    roots = {}
-    for key, tgt in targets.items():
-        if phis[0] >= tgt:
-            roots[key] = {"value": float(sg[0]), "censored": "le" if phis[0] > tgt else None}
-        elif phis[-1] < tgt:
-            roots[key] = {"value": float(sg[-1]), "censored": "gt"}
-        else:
-            f = lambda s: np.log(phi_bin(s)) - np.log(tgt)  # noqa: E731
-            roots[key] = {"value": float(optimize.brentq(f, sg[0], sg[-1], xtol=1e-4)), "censored": None}
-    out["sigma_roots"] = roots
+    out["sigma_roots"] = solve_sigma(sg, phis, targets, phi_bin)
     return out
 
 
@@ -190,6 +217,13 @@ def r2_verdict(ratio, factor):
     return "higher" if ratio > factor else "lower"
 
 
+def robustness(rows, key, fid_verdict, n_min):
+    """README section 2: over evaluable rows; at least n_min evaluable; all agree with the fiducial."""
+    if fid_verdict in (None, "not evaluable") or len(rows) < n_min:
+        return "not assessable"
+    return "robust" if all(r[key] == fid_verdict for r in rows) else "calibration-dependent"
+
+
 # ------------------------------------------------------------------ main ----
 
 def main(ctx):
@@ -203,10 +237,16 @@ def main(ctx):
     # exploration-only adjustments of the observed density (defaults: none)
     phi_obs = out1["phi_obs"] / P["completeness"] / P["area_factor"]
     phi_n26 = out1["phi_obs"] / inp.N26["ratio"]
+    vol_eff = inp.N26["volume_mpc3"] * P["area_factor"]
 
     S = Setup(P)
-    checks = {"sigma8": float(S.pk.sigma_R(8.0 / S.c["h"])[0]), "st_normalisation": zm.st_normalisation()}
-    ctx.log(f"checks: sigma8 = {checks['sigma8']:.4f}, ST normalisation = {checks['st_normalisation']:.4f}")
+    s8 = float(S.pk.sigma_R(8.0 / S.c["h"])[0])
+    checks = {"sigma8": s8, "sigma8_ok": bool(abs(s8 - S.c["sigma8"]) < P["sigma8_tol"]),
+              "st_normalisation": zm.st_normalisation(),
+              "mass_fraction_z0": zm.mass_fraction_check(S.lnM, S.sig0, S.rho_m)}
+    checks["st_normalisation_ok"] = bool(abs(checks["st_normalisation"] - 1) < 0.01)
+    ctx.log(f"checks: sigma8 = {s8:.4f}, ST normalisation = {checks['st_normalisation']:.4f}, "
+            f"z=0 mass fraction grid/ST = {checks['mass_fraction_z0']}")
 
     fid = {k: P[k] for k in ("hmf", "accretion", "cal", "sigma_cal", "eps_extrap")}
     fres = run_model(S, P, fid, phi_obs)
@@ -214,10 +254,9 @@ def main(ctx):
           "calibration": fres["calibration"], "evaluable": fres["evaluable"]}
     if fres["evaluable"]:
         ratio = fres["phi_ours"] / phi_n26
-        mu = fres["phi_ours"] * inp.N26["volume_mpc3"] * P["area_factor"]
         r2.update({"phi_ours": fres["phi_ours"], "ratio_to_n26": ratio,
                    "verdict": r2_verdict(ratio, P["r2_factor"]),
-                   "p_tail_ours": zm.poisson_tail(inp.N26["n_sources"], mu),
+                   "p_tail_ours": zm.poisson_tail(inp.N26["n_sources"], fres["phi_ours"] * vol_eff),
                    "median_shape_zcal": fres["median_shape_zcal"],
                    "median_shape_z14_5": fres["median_shape_z14_5"],
                    "bin_halo_mass_range_z14_5": fres.get("bin_halo_mass_range_z14_5"),
@@ -231,13 +270,16 @@ def main(ctx):
     if fres.get("r3_evaluable"):
         r3.update({"sigma_roots": fres["sigma_roots"], "verdict": r3_verdict(fres["sigma_roots"], P["r3_target"]),
                    "phi_vs_sigma": fres["phi_vs_sigma"]})
-        # descriptive: roots with the floor at 10 M_min
+        # descriptive: same calibration (median relation fixed), halos above 10 M_min only
         P10 = dict(P, m_h_min=10 * P["m_h_min"])
         S10 = Setup(P10)
-        f10 = run_model(S10, P10, fid, phi_obs)
+        f10 = run_model(S10, P10, fid, phi_obs,
+                        fixed={"theta": fres["calibration"]["theta"], "m_cal_lo": fres.get("m_cal_lo"),
+                               "calibration": fres["calibration"]})
         r3["sigma_roots_10mmin"] = f10.get("sigma_roots")
-        r3["verdict_10mmin"] = r3_verdict(f10["sigma_roots"], P["r3_target"]) if f10.get("r3_evaluable") else "not evaluable"
-        ctx.log(f"R3: sigma central = {fres['sigma_roots']['central']}, verdict {r3['verdict']}")
+        r3["verdict_10mmin"] = (r3_verdict(f10["sigma_roots"], P["r3_target"]) if f10.get("r3_evaluable")
+                                else f"not evaluable ({f10.get('r3_reason') or f10.get('reason')})")
+        ctx.log(f"R3: sigma roots = {fres['sigma_roots']}, verdict {r3['verdict']}; 10 M_min: {r3['verdict_10mmin']}")
     else:
         r3["verdict"] = "not evaluable"
         r3["reason"] = fres.get("r3_reason") or fres.get("reason")
@@ -256,40 +298,44 @@ def main(ctx):
                             "r3_evaluable": res.get("r3_evaluable", False)})
                 if res.get("r3_evaluable"):
                     row["sigma_central"] = res["sigma_roots"]["central"]
+                    row["sigma_roots"] = res["sigma_roots"]
                     row["r3"] = r3_verdict(res["sigma_roots"], P["r3_target"])
+                else:
+                    row["r3_reason"] = res.get("r3_reason")
             else:
                 row["reason"] = res.get("reason")
             variants.append(row)
         ev = [v for v in variants if v["evaluable"]]
         n_min = P["robust_min_evaluable"]
-
-        def robustness(rows, key, fid_verdict):
-            if len(rows) < n_min:
-                return "not assessable"
-            return "robust" if all(r[key] == fid_verdict for r in rows) else "calibration-dependent"
-
         counts2 = {}
         for v in ev:
             counts2[v["r2"]] = counts2.get(v["r2"], 0) + 1
-        r2["robustness"] = robustness(ev, "r2", r2.get("verdict")) if r2.get("verdict") != "not evaluable" else "not assessable"
+        r2["robustness"] = robustness(ev, "r2", r2.get("verdict"), n_min)
         r2["variant_counts"] = {"evaluable": len(ev), "total": len(variants), "by_verdict": counts2}
         if ev:
-            r2["envelope_phi_ours"] = [min(v["phi_ours"] for v in ev), max(v["phi_ours"] for v in ev)]
-            r2["envelope_p_tail"] = [zm.poisson_tail(2, min(v["phi_ours"] for v in ev) * inp.N26["volume_mpc3"]),
-                                     zm.poisson_tail(2, max(v["phi_ours"] for v in ev) * inp.N26["volume_mpc3"])]
-        r2["phi_ours_by_sigma"] = {str(s): v["phi_ours"] for v in ev for s in [v["combo"]["sigma_cal"]]
-                                   if {k: v["combo"][k] for k in ("hmf", "accretion", "cal", "eps_extrap")}
-                                   == {k: fid[k] for k in ("hmf", "accretion", "cal", "eps_extrap")}}
+            lo, hi = min(v["phi_ours"] for v in ev), max(v["phi_ours"] for v in ev)
+            r2["envelope_phi_ours"] = [lo, hi]
+            r2["envelope_p_tail"] = [zm.poisson_tail(2, lo * vol_eff), zm.poisson_tail(2, hi * vol_eff)]
+        base = {k: fid[k] for k in ("hmf", "accretion", "cal", "eps_extrap")}
+        r2["phi_ours_by_sigma"] = {str(v["combo"]["sigma_cal"]): v["phi_ours"] for v in ev
+                                   if {k: v["combo"][k] for k in base} == base}
         ev3 = [v for v in ev if v.get("r3_evaluable")]
         counts3 = {}
         for v in ev3:
             counts3[v["r3"]] = counts3.get(v["r3"], 0) + 1
-        r3["robustness"] = robustness(ev3, "r3", r3.get("verdict")) if r3.get("verdict") != "not evaluable" else "not assessable"
-        r3["variant_counts"] = {"evaluable": len(ev3), "total": len(variants), "by_verdict": counts3,
-                                "not_monotonic": sum(1 for v in ev if not v.get("r3_evaluable"))}
-        if ev3:
-            sc = [v["sigma_central"]["value"] for v in ev3]
-            r3["envelope_sigma_central"] = [min(sc), max(sc)]
+        r3["robustness"] = robustness(ev3, "r3", r3.get("verdict"), n_min)
+        r3["variant_counts"] = {
+            "evaluable": len(ev3), "total": len(variants), "by_verdict": counts3,
+            "not_evaluable_reasons": {
+                reason: sum(1 for v in variants if (v.get("r3_reason") or v.get("reason")) == reason)
+                for reason in {v.get("r3_reason") or v.get("reason") for v in variants
+                               if not v.get("r3_evaluable")}},
+            "n_central_censored_le": sum(1 for v in ev3 if v["sigma_central"]["censored"] == "le"),
+            "n_central_censored_gt": sum(1 for v in ev3 if v["sigma_central"]["censored"] == "gt"),
+        }
+        sc = [v["sigma_central"]["value"] for v in ev3 if v["sigma_central"]["censored"] is None]
+        if sc:
+            r3["envelope_sigma_central_uncensored"] = [min(sc), max(sc)]
         ctx.log(f"variants: {len(ev)}/{len(variants)} evaluable; R2 {r2['robustness']} {counts2}; "
                 f"R3 {r3['robustness']} {counts3}")
 
@@ -307,9 +353,10 @@ def main(ctx):
         lf = inp.BOUWENS21[fid["cal"]]
         mg = np.arange(-23.0, -16.0 + 1e-9, 0.25)
         theta = fres["calibration"]["theta"]
+        floor = fres.get("m_cal_lo") if fid["eps_extrap"] == "const" else None
         med_cal = zm.muv_median(S.M, lf["z"], S.c, theta, fid["accretion"])
         hmf_cal = S.hmf(lf["z"], fid["hmf"])
-        med14 = zm.muv_median(S.M, 14.5, S.c, theta, fid["accretion"])
+        med14 = zm.muv_median(S.M, 14.5, S.c, theta, fid["accretion"], floor)
         hmf14 = S.hmf(14.5, fid["hmf"])
         curves = {
             "muv": mg.tolist(),

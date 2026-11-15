@@ -275,3 +275,47 @@ def gehrels(n, cl_lo=0.1587, cl_hi=0.8413):
 def poisson_tail(n, mu):
     """P(N >= n | mu)."""
     return float(special.gammainc(n, mu)) if n > 0 else 1.0
+
+
+# ------------------------------------------------- reference forms (tests) ----
+
+def eh_sound_horizon(c):
+    """EH98 eq. 6 sound horizon [Mpc]."""
+    h, Om, Ob = c["h"], c["Om"], c["Ob"]
+    theta = c["Tcmb"] / 2.7
+    wm, wb = Om * h * h, Ob * h * h
+    z_eq = 2.50e4 * wm * theta ** -4
+    k_eq = 7.46e-2 * wm * theta ** -2
+    b1 = 0.313 * wm ** -0.419 * (1 + 0.607 * wm ** 0.674)
+    b2 = 0.238 * wm ** 0.223
+    z_d = 1291 * wm ** 0.251 / (1 + 0.659 * wm ** 0.828) * (1 + b1 * wb ** b2)
+    R_d = 31.5 * wb * theta ** -4 * (z_d / 1e3) ** -1
+    R_eq = 31.5 * wb * theta ** -4 * (z_eq / 1e3) ** -1
+    return float(2.0 / (3.0 * k_eq) * np.sqrt(6.0 / R_eq)
+                 * np.log((np.sqrt(1 + R_d) + np.sqrt(R_d + R_eq)) / (1 + np.sqrt(R_eq))))
+
+
+def eisenstein_hu_nowiggle(k, c):
+    """EH98 eqs. 26-31 (no-wiggle form), for comparison only."""
+    h, Om, Ob = c["h"], c["Om"], c["Ob"]
+    theta = c["Tcmb"] / 2.7
+    wm, wb = Om * h * h, Ob * h * h
+    fb = Ob / Om
+    s = 44.5 * np.log(9.83 / wm) / np.sqrt(1 + 10 * wb ** 0.75)                 # eq. 26
+    alpha_g = 1 - 0.328 * np.log(431 * wm) * fb + 0.38 * np.log(22.3 * wm) * fb ** 2   # eq. 31
+    ks = np.asarray(k) * s
+    gamma_eff = Om * h * (alpha_g + (1 - alpha_g) / (1 + (0.43 * ks) ** 4))  # eq. 30
+    q = np.asarray(k) / h * theta ** 2 / gamma_eff                          # eq. 28
+    L0 = np.log(2 * np.e + 1.8 * q)
+    C0 = 14.2 + 731.0 / (1 + 62.5 * q)
+    return L0 / (L0 + C0 * q * q)                                           # eq. 29
+
+
+def mass_fraction_check(lnM, sig0, rho_m):
+    """z = 0: fraction of mass in halos on the grid vs the ST collapsed fraction over the same sigma range."""
+    h = dndlnm(lnM, sig0, 1.0, rho_m, "st")
+    frac_grid = float(np.trapz(h * np.exp(lnM), lnM) / rho_m)
+    x = np.log(1.0 / sig0)
+    order = np.argsort(x)
+    frac_st = float(np.trapz(f_st(sig0[order]), x[order]))
+    return {"fraction_grid": frac_grid, "fraction_st": frac_st}
