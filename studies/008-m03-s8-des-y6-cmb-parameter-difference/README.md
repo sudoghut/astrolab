@@ -70,6 +70,15 @@ check of the mapping; a failed R1 does not allow a second remapping.
 - A "not mapped" chain that is not fixed by the step-A amendment makes every item using it "not
   evaluable".
 
+**Step-A amendment (2026-11-15, after step A and before step B; column mapping only).** Step A
+found all three chains to be CosmoSIS Nautilus output with headers; Ωm, σ8, the stored S8 and the
+log-weight were mapped by the rules above without change. Two naming facts seen only in the headers
+complete the mapping: (1) the amplitude parameter is named `cosmological_parameters--a_s_1e9`
+(A_s × 10⁹), which is added to the amplitude names of section 2.2; (2) CosmoSIS writes derived
+parameters with an upper-case section name (for example `COSMOLOGICAL_PARAMETERS--SIGMA_12`), so
+such columns count as derived in section 2.4. No statistic of any chain was computed before this
+amendment.
+
 ### 2.1 R1 (verdict per chain)
 
 Weighted mean of S8, and the 68% interval around it: the shortest interval containing the mean and

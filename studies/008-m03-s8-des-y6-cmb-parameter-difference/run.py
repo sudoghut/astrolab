@@ -66,7 +66,8 @@ DERIVED = {"sigma_8", "sigma8", "s_8", "s8", "omega_lambda", "omega_nu", "omega_
 
 
 AMPLITUDE = {"a_s", "as", "log1e10as", "ln10^{10}a_s", "loga", "ln10_10_as", "log10as", "ln_as1e10",
-             "logas", "ln10as", "ln_1e10_as", "logA_s".lower()}
+             "logas", "ln10as", "ln_1e10_as", "logA_s".lower(),
+             "a_s_1e9"}   # step-A amendment 2026-11-15: DES Y6 chains name A_s x 1e9 'a_s_1e9' 
 
 
 def _parse_priors(lines):
@@ -314,8 +315,11 @@ def main(ctx):
             def sampled(key, low):
                 # README 2.4: sampled = has a '##' prior range, or a non-derived cosmological_parameters column
                 by_range = {n for n in ranges[key] if n.startswith("cosmological_parameters--")}
+                hdr = formats[key]["header"]
+                # step-A amendment 2026-11-15: CosmoSIS writes derived parameters in upper case
+                upper = {h.lower() for h in hdr if h.split("--")[0].isupper()}
                 by_name = {n for n in low if n.startswith("cosmological_parameters--")
-                           and n.split("--")[-1] not in DERIVED}
+                           and n.split("--")[-1] not in DERIVED and n not in upper}
                 return (by_range | by_name) & set(low)
 
             cand = sorted(sampled("des_3x2pt", low_d) & sampled("cmb", low_c))
