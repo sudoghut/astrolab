@@ -19,7 +19,7 @@ The chain:
   but does not carry the conclusion, see mod_crit_redundant)
 
 Numbers are encoded in tenths of a sigma (Nat), as the reported values rounded to one decimal;
-a premise of the form n_x10 at most 18 restates the reported 1.8.
+a premise n_x10 = 18 states the reported, rounded 1.8.
 Quotes follow the arXiv HTML version v2; mathematics is quoted in its LaTeX source form.
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
@@ -58,9 +58,9 @@ inductive Field where
   | obs_cmb
   /-- MOD [stated: "We measure consistency from the probability of a parameter difference"] Sec. IV.6, eqs. 17-19 -/
   | mod_metric
-  /-- STAT [stated: "we find a full parameter space difference of 1.8"] Sec. VIII (also Sec. V.2, Table 6: PTE 0.08); encoded as at most 18 tenths -/
+  /-- STAT [stated: "we find a full parameter space difference of 1.8"] Sec. VIII (also Sec. V.2, Table 6: PTE 0.08); encoded as the reported value, 18 tenths -/
   | stat_full
-  /-- STAT [stated: "the difference increases to 2.6"] Sec. VIII (projected onto S8; also Sec. V.2); encoded as at most 26 tenths -/
+  /-- STAT [stated: "the difference increases to 2.6"] Sec. VIII (projected onto S8; also Sec. V.2); encoded as the reported value, 26 tenths -/
   | stat_s8
   /-- MOD [stated: "We set $n_{\sigma}<3$ as the criterion for different data sets agreeing well enough that it makes sense to examine their combined constraint"] Sec. IV.6; D26 states the criterion generically and applies it to the full-space number (Sec. V.2: As such, we are able to combine) -/
   | mod_crit
@@ -82,8 +82,8 @@ def prov : Field → Prov
 def prem : Field → Vocab → Prop
   | .obs_cmb, v => v.CmbPrimary
   | .mod_metric, v => v.MetricUsed
-  | .stat_full, v => v.n_full_x10 ≤ 18
-  | .stat_s8, v => v.n_s8_x10 ≤ 26
+  | .stat_full, v => v.n_full_x10 = 18
+  | .stat_s8, v => v.n_s8_x10 = 26
   | .mod_crit, v => v.n_full_x10 < 30 → v.Combinable
   | .stat_proj, v => v.ProjSmall
   | .gap_conv, v => v.MetricUsed → v.ProjSmall → v.n_s8_x10 < 30 → v.n_full_x10 < 30 → v.NoEvidence
@@ -101,8 +101,8 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 /-- The paper's chain, step by step. -/
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  have hfull : v.n_full_x10 ≤ 18 := p .stat_full          -- Sec. V.2, VIII: 1.8 sigma
-  have hs8 : v.n_s8_x10 ≤ 26 := p .stat_s8                -- Sec. V.2, VIII: 2.6 sigma
+  have hfull : v.n_full_x10 = 18 := p .stat_full          -- Sec. V.2, VIII: 1.8 sigma
+  have hs8 : v.n_s8_x10 = 26 := p .stat_s8                -- Sec. V.2, VIII: 2.6 sigma
   exact p .gap_conv (p .mod_metric) (p .stat_proj) (by omega) (by omega)  -- GAP: 3 sigma usage
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
@@ -136,16 +136,16 @@ theorem gap_conv_needed : ¬ ∀ v, Without .gap_conv v → Conclusion v := fun 
 encoding (its atom appears nowhere else); the reference matters for the numbers, not the logic. -/
 theorem obs_cmb_redundant : ∀ v, Without .obs_cmb v → Conclusion v := by
   intro v p
-  have hfull : v.n_full_x10 ≤ 18 := p .stat_full (by decide)
-  have hs8 : v.n_s8_x10 ≤ 26 := p .stat_s8 (by decide)
+  have hfull : v.n_full_x10 = 18 := p .stat_full (by decide)
+  have hs8 : v.n_s8_x10 = 26 := p .stat_s8 (by decide)
   exact p .gap_conv (by decide) (p .mod_metric (by decide)) (p .stat_proj (by decide)) (by omega) (by omega)
 
 /-- Redundant: the combination criterion of Sec. IV.6 licenses combining the data sets; it does
 not carry the no-evidence conclusion. -/
 theorem mod_crit_redundant : ∀ v, Without .mod_crit v → Conclusion v := by
   intro v p
-  have hfull : v.n_full_x10 ≤ 18 := p .stat_full (by decide)
-  have hs8 : v.n_s8_x10 ≤ 26 := p .stat_s8 (by decide)
+  have hfull : v.n_full_x10 = 18 := p .stat_full (by decide)
+  have hs8 : v.n_s8_x10 = 26 := p .stat_s8 (by decide)
   exact p .gap_conv (by decide) (p .mod_metric (by decide)) (p .stat_proj (by decide)) (by omega) (by omega)
 
 /-- What the paper writes is not enough: it does not state the rule that turns sub-3-sigma
