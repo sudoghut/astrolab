@@ -37,10 +37,15 @@ verdict, the numbers, and our explanation of any failure.
 
 **Validity (before any criterion).** The structural checks of section 4 step 1 (files present,
 array shapes consistent, the first frequency equal to 1/T within 1% for T = 16.03 yr, the grid
-uniform) must pass for a data product, and every posterior must be finite and normalisable with
-less than 1% of its mass in the outermost 1% of the prior range of each parameter (otherwise the
-grid or prior edge is driving the result). If a check fails, every criterion that depends on it
+uniform) must pass for a data product, and every posterior must be finite and normalisable. The
+edge rule applies to log10 A and γ in R1, R2 and R3 (and to log10 A only in R4): less than 1% of
+the posterior mass may lie in the outermost 1% of the prior range of each of these parameters
+(otherwise the grid or prior edge is driving the result). In R4, mass at the prior edges of κ
+and f_b is expected (κ → 0 and f_b below f₁ make the turnover inert) and is reported, not a
+reason for "not evaluable". If a check fails, every criterion that depends on it
 is reported as **not evaluable**, with the reason.
+
+Amplitudes: Ã, A₅ and A₉₅ are 10^x of the median and 5/95% quantiles of x = log10 A.
 
 **R1 (amplitude, γ = 13/3; v2.0.0, 14 frequencies).** Reference distribution q(x) for
 x = log10 A: the median-pinned two-piece half-normal with m = log10(2.4e-15),
@@ -58,7 +63,8 @@ density exceeds its maximum along the line γ = 13/3 (section 4, step 4). The re
 Descriptive category (project convention, always labelled as such): q in [0.95, 0.997] "same
 order as L8's stated tension"; q < 0.95 "weaker"; q > 0.997 "stronger". Descriptive: medians and
 5–95% quantiles of the A and γ marginals against L8's 6.4 (+4.2/−2.7) × 10⁻¹⁵ and 3.2 ± 0.6, and
-the 1-D HPD level of γ = 13/3.
+the 1-D HPD level of γ = 13/3, and q computed with "≥" instead of ">" (cells tied with p*; the
+likelihood is a histogram lookup, so exact ties can occur).
 
 **R2b (Table A1 overlap summary; descriptive except the Lean binding).** With our R1 median Ã
 and 90% interval [A₅, A₉₅]: for each Table A1 row with 16th/84th percentiles [P16, P84]
@@ -87,7 +93,10 @@ Total under 9 MB, cached; read in memory with `zipfile` and `numpy.load(..., all
 (the archives are treated as untrusted data); nothing is extracted into the project folder.
 No ENTERPRISE, ceffyl or PTArcade install.
 
-**L37 Table A1** (transcribed 2026-11-14 from the arXiv HTML, read twice; units of A_yr):
+**L37 Table A1** (transcribed 2026-11-14 from the arXiv v2 HTML and ar5iv, read twice; units of
+A_yr). The 2026 erratum (ApJL 1006, L67) fixes a galaxy-mass-function error, a sampler error and
+a typo in L37's own population analysis; its full text could not be read, so whether it touches
+Table A1 (literature values) was not checked; the transcription source is arXiv v2.
 
 | # | Model (reference years from L37's list) | A_yr 16th | A_yr 84th |
 |---|---|---|---|
@@ -123,12 +132,17 @@ Rows 15 and 16 are identical in all four printed columns (also the A_10yr column
 1. **Load and check** (per data product). Open the zip from the cache, locate the directory
    whose name contains `30f_fs{hd}` (exactly one; otherwise not evaluable). Read `freqs.npy`
    (30 values), `log10rhogrid.npy` (G values, uniform spacing db, checked to 10⁻⁶ relative) and
-   `density.npy` (log-density, shape (1, 30, G) or (30, G)). NaN densities are set to −36 as in
-   ceffyl. Checks of section 2 "Validity".
+   `density.npy` (log-density, shape (1, 30, G) or (30, G), with the frequency axis of length 30
+   before the grid axis; any other shape makes that data product not evaluable). NaN densities
+   are set to −36 as in ceffyl. Checks of section 2 "Validity". The zip is untrusted: each
+   member's `file_size` is checked against 50 MB before reading, and member names containing
+   ".." or starting with "/" are rejected.
 2. **Likelihood** (Lamb+2023 eq. 8–11; ceffyl `ln_likelihood`). For a model PSD S(f), ρ_k² =
    S(f_k)/T with T = 1/f₁ from the file (seconds), log10 ρ_k = ½ log10 ρ_k². Bin index
-   idx_k = searchsorted(binedges, log10 ρ_k) − 1 with binedges = grid − db/2 plus a top edge;
-   idx < 0 is set to 0 (below the grid: the bottom cell's density); idx ≥ G gives ln L = −∞.
+   idx_k = searchsorted(binedges, log10 ρ_k, side="left") − 1 with binedges = grid − db/2 plus a
+   top edge equal to grid[G−1] (as in ceffyl, so the top cell is half-width and anything above
+   grid[G−1] gives −∞); idx < 0 is set to 0 (below the grid: the bottom cell's density);
+   idx ≥ G gives ln L = −∞.
    ln L = Σ_{k < K} density[k, idx_k] (the constant K·ln db is dropped). K = 14.
    Power law: S(f) = A²/(12π²) f_yr⁻³ (f/f_yr)^(−γ), f_yr = 1/(365.25 × 86400 s).
 3. **R1.** Grid x = log10 A on [−18, −14], 4001 points (step 0.001); uniform prior; posterior
@@ -138,20 +152,24 @@ Rows 15 and 16 are identical in all four printed columns (also the A_10yr column
 4. **R2.** Grid log10 A on [−18, −11] (1401 points, step 0.005) × γ on [0, 7] (1401 points,
    step 0.005); uniform priors (L8 Appendix B). Posterior on the grid, cell masses w_ij =
    p_ij ΔxΔγ normalised to 1. Line density: p along γ = 13/3 evaluated directly at the
-   log10 A grid points; p* = its maximum. q = Σ w_ij over cells with p_ij > p*. Marginals by
+   log10 A grid points, with the same normalising constant as p_ij; p* = its maximum.
+   q = Σ w_ij over cells with p_ij > p* (strict, as intended; "≥" is reported descriptively).
+   Evaluated in chunks over the γ axis (memory). Marginals by
    summing; medians/quantiles as in step 3; 1-D HPD level of 13/3: mass of the γ marginal where
    it exceeds its value at 13/3 (linear interpolation).
 5. **R2b.** Section 2 rules with A₅, Ã, A₉₅ from R1.
 6. **R4.** Turnover model (Sampson, Cornish & McWilliams 2015, arXiv:1503.02662):
    S(f) = S_PL(f; A, 13/3) / (1 + (f_b/f)^κ). Priors: log10 A ~ U(−18, −11), log10 f_b ~
-   U(−9.0, −7.5) [Hz], κ ~ U(0, 7); grid 701 × 61 × 71 (steps 0.01, 0.025, 0.1). Evidence Z =
-   ∫ L π by the trapezoid rule on each grid with the same constant dropped in both models;
-   ln BF = ln Z_turn − ln Z_PL, where Z_PL is the R1-type integral over log10 A ~ U(−18, −11)
-   (the R2 prior range, so both models share the amplitude prior).
+   U(−9.0, −7.5) [Hz], κ ~ U(0, 7); grid 701 × 61 × 71 (steps 0.01, 0.025, 0.1), prior
+   densities 1/7, 1/1.5, 1/7. Evidence Z = ∫ L π by the trapezoid rule, evaluated with
+   log-sum-exp, in chunks over κ, with the same constant (K ln db) dropped in both models;
+   ln BF = ln Z_turn − ln Z_PL, where Z_PL integrates the γ = 13/3 power law over log10 A ~
+   U(−18, −11) (prior density 1/7) on a grid of step 0.01, matching the turnover A axis.
 7. **R3.** Steps 1–4 on v1.1.0.
 
 Sensitivity (explorable, section 8; not part of any criterion): ln L = −∞ also below the grid;
-K = 30 frequencies; grid steps halved.
+K = 30 frequencies; R1/R2 grid steps halved (knobs); R4 grid steps (knob `r4_steps`); R4 priors
+(an explore script).
 
 Systematics to keep in view: the factorised likelihood ignores cross-frequency covariance and
 was validated on NG12.5 only; the reference distribution q is built from three quantiles, not
@@ -178,6 +196,7 @@ How a coding agent answers "what if" questions about this study without touching
 | `below_grid` | `"clip"` (bottom-cell density, ceffyl) or `"neg_inf"` | either | cache only |
 | `r1_step`, `r2_step` | grid steps for R1 (log10 A) and R2 (both axes) | 0.0005–0.01 | cache only (smaller steps are slower) |
 | `gamma_fixed` | γ for R1 | 2–6 | cache only |
+| `r4_steps` | R4 grid steps (log10 A, log10 f_b, κ) | (0.005–0.02, 0.0125–0.05, 0.05–0.2) | cache only |
 | `versions` | data products to analyse | `["v2.0.0"]`, `["v2.0.0", "v1.1.0"]` | cache after first run (5.3 MB for v1.1.0) |
 
 - Rerun with an override: `python -m astrolab explore 005-m09-nanograv-gwb-power-law --tag <topic> --set KEY=VALUE`
@@ -185,10 +204,12 @@ How a coding agent answers "what if" questions about this study without touching
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 005-m09-nanograv-gwb-power-law --tag <topic> --script explore/<name>.py`.
 - Results files and keys (planned): `results/r1.json` (`median_A`, `q05_A`, `q95_A`, `hellinger`,
-  `verdict`); `results/r2.json` (`q_hpd_13_3`, `category`, `gamma_median`, `gamma_q05`,
-  `gamma_q95`, `A_median`); `results/r2b.json` (`n_models_overlap_ci90`,
-  `n_models_contain_median`, merged counts, per-row table); `results/r3.json`;
-  `results/r4.json` (`ln_bf_turnover_vs_pl`).
+  `verdict`); `results/r2.json` (`q_hpd_13_3`, `q_hpd_13_3_ge`, `category`, `gamma_median`,
+  `gamma_q05`, `gamma_q95`, `gamma_hpd1d_13_3`, `A_median`, `A_q05`, `A_q95`);
+  `results/r2b.json` (`n_models_overlap_ci90`, `n_models_contain_median`,
+  `n_models_overlap_ci90_merged`, `n_models_contain_median_merged`, per-row table);
+  `results/r3.json` (`delta_median_A`, `delta_q`, `hellinger_v1_v2`, and the v1.1.0 R1/R2
+  numbers); `results/r4.json` (`ln_Z_pl`, `ln_Z_turn`, `ln_bf_turnover_vs_pl`, edge masses).
 - Example questions: "what if we use all 30 frequencies?" → `--set n_freq=30`; "does the
   off-grid rule matter?" → `--set below_grid=neg_inf`; "how does A change at γ = 4?" →
   `--set gamma_fixed=4`.
