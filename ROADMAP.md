@@ -190,9 +190,11 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 ### M8 · z ≈ 14 星系（L1）
 
 **文献**
-- JADES-GS-z14-0：Carniani et al. 2024, Nature 633, 318, arXiv:2405.18485，z = 14.32 [S]。
-- MoM-z14：Naidu et al. 2026, OJAp 9, arXiv:2505.11263，z_spec = 14.44 ± 0.02 [S]。**修正：发表于 2026 年的 OJAp，不是 2025 年。**
-- 紫外光度函数：Harikane et al. 2025 ApJ, arXiv:2406.18352 [V]。
+- JADES-GS-z14-0：Carniani et al. 2024, Nature 633, 318, arXiv:2405.18485，z = 14.32，M_UV = −20.81 [V]。
+- MoM-z14：Naidu et al. 2026, OJAp 9, arXiv:2505.11263，z_spec = 14.44 ± 0.02，M_UV = −20.23；由两个天体得 z = 14–15、−21 < M_UV < −20 的 log φ = −5.36，比 JWST 之前的共识模型高约 182 倍 [V]。**修正：发表于 2026 年的 OJAp，不是 2025 年。**
+- 紫外光度函数：Harikane et al. 2025, ApJ 980, 138, arXiv:2406.18352，z ~ 7–14（不是 9–14）的光谱 UV LF，表 2–3 可读 [V]。
+- 所需紫外弥散：Shen et al. 2023, MNRAS 525, 3254, arXiv:2305.05679（z ~ 12 约 2.0 mag）[V，来自检索结果]。
+- 研究计划：015（数密度复算、恒定效率晕模型之比、所需 σ_UV）。
 
 截至 2026 年 11 月，尚未找到 z > 14.44 的光谱确认 [S]。
 
