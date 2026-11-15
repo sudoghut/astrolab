@@ -73,3 +73,12 @@ def test_powerlaw_fit_recovers_slope():
 
 def test_one_sided_sigma():
     assert np.isclose(rc.one_sided_sigma(0.0013499), 3.0, atol=1e-3)
+
+
+def test_disc_mass_sphere_limits():
+    M, L, H = 4e10, 2.6, 0.3
+    assert rc.disc_mass_sphere(500.0, M, L, H) / M > 0.999
+    # thin-disc limit: M(<r) -> M [1 - (1 + r/L) exp(-r/L)]
+    r = 8.0
+    thin = M * (1 - (1 + r / L) * np.exp(-r / L))
+    assert abs(rc.disc_mass_sphere(r, M, L, 1e-4) / thin - 1) < 1e-3

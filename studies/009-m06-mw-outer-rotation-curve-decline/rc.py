@@ -44,6 +44,22 @@ def freeman_v2(R, M, L):
     return 4 * np.pi * G * sigma0 * L * y ** 2 * (special.i0(y) * special.k0(y) - special.i1(y) * special.k1(y))
 
 
+def disc_mass_sphere(r, M, L, H):
+    """Mass of a double-exponential disc inside a sphere of radius r (numerical; README 2.5).
+
+    Integrates the cylinder mass at each height, 2 pi rho0 e^(-z/H) L^2 [1 - (1 + s/L) e^(-s/L)] with
+    s = sqrt(r^2 - z^2), over z in units of H (u = z / H) so that thin discs are resolved.
+    """
+    rho0 = M / (4 * np.pi * H * L ** 2)
+
+    def f(u):
+        z = u * H
+        s = np.sqrt(max(r * r - z * z, 0.0))
+        return 2 * np.pi * rho0 * np.exp(-u) * L ** 2 * (1 - (1 + s / L) * np.exp(-s / L)) * H
+
+    return 2 * integrate.quad(f, 0, min(r / H, 60.0), limit=200)[0]
+
+
 def point_v2(R, M):
     return G * M / R
 
