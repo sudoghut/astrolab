@@ -65,7 +65,7 @@ inductive Field where
   | mod_sel
   /-- GAP [reconstructed] the injection-based selection function is adequate at high mass; P26 does not test this at the masses that matter for the 35 Msun feature -/
   | gap_sel
-  /-- STAT [stated 2508.18083: "at 97.7% credibility"] Sec. 6.1 (subject: the index above 35 Msun exceeds the one below; the body is the reported 97.7%) -/
+  /-- STAT [stated 2508.18083: "at 97.7% credibility"] Sec. 6.1 (subject: the index above 35 Msun exceeds the one below; the body, at least 97.7 percent, is no stronger than the reported value) -/
   | stat_steep
   /-- STAT [stated 2508.18083: "which exhibits a local peak at"] Sec. 6.1 (B-Spline, 33.5 Msun) -/
   | stat_bspline
