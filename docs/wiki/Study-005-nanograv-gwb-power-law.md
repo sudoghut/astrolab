@@ -308,19 +308,19 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | C: the models represent expectations (`gap_repr`) | out of scope as a test | would need a definition of what "expectations" covers; L37 itself says the high end | – | – | – |
 | Sampler-bug sensitivity (R3) | explorable (not decisive) | redo R1 and R2 on v1.1.0 | Zenodo 10344086, 5.3 MB | none - exploration only, see README §8 | pre-registered rule: not evaluable (two matching directories); post hoc with the exact directory: A −8%, γ +0.17 in v2.0.0 |
 | Spectral shape (R4) | explorable (not decisive) | Bayes factor of a power law against a power law with a low-frequency turnover | same | none - exploration only (prior-dependent; L11 warns) | ln BF = 2.37 (turnover vs γ = 13/3 power law; prior-dependent) |
-| Off-grid rule, number of frequencies | explorable (not decisive) | values below the grid floor clipped (ceffyl) vs −∞; 14 vs 30 frequencies | same | none - exploration only | not yet explored |
+| Off-grid rule, number of frequencies | explorable (not decisive) | values below the grid floor clipped (ceffyl) vs −∞; 14 vs 30 frequencies | same | none - exploration only | post hoc: K = 30 H 0.093, q 0.993; K = 5 H 0.243, q 0.92; off-grid rule and grid range no effect |
 | HD significance | out of scope | needs the full timing data and noise models | GB-scale | – | – |
 
 #### What we found (2026-11-15)
 
-On NANOGrav's 2026 KDE free spectrum (v2.0.0), the laptop refit lands on L8's numbers. At
+On NANOGrav's 2026 KDE free spectrum (v2.0.0), the laptop refit lands on L8's numbers under L8's fiducial DMX noise model (see the referee caveats below). At
 γ = 13/3 the amplitude is A = 2.31 [1.82, 2.92] × 10⁻¹⁵ (median, 5–95%) against L8's
 2.4 [1.8, 3.1] × 10⁻¹⁵; the Hellinger distance to the pre-registered reference is 0.099 (threshold
 0.15). With γ free, A = 6.33 × 10⁻¹⁵ and γ = 3.25 [2.65, 3.89] against L8's 6.4 × 10⁻¹⁵ and
 3.2 ± 0.6. The smallest 2-D HPD region that touches γ = 13/3 holds q = 0.979 of the posterior, the
 same order as L8's "within the 99% region" (under our approximate, factorised likelihood).
 Eight of the 24 Table A1 ranges overlap our 90% interval, so the `NUM` premise of route 1 holds;
-five contain our median. These numbers do not touch the two gaps: whether an overlap means "no
+five contain our median. These numbers do not touch the three gaps (route 2 is not tested): whether a holodeck reproduction applies to this amplitude (`gap_holo`), whether an overlap means "no
 tension" (`gap_overlap`) and whether those models represent "astrophysical expectations"
 (`gap_repr`).
 
@@ -344,10 +344,10 @@ these numbers should be read:
   L8 is therefore conditional on the DMX noise model, which is the one L8's headline numbers use.
 - **The size of the approximation error is better read from v1.1.0.** L8's numbers come from the
   2023 chains, whose like-for-like product is v1.1.0: there H = 0.143, just under the 0.15
-  threshold. The smaller v2.0.0 distance (0.099) partly reflects the 2026 product's own changes.
+  threshold. The smaller v2.0.0 distance (0.099) may partly reflect the 2026 product's own changes.
 - **R4 is mostly a preference for γ < 13/3, not for a turnover.** A free-γ power law against the
   γ = 13/3 power law gives ln BF = 1.76; the turnover adds only 0.61 over the free-γ power law.
-  L8 Appendix E calls the turnover Bayes factor (1.46, under a different model) inconclusive.
+  L8 Appendix E calls the turnover Bayes factor (1.46, under CURN, common uncorrelated red noise, with γ free) inconclusive.
 
 Number of frequencies: with all 30, H = 0.093 and q = 0.993; with only 5, H = 0.243 and q = 0.92.
 L8 uses 14. The KDE grid range and the off-grid rule make no difference (checked by the referee).
@@ -563,12 +563,12 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | C：模型代表预期（`gap_repr`） | 不在检验范围内 | 需要先界定"预期"指什么；L37 自己说在高端 | – | – | – |
 | 采样器错误的敏感度（R3） | 可探索（不能判决） | 在 v1.1.0 上重做 R1、R2 | Zenodo 10344086，5.3 MB | 无——仅供探索，见 README 第 8 节 | 预注册规则：不可评估（两个目录匹配）；事后用精确目录：v2.0.0 中 A 降低 8%、γ 升高 0.17 |
 | 谱形（R4） | 可探索（不能判决） | 幂律对带低频转折的幂律的贝叶斯因子 | 同上 | 无——仅供探索（依赖先验；L11 有提醒） | ln BF = 2.37（转折对 γ = 13/3 幂律；依赖先验） |
-| 越界规则、频率个数 | 可探索（不能判决） | 低于网格下边界取边界值（ceffyl）对 −∞；14 对 30 个频率 | 同上 | 无——仅供探索 | 尚未探索 |
+| 越界规则、频率个数 | 可探索（不能判决） | 低于网格下边界取边界值（ceffyl）对 −∞；14 对 30 个频率 | 同上 | 无——仅供探索 | 事后：K = 30 时 H 0.093、q 0.993；K = 5 时 H 0.243、q 0.92；越界规则与网格范围没有影响 |
 | HD 显著性 | 不在范围内 | 需要完整的计时数据与噪声模型 | GB 级 | – | – |
 
 #### 我们的发现（2026-11-15）
 
-在 NANOGrav 2026 年的 KDE 自由谱（v2.0.0）上，本机重拟得到了 L8 的数字。γ = 13/3 时振幅 A = 2.31 [1.82, 2.92] × 10⁻¹⁵（中位数与 5%–95%），L8 为 2.4 [1.8, 3.1] × 10⁻¹⁵；与预注册参考分布的 Hellinger 距离为 0.099（门槛 0.15）。γ 自由时 A = 6.33 × 10⁻¹⁵、γ = 3.25 [2.65, 3.89]，L8 为 6.4 × 10⁻¹⁵ 与 3.2 ± 0.6。与 γ = 13/3 相交的最小二维 HPD 区域含后验的 q = 0.979，与 L8 的"在 99% 区域内"同一量级（在我们的近似分解似然下）。表 A1 的 24 个范围中有 8 个与我们的 90% 区间重叠，所以途径 1 的 `NUM` 前提成立；5 个包含我们的中位数。这些数字不触及两个缺口：重叠是否意味着"没有张力"（`gap_overlap`），以及这些模型是否代表"天体物理预期"（`gap_repr`）。
+在 NANOGrav 2026 年的 KDE 自由谱（v2.0.0）上，在 L8 基准的 DMX 噪声模型下，本机重拟得到了 L8 的数字（见下文审稿后的保留意见）。γ = 13/3 时振幅 A = 2.31 [1.82, 2.92] × 10⁻¹⁵（中位数与 5%–95%），L8 为 2.4 [1.8, 3.1] × 10⁻¹⁵；与预注册参考分布的 Hellinger 距离为 0.099（门槛 0.15）。γ 自由时 A = 6.33 × 10⁻¹⁵、γ = 3.25 [2.65, 3.89]，L8 为 6.4 × 10⁻¹⁵ 与 3.2 ± 0.6。与 γ = 13/3 相交的最小二维 HPD 区域含后验的 q = 0.979，与 L8 的"在 99% 区域内"同一量级（在我们的近似分解似然下）。表 A1 的 24 个范围中有 8 个与我们的 90% 区间重叠，所以途径 1 的 `NUM` 前提成立；5 个包含我们的中位数。这些数字不触及三个缺口（途径 2 未检验）：holodeck 的再现能否用于这一振幅（`gap_holo`）、重叠是否意味着"没有张力"（`gap_overlap`），以及这些模型是否代表"天体物理预期"（`gap_repr`）。
 
 与 2023 年产品的预注册比较（R3）不可评估：其压缩包里有两个目录符合我们的规则（另一个用不同的噪声模型）。事后改读精确目录可见，2026 年的采样器修正使 γ = 13/3 时的 A 降低约 8%（2.52 → 2.31 × 10⁻¹⁵），γ 升高约 0.17。低频转折相对 γ = 13/3 幂律略受偏好（ln 贝叶斯因子 2.37），这是依赖先验的描述性数字。
 
@@ -577,8 +577,8 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 **独立审稿之后（2026-11-15；事后，仅为探索）。** 三条保留意见改变了对这些数字的解读：
 
 - **噪声模型占主导。** 在 v1.1.0 中用色散量（dispersion measure）变化的高斯过程模型（DMGP）而不是 L8 基准的 DMX 模型拟合的自由谱上，R1 得 A = 2.19 × 10⁻¹⁵、H = 0.312（"不同"），R2 得 q = 0.62、γ = 3.75 [3.13, 4.43]，R4 得 ln BF = 0.99。L8 第 V.1 节自己也指出 DMGP 会把 γ 推向 13/3。所以我们与 L8 的一致以 DMX 噪声模型为条件，而 L8 的主要数字用的正是它。
-- **近似误差的大小更应以 v1.1.0 为准。** L8 的数字来自 2023 年的链，与之同期的产品是 v1.1.0：那里 H = 0.143，刚好低于 0.15。v2.0.0 上较小的距离（0.099）部分来自 2026 年产品自身的变化。
-- **R4 主要反映 γ < 13/3 的偏好，而不是转折。** 自由 γ 幂律对 γ = 13/3 幂律的 ln BF = 1.76；转折相对自由 γ 幂律只多 0.61。L8 附录 E 称（不同模型下的）转折贝叶斯因子 1.46 不确定。
+- **近似误差的大小更应以 v1.1.0 为准。** L8 的数字来自 2023 年的链，与之同期的产品是 v1.1.0：那里 H = 0.143，刚好低于 0.15。v2.0.0 上较小的距离（0.099）可能部分来自 2026 年产品自身的变化。
+- **R4 主要反映 γ < 13/3 的偏好，而不是转折。** 自由 γ 幂律对 γ = 13/3 幂律的 ln BF = 1.76；转折相对自由 γ 幂律只多 0.61。L8 附录 E 称（在 CURN，即无相关的共同红噪声（common uncorrelated red noise）、γ 自由的模型下）转折贝叶斯因子 1.46 不确定。
 
 频率个数：用全部 30 个时 H = 0.093、q = 0.993；只用 5 个时 H = 0.243、q = 0.92。L8 用 14 个。KDE 网格范围与越界规则没有影响（审稿人核对过）。
 

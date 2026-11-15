@@ -28,6 +28,7 @@
     <a href="https://github.com/sudoghut/astrolab/wiki/Study-005-nanograv-gwb-power-law">Wiki 文章</a>。</span></p>
 
   <h2><span class="en">Verdicts</span><span class="zh">判定</span></h2>
+  <p class="note"><span class="en">All results use L8's fiducial DMX noise model. On the free spectrum fitted with the DMGP model of dispersion-measure variations (v1.1.0, post hoc) the refit gives H = 0.31 (R1 would read "differs") and q = 0.62; see README section 6.</span><span class="zh">所有结果都用 L8 基准的 DMX 噪声模型。在用色散量变化的 DMGP 模型拟合的自由谱上（v1.1.0，事后），重拟给出 H = 0.31（R1 会判"不同"）与 q = 0.62；见 README 第 6 节。</span></p>
   <div class="table-wrap" id="criteria"><span class="en">loading…</span><span class="zh">加载中……</span></div>
 
   <div class="grid2">
@@ -73,13 +74,21 @@ function render() {
   if (!D) return;
   const {r1, r2, r2b, r3, r4, curves} = D;
   const cls = v => v && v.startsWith('consistent') ? 'ok' : (v === 'not evaluable' ? 'warn' : 'bad');
+  const VERDICT = {"consistent with L8's interval": '与 L8 的区间一致', 'differs': '不同', 'not evaluable': '不可评估'};
+  const tv = v => i18n.L(esc(v), VERDICT[v] || esc(v));
+  const tc = c => {
+    const zh = c && c.startsWith('same order') ? '与 L8 所称张力同一量级（描述类别）'
+      : c && c.startsWith('weaker') ? '比 L8 所称更弱（描述类别）'
+      : c && c.startsWith('stronger') ? '比 L8 所称更强（描述类别）' : esc(c);
+    return i18n.L(esc(c), zh);
+  };
   const rows = [
     [i18n.L('R1 amplitude (γ = 13/3)', 'R1 振幅（γ = 13/3）'),
      `${fmt(r1.median_A)} [${fmt(r1.q05_A)}, ${fmt(r1.q95_A)}]`, '2.4 [1.8, 3.1] × 10⁻¹⁵',
-     `<span class="${cls(r1.verdict)}">${esc(r1.verdict)}</span> (H = ${fmt(r1.hellinger)} &lt; ${r1.h_max})`],
+     `<span class="${cls(r1.verdict)}">${tv(r1.verdict)}</span> (H = ${fmt(r1.hellinger)}; ${i18n.L('threshold', '门槛')} ${r1.h_max})`],
     [i18n.L('R2 HPD level q at γ = 13/3', 'R2 γ = 13/3 处的 HPD 水平 q'),
      fmt(r2.q_hpd_13_3, 4), i18n.L('"included in the 99% credible region"', '"包含在 99% 可信区域内"'),
-     esc(r2.category)],
+     tc(r2.category)],
     [i18n.L('R2 free fit: A, γ', 'R2 自由拟合：A、γ'),
      `A ${fmt(r2.A_median)} [${fmt(r2.A_q05)}, ${fmt(r2.A_q95)}]; γ ${fmt(r2.gamma_median)} [${fmt(r2.gamma_q05)}, ${fmt(r2.gamma_q95)}]`,
      'A 6.4 [3.7, 10.6] × 10⁻¹⁵; γ 3.2 [2.6, 3.8]', i18n.L('descriptive', '描述')],
@@ -94,7 +103,9 @@ function render() {
     rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('') + '</tbody></table>';
 
   document.getElementById('c1').innerHTML = i18n.L(`refit: ${fmt(r1.median_A)}, consistent with L8 (R1)`, `重拟：${fmt(r1.median_A)}，与 L8 一致（R1）`);
-  document.getElementById('c2').innerHTML = i18n.L(`${r2b.n_models_overlap_ci90} of ${r2b.n_rows} rows overlap (holds)`, `${r2b.n_rows} 行中 ${r2b.n_models_overlap_ci90} 行重叠（成立）`);
+  const holds = r2b.n_models_overlap_ci90 >= 1;
+  document.getElementById('c2').innerHTML = i18n.L(`${r2b.n_models_overlap_ci90} of ${r2b.n_rows} rows overlap (${holds ? 'holds' : 'fails'})`,
+    `${r2b.n_rows} 行中 ${r2b.n_models_overlap_ci90} 行重叠（${holds ? '成立' : '不成立'}）`);
   const v1 = (r3.versions || {})['v1.1.0'] || {};
   document.getElementById('r3r4').innerHTML = i18n.L(
     `R3: v1.1.0 is not evaluable under the pre-registered directory rule (two directories match). A post-hoc exploration with the exact directory name is described in the README (section 5).`,
