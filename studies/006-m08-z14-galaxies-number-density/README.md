@@ -184,7 +184,7 @@ How a coding agent answers "what if" questions about this study without touching
 | `eps_extrap` | ε outside the calibrated range | `"dpl"`, `"const"` | no data |
 | `completeness` | spectroscopic completeness c (φ_obs → φ_obs/c) | 0.1–1 | no data |
 | `area_factor` | effective area / declared area (`gap_area`) | 1–10 | no data |
-| `dust_auv_z8` | remove dust at z ≈ 8 only: A_UV = 4.43 + 1.99 β (Meurer et al. 1999) clipped at zero, A_UV = max(0, 4.43 + 1.99 β), with β(M_UV) at z ~ 8 from Bouwens et al. 2014 (ApJ 793, 115), transcribed and verified into `inputs.py` before use; scatter in β ignored; `false` = none | `true` / `false` | no data |
+| (script) dust at z ≈ 8 | an exploration script `explore/dust_z8.py` (not a `run.py` knob): remove A_UV = max(0, 4.43 + 1.99 β) (Meurer et al. 1999) at z ≈ 8 only, with β(M_UV) at z ~ 8 from Bouwens et al. 2014 (ApJ 793, 115) transcribed and verified in the script; scatter in β ignored | – | no data |
 | `m_h_min` | lowest halo mass included (M☉); values below 10⁸ include halos not assumed to host galaxies | 10⁷–10⁹ | no data |
 
 - Rerun with an override: `python -m astrolab explore 006-m08-z14-galaxies-number-density --tag <topic> --set KEY=VALUE`
