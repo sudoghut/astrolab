@@ -15,8 +15,9 @@ Hellings-Downs significance are not formalised (see the wiki article, part 2).
 The chain (two routes to compatibility with models, then one gap):
   L8 infers the GWB amplitude at gamma = 13/3: median 2.4e-15 (90% interval 1.8e-15 to 3.1e-15)
   route 1: the 90% credible interval overlaps the 16th-84th percentile range of at least one
-      published prediction (L37, Table A1); [implied] a measurement whose credible interval
-      overlaps a model's predicted range is not in tension with that model
+      published prediction (L37, Table A1); [gap] a measurement whose credible interval
+      overlaps a model's predicted range is not in tension with that model (overlap is only a
+      descriptive comparison, not a tension test)
   route 2: L37's own holodeck populations reproduce the inferred amplitude and spectral shape;
       [implied] a population that reproduces the amplitude is compatible with it
   [gap] the models (published predictions or holodeck populations) that overlap or reproduce the amplitude
@@ -60,11 +61,11 @@ inductive Field where
   | stat_amp
   /-- NUM [stated 2306.16220: "Although the inferred GWB amplitudes are within the range of some of these model predictions"] Sec. V; Table A1, Fig. A1 (68% ranges); within the range implies overlap, so the body is no stronger than the quote NUM[results/r2b.json:n_models_overlap_ci90 >= 1] -/
   | num_overlap
-  /-- MOD [implied] a measurement whose 90% credible interval overlaps the 16th to 84th percentile range predicted by a model is not in tension with that model (posterior predictive reasoning, Gelman et al. 2013, Bayesian Data Analysis, 3rd ed., ch. 6) -/
-  | mod_overlap
+  /-- GAP [reconstructed] a measurement whose 90% credible interval overlaps the 16th to 84th percentile range predicted by a model is not in tension with that model; neither paper defines a tension criterion for Table A1, and interval overlap alone is a descriptive comparison (two intervals can overlap while the distributions are in tension), so this step of route 1 is ours -/
+  | gap_overlap
   /-- STAT [stated 2306.16220: "we are able to reproduce the inferred GWB amplitude and spectral shape"] Sec. V -/
   | stat_holo
-  /-- MOD [implied] a population model that reproduces the measured amplitude is not in tension with it (posterior predictive reasoning, Gelman et al. 2013, ch. 6); L37 compares the holodeck populations with the 15 yr spectrum, so applying the result to the gamma = 13/3 amplitude is our reading, and only the amplitude part of reproduce the amplitude and spectral shape is used -/
+  /-- MOD [implied] a population model whose predicted spectra reproduce the measured amplitude (L37 compares the measurement with the predictive distribution of the populations, e.g. within its two-sigma curve) is not in tension with it (posterior predictive check, Gelman et al. 2013, Bayesian Data Analysis, 3rd ed., ch. 6); L37 compares the holodeck populations with the 15 yr spectrum, so applying the result to the gamma = 13/3 amplitude is our reading, and only the amplitude part of reproduce the amplitude and spectral shape is used -/
   | mod_holo
   /-- GAP [reconstructed] the models that overlap or reproduce the amplitude stand for astrophysical expectations in general; L37 (arXiv:2306.16220) says in its abstract that the amplitude needs either many parameters at the edges of expected values or a few notably different from standard expectations, and in Sec. V and App. A that it lies at the high-amplitude end of the predicted ranges; Sec. V calls the reproducing parameter choices reasonable, but reasonable is not the same as representative of expectations, so compatibility with some models does not by itself give compatibility with expectations -/
   | gap_repr
@@ -75,7 +76,7 @@ inductive Field where
 def prov : Field → Prov
   | .stat_amp => .stated
   | .num_overlap => .stated
-  | .mod_overlap => .implied
+  | .gap_overlap => .reconstructed
   | .stat_holo => .stated
   | .mod_holo => .implied
   | .gap_repr => .reconstructed
@@ -84,7 +85,7 @@ def prov : Field → Prov
 def prem : Field → Vocab → Prop
   | .stat_amp, v => v.AmpMeasured
   | .num_overlap, v => v.n_overlap ≥ 1
-  | .mod_overlap, v => v.AmpMeasured → v.n_overlap ≥ 1 → v.CompatModels
+  | .gap_overlap, v => v.AmpMeasured → v.n_overlap ≥ 1 → v.CompatModels
   | .stat_holo, v => v.HoloRepro
   | .mod_holo, v => v.AmpMeasured → v.HoloRepro → v.CompatModels
   | .gap_repr, v => v.Representative
@@ -103,7 +104,7 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 /-- The paper's chain, step by step (route 1; route 2 is shown in num_overlap_redundant). -/
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  have h1 : v.CompatModels := p .mod_overlap (p .stat_amp) (p .num_overlap)  -- Sec. III; L37 Sec. V, App. A
+  have h1 : v.CompatModels := p .gap_overlap (p .stat_amp) (p .num_overlap)  -- Sec. III; L37 Sec. V, App. A
   exact p .mod_rule h1 (p .gap_repr)  -- Sec. III; GAP
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
@@ -130,7 +131,7 @@ theorem num_overlap_redundant : ∀ v, Without .num_overlap v → Conclusion v :
     (p .gap_repr (by decide))
 
 /-- Redundant for the same reason: route 2 does not use it. -/
-theorem mod_overlap_redundant : ∀ v, Without .mod_overlap v → Conclusion v := by
+theorem gap_overlap_redundant : ∀ v, Without .gap_overlap v → Conclusion v := by
   intro v p
   exact p .mod_rule (by decide)
     (p .mod_holo (by decide) (p .stat_amp (by decide)) (p .stat_holo (by decide)))
@@ -140,14 +141,14 @@ theorem mod_overlap_redundant : ∀ v, Without .mod_overlap v → Conclusion v :
 theorem stat_holo_redundant : ∀ v, Without .stat_holo v → Conclusion v := by
   intro v p
   exact p .mod_rule (by decide)
-    (p .mod_overlap (by decide) (p .stat_amp (by decide)) (p .num_overlap (by decide)))
+    (p .gap_overlap (by decide) (p .stat_amp (by decide)) (p .num_overlap (by decide)))
     (p .gap_repr (by decide))
 
 /-- Redundant for the same reason: route 1 does not use it. -/
 theorem mod_holo_redundant : ∀ v, Without .mod_holo v → Conclusion v := by
   intro v p
   exact p .mod_rule (by decide)
-    (p .mod_overlap (by decide) (p .stat_amp (by decide)) (p .num_overlap (by decide)))
+    (p .gap_overlap (by decide) (p .stat_amp (by decide)) (p .num_overlap (by decide)))
     (p .gap_repr (by decide))
 
 theorem gap_repr_needed : ¬ ∀ v, Without .gap_repr v → Conclusion v := fun h =>
@@ -156,12 +157,13 @@ theorem gap_repr_needed : ¬ ∀ v, Without .gap_repr v → Conclusion v := fun 
 theorem mod_rule_needed : ¬ ∀ v, Without .mod_rule v → Conclusion v := fun h =>
   h ⟨True, 1, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-/-- What the papers write is not enough: the inference steps are standard background (implied),
-and representativeness is not established. -/
+/-- What the papers write is not enough: the inference steps are standard background (implied)
+or not established (route 1 overlap step, representativeness). -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   h ⟨True, 1, True, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
-/-- Even with standard knowledge the chain has a gap on both routes: compatibility with some
+/-- Even with standard knowledge the chain has a gap on both routes (route 1 also needs
+gap_overlap; route 2 does not): compatibility with some
 models (published predictions or holodeck populations) does not give compatibility with
 astrophysical expectations unless those models represent the expectations (gap_repr). -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>

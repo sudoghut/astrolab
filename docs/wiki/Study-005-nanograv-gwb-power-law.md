@@ -199,9 +199,9 @@ that reproduces it (route 2).
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
 | `num_overlap`: at least one Table A1 model's 16–84% range overlaps the 90% credible interval of A | NUM | stated 2306.16220: "Although the inferred GWB amplitudes are within the range of some of these model predictions"; bound to `results/r2b.json:n_models_overlap_ci90 >= 1` | L37 §V; Table A1, Fig. A1 |
-| `mod_overlap`: a measurement whose 90% credible interval overlaps a model's 16–84% predicted range is not in tension with that model | MOD | implied (posterior predictive reasoning; Gelman et al. 2013, *Bayesian Data Analysis*, ch. 6) | – |
+| `gap_overlap`: a measurement whose 90% credible interval overlaps a model's 16–84% predicted range is not in tension with that model | GAP | reconstructed (neither paper defines a tension criterion for Table A1; overlap is only a descriptive comparison) | – |
 | `stat_holo`: some holodeck populations reproduce the inferred amplitude and spectral shape (only the amplitude part is used) | STAT | stated 2306.16220: "we are able to reproduce the inferred GWB amplitude and spectral shape" | L37 §V |
-| `mod_holo`: a population that reproduces the measured amplitude is not in tension with it | MOD | implied (Gelman et al. 2013, ch. 6); L37 compares the populations with the 15 yr spectrum, so applying this to the γ = 13/3 amplitude is our reading | – |
+| `mod_holo`: a population whose predicted spectra reproduce the measured amplitude is not in tension with it | MOD | implied (posterior predictive check; Gelman et al. 2013, *Bayesian Data Analysis*, ch. 6); L37 compares the populations with the 15 yr spectrum, so applying this to the γ = 13/3 amplitude is our reading | – |
 
 The quote of `num_overlap` is about the inferred amplitudes (the posteriors). A posterior within a
 range overlaps it, so the overlap count is no stronger than the quote; whether the median itself
@@ -211,12 +211,12 @@ lies inside a range (a stronger statement) is reported only descriptively.
 
 | Alternative | Excluded by premise | Excluded explicitly by the paper? |
 |---|---|---|
-| A lies outside every model's range | `num_overlap` (route 1), `stat_holo` (route 2) | yes (L37 §V, App. A) |
+| No listed prediction overlaps the inferred amplitude (the narrower claim; a descriptive result, not a compatibility test) | `num_overlap` (route 1), `stat_holo` (route 2) | yes, in this narrower sense (L37 §V, App. A) |
 
 **Inference (Lean excerpt).**
 
 ```lean
-have h1 : v.CompatModels := p .mod_overlap (p .stat_amp) (p .num_overlap)  -- Sec. III; L37 Sec. V
+have h1 : v.CompatModels := p .gap_overlap (p .stat_amp) (p .num_overlap)  -- Sec. III; L37 Sec. V
 ```
 
 **Critique.** "Within the range" of a 68% interval is a weak requirement: a model with a very wide
@@ -224,7 +224,9 @@ range (McWilliams et al., 1.07–15.1 × 10⁻¹⁵) contains almost any plausib
 least three Table A1 rows (Kulier et al., McWilliams et al., Sesana et al. [171]) contain
 2.4 × 10⁻¹⁵, so `n_overlap ≥ 1` is nearly guaranteed and discriminates weakly. Each route alone
 suffices, so in the encoding each route's premises are redundant (see 2.4); our NUM test checks
-route 1 only.
+route 1 only. Route 1 also needs a step neither paper supplies: that overlap of the intervals means
+no tension (`gap_overlap`); overlap is a description, and two intervals can overlap while the
+distributions are in tension.
 
 #### 2.3 Stage C · From some models to "expectations"
 
@@ -248,7 +250,7 @@ route 1 only.
 ```lean
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  have h1 : v.CompatModels := p .mod_overlap (p .stat_amp) (p .num_overlap)  -- Sec. III; L37 Sec. V
+  have h1 : v.CompatModels := p .gap_overlap (p .stat_amp) (p .num_overlap)  -- Sec. III; L37 Sec. V
   exact p .mod_rule h1 (p .gap_repr)  -- Sec. III; GAP
 ```
 
@@ -267,11 +269,11 @@ models and populations", including their high tails.
    *expectations* unless those models are representative. The countermodel has every stated and
    implied premise true, `Representative` false and the conclusion false.
 2. **`stated_insufficient`**: the papers state the measurement, the "within the range of some
-   model predictions" fact and the holodeck reproduction; the inference steps (`mod_overlap`,
-   `mod_holo`, `mod_rule`) are unstated background.
+   model predictions" fact and the holodeck reproduction; the inference steps `mod_holo` and
+   `mod_rule` are unstated background, and route 1's overlap step is a second gap (`gap_overlap`).
 3. **Needed and redundant premises.** `stat_amp`, `gap_repr` and `mod_rule` are needed. The two
    routes are alternatives, so each route's premises are redundant (`num_overlap_redundant`,
-   `mod_overlap_redundant`, `stat_holo_redundant`, `mod_holo_redundant`): either route alone
+   `gap_overlap_redundant`, `stat_holo_redundant`, `mod_holo_redundant`): either route alone
    gives compatibility with some models. This is a finding about the argument's structure: our
    NUM check of route 1 can fail without breaking the chain, as long as route 2 holds.
 4. **The encoded conclusion is narrower than the paper's sentence** (γ = 13/3 amplitude only; see
@@ -285,7 +287,7 @@ models and populations", including their high tails.
 inductive Field where
   | stat_amp      -- STAT [stated 2306.16213]
   | num_overlap   -- NUM [stated 2306.16220] NUM[results/r2b.json:n_models_overlap_ci90 >= 1]
-  | mod_overlap   -- MOD [implied]
+  | gap_overlap   -- GAP [reconstructed]
   | stat_holo     -- STAT [stated 2306.16220]
   | mod_holo      -- MOD [implied]
   | gap_repr      -- GAP [reconstructed]
@@ -436,9 +438,9 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 | 前提（Lean 构造子） | 标签 | 出处性质 | 论文出处 |
 |---|---|---|---|
 | `num_overlap`：表 A1 中至少一个模型的 16%–84% 范围与 A 的 90% 可信区间重叠 | NUM | stated 2306.16220："Although the inferred GWB amplitudes are within the range of some of these model predictions"；绑定 `results/r2b.json:n_models_overlap_ci90 >= 1` | L37 第 V 节；表 A1、图 A1 |
-| `mod_overlap`：90% 可信区间与某模型 16%–84% 预测范围重叠的测量与该模型没有张力 | MOD | implied（后验预测推理（posterior predictive reasoning）；Gelman 等 2013，*Bayesian Data Analysis*，第 6 章） | – |
+| `gap_overlap`：90% 可信区间与某模型 16%–84% 预测范围重叠的测量与该模型没有张力 | GAP | reconstructed（两篇论文都没有为表 A1 定义张力判据；区间重叠只是描述性比较） | – |
 | `stat_holo`：某些 holodeck 群体再现了推断的振幅与谱形（只用到振幅部分） | STAT | stated 2306.16220："we are able to reproduce the inferred GWB amplitude and spectral shape" | L37 第 V 节 |
-| `mod_holo`：再现了测量振幅的群体模型与它没有张力 | MOD | implied（Gelman 等 2013，第 6 章）；L37 是把群体与 15 年的谱比较，把它用于 γ = 13/3 的振幅是我们的解读 | – |
+| `mod_holo`：预测谱再现了测量振幅的群体模型与它没有张力 | MOD | implied（后验预测检验（posterior predictive check）；Gelman 等 2013，*Bayesian Data Analysis*，第 6 章）；L37 是把群体与 15 年的谱比较，把它用于 γ = 13/3 的振幅是我们的解读 | – |
 
 `num_overlap` 的引文说的是推断的振幅（后验）。后验落在某范围内必然与它重叠，所以重叠计数不强于引文；中位数本身是否落在范围内（更强的说法）只作描述。
 
@@ -446,15 +448,15 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 
 | 其他可能 | 由哪个前提排除 | 论文是否明确排除 |
 |---|---|---|
-| A 落在所有模型的范围之外 | `num_overlap`（途径 1）、`stat_holo`（途径 2） | 是（L37 第 V 节、附录 A） |
+| 没有任何列出的预言与推断的振幅重叠（较窄的说法；描述性结果，不是相容性检验） | `num_overlap`（途径 1）、`stat_holo`（途径 2） | 是，在这一较窄的意义上（L37 第 V 节、附录 A） |
 
 **推理（Lean 摘录）。**
 
 ```lean
-have h1 : v.CompatModels := p .mod_overlap (p .stat_amp) (p .num_overlap)  -- Sec. III; L37 Sec. V
+have h1 : v.CompatModels := p .gap_overlap (p .stat_amp) (p .num_overlap)  -- Sec. III; L37 Sec. V
 ```
 
-**评析。** "落在 68% 区间内"是很弱的要求：范围很宽的模型（McWilliams 等，1.07–15.1 × 10⁻¹⁵）几乎包含任何合理的振幅；表 A1 中至少三行（Kulier 等、McWilliams 等、Sesana 等 [171]）包含 2.4 × 10⁻¹⁵，所以 `n_overlap ≥ 1` 几乎必然成立，区分力很弱。两条途径各自都足够，所以在编码中每条途径的前提都是多余的（见 2.4）；我们的 NUM 检验只检查途径 1。
+**评析。** "落在 68% 区间内"是很弱的要求：范围很宽的模型（McWilliams 等，1.07–15.1 × 10⁻¹⁵）几乎包含任何合理的振幅；表 A1 中至少三行（Kulier 等、McWilliams 等、Sesana 等 [171]）包含 2.4 × 10⁻¹⁵，所以 `n_overlap ≥ 1` 几乎必然成立，区分力很弱。两条途径各自都足够，所以在编码中每条途径的前提都是多余的（见 2.4）；我们的 NUM 检验只检查途径 1。途径 1 还需要一步两篇论文都没有提供的推理：区间重叠即没有张力（`gap_overlap`）；重叠只是描述，两个区间可以重叠而分布之间仍有张力。
 
 #### 2.3 环节 C · 从"某些模型"到"预期"
 
@@ -478,7 +480,7 @@ have h1 : v.CompatModels := p .mod_overlap (p .stat_amp) (p .num_overlap)  -- Se
 ```lean
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  have h1 : v.CompatModels := p .mod_overlap (p .stat_amp) (p .num_overlap)  -- Sec. III; L37 Sec. V
+  have h1 : v.CompatModels := p .gap_overlap (p .stat_amp) (p .num_overlap)  -- Sec. III; L37 Sec. V
   exact p .mod_rule h1 (p .gap_repr)  -- Sec. III; GAP
 ```
 
@@ -487,8 +489,8 @@ theorem final : ∀ v, Premises v → Conclusion v := by
 #### 2.4 Lean 检查发现的问题
 
 1. **`explicit_insufficient`**：即使加上标准背景知识，两条途径都仍需要 `gap_repr`：与*某些*模型相容，并不能推出与*预期*相容，除非这些模型有代表性。反例模型中所有明说与隐含的前提都成立，`Representative` 为假，结论为假。
-2. **`stated_insufficient`**：论文明说了测量值、"在一些模型预测的范围内"与 holodeck 的再现；推理步骤（`mod_overlap`、`mod_holo`、`mod_rule`）是没写出的背景知识。
-3. **必要与多余的前提。** `stat_amp`、`gap_repr` 与 `mod_rule` 是必要的。两条途径互为替代，所以每条途径的前提都是多余的（`num_overlap_redundant`、`mod_overlap_redundant`、`stat_holo_redundant`、`mod_holo_redundant`）：任一途径单独就能给出与某些模型相容。这是关于论证结构的发现：只要途径 2 成立，我们对途径 1 的 NUM 检验即使失败，链条也不会断。
+2. **`stated_insufficient`**：论文明说了测量值、"在一些模型预测的范围内"与 holodeck 的再现；推理步骤 `mod_holo` 与 `mod_rule` 是没写出的背景知识，途径 1 的重叠一步是第二个缺口（`gap_overlap`）。
+3. **必要与多余的前提。** `stat_amp`、`gap_repr` 与 `mod_rule` 是必要的。两条途径互为替代，所以每条途径的前提都是多余的（`num_overlap_redundant`、`gap_overlap_redundant`、`stat_holo_redundant`、`mod_holo_redundant`）：任一途径单独就能给出与某些模型相容。这是关于论证结构的发现：只要途径 2 成立，我们对途径 1 的 NUM 检验即使失败，链条也不会断。
 4. **编码的结论比论文的句子窄**（只含 γ = 13/3 的振幅；见 2.0 的范围说明）。
 5. **相容性**成立，但在这里分量很弱：所有前提都是肯定命题。
 6. **局限。** Lean 检查的是在我们的编码下的逻辑结构。原子命题不加解释时，"必要"指"本编码用到了它"。HD 相关的过程是否真是引力波背景、分解似然是否忠实，都在 Lean 能看到的范围之外。
@@ -497,7 +499,7 @@ theorem final : ∀ v, Premises v → Conclusion v := by
 inductive Field where
   | stat_amp      -- STAT [stated 2306.16213]
   | num_overlap   -- NUM [stated 2306.16220] NUM[results/r2b.json:n_models_overlap_ci90 >= 1]
-  | mod_overlap   -- MOD [implied]
+  | gap_overlap   -- GAP [reconstructed]
   | stat_holo     -- STAT [stated 2306.16220]
   | mod_holo      -- MOD [implied]
   | gap_repr      -- GAP [reconstructed]
