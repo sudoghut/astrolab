@@ -75,6 +75,8 @@ advance.
     estimate, S15 is a cut on relative precision and P_i is misspecified; tested below); catalogue
     ages are isochrone posterior summaries shaped by the prior and the grid edge, not Gaussian
     measurements.
+  - *Compression check:* the R2 deconvolved fit and the R3/R4 sample-A fit are repeated with 40
+    classes and without compression (one cell per star); changes are reported.
   - *Edge sensitivity:* (i) refit without stars with Age + 2 e_Age > 20; (ii) an untruncated Gaussian
     observation model. Each verdict below is "robust" only if it holds on S15 and on Full.
 - **Fitting.** Maximum likelihood (L-BFGS-B, analytic gradients for the mixtures) from 8 starts per
@@ -117,10 +119,11 @@ advance.
 - **Null and threshold (calibrated jointly with the decision rule):** two unimodal, log-concave,
   non-Gaussian latent families, each fitted to the bin in M0: a skew-normal and a two-piece (split)
   normal (different widths on each side of the mode). 50 mocks per family and error mechanism (four
-  null sets). The decision rule is "a valley exists and d ≤ d*", with
-  d* = min(0.25, q_1, …, q_4), where q_s is the 3rd smallest null d of set s (q_s = 0.25 if fewer
-  than 3 mocks of set s have a valley). So d* ≤ 0.25 always, and in every null set at most 2 of 50
-  mocks (about 5%; binomial uncertainty about ±3%) pass the rule. The realised false-positive rate of
+  null sets). The decision rule is "a valley exists and d < d*" (strict), with
+  d* = min(0.25, q_1, …, q_4), where q_s is the 3rd smallest null d of set s, counting ties (q_s = 0.25
+  if fewer than 3 mocks of set s have a valley). Because the inequality is strict, mocks tied at q_s
+  do not pass, so in every null set at most 2 of 50 mocks (about 5%; binomial uncertainty about ±3%)
+  pass the rule, ties included; d* ≤ 0.25 always. The realised false-positive rate of
   each set at d* is reported. *Deviation from plan 019:* the plan asked for a log-concave sensitivity
   check; a non-parametric log-concave deconvolution with truncation and the S15 term is not practical
   here, so a second parametric log-concave family is used and enters the threshold.
@@ -133,16 +136,18 @@ advance.
   0.5 Gyr steps until it is ≤ 0.1 (expected only for [0.1, 0.3), to 6.5 Gyr). The edge is not moved
   further if mock power is low (for example because the Gaussian fit smooths the uniform edge); the
   generating models are recorded. 50 mocks; power = fraction passing the same rule
-  (a valley and d ≤ d*). Bins with power < 80% are "cannot resolve" and excluded.
+  (a valley and d < d*). Bins with power < 80% are "cannot resolve" and excluded.
 - **Recorded per bin:** q_s of each null set, d*, the realised false-positive rates and the power.
-- **Per bin:** "almost disjoint" if a valley exists and d ≤ d*. Young-side upper edge = 97.5th
+- **Per bin:** "almost disjoint" if a valley exists and d < d*. Young-side upper edge = 97.5th
   percentile of the latent mass younger than the valley (our proxy; XR22 give no definition).
 - **Verdict:** **reproduced** if at least 3 bins are resolvable, at least 3 of them are almost
   disjoint, and the median young-side upper edge of the almost-disjoint bins lies in 6.5–9.5 Gyr.
   **Undetermined** if fewer than 3 bins are resolvable. **Not reproduced** otherwise.
-- **Budget (all mock sets: R1, the R3/R4 recovery, sample B):** run.py times the first mock of each
-  set and prints the projected total. If the total would exceed 4 h, every mock set drops to 30
-  (R1 q_s = 2nd smallest, a nominal 6.7%); if it still exceeds 8 h, run.py runs in the background
+- **Budget (all mock sets: R1, the R3/R4 recovery, sample B):** R1 has, per bin and sample, 4 null
+  sets and 2 power sets of 50 mocks (300 mocks; 3,000 over 5 bins and 2 samples). run.py runs the
+  first mock of every set, takes the projected total as the sum over sets of (number of mocks × time
+  of that set's first mock) and prints it. If the total would exceed 4 h, every mock set drops to 30
+  (R1 q_s = 2nd smallest with the same strict rule, at most 1 of 30, a nominal 3.3%); if it still exceeds 8 h, run.py runs in the background
   and the elapsed time is reported. The counts used are written to the results.
 - Reported without verdict: the eq. 1 cross-fractions (late stars older than 8 Gyr; early stars
   younger than 8 Gyr), as a descriptive reproduction of XR22 Fig. 2.
@@ -191,7 +196,8 @@ advance.
 - Each verdict is "robust" only if every one of these fits meets the same criterion individually:
   Full, and the version with a² e_[Fe/H]² added to the variance (which lowers σ; the unpublished
   age–[Fe/H] error covariance is not modelled in either version); for R3 also f = 0.8 and f_max. The
-  spans of all these fits are reported side by side. Recovery failures act as stated above (Full
+  spans of all these fits are reported side by side. A primary pass with any failing sensitivity fit
+  is reported as "reproduced, not robust". Recovery failures act as stated above (Full
   primary if only the e = r·A mechanism fails; R3 and R4 "cannot determine" if both fail). R4 checks XR22's number under XR22's error scale,
   and rescaling the errors moves σ_sel almost one for one (at f_max it tends to 0 by construction),
   so σ_sel at f = 0.8 and f_max is reported without entering R4's robustness. The span is also reported with the sample truncated at
@@ -246,13 +252,12 @@ selection terms are precomputed for the occupied (Age, e_Age) cells (about 10³�
 memory and are never written to the project directory. Mock samples for R1 and the recovery checks
 use their own generator, independent of the likelihood code. Analytic gradients are used for the
 mixtures and the R3/R4 models. Cost estimate: one R1 evaluation about 1–3 ms, one R3/R4 evaluation
-about 10–20 ms (cells are nearly one per star); a fit takes a few hundred evaluations. R1
-calibration is 5 bins × 2 samples × 2 mechanisms × 150 mocks (two null families and power) × about 12–15 fits (K and starts), about
-5–15 h; the R3/R4 and sample-B mocks (200 mocks × 3 starts × about 300 evaluations) add about 2–3.5 h,
-plus the robustness refits. The budget
-rule of 2.1 therefore probably applies (30 mocks per set). This exceeds the minutes-scale runs of
-other studies; it is a one-off calibration, cached results are reused by `explore`, and the main fits
-(without mocks) take minutes. The Monte Carlo uncertainty of every mock-based rate is written to the
+about 10–20 ms (cells are nearly one per star); a fit takes a few hundred evaluations. R1 calibration
+is 3,000 mocks × about 12–15 fits (K and starts) × 0.3–1 s, about 3–12 h; the R3/R4 and sample-B mocks
+(200 mocks × 3 starts × about 300 evaluations) add about 2–3.5 h, plus the robustness refits. The budget
+rule of 2.1 therefore probably applies (30 mocks per set, about 60% of these times) and possibly the
+background rule. This exceeds the minutes-scale runs of other studies; it is a one-off calibration,
+cached results are reused by `explore`, and the main fits (without mocks) take minutes. The Monte Carlo uncertainty of every mock-based rate is written to the
 results. All tunable numbers (cuts, bins,
 grid, K range, mock counts, thresholds, seeds) are in `PARAMS`, saved with the results. Results go to
 `results/` as small JSON files (no per-star output). A web page shows the age–[Fe/H] densities, the
