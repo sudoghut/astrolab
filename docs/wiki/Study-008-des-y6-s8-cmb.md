@@ -175,7 +175,7 @@ enough (`stated_*`), and whether they are enough once standard knowledge is adde
 premise — that is what parts 1 and 3 and the study are for.
 
 Numbers are encoded in tenths of a σ as natural numbers, meaning the reported values rounded to
-one decimal; "at most 18 tenths" restates the reported "1.8".
+one decimal; "18 tenths" is the reported "1.8", not a bound on the unrounded value.
 
 #### 2.1 Stage A · Reference and measure
 
@@ -205,8 +205,8 @@ the combination 1.8σ. The conclusion is about "the CMB" in the sense of the com
 
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
-| `stat_full`: full-space difference at most 1.8σ | STAT | stated: "we find a full parameter space difference of 1.8" | §VIII (also §V.2; Table 6, PTE 0.08) |
-| `stat_s8`: difference projected onto S8 at most 2.6σ | STAT | stated: "the difference increases to 2.6" | §VIII (also §V.2) |
+| `stat_full`: full-space difference 1.8σ (reported, rounded) | STAT | stated: "we find a full parameter space difference of 1.8" | §VIII (also §V.2; Table 6, PTE 0.08) |
+| `stat_s8`: difference projected onto S8 2.6σ (reported, rounded) | STAT | stated: "the difference increases to 2.6" | §VIII (also §V.2) |
 | `stat_proj`: projection effects below 0.5σ | STAT | stated: "exhibits minor prior-volume effects of less than $0.5\sigma$ for all parameters of interest" | App. B |
 
 **Rival explanations.**
@@ -242,8 +242,8 @@ needs no such correction.
 ```lean
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  have hfull : v.n_full_x10 ≤ 18 := p .stat_full          -- Sec. V.2, VIII: 1.8 sigma
-  have hs8 : v.n_s8_x10 ≤ 26 := p .stat_s8                -- Sec. V.2, VIII: 2.6 sigma
+  have hfull : v.n_full_x10 = 18 := p .stat_full          -- Sec. V.2, VIII: 1.8 sigma
+  have hs8 : v.n_s8_x10 = 26 := p .stat_s8                -- Sec. V.2, VIII: 2.6 sigma
   exact p .gap_conv (p .mod_metric) (p .stat_proj) (by omega) (by omega)  -- GAP: 3 sigma usage
 ```
 
@@ -431,7 +431,7 @@ D. [缺口] 在 S8 与全空间上都低于 3σ 时，没有实质证据（把 3
 
 Lean 检查的内容：结论由这些前提推出（`final`）且不是恒真（`final_nontrivial`）；前提可以同时成立（`consistent`）；任何单个前提都推不出结论（`alone_insufficient`）；每个前提是必要的（有不含它的反例模型）还是多余的；论文明说的前提是否足够（`stated_*`），加上标准知识后是否足够（`explicit_*`；`explicit_insufficient` 表示真正的缺口）。Lean 不检查每个前提内部的物理——那是第一、三部分和研究本身的任务。
 
-数字以十分之一个 σ 编码为自然数，指报告的、四舍五入到一位小数的值；"至多 18 个十分之一"就是报告的"1.8"。
+数字以十分之一个 σ 编码为自然数，指报告的、四舍五入到一位小数的值；"18 个十分之一"就是报告的"1.8"，不是对未四舍五入的值的界限。
 
 #### 2.1 环节 A · 参照与度量
 
@@ -459,8 +459,8 @@ Lean 检查的内容：结论由这些前提推出（`final`）且不是恒真�
 
 | 前提（Lean 构造子） | 标注 | 出处性质 | 论文出处 |
 |---|---|---|---|
-| `stat_full`：全空间差异至多 1.8σ | STAT | stated: "we find a full parameter space difference of 1.8" | §VIII（又见 §V.2；表 6，PTE 0.08） |
-| `stat_s8`：投影到 S8 的差异至多 2.6σ | STAT | stated: "the difference increases to 2.6" | §VIII（又见 §V.2） |
+| `stat_full`：全空间差异 1.8σ（报告值，已四舍五入） | STAT | stated: "we find a full parameter space difference of 1.8" | §VIII（又见 §V.2；表 6，PTE 0.08） |
+| `stat_s8`：投影到 S8 的差异 2.6σ（报告值，已四舍五入） | STAT | stated: "the difference increases to 2.6" | §VIII（又见 §V.2） |
 | `stat_proj`：投影效应低于 0.5σ | STAT | stated: "exhibits minor prior-volume effects of less than $0.5\sigma$ for all parameters of interest" | 附录 B |
 
 **其他解释。**
@@ -492,8 +492,8 @@ Lean 检查的内容：结论由这些前提推出（`final`）且不是恒真�
 ```lean
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  have hfull : v.n_full_x10 ≤ 18 := p .stat_full          -- Sec. V.2, VIII: 1.8 sigma
-  have hs8 : v.n_s8_x10 ≤ 26 := p .stat_s8                -- Sec. V.2, VIII: 2.6 sigma
+  have hfull : v.n_full_x10 = 18 := p .stat_full          -- Sec. V.2, VIII: 1.8 sigma
+  have hs8 : v.n_s8_x10 = 26 := p .stat_s8                -- Sec. V.2, VIII: 2.6 sigma
   exact p .gap_conv (p .mod_metric) (p .stat_proj) (by omega) (by omega)  -- GAP: 3 sigma usage
 ```
 
