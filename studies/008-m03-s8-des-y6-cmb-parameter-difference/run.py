@@ -292,7 +292,7 @@ def main(ctx):
                            for tag in ("1d", "2d")}
         # full space (Gaussian) over shared sampled parameters
         hd, hc = formats["des_3x2pt"]["header"], formats["cmb"]["header"]
-        fs = {"status": "no headers"}
+        fs = {"status": "a chain has no header: sampled parameters beyond the mapped columns cannot be identified by name"}
         if hd and hc:
             low_d, low_c = [h.lower() for h in hd], [h.lower() for h in hc]
             def sampled(key, low):
@@ -310,11 +310,13 @@ def main(ctx):
                 fs = {"status": "chains share no sampled parameter beyond Omega_m (or Omega_m is not sampled in both)",
                       "candidates": cand}
             else:
-                keep = []
+                def _corr(x, w, i, j):
+                    c = np.cov(x[:, [i, j]].T, aweights=w)
+                    return abs(c[0, 1] / np.sqrt(c[0, 0] * c[1, 1]))
+
+                keep = []   # README 2.4: exclude a column correlated above corr_max with a kept one, in either chain
                 for i in range(len(cand)):
-                    if all(abs(np.cov(xa[:, [i, j]].T, aweights=des["w"])[0, 1]
-                               / np.sqrt(np.cov(xa[:, i], aweights=des["w"]) * np.cov(xa[:, j], aweights=des["w"])))
-                           <= P["corr_max"] for j in keep):
+                    if all(max(_corr(xa, des["w"], i, j), _corr(xb, cmb["w"], i, j)) <= P["corr_max"] for j in keep):
                         keep.append(i)
                 names = [cand[i] for i in keep]
                 fs = {"parameters": names,
