@@ -206,7 +206,7 @@ advance.
 - **Intrinsic scatter (verdict):** sample B: S15, early, JPHI > 500, no α cut. Model: mixture of the
   old-sequence component above (weight 1 − f_b) and a background component with a truncated Gaussian
   age distribution whose mean is linear in [Fe/H] (b0 + b1[Fe/H]) with width s, in M0.
-  - Identifiability mocks: 50 from the fitted model. Misspecification mocks: 50 in which the
+  - Identifiability mocks: 50 per error mechanism from the fitted model. Misspecification mocks: 50 per error mechanism in which the
     background follows the empirical background population instead of the fitted Gaussian: the Full
     early stars with JPHI > 500 below the α line are split into three [Fe/H] slices (−1.2 to −0.6,
     −0.6 to 0, 0 to 0.5); in each, a latent age mixture (K = 1–4 by BIC) is fitted in M0; mock
@@ -254,7 +254,8 @@ use their own generator, independent of the likelihood code. Analytic gradients 
 mixtures and the R3/R4 models. Cost estimate: one R1 evaluation about 1–3 ms, one R3/R4 evaluation
 about 10–20 ms (cells are nearly one per star); a fit takes a few hundred evaluations. R1 calibration
 is 3,000 mocks × about 12–15 fits (K and starts) × 0.3–1 s, about 3–12 h; the R3/R4 and sample-B mocks
-(200 mocks × 3 starts × about 300 evaluations) add about 2–3.5 h, plus the robustness refits. The budget
+(sample A: 50 per error mechanism, 100; sample B: 50 identifiability and 50 misspecification mocks
+per mechanism, 200; 300 in all, × 3 starts × about 300 evaluations) add about 3–5 h, plus the robustness refits. The budget
 rule of 2.1 therefore probably applies (30 mocks per set, about 60% of these times) and possibly the
 background rule. This exceeds the minutes-scale runs of other studies; it is a one-off calibration,
 cached results are reused by `explore`, and the main fits (without mocks) take minutes. The Monte Carlo uncertainty of every mock-based rate is written to the
