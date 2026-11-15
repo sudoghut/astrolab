@@ -96,6 +96,8 @@ def main(ctx):
             prods[v] = None
             summary[f"load_{v}"] = {"verdict": "not evaluable", "reason": str(e)}
             ctx.log(f"{v}: not evaluable: {e}")
+            path = ctx.http(P["urls"][v], label=f"NANOGrav 15yr KDE free spectra {v}")
+            ctx.log(f"{v}: archive members: {gwb.list_members(path)}")
         else:
             p = prods[v]
             summary[f"load_{v}"] = {"dir": p["dir"], "n_grid": int(p["grid"].size),
@@ -143,6 +145,8 @@ def main(ctx):
         out = {"r1": _public(a.get("r1", {})), "r2": _public(a.get("r2", {}))}
         if "median_A" in a.get("r1", {}) and "median_A" in b.get("r1", {}):
             out["delta_median_A"] = a["r1"]["median_A"] - b["r1"]["median_A"]
+            out["delta_q05_A"] = a["r1"]["q05_A"] - b["r1"]["q05_A"]
+            out["delta_q95_A"] = a["r1"]["q95_A"] - b["r1"]["q95_A"]
             x = b["r1"]["_x"]
             out["hellinger_v1_v2"] = gwb.hellinger(x, a["r1"]["_p"], b["r1"]["_p"])
         if "q_hpd_13_3" in a.get("r2", {}) and "q_hpd_13_3" in b.get("r2", {}):
@@ -170,7 +174,8 @@ def main(ctx):
                         "ref": _round(r1["_ref"][::k])}
     if "_xa" in r2:
         ka = max(1, r2["_xa"].size // 140)
-        curves["r2"] = {"log10A": _round(r2["_xa"][::ka], 5), "gamma": _round(r2["_xg"][::ka], 5),
+        curves["r2"] = {"axes": ["gamma", "log10A"],
+                        "log10A": _round(r2["_xa"][::ka], 5), "gamma": _round(r2["_xg"][::ka], 5),
                         "post": [_round(row, 3) for row in r2["_p"][::ka, ::ka]]}
     ctx.save("curves", curves)
 
