@@ -245,6 +245,8 @@ def main(ctx):
               "st_normalisation": zm.st_normalisation(),
               "mass_fraction_z0": zm.mass_fraction_check(S.lnM, S.sig0, S.rho_m)}
     checks["st_normalisation_ok"] = bool(abs(checks["st_normalisation"] - 1) < 0.01)
+    if not (checks["sigma8_ok"] and checks["st_normalisation_ok"]):
+        raise RuntimeError(f"pre-registered checks failed: {checks}")
     ctx.log(f"checks: sigma8 = {s8:.4f}, ST normalisation = {checks['st_normalisation']:.4f}, "
             f"z=0 mass fraction grid/ST = {checks['mass_fraction_z0']}")
 
