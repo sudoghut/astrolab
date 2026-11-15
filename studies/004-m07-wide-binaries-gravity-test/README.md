@@ -5,7 +5,8 @@
 > and design plan 013). Because the Gaia archive is offline 2026-11-25 to 12-02, data are fetched in
 > two steps (section 3): step A (no velocity columns) may run once section 3 is committed; step B
 > (proper motions and radial velocities) runs only after sections 1-4 are committed with a date.
-> No ṽ, v_sky or median is computed before that commit. Later edits need a dated note.
+> No velocity-derived quantity (ṽ, v_sky, any velocity-based selection or median of velocities) is
+> computed before that commit; velocity-free quantities such as the HR constant c are allowed. Later edits need a dated note.
 
 ## 1. Question
 
@@ -38,8 +39,9 @@ r_sky/r_M, concluding that "Newtonian gravity is up to 1500× more likely than M
   b → 1 as x → 0 (ν → 1, K → 0), so the MOND model for bin j is A·b(x_j) and the Newtonian model
   is the constant A. As in C26 (Table 3: the χ² values "are optimized with respect to the
   normalization in the Newtonian regime", for each gravity model; 5 degrees of freedom each), each
-  model has its own free Newtonian-regime normalisation A, fitted by generalised least squares with
-  the bin covariance. (C26's Figure 8 draws both curves at 0.489 only for display.) x_j is the median x of the pairs in bin j (C26 Figure 8 uses the geometric mean;
+  model has its own free Newtonian-regime normalisation A — this study's fixed convention, the most
+  natural reading of C26; the tied-normalisation calculation is reported as a sensitivity check —
+  fitted by generalised least squares with the bin covariance. (C26's Figure 8 draws both curves at 0.489 only for display.) x_j is the median x of the pairs in bin j (C26 Figure 8 uses the geometric mean;
   both are reported, the median is used in the fit).
 - Bins (written before any velocity is computed; a value equal to an edge goes to the upper bin): edges in x at the geometric midpoints of C26's
   Table 2 bin medians: 0.1057, 0.2307, 0.5088, 1.0275, 2.0902; the lowest bin has no lower edge
@@ -124,23 +126,26 @@ star and each candidate neighbour.
 Totals are known only from the per-region counts (A1, A2, A3 before step B; B1 in step B); the
 cumulative estimate is checked before every fetch (expected 25–60 MB), including the relaxed-neighbour
 A2 variant, counted first, under the 200 MB study budget; no single query near 50 MB (each is split
-into strips). Strips (half-open in α and δ, so that every parent star with parallax < 34 mas belongs to exactly one region and gets its A2 count from exactly one query; checked by an offline test): star a in regions of 5° in α × 30° in δ for |δ| ≤ 60° (four declination bands with edges −60°, −30°, 0°, 30°, 60°; 288 regions; smaller than first planned because the archive kills longer joins under load, dated 2026-11-14, before any data), 15° in α for 60° < |δ| ≤ 80° (24 per hemisphere), and one query per polar cap (|δ| > 80°), 338 regions in all; star b restricted to the
-same strip plus a margin of 1.2° in declination at every boundary and, in right ascension, 2.2°
-(|δ| ≤ 60°), 7° (60–80°) and all right ascensions (caps). The search radius is 0.5 pc = 103.1 kAU,
-1.031° at ϖ = 36 mas; the exact half-width in right ascension is asin(sin θ / cos δ) (2.06° at
-δ = 61.2°, 5.95° at 80°), so the margins cover star a with parallax < 34 mas. Stars with parallax
-≥ 34 mas (d < 29 pc) are queried separately with star b restricted to parallax + 3σ > 28 mas
-(counted first, since an unrestricted star b failed on the server).
+into strips). Strips (half-open in α and δ, so that every parent star with parallax < 100 mas belongs to exactly one region and gets its A2 count from exactly one query; checked by an offline test): star a in regions of 5° in α × 30° in δ for |δ| ≤ 60° (four declination bands with edges −60°, −30°, 0°, 30°, 60°; 288 regions; smaller than first planned because the archive kills longer joins under load, dated 2026-11-14, before any data), 15° in α for 60° < |δ| ≤ 80° (24 per hemisphere), and one query per polar cap (|δ| > 80°), 338 regions in all; star b restricted to the
+same strip plus a margin of 3.3° in declination at every boundary and, in right ascension, 7.2°
+(|δ| ≤ 60°), 30° (60–80°) and all right ascensions (caps). The search radius is 0.5 pc = 103.1 kAU,
+θ = 3.15° at a weighted parallax of 110 mas (star a < 100 mas); the exact half-width in right
+ascension is asin(sin θ / cos δ) (7.0° at δ = 63.3°, 27.7° at 83.3°), so the margins cover star a with
+parallax < 100 mas (checked by an offline test at 110 mas). Stars with parallax ≥ 100 mas (d < 10 pc,
+a few hundred stars, so this query cannot approach the 50,000-row cap and needs no splitting) are
+queried once with star b restricted to parallax + 3σ > 80 mas, counted first.
 Each pair is kept once (canonical source_id_a < source_id_b; duplicates from the margins dropped);
 this logic has an offline test. **Units.** Parallaxes are in mas, distances in pc (d = 1000/ϖ), r_sky in AU from d and the angle.
 
 **Count first.** Before each A1, A2, A3 and B1 query (every strip, the near-star query and every R3
 or R4 variant that needs its own query), `run.py` runs the same FROM/WHERE as a server-side
-`COUNT(*)` (through `ctx.count`), converts it to bytes at 400 B per A1/B1 row and 40 B per A2 row (conservative estimates; the
+`COUNT(*)` (through `ctx.count`), converts it to bytes at 600 B per A1 row (20 columns, VOTable), 300 B per B1 row (17 columns), 40 B
+per A2 row and 24 B per A3 row (conservative schema-based estimates; the
 actual guarded downloads are still subject to the hard per-download and study limits in `astrolab`),
 and fetches only if the query fits under 50,000 rows and 50 MiB and the cumulative estimate stays
 under the 200 MB study budget; a strip over 50,000 rows is split in two in right ascension and
-counted again. If the cumulative estimate would exceed the budget, the run stops and the user is
+counted again. The budget counts unique fetched inputs (a cached result is not counted again; a
+failed attempt that returns nothing counts nothing). If the cumulative estimate would exceed the budget, the run stops and the user is
 asked. The cache (`%LOCALAPPDATA%`, ~30 MB) must not be cleared until the study is closed.
 Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-24).
 
@@ -152,7 +157,7 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
    rule.
 2. **Common distance and separation.** ϖ̄ = (σ²_ϖ2 ϖ1 + σ²_ϖ1 ϖ2)/(σ²_ϖ1 + σ²_ϖ2) (C24 Eq. A2);
    d = 1/ϖ̄; r_sky = d·θ (θ the angular separation, exact great-circle formula).
-3. **Masses (C26 §4.1.2).** FLAME mass when available, else M⋆ = 10^{0.0725(M_G,⊙ − M_G)} with
+3. **Masses (C26 §4.1.2).** FLAME mass when available (A3), else, for every star without one, M⋆ = 10^{0.0725(M_G,⊙ − M_G)} with
    M_G,⊙ = 4.67 (Gaia G, Vega; Willmer 2018, ApJS 236, 47, Table 3 — verified against the table
    before any mass is computed, recorded in `PARAMS`) and M_G = G + 5 log10(ϖ̄/100) (ϖ̄, the pair's
    weighted parallax in mas, for both stars; C26 uses d_h); add 0.05 M☉ when M⋆ < 0.7 M☉.

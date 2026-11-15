@@ -17,7 +17,7 @@ PC_AU = 206264.806
 
 
 # ---------------------------------------------------------------- sky strips
-def strip_plan(margin_ra_low=2.2, margin_ra_mid=7.0, margin_dec=1.2, ra_step_low=5.0,
+def strip_plan(margin_ra_low=7.2, margin_ra_mid=30.0, margin_dec=3.3, ra_step_low=5.0,
                dec_bands_low=(-60.0, -30.0, 0.0, 30.0, 60.0), ra_step_mid=15.0):
     """Star-a regions (half-open, partitioning the sphere) with the star-b search box.
 

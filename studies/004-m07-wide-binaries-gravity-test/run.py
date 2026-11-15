@@ -26,7 +26,7 @@ PARAMS = {
                   " AND parallax + 3 * parallax_error > 6.6667"),
     "neighbour_relaxed": ("parallax_over_error > 5 AND phot_g_mean_flux_over_error > 5"
                           " AND parallax + 3 * parallax_error > 6.6667"),
-    "near_plx": 34.0, "near_b": "parallax + 3 * parallax_error > 28",
+    "near_plx": 100.0, "near_b": "parallax + 3 * parallax_error > 80",
     "vcap_kms": None,                  # no velocity condition in A1 (README section 3)
     "max_rows": 50000,
     "bytes_per_row_pair": 400, "bytes_per_row_count": 40,
@@ -68,6 +68,8 @@ class Budget:
 def _split(ctx, P, name, r, near, budget, fn, *extra):
     """README section 3: a region over the row cap is split in two in right ascension and counted
     again (recursively). Returns the summed count and the concatenated rows."""
+    if near:
+        raise RuntimeError(f"{name}: the near-star query exceeded the row cap, which README section 3 rules out; stop")
     if r["ra1"] - r["ra0"] < 0.1:
         raise RuntimeError(f"{name}: still over the row cap at 0.1 deg; stop and ask the user")
     parts = wb.split_region(r)
@@ -88,7 +90,7 @@ def _a1(ctx, P, name, r, near, budget):
     n = _count(ctx, qc, f"A1 {name}")
     if n >= P["max_rows"]:
         return _split(ctx, P, name, r, near, budget, _a1)
-    budget.reserve(n * P["bytes_per_row_pair"], f"A1 {name}")
+    budget.reserve(n * 600, f"A1 {name}")
     q = qc.replace("SELECT COUNT(*) AS n", "SELECT " + Q.a1_select(), 1)
     df = ctx.tap(q, "gaia", label=f"A1 {name}", max_rows=P["max_rows"], mode="async", release="Gaia DR3")
     return n, df

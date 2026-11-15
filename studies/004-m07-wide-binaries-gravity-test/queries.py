@@ -22,7 +22,7 @@ def _dec_clause(col, lo, hi, half_open=False):
     return f"({col} >= {lo} AND {col} <= {hi})"
 
 
-def star_a_where(region, parent, near=False, near_plx=34.0):
+def star_a_where(region, parent, near=False, near_plx=100.0):
     w = [parent, _ra_clause("ra", region["ra0"], region["ra1"], True),
          _dec_clause("dec", region["dec0"], region["dec1"], True)]
     w.append(f"parallax >= {near_plx}" if near else f"parallax < {near_plx}")

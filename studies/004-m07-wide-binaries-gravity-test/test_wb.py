@@ -37,7 +37,7 @@ def test_star_b_box_covers_partners():
     plan = wb.strip_plan()
     rng = np.random.default_rng(2)
     ra, dec = _random_sky(3000, rng)
-    theta = wb.search_radius_deg(36.5)          # weighted parallax can reach ~36.5 mas
+    theta = wb.search_radius_deg(110.0)         # star a < 100 mas; weighted parallax up to ~110 mas
     for a, d in zip(ra, dec):
         k = wb.region_of(a, d, plan)[0]
         r = plan[k]
