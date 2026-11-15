@@ -32,6 +32,7 @@ PARAMS = {
     # one-off cap for the 32pt chain only: user consent in chat, 2026-11-15 (log.md, README section 3)
     "max_bytes_32pt": 150 * 1024 ** 2,
     "mcmc_burn": 0.30,
+    "max_saved_comments": 5000,
     "ess_flag": 2000,
     # R1 (published D26 means and 68% intervals)
     "published": {"cmb": [0.836, 0.012, 0.013], "des_3x2pt": [0.789, 0.012, 0.012],
@@ -141,8 +142,13 @@ def main(ctx):
     def _status(k):
         return status[k] if not formats[k]["ragged_rows"] else f"{status[k]}, but {formats[k]['ragged_rows']} ragged rows: not loaded"
 
-    formats_out = {k: {**{kk: vv for kk, vv in f.items() if kk != "prior_lines"}, "column_map": maps[k],
-                       "status": _status(k)} for k, f in formats.items()}
+    def _saved(f):
+        out = {kk: vv for kk, vv in f.items() if kk not in ("prior_lines", "comment_lines")}
+        out["comment_lines"] = f["comment_lines"][:P["max_saved_comments"]]
+        out["comment_lines_saved_truncated"] = len(f["comment_lines"]) > P["max_saved_comments"]
+        return out
+
+    formats_out = {k: {**_saved(f), "column_map": maps[k], "status": _status(k)} for k, f in formats.items()}
     ctx.save("formats", formats_out)
     if P["step_a_only"]:
         return {"step": "A"}
@@ -181,7 +187,7 @@ def main(ctx):
         formats["des_xipm_nla"] = s8diff.read_format(paths["des_xipm_nla"])
         maps["des_xipm_nla"], status["des_xipm_nla"] = s8diff.column_map(
             formats["des_xipm_nla"], "des_xipm_nla", "des_xipm_nla" in P["positional_ok"])
-        formats_out["des_xipm_nla"] = {**{kk: vv for kk, vv in formats["des_xipm_nla"].items() if kk != "prior_lines"},
+        formats_out["des_xipm_nla"] = {**_saved(formats["des_xipm_nla"]),
                                        "column_map": maps["des_xipm_nla"], "status": _status("des_xipm_nla")}
         ctx.save("formats", formats_out)
         load("des_xipm_nla")
@@ -209,21 +215,29 @@ def main(ctx):
     if names and des is not None and cmb is not None:
         support = {"status": "performed", "parameters": {}, "rule": "weight of each chain outside the other "
                    "chain's prior range, where that range is given"}
-        bad = False
+        bad, not_checkable = False, []
         for name in names:
             fr = {}
             for a, b in (("des_3x2pt", "cmb"), ("cmb", "des_3x2pt")):
                 hdr = formats[a]["header"]
                 low = [h.lower() for h in hdr] if hdr else []
-                if name not in ranges[b] or name not in low:
-                    fr[f"{a}_outside_{b}"] = None
+                if name not in ranges[b]:
+                    fr[f"{a}_outside_{b}"] = None          # no range given by the other chain
                     continue
-                x = chains[a]["data"][:, low.index(name)]
+                if name.split("--")[-1] in ("omega_m", "omegam"):
+                    x = chains[a]["omega_m"]                # mapped column (header or positional)
+                elif name in low:
+                    x = chains[a]["data"][:, low.index(name)]
+                else:
+                    fr[f"{a}_outside_{b}"] = "not checkable (no named column)"
+                    not_checkable.append(f"{a}: {name}")
+                    continue
                 lo, hi = ranges[b][name]
                 fr[f"{a}_outside_{b}"] = float(np.sum(chains[a]["w"][(x < lo) | (x > hi)]))
             support["parameters"][name] = fr
-            bad = bad or any(v is not None and v > P["support_frac_max"] for v in fr.values())
+            bad = bad or any(isinstance(v, float) and v > P["support_frac_max"] for v in fr.values())
         support["fails"] = bad
+        support["not_checkable"] = not_checkable
         support["other_shared_ranges"] = sorted((set(ranges["des_3x2pt"]) & set(ranges["cmb"])) - set(names))
     amp = [n for n in names if n.split("--")[-1] in AMPLITUDE]
     support["amplitude_name"] = amp if amp else "none found"
