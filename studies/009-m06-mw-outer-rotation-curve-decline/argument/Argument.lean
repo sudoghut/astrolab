@@ -12,11 +12,13 @@ The chain:
   the curve is derived with the Jeans equation for an axisymmetric potential and a disc at
       equilibrium
   a power law fitted beyond 19 kpc rejects a flat curve at 3 sigma
+  the fitted slope is consistent with a Keplerian decline (gamma = -0.5)
   [gap] the equilibrium Jeans curve (with J23's estimated cross term) is accurate at 19-26.5 kpc
       to better than the decline; J23 argues for quasi-equilibrium but does not quantify
       departures from it (later work, Koop et al. 2024, finds biases of 10-15 percent)
-  [gap] with an accurate curve, a 3-sigma rejection of a flat curve detects the decline (the
-      informal use of 3 sigma as evidence, not stated by J23)
+  [gap] with an accurate curve, a 3-sigma rejection of a flat curve together with a slope
+      consistent with -0.5 means a Keplerian decline (the informal use of 3 sigma as evidence, and
+      reading consistency with -0.5 as Keplerian; neither step is stated by J23)
   -> a Keplerian decline beyond about 19 kpc
 
 Significances are encoded in tenths of a sigma (Nat): sig_x10 = 30 states the reported, rounded
@@ -45,6 +47,8 @@ structure Vocab where
   JeansAccurate : Prop
   /-- Significance, in tenths of a sigma (reported, rounded), with which a flat curve is rejected by a power law beyond 19 kpc. -/
   sig_x10 : Nat
+  /-- The fitted power-law slope beyond 19 kpc is consistent with a Keplerian decline (gamma = -0.5). -/
+  KeplerConsistent : Prop
   /-- The Milky Way rotation curve declines in a Keplerian way beyond about 19 kpc (a real decline, not an artefact). -/
   Decline : Prop
 
@@ -56,9 +60,11 @@ inductive Field where
   | mod_jeans
   /-- STAT [stated: "while a flat RC is rejected with a significance of 3σ"] Abstract (Sec. 5.3: power law beyond 19 kpc, gamma = -0.47 +- 0.15); encoded as the reported, rounded 30 tenths -/
   | stat_flat
-  /-- GAP [reconstructed] the equilibrium Jeans curve, with J23's estimated cross term (up to about 8 percent at 25.5 kpc), is accurate at 19-26.5 kpc to better than the 30 km/s (15 percent) decline. J23 argues for quasi-equilibrium (Sec. 2.2: perturbations from the radial velocity component are small; Sec. 5.2: quasi-equilibrium within 30 kpc) but does not quantify departures from it; later work finds that such modelling can be biased by 10-15 percent and that a truncated tracer density can fake a steep decline (Koop et al. 2024, arXiv:2405.19028) -/
+  /-- STAT [stated: "This suggests that the MW RC is consistent with a Keplerian decline (γ=-0.5) at large radii"] Sec. 5.3 (gamma = -0.47 +- 0.15) -/
+  | stat_kepler
+  /-- GAP [reconstructed] the equilibrium Jeans curve, with J23's estimated cross term (up to about 8 percent at 25.5 kpc), is accurate at 19-26.5 kpc to better than the 30 km/s (15 percent) decline. J23 argues for quasi-equilibrium (Sec. 2.2: perturbations from the radial velocity component are small; Sec. 5.2: quasi-equilibrium within 30 kpc) but does not quantify departures from it; later work finds that such modelling can be biased by 10-15 percent and that a truncated tracer density can fake a steep decline (Koop et al. 2024, arXiv:2405.19028); simulations show deviations of 5-20 percent (Ou et al. 2025, arXiv:2503.05877) -/
   | gap_jeans
-  /-- GAP [reconstructed] with the measured drop, the Jeans curve and an accurate model, a flat curve rejected at 3 sigma means the curve declines; this is the informal use of 3 sigma as evidence, which J23 does not state -/
+  /-- GAP [reconstructed] with the measured drop, the Jeans curve and an accurate model, a flat curve rejected at 3 sigma and a slope consistent with -0.5 mean a Keplerian decline; this uses 3 sigma as evidence and reads consistency with -0.5 (a 1-sigma range of about -0.62 to -0.32, which also contains non-Keplerian declines) as Keplerian; J23 states neither step -/
   | gap_detect
   deriving DecidableEq, Repr
 
@@ -66,6 +72,7 @@ def prov : Field → Prov
   | .obs_drop => .stated
   | .mod_jeans => .stated
   | .stat_flat => .stated
+  | .stat_kepler => .stated
   | .gap_jeans => .reconstructed
   | .gap_detect => .reconstructed
 
@@ -73,8 +80,9 @@ def prem : Field → Vocab → Prop
   | .obs_drop, v => v.Drop
   | .mod_jeans, v => v.JeansUsed
   | .stat_flat, v => v.sig_x10 = 30
+  | .stat_kepler, v => v.KeplerConsistent
   | .gap_jeans, v => v.JeansAccurate
-  | .gap_detect, v => v.Drop → v.JeansUsed → v.JeansAccurate → v.sig_x10 ≥ 30 → v.Decline
+  | .gap_detect, v => v.Drop → v.JeansUsed → v.JeansAccurate → v.sig_x10 ≥ 30 → v.KeplerConsistent → v.Decline
 
 /-- [stated: "We identify, for the first time, a Keplerian decline of the RC"] Abstract (starting at about 19 kpc) -/
 def Conclusion (v : Vocab) : Prop := v.Decline
@@ -90,42 +98,45 @@ def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have hsig : v.sig_x10 = 30 := p .stat_flat                     -- Abstract, Sec. 5.3
-  exact p .gap_detect (p .obs_drop) (p .mod_jeans) (p .gap_jeans) (by omega)   -- two GAPs
+  exact p .gap_detect (p .obs_drop) (p .mod_jeans) (p .gap_jeans) (by omega) (p .stat_kepler)  -- two GAPs
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
-  fun h => h ⟨False, False, False, 0, False⟩
+  fun h => h ⟨False, False, False, 0, False, False⟩
 
 theorem consistent : ∃ v, Premises v :=
-  ⟨⟨True, True, True, 30, True⟩, by intro f; cases f <;> simp [prem]⟩
+  ⟨⟨True, True, True, 30, True, True⟩, by intro f; cases f <;> simp [prem]⟩
 
 theorem alone_insufficient : ∀ g, ¬ ∀ v, prem g v → Conclusion v := by
   intro g h
   cases g
-  case gap_detect => exact h ⟨False, False, False, 0, False⟩ (by simp [prem])
-  all_goals exact h ⟨True, True, True, 30, False⟩ (by simp [prem])
+  case gap_detect => exact h ⟨False, False, False, 0, False, False⟩ (by simp [prem])
+  all_goals exact h ⟨True, True, True, 30, True, False⟩ (by simp [prem])
 
 theorem obs_drop_needed : ¬ ∀ v, Without .obs_drop v → Conclusion v := fun h =>
-  h ⟨False, True, True, 30, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨False, True, True, 30, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem mod_jeans_needed : ¬ ∀ v, Without .mod_jeans v → Conclusion v := fun h =>
-  h ⟨True, False, True, 30, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨True, False, True, 30, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_flat_needed : ¬ ∀ v, Without .stat_flat v → Conclusion v := fun h =>
-  h ⟨True, True, True, 0, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨True, True, True, 0, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+
+theorem stat_kepler_needed : ¬ ∀ v, Without .stat_kepler v → Conclusion v := fun h =>
+  h ⟨True, True, True, 30, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem gap_jeans_needed : ¬ ∀ v, Without .gap_jeans v → Conclusion v := fun h =>
-  h ⟨True, True, False, 30, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨True, True, False, 30, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem gap_detect_needed : ¬ ∀ v, Without .gap_detect v → Conclusion v := fun h =>
-  h ⟨True, True, True, 30, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨True, True, True, 30, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 /-- What the paper writes is not enough: the accuracy of the equilibrium Jeans curve at large radii
 and the step from a 3-sigma rejection to a detected decline are not stated. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
-  h ⟨True, True, False, 30, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨True, True, False, 30, True, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
 /-- No standard knowledge closes either step: two gaps remain. -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
-  h ⟨True, True, False, 30, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨True, True, False, 30, True, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
 end Argument

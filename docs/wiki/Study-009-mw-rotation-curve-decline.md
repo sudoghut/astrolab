@@ -105,7 +105,7 @@ separate fit and is discussed, not encoded, in 2.3.
 
 A. The curve: a drop of about 30 km/s between 19.5 and 26.5 kpc, from the equilibrium Jeans equation.
 B. [gap] The Jeans curve is accurate enough at those radii.
-C. A flat curve rejected at 3σ; [gap] so the curve declines.
+C. A flat curve rejected at 3σ, and a slope consistent with −0.5; [gap] so the decline is Keplerian.
 ⇒ A Keplerian decline beyond about 19 kpc.
 
 How we check it: the argument is written in Lean 4
@@ -162,7 +162,8 @@ modelling and shows that a truncated tracer density can fake a steep decline (Ko
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
 | `stat_flat`: a flat curve rejected at 3σ | STAT | stated: "while a flat RC is rejected with a significance of 3σ" | Abstract; Sec. 5.3: "a flat RC is rejected at a 3σ significance level" (γ = −0.47 ± 0.15) |
-| `gap_detect`: with an accurate curve, a 3σ rejection of a flat curve means the curve declines | GAP | reconstructed | — |
+| `stat_kepler`: the slope is consistent with a Keplerian decline | STAT | stated: "This suggests that the MW RC is consistent with a Keplerian decline (γ=-0.5) at large radii" | Sec. 5.3 |
+| `gap_detect`: with an accurate curve, a 3σ rejection of a flat curve and a slope consistent with −0.5 mean a Keplerian decline | GAP | reconstructed | — |
 
 **Inference (Lean excerpt).**
 
@@ -170,13 +171,15 @@ modelling and shows that a truncated tracer density can fake a steep decline (Ko
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have hsig : v.sig_x10 = 30 := p .stat_flat                     -- Abstract, Sec. 5.3
-  exact p .gap_detect (p .obs_drop) (p .mod_jeans) (p .gap_jeans) (by omega)   -- two GAPs
+  exact p .gap_detect (p .obs_drop) (p .mod_jeans) (p .gap_jeans) (by omega) (p .stat_kepler)  -- two GAPs
 ```
 
 **Critique.** The 3σ comes from γ in a two-parameter power-law fit to 8 points, with errors that
 include systematics. J23 does not say how the 3σ was computed; our reading is 0.47/0.15 ≈ 3.1σ
-(on the O24 curve the same ratio is 0.56/0.22 ≈ 2.5σ). Calling it a "detection" uses 3σ as the
-level of evidence, an informal usage that J23 does not state (study 008 has the same step). The
+(on the O24 curve the same ratio is 0.56/0.22 ≈ 2.5σ; J23 states the 3σ right after giving both
+slopes, but the simple ratio reaches about 3σ only for its own curve). Calling it a "detection" uses
+3σ as the level of evidence, and reading "consistent with −0.5" as Keplerian is a further step: the
+1σ range of γ (about −0.62 to −0.32) also contains declines that are not Keplerian. Both steps are in `gap_detect`, which J23 does not state (study 008 has the same 3σ step). The
 outer 4 bins have errors of 8–25 km/s, so the rejection rests mostly on 19.5–22.5 kpc.
 
 #### 2.3 The total mass (discussed, not encoded)
@@ -190,8 +193,9 @@ the baryonic mass and the DM halo virial mass", Sec. 4.3). The steps that carry 
 
 - **The fit itself.** It uses all 18 points; its result would barely change if γ were −0.3 instead
   of −0.47. J23's eq. 11 says the fit uses "the statistical uncertainty of the measurement", while
-  the same Sec. 4.3 says the mass "error bars account for systematic uncertainties", and Table 3
-  gives only the combined error. The most likely reading is that the fit used the combined errors;
+  Sec. 4.1 says "In our study, as well as in Ou et al. (2023), error bars account for systematic
+  uncertainties" (Sec. 4.3 repeats this for the mass error bars), and Table 3 gives only the
+  combined error. The most likely reading is that the fit used the combined errors;
   per-bin statistical errors are not published, so our fit (R2) is descriptive.
 - **The extrapolation.** The data stop at 26.5 kpc; R_vir ≈ 121 kpc is 4.6 times farther. With
   n = 0.43 the Einasto halo truncates steeply, so the extrapolated mass is set largely by the
@@ -206,11 +210,11 @@ These steps are not encoded in Lean because one file has one conclusion; they ar
 #### 2.4 What the Lean check found
 
 1. **Headline: `explicit_insufficient`, with two gaps.** The decline needs: the equilibrium Jeans
-   curve is accurate at 19–26.5 kpc (`gap_jeans`); and a 3σ rejection counts as a detected decline
-   (`gap_detect`). No standard knowledge closes either.
+   curve is accurate at 19–26.5 kpc (`gap_jeans`); and a 3σ rejection with a slope consistent with −0.5 counts as a detected
+   Keplerian decline (`gap_detect`). No standard knowledge closes either.
 2. **Ranking.** `gap_jeans` matters most: the decline (15%) is comparable to later estimates of
    Jeans biases. `gap_detect` is the same 3σ-as-evidence step found in study 008.
-3. **All five premises are needed** in this encoding; none is redundant.
+3. **All six premises are needed** in this encoding; none is redundant.
 4. **For the mass (2.3, not encoded):** the extrapolation from 26.5 to 121 kpc is the weakest step,
    and the paper's wording on which errors the fit used is internally inconsistent.
 5. **Consistency** (`consistent`) is a weak check here: no premise is negative.
@@ -256,6 +260,7 @@ Table 3's total errors as J23's power-law test does, and R2 is a descriptive fit
 
 Newest first.
 
+- 2026-11-15: gate-1 round 2: the Keplerian shape now rests on its own stated premise (`stat_kepler`, Sec. 5.3) and on the gap.
 - 2026-11-15: gate-1 review: the Lean conclusion is now the Keplerian decline (two gaps); the mass and its extrapolation are discussed in 2.3, not encoded (the mass fit does not use the decline test); quotes corrected; the error-wording inconsistency described with both sentences.
 - 2026-11-15: first version: parts 1–3 (pre-registration source; plan `design/018-plan_*`).
 
@@ -317,7 +322,7 @@ Gaia 卫星测量了十多亿颗恒星的位置、视差（距离）与自行（
 
 A. 曲线：由平衡态金斯方程得到，19.5 到 26.5 kpc 之间下降约 30 km/s。
 B. [缺口] 在这些半径处金斯曲线足够准确。
-C. 平坦曲线以 3σ 被拒绝；[缺口] 所以曲线在下降。
+C. 平坦曲线以 3σ 被拒绝，斜率与 −0.5 相容；[缺口] 所以是开普勒式下降。
 ⇒ 约 19 kpc 以外的开普勒式下降。
 
 检查方法：论证用 Lean 4 写成（[`studies/009-m06-mw-outer-rotation-curve-decline/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/009-m06-mw-outer-rotation-curve-decline/argument/Argument.lean)）。每个前提是 `Field` 的一个构造子（不用公理），标注类型与出处性质：
@@ -360,7 +365,8 @@ Lean 检查的内容：结论由这些前提推出（`final`）且不是恒真�
 | 前提（Lean 构造子） | 标注 | 出处性质 | 论文出处 |
 |---|---|---|---|
 | `stat_flat`：平坦曲线以 3σ 被拒绝 | STAT | stated: "while a flat RC is rejected with a significance of 3σ" | 摘要；第 5.3 节："a flat RC is rejected at a 3σ significance level"（γ = −0.47 ± 0.15） |
-| `gap_detect`：曲线准确时，3σ 拒绝平坦曲线意味着曲线在下降 | GAP | reconstructed | — |
+| `stat_kepler`：斜率与开普勒式下降相容 | STAT | stated: "This suggests that the MW RC is consistent with a Keplerian decline (γ=-0.5) at large radii" | 第 5.3 节 |
+| `gap_detect`：曲线准确时，3σ 拒绝平坦曲线且斜率与 −0.5 相容意味着开普勒式下降 | GAP | reconstructed | — |
 
 **推理（Lean 摘录）。**
 
@@ -368,25 +374,25 @@ Lean 检查的内容：结论由这些前提推出（`final`）且不是恒真�
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have hsig : v.sig_x10 = 30 := p .stat_flat                     -- Abstract, Sec. 5.3
-  exact p .gap_detect (p .obs_drop) (p .mod_jeans) (p .gap_jeans) (by omega)   -- two GAPs
+  exact p .gap_detect (p .obs_drop) (p .mod_jeans) (p .gap_jeans) (by omega) (p .stat_kepler)  -- two GAPs
 ```
 
-**评述。** 3σ 来自对 8 个点拟合两参数幂律得到的 γ，误差已含系统误差。J23 没有说明 3σ 怎么算出；我们的理解是 0.47/0.15 ≈ 3.1σ（在 O24 曲线上同样的比值为 0.56/0.22 ≈ 2.5σ）。称之为"探测到"是把 3σ 当作证据门槛，这是 J23 没有写出的非正式用法（研究 008 中有同样的一步）。外区 4 个箱的误差为 8–25 km/s，所以拒绝主要依靠 19.5–22.5 kpc。
+**评述。** 3σ 来自对 8 个点拟合两参数幂律得到的 γ，误差已含系统误差。J23 没有说明 3σ 怎么算出；我们的理解是 0.47/0.15 ≈ 3.1σ（在 O24 曲线上同样的比值为 0.56/0.22 ≈ 2.5σ；J23 在给出两个斜率后紧接着说 3σ，但简单比值只有在它自己的曲线上才约为 3σ）。称之为"探测到"是把 3σ 当作证据门槛；把"与 −0.5 相容"读作开普勒式又是另一步：γ 的 1σ 范围（约 −0.62 到 −0.32）也包含不是开普勒式的下降。两步都在 `gap_detect` 中，J23 都没有写出（研究 008 中有同样的 3σ 一步）。外区 4 个箱的误差为 8–25 km/s，所以拒绝主要依靠 19.5–22.5 kpc。
 
 #### 2.3 总质量（只讨论，不编码）
 
 J23 的质量并不来自下降检验。它来自用球对称爱纳斯托晕（第 3.2 节，式 9）加重子模型（"considering several possible combinations of models for the bulge and the disc presented by Iocco et al. (2015)"，以及 de Salas 等 2019 的重子模型 B2）拟合全部 18 个点，再把晕外推到位力半径（"we extrapolated the DM halo to the virial radius"）并加上重子（"We calculated the dynamical mass as the sum of the baryonic mass and the DM halo virial mass"，第 4.3 节）。承载质量的步骤是：
 
-- **拟合本身。** 它用全部 18 个点；即使 γ 是 −0.3 而不是 −0.47，结果也几乎不变。J23 的式 11 说拟合用的是"the statistical uncertainty of the measurement"，而同在第 4.3 节又说质量的"error bars account for systematic uncertainties"，表 3 也只给出合成误差。最可能的理解是拟合用了合成误差；各箱的统计误差没有发表，所以我们的拟合（R2）是描述性的。
+- **拟合本身。** 它用全部 18 个点；即使 γ 是 −0.3 而不是 −0.47，结果也几乎不变。J23 的式 11 说拟合用的是"the statistical uncertainty of the measurement"，而第 4.1 节说"In our study, as well as in Ou et al. (2023), error bars account for systematic uncertainties"（第 4.3 节对质量误差棒重复了这一点），表 3 也只给出合成误差。最可能的理解是拟合用了合成误差；各箱的统计误差没有发表，所以我们的拟合（R2）是描述性的。
 - **外推。** 数据止于 26.5 kpc；R_vir ≈ 121 kpc 远 4.6 倍。n = 0.43 的爱纳斯托晕截断很陡，所以外推的质量很大程度上由所选的函数形式决定。数据真正测量的是 26.5 kpc 以内的包围质量（由 V²R/G 得约 1.9 × 10¹¹ M☉）。拟合的形状能否延续到 121 kpc，J23 没有检验；星流的质量（Koposov 等 2023：32.4 kpc 以内 2.85 × 10¹¹ M☉；Vasiliev 等 2021：100 kpc 以内 5.6 × 10¹¹ M☉）表明 30–100 kpc 有更多质量。
 
 这些步骤没有编码进 Lean，因为一个文件只有一个结论；它们在第三部分检验（R2、R5）。
 
 #### 2.4 Lean 检查发现的问题
 
-1. **主要结果：`explicit_insufficient`，两个缺口。** 下降需要：平衡态金斯曲线在 19–26.5 kpc 准确（`gap_jeans`）；3σ 拒绝算作探测到下降（`gap_detect`）。没有标准知识能补上其中任何一个。
+1. **主要结果：`explicit_insufficient`，两个缺口。** 下降需要：平衡态金斯曲线在 19–26.5 kpc 准确（`gap_jeans`）；3σ 拒绝加上与 −0.5 相容的斜率算作探测到开普勒式下降（`gap_detect`）。没有标准知识能补上其中任何一个。
 2. **重要性排序。** `gap_jeans` 最重要：下降幅度（15%）与后来估计的金斯偏差相当。`gap_detect` 与研究 008 中"3σ 即证据"的一步相同。
-3. **在这种编码下五个前提都是必要的**，没有多余的。
+3. **在这种编码下六个前提都是必要的**，没有多余的。
 4. **关于质量（2.3，不编码）：** 从 26.5 kpc 外推到 121 kpc 是最弱的一步；论文关于拟合用哪种误差的措辞前后不一。
 5. **相容性**（`consistent`）在这里是弱检查：没有否定形式的前提。
 6. **局限：** Lean 检查的是我们编码下的逻辑结构，不是每个前提内部的动力学。
@@ -425,6 +431,7 @@ J23 的质量并不来自下降检验。它来自用球对称爱纳斯托晕（�
 
 按时间倒序。
 
+- 2026-11-15：闸门 1 第 2 轮：开普勒式的形状现在依靠单独的、论文明说的前提（`stat_kepler`，第 5.3 节）与缺口。
 - 2026-11-15：闸门 1 审查：Lean 的结论改为开普勒式下降（两个缺口）；质量及其外推在 2.3 中讨论，不编码（质量拟合不用下降检验）；改正引文；误差措辞的不一致引用两句原文说明。
 - 2026-11-15：第一版：第一至三部分（预注册的来源；计划 `design/018-plan_*`）。
 
