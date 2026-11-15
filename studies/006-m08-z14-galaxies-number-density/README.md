@@ -182,9 +182,9 @@ Fiducial calibration (Bouwens et al. 2021 z ~ 8, σ_cal = 0.7): ε₀ = 0.016, M
 γ = 1.98 (no parameter at a bound), rms 0.004 dex (all 72 variants ≤ 0.015 dex). The median
 relation is not monotonic (γ > 1.1): brightest median −20.64 at M_peak = 10^11.64 M☉ at z = 7.9 and
 −22.15 at z = 14.5; calibrated range 10^10.24–10^11.64 M☉. At z = 14.5 halos with medians in
-[−21, −20] span 10^10.70–10^12.84 M☉ (the upper part on the falling branch above M_peak), so not
-all lie inside the calibrated range; the falling branch contributes little because such halos are
-rare at z = 14.5.
+[−21, −20] span 10^10.70–10^12.84 M☉ (the upper part on the falling branch above M_peak), so the
+pre-registered flag "inside the calibrated range" reads false; weighted by abundance, a fraction
+1.000 of them is inside (the falling-branch halos are about 10⁻¹³ as abundant).
 
 What drives the variants (ratio to N26's baseline; central σ): the scatter σ_cal (0.5: 2.5–9.4×,
 1.07–1.53 mag; 0.9: 5.9–37×, 1.16–1.60 mag) and the extrapolation ("dpl": 2.5–19×, 1.33–1.60 mag;
@@ -198,13 +198,63 @@ in the survey have a Poisson probability of about 0.5% rather than 6 × 10⁻⁵
 depends strongly on how the pre-JWST baseline is built, but in most variants the observed density
 still exceeds a constant-SFE prediction. The scatter that this model needs, about 1.4 mag (1.1–1.6
 across variants), is at the low end of or below N26's 1.5–2 mag; whether it overlaps depends on the
-variant.
+variant. The R3 "consistent" verdict rests on the upper Poisson root (1.57 mag); the central value
+is 1.38 mag.
+
+**After the independent referee (post hoc, explorations; 2026-11-15).** Neither fiducial verdict is
+stable against the uncertainty of the calibration data, which the pre-registration did not
+propagate (`explore/lf_uncertainty.py`, one Bouwens et al. 2021 z ~ 8 parameter at a time by its
+1σ error): φ* −1σ gives ratio 1.9 ("same order") and σ 1.70 [1.47, 1.90]; φ* +1σ gives 35 and
+1.10 [0.85, 1.29] ("different"); M* ±0.28 gives 4.6–18.7 and flips R3 with the sign; α ±0.20 gives
+4.1–22 and flips R3. Removing a uniform z ≈ 8 dust attenuation of 0.3 (0.5, 1.0) mag gives ratio
+20 (31, 99) and σ 1.24 (1.15, 0.88) mag, R3 "different": any dust correction moves R3 away from N26.
+The robust statement is therefore narrower: an independent constant-SFE model calibrated on the
+pre-JWST z ≈ 8 LF predicts more z = 14–15 galaxies than N26's baseline (2–37×, mostly > 3×), and the
+σ_UV it needs lies around 1–2 mag, with no stable verdict on overlap with N26's 1.5–2 mag.
 
 ## 6. Referee notes
 
-Independent critique: selection effects, systematics, alternative explanations.
+Independent referee (2026-11-15; a subagent given the code, pre-registration and results, not our
+reading). It checked the physics line by line and found no code bugs. Triage:
+
+1. **z ≈ 8 LF uncertainty not propagated (accepted; dominant).** Verified with
+   `explore/lf_uncertainty.py` (section 5): ±1σ in φ*, M* or α flips both R2 and R3. The fiducial
+   verdicts stand as pre-registered but are not robust to the calibration data; the follow-up is a
+   calibration against binned z ≈ 8 data with errors and posterior propagation (TODO T-025).
+2. **R3 is driven by halos below the calibrated range (accepted).** At σ ≈ 1.4 most of the bin's
+   galaxies come from halos of 10^9.3–10^10.2 M☉, whose z ≈ 8 medians are fainter than −17; hence the
+   "dpl"/"const" axis nearly decides R3. The 10 M_min test does not probe this.
+3. **Halo mass function in the extreme tail (accepted limitation).** ν ≈ 5–7: a 1–2% error in σ(M)
+   changes n by tens of percent; Sheth–Tormen is known to overpredict rare halos at high z (Reed
+   07 lowers the ratio by 2.5–4×, which is why it gives most "same order" variants).
+4. **The accretion variants are nearly redundant (accepted).** After calibration the three fits
+   scale almost identically from z = 7.9 to 14.5 (ratios 9.4 / 9.8 / 9.3), so that axis adds little
+   independent spread; an extended-Press–Schechter rate would be a real alternative.
+5. **Dust (accepted; verified).** Any z ≈ 8 dust correction moves R3 away from N26 (section 5).
+6. **Non-monotonic median (harmless).** Capping γ ≤ 1.1 changes the ratio to 9.7 and σ to 1.41
+   (referee's check); the bin is fed by rising-branch halos (abundance fraction inside the
+   calibrated range 1.000, now reported).
+7. **SFR → L_UV at low metallicity (accepted limitation).** Young, metal-poor populations have a
+   1.5–2× lower K, which acts like dust removal.
+8. **R3 is not like for like with N26 (accepted).** Our model starts 9.4× above N26's baseline, so
+   it needs a ×19 boost where N26's needs ×182; overlap with 1.5–2 mag is not a check of N26's number.
+9. **Reporting.** The z = 0 mass-fraction check compares the same integral twice (stated in
+   section 5); the "inside the calibrated range" flag is misleading without the abundance weight
+   (added); the R3 verdict rests on the upper Poisson root (stated). The commit that changed the
+   "const" rule (49b81c7) came after the gate-1 orientation numbers; the change was structural (the
+   rule was ambiguous for a non-monotonic median) but it concerns the axis that decides R3, which we
+   disclose here.
+10. **Lean (accepted).** A fourth gap, `gap_bin`: the bin z = 14–15, −21 < M_UV < −20 was drawn
+    around the two detections (look-elsewhere effect). The other premises were checked against
+    their quotes and are no stronger.
 
 ## 7. Open questions
+
+- Propagate the z ≈ 8 LF uncertainty (binned data with errors, including faint lensing-field
+  points that constrain ε at 10^9–10^10 M☉) into distributions of the R2 ratio and the σ roots
+  (T-025).
+- How large is cosmic variance for two sources in 388 arcmin² at z ≈ 14 (`gap_poisson`), and what is
+  the full effective area (`gap_area`)?
 
 ## 8. Exploring via chat
 

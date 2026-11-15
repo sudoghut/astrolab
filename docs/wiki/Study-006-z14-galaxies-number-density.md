@@ -168,6 +168,7 @@ that into "disfavored".
 | `gap_rule`: decision rule: with Poisson counts over the full effective search, a model with a tail probability ≤ 2 × 10⁻⁴ is disfavored at high confidence | GAP | reconstructed (N26 names no test, threshold or mapping from probability to confidence; the 2 × 10⁻⁴ cutoff is ours) | not in the paper |
 | `gap_poisson`: the counts are Poisson about the model mean (no cosmic-variance excess) | GAP | reconstructed | not in the paper |
 | `gap_area`: the declared area is the full effective search for this bin | GAP | reconstructed | not in the paper |
+| `gap_bin`: the bin (z = 14–15, −21 < M_UV < −20) was fixed independently of the two detections | GAP | reconstructed (added after the referee: the bin is drawn around the detections; look-elsewhere effect) | not in the paper |
 
 **Rival explanations.**
 
@@ -183,7 +184,8 @@ that into "disfavored".
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have h1 : v.tail_ppm ≤ 200 := p .mod_poisson (p .obs_count) (p .stat_ratio)  -- Poisson tail
-  exact p .gap_rule (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)  -- Sec. 4.1; GAP
+  exact p .gap_rule (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)
+    (p .gap_bin)  -- Sec. 4.1; GAPs
 ```
 
 **Critique.** The Poisson tail (≈ 6 × 10⁻⁵) is our reading of "high confidence". It treats the
@@ -204,13 +206,14 @@ LF", the encoded conclusion is about that LF.
 
 #### 2.4 What the Lean check found
 
-1. **`explicit_insufficient`**: even with standard background added, the chain needs three gaps:
+1. **`explicit_insufficient`**: even with standard background added, the chain needs four gaps (the
+   fourth, `gap_bin`, added after the referee: the bin was drawn around the detections); three of them:
    a decision rule from tail probability to "high confidence" (`gap_rule`; N26 names no test or
    threshold), Poisson counts with no cosmic-variance excess (`gap_poisson`) and the declared area
    being the full effective search (`gap_area`). None is discussed in N26 §4.
 2. **`stated_insufficient`**: the paper states the count and the ratio; the Poisson tail bound is
    unstated background (implied), the decision rule is not stated at all.
-3. **Every premise is needed** (six `_needed` countermodels); none is redundant. The Poisson tail is
+3. **Every premise is needed** (seven `_needed` countermodels); none is redundant. The Poisson tail is
    tied to the count and the ratio by `mod_poisson` (after Codex review: a free-standing number
    would not have connected them).
 4. **The census assumption cuts both ways**: through the count it can only strengthen the
@@ -228,9 +231,10 @@ inductive Field where
   | gap_rule     -- GAP [reconstructed]
   | gap_poisson  -- GAP [reconstructed]
   | gap_area     -- GAP [reconstructed]
+  | gap_bin      -- GAP [reconstructed]
 
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
-  h ⟨2, 182, 60, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨2, 182, 60, False, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 ```
 
 ### Part 3 · What astrolab can test or explore
@@ -268,6 +272,17 @@ variance, effective area) are untouched by these numbers.
 Results: [`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r1.json), [`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r2.json), [`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r3.json),
 [`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json). The interactive page runs locally with `python -m astrolab serve`.
 
+**After the independent referee (2026-11-15; post hoc, explorations).** Neither fiducial verdict is
+stable against the uncertainty of the z ≈ 8 calibration data, which the pre-registration did not
+propagate: moving one Bouwens et al. 2021 parameter by its 1σ error changes the ratio from 1.9 to 35
+and the required σ from 1.70 to 1.10 mag, flipping both R2 and R3. Removing even 0.3 mag of z ≈ 8
+dust takes the ratio to 20 and σ to 1.24 mag ("different"). The robust statement is narrower: an
+independent constant-SFE model predicts more z = 14–15 galaxies than N26's baseline (2–37×, mostly
+more than 3×), so the factor 182 depends strongly on the baseline; the σ_UV it needs lies around
+1–2 mag, with no stable verdict on overlap with N26's 1.5–2 mag. The referee also found a fourth gap
+in the argument: the bin was drawn around the two detections (`gap_bin`, look-elsewhere effect).
+Follow-up: calibrate on binned data with errors and propagate the posterior (T-025).
+
 ### Glossary
 
 | Term | Meaning |
@@ -294,6 +309,7 @@ Results: [`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-
 
 Newest first.
 
+- 2026-11-15: independent referee: z ≈ 8 LF uncertainty and dust flip both verdicts (post-hoc explorations); fourth gap `gap_bin`; follow-up T-025.
 - 2026-11-15: results: Part 3 result column and "What we found" (R1 reproduced; R2 higher, calibration-dependent; R3 consistent, calibration-dependent).
 - 2026-11-15: gate-2 review, round 2: the step from tail probability to "high confidence" is our decision rule, now GAP `gap_rule` (three gaps); age at z ≈ 14 aligned with N26 (280 Myr).
 - 2026-11-15: gate-2 review: the Poisson tail is now a bound tied to the count and the ratio (`mod_poisson`), not a free-standing number; `obs_count` labelled as N26's counting assumption, observational part kept.
@@ -406,6 +422,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 | `gap_rule`：判决规则：在完整的有效搜索上计数服从泊松分布时，尾概率 ≤ 2 × 10⁻⁴ 的模型以高置信度被排除 | GAP | reconstructed（N26 没有给出检验、门槛或从概率到置信度的对应；2 × 10⁻⁴ 的门槛是我们定的；显著性检验（significance testing）一般见 Wasserman 2004，第 10 章） | 论文没有写 |
 | `gap_poisson`：计数相对模型平均值服从泊松分布（没有宇宙方差的额外弥散） | GAP | reconstructed | 论文没有写 |
 | `gap_area`：所述面积就是这一箱的完整有效搜索 | GAP | reconstructed | 论文没有写 |
+| `gap_bin`：箱（z = 14–15、−21 < M_UV < −20）的选择独立于两个探测 | GAP | reconstructed（审稿后加入：箱是围绕探测选的；旁视效应（look-elsewhere effect）） | 论文没有写 |
 
 **其他解释。**
 
@@ -421,7 +438,8 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have h1 : v.tail_ppm ≤ 200 := p .mod_poisson (p .obs_count) (p .stat_ratio)  -- Poisson tail
-  exact p .gap_rule (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)  -- Sec. 4.1; GAP
+  exact p .gap_rule (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)
+    (p .gap_bin)  -- Sec. 4.1; GAPs
 ```
 
 **评析。** 泊松尾概率（约 6 × 10⁻⁵）是我们对"高置信度"的解读。它把预期计数当作精确值，并假定计数服从泊松分布。z ≈ 14 的稀有亮星系位于稀有晕中，这些晕的成团性使视场之间的弥散大于泊松（Somerville 等 2004；Trenti & Stiavelli 2008）；H25 的误差包含这一项，N26 没有。预期计数 2/182 只对所述面积成立，而该面积是在有探测的地方选的。余量很小：比值约 100（有效面积约 1.8 倍）时尾概率达到 2 × 10⁻⁴，比值约 38（约 4.8 倍面积）时达到单侧 3σ 的 1.35 × 10⁻³。
@@ -432,9 +450,9 @@ N26 构造了一个光度函数"to represent the pre-JWST theoretical consensus"
 
 #### 2.4 Lean 检查发现的问题
 
-1. **`explicit_insufficient`**：即使加上标准背景知识，链条仍需要三个缺口：从尾概率到"高置信度"的判决规则（`gap_rule`；N26 没有给出检验或门槛）、计数服从泊松分布且没有宇宙方差的额外弥散（`gap_poisson`），以及所述面积就是完整的有效搜索（`gap_area`）。N26 第 4 节都没有讨论它们。
+1. **`explicit_insufficient`**：即使加上标准背景知识，链条仍需要四个缺口（第四个 `gap_bin` 在审稿后加入：箱是围绕探测选的）；其中三个是：从尾概率到"高置信度"的判决规则（`gap_rule`；N26 没有给出检验或门槛）、计数服从泊松分布且没有宇宙方差的额外弥散（`gap_poisson`），以及所述面积就是完整的有效搜索（`gap_area`）。N26 第 4 节都没有讨论它们。
 2. **`stated_insufficient`**：论文明说了计数与比值；泊松尾概率的界是没写出的背景知识（implied），判决规则则完全没有写出。
-3. **每个前提都是必要的**（六个 `_needed` 反例模型），没有多余的前提。泊松尾概率经由 `mod_poisson` 与计数和比值相连（Codex 审查后改：单独的数值无法把它们连起来）。
+3. **每个前提都是必要的**（七个 `_needed` 反例模型），没有多余的前提。泊松尾概率经由 `mod_poisson` 与计数和比值相连（Codex 审查后改：单独的数值无法把它们连起来）。
 4. **普查假设在两个方向上起作用**：经由计数，只会加强结论（所述面积内更多的源以"至少两个"进入）；经由面积，可能削弱结论（搜索了更多面积却没有探测，`gap_area`）。
 5. **相容性**成立，但在这里分量很弱：所有前提都是肯定命题。
 6. **局限。** Lean 检查的是在我们的编码下的逻辑结构，不检查每个前提内部的物理；原子命题不加解释时，"必要"指"本编码用到了它"。
@@ -447,9 +465,10 @@ inductive Field where
   | gap_rule     -- GAP [reconstructed]
   | gap_poisson  -- GAP [reconstructed]
   | gap_area     -- GAP [reconstructed]
+  | gap_bin      -- GAP [reconstructed]
 
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
-  h ⟨2, 182, 60, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨2, 182, 60, False, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 ```
 
 ### 第三部分 · 本项目可检验或探索的环节
@@ -473,6 +492,8 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 一个独立的恒定恒星形成效率模型，用 Bouwens 等 2021 的 JWST 之前 z ≈ 8 光度函数校准后冻结，在同一箱中预言 φ = 2.2 × 10⁻⁷ Mpc⁻³ mag⁻¹：为 N26 基准的 9.4 倍（观测数密度约为这一预言的 19 倍，看到两个源的泊松概率约 0.5%）。在 72 个预先列出的变体中，这个倍数从 2.5 到 37（61 个"更高"、11 个"同一量级"），所以判定依赖校准。影响最大的是校准时假定的弥散，以及效率如何外推到小晕。固定中位数关系时，再现观测数密度所需的弥散为 σ_UV ≈ 1.4 mag（泊松范围内 1.15–1.57；各变体 1.07–1.60）：位于 N26 的 1.5–2 mag 的低端或略低，并高于推断到 z ≈ 9 的约 0.7 mag。论证的三个缺口（判决规则、宇宙方差、有效面积）不受这些数字影响。
 
 结果：[`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r1.json)、[`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r2.json)、[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r3.json)、[`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json)。交互网页在本地用 `python -m astrolab serve` 打开。
+
+**独立审稿之后（2026-11-15；事后，仅为探索）。** 两个基准判定都不能抵御 z ≈ 8 校准数据的不确定性，而预注册没有传播这一不确定性：把 Bouwens 等 2021 的任一参数按 1σ 移动，比值在 1.9 到 35 之间变化，所需 σ 在 1.70 到 1.10 mag 之间变化，R2 与 R3 都会翻转。只要去掉 0.3 mag 的 z ≈ 8 尘埃消光，比值就变为 20、σ 变为 1.24 mag（"不同"）。稳健的说法更窄：独立的恒定 SFE 模型预言的 z = 14–15 星系多于 N26 的基准（2–37 倍，大多超过 3 倍），所以 182 倍强烈依赖基准；它所需的 σ_UV 在 1–2 mag 左右，与 N26 的 1.5–2 mag 是否重叠没有稳定的判定。审稿人还发现论证的第四个缺口：箱是围绕两个探测选的（`gap_bin`，旁视效应）。后续：用带误差的分箱数据校准并传播后验（T-025）。
 
 ### 术语表
 
@@ -499,6 +520,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 按时间倒序。
 
+- 2026-11-15：独立审稿：z ≈ 8 光度函数的不确定性与尘埃会使两个判定翻转（事后探索）；第四个缺口 `gap_bin`；后续 T-025。
 - 2026-11-15：结果：第三部分"结果"一列与"我们的发现"（R1 复现；R2 更高、依赖校准；R3 一致、依赖校准）。
 - 2026-11-15：闸门 2 审查第 2 轮：从尾概率到"高置信度"的一步是我们定的判决规则，改为 GAP `gap_rule`（三个缺口）；z ≈ 14 的宇宙年龄按 N26 改为 2.8 亿年。
 - 2026-11-15：闸门 2 审查：泊松尾概率改为与计数和比值相连的界（`mod_poisson`），不再是单独的数值；`obs_count` 注明是 N26 的计数假设，只保留观测部分。
