@@ -28,117 +28,164 @@ and concludes that there is "no substantial evidence for a discrepancy" (Sec. VI
 
 ## 2. Hypotheses and decision criteria
 
-Only R1 and R2 carry verdicts. All tolerances below are fixed before any chain is downloaded.
+Only R1 and R2 carry verdicts. All rules below are fixed before any chain is downloaded.
 
-**Columns and S8.** Each chain is read with its header if it has one (a comment line starting with
-`#` and giving one name per column). Columns are found by name: Ωm by a name ending in `omega_m`,
-σ8 by a name ending in `sigma_8` or `sigma8`, the weight by `weight` (linear) or `log_weight`
-(exponentiated after subtracting its maximum). If a stored S8 column exists (name ending in `s_8`
-or `s8`), it must agree with σ8 (Ωm/0.3)^0.5 to 1e-4 in every row, else the chain is flagged and the
-derived value is used. Without a header, the three Nautilus chains (`32pt_…`, `12pt_…`,
-`shear_nla_…`) use the layout of D26's `read_chains_y6.py` (Ωm in column 0, σ8 in column −7,
-log-weight in column −3), and any other chain without a header is "not evaluable". Rows with
-non-finite values or zero weight are dropped and counted. A chain whose effective sample size
-(Σw)²/Σw² is below 2,000 is flagged in the results.
+### 2.0 Step A: reading the chains (no statistics)
 
-**R1 (verdict per chain).** Weighted mean of S8 and the 68% interval around it. The interval
-follows D26's "68% credible level of posterior volume around the mean": the shortest interval
-containing the mean and 68% of the weight, found on a weighted kernel density estimate (KDE) of
-S8. "Reproduced" for a chain if |mean − published| ≤ 0.002 (the published means are rounded to
-0.001) **and** each interval end is within 0.003 of the published one. The CMB and 3x2pt chains
-must both be reproduced for R2 to be evaluated as a reproduction; the 1x2pt (`12pt_…`) chain must be
-reproduced for R3 to use it, otherwise `shear_nla_…` is tried with the same test, and if neither
-passes R3 is not computed. R1 also reports the weighted mean of Ωm against 0.333 (3x2pt) as a
-check, without a verdict.
+The chain formats are not documented beyond D26's `read_chains_y6.py`, which reads only the
+Nautilus 3x2pt chain (Ωm in column 0, σ8 in column −7, log-weight in column −3) and a flow chain
+(Ωm in column 0, σ8 in column 1, unit weights); it does not cover the CMB chain. The run therefore
+has two steps. **Step A** downloads the chains and records, for each, only its format: the comment
+lines (with any `#sampler=` and `##` prior-range lines), the number of columns, the header line, the
+column map found by the rules below, and the row counts. It computes no statistic of any parameter.
+If the rules below cannot map a chain, a dated amendment to the column mapping only (nothing else)
+may be written after step A and before step B; this is the only allowed post-download change.
+**Step B** computes everything else.
 
-**R2 (verdict for 1-D and 2-D separately).** The parameter-difference n_σ is computed from the
-original chains (no truncation, no re-weighting) with the estimator of section 4. Let s be the
-standard deviation of n_σ over the five seeds. "Reproduced" if
-|n_σ − published| ≤ 0.15 + 2s (published: 2.6 in S8, 2.2 in S8–Ωm; the 0.15 allowance covers D26's
-unquoted normalizing-flow noise and the rounding to 0.1). "Not reproduced" otherwise. The verdict is
-"not evaluable" if R1 fails for either chain, if s > 0.03 (non-convergence), or if the prior
-supports of Ωm or σ8 in the two chains differ such that more than 1% of either chain's weight lies
-outside the other chain's sampled range; in that case the number is reported as descriptive. The
-bandwidth variants (×0.5 and ×2) and the 1-D convolution cross-check are reported; a change of more
-than 0.1σ is flagged as bandwidth-dependent but does not change the verdict.
+**Column rules.**
+- The header is the first line that starts with a single `#` (not `##`) and has as many
+  whitespace-separated fields as the data rows.
+- Names are matched case-insensitively on the part after the last `--`. Ωm: `omega_m` or `omegam`;
+  σ8: `sigma_8` or `sigma8`; a stored S8: `s_8` or `s8`. Exactly one column must match each; zero
+  or several matches make the chain "not mapped".
+- Weights, in order of priority: `weight`, then Cobaya's multiplicity (`weight` in Cobaya is the
+  multiplicity), then `log_weight` (exponentiated after subtracting its maximum); never
+  `old_weight`. No weight column: unit weights.
+- A header that lacks a needed name makes the chain "not mapped"; there is no positional fallback
+  for a chain with a header. Without any header line, the three Nautilus chains (`32pt_…`,
+  `12pt_…`, `shear_nla_…`) use the layout of `read_chains_y6.py`; any other chain is "not mapped".
+- Burn-in: if the `#sampler=` line names a nested sampler (nautilus, multinest, polychord) or an
+  importance or flow sampler, no burn-in; if it names an MCMC sampler (metropolis, emcee, mcmc), the
+  first 30% of rows are dropped; if there is no sampler line, no burn-in and this is recorded.
+- Rows with a non-finite value in a used column, or zero weight, are dropped; the counts of rows with
+  a non-finite value in any column and in the used columns are both reported.
+- A stored S8 must agree with σ8 (Ωm/0.3)^0.5 to 1e-4 in every row, else the chain is flagged and
+  the derived value is used. The effective sample size (Σw)²/Σw² is reported; below 2,000 it is
+  flagged.
+- A "not mapped" chain that is not fixed by the step-A amendment makes every item using it "not
+  evaluable".
 
-Reported alongside, without verdicts: the Gaussian estimate (mean difference over the root sum of
-squared standard deviations), with means and with MAP-like modes.
+### 2.1 R1 (verdict per chain)
 
-**R3 (descriptive).** n_σ between the 1x2pt chain selected by R1 and the CMB chain, 1-D and
-2-D, same estimator. D26 quotes no such number; no verdict.
+Weighted mean of S8, and the 68% interval around it: the shortest interval containing the mean and
+68% of the weight, found on a weighted kernel density estimate (KDE) of S8 (verdict definition);
+the interval with 34% of the weight on each side of the mean is reported alongside, without verdict.
+- "Reproduced" for a chain if |mean − published| ≤ 0.002 (the published means are rounded to
+  0.001) **and** each interval end is within 0.003 of the published one. Published: CMB 0.836
+  (+0.012/−0.013), DES 3x2pt 0.789 (+0.012/−0.012), DES ξ± 0.783 (+0.019/−0.015).
+- Gates use the means only (the mean identifies the chain; the interval ends test the interval
+  definition): R2 is evaluated as a reproduction only if the CMB and 3x2pt means pass; R3 uses the
+  `12pt_…` chain if its mean passes, otherwise `shear_nla_…` if its mean passes (the NLA chain is
+  downloaded only then), otherwise R3 is not computed.
+- The weighted mean of Ωm in the 3x2pt chain is reported against 0.333, without verdict.
 
-**R4 (exploration, no verdict).**
-- Projection effects: shift every DES 3x2pt S8 sample up by 0.17 × 0.012 = +0.00204 (D26 App. B
-  Table 9: (truth − mean)/σ = +0.17, i.e. the simulated mean is low) and recompute the 1-D n_σ; the
-  expected change is a smaller difference. This is a simulation-calibrated bias, not a correction.
-- Algorithm: on the same 1-D S8 comparison, iso-density (eq. 18), equal-tail (two-sided probability
-  that Δp lies on the far side of 0 from the median, converted with eq. 19) and the Gaussian
-  estimate.
-- Threshold: report, for each R2 number, the largest threshold below which it would be classified
-  as at or above threshold.
-- Full space: Gaussian parameter difference (Δμᵀ (C_A + C_B)⁻¹ Δμ, a χ² with k degrees of freedom,
-  converted to n_σ with eq. 19) over the parameters both chains share by name; twice, with all
-  shared parameters and with the data-constrained ones only (those whose DES posterior variance is
-  below half of the variance of a uniform distribution over the DES chain's sampled range). If the
-  chains share no parameter names beyond Ωm and σ8, this item reports that and stops.
+### 2.2 R2 (verdict for 1-D and 2-D separately)
 
-**R5 (descriptive).** Each published S8 summary (split-normal with the published asymmetric
-errors) against the CMB chain, 1-D, with the iso-density estimator and a weight per sample drawn
-from the split normal. Probes: KiDS-Legacy (mean 0.813 ± 0.018; the 0.76σ of its paper is against
-Planck Legacy, not this CMB), HSC Y3 (Zhang et al. 2025, 0.780 +0.029/−0.030), ACT DR6 + Planck
-lensing + BAO (0.831 ± 0.023), eROSITA eRASS1 (0.86 ± 0.01); previous generation: DES Y3 3x2pt
-(0.776 ± 0.017), KiDS-1000 3x2pt (0.766 +0.020/−0.014) and cosmic shear (0.759 +0.024/−0.021),
-HSC Y3 2023 (shear 0.769 +0.031/−0.034 and 0.776 +0.032/−0.033; 3x2pt 0.775 +0.043/−0.038). No
-average or joint χ²: the probes are correlated (shared footprints, the ACT combination includes
-Planck lensing and BAO, eROSITA's mass calibration uses weak lensing) and S8 with exponent 0.5 is
-not each probe's best-constrained direction. These n_σ are a uniform approximation and are not
-comparable with the significances in the probes' own papers.
+The parameter-difference n_σ from the original chains (no truncation, no re-weighting), with the
+estimator of section 4. Let s be the standard deviation of n_σ over the five seeds.
+- "Reproduced" if |n_σ − published| ≤ 0.15 + 2s (published: 2.6 in S8, 2.2 in S8–Ωm; the 0.15
+  allowance covers D26's unquoted normalizing-flow noise and the rounding to 0.1). Otherwise "not
+  reproduced".
+- "Not evaluable" if the R1 gate fails, or if s > 0.03 after one pre-registered escalation (rerun
+  once with N = 1,600,000 if s > 0.03 at N = 400,000; no further reruns).
+- **Prior support.** The test uses prior ranges, not where the samples fell. For each sampled
+  cosmological parameter that both chains share (Ωm and the amplitude parameter, A_s or
+  ln(10¹⁰A_s), when present under the same name), the prior range is taken from the chain's `##`
+  lines (CosmoSIS `values.ini`) if present. If more than 1% of the DES weight lies outside the CMB
+  prior range, or vice versa, R2 is "not evaluable" and the result is reported as descriptive. If no
+  prior ranges are available in either header, the test is recorded as "not performed" and R2
+  stays evaluable. σ8 and S8 are derived and have no prior range. As a sensitivity (no verdict), the
+  1-D and 2-D n_σ are also reported after truncating both chains to the overlap of their sampled
+  ranges in Ωm, with the fraction of weight dropped.
+- Bandwidth variants (×0.5, ×2) and the 1-D convolution cross-check are reported; a change of more
+  than 0.1σ is flagged as bandwidth-dependent and does not change the verdict.
+- Reported alongside, without verdict: the Gaussian estimate (difference of the means over the root
+  sum of squared standard deviations), and the same with the weighted-KDE modes in place of the
+  means.
+
+### 2.3 R3 (descriptive)
+
+n_σ between the ξ± chain selected by R1 and the CMB chain, 1-D and 2-D, same estimator. D26
+quotes no such number; no verdict.
+
+### 2.4 R4 (exploration, no verdict)
+
+- **Projection effects:** shift every DES 3x2pt S8 sample by +0.17 × 0.012 = +0.00204 (D26 App. B
+  Table 9: (truth − mean)/σ = +0.17, i.e. the simulated mean comes out low) and recompute the 1-D
+  n_σ; expected: a smaller difference. A second variant replaces the DES mean by D26's published
+  MAP (0.793): shift by +0.004. These are simulation-based or summary-based variants, not corrections.
+- **Algorithm:** on the same 1-D S8 comparison, (a) iso-density (eq. 18); (b) equal-tail: p = the
+  weighted probability that Δp lies on the far side of 0 from the weighted median of Δp,
+  Δ_ET = 1 − 2p, n_σ = √2 erf⁻¹(Δ_ET); (c) the Gaussian estimate.
+- **Threshold:** for each R2 number, the largest threshold that the number reaches (it reaches
+  every threshold up to its own value), and whether that is below 3.
+- **Full space (Gaussian):** over the cosmological parameters that both chains *sample* (identified
+  from the `##` prior-range lines or the CosmoSIS `cosmological_parameters--` names that are not
+  derived; derived columns such as σ8, S8, h0 when H0 is sampled, and any column whose correlation
+  with another selected column exceeds 0.999 are excluded), the χ² = Δμᵀ (C_A + C_B)⁻¹ Δμ with k
+  degrees of freedom, converted to n_σ via its probability and eq. 19. Reported twice: with all such
+  parameters, and with the data-constrained ones (DES posterior variance below 0.25 of the variance
+  of a uniform distribution over the DES prior range from the `##` lines). If the condition number of
+  C_A + C_B exceeds 1e8, or the chains share no sampled parameter beyond Ωm, or no prior ranges are
+  available for the second variant, the item records that and stops.
+
+### 2.5 R5 (descriptive)
+
+Each published S8 summary against the CMB chain, 1-D, iso-density estimator. A summary is modelled
+as a split normal whose *mean* equals the published central value (the location is shifted by
+−√(2/π)(σ₊ − σ₋) from the mode), with the published σ₊ and σ₋; N independent draws from it are paired
+with N weighted draws from the CMB chain. Probes: KiDS-Legacy (mean 0.813 ± 0.018; the 0.76σ of its
+paper is against Planck Legacy, not this CMB), HSC Y3 (Zhang et al. 2025, 0.780 +0.029/−0.030), ACT
+DR6 + Planck lensing + BAO (0.831 ± 0.023), eROSITA eRASS1 (0.86 ± 0.01). Previous generation: DES
+Y3 3x2pt (0.776 ± 0.017), KiDS-1000 3x2pt (0.766 +0.020/−0.014) and cosmic shear (0.759
++0.024/−0.021), HSC Y3 2023 (shear 0.769 +0.031/−0.034 and 0.776 +0.032/−0.033; 3x2pt 0.775
++0.043/−0.038). No average or joint χ²: the probes are correlated (shared footprints, the ACT
+combination includes Planck lensing and BAO, eROSITA's mass calibration uses weak lensing) and S8
+with exponent 0.5 is not each probe's best-constrained direction. These n_σ are a uniform
+approximation and are not comparable with the significances in the probes' own papers.
 
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
 |---|---|---|---|
-| DES Y6 3x2pt chain `32pt_wolensbin2_lin_lcdm_DV0723_R0723.txt` | `https://desdr-server.ncsa.illinois.edu/despublic/y6a2_files/y6_key/chains_release/`, via `ctx.http(max_bytes=150 MiB)` | whole file (user-approved one-off exception, 2026-11-15) | 144,252,036 bytes |
-| CMB chain `fiducial_cmb_tp_external_R1006.txt` | same, via `ctx.http` | whole file | 11,782,940 bytes |
-| DES 1x2pt (ξ±) chain `12pt_wolensbin2_lin_lcdm_DV0723_R0723.txt` | same | whole file | 14,875,711 bytes |
-| fallback only: `shear_nla_wolensbin2_lcdm_DV0723_R0723.txt` | same | only if R1 fails for `12pt_…` | 10,029,183 bytes |
-| Published S8 summaries | papers (section 2, R5) | in `PARAMS` | – |
+| DES Y6 3x2pt chain `32pt_wolensbin2_lin_lcdm_DV0723_R0723.txt` | `https://desdr-server.ncsa.illinois.edu/despublic/y6a2_files/y6_key/chains_release/`, via `ctx.http` with `max_bytes = PARAMS["max_bytes_32pt"]` (150 MiB) | whole file (user-approved one-off exception, 2026-11-15) | 144,252,036 bytes; of order 10⁵ rows (about 1 kB per row of ~40 columns) |
+| CMB chain `fiducial_cmb_tp_external_R1006.txt` | same, via `ctx.http` (default cap) | whole file | 11,782,940 bytes; of order 10⁴–10⁵ rows |
+| DES ξ± chain `12pt_wolensbin2_lin_lcdm_DV0723_R0723.txt` | same | whole file | 14,875,711 bytes; of order 10⁴–10⁵ rows |
+| fallback only: `shear_nla_wolensbin2_lcdm_DV0723_R0723.txt` | same | only if the R1 mean test fails for `12pt_…` | 10,029,183 bytes |
+| Published S8 summaries | papers (R5) | in `PARAMS` | – |
 
-Total 170.9 MB (163.0 MiB), or 180.9 MB (172.6 MiB) with the fallback, under the 200 MiB study
-budget. The 50 MB per-download cap is exceeded only by the 3x2pt chain, by the user's explicit
-one-off consent (2026-11-15, recorded in `log.md`); the cap passed for that call is 150 MiB and is
-used for no other URL. The chain files are cached outside Dropbox and parsed in memory; only
-summaries go into `results/`. Not fetched: the 2x2pt chain (128 MB), the nonlinear-bias and wCDM
-chains (257 MB to 4.5 GB), the fixed-neutrino-mass chain (76 MB), any KiDS, ACT, SPT or eROSITA
-product.
+Total 170,910,687 bytes (163.0 MiB), or 180,939,870 bytes (172.6 MiB) with the fallback, under the
+200 MiB study budget (charged also for cached reads). The 50 MB per-download cap is exceeded only for
+the 3x2pt chain, by the user's explicit one-off consent (2026-11-15, recorded in `log.md`); the cap
+for that call is `PARAMS["max_bytes_32pt"]` = 150 MiB, passed for that exact URL only. The files are
+cached outside Dropbox and parsed in memory; only summaries go into `results/`. Not fetched: the
+2x2pt chain (128 MB), the nonlinear-bias and wCDM chains (257 MB to 4.5 GB), the fixed-neutrino-mass
+chain (76 MB), any KiDS, ACT, SPT or eROSITA product.
 
 ## 4. Method
 
-1. Fetch the three chains (section 3), parse them (section 2, columns), derive S8, and drop and
-   count bad rows.
-2. **R1:** weighted means; the 68% interval around the mean from a weighted Gaussian KDE of S8 on a
-   grid of 2,000 points spanning the sample range (Scott's rule bandwidth with the effective sample
-   size), shortest interval containing the mean and 68% of the KDE mass.
+1. **Step A** (section 2.0): fetch the chains, record formats and column maps, save
+   `results/formats.json`. No statistic.
+2. **Step B**, R1: weighted means; a weighted Gaussian KDE of S8 on a grid of 2,000 points between
+   the weighted 0.01% and 99.99% quantiles (Scott's rule with the effective sample size); the
+   shortest interval containing the mean and 68% of the KDE mass, and the equal-34% interval.
 3. **R2 estimator** (D26 eqs. 17–19), for p = S8 (1-D) and p = (S8, Ωm) (2-D):
    - draw N = 400,000 indices from each chain independently, with probability proportional to the
-     weights, with replacement; Δp_i = p_A,i − p_B,i (A = DES, B = CMB): samples of P(Δp) (eq. 17);
-   - split them into two halves; fit a Gaussian KDE (scipy `gaussian_kde`, Scott's rule; in 2-D
-     the samples are whitened with their covariance first) on the first half; evaluate it on the
-     second half and at Δp = 0; Δ = fraction of the second half with density above the density at 0
-     (eq. 18);
-   - n_σ = √2 erf⁻¹(Δ) (eq. 19); if Δ = 1 exactly (no evaluation sample below the zero density),
-     report n_σ as a lower bound from Δ = 1 − 1/N_half;
-   - five seeds (0–4): report the mean n_σ and its standard deviation s; repeat with the bandwidth
-     multiplied by 0.5 and by 2;
+     weights, with replacement; Δp_i = p_DES,i − p_CMB,i are samples of P(Δp) (eq. 17), with equal
+     weights after resampling;
+   - split them into two halves; fit a Gaussian KDE (scipy `gaussian_kde`, Scott's rule; it uses the
+     sample covariance, so no separate whitening) on a random subset of 20,000 points of the first
+     half; evaluate it on a random subset of 50,000 points of the second half and at Δp = 0;
+     Δ = fraction of the evaluation points with density strictly above the density at 0 (eq. 18);
+   - n_σ = √2 erf⁻¹(Δ) (eq. 19); if Δ = 1 exactly, n_σ is reported as a lower bound with
+     Δ = 1 − 1/N_eval (N_eval = 50,000);
+   - five seeds (0–4); mean n_σ and its standard deviation s; repeated with the bandwidth × 0.5 and
+     × 2; the escalation rule of section 2.2 scales N, the fit subset and the evaluation subset by 4;
    - 1-D cross-check: P(Δp) by numerical convolution of the two weighted KDEs on a common grid;
      Δ = mass of the grid points with density above the density at 0.
-   For speed, the KDE is evaluated on at most 50,000 points of the second half; this subsample is
-   part of the seeded procedure.
-4. **R3:** the same estimator, 1x2pt chain against the CMB chain.
-5. **R4 and R5:** as in section 2.
-6. Save summaries only (means, intervals, n_σ per seed and variant, effective sample sizes, row
-   counts, column map) to `results/*.json`, each under 1 MB.
+4. R3, R4 and R5 as in section 2.
+5. Summaries only (means, intervals, n_σ per seed and variant, effective sample sizes, row counts,
+   column maps) go to `results/*.json`, each under 1 MB.
 
 Systematics we cannot test here: DES's own systematics and blinding, the choice of CMB likelihoods,
 the accuracy of D26's normalizing flows (only bounded through the tolerance), and the
