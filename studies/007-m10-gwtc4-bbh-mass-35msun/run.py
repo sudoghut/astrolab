@@ -102,7 +102,7 @@ def main(ctx):
                 ok = False
             else:
                 reason = why_o3.get(k, "")
-                statuses.append(f"{k}: " + ("excluded (no PE)" if reason == "no PE or FAR" else f"excluded: {reason}"))
+                statuses.append(f"{k}: " + ("excluded (no PE)" if reason == "no PE" else f"excluded: {reason}"))
         named[n] = {"status": "; ".join(statuses), "pass": ok}
     gwtc1 = {n: {"in_lists": any(_strip(k) == n for k in merged), "in_sample": any(_strip(k) == n for k in s_o3)}
              for n in P["gwtc1_bbhs"]}
@@ -119,6 +119,9 @@ def main(ctx):
           "gwtc1_missing": [n for n, x in gwtc1.items() if not x["in_lists"]],
           "excluded_o4a": {k: why for k, why in why_o4a.items() if why != "outside O4a"},
           "excluded_o3": why_o3, "precedence_overlaps": overlaps, "verdict": v["verdict"],
+          "date_only_names_o4a": sorted(n for n in s_o4a if gwtc.name_to_gps(_strip(n)) is None),
+          "invalid_tar_tokens": sorted(n for n in names if "_" in n and gwtc.name_to_gps(n) is None),
+          "named_check_rule": "an event absent from every list fails its check (strict reading)",
           "far_note": "GWOSC far is documented as the lowest FAR over search pipelines"}
     ctx.log(f"R1: O4a {len(s_o4a)} (target {len(target)}), missing {len(missing)}, extra {len(extra)}; "
             f"O3 {n_o3}; verdict {v['verdict']}")

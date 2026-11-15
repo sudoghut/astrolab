@@ -51,13 +51,15 @@ def test_lower_bound_and_cuts():
     assert not gw.passes(row, 1.0, 3.0, "p90")[0]
     row["far"] = 1.0                                      # far must be strictly below 1
     assert not gw.passes(row, 1.0, 3.0, "median")[0]
-    assert gw.passes({"far": None, "m1": 1, "m1_lo": 0, "m2": 1, "m2_lo": 0}, 1, 3, "p90") == (False, "no PE or FAR")
+    assert gw.passes({"far": None, "m1": 1, "m1_lo": 0, "m2": 1, "m2_lo": 0}, 1, 3, "p90") == (False, "no FAR")
+    assert gw.passes({"far": 0.1, "m1": None, "m1_lo": None, "m2": None, "m2_lo": None}, 1, 3, "p90") == (False, "no PE")
 
 
 def test_name_to_gps():
     # GW150914_095045 is GPS 1126259462 (+0.4); the name truncates to the second
     assert abs(gw.name_to_gps("GW150914_095045") - 1126259462) <= 1
     assert gw.name_to_gps("GW150914") is None
+    assert gw.name_to_gps("GW230231_000000") is None          # invalid date
 
 
 def test_select_o4a_window_and_exclusion(tmp_path):
