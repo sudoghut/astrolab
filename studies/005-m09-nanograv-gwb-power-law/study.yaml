@@ -3,7 +3,7 @@ title_zh: "M9 NANOGrav 15 年引力波背景：由 KDE 自由谱拟合幂律振�
 id: "005-m09-nanograv-gwb-power-law"
 level: X               # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
 status: planned               # planned | active | reproduced | concluded | paused | abandoned
-created: 2026-11-15
+created: 2026-11-14
 question: "Does a laptop refit of the NANOGrav 15-yr KDE free spectrum agree with the power-law amplitude and spectral-index statements of Agazie et al. 2023 (ApJL 951 L8), and how does the amplitude overlap with the SMBHB-population prediction of the companion paper L37?"
 question_zh: "在本机用 NANOGrav 15 年 KDE 自由谱重拟幂律，振幅与谱指数是否与 Agazie et al. 2023（ApJL 951 L8）的陈述一致？振幅与姊妹论文 L37 的 SMBHB 群体预测重叠多少？"
 claims: []                    # claim ids in atlas/claims/ this study reproduces or tests
