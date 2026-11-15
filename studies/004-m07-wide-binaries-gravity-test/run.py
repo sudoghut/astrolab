@@ -30,7 +30,7 @@ PARAMS = {
     "near_plx": 100.0, "near_b": "parallax + 3 * parallax_error > 80",
     "vcap_kms": None,                  # no velocity condition in A1 (README section 3)
     "max_rows": 50000,
-    "bytes_a1": 600, "bytes_a2": 40, "bytes_a3": 24, "bytes_b1": 300,   # README section 3 estimates
+    "bytes_a1": 600, "bytes_a2": 40, "bytes_a3": 24, "bytes_b1": 600,   # README section 3 estimates
     "budget_bytes": 200 * 1024 ** 2,
     "workers": 4,
     "region_limit": None,              # exploration only: run the first N regions
@@ -47,6 +47,11 @@ PARAMS = {
 def _max_bytes():
     from astrolab import config
     return config.HTTP_MAX_BYTES
+
+
+def _same(n, df, label):
+    if len(df) != n:
+        raise RuntimeError(f"{label}: fetched {len(df)} rows but the server count was {n}; stop")
 
 
 def _count(ctx, q, label):
@@ -108,6 +113,7 @@ def _a1(ctx, P, name, r, near, budget):
     budget.reserve(n * P["bytes_a1"], f"A1 {name}")
     q = qc.replace("SELECT COUNT(*) AS n", "SELECT " + Q.a1_select(), 1)
     df = ctx.tap(q, "gaia", label=f"A1 {name}", max_rows=P["max_rows"], mode="async", release="Gaia DR3")
+    _same(n, df, f"A1 {name}")
     return n, df
 
 
@@ -122,6 +128,7 @@ def _a2(ctx, P, name, r, near, neighbour_key, budget):
     budget.reserve(n * P["bytes_a2"], f"A2 {name}")
     q = Q.neighbour_query(r, P["parent"], nb, "rows", near=near)
     df = ctx.tap(q, "gaia", label=f"A2 {name}", max_rows=P["max_rows"], mode="async", release="Gaia DR3")
+    _same(n, df, f"A2 {name}")
     return n, df
 
 
@@ -133,6 +140,7 @@ def _a3(ctx, P, name, r, near, budget):
     budget.reserve(n * P["bytes_a3"], f"A3 {name}")
     df = ctx.tap(Q.flame_query(r, P["parent"], "rows", near=near), "gaia", label=f"A3 {name}",
                  max_rows=P["max_rows"], mode="async", release="Gaia DR3")
+    _same(n, df, f"A3 {name}")
     return n, df
 
 
@@ -204,6 +212,7 @@ def _b1(ctx, P, name, r, near, budget):
     budget.reserve(n * P["bytes_b1"], f"B1 {name}")
     q = qc.replace("SELECT COUNT(*) AS n", "SELECT " + Q.b1_select(), 1)
     df = ctx.tap(q, "gaia", label=f"B1 {name}", max_rows=P["max_rows"], mode="async", release="Gaia DR3")
+    _same(n, df, f"B1 {name}")
     return n, df
 
 
@@ -264,6 +273,8 @@ def build_sample(pairs, a2, a3, P, variant, trace=None):
 
     note("merged_pairs")
     if not v.get("no_degroup"):          # each member's only neighbour is its partner (A2)
+        if a2["source_id"].duplicated().any():
+            raise RuntimeError("A2 has duplicate source_id rows; stop")
         nb = {int(s): (int(n), int(f)) for s, n, f in
               zip(a2["source_id"], a2["n"], a2["first_neighbour"])}       # exact integer ids
 

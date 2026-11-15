@@ -53,6 +53,20 @@ def test_tap_cache_hit_needs_no_network(tmp_cache):
     assert res.from_cache and list(res.data.a) == [1, 2]
 
 
+def test_tap_refuses_result_above_download_limit(tmp_cache, monkeypatch):
+    class _Res:
+        query_status = "OK"
+
+        def to_table(self):
+            from astropy.table import Table
+            return Table({"a": np.arange(5000.0)})
+
+    monkeypatch.setattr(fetch, "_run_tap", lambda url, q, maxrec, mode: _Res())
+    monkeypatch.setattr(config, "HTTP_MAX_BYTES", 1000)
+    with pytest.raises(fetch.TooLarge):
+        fetch.tap("SELECT a FROM big", "gaia", max_rows=10000)
+
+
 def test_study_budget_enforced(monkeypatch):
     monkeypatch.setattr(config, "STUDY_BUDGET_BYTES", 1000)
     ctx = study.Context(study.Study(Path(".")))

@@ -75,7 +75,8 @@ python -m astrolab serve           # Atlas and study pages at http://127.0.0.1:8
   The password is never stored by astrolab: only the session cookie returned by the archive is kept,
   in `%LOCALAPPDATA%\astrolab\gaia_session.json` (outside the project). With credentials configured
   and no cookie yet, Gaia queries log in once automatically. `python -m astrolab gaia-logout` ends the
-  session and deletes the cookie.
+  session and deletes the cookie. The cookie works like a password while the session lasts: on Windows the
+  file inherits the user-only permissions of the profile folder (`chmod` has no effect there).
 
 ### License
 
@@ -144,7 +145,7 @@ python -m astrolab serve           # 本地浏览 Atlas 与研究网页：http:/
   2. 项目根目录下的 `.env` 文件：把 `.env.example` 复制为 `.env` 并填写两行。`.env` 不受 git 追踪；若项目目录被同步（例如 Dropbox），这个文件也会被同步，介意时请改用环境变量；
   3. 都没有时，`python -m astrolab gaia-login` 以交互方式询问（密码不回显）。
 
-  astrolab 从不保存密码，只保存档案返回的会话 cookie，位置是 `%LOCALAPPDATA%\astrolab\gaia_session.json`（项目目录之外）。配置了凭据而还没有 cookie 时，Gaia 查询会自动登录一次。`python -m astrolab gaia-logout` 结束会话并删除 cookie。
+  astrolab 从不保存密码，只保存档案返回的会话 cookie，位置是 `%LOCALAPPDATA%\astrolab\gaia_session.json`（项目目录之外）。配置了凭据而还没有 cookie 时，Gaia 查询会自动登录一次。`python -m astrolab gaia-logout` 结束会话并删除 cookie。会话有效期间 cookie 相当于密码：在 Windows 上，文件继承用户配置文件夹只限本人访问的权限（`chmod` 在那里不起作用）。
 
 ### 许可证
 

@@ -161,6 +161,13 @@ def tap(
     df = _to_frame(table)
     tmp = cache.staging_path(".parquet")
     df.to_parquet(tmp, index=False)
+    mem = int(df.memory_usage(deep=True).sum())
+    if max(tmp.stat().st_size, mem) > config.HTTP_MAX_BYTES:
+        tmp.unlink(missing_ok=True)
+        raise TooLarge(
+            f"TAP result is {max(tmp.stat().st_size if tmp.exists() else 0, mem) / 1024**2:.1f} MB "
+            f"> per-download limit {config.HTTP_MAX_BYTES / 1024**2:.0f} MB; narrow the query."
+        )
     prov = Provenance(
         source=f"tap:{service}", request=query, release=release, rows=len(df),
         bytes=tmp.stat().st_size, sha256=_sha256(tmp), cache_key=key, note=note,
