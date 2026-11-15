@@ -295,13 +295,14 @@ def main(ctx):
         fs = {"status": "no headers"}
         if hd and hc:
             low_d, low_c = [h.lower() for h in hd], [h.lower() for h in hc]
-            if ranges["des_3x2pt"] and ranges["cmb"]:
-                cand = [n for n in set(ranges["des_3x2pt"]) & set(ranges["cmb"])
-                        if n.startswith("cosmological_parameters--") and n in low_d and n in low_c]
-            else:
-                cand = [n for n in set(low_d) & set(low_c)
-                        if n.startswith("cosmological_parameters--") and n.split("--")[-1] not in DERIVED]
-            cand = sorted(cand)
+            def sampled(key, low):
+                # README 2.4: sampled = has a '##' prior range, or a non-derived cosmological_parameters column
+                by_range = {n for n in ranges[key] if n.startswith("cosmological_parameters--")}
+                by_name = {n for n in low if n.startswith("cosmological_parameters--")
+                           and n.split("--")[-1] not in DERIVED}
+                return (by_range | by_name) & set(low)
+
+            cand = sorted(sampled("des_3x2pt", low_d) & sampled("cmb", low_c))
             xa = np.column_stack([des["data"][:, low_d.index(n)] for n in cand]) if cand else None
             xb = np.column_stack([cmb["data"][:, low_c.index(n)] for n in cand]) if cand else None
             has_om = any(n.split("--")[-1] in ("omega_m", "omegam") for n in cand)
