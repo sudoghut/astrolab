@@ -70,7 +70,11 @@ check of the mapping; a failed R1 does not allow a second remapping.
 - A "not mapped" chain that is not fixed by the step-A amendment makes every item using it "not
   evaluable".
 
-**Step-A amendment (2026-11-15, after step A and before step B; column mapping only).** Step A
+**Step-A amendment (2026-11-15, after step A and before step B).** *Procedural note (referee,
+2026-11-15): section 2.0 allows an amendment only when a chain cannot be mapped; all three chains
+were mapped, so this amendment, which names columns for sections 2.2 and 2.4, is outside that
+scope. It was made from column names only, before any statistic, and touches no verdict; without
+change (2) the R4 full-space Gaussian would have been 1.26σ instead of 0.89σ (section 6).* Step A
 found all three chains to be CosmoSIS Nautilus output with headers; Ωm, σ8, the stored S8 and the
 log-weight were mapped by the rules above without change. Two naming facts seen only in the headers
 complete the mapping: (1) the amplitude parameter is named `cosmological_parameters--a_s_1e9`
@@ -251,15 +255,22 @@ fallback was not downloaded.
 | Projection | n_σ (5 seeds) | s | bandwidth ×0.5 / ×2 | D26 | tolerance 0.15 + 2s | verdict |
 |---|---|---|---|---|---|---|
 | S8 (1-D) | 2.674 | 0.0023 | 2.675 / 2.673 | 2.6 | 0.155 | reproduced |
+
+*Uncertainty (post hoc, referee):* s is the spread over resampling seeds only. A bootstrap over chain
+rows (20 replicates) gives 2.679 ± 0.030 (1-D) and 2.189 ± 0.034 (2-D); with these the verdicts are
+unchanged (|2.68 − 2.6| = 0.08 < 0.15 + 2 × 0.03).
+
 | S8–Ωm (2-D) | 2.178 | 0.0112 | 2.191 / 2.172 | 2.2 | 0.172 | reproduced |
 
 - Prior support (Ωm and A_s, from the `##` ranges): no weight of either chain lies outside the other
   chain's prior range; the test was performed and passed.
-- Cross-checks (no verdict): 1-D numerical convolution 2.642; Gaussian estimate with means 2.677,
+- Cross-checks (no verdict): 1-D numerical convolution 2.642 (biased low by about 0.03: the KDE
+  bandwidth of each chain broadens P(Δp); not independent support for 2.6); Gaussian estimate with means 2.677,
   with KDE modes 2.652; truncation to the common sampled Ωm range drops no weight
   (1-D 2.676, 2-D 2.191). No bandwidth dependence and no grid flag.
-- The 1-D value lies 0.07σ above D26's 2.6, within the allowance for D26's unquoted flow noise and
-  rounding.
+- The 1-D value lies 0.07σ above D26's 2.6 (outside its rounding band [2.55, 2.65), within the
+  registered allowance). Three estimators agree on about 2.67, so the difference lies between the
+  chains and D26's flow estimate, not in our estimator.
 
 **R3 (descriptive).** DES ξ± against the CMB: 2.53σ in S8 and 2.18σ in S8–Ωm (s = 0.004, 0.005).
 
@@ -273,10 +284,12 @@ fallback was not downloaded.
 - Full space (Gaussian approximation, not a reproduction): over the six sampled parameters both
   chains share (A_s, h, Σmν, n_s, Ωb, Ωm), χ² = 6.45 for k = 6, n_σ = 0.89; over the two
   data-constrained ones (A_s, Ωm), n_σ = 0.32. Both are far below D26's 1.8σ, and below our own
-  2.18σ in the S8–Ωm plane. The reason is the shape of the posterior: S8 is a nonlinear combination
-  of A_s and Ωm, so in the sampled parameters the DES posterior is curved, and a Gaussian
-  approximation of it smears out the difference that is sharp in S8. This is why D26 needs
-  normalizing flows for the full space; the Gaussian number is not a test of D26's 1.8σ.
+  2.18σ in the S8–Ωm plane. The Gaussian number depends on the parametrization (post hoc,
+  `explore/referee_checks.py`): (S8, Ωm) 2.21σ, (A_s, Ωm) 0.32σ; six parameters with S8 in place of
+  A_s 1.48σ, six plus S8 1.36σ, six plus σ12 1.26σ. S8 is a nonlinear combination of A_s and Ωm, so
+  the DES posterior is curved in the sampled parameters, and h, n_s, Σmν and Ωb are largely
+  prior-dominated in DES; a Gaussian in those coordinates dilutes the difference. This is why D26
+  needs normalizing flows; no Gaussian number here is a test of D26's 1.8σ.
 
 **R5 (descriptive).** Published S8 summaries against the same CMB chain (split normals with the
 published means; not comparable with each paper's own significance):
@@ -294,7 +307,10 @@ published means; not comparable with each paper's own significance):
 | KiDS-1000 cosmic shear | 0.759 (+0.024/−0.021) | 2.92 |
 | KiDS-1000 3x2pt | 0.766 (+0.020/−0.014) | 3.14 |
 
-The previous generation (DES Y3, KiDS-1000) sits at 2.8–3.1σ from this CMB; the current results
+If the central values are read as modes rather than means (KiDS-1000 and HSC 2023 may quote
+modes; post hoc), KiDS-1000 3x2pt moves from 3.14σ to 2.93σ and KiDS-1000 shear from 2.92σ to
+2.83σ; the others change by 0.1σ or less. The previous generation (DES Y3, KiDS-1000) sits at
+2.8–3.1σ from this CMB; the current results
 of other probes at 0.2–1.9σ; DES Y6 3x2pt itself at 2.67σ in S8 (R2). eROSITA lies above the CMB,
 the lensing probes below it.
 
@@ -307,9 +323,44 @@ result 2.67σ, while other current probes have moved closer to the CMB.
 
 ## 6. Referee notes
 
-Independent critique: selection effects, systematics, alternative explanations.
+Independent referee, 2026-11-15 (subagent with the pre-registration, code and results only; it read
+the cached chains with the study's own functions and downloaded nothing). Triage:
+
+1. **R4 full-space Gaussian depends on the parametrization** (serious for interpretation, not a
+   bug). *Accepted*; checked post hoc with `explore/referee_checks.py`: (S8, Ωm) 2.21σ, (A_s, Ωm)
+   0.32σ, six with S8 for A_s 1.48σ. Section 5 now states that no Gaussian number tests D26's 1.8σ.
+2. **The seed spread s is not the uncertainty of n_σ.** *Accepted*; a chain-row bootstrap gives
+   ±0.030 (1-D) and ±0.034 (2-D), ten times s. The verdicts are unchanged; the s > 0.03 gate and the
+   +2s term were close to vacuous, and the 0.15 allowance carried the tolerance. Quoted precision in
+   section 5 and the wiki now uses the bootstrap.
+3. **The 1-D result (2.674) lies above D26's rounding band; the convolution check is biased low.**
+   *Accepted*; three estimators agree on about 2.67, so the 0.07σ is between the chains and D26's
+   flow estimate; the convolution (2.64) is no longer cited as support.
+4. **The step-A amendment went beyond its allowed scope.** *Accepted as a procedural point*;
+   labelled in section 2.0. It used column names only, came before any statistic, and touches no
+   verdict. Without the upper-case rule the full-space Gaussian would have been 1.26σ (σ12 included),
+   which is item 1's parametrization dependence again.
+5. **R5 mean-versus-mode convention.** *Accepted*; reading central values as modes moves KiDS-1000
+   3x2pt from 3.14σ to 2.93σ and KiDS-1000 shear from 2.92σ to 2.83σ; the change is reported
+   beside the registered numbers. ACT's combination shares Planck lensing with Planck primary data
+   only weakly; noted.
+6. **Choice of CMB combination** (a lensing-inclusive or PR4-based CMB has lower S8). *Accepted
+   limitation*: the study inherits D26's CMB; R1 identifies the chain by its S8 mean only.
+7. **Minor:** the Ωm truncation sensitivity is vacuous (identical priors); R5 shares seeds across
+   probes; `h0` in `DERIVED` is re-admitted through the prior ranges (fragile but correct). *Accepted*;
+   no change to results.
+8. **Checked and fine** (by the referee): whitening, grid offsets, equal-tail side, split-normal
+   construction, interval search, weighted covariances; non-finite and zero-weight rows all carry
+   zero weight; ESS about 1.0 × 10⁴ per chain; cell/h 0.026 (1-D) and 0.127 (2-D).
+
 
 ## 7. Open questions
+
+1. The full-space 1.8σ needs a non-Gaussian density estimate (normalizing flows, as D26); installing
+   tensiometer and TensorFlow needs the user's consent.
+2. How much does the S8 difference change with a lensing-inclusive or Planck-PR4-based CMB
+   (D26 reports 1.0σ in full space against Planck 2018 alone)?
+3. Do KiDS-1000 and HSC Y3 (2023) quote means or modes? R5 shows a 0.1–0.2σ dependence.
 
 ## 8. Exploring via chat
 
@@ -330,7 +381,8 @@ How a coding agent answers "what if" questions about this study without touching
   (outputs in `explore/<date>-<topic>/`, not committed; about 70 s from cache).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --script explore/<name>.py`.
-  Existing: `explore/estimator_calibration.py` (the synthetic calibration of the estimator).
+  Existing: `explore/estimator_calibration.py` (the synthetic calibration of the estimator);
+  `explore/referee_checks.py` (post hoc: Gaussian by parametrization, chain-row bootstrap, R5 with modes).
 - Results files and keys: `results/formats.json` (step A: headers, column maps, row counts);
   `results/r1.json` (per chain: `mean`, `lo`, `hi`, `equal_lo`, `equal_hi`, `kde_mode`, `verdict`,
   `chain` diagnostics); `results/r2.json` (`1d`, `2d`: `n_sigma`, `s`, `per_seed`,
