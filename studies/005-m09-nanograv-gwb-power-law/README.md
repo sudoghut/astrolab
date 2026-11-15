@@ -180,7 +180,7 @@ L8's posterior; the KDE was built with L8's noise model and pulsar set, which we
 
 ## 5. Results
 
-Run of 2026-11-15 (`python -m astrolab run 005`, 12 s; inputs 3.0 MB + 5.3 MB from Zenodo, cached;
+Run of 2026-11-15 (`python -m astrolab run 005`: 12 s on the first run with download, 4.9 s cached; inputs 3.0 MB + 5.3 MB from Zenodo, cached;
 page: [`web/index.html`](web/index.html)). v2.0.0 product: directory `ceffyl_data/30f_fs{hd}_ceffyl`,
 log10 ρ grid −9.00 … −4.00 (10,000 points), T = 16.03 yr from the file.
 
@@ -206,10 +206,12 @@ A = 7.61 × 10⁻¹⁵. The Hellinger distance between the v1.1.0 and v2.0.0 R1 
 the refit slightly further from L8's published median but leaving all statements qualitatively
 unchanged. Note that the v1.1.0 grid spans −15.1 … −0.9, the v2.0.0 grid −9.0 … −4.0.
 
-Reading: on this compressed product the refit lands on L8's numbers (amplitude within the
-pre-registered fidelity, free-γ medians within 0.05 in γ and 1% in A), the spectral-index tension
+Reading: on this compressed product, with L8's fiducial DMX noise model (see section 6), the refit
+lands on L8's numbers (amplitude within the pre-registered fidelity, free-γ medians within 0.05 in γ
+and about 1% in A), the spectral-index tension
 is of the same order (q ≈ 0.98 here against "within 99%"), and route 1 of the Lean argument holds
-on our data. The two gaps (`gap_overlap`, `gap_repr`) are untouched by these numbers.
+on our data. The three gaps (`gap_overlap`, `gap_holo`, `gap_repr`; `gap_holo` relabelled after the
+referee) are untouched by these numbers, and route 2 is not tested.
 
 **Explorations after the referee (post hoc; outputs in `explore/`, not committed; 2026-11-15).**
 DMGP noise model (v1.1.0 `30f_fs{hd}_100fDMGP_ceffyl`, tag `dmgp`): R1 A = 2.19 [1.69, 2.60] × 10⁻¹⁵,

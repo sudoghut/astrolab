@@ -22,7 +22,7 @@ M4 的 DR3 部分已完成并经过独立审稿（referee）。接下来的工�
 
 2026-11-14：M2 研究 003（哈勃张力与校准宿主的选择，计划 012）已结束：GLS 复现 R22 的基线；把阶梯限于 CCHP 的 10 个宿主时 H0 降低 −0.073 ± 0.033 mag（数据之后修订的宿主标注；计入宿主之间的离散后只是边缘显著，T-023），同宿主上造父变星与 TRGB 一致。新增 `infer.gls`。
 
-2026-11-15：M9 研究 005（NANOGrav 15 年引力波背景，计划 014）已复现：用公开的 KDE 自由谱在本机重拟，振幅与谱指数与 L8 一致（γ = 13/3 时 A = 2.31 × 10⁻¹⁵，γ = 13/3 的 HPD 水平 0.979）；结论以 DMX 噪声模型为条件（DMGP 下差别明显，T-024）。
+2026-11-15：M9 研究 005（NANOGrav 15 年引力波背景，计划 014）已复现：用公开的 KDE 自由谱在本机重拟，振幅与 L8 的区间一致（R1，γ = 13/3 时 A = 2.31 × 10⁻¹⁵）；γ = 13/3 的 HPD 水平 0.979，与 L8 所称张力同一量级（描述）；结论以 DMX 噪声模型为条件（DMGP 下差别明显，T-024）。
 
 ## 研究
 
@@ -31,7 +31,7 @@ M4 的 DR3 部分已完成并经过独立审稿（referee）。接下来的工�
 | `000-smoke-test_gaia-dr3-10pc-census` | L3 | active | 冒烟测试（smoke test），管线端到端可用 |
 | `002-m01-desi-bao-evolving-dark-energy` | L0 | reproduced | 只用 BAO 与不含 CMB 的组合已复现；压缩 CMB 先验为有条件复现（解读 B），先验 ωbc 约定未定（T-022） |
 | `003-m02-hubble-tension-distance-ladder` | L2 | concluded | GLS 复现 R22 基线；宿主选择使 H0 降低（修订标注，边缘显著，T-023）；同宿主造父变星与 TRGB 一致 |
-| `005-m09-nanograv-gwb-power-law` | X | reproduced | 振幅与谱指数与 L8 一致（DMX 噪声模型）；表 A1 重叠 8/24；DMGP 噪声模型下差别明显（T-024） |
+| `005-m09-nanograv-gwb-power-law` | X | reproduced | 振幅与 L8 的区间一致，谱指数张力同一量级（描述；DMX 噪声模型）；表 A1 重叠 8/24；DMGP 噪声模型下差别明显（T-024） |
 | `001-m04-gaia-dormant-black-holes` | L4 | reproduced（DR3） | BH1、BH2 只用 DR3 复现成立；服务器端筛选与否决规则已在正样本上验证；按数据发布参数化，DR4 判据已预注册（计划 008），发布日按技能 `gaia-dr4-release-day` 运行 |
 
 ## 时间点
