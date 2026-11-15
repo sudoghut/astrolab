@@ -243,7 +243,7 @@ distributions are in tension.
 
 | Alternative | Excluded by premise | Excluded explicitly by the paper? |
 |---|---|---|
-| The containing models are the high-amplitude tail; mainstream expectations are lower | `gap_repr` | no: L37's abstract says the amplitude needs parameters at the edges of expected values; L8 §VI says "toward the upper end" |
+| The containing models are the high-amplitude tail; mainstream expectations are lower | not excluded; this is the gap (`gap_repr`) | no: L37's abstract says the amplitude needs parameters at the edges of expected values; L8 §VI says "toward the upper end" |
 
 **Inference (Lean excerpt).**
 
@@ -303,7 +303,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 |---|---|---|---|---|---|
 | A: amplitude at γ = 13/3 (R1) | testable now | refit log10 A on the v2.0.0 KDE free spectrum, 14 lowest frequencies, factorised likelihood, L8's prior | Zenodo 21844115 `ceffyl_data.zip`, 3.0 MB | Hellinger distance between our log10 A posterior and a median-pinned two-piece normal built from L8's 5/50/95% values < 0.15: "consistent with L8's interval"; otherwise "differs" | pending |
 | L8's spectral-index statement (R2) | testable now (comparison under an approximate likelihood, not a reproduction) | 2-D (log10 A, γ) posterior; q = credible level of the smallest 2-D HPD region touching γ = 13/3 | same | descriptive category (project convention): 95–99.7% "same order as L8's tension", < 95% "weaker", > 99.7% "stronger"; q itself is the result | pending |
-| B1: within the range of published models (R2b) | testable now (overlap summary, not a compatibility test) | for each L37 Table A1 model: does its 16–84% range overlap our 90% credible interval; is our median inside it; closed intervals (an endpoint equal to the other range's endpoint counts as overlap); Table A1 rows counted as listed (24 rows; the two identical rows, Rasskazov & Merritt and Dvorkin & Barausse, count separately), with the count after merging identical rows reported alongside | L37 Table A1 (paper table) | `n_models_overlap_ci90 >= 1` (Lean NUM binding); the median count and per-model results descriptive | pending |
+| B1: within the range of published models (R2b) | testable now (overlap summary, not a compatibility test) | for each L37 Table A1 model: does its 16–84% range overlap our 90% credible interval; is our median inside it; closed intervals (an endpoint equal to the other range's endpoint counts as overlap); Table A1 rows counted as listed (24 rows; the two identical rows, Rasskazov & Merritt and Dvorkin & Barausse, count separately), with the count after merging identical rows reported alongside | L37 Table A1 (paper table, 24 rows, ~1 KB, transcribed by hand) | `n_models_overlap_ci90 >= 1` (Lean NUM binding); the median count and per-model results descriptive | pending |
 | B2: holodeck populations reproduce A | out of scope | needs L37's population libraries and their likelihood | – | – | – |
 | C: the models represent expectations (`gap_repr`) | out of scope as a test | would need a definition of what "expectations" covers; L37 itself says the high end | – | – | – |
 | Sampler-bug sensitivity (R3) | explorable (not decisive) | redo R1 and R2 on v1.1.0 | Zenodo 10344086, 5.3 MB | none - exploration only, see README §8 | pending |
@@ -473,7 +473,7 @@ have h1 : v.CompatModels := p .gap_overlap (p .stat_amp) (p .num_overlap)  -- Se
 
 | 其他可能 | 由哪个前提排除 | 论文是否明确排除 |
 |---|---|---|
-| 包含 A 的模型是高振幅的尾部，主流预期更低 | `gap_repr` | 否：L37 的摘要说这一振幅需要参数处在预期值的边缘；L8 第 VI 节说"在预测的上端" |
+| 包含 A 的模型是高振幅的尾部，主流预期更低 | 未排除；这正是缺口（`gap_repr`） | 否：L37 的摘要说这一振幅需要参数处在预期值的边缘；L8 第 VI 节说"在预测的上端" |
 
 **推理（Lean 摘录）。**
 
@@ -515,7 +515,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 |---|---|---|---|---|---|
 | A：γ = 13/3 时的振幅（R1） | 现在可检验 | 在 v2.0.0 KDE 自由谱上、用最低 14 个频率、分解似然与 L8 的先验重拟 log10 A | Zenodo 21844115 `ceffyl_data.zip`，3.0 MB | 我们的 log10 A 后验与由 L8 的 5/50/95% 值构造、以中位数为界的两段半正态（median-pinned two-piece half-normal）之间的 Hellinger 距离 < 0.15："与 L8 的区间一致"；否则"不同" | 待定 |
 | L8 的谱指数陈述（R2） | 现在可检验（近似似然下的比较，不是复现） | 二维 (log10 A, γ) 后验；q = 与 γ = 13/3 相交的最小二维最高后验密度（HPD, highest posterior density）区域的可信水平 | 同上 | 描述类别（本项目的约定）：95%–99.7% "与 L8 所称张力同一量级"，< 95% "更弱"，> 99.7% "更强"；结果就是 q 本身 | 待定 |
-| B1：落在已发表模型的范围内（R2b） | 现在可检验（重叠摘要，不是相容性检验） | 对 L37 表 A1 的每个模型：其 16%–84% 范围是否与我们的 90% 可信区间重叠；我们的中位数是否在其中；闭区间（端点相等算重叠）；表 A1 的行按原样计数（24 行；两行数值相同的 Rasskazov & Merritt 与 Dvorkin & Barausse 分别计数），同时报告合并相同行后的计数 | L37 表 A1（论文表格） | `n_models_overlap_ci90 >= 1`（Lean 的 NUM 绑定）；中位数计数与逐个模型的结果只作描述 | 待定 |
+| B1：落在已发表模型的范围内（R2b） | 现在可检验（重叠摘要，不是相容性检验） | 对 L37 表 A1 的每个模型：其 16%–84% 范围是否与我们的 90% 可信区间重叠；我们的中位数是否在其中；闭区间（端点相等算重叠）；表 A1 的行按原样计数（24 行；两行数值相同的 Rasskazov & Merritt 与 Dvorkin & Barausse 分别计数），同时报告合并相同行后的计数 | L37 表 A1（论文表格，24 行，约 1 KB，手工抄入） | `n_models_overlap_ci90 >= 1`（Lean 的 NUM 绑定）；中位数计数与逐个模型的结果只作描述 | 待定 |
 | B2：holodeck 群体再现 A | 不在范围内 | 需要 L37 的群体库及其似然 | – | – | – |
 | C：模型代表预期（`gap_repr`） | 不在检验范围内 | 需要先界定"预期"指什么；L37 自己说在高端 | – | – | – |
 | 采样器错误的敏感度（R3） | 可探索（不能判决） | 在 v1.1.0 上重做 R1、R2 | Zenodo 10344086，5.3 MB | 无——仅供探索，见 README 第 8 节 | 待定 |
