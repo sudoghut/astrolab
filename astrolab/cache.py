@@ -42,7 +42,7 @@ class Entry:
 def _paths(key: str, suffix: str, root: Path | None = None) -> tuple[Path, Path]:
     root = root or config.cache_dir()
     sub = root / key[:2]
-    if suffix == ".json":          # a JSON payload must not share its name with the metadata sidecar
+    if suffix.lower() == ".json":  # a JSON payload must not share its name with the metadata sidecar
         suffix = ".payload.json"
     return sub / f"{key}{suffix}", sub / f"{key}.json"
 

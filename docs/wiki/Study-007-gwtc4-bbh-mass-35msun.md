@@ -218,7 +218,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 |---|---|---|---|---|---|
 | A: the 153-event sample (R1) | testable now | rebuild from GWOSC lists (GWTC-4.0, GWTC-1/2.1/3) with P26's cuts (FAR < 1/yr, 90% lower bound as a proxy for the 1% bound, exclusions); compare with the O4a list on Zenodo | GWOSC JSON (~0.25 MB + < 1 MB each), O4a list 10 kB | "reproduced" if the O4a events match P26's list and the counts are 84 and 69, with only pre-declared, direction-known differences; downgraded to "described" if the meaning of GWOSC's `far` cannot be confirmed (the `far` definition and the allowed number of discrepant events are fixed in the pre-registration before R1 runs) | **not reproduced** as registered: O4a 84/84 exact; O1–O3 59 of 69 ± 2 (null FARs on the GWTC-2.1 rows of the ten O1/O2 BBHs); 69 and 153 post hoc |
 | Sample-level counts above and below 35 M☉ (R2) | explorable (descriptive) | median m1 counts against a single power law (λ1 = 1.7) times a toy VT(m1) with a turnover, scanning the turnover | same | none - descriptive (medians blur a break; 1-D VT is a toy) | 79 of 139 above 35 M☉ (0.57); deficit against the prediction unless VT turns over near 30 M☉ (ratio 0.69–0.80, or 1.15 at M_t = 30) |
-| Steepening vs selection curvature (R3) | explorable (not decisive) | point-estimate toy fit of a broken power law, with and without a peak, scanning the VT turnover | same | none - exploration only | A steepens at 42–45 M☉ for M_t ≥ 50 (reverses at M_t = 30); a peak adds 2Δln L = 15–25 at μ = 33–40 M☉, but fits sit on bounds; with wider bounds (post hoc) the bump is at 34–39 M☉ for M_t ≤ 80 and broad at M_t = ∞ |
+| Steepening vs selection curvature (R3) | explorable (not decisive) | point-estimate toy fit of a broken power law, with and without a peak, scanning the VT turnover | same | none - exploration only | A steepens at 42–45 M☉ for M_t ≥ 50 (reverses at M_t = 30); a peak adds 2Δln L = 15–25 at μ = 33–40 M☉, but fits sit on bounds; with wider bounds (post hoc) the bump is at 34–39 M☉ for M_t ≤ 80 and broad and bound-limited at M_t = ∞ |
 | GW231123 (R4) | descriptive | its total mass within the rebuilt sample (not P26's quantity) | same | none | 236 M☉, the heaviest of 143 (and of 153) |
 | `gap_sel`, `gap_syst`, population inference | out of scope | needs posterior samples and injections (hundreds of MB to tens of GB; AGENTS.md 1.5) | – | – | – |
 
@@ -248,7 +248,7 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
   - Adding a Gaussian bump improves the fit by 2Δln L = 15–25 (27 with the post-hoc 153 events).
   - With the registered bounds the bump fits sit on the bounds. With wider bounds (post hoc) the
     bump sits at 34–39 M☉ when the toy selection turns over by 80 M☉, but becomes a broad
-    (σ ≈ 15 M☉) shoulder near 25 M☉ when it does not.
+    (σ ≈ 15 M☉) shoulder pressed against the 25 M☉ lower limit of the peak centre when it does not.
   - Whether "35 M☉" is a peak or a bend therefore cannot be settled without the real,
     injection-based selection function. That needs data this project does not download.
 - **R4.** GW231123 (236 M☉ total) is the heaviest event in the sample by a wide margin, so its
@@ -418,7 +418,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 |---|---|---|---|---|---|
 | A：153 个事件的样本（R1） | 现在可检验 | 按 P26 的条件（FAR < 1/yr、以 90% 下限近似 1% 下限、排除项）由 GWOSC 列表（GWTC-4.0、GWTC-1/2.1/3）重建；与 Zenodo 上的 O4a 列表比较 | GWOSC JSON（约 0.25 MB，其余各 < 1 MB），O4a 列表 10 kB | O4a 事件与 P26 列表一致、计数为 84 与 69，只允许预先声明且方向已知的差别 → "复现"；若不能确认 GWOSC `far` 的含义则降为"描述"（`far` 的定义与允许的不一致事件数在 R1 运行前的预注册中写定） | 按预注册规则**未复现**：O4a 84/84 完全一致；O1–O3 为 59，目标 69 ± 2（十个 O1/O2 双黑洞的 GWTC-2.1 行没有 FAR）；事后为 69 与 153 |
 | 35 M☉ 上下的样本计数（R2） | 可探索（描述） | 中位数 m1 的计数，与单一幂律（λ1 = 1.7）乘以带转折的玩具 VT(m1) 比较，扫描转折质量 | 同上 | 无——描述（中位数会抹平折断；一维 VT 是玩具） | 139 个中 79 个在 35 M☉ 以上（0.57）；除非 VT 在约 30 M☉ 转平，否则少于预测（比值 0.69–0.80；M_t = 30 时为 1.15） |
-| 变陡对选择函数曲率的敏感度（R3） | 可探索（不能判决） | 折断幂律（加或不加峰）的点估计玩具拟合，扫描 VT 的转折 | 同上 | 无——仅供探索 | M_t ≥ 50 时 A 在 42–45 M☉ 变陡（M_t = 30 时反向）；加峰使 2Δln L 增加 15–25，μ = 33–40 M☉，但拟合落在边界；放宽边界后（事后），M_t ≤ 80 时峰在 34–39 M☉，M_t = ∞ 时变成宽包 |
+| 变陡对选择函数曲率的敏感度（R3） | 可探索（不能判决） | 折断幂律（加或不加峰）的点估计玩具拟合，扫描 VT 的转折 | 同上 | 无——仅供探索 | M_t ≥ 50 时 A 在 42–45 M☉ 变陡（M_t = 30 时反向）；加峰使 2Δln L 增加 15–25，μ = 33–40 M☉，但拟合落在边界；放宽边界后（事后），M_t ≤ 80 时峰在 34–39 M☉，M_t = ∞ 时变成贴着边界的宽包 |
 | GW231123（R4） | 描述 | 它的总质量在重建样本中的位置（与 P26 的量不同） | 同上 | 无 | 236 M☉，143 个（以及 153 个）中最重 |
 | `gap_sel`、`gap_syst`、群体推断 | 不在范围内 | 需要后验样本与注入（数百 MB 到数十 GB；AGENTS.md 1.5） | – | – | – |
 
@@ -437,7 +437,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 - **R3（玩具拟合）。** 答案取决于玩具选择函数，正如第 2.3 节所预料。
   - 选择效应持续上升时，普通折断幂律在 42–45 M☉ 变陡。
   - 加一个高斯包使拟合改善 2Δln L = 15–25（事后 153 个事件时为 27）。
-  - 用预注册的边界时，加包的拟合落在边界上。放宽边界后（事后），玩具选择函数在 80 M☉ 以内转平时包位于 34–39 M☉；不转平时变成约 25 M☉ 处的宽肩（σ ≈ 15 M☉）。
+  - 用预注册的边界时，加包的拟合落在边界上。放宽边界后（事后），玩具选择函数在 80 M☉ 以内转平时包位于 34–39 M☉；不转平时变成贴着峰中心 25 M☉ 下限的宽肩（σ ≈ 15 M☉）。
   - 所以"35 M☉"是峰还是弯折，没有真实的、基于注入（injection）的选择函数就无法确定，而那需要本项目不下载的数据。
 - **R4。** GW231123（总质量 236 M☉）在样本中遥遥领先地最重，所以它的百分位（100）几乎没有信息量。
 - **附带发现。** 第一次运行暴露了核心库的缓存缺陷：`.json` 下载会覆盖自己的元数据文件。已在同一个拉取请求（PR, pull request）中修复并加回归测试。

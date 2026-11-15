@@ -125,8 +125,8 @@ function renderR3(r3) {
 
 function renderR4(r4) {
   document.getElementById('r4text').innerHTML = `<p>` + (r4.in_sample ? L(
-    `GW231123's median total mass is ${fmt(r4.mtot, 0)} M☉, at the ${fmt(r4.percentile, 1)}th percentile of the ${r4.n} events in the rebuilt sample (the heaviest). Total masses filled from m1 + m2: ${r4.n_mtot_filled}.`,
-    `GW231123 的总质量中位数为 ${fmt(r4.mtot, 0)} M☉，位于重建样本 ${r4.n} 个事件的第 ${fmt(r4.percentile, 1)} 百分位（最重）。用 m1 + m2 补上的总质量：${r4.n_mtot_filled} 个。`) :
+    `GW231123's median total mass is ${fmt(r4.mtot, 0)} M☉, at the ${fmt(r4.percentile, 1)}th percentile of the ${r4.n} events in the rebuilt sample${r4.percentile >= 100 ? ' (the heaviest)' : ''}. Total masses filled from m1 + m2: ${r4.n_mtot_filled}.`,
+    `GW231123 的总质量中位数为 ${fmt(r4.mtot, 0)} M☉，位于重建样本 ${r4.n} 个事件的第 ${fmt(r4.percentile, 1)} 百分位${r4.percentile >= 100 ? '（最重）' : ''}。用 m1 + m2 补上的总质量：${r4.n_mtot_filled} 个。`) :
     L('GW231123 is not in the rebuilt sample.', 'GW231123 不在重建样本中。')) + `</p>`;
 }
 
