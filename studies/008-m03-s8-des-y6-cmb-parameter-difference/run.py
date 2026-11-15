@@ -314,10 +314,12 @@ def main(ctx):
                     c = np.cov(x[:, [i, j]].T, aweights=w)
                     return abs(c[0, 1] / np.sqrt(c[0, 0] * c[1, 1]))
 
-                keep = []   # README 2.4: exclude a column correlated above corr_max with a kept one, in either chain
-                for i in range(len(cand)):
-                    if all(max(_corr(xa, des["w"], i, j), _corr(xb, cmb["w"], i, j)) <= P["corr_max"] for j in keep):
-                        keep.append(i)
+                # README 2.4: every column correlated above corr_max with another candidate, in either
+                # chain, is excluded (both members of the pair)
+                n_c = len(cand)
+                drop = {i for i in range(n_c) for j in range(n_c) if i != j
+                        and max(_corr(xa, des["w"], i, j), _corr(xb, cmb["w"], i, j)) > P["corr_max"]}
+                keep = [i for i in range(n_c) if i not in drop]
                 names = [cand[i] for i in keep]
                 fs = {"parameters": names,
                       "all": s8diff.full_space_gaussian(xa[:, keep], des["w"], xb[:, keep], cmb["w"], P["max_cond"])}
