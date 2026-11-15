@@ -107,7 +107,9 @@ estimator of section 4. Let s be the standard deviation of n_σ over the five se
   Gaussian P(Δp) with true n_σ = 2.6 (1-D) and 2.2 (2-D), the estimator of section 4 (N = 4,000,000,
   binned, Scott bandwidth) gave, over five seeds: 1-D mean 2.5999, s = 0.0036 (bandwidth ×0.5:
   s = 0.0045; ×2: s = 0.0032); 2-D mean 2.2023, s = 0.0066 (×0.5: s = 0.0203; ×2: s = 0.0043); all
-  biases below 0.008 in absolute value. The earlier unbinned design (scipy `gaussian_kde` on a
+  biases below 0.008 in absolute value. Before step A, the committed `s8diff.nsigma_binned` must
+  reproduce these numbers with the same seeds (each mean within 0.005, each s within a factor of
+  1.5 of the value above); the rerun is logged in `log.md`. The earlier unbinned design (scipy `gaussian_kde` on a
   20,000-point fit subset, N = 400,000) gave s = 0.053 in 2-D and was replaced for that reason. The
   calibration script is `explore/estimator_calibration.py`; its test repeats a shorter version.
 - Reported alongside, without verdict: the Gaussian estimate (difference of the means over the root
@@ -130,14 +132,15 @@ quotes no such number; no verdict.
   Δ_ET = 1 − 2p, n_σ = √2 erf⁻¹(Δ_ET); (c) the Gaussian estimate.
 - **Threshold:** for each R2 number, the largest threshold that the number reaches (it reaches
   every threshold up to its own value), and whether that is below 3.
-- **Full space (Gaussian):** over the cosmological parameters that both chains *sample* (identified
-  from the `##` prior-range lines or the CosmoSIS `cosmological_parameters--` names that are not
-  derived; a parameter with a non-uniform (for example Gaussian) prior uses its prior variance in the
-  data-constrained cut, and is excluded if that variance is not given; derived columns such as σ8, S8, h0 when H0 is sampled, and any column whose correlation
-  with another selected column exceeds 0.999 are excluded), the χ² = Δμᵀ (C_A + C_B)⁻¹ Δμ with k
-  degrees of freedom, converted to n_σ via its probability and eq. 19. Reported twice: with all such
-  parameters, and with the data-constrained ones (DES posterior variance below 0.25 of the variance
-  of a uniform distribution over the DES prior range from the `##` lines). If the condition number of
+- **Full space (Gaussian):** over the cosmological parameters that both chains *sample*
+  (identified from the `##` prior-range lines or the CosmoSIS `cosmological_parameters--` names that
+  are not derived; derived columns such as σ8, S8, h0 when H0 is sampled, and any column whose
+  correlation with another selected column exceeds 0.999, are excluded), the χ² = Δμᵀ (C_A + C_B)⁻¹ Δμ
+  with k degrees of freedom, converted to n_σ via its probability and eq. 19. Reported twice: with
+  all such parameters, and with the data-constrained ones (DES posterior variance below 0.25 of the
+  variance of a uniform distribution over the DES prior range from the `##` lines). A parameter with
+  a non-uniform (for example Gaussian) prior uses its prior variance in that cut instead, and is
+  excluded from the second variant if that variance is not given. If the condition number of
   C_A + C_B exceeds 1e8, or the chains share no sampled parameter beyond Ωm, or no prior ranges are
   available for the second variant, the item records that and stops.
 
@@ -188,7 +191,10 @@ chain (76 MB), any KiDS, ACT, SPT or eROSITA product.
    - whiten: z = (Δp − mean) L with L the Cholesky factor of the inverse sample covariance of Δp
      (in 1-D, division by the standard deviation); the point Δp = 0 maps to z₀;
    - binned Gaussian kernel density estimate: histogram of z on a regular grid (8,000 cells in 1-D,
-     1,024 × 1,024 in 2-D) spanning the samples and z₀ with a margin of five bandwidths, smoothed with
+     1,024 × 1,024 in 2-D) spanning, on each axis, the sample quantiles 10⁻⁶ and 1 − 10⁻⁶ extended to
+     include z₀, with a margin of five bandwidths; samples outside the grid count as below the
+     threshold and their number is reported; the ratio of cell size to h is recorded and the run is
+     flagged if it exceeds 1/3; smoothed with
      a Gaussian filter of width h = N^(−1/(d+4)) (Scott's rule in whitened units, d = dimension);
      the density at z₀ by linear interpolation of the smoothed grid;
    - Δ = fraction of the N samples lying in cells whose smoothed density is strictly above the
@@ -196,7 +202,8 @@ chain (76 MB), any KiDS, ACT, SPT or eROSITA product.
      √2 erf⁻¹(Δ) (eq. 19); if Δ = 1 exactly, n_σ is reported as a lower bound with Δ = 1 − 1/N;
    - five seeds (0–4); mean n_σ and its standard deviation s; repeated with h × 0.5 and h × 2;
    - 1-D cross-check: P(Δp) by numerical convolution of the two weighted Gaussian KDEs of S8 (Scott's
-     rule with each chain's effective sample size) on a common grid of spacing 10⁻⁴; Δ = mass of the
+     rule with each chain's effective sample size) on a common grid of spacing 10⁻⁴ covering the
+     union of the two chains' weighted 0.01%–99.99% S8 ranges and their difference; Δ = mass of the
      grid points with density above the density at 0.
 4. R3, R4 and R5 as in section 2.
 5. Summaries only (means, intervals, n_σ per seed and variant, effective sample sizes, row counts,
