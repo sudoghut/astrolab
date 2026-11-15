@@ -253,7 +253,8 @@ include smooth, correlated systematics), so every significance above that treats
 including R1's, is mis-scaled. Under that same independent-error scaling NFW looks acceptable
 (p ≈ 0.18), but the data prefer Einasto by Δχ² ≈ 20, a preference that the referee finds survives
 correlated-error kernels (Δχ² 11–29); if the errors were rescaled to make Einasto's χ² equal its
-degrees of freedom, NFW would be strongly rejected. So NFW is disfavoured, not excluded.
+degrees of freedom, NFW would be strongly rejected under that rescaling; since the correct
+covariance is unknown (T-028), NFW is disfavoured, not excluded.
 
 **Reading.**
 1. *The decline* is reproduced as J23 computed it, but its 3σ depends on the prior on A (2.7σ from the
@@ -263,7 +264,7 @@ degrees of freedom, NFW would be strongly rejected. So NFW is disfavoured, not e
    non-Keplerian declines.
 3. *The total mass* of about 2 × 10¹¹ M☉ is reproduced to 0.7%, but it is the enclosed mass at 26.5 kpc
    (1.90 × 10¹¹ from V²R/G) plus a halo shape that ends just beyond the data. The data prefer that
-   truncated shape (Δχ² ≈ 20 over NFW), but an NFW (Navarro–Frenk–White) halo, disfavoured relative to Einasto (Δχ² ≈ 20; 11–29 under the referee's correlated-error kernels) but not excluded gives 7 × 10¹¹ M☉ and
+   truncated shape (Δχ² ≈ 20 over NFW), but an NFW (Navarro–Frenk–White) halo, disfavoured (11–29 under the referee's correlated-error kernels) but not excluded, gives 7 × 10¹¹ M☉ and
    agrees with the stream masses; which shape is right is what T-028 tests.
 
 ## 6. Referee notes
