@@ -70,11 +70,12 @@ check of the mapping; a failed R1 does not allow a second remapping.
 - A "not mapped" chain that is not fixed by the step-A amendment makes every item using it "not
   evaluable".
 
-**Step-A amendment (2026-11-15, after step A and before step B).** *Procedural note (referee,
+**Step-A amendment (2026-11-15, after step A and before step B; column mapping only).** *Procedural note (referee,
 2026-11-15): section 2.0 allows an amendment only when a chain cannot be mapped; all three chains
 were mapped, so this amendment, which names columns for sections 2.2 and 2.4, is outside that
 scope. It was made from column names only, before any statistic, and touches no verdict; without
-change (2) the R4 full-space Gaussian would have been 1.26σ instead of 0.89σ (section 6).* Step A
+change (2) the R4 full-space Gaussian would have been about 1.26σ instead of 0.89σ (computed
+without the correlation cut; section 6).* Step A
 found all three chains to be CosmoSIS Nautilus output with headers; Ωm, σ8, the stored S8 and the
 log-weight were mapped by the rules above without change. Two naming facts seen only in the headers
 complete the mapping: (1) the amplitude parameter is named `cosmological_parameters--a_s_1e9`
@@ -255,12 +256,11 @@ fallback was not downloaded.
 | Projection | n_σ (5 seeds) | s | bandwidth ×0.5 / ×2 | D26 | tolerance 0.15 + 2s | verdict |
 |---|---|---|---|---|---|---|
 | S8 (1-D) | 2.674 | 0.0023 | 2.675 / 2.673 | 2.6 | 0.155 | reproduced |
+| S8–Ωm (2-D) | 2.178 | 0.0112 | 2.191 / 2.172 | 2.2 | 0.172 | reproduced |
 
 *Uncertainty (post hoc, referee):* s is the spread over resampling seeds only. A bootstrap over chain
 rows (20 replicates) gives 2.679 ± 0.030 (1-D) and 2.189 ± 0.034 (2-D); with these the verdicts are
 unchanged (|2.68 − 2.6| = 0.08 < 0.15 + 2 × 0.03).
-
-| S8–Ωm (2-D) | 2.178 | 0.0112 | 2.191 / 2.172 | 2.2 | 0.172 | reproduced |
 
 - Prior support (Ωm and A_s, from the `##` ranges): no weight of either chain lies outside the other
   chain's prior range; the test was performed and passed.
@@ -269,8 +269,8 @@ unchanged (|2.68 − 2.6| = 0.08 < 0.15 + 2 × 0.03).
   with KDE modes 2.652; truncation to the common sampled Ωm range drops no weight
   (1-D 2.676, 2-D 2.191). No bandwidth dependence and no grid flag.
 - The 1-D value lies 0.07σ above D26's 2.6 (outside its rounding band [2.55, 2.65), within the
-  registered allowance). Three estimators agree on about 2.67, so the difference lies between the
-  chains and D26's flow estimate, not in our estimator.
+  registered allowance); this is about one bootstrap standard deviation (0.03). The three estimators
+  share the same chains and draws, so their agreement does not locate the difference.
 
 **R3 (descriptive).** DES ξ± against the CMB: 2.53σ in S8 and 2.18σ in S8–Ωm (s = 0.004, 0.005).
 
@@ -309,17 +309,18 @@ published means; not comparable with each paper's own significance):
 
 If the central values are read as modes rather than means (KiDS-1000 and HSC 2023 may quote
 modes; post hoc), KiDS-1000 3x2pt moves from 3.14σ to 2.93σ and KiDS-1000 shear from 2.92σ to
-2.83σ; the others change by 0.1σ or less. The previous generation (DES Y3, KiDS-1000) sits at
-2.8–3.1σ from this CMB; the current results
-of other probes at 0.2–1.9σ; DES Y6 3x2pt itself at 2.67σ in S8 (R2). eROSITA lies above the CMB,
-the lensing probes below it.
+2.83σ; the others change by 0.1σ or less. Grouped as registered: the previous generation (DES Y3,
+KiDS-1000, HSC Y3 2023) at 1.4–3.1σ from this CMB; the other current probes (KiDS-Legacy, HSC Y3
+2025, ACT, eROSITA) at 0.2–1.7σ; DES Y6 3x2pt itself at 2.67σ in S8 (R2). Survey by survey, KiDS
+moved a lot (2.9–3.1σ to 1.0σ), DES a little (2.83σ to 2.67σ), HSC hardly at all (1.4–1.9σ to
+1.74σ). eROSITA lies above the CMB, the lensing probes below it.
 
 **Reading.** The public chains reproduce D26's inputs and its 1-D and 2-D differences: the numbers
-behind the conclusion are right. Whether 2.6–2.7σ is "no substantial evidence" is the interpretation
+behind the conclusion are reproduced. Whether 2.6–2.7σ is "no substantial evidence" is the interpretation
 step `gap_conv` of the wiki's Lean analysis (a 3σ-as-evidence usage, not stated by D26); the numbers
 show how close it is to that line (2.67σ, and 2.44–2.55σ under D26's own projection-effect estimates).
-For DES the "easing" is relative: the earlier DES Y3 result was 2.83σ from this CMB, the Y6 3x2pt
-result 2.67σ, while other current probes have moved closer to the CMB.
+For DES the "easing" is small: the earlier DES Y3 result was 2.83σ from this CMB, the Y6 3x2pt
+result 2.67σ. Most of the easing in R5 comes from KiDS.
 
 ## 6. Referee notes
 
