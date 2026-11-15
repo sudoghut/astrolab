@@ -18,7 +18,7 @@ changelog at the end). The source of this page lives in the main repository at
 
 #### 1.1 The question and why it matters
 
-Light from a galaxy at redshift z ≈ 14 left it when the Universe was about 290 million years old,
+Light from a galaxy at redshift z ≈ 14 left it when the Universe was about 280 million years old (N26; the exact age depends on the cosmology),
 2% of its present age. Before the James Webb Space Telescope (JWST), models of galaxy formation
 predicted that galaxies this early would be rare and faint: dark-matter halos massive enough to
 host a bright galaxy had barely had time to form. JWST found many more bright galaxies at
@@ -100,7 +100,8 @@ strengthen the conclusion.
 A. At least two confirmed sources in the bin and declared area → B. the constructed pre-JWST LF
 predicts ≈ 182× fewer there → C. the Poisson tail probability of ≥ 2 sources is tiny → D. [gap]
 the counts are Poisson about the model mean (no cosmic-variance excess) and E. [gap] the declared
-area is the full effective search ⇒ that LF is disfavored at high confidence.
+area is the full effective search → F. [gap] a decision rule maps the tail probability to "high
+confidence" ⇒ that LF is disfavored at high confidence.
 
 How we check it: the argument is written in Lean 4
 ([`studies/006-m08-z14-galaxies-number-density/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/argument/Argument.lean)).
@@ -164,7 +165,7 @@ that into "disfavored".
 |---|---|---|---|
 | `stat_ratio`: observed / baseline ≥ 100 | STAT | stated 2505.11263: "Such an LF underestimates the incidence of observed sources by ≈200×" | §4.1 (182, +329/−105) |
 | `mod_poisson`: with ≥ 2 observed and ratio ≥ 100, P(N ≥ n_obs \| expected n_obs/ratio) ≤ 2 × 10⁻⁴ | MOD | implied (Poisson mathematics; Gehrels 1986): 197 ppm at 2 and 100, smaller for larger values; 60 ppm at the stated 182 (computed in `results/r1.json`) | – |
-| `mod_test`: with Poisson counts over the full effective search, a model with such a tail probability is disfavored at high confidence | MOD | implied (significance testing; Wasserman 2004, ch. 10) | – |
+| `gap_rule`: decision rule: with Poisson counts over the full effective search, a model with a tail probability ≤ 2 × 10⁻⁴ is disfavored at high confidence | GAP | reconstructed (N26 names no test, threshold or mapping from probability to confidence; the 2 × 10⁻⁴ cutoff is ours) | not in the paper |
 | `gap_poisson`: the counts are Poisson about the model mean (no cosmic-variance excess) | GAP | reconstructed | not in the paper |
 | `gap_area`: the declared area is the full effective search for this bin | GAP | reconstructed | not in the paper |
 
@@ -182,7 +183,7 @@ that into "disfavored".
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have h1 : v.tail_ppm ≤ 200 := p .mod_poisson (p .obs_count) (p .stat_ratio)  -- Poisson tail
-  exact p .mod_test (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)  -- Sec. 4.1
+  exact p .gap_rule (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)  -- Sec. 4.1; GAP
 ```
 
 **Critique.** The Poisson tail (≈ 6 × 10⁻⁵) is our reading of "high confidence". It treats the
@@ -203,11 +204,12 @@ LF", the encoded conclusion is about that LF.
 
 #### 2.4 What the Lean check found
 
-1. **`explicit_insufficient`**: even with standard background added, the chain needs two gaps:
-   Poisson counts with no cosmic-variance excess (`gap_poisson`) and the declared area being the
-   full effective search (`gap_area`). Neither is discussed in N26 §4.
-2. **`stated_insufficient`**: the paper states the count and the ratio; the Poisson tail bound, the
-   significance step and its number are unstated background.
+1. **`explicit_insufficient`**: even with standard background added, the chain needs three gaps:
+   a decision rule from tail probability to "high confidence" (`gap_rule`; N26 names no test or
+   threshold), Poisson counts with no cosmic-variance excess (`gap_poisson`) and the declared area
+   being the full effective search (`gap_area`). None is discussed in N26 §4.
+2. **`stated_insufficient`**: the paper states the count and the ratio; the Poisson tail bound is
+   unstated background (implied), the decision rule is not stated at all.
 3. **Every premise is needed** (six `_needed` countermodels); none is redundant. The Poisson tail is
    tied to the count and the ratio by `mod_poisson` (after Codex review: a free-standing number
    would not have connected them).
@@ -223,7 +225,7 @@ inductive Field where
   | obs_count    -- OBS [stated 2505.11263]
   | stat_ratio   -- STAT [stated 2505.11263]
   | mod_poisson  -- MOD [implied] (Poisson tail bound)
-  | mod_test     -- MOD [implied]
+  | gap_rule     -- GAP [reconstructed]
   | gap_poisson  -- GAP [reconstructed]
   | gap_area     -- GAP [reconstructed]
 
@@ -249,7 +251,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | Term | Meaning |
 |---|---|
-| redshift z | stretching of light by cosmic expansion; z ≈ 14 means about 290 Myr after the Big Bang |
+| redshift z | stretching of light by cosmic expansion; z ≈ 14 means about 280 Myr after the Big Bang |
 | M_UV | absolute magnitude in the rest-frame ultraviolet (more negative = brighter) |
 | UV luminosity function (UV LF) | number density of galaxies per magnitude as a function of M_UV |
 | comoving volume | volume with the expansion of the Universe factored out |
@@ -271,6 +273,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 Newest first.
 
+- 2026-11-15: gate-2 review, round 2: the step from tail probability to "high confidence" is our decision rule, now GAP `gap_rule` (three gaps); age at z ≈ 14 aligned with N26 (280 Myr).
 - 2026-11-15: gate-2 review: the Poisson tail is now a bound tied to the count and the ratio (`mod_poisson`), not a free-standing number; `obs_count` labelled as N26's counting assumption, observational part kept.
 - 2026-11-15: gate-1 review: the area dependence made explicit (`gap_area`; the volume does not
   "cancel"); the encoded conclusion is about the LF N26 constructs (the step to "the consensus" is
@@ -297,7 +300,7 @@ Newest first.
 
 #### 1.1 问题与意义
 
-红移 z ≈ 14 的星系发出的光，离开时宇宙只有约 2.9 亿岁，是现在年龄的 2%。在詹姆斯·韦布空间望远镜（JWST, James Webb Space Telescope）之前，星系形成模型预言这么早的星系会很稀少、很暗：足以容纳亮星系的暗物质晕（dark-matter halo）几乎还来不及形成。JWST 在 z ≳ 10 发现的亮星系比预期多得多。这究竟意味着新的物理（宇宙学或恒星形成），还是只说明年轻的星系比假设的更爆发、更少尘埃或恒星形成效率更高，是高红移天文学的主要开放问题之一。
+红移 z ≈ 14 的星系发出的光，离开时宇宙只有约 2.8 亿岁（N26；确切年龄取决于宇宙学参数），是现在年龄的 2%。在詹姆斯·韦布空间望远镜（JWST, James Webb Space Telescope）之前，星系形成模型预言这么早的星系会很稀少、很暗：足以容纳亮星系的暗物质晕（dark-matter halo）几乎还来不及形成。JWST 在 z ≳ 10 发现的亮星系比预期多得多。这究竟意味着新的物理（宇宙学或恒星形成），还是只说明年轻的星系比假设的更爆发、更少尘埃或恒星形成效率更高，是高红移天文学的主要开放问题之一。
 
 两个星系位于红移范围的最顶端。JADES-GS-z14-0（C24）位于 z_spec = 14.32（后来由 ALMA 的 [O III] 88 µm 谱线精化为 14.18；Schouws 等 2024、Carniani 等 2025），紫外绝对星等 M_UV = −20.81。MoM-z14（N26）在"Mirage or Miracle"巡天中发现，位于 z_spec = 14.44 ± 0.02，M_UV = −20.23 ± 0.06。两者都由光谱而不只是颜色确认。N26 问这样的星系有多常见，以及与 JWST 之前的预期相比如何。
 
@@ -331,7 +334,7 @@ N26 统计 z = 14–15、−21 < M_UV < −20 的星系。在 PRIMER 与 JOF 巡
 
 #### 2.0 论证地图
 
-A. 箱与所述面积内至少有两个确认的源 → B. 构造的 JWST 之前的光度函数在该面积上预言约少 182 倍 → C. 看到 ≥ 2 个源的泊松尾概率极小 → D. [缺口] 计数相对模型平均值服从泊松分布（没有宇宙方差的额外弥散），且 E. [缺口] 所述面积就是完整的有效搜索 ⇒ 该光度函数以高置信度被排除。
+A. 箱与所述面积内至少有两个确认的源 → B. 构造的 JWST 之前的光度函数在该面积上预言约少 182 倍 → C. 看到 ≥ 2 个源的泊松尾概率极小 → D. [缺口] 计数相对模型平均值服从泊松分布（没有宇宙方差的额外弥散），且 E. [缺口] 所述面积就是完整的有效搜索 → F. [缺口] 一条判决规则把尾概率对应到"高置信度" ⇒ 该光度函数以高置信度被排除。
 
 检查方法：论证写成 Lean 4（[`studies/006-m08-z14-galaxies-number-density/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/argument/Argument.lean)）。每个前提是 `Field` 的一个构造子（不用公理 axiom），标注类型与出处性质：
 
@@ -378,7 +381,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 |---|---|---|---|
 | `stat_ratio`：观测 / 基准 ≥ 100 | STAT | stated 2505.11263："Such an LF underestimates the incidence of observed sources by ≈200×" | 第 4.1 节（182，+329/−105） |
 | `mod_poisson`：观测 ≥ 2 且比值 ≥ 100 时，P(N ≥ n_obs \| 预期 n_obs/比值) ≤ 2 × 10⁻⁴ | MOD | implied（泊松数学；Gehrels 1986）：2 与 100 时为 197 ppm，数值更大时更小；按所述的 182 为 60 ppm（在 `results/r1.json` 中计算） | – |
-| `mod_test`：在完整的有效搜索上计数服从泊松分布时，尾概率如此小的模型以高置信度被排除 | MOD | implied（显著性检验（significance testing）；Wasserman 2004，第 10 章） | – |
+| `gap_rule`：判决规则：在完整的有效搜索上计数服从泊松分布时，尾概率 ≤ 2 × 10⁻⁴ 的模型以高置信度被排除 | GAP | reconstructed（N26 没有给出检验、门槛或从概率到置信度的对应；2 × 10⁻⁴ 的门槛是我们定的；显著性检验（significance testing）一般见 Wasserman 2004，第 10 章） | 论文没有写 |
 | `gap_poisson`：计数相对模型平均值服从泊松分布（没有宇宙方差的额外弥散） | GAP | reconstructed | 论文没有写 |
 | `gap_area`：所述面积就是这一箱的完整有效搜索 | GAP | reconstructed | 论文没有写 |
 
@@ -396,7 +399,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   have h1 : v.tail_ppm ≤ 200 := p .mod_poisson (p .obs_count) (p .stat_ratio)  -- Poisson tail
-  exact p .mod_test (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)  -- Sec. 4.1
+  exact p .gap_rule (p .obs_count) (p .stat_ratio) h1 (p .gap_poisson) (p .gap_area)  -- Sec. 4.1; GAP
 ```
 
 **评析。** 泊松尾概率（约 6 × 10⁻⁵）是我们对"高置信度"的解读。它把预期计数当作精确值，并假定计数服从泊松分布。z ≈ 14 的稀有亮星系位于稀有晕中，这些晕的成团性使视场之间的弥散大于泊松（Somerville 等 2004；Trenti & Stiavelli 2008）；H25 的误差包含这一项，N26 没有。预期计数 2/182 只对所述面积成立，而该面积是在有探测的地方选的。余量很小：比值约 100（有效面积约 1.8 倍）时尾概率达到 2 × 10⁻⁴，比值约 38（约 4.8 倍面积）时达到单侧 3σ 的 1.35 × 10⁻³。
@@ -407,8 +410,8 @@ N26 构造了一个光度函数"to represent the pre-JWST theoretical consensus"
 
 #### 2.4 Lean 检查发现的问题
 
-1. **`explicit_insufficient`**：即使加上标准背景知识，链条仍需要两个缺口：计数服从泊松分布、没有宇宙方差的额外弥散（`gap_poisson`），以及所述面积就是完整的有效搜索（`gap_area`）。N26 第 4 节都没有讨论它们。
-2. **`stated_insufficient`**：论文明说了计数与比值；泊松尾概率的界、显著性一步及其数值是没写出的背景知识。
+1. **`explicit_insufficient`**：即使加上标准背景知识，链条仍需要三个缺口：从尾概率到"高置信度"的判决规则（`gap_rule`；N26 没有给出检验或门槛）、计数服从泊松分布且没有宇宙方差的额外弥散（`gap_poisson`），以及所述面积就是完整的有效搜索（`gap_area`）。N26 第 4 节都没有讨论它们。
+2. **`stated_insufficient`**：论文明说了计数与比值；泊松尾概率的界是没写出的背景知识（implied），判决规则则完全没有写出。
 3. **每个前提都是必要的**（六个 `_needed` 反例模型），没有多余的前提。泊松尾概率经由 `mod_poisson` 与计数和比值相连（Codex 审查后改：单独的数值无法把它们连起来）。
 4. **普查假设在两个方向上起作用**：经由计数，只会加强结论（所述面积内更多的源以"至少两个"进入）；经由面积，可能削弱结论（搜索了更多面积却没有探测，`gap_area`）。
 5. **相容性**成立，但在这里分量很弱：所有前提都是肯定命题。
@@ -419,7 +422,7 @@ inductive Field where
   | obs_count    -- OBS [stated 2505.11263]
   | stat_ratio   -- STAT [stated 2505.11263]
   | mod_poisson  -- MOD [implied] (Poisson tail bound)
-  | mod_test     -- MOD [implied]
+  | gap_rule     -- GAP [reconstructed]
   | gap_poisson  -- GAP [reconstructed]
   | gap_area     -- GAP [reconstructed]
 
@@ -445,7 +448,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | 术语 | 含义 |
 |---|---|
-| 红移（redshift）z | 宇宙膨胀对光的拉伸；z ≈ 14 约为大爆炸后 2.9 亿年 |
+| 红移（redshift）z | 宇宙膨胀对光的拉伸；z ≈ 14 约为大爆炸后 2.8 亿年 |
 | M_UV | 静止系紫外的绝对星等（越负越亮） |
 | 紫外光度函数（UV LF） | 每星等的星系数密度随 M_UV 的变化 |
 | 共动体积（comoving volume） | 扣除宇宙膨胀后的体积 |
@@ -466,6 +469,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 按时间倒序。
 
+- 2026-11-15：闸门 2 审查第 2 轮：从尾概率到"高置信度"的一步是我们定的判决规则，改为 GAP `gap_rule`（三个缺口）；z ≈ 14 的宇宙年龄按 N26 改为 2.8 亿年。
 - 2026-11-15：闸门 2 审查：泊松尾概率改为与计数和比值相连的界（`mod_poisson`），不再是单独的数值；`obs_count` 注明是 N26 的计数假设，只保留观测部分。
 - 2026-11-15：闸门 1 审查：写明面积的依赖（`gap_area`；体积并不"相消"）；编码的结论说的是 N26 构造的光度函数（到"共识"的一步只讨论、不编码）。
 - 2026-11-15：第一版：第一至三部分（预注册的来源；计划 `design/015-plan_*`）。
