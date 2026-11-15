@@ -98,7 +98,8 @@ advance.
   truncation. f_max = min(i, ii), used as a sensitivity value, not as a proven bound. No data here bound f from below; a fixed f_min = 0.8 is used
   (wide binaries find XR22's errors consistent with the scatter of 11 pairs, Shariat, El-Badry &
   Bhattacharjee 2025, arXiv:2510.08675, which does not exclude modest overestimates). Sensitivity
-  runs use f ∈ {0.8, 1, f_max}.
+  runs use f ∈ {0.8, 1, f_max}; f = 0.8 is a chosen sensitivity value, not a data-supported lower
+  bound, and robustness at f = 0.8 is read in that light.
 
 ### 2.1 R1 · The 8 Gyr split (verdict)
 
@@ -226,7 +227,10 @@ advance.
     are four sets (identifiability and misspecification, each under both error mechanisms). If
     |bias| > 0.1 Gyr in any set, the verdict is **cannot determine** (bias uncertainties reported and
     flagged as for sample A);
-    otherwise **confirmed** if σ_int < 0.82 Gyr (plan 019's criterion), **not confirmed** if not.
+    otherwise, with SE = the larger of the Hessian standard error of σ_int and the standard
+    deviation of recovered σ_int across the identifiability mocks (both mechanisms), **confirmed** if
+    σ_int + 1.645 SE < 0.82 Gyr (plan 019's criterion, with a one-sided 95% margin), **not confirmed**
+    if σ_int − 1.645 SE ≥ 0.82 Gyr, and **cannot determine** otherwise (too imprecise to decide).
   - The physical claim depends on the error scale: the fit is repeated at f = 0.8 and f_max, and the
     verdict is "robust" only if all three give the same verdict.
 
