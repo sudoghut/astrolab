@@ -4,24 +4,24 @@ Binaries" (ApJL 1005, L51; arXiv:2508.18083; "P26"). Context in the wiki article
 paper (arXiv:2508.18082), GW231123 (arXiv:2507.08219) and independent analyses.
 
 The conclusion encoded is the 35 Msun part of the abstract sentence "features persist at primary
-masses of 10 Msun and 35 Msun", where the abstract defines the features as departures from an
-otherwise power-law-like continuum. A separate theorem (overdensity_not_implied) checks whether the
-stronger reading of the abstract, an over-density at 35 Msun ("We resolve multiple over- and
-under-densities"), follows from the same premises.
+masses of 10 Msun and 35 Msun", read in the sense of Sec. 6.1 ("We identify a feature at 35"):
+a feature that may be either an over-density or a break in a broken power law. Whether the feature
+is an over-density is discussed in the wiki article, not encoded: P26 says the peak reading is
+supported by the B-Spline model while the Bayes factors do not strongly prefer it, and whether
+supported amounts to established is a judgement, not something a machine check adds.
 
-The chain:
+The chain has two routes to the feature, with two gaps shared by both:
   a BBH sample selected by FAR < 1/yr and a 1% lower mass limit above 3 Msun (153 events)
   selection effects from search-pipeline injections via a Monte Carlo integral
-  in the fiducial model, lambda2 > lambda1 (steeper above 35 Msun) at 97.7% credibility
-  [gap] the parametric and weakly modeled fits, parameter-estimation systematics and residual
-      noise events do not produce a spurious break near 35 Msun
-  [implied] a credible change of slope in an adequate model with correct selection effects is a
-      steepening of the astrophysical spectrum
-  [stated] such a departure from a power-law continuum is a feature
+  [gap] the selection function is adequate at high mass
+  [gap] parameter-estimation systematics and residual noise events do not make a spurious
+      feature near 35 Msun
+  route 1 (strongly modeled): lambda2 > lambda1 at 97.7% credibility
+  route 2 (weakly modeled): the B-Spline shows a local peak near 33.5 Msun, consistent with the
+      other weakly modeled approaches
+  [implied] either route, with the sample, selection and systematics as above, gives a feature at
+      35 Msun in the Sec. 6.1 sense
   -> a feature at 35 Msun
-  Also stated: the B-Spline model shows a local peak at 33.5 Msun; but among broken-power-law
-  models the Bayes factors do not prefer a peak over a plain break, so an over-density at 35 Msun
-  does not follow (overdensity_not_implied).
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
 Quotes follow the published text (ApJL version, read via the arXiv PDF).
@@ -39,70 +39,68 @@ inductive Prov where
 
 /-- The atoms of the argument. -/
 structure Vocab where
-  /-- The BBH sample is selected by FAR < 1/yr and a 1% lower limit on both component masses above 3 Msun (153 events). -/
+  /-- The analysed BBH sample: the events passing the FAR threshold and the mass cut, 153 in all. -/
   Sample : Prop
   /-- The detection efficiency is estimated from search-pipeline injections through a Monte Carlo integral. -/
-  SelModel : Prop
-  /-- Posterior credibility, in per mille, that the spectral index above about 35 Msun exceeds the one below it. -/
+  SelUsed : Prop
+  /-- The selection function so estimated is adequate at high mass (above about 30 Msun). -/
+  SelOK : Prop
+  /-- Posterior credibility, in per mille, that the spectral index above about 35 Msun exceeds the one below it (fiducial strongly modeled fit). -/
   cred_pm : Nat
-  /-- The population models, parameter-estimation systematics and residual noise events do not produce a spurious break near 35 Msun. -/
-  ModelsOK : Prop
-  /-- The astrophysical primary-mass spectrum steepens above about 35 Msun. -/
-  Steepens : Prop
-  /-- The primary-mass spectrum has a feature at 35 Msun (a departure from a power-law-like continuum). -/
-  Feature35 : Prop
-  /-- The B-Spline model shows a local peak near 33.5 Msun. -/
+  /-- The B-Spline (weakly modeled) fit shows a local peak near 33.5 Msun. -/
   BsplinePeak : Prop
-  /-- Among broken-power-law models, the Bayes factors do not prefer a peak at 35 Msun over a plain break. -/
-  ModelsTie : Prop
-  /-- The feature at 35 Msun is an over-density (a peak), not only a break. -/
-  OverDensity35 : Prop
+  /-- The B-Spline result is consistent with the other weakly modeled approaches. -/
+  WeakAgree : Prop
+  /-- Parameter-estimation systematics and residual noise events do not make a spurious feature near 35 Msun. -/
+  SystOK : Prop
+  /-- The primary-mass spectrum has a feature at 35 Msun in the sense of P26 Sec. 6.1 (an over-density or a break). -/
+  Feature35 : Prop
 
 /-- The premises. -/
 inductive Field where
-  /-- OBS [stated 2508.18083: "We only include events whose 1% lower limit on both component mass posteriors"] Sec. 6 (FAR below 1 per yr; 84 O4a plus 69 GWTC-3.0 events, 153 in all) -/
+  /-- OBS [stated 2508.18083: "which brings the total number of BBH events passing our FAR threshold to 153"] Sec. 6 (with the mass cut on the 1% lower limits) -/
   | obs_sample
   /-- MOD [stated 2508.18083: "is estimated using these injections through a Monte Carlo integral"] Sec. 3.3 -/
   | mod_sel
-  /-- STAT [stated 2508.18083: "at 97.7% credibility"] Sec. 6.1 (lambda2 above lambda1) -/
+  /-- GAP [reconstructed] the injection-based selection function is adequate at high mass; P26 does not test this at the masses that matter for the 35 Msun feature -/
+  | gap_sel
+  /-- STAT [stated 2508.18083: "at 97.7% credibility"] Sec. 6.1 (subject: the index above 35 Msun exceeds the one below; our threshold of 950 per mille is a convention) -/
   | stat_steep
-  /-- GAP [reconstructed] the fitted models, the parameter-estimation systematics (P26 Sec. 3.3 notes a likelihood normalisation error whose impact it expects to be negligible) and the expected noise events (about 6.7 among the 161 candidates, Sec. 3.2.1) do not produce a spurious break near 35 Msun; P26 compares models but does not test this directly -/
-  | gap_model
-  /-- MOD [implied] a credible change of slope in an adequate population model with correct selection effects is a steepening of the astrophysical spectrum (Bayesian inference, Gelman et al. 2013, Bayesian Data Analysis, 3rd ed., ch. 1) -/
-  | mod_steep
-  /-- MOD [stated 2508.18083: "These are departures from an otherwise power-law-like continuum"] Abstract (the features are departures from a power-law continuum) -/
-  | mod_feature
   /-- STAT [stated 2508.18083: "which exhibits a local peak at"] Sec. 6.1 (B-Spline, 33.5 Msun) -/
   | stat_bspline
-  /-- STAT [stated 2508.18083: "the Bayes factors do not show strong support for one model over another"] App. D.1 (log10 B of BP1P against BP2P is -0.06) -/
-  | stat_tie
-  /-- MOD [implied] an over-density claim needs the peak model to be preferred over the break model; a local peak in one flexible model with no Bayes-factor preference does not establish it (Kass and Raftery 1995, JASA 90, 773) -/
-  | mod_od
+  /-- STAT [stated 2508.18083: "consistent with other models that employ a weakly modeled approach"] Sec. 6.1, App. D.4 -/
+  | stat_weak
+  /-- GAP [reconstructed] parameter-estimation systematics and residual noise events (about 6.7 expected among the 161 candidates with FAR below 1 per yr, Sec. 3.2.1) do not make a spurious feature near 35 Msun; P26 does not propagate either into the mass spectrum -/
+  | gap_syst
+  /-- MOD [implied] route 1: with the sample and an adequate selection function, and no spurious systematics, a credible change of slope near 35 Msun is a feature in the Sec. 6.1 sense, which includes a break (Bayesian inference, Gelman et al. 2013, Bayesian Data Analysis, 3rd ed., ch. 1) -/
+  | mod_route1
+  /-- MOD [implied] route 2: under the same conditions, a local peak in a flexible model that agrees with the other flexible models is a feature in the Sec. 6.1 sense (Gelman et al. 2013, ch. 1) -/
+  | mod_route2
   deriving DecidableEq, Repr
 
 def prov : Field → Prov
   | .obs_sample => .stated
   | .mod_sel => .stated
+  | .gap_sel => .reconstructed
   | .stat_steep => .stated
-  | .gap_model => .reconstructed
-  | .mod_steep => .implied
-  | .mod_feature => .stated
   | .stat_bspline => .stated
-  | .stat_tie => .stated
-  | .mod_od => .implied
+  | .stat_weak => .stated
+  | .gap_syst => .reconstructed
+  | .mod_route1 => .implied
+  | .mod_route2 => .implied
 
 def prem : Field → Vocab → Prop
   | .obs_sample, v => v.Sample
-  | .mod_sel, v => v.SelModel
+  | .mod_sel, v => v.SelUsed
+  | .gap_sel, v => v.SelOK
   | .stat_steep, v => v.cred_pm ≥ 950
-  | .gap_model, v => v.ModelsOK
-  | .mod_steep, v => v.Sample → v.SelModel → v.cred_pm ≥ 950 → v.ModelsOK → v.Steepens
-  | .mod_feature, v => v.Steepens → v.Feature35
   | .stat_bspline, v => v.BsplinePeak
-  | .stat_tie, v => v.ModelsTie
-  | .mod_od, v => v.BsplinePeak → ¬ v.ModelsTie → v.OverDensity35
+  | .stat_weak, v => v.WeakAgree
+  | .gap_syst, v => v.SystOK
+  | .mod_route1, v => v.Sample → v.SelUsed → v.SelOK → v.cred_pm ≥ 950 → v.SystOK → v.Feature35
+  | .mod_route2, v => v.Sample → v.SelUsed → v.SelOK → v.BsplinePeak → v.WeakAgree → v.SystOK → v.Feature35
 
-/-- [stated 2508.18083: "features persist at primary masses of 10 M⊙ and 35 M⊙"] Abstract; only the 35 Msun part is encoded -/
+/-- [stated 2508.18083: "features persist at primary masses of 10 M⊙ and 35 M⊙"] Abstract; only the 35 Msun part is encoded, in the Sec. 6.1 sense (We identify a feature at 35 M⊙, an over-density or a break) -/
 def Conclusion (v : Vocab) : Prop := v.Feature35
 
 -- FIXED BLOCK B (identical in every study)
@@ -112,80 +110,77 @@ def Stated (v : Vocab) : Prop := ∀ f, prov f = .stated → prem f v
 def Explicit (v : Vocab) : Prop := ∀ f, prov f ≠ .reconstructed → prem f v
 -- END FIXED BLOCK B
 
-/-- The paper's chain, step by step. -/
+/-- The paper's chain, step by step (route 1; route 2 is shown in the _redundant proofs). -/
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  have h1 : v.Steepens :=
-    p .mod_steep (p .obs_sample) (p .mod_sel) (p .stat_steep) (p .gap_model)  -- Sec. 3.3, 6, 6.1; GAP
-  exact p .mod_feature h1  -- Abstract
+  exact p .mod_route1 (p .obs_sample) (p .mod_sel) (p .gap_sel) (p .stat_steep)
+    (p .gap_syst)  -- Sec. 3.3, 6, 6.1; two GAPs
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
-  fun h => h ⟨False, False, 0, False, False, False, False, False, False⟩
+  fun h => h ⟨False, False, False, 0, False, False, False, False⟩
 
 theorem consistent : ∃ v, Premises v :=
-  ⟨⟨True, True, 977, True, True, True, True, True, False⟩, by intro f; cases f <;> simp [prem]⟩
+  ⟨⟨True, True, True, 977, True, True, True, True⟩, by intro f; cases f <;> simp [prem]⟩
 
 theorem alone_insufficient : ∀ g, ¬ ∀ v, prem g v → Conclusion v := by
   intro g h
   cases g
-  case mod_steep => exact h ⟨False, False, 0, False, False, False, False, False, False⟩ (by simp [prem])
-  case mod_feature => exact h ⟨False, False, 0, False, False, False, False, False, False⟩ (by simp [prem])
-  case mod_od => exact h ⟨False, False, 0, False, False, False, False, False, False⟩ (by simp [prem])
-  all_goals exact h ⟨True, True, 977, True, False, False, True, True, False⟩ (by simp [prem])
+  case mod_route1 => exact h ⟨False, False, False, 0, False, False, False, False⟩ (by simp [prem])
+  case mod_route2 => exact h ⟨False, False, False, 0, False, False, False, False⟩ (by simp [prem])
+  all_goals exact h ⟨True, True, True, 977, True, True, True, False⟩ (by simp [prem])
 
 theorem obs_sample_needed : ¬ ∀ v, Without .obs_sample v → Conclusion v := fun h =>
-  h ⟨False, True, 977, True, False, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨False, True, True, 977, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem mod_sel_needed : ¬ ∀ v, Without .mod_sel v → Conclusion v := fun h =>
-  h ⟨True, False, 977, True, False, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+  h ⟨True, False, True, 977, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-theorem stat_steep_needed : ¬ ∀ v, Without .stat_steep v → Conclusion v := fun h =>
-  h ⟨True, True, 0, True, False, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+theorem gap_sel_needed : ¬ ∀ v, Without .gap_sel v → Conclusion v := fun h =>
+  h ⟨True, True, False, 977, True, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-theorem gap_model_needed : ¬ ∀ v, Without .gap_model v → Conclusion v := fun h =>
-  h ⟨True, True, 977, False, False, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+theorem gap_syst_needed : ¬ ∀ v, Without .gap_syst v → Conclusion v := fun h =>
+  h ⟨True, True, True, 977, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-theorem mod_steep_needed : ¬ ∀ v, Without .mod_steep v → Conclusion v := fun h =>
-  h ⟨True, True, 977, True, False, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+/-- Redundant: route 2 (weakly modeled) gives the feature without the slope credibility. -/
+theorem stat_steep_redundant : ∀ v, Without .stat_steep v → Conclusion v := by
+  intro v p
+  exact p .mod_route2 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
+    (p .gap_sel (by decide)) (p .stat_bspline (by decide)) (p .stat_weak (by decide))
+    (p .gap_syst (by decide))
 
-theorem mod_feature_needed : ¬ ∀ v, Without .mod_feature v → Conclusion v := fun h =>
-  h ⟨True, True, 977, True, True, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prem])
+/-- Redundant for the same reason. -/
+theorem mod_route1_redundant : ∀ v, Without .mod_route1 v → Conclusion v := by
+  intro v p
+  exact p .mod_route2 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
+    (p .gap_sel (by decide)) (p .stat_bspline (by decide)) (p .stat_weak (by decide))
+    (p .gap_syst (by decide))
 
-/-- Redundant for the encoded conclusion: the B-Spline peak bears on the over-density reading
-(overdensity_not_implied), not on the feature. -/
+/-- Redundant: route 1 (strongly modeled) gives the feature without the B-Spline peak. -/
 theorem stat_bspline_redundant : ∀ v, Without .stat_bspline v → Conclusion v := by
   intro v p
-  exact p .mod_feature (by decide)
-    (p .mod_steep (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
-      (p .stat_steep (by decide)) (p .gap_model (by decide)))
+  exact p .mod_route1 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
+    (p .gap_sel (by decide)) (p .stat_steep (by decide)) (p .gap_syst (by decide))
 
-/-- Redundant for the encoded conclusion, for the same reason. -/
-theorem stat_tie_redundant : ∀ v, Without .stat_tie v → Conclusion v := by
+/-- Redundant for the same reason. -/
+theorem stat_weak_redundant : ∀ v, Without .stat_weak v → Conclusion v := by
   intro v p
-  exact p .mod_feature (by decide)
-    (p .mod_steep (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
-      (p .stat_steep (by decide)) (p .gap_model (by decide)))
+  exact p .mod_route1 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
+    (p .gap_sel (by decide)) (p .stat_steep (by decide)) (p .gap_syst (by decide))
 
-/-- Redundant for the encoded conclusion, for the same reason. -/
-theorem mod_od_redundant : ∀ v, Without .mod_od v → Conclusion v := by
+/-- Redundant for the same reason. -/
+theorem mod_route2_redundant : ∀ v, Without .mod_route2 v → Conclusion v := by
   intro v p
-  exact p .mod_feature (by decide)
-    (p .mod_steep (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
-      (p .stat_steep (by decide)) (p .gap_model (by decide)))
+  exact p .mod_route1 (by decide) (p .obs_sample (by decide)) (p .mod_sel (by decide))
+    (p .gap_sel (by decide)) (p .stat_steep (by decide)) (p .gap_syst (by decide))
 
-/-- What the paper writes is not enough: the inference from a credible slope change to an
-astrophysical steepening is standard background (implied), and model adequacy is not shown. -/
+/-- What the paper writes is not enough: both routes need standard inference steps (implied),
+and neither the high-mass selection nor the systematics are established. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
-  h ⟨True, True, 977, False, False, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
+  h ⟨True, True, False, 977, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
-/-- Even with standard knowledge the chain has a gap: the models, parameter-estimation
-systematics and noise events must not produce a spurious break near 35 Msun. -/
+/-- Even with standard knowledge both routes need the same two gaps: an adequate high-mass
+selection function and no spurious feature from systematics or noise events. -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
-  h ⟨True, True, 977, False, False, False, True, True, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
-
-/-- The stronger reading does not follow: with every premise true (including the B-Spline peak and
-the Bayes-factor tie), the feature at 35 Msun need not be an over-density. -/
-theorem overdensity_not_implied : ¬ ∀ v, Premises v → v.OverDensity35 := fun h =>
-  h ⟨True, True, 977, True, True, True, True, True, False⟩ (by intro f; cases f <;> simp [prem])
+  h ⟨True, True, False, 977, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
 end Argument
