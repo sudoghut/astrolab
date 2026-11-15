@@ -21,6 +21,7 @@ _A, _B = gwtc.BOUNDS_A, gwtc.BOUNDS_B
 def main(ctx):
     gwtc.BOUNDS_A = [(-2.0, 10.0), (-2.0, 10.0), (10.5, 60.0)]
     gwtc.BOUNDS_B = gwtc.BOUNDS_A + [(25.0, 45.0), (1.0, 25.0), (0.0, 1.0)]
+    ctx.save("bounds", {"BOUNDS_A": gwtc.BOUNDS_A, "BOUNDS_B": gwtc.BOUNDS_B})
     try:
         return gwtc1_far.main(ctx)
     finally:
