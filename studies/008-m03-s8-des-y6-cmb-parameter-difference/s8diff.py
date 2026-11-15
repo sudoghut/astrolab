@@ -25,13 +25,14 @@ def _match(names, options):
 
 def read_format(path, max_comment_lines=20000):
     """Step A: comment lines, header, column count and data row count; no statistics."""
-    comments, header, ncols, nrows, first, ragged = [], None, None, 0, [], 0
+    comments, header, ncols, nrows, first, ragged, n_comments = [], None, None, 0, [], 0, 0
     with open(path, encoding="utf-8", errors="replace") as fh:
         for line in fh:
             s = line.strip()
             if not s:
                 continue
             if s.startswith("#"):
+                n_comments += 1
                 if len(comments) < max_comment_lines:
                     comments.append(s)
                 continue
@@ -62,7 +63,8 @@ def read_format(path, max_comment_lines=20000):
             break
     double = [c for c in comments if c.startswith("##")]
     return {"ncols": ncols, "nrows": nrows, "ragged_rows": ragged, "header": header, "sampler": sampler,
-            "sampler_line": sampler_line, "n_comment_lines": len(comments), "comment_lines": comments,
+            "sampler_line": sampler_line, "n_comment_lines": n_comments,
+            "comment_lines_truncated": n_comments > len(comments), "comment_lines": comments,
             "prior_lines": double, "first_rows": first}
 
 
