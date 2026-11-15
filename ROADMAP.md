@@ -181,7 +181,7 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 - 截至 2026 年 11 月，未找到 IPTA DR3 的背景结果 [S]。
 
 **数据**
-- NANOGrav 15 年自由谱的核密度估计（KDE, Kernel Density Estimate）后验，MB 级：以 zenodo.org/records/21844115 的 v2.0.0（2026，修正了采样器偏差，3.0 MB）为主，zenodo.org/records/10344086 的 v1.1.0（5.3 MB）作比较（记录页面已读 [V]；压缩包内的目录与文件在环节 2 取数核对之前为暂定）（计划 014）。
+- NANOGrav 15 年自由谱的核密度估计（KDE, Kernel Density Estimate）后验，MB 级：以 zenodo.org/records/21844115 的 v2.0.0（2026，修正了采样器偏差，3.0 MB）为主，zenodo.org/records/10344086 的 v1.1.0（5.3 MB）作比较（只有记录页面上的版本、文件名与大小已核实 [V]；压缩包内的目录与文件尚未核对，在环节 2 取数核对之前为暂定）（计划 014）。
 
 **方法**
 - 在 KDE 自由谱网格上用 numpy 拟合约 14 个频率点的自由谱（free spectrum），不安装 PTArcade/ceffyl（计划 014）。
