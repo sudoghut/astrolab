@@ -17,9 +17,9 @@ reproduction:
   status: partial
   study: 005-m09-nanograv-gwb-power-law
   quantities:
-    - {name: "A_GWB at gamma = 13/3 (NANOGrav, KDE refit v2.0.0, median and 90%)", paper: "2.4 +0.7/-0.6 e-15", ours: "2.31 [1.82, 2.92] e-15 (Hellinger 0.099 to L8's interval)"}
-    - {name: "gamma, free power law", paper: "3.2 +/- 0.6 (5-95%)", ours: "3.25 [2.65, 3.89]"}
-    - {name: "HPD level of gamma = 13/3 (2-D)", paper: "within the 99% region", ours: "0.979 (factorised likelihood)"}
+    - {name: "A_GWB at gamma = 13/3 (NANOGrav, KDE refit v2.0.0, fiducial DMX noise model, median and 90%)", paper: "2.4 +0.7/-0.6 e-15", ours: "2.31 [1.82, 2.92] e-15 (Hellinger 0.099 to L8's interval)"}
+    - {name: "gamma, free power law (fiducial DMX noise model)", paper: "3.2 +/- 0.6 (5-95%)", ours: "3.25 [2.65, 3.89]"}
+    - {name: "HPD level of gamma = 13/3 (2-D, fiducial DMX noise model)", paper: "within the 99% region", ours: "0.979 (factorised likelihood)"}
     - {name: "Hellings-Downs significance", paper: "Bayes factor 200-1000", ours: null, verified: S}
 open_questions:
   - "Is the SMBHB amplitude consistent with galaxy-merger and BH mass-function priors?"
