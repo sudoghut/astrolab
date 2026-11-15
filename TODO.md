@@ -6,6 +6,10 @@
 
 ## 进行中（Doing）
 
+- [ ] **T-014** M9：纳赫兹引力波背景（NANOGrav 15 年数据） · 登记 2026-11-14 · 分支 feat/m9-nanograv-gwb
+  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Agazie et al. 2023 arXiv:2306.16213 [S]。数据：zenodo.org/records/10344086 v1.1.0 [S] 中公开的汇总量（自由谱、后验摘要），MB 级。能力：自由谱拟合、模型比较。
+  - 备注：论文研究；与 T-013 并行（T-013 等待第 A 步取数时开工）。
+
 
 ## 下一步（Next）
 
@@ -16,8 +20,6 @@
   - 备注：DR4 运行后 `results/` 不再有 DR3 的 `post_hoc.R1b_*`，届时把 `argument/Argument.lean` 中 `num_astro1` 的绑定路径改为 `results/dr3/summary.json`，并且与 DR4 的 `results/` 放在同一个 PR 里，否则研究状态为 reproduced 时 Lean 测试会失败（来源 T-010）。
 - [ ] **T-013** M7：宽双星引力检验（MOND 之争） · 登记 2026-11-14
   - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Cookson, Banik, El-Badry et al. 2026 arXiv:2602.24035；Chae et al. arXiv:2601.21728（修改中）。能力：服务器端自连接配对、前向建模、污染成分建模。数据 5–20 MB，必须服务器端自连接，不下载 El-Badry 2021 星表（AGENTS.md 1.5）。
-- [ ] **T-014** M9：纳赫兹引力波背景（NANOGrav 15 年数据） · 登记 2026-11-14
-  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Agazie et al. 2023 arXiv:2306.16213 [S]。数据：zenodo.org/records/10344086 v1.1.0 [S] 中公开的汇总量（自由谱、后验摘要），MB 级。能力：自由谱拟合、模型比较。
 - [ ] **T-015** M8：z ≈ 14 星系的光谱确认与亮星系过多 · 登记 2026-11-14
   - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Carniani et al. 2024 arXiv:2405.18485 [S]、Naidu et al. 2026 arXiv:2505.11263 [S]、Harikane et al. 2025 arXiv:2406.18352。能力：紫外光度函数、晕质量函数模型。数据为论文表格，kB 级。
 - [ ] **T-016** M10：GWTC-4.0 双黑洞质量谱结构 · 登记 2026-11-14
