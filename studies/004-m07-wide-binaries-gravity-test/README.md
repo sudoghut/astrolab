@@ -93,7 +93,7 @@ column), L for the three other Table 3 rows, the bootstrap/MAD error ratio per b
 Newtonian χ² and its p-value (n_bins − 1 degrees of freedom; 5 if no bins are merged).
 
 **R3 (descriptive).** Each variant changes one choice from the main sample: no perspective
-correction; no HR cut; HR constant c ± 0.2 mag; d < 150 pc; d < 200 pc (needs its own A/B queries beyond the 150 pc parent cut; run only if their counts fit, otherwise reported as not run); parallax S/N > 100
+correction; no HR cut; HR constant c ± 0.2 mag; d < 150 pc; d < 200 pc (needs its own A/B queries beyond the 150 pc parent cut; dated note 2026-11-14, before any data: not attempted in this study because the authenticated fetch of the 150 pc sky takes about a day before the 11-25 archive outage; reported as not attempted); parallax S/N > 100
 (catalogue C10); ipd = 0 at 130 pc and at 150 pc; no degrouping; degrouping with C25 neighbours only (diagnostic; needs a second set of A2 queries, counted first;
 run only if time before 2026-11-24 allows, otherwise reported as not run); perspective correction
 from the inverse-variance-weighted mean RV of both stars instead of the primary's; ṽ ≤ 1.5 and ≤ 2. All are reported together in one table with

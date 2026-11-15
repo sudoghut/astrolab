@@ -252,10 +252,17 @@ def _star(r, s):
                 c_ppd=r[f"parallax_pmdec_corr_{s}"], c_pad=r[f"pmra_pmdec_corr_{s}"])
 
 
-def build_sample(pairs, a2, a3, P, variant):
-    """Apply README section 4 to the merged pairs; returns a DataFrame with x, vt, sig_vt."""
+def build_sample(pairs, a2, a3, P, variant, trace=None):
+    """Apply README section 4 to the merged pairs; returns a DataFrame with x, vt, sig_vt.
+    If `trace` is a dict, the number of pairs left after each cut (in section 4.5 order) is recorded."""
     v = dict(variant)
     df = pairs.copy()
+
+    def note(label):
+        if trace is not None:
+            trace[label] = int(len(df))
+
+    note("merged_pairs")
     if not v.get("no_degroup"):          # each member's only neighbour is its partner (A2)
         nb = {int(s): (int(n), int(f)) for s, n, f in
               zip(a2["source_id"], a2["n"], a2["first_neighbour"])}       # exact integer ids
@@ -265,18 +272,22 @@ def build_sample(pairs, a2, a3, P, variant):
             return v is not None and v[0] == 1 and v[1] == int(partner)
         ok = [single(a, b) and single(b, a) for a, b in zip(df["source_id_a"], df["source_id_b"])]
         df = df[np.array(ok, dtype=bool)]
+    note("degroup")
     pbar, _, _ = wb.weighted_parallax(df["parallax_a"].to_numpy(), df["parallax_error_a"].to_numpy(),
                                       df["parallax_b"].to_numpy(), df["parallax_error_b"].to_numpy())
     df = df.assign(pbar=pbar)
     df = df[df["pbar"] > 1000.0 / v.get("d_max_pc", P["d_max_pc"])]
+    note("distance")
     rsky = wb.sky_separation_au(df["ra_a"].to_numpy(), df["dec_a"].to_numpy(), df["ra_b"].to_numpy(),
                                 df["dec_b"].to_numpy(), df["pbar"].to_numpy())
     df = df.assign(rsky=np.asarray(rsky))
     df = df[(df["rsky"] >= P["rsky_min_au"]) & (df["rsky"] <= P["rsky_max_au"])]
+    note("r_sky")
     if v.get("parallax_snr_min"):
         df = df[(df["parallax_a"] / df["parallax_error_a"] > v["parallax_snr_min"])
                 & (df["parallax_b"] / df["parallax_error_b"] > v["parallax_snr_min"])]
     df = df[(df["ruwe_a"] < P["ruwe_max"]) & (df["ruwe_b"] < P["ruwe_max"])]
+    note("ruwe")
     if v.get("ipd_zero"):
         df = df[(df["ipd_frac_multi_peak_a"] == 0) & (df["ipd_frac_multi_peak_b"] == 0)]
     if not v.get("no_hr"):
@@ -285,8 +296,10 @@ def build_sample(pairs, a2, a3, P, variant):
             x = df[f"bp_rp_{s}"]
             mg = df[f"phot_g_mean_mag_{s}"] + 5 * np.log10(df["pbar"] / 100.0)
             df = df[(x > 0.5) & (x < 3.5) & (mg > 4) & (mg < 14) & (mg > 3.3 * x + c) & (mg < 3.3 * x + c + 0.8)]
+    note("hr")
     df = df[df["radial_velocity_a"].notna() & df["radial_velocity_b"].notna()
             & ((df["radial_velocity_a"] - df["radial_velocity_b"]).abs() < P["drv_max"])]
+    note("rv")
     flame = (a3.drop_duplicates("source_id").set_index("source_id")["mass_flame"]
              if len(a3) else pd.Series(dtype=float))
 
@@ -321,7 +334,11 @@ def build_sample(pairs, a2, a3, P, variant):
     vc = wb.vc_kms(df["M"].to_numpy(), df["rsky"].to_numpy())
     df = df.assign(vsky=vsky, vt=vsky / vc, sig_vt=sig / vc,
                    x=df["rsky"].to_numpy() / wb.r_mond_au(df["M"].to_numpy(), P["a0"]))
-    return df[(df["sig_vt"] < P["sig_vt_max"]) & (df["vt"] <= v.get("vt_max", P["vt_max"]))]
+    df = df[df["sig_vt"] < P["sig_vt_max"]]
+    note("sigma_vt")
+    df = df[df["vt"] <= v.get("vt_max", P["vt_max"])]
+    note("vt_cap")
+    return df
 
 
 def analyse(df, P, with_boot=True):
@@ -410,9 +427,13 @@ def step_b(ctx, P):
         raise RuntimeError("PARAMS['hr_c'] must be committed (dated) from step A before step B")
     pairs, a2, a3, used = gather(ctx, P)
     results = {}
+    traces = {}
     for name, var in VARIANTS.items():
-        df = build_sample(pairs, a2, a3, P, var)
+        tr = {}
+        df = build_sample(pairs, a2, a3, P, var, trace=tr)
+        traces[name] = tr
         results[name] = analyse(df, P, with_boot=True)
+        results[name]["cut_trace"] = tr
         ctx.log(f"variant {name}: N={results[name]['N']} "
                 f"{results[name].get('primary', {}).get('verdict', 'not evaluable')}")
     main_r = results["main"]
@@ -423,18 +444,12 @@ def step_b(ctx, P):
     r1["N_vs_fig8_sum"] = {"N": main_r["N"], "fig8_sum": 900}
     r1["counts_vs_fig8"] = {"ours": main_r.get("counts_raw"), "fig8": r1["fig8_counts"]}
     r1["A_newton_vs_0.489"] = main_r.get("primary", {}).get("A_newton")
-    if not r1["within_20pct"]:     # diagnostic chain: switch the cuts back on one at a time
-        chain = {}
-        steps = [("no_cuts_beyond_degroup", {"no_hr": True, "vt_max": 1e9}),
-                 ("+hr", {"vt_max": 1e9}), ("+vt_cap", {})]
-        for label, var in steps:
-            chain[label] = int(len(build_sample(pairs, a2, a3, P, var)))
-        r1["diagnostic_chain"] = chain
+    r1["diagnostic_chain"] = traces["main"]   # cumulative counts after each cut, section 4.5 order
     ctx.save("variants", _clean(results))
     return _clean({"step": "B", "R1": r1, "R2": main_r.get("primary", {}).get("verdict"),
             "R2_L": main_r.get("primary", {}).get("L"), "n_candidate_pairs": int(len(pairs)),
             "est_bytes": int(used),
-            "not_run": {"d200": "needs its own queries beyond the 150 pc parent cut",
+            "not_run": {"d200": "not attempted: needs its own A and B queries beyond the 150 pc parent cut (dated note in README)",
                         "c25_neighbour_degrouping": "diagnostic; its extra A2 queries were not run"}})
 
 
