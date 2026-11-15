@@ -111,17 +111,18 @@ missing BP/RP can still flag contaminated systems ("It is important to include s
 degrouping stage"). So the main sample uses relaxed neighbours: any star with
 parallax_over_error > 5 and phot_g_mean_flux_over_error > 5 (C24's download filter, §2.2.1;
 BP/RP unrestricted; no RUWE or RV requirement) and parallax + 3·parallax_error > 6.6667 mas, under the
-same projected rule (≤ 0.5 pc at the two stars' weighted parallax) and the same pairwise 3σ parallax
-rule, applied between the parent star and each candidate neighbour. Degrouping with C25 neighbours
+projected radius C26 uses for degrouping (§3.2.1: no third star "within 100 kAU"; 100 kAU at the two
+stars' weighted parallax) and the same pairwise 3σ parallax rule, applied between the parent star and
+each candidate neighbour. (Candidate pairs in A1 are searched to 0.5 pc = 103.1 kAU, a superset of
+the 30 kAU sample.) Degrouping with C25 neighbours
 only (parallax_over_error > 40, C24 §2.2.2) is a diagnostic variant.
-star and each candidate neighbour.
 
 | Query | Content | Selection (server side) | Est. rows / size |
 |---|---|---|---|
-| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, rv_method_used (non-null when a radial velocity exists) | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); no velocity condition (as in C24, which has no velocity cut at pair finding; C26's velocity-related cuts ΔRV < 10 km/s, σ(ṽ) < 0.1 and ṽ ≤ 2.5 are applied after B1, section 4) | each region counted first; the total is known only from those counts (expected tens of thousands of rows; ≤ 50,000 per query, max_rows = 50,000, a region that overflows is split), ~400 B per row by conservative estimate |
+| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, rv_method_used (non-null when a radial velocity exists) | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); no velocity condition (as in C24, which has no velocity cut at pair finding; C26's velocity-related cuts ΔRV < 10 km/s, σ(ṽ) < 0.1 and ṽ ≤ 2.5 are applied after B1, section 4) | each region counted first; the total is known only from those counts (expected tens of thousands of rows; ≤ 50,000 per query, max_rows = 50,000, a region that overflows is split), ~600 B per row by conservative estimate |
 | A2 neighbour counts | per parent star: source_id, number of relaxed neighbours, and the smallest neighbour source_id | neighbours as defined above (no velocity condition); only stars with n ≥ 1 returned | ≤ 50,000 rows per strip (max_rows = 50,000, split if it overflows); at most one row per parent star, so ≤ 824,463 rows and ≤ 33 MB in total at 40 B per row (likely ≤ 200,000 rows, ≤ 8 MB) |
 | A3 FLAME masses (velocity-free) | per parent star in the region with a FLAME mass: source_id, mass_flame | parent stars of the region (same half-open rule as star a) joined on the server to `gaiadr3.astrophysical_parameters` with mass_flame not null | counted first; at most one row per parent star (≤ 824,463 in total, ~19% expected per C26 §4.1.2), 24 B per row, ≤ 20 MB |
-| B1 velocities (after the pre-registration commit) | the A1 pairs with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | A1's WHERE plus velocity-free cuts: r_sky ≤ 30 kAU at the weighted parallax and radial_velocity not null for both stars | counted per region with this exact WHERE before each fetch (no total is assumed); ~400 B per row by conservative estimate |
+| B1 velocities (after the pre-registration commit) | the A1 pairs with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | A1's WHERE plus velocity-free cuts: r_sky ≤ 30 kAU at the weighted parallax and radial_velocity not null for both stars | counted per region with this exact WHERE before each fetch (no total is assumed); ~600 B per row by conservative estimate |
 
 Totals are known only from the per-region counts (A1, A2, A3 before step B; B1 in step B); the
 cumulative estimate is checked before every fetch (expected 25–60 MB), including the relaxed-neighbour
@@ -171,11 +172,12 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
    primary's RV is this study's convention (C26 §4.1.6 says one star's RV suffices and speaks of the
    "systemic RV"; the mean-RV version is an R3 variant); both stars need an RV anyway because of
    C26's ΔRV < 10 km/s cut. σ(v_sky), and σ(ṽ) =
-   σ(v_sky)/v_c, by the Jacobian of C24 Appendix A over each star's (ϖ, μ_α*, μ_δ) with Gaia's
-   parallax_error, pmra_error, pmdec_error, parallax_pmra_corr, parallax_pmdec_corr and
-   pmra_pmdec_corr; positions are treated as exact (their errors are sub-mas and enter only through
-   the small perspective term), the two stars are independent, and the radial-velocity error and
-   the mass error are neglected, as in C24 and C26.
+   σ(v_sky)/v_c, by the Jacobian of the full perspective-corrected v_sky (common parallax and
+   perspective term included) with respect to each star's (ϖ, μ_α*, μ_δ), taken by central finite
+   differences, with each star's 3 × 3 covariance from parallax_error, pmra_error, pmdec_error,
+   parallax_pmra_corr, parallax_pmdec_corr and pmra_pmdec_corr (C24 Appendix A extended to the
+   corrected expression); positions and the radial velocity are treated as exact, the two stars are
+   independent, and the mass error is neglected, as in C24 and C26.
 5. **Cuts (main sample, C26).** d < 130 pc; 1 ≤ r_sky ≤ 30 kAU; RUWE < 1.25 (both); both on the HR
    band: 0.5 < BP−RP < 3.5, 4 < M_G < 14, and 3.3(BP−RP) + c < M_G < 3.3(BP−RP) + c + 0.8 (slope
    3.3, height 0.8 mag; C26 §3.2.4). The band's position cannot be read from C26, so c is set by a

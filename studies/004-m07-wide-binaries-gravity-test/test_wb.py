@@ -184,3 +184,25 @@ def test_flame_query_shape():
     q = Q.flame_query(r, "parallax > 6.6667 AND parallax_over_error > 40", "count")
     assert q.startswith("SELECT COUNT(*) AS n FROM (SELECT source_id FROM gaiadr3.gaia_source WHERE")
     assert "astrophysical_parameters" in q and "mass_flame IS NOT NULL" in q
+
+
+def test_corrected_sigma_matches_monte_carlo():
+    rng = np.random.default_rng(7)
+    ra1, dec1, ra2, dec2, rv1 = 40.0, 25.0, 40.4, 25.3, 35.0
+    s1 = dict(p=12.0, pmra=80.0, pmdec=-40.0, e_p=0.04, e_pmra=0.03, e_pmdec=0.05, c_ppa=0.2, c_ppd=-0.1, c_pad=0.3)
+    s2 = dict(p=12.05, pmra=80.5, pmdec=-39.4, e_p=0.06, e_pmra=0.05, e_pmdec=0.04, c_ppa=-0.2, c_ppd=0.1, c_pad=0.0)
+    v, sig = wb.vsky_corrected_sigma(ra1, dec1, ra2, dec2, rv1, s1, s2)
+
+    def draw(s, n):
+        c = np.array([[1, s["c_ppa"], s["c_ppd"]], [s["c_ppa"], 1, s["c_pad"]], [s["c_ppd"], s["c_pad"], 1]])
+        e = np.array([s["e_p"], s["e_pmra"], s["e_pmdec"]])
+        return rng.multivariate_normal([s["p"], s["pmra"], s["pmdec"]], c * np.outer(e, e), n)
+
+    n = 20000
+    x1, x2 = draw(s1, n), draw(s2, n)
+    vs = []
+    for a, b in zip(x1, x2):
+        pbar, _, _ = wb.weighted_parallax(a[0], s1["e_p"], b[0], s2["e_p"])
+        vr, vd = wb.perspective_vsky(ra1, dec1, a[1], a[2], ra2, dec2, b[1], b[2], pbar, rv1, correct=True)
+        vs.append(np.hypot(vr, vd))
+    assert sig == pytest.approx(np.std(vs), rel=0.05)

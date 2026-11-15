@@ -36,7 +36,10 @@ def star_b_where(region, b_filter, near=False):
                          _dec_clause("dec", region["bdec0"], region["bdec1"])])
 
 
-def pair_conditions(vcap_kms=None):
+DEGROUP_PC = 100000.0 / 206264.806     # C26 section 3.2.1: 100 kAU
+
+
+def pair_conditions(vcap_kms=None, radius_pc=PAIR_PC):
     """WHERE conditions on the joined subqueries a, b (pbar: weighted parallax)."""
     pbar = ("((b.parallax_error*b.parallax_error*a.parallax + a.parallax_error*a.parallax_error*b.parallax)"
             " / (a.parallax_error*a.parallax_error + b.parallax_error*b.parallax_error))")
@@ -44,7 +47,7 @@ def pair_conditions(vcap_kms=None):
         "ABS(a.parallax - b.parallax) < 3 * SQRT(a.parallax_error*a.parallax_error"
         " + b.parallax_error*b.parallax_error)",
         f"DISTANCE(POINT(a.ra, a.dec), POINT(b.ra, b.dec)) * 3.141592653589793 / 180.0 * 1000.0 / {pbar}"
-        f" <= {PAIR_PC}",
+        f" <= {radius_pc}",
     ]
     if vcap_kms is not None:
         conds.append(f"4.740470464 * SQRT((a.pmra - b.pmra)*(a.pmra - b.pmra) + (a.pmdec - b.pmdec)*(a.pmdec - b.pmdec))"
@@ -52,9 +55,9 @@ def pair_conditions(vcap_kms=None):
     return conds
 
 
-def _circle(factor=1.12):
+def _circle(factor=1.12, radius_pc=PAIR_PC):
     # search circle at least as large as the exact rule: pbar <= ~1.11 a.parallax under the 3-sigma rule
-    return f"CIRCLE(a.ra, a.dec, {PAIR_PC} * a.parallax * {factor} / 1000.0 * 180.0 / 3.141592653589793)"
+    return f"CIRCLE(a.ra, a.dec, {radius_pc} * a.parallax * {factor} / 1000.0 * 180.0 / 3.141592653589793)"
 
 
 A_COLS = ["source_id", "ra", "dec", "parallax", "parallax_error", "phot_g_mean_mag", "bp_rp", "ruwe",
@@ -110,9 +113,9 @@ def neighbour_query(region, parent, neighbour, select, near=False):
     cols = ["source_id", "ra", "dec", "parallax", "parallax_error"]
     a = _sub(star_a_where(region, parent, near), cols, "a")
     b = _sub(star_b_where(region, neighbour, near), cols, "b")
-    conds = ["a.source_id <> b.source_id"] + pair_conditions(None)
+    conds = ["a.source_id <> b.source_id"] + pair_conditions(None, DEGROUP_PC)
     inner = (f"SELECT a.source_id AS source_id, COUNT(*) AS n, MIN(b.source_id) AS first_neighbour "
-             f"FROM {a} JOIN {b} ON 1 = CONTAINS(POINT(b.ra, b.dec), {_circle()}) "
+             f"FROM {a} JOIN {b} ON 1 = CONTAINS(POINT(b.ra, b.dec), {_circle(radius_pc=DEGROUP_PC)}) "
              f"WHERE {' AND '.join(conds)} GROUP BY a.source_id")
     if select == "count":
         return f"SELECT COUNT(*) AS n FROM ({inner}) AS g"

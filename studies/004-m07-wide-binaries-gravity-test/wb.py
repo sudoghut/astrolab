@@ -204,6 +204,41 @@ def vsky_sigma(pm1, pm2, p1, p2, e_p1, e_p2, e_pmra1, e_pmdec1, e_pmra2, e_pmdec
     return np.sqrt(var)
 
 
+def vsky_corrected_sigma(ra1, dec1, ra2, dec2, rv1, star1, star2, rel_step=1e-4):
+    """sigma(v_sky) of the perspective-corrected relative velocity (README section 4.4).
+
+    star1, star2: dicts with p, pmra, pmdec, e_p, e_pmra, e_pmdec, c_ppa, c_ppd, c_pad (scalars).
+    The Jacobian of |v_sky| with respect to each star's (parallax, pmra, pmdec) is taken by central
+    finite differences of the full corrected expression (common parallax and perspective term
+    included); each star's 3x3 covariance comes from its errors and correlations; stars independent;
+    positions and RV are treated as exact. Returns (v_sky, sigma).
+    """
+    def vsky(x):
+        p1, a1, d1, p2, a2, d2 = x
+        pbar, _, _ = weighted_parallax(p1, star1["e_p"], p2, star2["e_p"])
+        vr, vd = perspective_vsky(ra1, dec1, a1, d1, ra2, dec2, a2, d2, pbar, rv1, correct=True)
+        return float(np.hypot(vr, vd))
+
+    x0 = np.array([star1["p"], star1["pmra"], star1["pmdec"], star2["p"], star2["pmra"], star2["pmdec"]], float)
+    J = np.zeros(6)
+    for k in range(6):
+        h = rel_step * max(abs(x0[k]), 1e-3)
+        xp, xm = x0.copy(), x0.copy()
+        xp[k] += h
+        xm[k] -= h
+        J[k] = (vsky(xp) - vsky(xm)) / (2 * h)
+
+    def cov3(s):
+        e = np.array([s["e_p"], s["e_pmra"], s["e_pmdec"]], float)
+        c = np.array([[1.0, s["c_ppa"], s["c_ppd"]], [s["c_ppa"], 1.0, s["c_pad"]], [s["c_ppd"], s["c_pad"], 1.0]])
+        return c * np.outer(e, e)
+
+    cov = np.zeros((6, 6))
+    cov[:3, :3] = cov3(star1)
+    cov[3:, 3:] = cov3(star2)
+    return vsky(x0), float(np.sqrt(J @ cov @ J))
+
+
 def vc_kms(mass_msun, r_au):
     """Newtonian circular speed sqrt(G M / r) in km/s."""
     return np.sqrt(G_SI * np.asarray(mass_msun) * MSUN_KG / (np.asarray(r_au) * AU_M)) / 1000.0
