@@ -39,7 +39,11 @@ has two steps. **Step A** downloads the chains and records, for each, only its f
 lines (with any `#sampler=` and `##` prior-range lines), the number of columns, the header line, the
 column map found by the rules below, and the row counts. It computes no statistic of any parameter.
 If the rules below cannot map a chain, a dated amendment to the column mapping only (nothing else)
-may be written after step A and before step B; this is the only allowed post-download change.
+may be written after step A and before step B; this is the only allowed post-download change. Such
+an amendment may use column names and metadata, external documentation, the column count and the
+values of the first ten rows (to recognise, for example, a weight or a log-likelihood column), but
+no mean, quantile or other summary of the parameters to be tested. The R1 mean test is then the
+check of the mapping; a failed R1 does not allow a second remapping.
 **Step B** computes everything else.
 
 **Column rules.**
@@ -48,12 +52,13 @@ may be written after step A and before step B; this is the only allowed post-dow
 - Names are matched case-insensitively on the part after the last `--`. Ωm: `omega_m` or `omegam`;
   σ8: `sigma_8` or `sigma8`; a stored S8: `s_8` or `s8`. Exactly one column must match each; zero
   or several matches make the chain "not mapped".
-- Weights, in order of priority: `weight`, then Cobaya's multiplicity (`weight` in Cobaya is the
-  multiplicity), then `log_weight` (exponentiated after subtracting its maximum); never
-  `old_weight`. No weight column: unit weights.
+- Weights, in order of priority: `weight` (in Cobaya this is the multiplicity), then `log_weight`
+  (exponentiated after subtracting its maximum); never `old_weight`. No weight column: unit weights.
 - A header that lacks a needed name makes the chain "not mapped"; there is no positional fallback
   for a chain with a header. Without any header line, the three Nautilus chains (`32pt_…`,
   `12pt_…`, `shear_nla_…`) use the layout of `read_chains_y6.py`; any other chain is "not mapped".
+  `read_chains_y6.py` documents this layout only for the 32pt chain; for the two ξ± chains (other
+  nuisance parameters) the R1 mean test is the safeguard against a wrong column.
 - Burn-in: if the `#sampler=` line names a nested sampler (nautilus, multinest, polychord) or an
   importance or flow sampler, no burn-in; if it names an MCMC sampler (metropolis, emcee, mcmc), the
   first 30% of rows are dropped; if there is no sampler line, no burn-in and this is recorded.
@@ -86,8 +91,7 @@ estimator of section 4. Let s be the standard deviation of n_σ over the five se
 - "Reproduced" if |n_σ − published| ≤ 0.15 + 2s (published: 2.6 in S8, 2.2 in S8–Ωm; the 0.15
   allowance covers D26's unquoted normalizing-flow noise and the rounding to 0.1). Otherwise "not
   reproduced".
-- "Not evaluable" if the R1 gate fails, or if s > 0.03 after one pre-registered escalation (rerun
-  once with N = 1,600,000 if s > 0.03 at N = 400,000; no further reruns).
+- "Not evaluable" if the R1 gate fails, or if s > 0.03. No rerun with other settings.
 - **Prior support.** The test uses prior ranges, not where the samples fell. For each sampled
   cosmological parameter that both chains share (Ωm and the amplitude parameter, A_s or
   ln(10¹⁰A_s), when present under the same name), the prior range is taken from the chain's `##`
@@ -99,6 +103,13 @@ estimator of section 4. Let s be the standard deviation of n_σ over the five se
   ranges in Ωm, with the fraction of weight dropped.
 - Bandwidth variants (×0.5, ×2) and the 1-D convolution cross-check are reported; a change of more
   than 0.1σ is flagged as bandwidth-dependent and does not change the verdict.
+- **Estimator calibration (done 2026-11-15, before any download, on synthetic data only).** For a
+  Gaussian P(Δp) with true n_σ = 2.6 (1-D) and 2.2 (2-D), the estimator of section 4 (N = 4,000,000,
+  binned, Scott bandwidth) gave, over five seeds: 1-D mean 2.5999, s = 0.0036 (bandwidth ×0.5:
+  s = 0.0045; ×2: s = 0.0032); 2-D mean 2.2023, s = 0.0066 (×0.5: s = 0.0203; ×2: s = 0.0043); all
+  biases below 0.008 in absolute value. The earlier unbinned design (scipy `gaussian_kde` on a
+  20,000-point fit subset, N = 400,000) gave s = 0.053 in 2-D and was replaced for that reason. The
+  calibration script is `explore/estimator_calibration.py`; its test repeats a shorter version.
 - Reported alongside, without verdict: the Gaussian estimate (difference of the means over the root
   sum of squared standard deviations), and the same with the weighted-KDE modes in place of the
   means.
@@ -121,7 +132,8 @@ quotes no such number; no verdict.
   every threshold up to its own value), and whether that is below 3.
 - **Full space (Gaussian):** over the cosmological parameters that both chains *sample* (identified
   from the `##` prior-range lines or the CosmoSIS `cosmological_parameters--` names that are not
-  derived; derived columns such as σ8, S8, h0 when H0 is sampled, and any column whose correlation
+  derived; a parameter with a non-uniform (for example Gaussian) prior uses its prior variance in the
+  data-constrained cut, and is excluded if that variance is not given; derived columns such as σ8, S8, h0 when H0 is sampled, and any column whose correlation
   with another selected column exceeds 0.999 are excluded), the χ² = Δμᵀ (C_A + C_B)⁻¹ Δμ with k
   degrees of freedom, converted to n_σ via its probability and eq. 19. Reported twice: with all such
   parameters, and with the data-constrained ones (DES posterior variance below 0.25 of the variance
@@ -170,19 +182,22 @@ chain (76 MB), any KiDS, ACT, SPT or eROSITA product.
    the weighted 0.01% and 99.99% quantiles (Scott's rule with the effective sample size); the
    shortest interval containing the mean and 68% of the KDE mass, and the equal-34% interval.
 3. **R2 estimator** (D26 eqs. 17–19), for p = S8 (1-D) and p = (S8, Ωm) (2-D):
-   - draw N = 400,000 indices from each chain independently, with probability proportional to the
-     weights, with replacement; Δp_i = p_DES,i − p_CMB,i are samples of P(Δp) (eq. 17), with equal
-     weights after resampling;
-   - split them into two halves; fit a Gaussian KDE (scipy `gaussian_kde`, Scott's rule; it uses the
-     sample covariance, so no separate whitening) on a random subset of 20,000 points of the first
-     half; evaluate it on a random subset of 50,000 points of the second half and at Δp = 0;
-     Δ = fraction of the evaluation points with density strictly above the density at 0 (eq. 18);
-   - n_σ = √2 erf⁻¹(Δ) (eq. 19); if Δ = 1 exactly, n_σ is reported as a lower bound with
-     Δ = 1 − 1/N_eval (N_eval = 50,000);
-   - five seeds (0–4); mean n_σ and its standard deviation s; repeated with the bandwidth × 0.5 and
-     × 2; the escalation rule of section 2.2 scales N, the fit subset and the evaluation subset by 4;
-   - 1-D cross-check: P(Δp) by numerical convolution of the two weighted KDEs on a common grid;
-     Δ = mass of the grid points with density above the density at 0.
+   - draw N = 4,000,000 indices from each chain independently, with probability proportional to the
+     weights, with replacement; Δp_i = p_DES,i − p_CMB,i are equally weighted samples of P(Δp)
+     (eq. 17);
+   - whiten: z = (Δp − mean) L with L the Cholesky factor of the inverse sample covariance of Δp
+     (in 1-D, division by the standard deviation); the point Δp = 0 maps to z₀;
+   - binned Gaussian kernel density estimate: histogram of z on a regular grid (8,000 cells in 1-D,
+     1,024 × 1,024 in 2-D) spanning the samples and z₀ with a margin of five bandwidths, smoothed with
+     a Gaussian filter of width h = N^(−1/(d+4)) (Scott's rule in whitened units, d = dimension);
+     the density at z₀ by linear interpolation of the smoothed grid;
+   - Δ = fraction of the N samples lying in cells whose smoothed density is strictly above the
+     density at z₀ (eq. 18 with the binned estimate in place of the normalizing flow); n_σ =
+     √2 erf⁻¹(Δ) (eq. 19); if Δ = 1 exactly, n_σ is reported as a lower bound with Δ = 1 − 1/N;
+   - five seeds (0–4); mean n_σ and its standard deviation s; repeated with h × 0.5 and h × 2;
+   - 1-D cross-check: P(Δp) by numerical convolution of the two weighted Gaussian KDEs of S8 (Scott's
+     rule with each chain's effective sample size) on a common grid of spacing 10⁻⁴; Δ = mass of the
+     grid points with density above the density at 0.
 4. R3, R4 and R5 as in section 2.
 5. Summaries only (means, intervals, n_σ per seed and variant, effective sample sizes, row counts,
    column maps) go to `results/*.json`, each under 1 MB.
