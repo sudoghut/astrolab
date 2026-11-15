@@ -64,12 +64,16 @@ verdict, the numbers, and our explanation of any failure.
 **R3 (required σ_UV; conditional on R2's model).**
 Median relation fixed (fiducial calibration); σ at z = 14–15 varied on [0.7, 4.0] mag. Solve
 φ_model(σ) = φ_obs (central value, primary result) and = φ_obs × λ_lo/2 and φ_obs × λ_hi/2 (Poisson
-bounds). If φ_model(0.7) already exceeds a target, that end is reported as "σ ≤ 0.7"; if
-φ_model(4.0) is still below it, "σ > 4.0".
+bounds). If φ_model(0.7) ≥ a target, that end is reported as "σ ≤ 0.7" (equality gives σ = 0.7);
+if φ_model(4.0) < it, "σ > 4.0" (equality gives σ = 4.0). Censored ends enter the overlap test
+as the half-open intervals they denote.
 - **"consistent with N26"** if [σ(lower bound), σ(upper bound)] overlaps [1.5, 2.0] mag; otherwise
   **"different"**. Reported with the R2 verdict it is conditional on, and with the envelope of the
-  central σ over the variant grid ("robust" under the same rule as R2: over evaluable combinations,
-  at least 48 of 72 evaluable; non-monotonic φ(σ) and "σ > 4.0" cases are counted and reported).
+  central σ over the variant grid. R3 is **"robust"** if at least 48 of the 72 combinations are
+  evaluable and every evaluable one gives the same overlap verdict as the fiducial; a combination is
+  not evaluable if its calibration fails or φ(σ) is not monotonic on [0.7, 4.0]; censored roots
+  ("σ ≤ 0.7", "σ > 4.0") are evaluable and enter the overlap test as half-open intervals; the counts
+  of each case are reported.
 - The roots at large σ depend on the lowest halo mass included; the verdict uses the roots at the
   fiducial floor M_min, and the roots at 10 M_min are descriptive (a verdict that would change
   under 10 M_min is reported, not substituted).
@@ -85,7 +89,7 @@ against 388 arcmin²).
 | Input | Source | Selection | Est. size |
 |---|---|---|---|
 | N26 counts, area, volume, density, ratio | arXiv:2505.11263 §4.1 (v2) | N = 2, 388 arcmin², 462,648 Mpc³, −5.36 (+0.37/−0.45), 182 (+329/−105) | < 1 KB, in `inputs.py` |
-| Pre-JWST z ≈ 8 and z ≈ 7 UV LFs | Bouwens et al. 2021, AJ 162, 47, arXiv:2102.07775, Table 5 | z ~ 8 (⟨z⟩ = 7.9): M* = −20.93, φ* = 0.09 × 10⁻³ Mpc⁻³ mag⁻¹, α = −2.23; z ~ 7 (⟨z⟩ = 6.8): M* = −21.15, φ* = 0.19 × 10⁻³, α = −2.06 | < 1 KB |
+| Pre-JWST z ≈ 8 and z ≈ 7 UV LFs | Bouwens et al. 2021, AJ 162, 47, arXiv:2102.07775, Table 5 | z ~ 8 (⟨z⟩ = 7.9): M* = −20.93, φ* = 0.09 × 10⁻³ Mpc⁻³ mag⁻¹, α = −2.23; z ~ 7 (⟨z⟩ = 6.8): M* = −21.15, φ* = 0.19 × 10⁻³ Mpc⁻³ mag⁻¹, α = −2.06 | < 1 KB |
 | H25 z ~ 14 point | Harikane et al. 2025, ApJ 980, 138, Table 2 | one row | < 1 KB |
 | Model constants | Planck 2018 (astropy `Planck18`: H0 = 67.66, Ωm = 0.30966, Ωb = 0.04897, σ8 = 0.8102, n_s = 0.9665); Sheth–Tormen (A = 0.3222, a = 0.707, p = 0.3, δ_c = 1.686; as in Reed et al. 2007 eq. 5); Reed et al. 2007 eq. 11–14; Fakhouri et al. 2010 eq. 2; Dekel et al. 2013 eq. 8; Madau & Dickinson 2014 eq. 10 | – | < 1 KB |
 
