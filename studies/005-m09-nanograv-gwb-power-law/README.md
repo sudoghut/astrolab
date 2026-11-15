@@ -38,7 +38,7 @@ verdict, the numbers, and our explanation of any failure.
 **Validity (before any criterion).** The structural checks of section 4 step 1 (files present,
 array shapes consistent, the first frequency equal to 1/T within 1% for T = 16.03 yr, the grid
 uniform) must pass for a data product, and every posterior must be finite and normalisable. The
-edge rule applies to log10 A and γ in R1, R2 and R3 (and to log10 A only in R4): less than 1% of
+edge rule applies to log10 A in R1, to log10 A and γ in R2, the same in R3, and to log10 A only in R4: less than 1% of
 the posterior mass may lie in the outermost 1% of the prior range of each of these parameters
 (otherwise the grid or prior edge is driving the result). In R4, mass at the prior edges of κ
 and f_b is expected (κ → 0 and f_b below f₁ make the turnover inert) and is reported, not a
@@ -135,7 +135,8 @@ Rows 15 and 16 are identical in all four printed columns (also the A_10yr column
    `density.npy` (log-density, shape (1, 30, G) or (30, G), with the frequency axis of length 30
    before the grid axis; any other shape makes that data product not evaluable). NaN densities
    are set to −36 as in ceffyl. Checks of section 2 "Validity". The zip is untrusted: each
-   member's `file_size` is checked against 50 MB before reading, and member names containing
+   member is read with a bounded read of 50 MB + 1 byte and rejected if longer (the declared
+   `file_size` is not trusted), and member names containing
    ".." or starting with "/" are rejected.
 2. **Likelihood** (Lamb+2023 eq. 8–11; ceffyl `ln_likelihood`). For a model PSD S(f), ρ_k² =
    S(f_k)/T with T = 1/f₁ from the file (seconds), log10 ρ_k = ½ log10 ρ_k². Bin index
@@ -196,7 +197,7 @@ How a coding agent answers "what if" questions about this study without touching
 | `below_grid` | `"clip"` (bottom-cell density, ceffyl) or `"neg_inf"` | either | cache only |
 | `r1_step`, `r2_step` | grid steps for R1 (log10 A) and R2 (both axes) | 0.0005–0.01 | cache only (smaller steps are slower) |
 | `gamma_fixed` | γ for R1 | 2–6 | cache only |
-| `r4_steps` | R4 grid steps (log10 A, log10 f_b, κ) | (0.005–0.02, 0.0125–0.05, 0.05–0.2) | cache only |
+| `r4_steps` | R4 grid steps (log10 A, log10 f_b, κ) | (0.005–0.02, 0.0125–0.05, 0.05–0.2) | cache only (smallest steps: minutes) |
 | `versions` | data products to analyse | `["v2.0.0"]`, `["v2.0.0", "v1.1.0"]` | cache after first run (5.3 MB for v1.1.0) |
 
 - Rerun with an override: `python -m astrolab explore 005-m09-nanograv-gwb-power-law --tag <topic> --set KEY=VALUE`
