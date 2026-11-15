@@ -19,7 +19,13 @@ def load(name):
 
 def test_r1_verdict_rule():
     r1 = load("r1")
-    o3_ok = r1["o3_part"] == "reproduced"
+    n_o3, k = r1["n_o3"], r1["n_o3_type_i_candidates"]
+    count_ok = abs(n_o3 - 69) <= 2 and (n_o3 <= 69 or k >= n_o3 - 69)
+    o3_ok = count_ok and all(v["pass"] for v in r1["named_checks"].values())
+    assert (r1["o3_part"] == "reproduced") == o3_ok
+    extras_ok = all(e["type_a"] for e in r1["extra"]) and len(r1["extra"]) <= 2
+    if not r1["target_ambiguous"]:
+        assert (r1["o4a_part"] == "reproduced") == (not r1["missing"] and extras_ok)
     if not o3_ok:
         want = "not reproduced"
     elif r1["target_ambiguous"]:
