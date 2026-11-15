@@ -66,7 +66,9 @@ advance.
     0.05 Gyr in Age and 20 quantile classes of the relative error r = e_Age/Age (per sample or bin),
     and the likelihood is a weighted sum over occupied cells (for the R3/R4 models, also 0.05 dex in
     [Fe/H]). Each cell uses e = (class median r) × (cell-centre Age); on S15 every class median is
-    below 0.15, so every star passes its cell's cut by construction.
+    below 0.15, so every star passes its cell's cut by construction. This encodes errors that scale
+    with the observed age (the e = r·A mechanism of 2.1) in the real-data fits; the mocks test both
+    mechanisms against it.
   - *Limitations:* treating e_Age as given is an approximation (if errors scale with the age
     estimate, S15 is a cut on relative precision and P_i is misspecified; tested below); catalogue
     ages are isochrone posterior summaries shaped by the prior and the grid edge, not Gaussian
@@ -124,6 +126,7 @@ advance.
   further if mock power is low (for example because the Gaussian fit smooths the uniform edge); the
   generating models are recorded. 50 mocks; power = fraction with d < d_crit and
   d ≤ 0.25. Bins with power < 80% are "cannot resolve" and excluded.
+- **Recorded per bin:** both mechanisms' d_crit and which one was applied.
 - **Per bin:** "almost disjoint" if d < d_crit **and** d ≤ 0.25. Young-side upper edge = 97.5th
   percentile of the latent mass younger than the valley (our proxy; XR22 give no definition).
 - **Verdict:** **reproduced** if at least 3 bins are resolvable, at least 3 of them are almost
@@ -231,7 +234,8 @@ use their own generator, independent of the likelihood code. Analytic gradients 
 mixtures and the R3/R4 models. Cost estimate: one R1 evaluation about 1–3 ms, one R3/R4 evaluation
 about 10–20 ms (cells are nearly one per star); a fit takes a few hundred evaluations. R1
 calibration is 5 bins × 2 samples × 2 mechanisms × 100 mocks × about 12–15 fits (K and starts), about
-3–10 h; the R3/R4 and sample-B mocks (200 fits) and the robustness refits add about 1–2 h. The budget
+3–10 h; the R3/R4 and sample-B mocks (200 mocks × 3 starts × about 300 evaluations) add about 2–3.5 h,
+plus the robustness refits. The budget
 rule of 2.1 therefore probably applies (30 mocks per set). All tunable numbers (cuts, bins,
 grid, K range, mock counts, thresholds, seeds) are in `PARAMS`, saved with the results. Results go to
 `results/` as small JSON files (no per-star output). A web page shows the age–[Fe/H] densities, the
