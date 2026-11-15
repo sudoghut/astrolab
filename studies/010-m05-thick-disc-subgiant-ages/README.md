@@ -66,7 +66,9 @@ advance.
     0.05 Gyr in Age and 20 quantile classes of the relative error r = e_Age/Age (per sample or bin),
     and the likelihood is a weighted sum over occupied cells (for the R3/R4 models, also 0.05 dex in
     [Fe/H]). Each cell uses e = (class median r) × (cell-centre Age); on S15 every class median is
-    below 0.15, so every star passes its cell's cut by construction. This encodes errors that scale
+    below 0.15, so every cell passes its own cut; the selection term of a star then uses its class's
+    r rather than its own (an approximation, stated as a limitation; the cut boundary is at r = 0.15
+    for every star, so no star is assigned zero probability). This encodes errors that scale
     with the observed age (the e = r·A mechanism of 2.1) in the real-data fits; the mocks test both
     mechanisms against it.
   - *Limitations:* treating e_Age as given is an approximation (if errors scale with the age
@@ -110,17 +112,18 @@ advance.
   with the true age) and e = r·A (errors scale with the observed age, computed iteratively from the
   draw); observed ages Gaussian around τ, truncated to [0, 20]; for S15 the cut e/A < 0.15 is applied
   and draws continue until the bin's observed count is reached. Null and power results are reported
-  per mechanism; the bin counts as resolvable only if power ≥ 80% under both (power computed with
-  the d_crit applied, see Null).
-- **Null:** two unimodal, log-concave, non-Gaussian latent families, each fitted to the bin in M0:
-  a skew-normal and a two-piece (split) normal (different widths on each side of the mode). 50 mocks
-  per family; for each family d_crit = the 3rd smallest null d (empirical 5%; with 50 mocks the
-  binomial uncertainty of the false-positive rate is about ±3%). The d_crit applied is the smallest
-  over the two families and the two error mechanisms (the strictest). If fewer than 3 null mocks of a
-  set have a valley, that set's d_crit = 1. *Deviation from plan 019:* the plan asked for a
-  log-concave sensitivity check; a non-parametric log-concave deconvolution with truncation and the
-  S15 term is not practical here, so a second parametric log-concave family is used and enters the
-  verdict instead of being reported only.
+  per mechanism; the bin counts as resolvable only if power ≥ 80% under both (a strict d* lowers the
+  power and makes the bin "cannot resolve" rather than failing it).
+- **Null and threshold (calibrated jointly with the decision rule):** two unimodal, log-concave,
+  non-Gaussian latent families, each fitted to the bin in M0: a skew-normal and a two-piece (split)
+  normal (different widths on each side of the mode). 50 mocks per family and error mechanism (four
+  null sets). The decision rule is "a valley exists and d ≤ d*", with
+  d* = min(0.25, q_1, …, q_4), where q_s is the 3rd smallest null d of set s (q_s = 0.25 if fewer
+  than 3 mocks of set s have a valley). So d* ≤ 0.25 always, and in every null set at most 2 of 50
+  mocks (about 5%; binomial uncertainty about ±3%) pass the rule. The realised false-positive rate of
+  each set at d* is reported. *Deviation from plan 019:* the plan asked for a log-concave sensitivity
+  check; a non-parametric log-concave deconvolution with truncation and the S15 term is not practical
+  here, so a second parametric log-concave family is used and enters the threshold.
 - **Power:** per bin, a two-component latent model built from XR22's numbers: an old component
   N(τ̄0 + a·[Fe/H]_centre, 0.82²) with τ̄0 = 9.38, a = −3.8 (8.6 Gyr at +0.2, 11.7 Gyr at −0.6), and a
   young component uniform from 1.5 Gyr to 7 Gyr (XR22's late phase, ending before 8 Gyr), with
@@ -129,17 +132,17 @@ advance.
   is computed and printed with the old weight; where it exceeds 0.1, the young edge is moved down by
   0.5 Gyr steps until it is ≤ 0.1 (expected only for [0.1, 0.3), to 6.5 Gyr). The edge is not moved
   further if mock power is low (for example because the Gaussian fit smooths the uniform edge); the
-  generating models are recorded. 50 mocks; power = fraction with d < d_crit and
-  d ≤ 0.25. Bins with power < 80% are "cannot resolve" and excluded.
-- **Recorded per bin:** the d_crit of each family and mechanism and which one was applied.
-- **Per bin:** "almost disjoint" if d < d_crit **and** d ≤ 0.25. Young-side upper edge = 97.5th
+  generating models are recorded. 50 mocks; power = fraction passing the same rule
+  (a valley and d ≤ d*). Bins with power < 80% are "cannot resolve" and excluded.
+- **Recorded per bin:** q_s of each null set, d*, the realised false-positive rates and the power.
+- **Per bin:** "almost disjoint" if a valley exists and d ≤ d*. Young-side upper edge = 97.5th
   percentile of the latent mass younger than the valley (our proxy; XR22 give no definition).
 - **Verdict:** **reproduced** if at least 3 bins are resolvable, at least 3 of them are almost
   disjoint, and the median young-side upper edge of the almost-disjoint bins lies in 6.5–9.5 Gyr.
   **Undetermined** if fewer than 3 bins are resolvable. **Not reproduced** otherwise.
 - **Budget (all mock sets: R1, the R3/R4 recovery, sample B):** run.py times the first mock of each
   set and prints the projected total. If the total would exceed 4 h, every mock set drops to 30
-  (R1 d_crit = 2nd smallest, a nominal 6.7%); if it still exceeds 8 h, run.py runs in the background
+  (R1 q_s = 2nd smallest, a nominal 6.7%); if it still exceeds 8 h, run.py runs in the background
   and the elapsed time is reported. The counts used are written to the results.
 - Reported without verdict: the eq. 1 cross-fractions (late stars older than 8 Gyr; early stars
   younger than 8 Gyr), as a descriptive reproduction of XR22 Fig. 2.
@@ -185,9 +188,11 @@ advance.
 - **R3 (verdict):** **reproduced** if |a| × 1.5 dex (the span from −1 to +0.5) lies in 4.5–6.5 Gyr
   (XR22: "5–6 Gyr", ±0.5 Gyr). τ̄0 and a are reported against 9.38 and −3.8 without verdict (XR22's
   values come from all of Fig. 2e, so the like-for-like comparison is the Fig. 2e fit below).
-- Each verdict is "robust" only if it also holds on Full and in the version with a² e_[Fe/H]² added
-  to the variance (which lowers σ; the unpublished age–[Fe/H] error covariance is not modelled in
-  either version); R3 also at f = 0.8 and f_max. R4 checks XR22's number under XR22's error scale,
+- Each verdict is "robust" only if every one of these fits meets the same criterion individually:
+  Full, and the version with a² e_[Fe/H]² added to the variance (which lowers σ; the unpublished
+  age–[Fe/H] error covariance is not modelled in either version); for R3 also f = 0.8 and f_max. The
+  spans of all these fits are reported side by side. Recovery failures act as stated above (Full
+  primary if only the e = r·A mechanism fails; R3 and R4 "cannot determine" if both fail). R4 checks XR22's number under XR22's error scale,
   and rescaling the errors moves σ_sel almost one for one (at f_max it tends to 0 by construction),
   so σ_sel at f = 0.8 and f_max is reported without entering R4's robustness. The span is also reported with the sample truncated at
   [Fe/H] < −0.2 and < 0.
@@ -196,9 +201,13 @@ advance.
   old-sequence component above (weight 1 − f_b) and a background component with a truncated Gaussian
   age distribution whose mean is linear in [Fe/H] (b0 + b1[Fe/H]) with width s, in M0.
   - Identifiability mocks: 50 from the fitted model. Misspecification mocks: 50 in which the
-    background is the empirical (Age, [Fe/H]) set of S15 early stars with JPHI > 500 below the α line,
-    resampled without added noise, and the old sequence is drawn from its fit with noise and the S15
-    cut, in the fitted proportions.
+    background follows the empirical background population instead of the fitted Gaussian: the Full
+    early stars with JPHI > 500 below the α line are split into three [Fe/H] slices (−1.2 to −0.6,
+    −0.6 to 0, 0 to 0.5); in each, a latent age mixture (K = 1–4 by BIC) is fitted in M0; mock
+    background stars take [Fe/H] resampled from the slice and latent ages from its fit. Old-sequence
+    stars take [Fe/H] resampled from sample B and latent ages from the fitted old component. Each mock
+    star then gets a relative error resampled from the Full stars of its [Fe/H] slice, an observed
+    age under each error mechanism, truncation to [0, 20] and the S15 cut, in the fitted proportions.
   - If either mock set shows a bias in σ_int above 0.1 Gyr, the verdict is **cannot determine**;
     otherwise **confirmed** if σ_int < 0.82 Gyr (plan 019's criterion), **not confirmed** if not.
   - The physical claim depends on the error scale: the fit is repeated at f = 0.8 and f_max, and the
