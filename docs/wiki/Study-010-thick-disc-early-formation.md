@@ -66,7 +66,7 @@ analysis keeps stars with relative age errors below 15%. The catalogue is public
    phase at J_φ = 500 kpc km/s separates them (their Fig. 3).
 4. **The old disc began about 13 Gyr ago.** For early-phase stars with J_φ > 500 and
    −1.05 < [Fe/H] < −0.95 ("presumably the oldest thick disk stars"), a Gaussian fit to the age
-   histogram gives a mean of 13.03 Gyr with a width of 1.81 Gyr (Extended Data Fig. 1). With a
+   histogram gives a mean of 13 Gyr (the figure inset prints 13.03 Gyr, width 1.81 Gyr; Extended Data Fig. 1). With a
    13.8 Gyr old universe, this is "only 0.8 Gyr after the Big Bang".
 5. **Continuous enrichment over 5–6 Gyr with a tight sequence.** Along the old-disc sequence, [Fe/H]
    rises from about −1 at 13 Gyr to +0.5 at about 7 Gyr. A model in which age at fixed [Fe/H] is a
@@ -230,7 +230,8 @@ and it is the one encoded.
    result is reported in part 3.
 5. **Consistency** (`consistent`) is a weak check here: no premise is negative.
 6. **Limits:** Lean checks the logical structure under our encoding, not the stellar physics inside
-   each premise.
+   each premise. In particular the consequent of `gap_onset` is the conclusion itself: Lean shows that
+   the conclusion depends on this unstated bridge, not that the bridge holds.
 
 ### Part 3 · What astrolab can test or explore
 
@@ -322,7 +323,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 1. **年龄–金属丰度平面在分开之前很杂乱。** 把全部恒星按年龄与 [Fe/H] 作图，分布很复杂。XR22 用既不是年龄也不是 [Fe/H] 的量分开样本（式 1）：J_φ > 1500 kpc km/s **且** [α/Fe] 低（[Fe/H] < −0.5 时低于 0.16，否则低于 −0.16[Fe/H] + 0.08）的星为"晚期"（薄盘），其余为"早期"。
 2. **两个区间，在 8 Gyr 处分开。** 晚期的星几乎都年轻于约 8 Gyr，在年龄–[Fe/H] 图上呈"V 形"（由径向迁移（radial migration）解释）；早期的星几乎都更老。摘要说这个平面"splits into two almost disjoint parts, separated at 8 Gyr"。
 3. **早期包含两条序列。** 贫金属序列（−2.5 < [Fe/H] < −1）是晕；富金属序列（[Fe/H] ≳ −1）是老的高 α（厚）盘。以 J_φ = 500 kpc km/s 分开早期星就能把它们分开（图 3）。
-4. **老盘约 13 Gyr 前开始形成。** 对早期中 J_φ > 500、−1.05 < [Fe/H] < −0.95 的星（"presumably the oldest thick disk stars"），年龄直方图的高斯拟合给出均值 13.03 Gyr、宽度 1.81 Gyr（扩展数据图 1）。宇宙年龄 13.8 Gyr，所以这是"大爆炸之后仅 0.8 Gyr"。
+4. **老盘约 13 Gyr 前开始形成。** 对早期中 J_φ > 500、−1.05 < [Fe/H] < −0.95 的星（"presumably the oldest thick disk stars"），年龄直方图的高斯拟合给出均值 13 Gyr（图中插图印的是 13.03 Gyr、宽度 1.81 Gyr；扩展数据图 1）。宇宙年龄 13.8 Gyr，所以这是"大爆炸之后仅 0.8 Gyr"。
 5. **5–6 Gyr 的持续增丰，且序列很紧。** 沿老盘序列，[Fe/H] 从 13 Gyr 时的约 −1 升到约 7 Gyr 时的 +0.5。一个模型假设给定 [Fe/H] 时年龄是围绕直线 τ̄0 + a·[Fe/H]（拟合值 τ̄0 = 9.38 Gyr、a = −3.8 Gyr/dex）的高斯，并按每颗星的年龄误差与本征弥散（intrinsic scatter）σ_int 展宽；它给出 σ_int = 0.82 ± 0.01 Gyr，XR22 称之为上限。结合斜率，同一时间诞生的恒星的 [Fe/H] 弥散小于 0.22 dex：形成恒星的气体混合得很好。
 6. **GSE 并合与恒星形成峰。** 角动量低但具有老盘化学的早期星（被并合加热的"溅出"盘星）只出现在约 11 Gyr 以上；老盘的恒星形成率（经体积改正后）在约 11.2 Gyr 达到峰值。XR22 由此认为 GSE 并合约在 11 Gyr 前基本完成。
 7. **同一金属丰度下盘比晕老。** 在 [Fe/H] ≈ −1，老盘序列比晕序列老约 2 Gyr（"Z 形"）。
@@ -400,7 +401,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 4. **`stated_insufficient`** 也成立，原因相同：没有只属标准知识的前提（宇宙年龄在方法部分写明），所以论文明说的前提与显式前提相同，缺的只是两个缺口。
 7. **与计划的偏离。** 计划 019 设想一个绑定 R2 结果的 NUM 前提；这里均值按 XR22 明说的数字编码（STAT），因为论证是论文的论证，我们的 R2 结果在第三部分报告。
 5. **相容性**（`consistent`）在这里是弱检查：没有否定形式的前提。
-6. **局限：** Lean 检查的是在我们的编码下论证的逻辑结构，不检查每个前提内部的恒星物理。
+6. **局限：** Lean 检查的是在我们的编码下论证的逻辑结构，不检查每个前提内部的恒星物理。特别是 `gap_onset` 的后件就是结论本身：Lean 说明结论依赖这座没写出的桥，而不说明这座桥成立。
 
 ### 第三部分 · 本项目可检验或探索的环节
 
