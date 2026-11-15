@@ -75,8 +75,9 @@ advance.
     estimate, S15 is a cut on relative precision and P_i is misspecified; tested below); catalogue
     ages are isochrone posterior summaries shaped by the prior and the grid edge, not Gaussian
     measurements.
-  - *Compression check:* the R2 deconvolved fit and the R3/R4 sample-A fit are repeated with 40
-    classes and without compression (one cell per star); changes are reported.
+  - *Compression check:* the R2 deconvolved fit and the R3/R4 sample-A fit (S15 and Full) are
+    repeated with 40 classes and without compression (one cell per star, each star's own e_Age in
+    both numerator and selection term); changes are reported.
   - *Edge sensitivity:* (i) refit without stars with Age + 2 e_Age > 20; (ii) an untruncated Gaussian
     observation model. Each verdict below is "robust" only if it holds on S15 and on Full.
 - **Fitting.** Maximum likelihood (L-BFGS-B, analytic gradients for the mixtures) from 8 starts per
@@ -146,8 +147,8 @@ advance.
 - **Budget (all mock sets: R1, the R3/R4 recovery, sample B):** R1 has, per bin and sample, 4 null
   sets and 2 power sets of 50 mocks (300 mocks; 3,000 over 5 bins and 2 samples). run.py runs the
   first mock of every set, takes the projected total as the sum over sets of (number of mocks × time
-  of that set's first mock) and prints it. If the total would exceed 4 h, every mock set drops to 30
-  (R1 q_s = 2nd smallest with the same strict rule, at most 1 of 30, a nominal 3.3%); if it still exceeds 8 h, run.py runs in the background
+  of that set's first mock) and prints it. Sequence: if the total exceeds 4 h, every mock set drops to 30
+  (R1 q_s = 2nd smallest with the same strict rule, at most 1 of 30, a nominal 3.3%); the total is then re-projected with 30 per set, and if it still exceeds 8 h, run.py runs in the background
   and the elapsed time is reported. The counts used are written to the results.
 - Reported without verdict: the eq. 1 cross-fractions (late stars older than 8 Gyr; early stars
   younger than 8 Gyr), as a descriptive reproduction of XR22 Fig. 2.
