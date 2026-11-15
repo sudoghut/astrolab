@@ -49,6 +49,21 @@ def strip_plan(margin_ra_low=2.2, margin_ra_mid=7.0, margin_dec=1.2, ra_step_low
     return out
 
 
+def split_region(r):
+    """Split a star-a region in two along right ascension, keeping its star-b margins (README
+    section 3: a region over the row cap is split and counted again)."""
+    full_b = r["bra0"] == 0.0 and r["bra1"] == 360.0
+    margin = 0.0 if full_b else (r["ra0"] - r["bra0"]) % 360.0
+    mid = 0.5 * (r["ra0"] + r["ra1"])
+    out = []
+    for lo, hi in ((r["ra0"], mid), (mid, r["ra1"])):
+        d = dict(r, ra0=lo, ra1=hi)
+        if not full_b:
+            d["bra0"], d["bra1"] = (lo - margin) % 360, (hi + margin) % 360
+        out.append(d)
+    return out
+
+
 def ra_in(ra, lo, hi):
     """RA interval test with wrap-around (lo > hi means the interval crosses 0); [0, 360] is all."""
     ra = np.asarray(ra) % 360.0

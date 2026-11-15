@@ -70,7 +70,9 @@ def _sub(where, cols, alias):
 
 def pair_query(region, parent, vcap_kms, select, near=False, extra_where=()):
     """A1/B1 pair query; `select` is the SELECT list ('COUNT(*) AS n' for counts)."""
-    cols = sorted(set(NEED_COLS) | set(A_COLS) | set(B1_COLS))
+    cols = sorted(set(A_COLS) | ({"pmra", "pmdec"} if vcap_kms is not None else set())
+                  | (set(B1_COLS) if "radial_velocity" in select or any("radial_velocity" in e for e in extra_where)
+                     else set()))
     a = _sub(star_a_where(region, parent, near), cols, "a")
     b = _sub(star_b_where(region, parent, near), cols, "b")
     conds = ["a.source_id < b.source_id"] + pair_conditions(vcap_kms) + list(extra_where)

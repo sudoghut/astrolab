@@ -65,6 +65,20 @@ class Budget:
             self.used += nbytes
 
 
+def _split(ctx, P, name, r, near, budget, fn, *extra):
+    """README section 3: a region over the row cap is split in two in right ascension and counted
+    again (recursively). Returns the summed count and the concatenated rows."""
+    if r["ra1"] - r["ra0"] < 0.1:
+        raise RuntimeError(f"{name}: still over the row cap at 0.1 deg; stop and ask the user")
+    parts = wb.split_region(r)
+    ns, dfs = 0, []
+    for i, sub in enumerate(parts):
+        n, df = fn(ctx, P, f"{name}.{i}", sub, near, *extra, budget) if extra else fn(ctx, P, f"{name}.{i}", sub, near, budget)
+        ns += n
+        dfs.append(df)
+    return ns, pd.concat(dfs, ignore_index=True)
+
+
 def _a1(ctx, P, name, r, near, budget):
     parent = P["parent"]
     qc = Q.pair_query(r, parent, P["vcap_kms"], "COUNT(*) AS n", near=near) if not near else \
@@ -73,7 +87,7 @@ def _a1(ctx, P, name, r, near, budget):
             f"FROM gaiadr3.gaia_source WHERE {parent} AND {P['near_b']}) AS b")
     n = _count(ctx, qc, f"A1 {name}")
     if n >= P["max_rows"]:
-        raise RuntimeError(f"A1 {name}: {n} rows >= {P['max_rows']}; split this region (README section 3)")
+        return _split(ctx, P, name, r, near, budget, _a1)
     budget.reserve(n * P["bytes_per_row_pair"], f"A1 {name}")
     q = qc.replace("SELECT COUNT(*) AS n", "SELECT " + Q.a1_select(), 1)
     df = ctx.tap(q, "gaia", label=f"A1 {name}", max_rows=P["max_rows"], mode="async", release="Gaia DR3")
@@ -87,7 +101,7 @@ def _a2(ctx, P, name, r, near, neighbour_key, budget):
     qc = Q.neighbour_query(r, P["parent"], nb, "count", near=near)
     n = _count(ctx, qc, f"A2 {name}")
     if n >= P["max_rows"]:
-        raise RuntimeError(f"A2 {name}: {n} rows >= {P['max_rows']}; split this region (README section 3)")
+        return _split(ctx, P, name, r, near, budget, _a2, neighbour_key)
     budget.reserve(n * P["bytes_per_row_count"], f"A2 {name}")
     q = Q.neighbour_query(r, P["parent"], nb, "rows", near=near)
     df = ctx.tap(q, "gaia", label=f"A2 {name}", max_rows=P["max_rows"], mode="async", release="Gaia DR3")
@@ -98,7 +112,7 @@ def _a3(ctx, P, name, r, near, budget):
     qc = Q.flame_query(r, P["parent"], "count", near=near)
     n = _count(ctx, qc, f"A3 {name}")
     if n >= P["max_rows"]:
-        raise RuntimeError(f"A3 {name}: {n} rows >= {P['max_rows']}; split this region (README section 3)")
+        return _split(ctx, P, name, r, near, budget, _a3)
     budget.reserve(n * 24, f"A3 {name}")
     df = ctx.tap(Q.flame_query(r, P["parent"], "rows", near=near), "gaia", label=f"A3 {name}",
                  max_rows=P["max_rows"], mode="async", release="Gaia DR3")

@@ -64,6 +64,39 @@ def _transient(exc: Exception) -> bool:
     return any(code in text for code in ("500", "502", "503", "504", "timed out", "Connection"))
 
 
+def _run_async(svc, query: str, maxrec: int):
+    """Async TAP job that reports the server's own error message when the job fails."""
+    job = svc.submit_job(query, maxrec=maxrec)
+    try:
+        import time as _time
+
+        job.run()
+        t0 = _time.time()
+        delay = 2.0
+        while True:
+            phase = job.phase
+            if phase not in ("PENDING", "QUEUED", "EXECUTING", "HELD", "SUSPENDED", "UNKNOWN"):
+                break
+            if _time.time() - t0 > 3600:
+                raise RuntimeError("TAP async job still running after 3600 s")
+            _time.sleep(delay)
+            delay = min(delay * 1.5, 30.0)
+        if phase != "COMPLETED":
+            msg = None
+            try:
+                summary = job.job.errorsummary
+                msg = summary.message.content if summary is not None and summary.message is not None else None
+            except Exception:  # noqa: BLE001 - best effort
+                msg = None
+            raise RuntimeError(f"TAP async job {phase}: {msg or 'no error message'}")
+        return job.fetch_result()
+    finally:
+        try:
+            job.delete()
+        except Exception:  # noqa: BLE001
+            pass
+
+
 def _run_tap(url: str, query: str, maxrec: int, mode: str):
     """Run a TAP query, retrying transient server errors and falling back sync -> async."""
     import time
@@ -79,7 +112,9 @@ def _run_tap(url: str, query: str, maxrec: int, mode: str):
             time.sleep(delay)
         m = modes[min(attempt, len(modes) - 1)] if attempt < 2 else modes[-1]
         try:
-            return svc.run_async(query, maxrec=maxrec) if m == "async" else svc.run_sync(query, maxrec=maxrec)
+            if m == "async":
+                return _run_async(svc, query, maxrec)
+            return svc.run_sync(query, maxrec=maxrec)
         except Exception as exc:  # pyvo raises several DAL* types
             if not _transient(exc):
                 raise

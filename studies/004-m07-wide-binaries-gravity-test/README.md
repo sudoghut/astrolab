@@ -134,7 +134,7 @@ same strip plus a margin of 1.2° in declination at every boundary and, in right
 Each pair is kept once (canonical source_id_a < source_id_b; duplicates from the margins dropped);
 this logic has an offline test. **Units.** Parallaxes are in mas, distances in pc (d = 1000/ϖ), r_sky in AU from d and the angle.
 
-**Count first.** Before each A1, A2 and B1 query (every strip, the near-star query and every R3
+**Count first.** Before each A1, A2, A3 and B1 query (every strip, the near-star query and every R3
 or R4 variant that needs its own query), `run.py` runs the same FROM/WHERE as a server-side
 `COUNT(*)` (through `ctx.count`), converts it to bytes at 400 B per A1/B1 row and 40 B per A2 row (conservative estimates; the
 actual guarded downloads are still subject to the hard per-download and study limits in `astrolab`),
