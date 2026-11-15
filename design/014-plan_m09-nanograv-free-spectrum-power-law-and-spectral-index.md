@@ -8,7 +8,7 @@
 
 按论文立项流程（`paper-study` 技能，计划 007）把 M9 立为研究：
 
-- 用 NANOGrav 15 年数据的自由谱（free spectrum）核密度估计（KDE, Kernel Density Estimate）表示（Lamb, Taylor & van Haasteren 2023 的分解似然（factorised likelihood））在本机重拟引力波背景（GWB, gravitational-wave background）的幂律谱，复现 Agazie et al. 2023（ApJL 951, L8，arXiv:2306.16213，下称 L8）关于振幅与谱指数的定量陈述；
+- 用 NANOGrav 15 年数据的自由谱（free spectrum）核密度估计（KDE, Kernel Density Estimate）表示（Lamb, Taylor & van Haasteren 2023 的分解似然（factorised likelihood））在本机重拟引力波背景（GWB, gravitational-wave background）的幂律谱，复现 Agazie et al. 2023（ApJL 951, L8，arXiv:2306.16213，下称 L8）的振幅结果，并在近似似然下与其谱指数陈述比较；
 - 检验 L8 的论断"振幅……与超大质量黑洞双星（SMBHB, supermassive black-hole binaries）群体的天体物理预期相容"中可检验的部分：把拟合的振幅与 SMBHB 约束论文（Agazie et al. 2023, ApJL 952, L37，下称 L37，及其 2026 年勘误）给出的预测范围比较；谱指数部分只作"复现 L8 的定量陈述"，因为 γ < 13/3 可由环境效应、偏心率与宇宙方差容纳，不能据此否证"相容"；
 - 比较 2026 年修正采样器偏差后的数据版本（v2.0.0）与 2023 年版本（v1.1.0）（描述）；
 - 背景：Afzal et al. 2023（L11，arXiv:2306.16219，及其勘误 ApJL 971, L27, 2024）的"新物理"模型；只作描述性的谱形比较。
@@ -71,3 +71,4 @@ Lean 论证形式化 L8 第 III 节的振幅结论 "These amplitudes are compati
 - 2026-11-14 · 环节 2 闸门 2 第 1 轮：2 个严重问题，采纳：(1) `[stated]` 的 NUM 前提把 L37 关于后验的陈述加强成了"中位数落在范围内"；改为与 90% 可信区间重叠的模型个数 `n_models_overlap_ci90 >= 1`（不强于引文），中位数计数只作描述；(2) 边界与重复行的规则现在写定：闭区间、表 A1 按原样计数、同时报告合并相同行后的计数，计划与 Wiki 第三部分一致。次要意见采纳：`stat_holo` 注明只用到振幅部分。
 - 2026-11-14 · 环节 2 闸门 2 第 2 轮：第 1 轮的修正通过；新的 1 个严重问题，采纳："区间重叠即没有张力"不是标准知识（重叠只是描述），途径 1 的这一步改为 GAP `gap_overlap` [reconstructed]；途径 2 的 `mod_holo` 保留为 implied（L37 是把测量与群体的预测分布比较，属于后验预测检验）。次要意见采纳：其他解释表改为较窄的说法"没有任何列出的预言与振幅重叠"，并注明是描述性结果。
 - 2026-11-14 · 环节 2 闸门 2 第 3 轮：1 个严重问题，采纳：计划第 1 节的 Lean 描述还是旧版本（中位数、隐含的推断）；已改写为当前的分解（两条途径、NUM 为 90% 可信区间重叠、`gap_overlap` 与 `gap_repr` 两个缺口、结论收窄）。次要意见采纳：其他解释表中 `gap_repr` 一行改为"未排除（这正是缺口）"；第三部分为 L37 表 A1 注明大小（论文表格，24 行，约 1 KB，手工抄入）。
+- 2026-11-14 · 环节 2 闸门 2 第 4 轮：无严重问题，**环节 2 通过双闸**（闸门 1：2 轮；闸门 2：4 轮）。次要意见采纳：第 1 节的目标改为"复现振幅结果，在近似似然下与谱指数陈述比较"。
