@@ -1,0 +1,46 @@
+model,component,parameter,value,unit,source,notes
+E,bulge,M_bulge,1.962,1e10 Msun,J23 Table 1,Eq.5 rho0*exp(-r) with Eq.6 r^2=x^2/xb^2+y^2/yb^2+z^2/zb^2
+E,bulge,x_b,0.899,kpc,J23 Table 1,
+E,bulge,y_b,0.386,kpc,J23 Table 1,
+E,bulge,z_b,0.250,kpc,J23 Table 1,
+G,bulge,M_bulge,1.639,1e10 Msun,J23 Table 1,Eq.5 rho0*exp(-r^2/2) with Eq.6
+G,bulge,x_b,1.239,kpc,J23 Table 1,
+G,bulge,y_b,0.609,kpc,J23 Table 1,
+G,bulge,z_b,0.438,kpc,J23 Table 1,
+B2,bulge,M_bulge,1.550,1e10 Msun,J23 Table 1,Eq.7 Hernquist Phi=-GM/(r+r_b)
+B2,bulge,r_b,0.700,kpc,J23 Table 1 (footnote a: Value of r_b in Eq. 7),
+CM,disk,M_thin,3.11,1e10 Msun,J23 Table 2,Eq.8 rho0*exp(-R/L-z/H) with rho0=M/(4 pi H L^2) (thin and thick)
+CM,disk,M_thick,0.82,1e10 Msun,J23 Table 2,
+CM,disk,L_thin,2.75,kpc,J23 Table 2,
+CM,disk,L_thick,4.10,kpc,J23 Table 2,
+CM,disk,H_thin,0.25,kpc,J23 Table 2,
+CM,disk,H_thick,0.75,kpc,J23 Table 2,
+J,disk,M_thin,3.17,1e10 Msun,J23 Table 2,Eq.8
+J,disk,M_thick,0.90,1e10 Msun,J23 Table 2,
+J,disk,L_thin,2.60,kpc,J23 Table 2,
+J,disk,L_thick,3.60,kpc,J23 Table 2,
+J,disk,H_thin,0.30,kpc,J23 Table 2,
+J,disk,H_thick,0.90,kpc,J23 Table 2,
+dJ,disk,M_thin,3.33,1e10 Msun,J23 Table 2,Eq.8
+dJ,disk,M_thick,0.78,1e10 Msun,J23 Table 2,
+dJ,disk,L_thin,2.60,kpc,J23 Table 2,
+dJ,disk,L_thick,4.10,kpc,J23 Table 2,
+dJ,disk,H_thin,0.25,kpc,J23 Table 2,
+dJ,disk,H_thick,0.75,kpc,J23 Table 2,
+B2,disk,M_thin,3.65,1e10 Msun,J23 Table 2,Eq.8 single stellar disk; no thick disk (dash in table)
+B2,disk,L_thin,2.35,kpc,J23 Table 2,
+B2,disk,H_thin,0.14,kpc,J23 Table 2,
+B2,cold dust,M,7.0e7,Msun,de Salas+2019 Sec 2.1.2 (not in J23),double exponential (J23 Eq.8 form); J23 says gas/dust are double exponentials but gives no numbers
+B2,cold dust,R_d,5.0,kpc,de Salas+2019,
+B2,cold dust,z_d,0.1,kpc,de Salas+2019,
+B2,warm dust,M,2.2e5,Msun,de Salas+2019,double exponential
+B2,warm dust,R_d,3.3,kpc,de Salas+2019,
+B2,warm dust,z_d,0.09,kpc,de Salas+2019,
+B2,H2 gas,M,1.3e9,Msun,de Salas+2019,double exponential
+B2,H2 gas,R_d,2.57,kpc,de Salas+2019,
+B2,H2 gas,z_d,0.08,kpc,de Salas+2019,
+B2,HI gas,M,8.2e9,Msun,de Salas+2019,mass defined for disk truncated at R_t: M=4 pi rho0 z_d R_d (R_t+R_d) exp(-R_t/R_d); de Salas apply untruncated double exponential numerically
+B2,HI gas,R_d,18.24,kpc,de Salas+2019,
+B2,HI gas,z_d,0.52,kpc,de Salas+2019,
+B2,HI gas,R_t,2.75,kpc,de Salas+2019,truncation radius
+ALL,DM halo,rho(r),rho0*exp[-(r/h)^(1/n)],,J23 Eq.9,Einasto; n index; h scale radius; Table 4 gives M0 (normalisation as mass) h n
