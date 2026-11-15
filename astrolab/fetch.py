@@ -103,7 +103,10 @@ def _run_tap(url: str, query: str, maxrec: int, mode: str):
 
     import pyvo  # imported lazily: slow import
 
-    svc = pyvo.dal.TAPService(url)
+    from . import gaia_auth
+
+    session = gaia_auth.session_for(url)   # the user's own Gaia login, if any (longer job limits)
+    svc = pyvo.dal.TAPService(url, session=session) if session is not None else pyvo.dal.TAPService(url)
     modes = [mode] + (["async"] if mode == "sync" else [])
     last: Exception | None = None
     for attempt, delay in enumerate((0,) + RETRY_DELAYS):
