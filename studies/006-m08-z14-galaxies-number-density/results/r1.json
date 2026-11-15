@@ -1,0 +1,16 @@
+{
+ "phi_obs": 4.322940983209697e-06,
+ "log_phi": -5.364220693414144,
+ "err_hi": 0.3652473524830499,
+ "err_lo": 0.45080434190670315,
+ "gehrels_lo": 0.7083137193734489,
+ "gehrels_hi": 4.637429796708743,
+ "volume_mpc3": 460463.0110542263,
+ "volume_ratio": 0.9952772108692274,
+ "p_tail_n26_ppm": 59.93866042743101,
+ "p_tail_ratio100_ppm": 197.35322710959184,
+ "verdict_density": "reproduced",
+ "verdict_volume": "reproduced",
+ "mod_poisson_bound_holds": true,
+ "note": "Poisson errors only (no cosmic variance, no completeness)"
+}

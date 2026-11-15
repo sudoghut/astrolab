@@ -4,11 +4,11 @@
 
 *Paper(s): Naidu et al. 2026, OJAp 9, arXiv:2505.11263 (main paper, "N26"); Carniani et al. 2024, Nature 633, 318, arXiv:2405.18485 ("C24"); Harikane et al. 2025, ApJ 980, 138, arXiv:2406.18352 ("H25"); Shen et al. 2023, MNRAS 525, 3254, arXiv:2305.05679 ("S23"). Study:
 [`studies/006-m08-z14-galaxies-number-density`](https://github.com/sudoghut/astrolab/tree/main/studies/006-m08-z14-galaxies-number-density).
-Status: planned. Last updated: 2026-11-15 (see the
+Status: reproduced. Last updated: 2026-11-15 (see the
 changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：z ≈ 14 的星系：太多、太亮、太早？状态：计划中。论文：Naidu 等 2026, OJAp 9, arXiv:2505.11263（主论文，"N26"）；Carniani 等 2024, Nature 633, 318, arXiv:2405.18485（"C24"）；Harikane 等 2025, ApJ 980, 138, arXiv:2406.18352（"H25"）；Shen 等 2023, MNRAS 525, 3254, arXiv:2305.05679（"S23"）。研究：[`studies/006-m08-z14-galaxies-number-density`](https://github.com/sudoghut/astrolab/tree/main/studies/006-m08-z14-galaxies-number-density)。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：z ≈ 14 的星系：太多、太亮、太早？状态：已复现。论文：Naidu 等 2026, OJAp 9, arXiv:2505.11263（主论文，"N26"）；Carniani 等 2024, Nature 633, 318, arXiv:2405.18485（"C24"）；Harikane 等 2025, ApJ 980, 138, arXiv:2406.18352（"H25"）；Shen 等 2023, MNRAS 525, 3254, arXiv:2305.05679（"S23"）。研究：[`studies/006-m08-z14-galaxies-number-density`](https://github.com/sudoghut/astrolab/tree/main/studies/006-m08-z14-galaxies-number-density)。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -237,15 +237,36 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
-| A: the number density (R1) | testable now | φ = N/(V Δm) with N = 2, V = 462,648 Mpc³; Gehrels 84% Poisson limits; recompute V from 388 arcmin² and z = 14–15 (Planck 2018) | N26 §4.1 numbers (~1 KB) | reproduced if log φ within 0.01 dex and each error within 0.05 dex; volume within 5% | pending |
-| B: Poisson tail under the baseline (checks the Lean `mod_poisson` bound numerically) | testable now | P(N ≥ 2 \| μ = 2/182), and at ratio 100 | – | tail at 182 and at 100 both ≤ 200 ppm (reported as `p_tail_n26_ppm`, `p_tail_ratio100_ppm`) | pending |
-| B: an independent constant-SFE prediction (R2) | testable now (comparison, not a reproduction of N26's baseline) | Eisenstein–Hu P(k) → Sheth–Tormen halo mass function; SFR = ε(M_h) f_b Ṁ_h (Fakhouri et al. 2010); ε calibrated at z ≈ 8 by deconvolved abundance matching (σ_cal = 0.7 mag) and frozen; predict φ at z = 14–15 | pre-JWST z ≈ 8 LF parameters (paper table, ~1 KB) | φ_model(ours)/φ_model(N26 ≈ 2.4 × 10⁻⁸) within 1/3–3: "same order"; verdict conditional on the fiducial model, with robustness over a pre-declared variant grid | pending |
-| D: the σ_UV needed (R3) | testable now | with the median relation fixed, solve φ_model(σ) = φ_obs (and its Poisson limits) | same | central σ reported; interval overlaps N26's ≈ 1.5–2 mag: "consistent"; conditional on R2 | pending |
-| H25's z ~ 14 point (R4) | context only | H25's z ~ 14 bin contains only GS-z14-0 (shared with N26) and includes cosmic variance | H25 Table 2 | none (background) | pending |
-| Model ingredients (R5) | explorable (not decisive) | halo mass function, accretion fit, calibration redshift, σ_cal, ε extrapolation, dust, completeness c | same | none - exploration only, see README §8 | pending |
-| D: cosmic variance (`gap_poisson`) | explorable (not decisive) | halo-bias estimate of the field-to-field variance for two counts | same | none - exploration only | pending |
-| E: effective area (`gap_area`) | explorable (not decisive) | tail probability as a function of the effective area (ratio): crosses 2 × 10⁻⁴ at ≈ 1.8× (ratio ≈ 99) and 1.35 × 10⁻³ at ≈ 4.8× (ratio ≈ 38) the declared area (these are properties of the Poisson tail, reported for orientation, not decision thresholds) | – | none - exploration only | pending |
+| A: the number density (R1) | testable now | φ = N/(V Δm) with N = 2, V = 462,648 Mpc³; Gehrels 84% Poisson limits; recompute V from 388 arcmin² and z = 14–15 (Planck 2018) | N26 §4.1 numbers (~1 KB) | reproduced if log φ within 0.01 dex and each error within 0.05 dex; volume within 5% | **reproduced**: log φ = −5.364 (+0.365/−0.451); V = 460,463 Mpc³ (−0.5%) |
+| B: Poisson tail under the baseline (checks the Lean `mod_poisson` bound numerically) | testable now | P(N ≥ 2 \| μ = 2/182), and at ratio 100 | – | tail at 182 and at 100 both ≤ 200 ppm (reported as `p_tail_n26_ppm`, `p_tail_ratio100_ppm`) | 59.9 ppm at 182, 197.4 ppm at 100: bound holds |
+| B: an independent constant-SFE prediction (R2) | testable now (comparison, not a reproduction of N26's baseline) | Eisenstein–Hu P(k) → Sheth–Tormen halo mass function; SFR = ε(M_h) f_b Ṁ_h (Fakhouri et al. 2010); ε calibrated at z ≈ 8 by deconvolved abundance matching (σ_cal = 0.7 mag) and frozen; predict φ at z = 14–15 | pre-JWST z ≈ 8 LF parameters (paper table, ~1 KB) | φ_model(ours)/φ_model(N26 ≈ 2.4 × 10⁻⁸) within 1/3–3: "same order"; verdict conditional on the fiducial model, with robustness over a pre-declared variant grid | **higher**: 9.4× N26's baseline (fiducial); **calibration-dependent** (61 higher, 11 same order of 72; 2.5–37×) |
+| D: the σ_UV needed (R3) | testable now | with the median relation fixed, solve φ_model(σ) = φ_obs (and its Poisson limits) | same | central σ reported; interval overlaps N26's ≈ 1.5–2 mag: "consistent"; conditional on R2 | **consistent with N26**: 1.38 mag (1.15–1.57); **calibration-dependent** (38 consistent, 34 different; 1.07–1.60 mag) |
+| H25's z ~ 14 point (R4) | context only | H25's z ~ 14 bin contains only GS-z14-0 (shared with N26) and includes cosmic variance | H25 Table 2 | none (background) | H25 is 8.6× φ_obs (shared object, ≈ 39× smaller area) |
+| Model ingredients (R5) | explorable (not decisive) | halo mass function, accretion fit, calibration redshift, σ_cal, ε extrapolation, dust, completeness c | same | none - exploration only, see README §8 | σ_cal and the ε extrapolation drive the variant spread (see What we found) |
+| D: cosmic variance (`gap_poisson`) | explorable (not decisive) | halo-bias estimate of the field-to-field variance for two counts | same | none - exploration only | not yet explored |
+| E: effective area (`gap_area`) | explorable (not decisive) | tail probability as a function of the effective area (ratio): crosses 2 × 10⁻⁴ at ≈ 1.8× (ratio ≈ 99) and 1.35 × 10⁻³ at ≈ 4.8× (ratio ≈ 38) the declared area (these are properties of the Poisson tail, reported for orientation, not decision thresholds) | – | none - exploration only | not yet explored |
 | The baseline represents the consensus (2.3) | out of scope as a test | would need the pre-JWST model ensemble | – | – | – |
+
+#### What we found (2026-11-15)
+
+The number density follows from the two sources and N26's volume: log φ = −5.364 (+0.365/−0.451)
+with Gehrels Poisson limits, and the volume recomputed from 388 arcmin² in Planck 2018 is within
+0.5%. Under N26's baseline the Poisson probability of two or more sources is 6 × 10⁻⁵ (2 × 10⁻⁴ at a
+ratio of 100), so the bound used in the Lean argument holds.
+
+An independent constant star-formation-efficiency model, calibrated on the pre-JWST z ≈ 8 LF of
+Bouwens et al. 2021 and frozen, predicts φ = 2.2 × 10⁻⁷ Mpc⁻³ mag⁻¹ in the same bin: 9.4 times N26's
+baseline (the observed density is then about 19 times this prediction, and two sources have a
+Poisson probability of about 0.5%). Across 72 pre-declared variants the factor ranges from 2.5 to 37
+(61 "higher", 11 "same order"), so the verdict is calibration-dependent. The largest effects are the
+scatter assumed at calibration and how the efficiency is extended to small halos. With the median
+relation fixed, the scatter that reproduces the observed density is σ_UV ≈ 1.4 mag (1.15–1.57 within
+the Poisson range; 1.07–1.60 across variants): at the low end of, or just below, N26's 1.5–2 mag,
+and above the ≈ 0.7 mag inferred to z ≈ 9. The three gaps of the argument (decision rule, cosmic
+variance, effective area) are untouched by these numbers.
+
+Results: [`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r1.json), [`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r2.json), [`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r3.json),
+[`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json). The interactive page runs locally with `python -m astrolab serve`.
 
 ### Glossary
 
@@ -273,6 +294,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 Newest first.
 
+- 2026-11-15: results: Part 3 result column and "What we found" (R1 reproduced; R2 higher, calibration-dependent; R3 consistent, calibration-dependent).
 - 2026-11-15: gate-2 review, round 2: the step from tail probability to "high confidence" is our decision rule, now GAP `gap_rule` (three gaps); age at z ≈ 14 aligned with N26 (280 Myr).
 - 2026-11-15: gate-2 review: the Poisson tail is now a bound tied to the count and the ratio (`mod_poisson`), not a free-standing number; `obs_count` labelled as N26's counting assumption, observational part kept.
 - 2026-11-15: gate-1 review: the area dependence made explicit (`gap_area`; the volume does not
@@ -434,15 +456,23 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
-| A：数密度（R1） | 现在可检验 | φ = N/(V Δm)，N = 2、V = 462,648 Mpc³；Gehrels 84% 泊松限；由 388 arcmin² 与 z = 14–15 复算 V（Planck 2018） | N26 第 4.1 节的数字（约 1 KB） | log φ 差 0.01 dex 以内、各误差差 0.05 dex 以内、体积差 5% 以内 → 复现 | 待定 |
-| B：基准下的泊松尾概率（数值核对 Lean 的 `mod_poisson` 界） | 现在可检验 | P(N ≥ 2 \| μ = 2/182)，以及比值 100 时 | – | 182 与 100 时的尾概率都 ≤ 200 ppm（报告为 `p_tail_n26_ppm`、`p_tail_ratio100_ppm`） | 待定 |
-| B：独立的恒定 SFE 预言（R2） | 现在可检验（比较，不是复现 N26 的基准） | Eisenstein–Hu 功率谱 → Sheth–Tormen 晕质量函数；SFR = ε(M_h) f_b Ṁ_h（Fakhouri 等 2010）；ε 在 z ≈ 8 用去卷积的丰度匹配（abundance matching，σ_cal = 0.7 mag）校准后冻结；预言 z = 14–15 的 φ | JWST 之前 z ≈ 8 光度函数的参数（论文表格，约 1 KB） | φ_model(本研究)/φ_model(N26 ≈ 2.4 × 10⁻⁸) 在 1/3–3 之间："同一量级"；判定以基准组合为条件，并报告在预先列出的变体网格上是否稳健 | 待定 |
-| D：所需的 σ_UV（R3） | 现在可检验 | 固定中位数关系，解 φ_model(σ) = φ_obs（及其泊松限） | 同上 | 报告中心值；区间与 N26 的 ≈ 1.5–2 mag 重叠："一致"；以 R2 为前提 | 待定 |
-| H25 的 z ~ 14 点（R4） | 只作背景 | H25 的 z ~ 14 箱只含 GS-z14-0（与 N26 共用），误差含宇宙方差 | H25 表 2 | 无（背景） | 待定 |
-| 模型组成（R5） | 可探索（不能判决） | 晕质量函数、吸积拟合式、校准红移、σ_cal、ε 外推、尘埃、完备性 c | 同上 | 无——仅供探索，见 README 第 8 节 | 待定 |
-| D：宇宙方差（`gap_poisson`） | 可探索（不能判决） | 用晕偏置（halo bias）估计两个计数的视场间弥散 | 同上 | 无——仅供探索 | 待定 |
-| E：有效面积（`gap_area`） | 可探索（不能判决） | 尾概率随有效面积（比值）的变化：约为所述面积的 1.8 倍（比值约 99）时越过 2 × 10⁻⁴，约 4.8 倍（比值约 38）时越过 1.35 × 10⁻³（这是泊松尾概率本身的性质，用于参照，不是判决门槛） | – | 无——仅供探索 | 待定 |
+| A：数密度（R1） | 现在可检验 | φ = N/(V Δm)，N = 2、V = 462,648 Mpc³；Gehrels 84% 泊松限；由 388 arcmin² 与 z = 14–15 复算 V（Planck 2018） | N26 第 4.1 节的数字（约 1 KB） | log φ 差 0.01 dex 以内、各误差差 0.05 dex 以内、体积差 5% 以内 → 复现 | **复现**：log φ = −5.364（+0.365/−0.451）；V = 460,463 Mpc³（−0.5%） |
+| B：基准下的泊松尾概率（数值核对 Lean 的 `mod_poisson` 界） | 现在可检验 | P(N ≥ 2 \| μ = 2/182)，以及比值 100 时 | – | 182 与 100 时的尾概率都 ≤ 200 ppm（报告为 `p_tail_n26_ppm`、`p_tail_ratio100_ppm`） | 182 时 59.9 ppm、100 时 197.4 ppm：界成立 |
+| B：独立的恒定 SFE 预言（R2） | 现在可检验（比较，不是复现 N26 的基准） | Eisenstein–Hu 功率谱 → Sheth–Tormen 晕质量函数；SFR = ε(M_h) f_b Ṁ_h（Fakhouri 等 2010）；ε 在 z ≈ 8 用去卷积的丰度匹配（abundance matching，σ_cal = 0.7 mag）校准后冻结；预言 z = 14–15 的 φ | JWST 之前 z ≈ 8 光度函数的参数（论文表格，约 1 KB） | φ_model(本研究)/φ_model(N26 ≈ 2.4 × 10⁻⁸) 在 1/3–3 之间："同一量级"；判定以基准组合为条件，并报告在预先列出的变体网格上是否稳健 | **更高**：基准组合为 N26 基准的 9.4 倍；**依赖校准**（72 个中 61 个更高、11 个同一量级；2.5–37 倍） |
+| D：所需的 σ_UV（R3） | 现在可检验 | 固定中位数关系，解 φ_model(σ) = φ_obs（及其泊松限） | 同上 | 报告中心值；区间与 N26 的 ≈ 1.5–2 mag 重叠："一致"；以 R2 为前提 | **与 N26 一致**：1.38 mag（1.15–1.57）；**依赖校准**（38 个一致、34 个不同；1.07–1.60 mag） |
+| H25 的 z ~ 14 点（R4） | 只作背景 | H25 的 z ~ 14 箱只含 GS-z14-0（与 N26 共用），误差含宇宙方差 | H25 表 2 | 无（背景） | H25 为 φ_obs 的 8.6 倍（共用天体，面积约小 39 倍） |
+| 模型组成（R5） | 可探索（不能判决） | 晕质量函数、吸积拟合式、校准红移、σ_cal、ε 外推、尘埃、完备性 c | 同上 | 无——仅供探索，见 README 第 8 节 | σ_cal 与 ε 外推方式决定变体之间的差别（见"我们的发现"） |
+| D：宇宙方差（`gap_poisson`） | 可探索（不能判决） | 用晕偏置（halo bias）估计两个计数的视场间弥散 | 同上 | 无——仅供探索 | 尚未探索 |
+| E：有效面积（`gap_area`） | 可探索（不能判决） | 尾概率随有效面积（比值）的变化：约为所述面积的 1.8 倍（比值约 99）时越过 2 × 10⁻⁴，约 4.8 倍（比值约 38）时越过 1.35 × 10⁻³（这是泊松尾概率本身的性质，用于参照，不是判决门槛） | – | 无——仅供探索 | 尚未探索 |
 | 基准代表共识（2.3） | 不在检验范围内 | 需要 JWST 之前的模型集合 | – | – | – |
+
+#### 我们的发现（2026-11-15）
+
+数密度由两个源与 N26 的体积得出：用 Gehrels 泊松限，log φ = −5.364（+0.365/−0.451）；由 388 arcmin² 在 Planck 2018 下复算的体积相差不到 0.5%。在 N26 的基准下，看到两个或更多源的泊松概率为 6 × 10⁻⁵（比值为 100 时为 2 × 10⁻⁴），所以 Lean 论证中用到的界成立。
+
+一个独立的恒定恒星形成效率模型，用 Bouwens 等 2021 的 JWST 之前 z ≈ 8 光度函数校准后冻结，在同一箱中预言 φ = 2.2 × 10⁻⁷ Mpc⁻³ mag⁻¹：为 N26 基准的 9.4 倍（观测数密度约为这一预言的 19 倍，看到两个源的泊松概率约 0.5%）。在 72 个预先列出的变体中，这个倍数从 2.5 到 37（61 个"更高"、11 个"同一量级"），所以判定依赖校准。影响最大的是校准时假定的弥散，以及效率如何外推到小晕。固定中位数关系时，再现观测数密度所需的弥散为 σ_UV ≈ 1.4 mag（泊松范围内 1.15–1.57；各变体 1.07–1.60）：位于 N26 的 1.5–2 mag 的低端或略低，并高于推断到 z ≈ 9 的约 0.7 mag。论证的三个缺口（判决规则、宇宙方差、有效面积）不受这些数字影响。
+
+结果：[`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r1.json)、[`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r2.json)、[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r3.json)、[`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json)。交互网页在本地用 `python -m astrolab serve` 打开。
 
 ### 术语表
 
@@ -469,6 +499,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 按时间倒序。
 
+- 2026-11-15：结果：第三部分"结果"一列与"我们的发现"（R1 复现；R2 更高、依赖校准；R3 一致、依赖校准）。
 - 2026-11-15：闸门 2 审查第 2 轮：从尾概率到"高置信度"的一步是我们定的判决规则，改为 GAP `gap_rule`（三个缺口）；z ≈ 14 的宇宙年龄按 N26 改为 2.8 亿年。
 - 2026-11-15：闸门 2 审查：泊松尾概率改为与计数和比值相连的界（`mod_poisson`），不再是单独的数值；`obs_count` 注明是 N26 的计数假设，只保留观测部分。
 - 2026-11-15：闸门 1 审查：写明面积的依赖（`gap_area`；体积并不"相消"）；编码的结论说的是 N26 构造的光度函数（到"共识"的一步只讨论、不编码）。

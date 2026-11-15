@@ -1,0 +1,57 @@
+{
+ "params": {
+  "hmf": "st",
+  "accretion": "fakhouri_mean",
+  "cal": "z8",
+  "sigma_cal": 0.7,
+  "eps_extrap": "dpl",
+  "m_h_min": 100000000.0,
+  "log_m_max": 14.0,
+  "dlog_m": 0.02,
+  "cal_m_bright": -22.0,
+  "cal_m_faint": -17.0,
+  "cal_dm": 0.25,
+  "rms_max": 0.05,
+  "n_z": 11,
+  "n_m": 21,
+  "sigma_range": [
+   0.7,
+   4.0
+  ],
+  "sigma_step": 0.05,
+  "r1_tol_logphi": 0.01,
+  "r1_tol_err": 0.05,
+  "r1_tol_volume": 0.05,
+  "tail_max_ppm": 200.0,
+  "r2_factor": 3.0,
+  "r3_target": [
+   1.5,
+   2.0
+  ],
+  "robust_min_evaluable": 48,
+  "sigma8_tol": 0.001,
+  "run_variants": true,
+  "completeness": 1.0,
+  "area_factor": 1.0
+ },
+ "r1": {
+  "log_phi": -5.364220693414144,
+  "err_hi": 0.3652473524830499,
+  "err_lo": 0.45080434190670315,
+  "volume_ratio": 0.9952772108692274,
+  "verdict_density": "reproduced",
+  "verdict_volume": "reproduced",
+  "p_tail_n26_ppm": 59.93866042743101,
+  "p_tail_ratio100_ppm": 197.35322710959184
+ },
+ "r2": {
+  "phi_ours": 2.2373273719139933e-07,
+  "ratio_to_n26": 9.419364809047513,
+  "verdict": "higher",
+  "robustness": "calibration-dependent"
+ },
+ "r3": {
+  "verdict": "consistent with N26",
+  "robustness": "calibration-dependent"
+ }
+}

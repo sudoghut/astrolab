@@ -2,11 +2,11 @@ title: "M8 z ~ 14 galaxies: number density and the UV scatter a constant-efficie
 title_zh: "M8 z ≈ 14 星系：数密度，以及恒定效率模型所需的紫外弥散"
 id: "006-m08-z14-galaxies-number-density"
 level: L1              # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
-status: planned               # planned | active | reproduced | concluded | paused | abandoned
+status: reproduced               # planned | active | reproduced | concluded | paused | abandoned
 created: 2026-11-15
 question: "Does the z = 14-15 number density that Naidu et al. 2026 infer from two spectroscopically confirmed galaxies follow from their counts and volume, how does it compare with an independent constant star-formation-efficiency halo model, and how much UV scatter would that model need?"
 question_zh: "Naidu 等 2026 由两个光谱确认的星系推出的 z = 14–15 数密度能否由计数与体积得到？与独立的恒定恒星形成效率晕模型相比如何？该模型需要多大的紫外弥散？"
-claims: []                    # claim ids in atlas/claims/ this study reproduces or tests
+claims: ["jwst-z14-galaxies"]  # claim ids in atlas/claims/ this study reproduces or tests
 milestone: M8                 # roadmap milestone id, e.g. M1
 papers: ["2505.11263", "2405.18485", "2406.18352", "2305.05679"]            # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
 wiki: Study-006-z14-galaxies-number-density            # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3

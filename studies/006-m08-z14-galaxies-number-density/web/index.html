@@ -1,30 +1,123 @@
 <!doctype html>
-<html lang="en" data-title-zh="M8 z ≈ 14 星系：数密度与所需的紫外弥散">
+<html lang="en" data-title-zh="z ≈ 14 星系：数密度与所需的紫外弥散">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>M8 z ~ 14 galaxies: number density and the UV scatter a constant-efficiency model needs</title>
-<!-- Bilingual rule (AGENTS.md): keep this script, write text as <span class="en">…</span><span class="zh">…</span>,
-     use i18n.L(en, zh) for generated HTML and i18n.t(en, zh) + i18n.onLangChange for plain text / charts. -->
+<title>z ~ 14 galaxy density</title>
 <script src="../../../atlas/web/i18n.js"></script>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.0/plotly.min.js"></script>
+<style>
+  .plot { height: 360px; }
+  .ok { color: var(--established); } .bad { color: var(--refuted); } .warn { color: var(--tension); }
+  .note { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+  .grid2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  .table-wrap { overflow-x: auto; }
+  .tag { font-size: 12px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--muted); margin-left: 4px; }
+</style>
 </head>
 <body>
 <main>
-  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 006-m08-z14-galaxies-number-density</p>
-  <h1><span class="en">M8 z ~ 14 galaxies: number density and the UV scatter a constant-efficiency model needs</span><span class="zh">M8 z ≈ 14 星系：数密度与所需的紫外弥散</span></h1>
-  <p class="muted"><span class="en">Replace this page freely: design whatever this question needs (visualization, interactive analysis, several pages). It does not have to follow the Atlas. Data comes from <code>../results/*.json</code>.</span><span class="zh">可以完全替换本页面：按研究问题的需要来设计（可视化、交互式分析、多个页面），不必遵循 Atlas 的样式。数据来自 <code>../results/*.json</code>。</span></p>
-  <pre id="out"><span class="en">loading…</span><span class="zh">加载中……</span></pre>
+  <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / L1 / M8</p>
+  <h1><span class="en">Galaxies at z ≈ 14: how many, and how much scatter would a constant-efficiency model need?</span><span class="zh">z ≈ 14 的星系：有多少？恒定效率模型需要多大的弥散？</span></h1>
+  <p class="muted"><span class="en">Naidu et al. 2026 (arXiv:2505.11263) infer the z = 14–15 number density from two confirmed galaxies and compare it with a pre-JWST LF they construct. This study recomputes the density, builds an independent constant star-formation-efficiency halo model calibrated on the pre-JWST z ≈ 8 LF, and asks what UV scatter it needs. Criteria are pre-registered in the README (sections 1–4); the argument is decomposed in the
+    <a href="https://github.com/sudoghut/astrolab/wiki/Study-006-z14-galaxies-number-density">wiki article</a>.</span><span class="zh">Naidu 等 2026（arXiv:2505.11263）由两个确认的星系推出 z = 14–15 的数密度，并与他们构造的 JWST 之前的光度函数比较。本研究复算数密度，构造一个独立的、以 JWST 之前 z ≈ 8 光度函数校准的恒定恒星形成效率晕模型，并问它需要多大的紫外弥散。判据预注册在 README 第 1–4 节；论证拆解见
+    <a href="https://github.com/sudoghut/astrolab/wiki/Study-006-z14-galaxies-number-density">Wiki 文章</a>。</span></p>
+
+  <h2><span class="en">Verdicts</span><span class="zh">判定</span></h2>
+  <div class="table-wrap" id="criteria"><span class="en">loading…</span><span class="zh">加载中……</span></div>
+  <p class="note"><span class="en">Errors are Poisson only (two sources); cosmic variance and the effective search area are open gaps of the argument (Lean <code>gap_poisson</code>, <code>gap_area</code>).</span><span class="zh">误差只含泊松部分（两个源）；宇宙方差与有效搜索面积是论证中未解决的缺口（Lean 的 <code>gap_poisson</code>、<code>gap_area</code>）。</span></p>
+
+  <div class="grid2">
+    <div>
+      <h2><span class="en">Calibration at z ≈ 8</span><span class="zh">z ≈ 8 的校准</span></h2>
+      <div id="cal" class="plot"></div>
+      <p class="note"><span class="en">Model LF (constant SFE, σ = 0.7 mag) fitted to the Bouwens et al. 2021 z ~ 8 Schechter function over −22 &lt; M_UV &lt; −17.</span><span class="zh">模型光度函数（恒定 SFE，σ = 0.7 mag）在 −22 &lt; M_UV &lt; −17 上拟合 Bouwens 等 2021 的 z ~ 8 Schechter 函数。</span></p>
+    </div>
+    <div>
+      <h2><span class="en">Prediction at z = 14.5</span><span class="zh">z = 14.5 的预言</span></h2>
+      <div id="z14" class="plot"></div>
+      <p class="note"><span class="en">The same model with different scatter, against N26's point (Poisson error) and N26's baseline (φ_obs/182).</span><span class="zh">同一模型取不同弥散，对照 N26 的数据点（泊松误差）与 N26 的基准（φ_obs/182）。</span></p>
+    </div>
+  </div>
+
+  <h2><span class="en">72 model variants</span><span class="zh">72 个模型变体</span></h2>
+  <div id="var" class="plot" style="height:420px"></div>
+  <p class="note"><span class="en">Each point is one combination (halo mass function, growth rate, calibration redshift, σ_cal, extrapolation). x: our prediction relative to N26's baseline (the band is the factor-3 "same order" range); y: the central σ_UV needed (the band is N26's 1.5–2 mag).</span><span class="zh">每个点是一种组合（晕质量函数、增长率、校准红移、σ_cal、外推）。横轴：我们的预言相对 N26 基准的倍数（色带为 3 倍以内的\"同一量级\"）；纵轴：所需 σ_UV 的中心值（色带为 N26 的 1.5–2 mag）。</span></p>
 </main>
 <script>
-fetch('../results/summary.json')
-  .then(r => { if (!r.ok) throw new Error(`results/summary.json: HTTP ${r.status}`); return r.json(); })
-  .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
-  .catch(e => {
-    const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
-    // Both languages in the DOM, so the message follows later language switches.
-    document.getElementById('out').innerHTML = i18n.L('Could not load results (run the study first?) or render them: ', '无法加载或显示结果（是否已运行研究？）：') + msg;
+const fmt = (x, d = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '–' : Number(x).toPrecision(d);
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || undefined;
+const layout = (xt, yt, extra = {}) => ({
+  margin: {l: 60, r: 12, t: 10, b: 46}, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+  font: {color: css('--text')}, xaxis: {title: xt, gridcolor: css('--line')}, yaxis: {title: yt, gridcolor: css('--line')},
+  legend: {orientation: 'h', y: 1.1}, ...extra,
+});
+const load = n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`${n}.json: HTTP ${r.status}`); return r.json(); });
+const ZH = {
+  'reproduced': '复现', 'not reproduced': '未复现', 'higher': '更高', 'lower': '更低',
+  "same order as N26's baseline": '与 N26 基准同一量级', 'consistent with N26': '与 N26 一致', 'different': '不同',
+  'robust': '稳健', 'calibration-dependent': '依赖校准', 'not assessable': '无法评估', 'not evaluable': '不可评估',
+};
+const tr = s => i18n.L(esc(s), ZH[s] || esc(s));
+
+let D = null;
+function render() {
+  if (!D) return;
+  const {r1, r2, r3, variants, curves} = D;
+  const cls = v => ['reproduced', 'consistent with N26', "same order as N26's baseline", 'robust'].includes(v) ? 'ok'
+    : (['calibration-dependent', 'not assessable', 'not evaluable'].includes(v) ? 'warn' : 'bad');
+  const roots = r3.sigma_roots || {};
+  const rows = [
+    [i18n.L('R1 number density', 'R1 数密度'), `log φ = ${fmt(r1.log_phi, 4)} (+${fmt(r1.err_hi, 2)}/−${fmt(r1.err_lo, 2)})`, '−5.36 (+0.37/−0.45)', r1.verdict_density],
+    [i18n.L('R1 volume', 'R1 体积'), `${Math.round(r1.volume_mpc3).toLocaleString()} Mpc³`, '462,648 Mpc³', r1.verdict_volume],
+    [i18n.L('R1 Poisson tail (Lean bound)', 'R1 泊松尾概率（Lean 的界）'), `${fmt(r1.p_tail_n26_ppm)} / ${fmt(r1.p_tail_ratio100_ppm)} ppm`, '≤ 200 ppm', r1.mod_poisson_bound_holds ? 'reproduced' : 'not reproduced'],
+    [i18n.L('R2 constant-SFE vs N26 baseline', 'R2 恒定 SFE 对 N26 基准'), `${fmt(r2.ratio_to_n26)}× (${i18n.L('variants', '变体')} ${fmt(r2.envelope_phi_ours[0] / r2.phi_n26_baseline, 2)}–${fmt(r2.envelope_phi_ours[1] / r2.phi_n26_baseline, 2)}×)`, i18n.L('within 3×', '3 倍以内'), r2.verdict],
+    [i18n.L('R2 robustness', 'R2 稳健性'), JSON.stringify(r2.variant_counts.by_verdict).replace(/[{}"]/g, ''), '72', r2.robustness],
+    [i18n.L('R3 σ_UV needed', 'R3 所需 σ_UV'), `${fmt((roots.central || {}).value)} mag [${fmt((roots.lower || {}).value)}, ${fmt((roots.upper || {}).value)}]`, '1.5–2 mag', r3.verdict],
+    [i18n.L('R3 robustness', 'R3 稳健性'), JSON.stringify(r3.variant_counts.by_verdict).replace(/[{}"]/g, ''), '72', r3.robustness],
+  ];
+  document.getElementById('criteria').innerHTML = `<table><thead><tr><th>${i18n.L('Criterion', '判据')}</th><th>${i18n.L('Ours', '本研究')}</th><th>${i18n.L('Paper / threshold', '论文 / 门槛')}</th><th>${i18n.L('Verdict', '判定')}</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="${cls(r[3])}">${tr(r[3])}</span></td></tr>`).join('') + '</tbody></table>';
+
+  const pos = a => a.map(v => v > 0 ? v : null);
+  Plotly.react('cal', [
+    {x: curves.muv, y: pos(curves.lf_cal_schechter), name: i18n.t('Bouwens+21 z~8', 'Bouwens+21 z~8'), line: {dash: 'dash', color: css('--muted')}},
+    {x: curves.muv, y: pos(curves.lf_cal_model), name: i18n.t('model', '模型'), line: {color: css('--accent')}},
+  ], layout('M_UV', 'φ [Mpc⁻³ mag⁻¹]', {yaxis: {type: 'log', title: 'φ [Mpc⁻³ mag⁻¹]', gridcolor: css('--line')},
+      xaxis: {title: 'M_UV', autorange: 'reversed', gridcolor: css('--line')}}), {responsive: true, displayModeBar: false});
+
+  const z14 = Object.entries(curves.lf_z14_5).map(([s, y]) => ({x: curves.muv, y: pos(y), name: `σ = ${s}`, mode: 'lines'}));
+  z14.push({x: [-20.5], y: [r1.phi_obs], mode: 'markers', name: 'N26', marker: {size: 10, color: css('--refuted')},
+            error_y: {type: 'data', symmetric: false, array: [r1.phi_obs * (Math.pow(10, r1.err_hi) - 1)], arrayminus: [r1.phi_obs * (1 - Math.pow(10, -r1.err_lo))]}});
+  z14.push({x: [-20.5], y: [r2.phi_n26_baseline], mode: 'markers', name: i18n.t('N26 baseline', 'N26 基准'), marker: {size: 10, symbol: 'x', color: css('--muted')}});
+  Plotly.react('z14', z14, layout('M_UV', 'φ', {yaxis: {type: 'log', title: 'φ [Mpc⁻³ mag⁻¹]', range: [-10, -3], gridcolor: css('--line')},
+      xaxis: {title: 'M_UV', autorange: 'reversed', range: [-18, -23], gridcolor: css('--line')}}), {responsive: true, displayModeBar: false});
+
+  const rowsV = variants.rows.filter(v => v.evaluable && v.r3_evaluable);
+  const group = k => rowsV.filter(v => v.combo.eps_extrap === k);
+  const tr2 = (k, sym) => ({
+    x: group(k).map(v => v.ratio), y: group(k).map(v => v.sigma_central.value), mode: 'markers', name: `ε: ${k}`,
+    marker: {size: 8, symbol: sym, color: group(k).map(v => v.combo.sigma_cal), colorscale: 'Viridis', showscale: k === 'dpl',
+             colorbar: {title: 'σ_cal', len: 0.6}},
+    text: group(k).map(v => `${v.combo.hmf}, ${v.combo.accretion}, ${v.combo.cal}, σ_cal ${v.combo.sigma_cal}`),
+    hovertemplate: '%{text}<br>%{x:.2f}×, σ %{y:.2f}<extra></extra>',
   });
+  Plotly.react('var', [tr2('dpl', 'circle'), tr2('const', 'diamond')],
+    layout(i18n.t('ours / N26 baseline', '本研究 / N26 基准'), i18n.t('central σ_UV needed (mag)', '所需 σ_UV 中心值（mag）'), {
+      xaxis: {type: 'log', title: i18n.t('ours / N26 baseline', '本研究 / N26 基准'), gridcolor: css('--line')},
+      shapes: [
+        {type: 'rect', xref: 'x', yref: 'paper', x0: 1 / 3, x1: 3, y0: 0, y1: 1, fillcolor: 'rgba(80,160,80,0.10)', line: {width: 0}},
+        {type: 'rect', xref: 'paper', yref: 'y', x0: 0, x1: 1, y0: 1.5, y1: 2.0, fillcolor: 'rgba(200,120,60,0.12)', line: {width: 0}},
+      ]}), {responsive: true, displayModeBar: false});
+}
+
+Promise.all(['r1', 'r2', 'r3', 'variants', 'curves'].map(load))
+  .then(([r1, r2, r3, variants, curves]) => { D = {r1, r2, r3, variants, curves}; render(); })
+  .catch(e => { document.getElementById('criteria').innerHTML = i18n.L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + esc(e); });
+i18n.onLangChange(render);
 </script>
 </body>
 </html>

@@ -1,0 +1,14 @@
+{
+ "study": "006-m08-z14-galaxies-number-density",
+ "finished_at": "2026-11-15T06:20:15+00:00",
+ "seconds": 11.88,
+ "outputs": [
+  "r1.json",
+  "r2.json",
+  "r3.json",
+  "variants.json",
+  "r4.json",
+  "curves.json",
+  "summary.json"
+ ]
+}

@@ -162,7 +162,43 @@ modelled (section 8).
 
 ## 5. Results
 
-Filled after running. Link to `web/index.html` and key numbers in `results/`.
+Run of 2026-11-15 (`python -m astrolab run 006`, 12 s, no data downloaded; page:
+[`web/index.html`](web/index.html)). Checks: σ8 = 0.8102 (normalisation), Sheth–Tormen
+normalisation 0.9998 over ln σ⁻¹ ∈ [−20, 3]. The pre-registered z = 0 mass-fraction comparison
+(0.490 both ways) compares two forms of the same integral and is therefore not informative.
+
+| Criterion | Result | Verdict |
+|---|---|---|
+| R1 number density | log φ = −5.364 (+0.365/−0.451); Gehrels 0.708–4.637 | **reproduced** (N26: −5.36 +0.37/−0.45) |
+| R1 volume | 460,463 Mpc³ (ratio 0.995 to N26's 462,648) | **reproduced** |
+| R1 Poisson tails (Lean `mod_poisson`) | 59.9 ppm at ratio 182; 197.4 ppm at ratio 100 | bound **holds** (≤ 200 ppm) |
+| R2 constant-SFE prediction (fiducial) | φ_ours = 2.24 × 10⁻⁷ Mpc⁻³ mag⁻¹, 9.4 × N26's baseline (2.38 × 10⁻⁸); P(N ≥ 2) = 0.005 | **higher** (conditional on the fiducial model) |
+| R2 robustness | 72/72 evaluable: 61 "higher", 11 "same order"; envelope 2.5–37 × N26's baseline | **calibration-dependent** |
+| R3 required σ_UV (fiducial) | central 1.38 mag; Poisson bounds 1.15–1.57 mag (10 M_min: 1.38, 1.15–1.60) | **consistent with N26** (overlaps 1.5–2.0) |
+| R3 robustness | 72/72 evaluable, none censored: 38 consistent, 34 different; uncensored envelope of the central σ 1.07–1.60 mag | **calibration-dependent** |
+| R4 (context) | H25's z ~ 14 point is 8.6 × φ_obs; area ratio about 39 | – |
+
+Fiducial calibration (Bouwens et al. 2021 z ~ 8, σ_cal = 0.7): ε₀ = 0.016, M₁ = 10^11.55 M☉, β = 0.21,
+γ = 1.98 (no parameter at a bound), rms 0.004 dex (all 72 variants ≤ 0.015 dex). The median
+relation is not monotonic (γ > 1.1): brightest median −20.64 at M_peak = 10^11.64 M☉ at z = 7.9 and
+−22.15 at z = 14.5; calibrated range 10^10.24–10^11.64 M☉. At z = 14.5 halos with medians in
+[−21, −20] span 10^10.70–10^12.84 M☉ (the upper part on the falling branch above M_peak), so not
+all lie inside the calibrated range; the falling branch contributes little because such halos are
+rare at z = 14.5.
+
+What drives the variants (ratio to N26's baseline; central σ): the scatter σ_cal (0.5: 2.5–9.4×,
+1.07–1.53 mag; 0.9: 5.9–37×, 1.16–1.60 mag) and the extrapolation ("dpl": 2.5–19×, 1.33–1.60 mag;
+"const": 2.5–37×, 1.07–1.39 mag). The halo mass function, the growth-rate fit and the calibration
+redshift matter less.
+
+Reading. The number density follows from the two sources and the stated volume. An independent
+constant-SFE model, calibrated on the pre-JWST z ≈ 8 LF, predicts about 9 times more such galaxies
+than N26's baseline in the fiducial set-up (2.5–37 times across the variants); with it, two sources
+in the survey have a Poisson probability of about 0.5% rather than 6 × 10⁻⁵. So N26's factor of 182
+depends strongly on how the pre-JWST baseline is built, but in most variants the observed density
+still exceeds a constant-SFE prediction. The scatter that this model needs, about 1.4 mag (1.1–1.6
+across variants), is at the low end of or below N26's 1.5–2 mag; whether it overlaps depends on the
+variant.
 
 ## 6. Referee notes
 
