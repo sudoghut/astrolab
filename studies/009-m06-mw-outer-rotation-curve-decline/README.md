@@ -56,8 +56,9 @@ after burn-in, otherwise the steps are doubled (once).
   that the flat-A prior at a 1 kpc pivot shifts the γ marginal by about −0.07 (a prior-volume
   effect); the verdict rule above was not changed after that check, and the sensitivity runs below
   were added to report it.
-- Reported alongside, without verdict: (i) A log-uniform on [1, 10⁵] km/s; (ii) a flat A with the
-  pivot at the inverse-variance-weighted mean radius of the 8 bins, V = A (R/R_p)^γ; for each, median
+- Reported alongside, without verdict: (i) A log-uniform on [1, 10⁵] km/s; (ii) a flat A on [0, 10³] km/s with
+  the pivot R_p at the inverse-variance-weighted mean radius of the 8 bins (computed from the table,
+  about 22.9 kpc), V = A (R/R_p)^γ; both with the same walker start rule as R1; for each, median
   γ and S. Also P(γ ≥ 0) as a one-sided Gaussian significance; Δχ² between the best flat fit and the
   best power law (one degree of freedom); the leave-one-bin-out S for each of the 8 bins; the 1σ
   interval of γ and whether it contains −0.5.
@@ -69,14 +70,15 @@ after burn-in, otherwise the steps are doubled (once).
 For each of the six fully specified baryon models (E dJ, E J, E CM, G dJ, G J, G CM) and for B2
 (seven fits; parameters in `data/j23_baryons.csv`):
 - Discs (thin, thick; for B2 also the cold and warm dust and the H₂ and HI discs of de Salas et al.
-  2019, HI as an untruncated double exponential, as de Salas evaluate it): ρ = M/(4π H L²)
+  2019, HI as an untruncated double exponential, as de Salas evaluate it, with M = 8.2 × 10⁹ M☉ taken as the total mass of the untruncated disc): ρ = M/(4π H L²)
   exp(−R/L − |z|/H) (J23 eq. 8). Midplane circular speed of each disc:
   V²(R) = 2πG Σ₀ L² R ∫₀^∞ k J₁(kR) / [(1 + k²L²)^(3/2) (1 + kH)] dk, with Σ₀ = 2ρ₀H = M/(2πL²).
   The integral is computed with scipy `quad` on [0, k_max] split at the zeros of J₁(kR), with
   k_max = 200/R and a convergence check (doubling k_max changes V² by less than 10⁻⁶ relative); a
   unit test checks that H → 0 reproduces the Freeman thin-disc formula.
-- Bulges (triaxial E and G; Hernquist for B2) as point masses, V² = G M_b / R (all bins have
-  R ≥ 9.5 kpc, where each bulge's enclosed mass is essentially complete).
+- Bulges: the triaxial E and G bulges as point masses, V² = G M_b / R (at R ≥ 9.5 kpc their enclosed
+  fraction exceeds 0.998); the B2 Hernquist bulge with its exact speed, V² = G M_b R / (R + r_b)²
+  (r_b = 0.70 kpc; only 87% of its mass lies inside 9.5 kpc).
 - Halo: Einasto ρ(r) = ρ0 exp[−(r/h)^(1/n)], M0 = 4π h³ ρ0, enclosed mass
   M_DM(<r) = M0 · n · Γ(3n) · P(3n, (r/h)^(1/n)) (P the regularised lower incomplete gamma function;
   logarithms via `gammaln`). Sampled parameters M0, h and 1/n with **flat priors as J23**:
@@ -85,11 +87,14 @@ For each of the six fully specified baryon models (E dJ, E J, E CM, G dJ, G J, G
   Table 3, combined errors.
 - R_vir and M_dyn: **primary**, J23's stated definition, the radius where the mean dark-matter
   density inside r is 200 ρ_cr (ρ_cr = 1.34 × 10⁻⁷ M☉/pc³ = 134 M☉/kpc³); **secondary**, the mean
-  total density (dark matter plus baryons) equal to 200 ρ_cr. M_dyn = M_bar + M_DM(<R_vir) (J23
+  total density (dark matter plus all of M_bar, which is essentially all enclosed at these radii) equal
+  to 200 ρ_cr. Posterior samples with no root in the bracket [1, 10³] kpc are counted and reported,
+  and the bracket is widened to [1, 10⁴] kpc for them; any still without a root are flagged, not
+  dropped silently. M_dyn = M_bar + M_DM(<R_vir) (J23
   Sec. 4.3), M_bar from J23 Table 4. M_dyn and R_vir are computed per posterior sample and summarised
   by the median and 68% interval. Predicted before fitting (from the Table 4 medians, reviewer's
   check): the primary definition gives R_vir ≈ 107 kpc, the secondary ≈ 121 kpc, J23 quotes 121.03
-  (+1.80/−1.23) kpc (Sec. 4.3); M_dyn changes by about 1% between the two, because the halo has
+  (+1.80/−1.23) kpc (Sec. 4.3); M_dyn changes by below about 1% between the two, because the halo has
   converged.
 - Reported: per model, medians and 68% intervals of M_dyn (both definitions), R_vir (both), n, h,
   M0; differences to Table 4 (M_dyn TW column) and to 121.03 kpc; the mean of the six E/G models
@@ -122,14 +127,17 @@ scales the errors too).
 - R1 on O24: the 11 bins with R > 19 kpc (19.22–27.31 kpc), symmetrised errors, the same prior,
   pivot and sensitivity runs as R1; J23's −0.56 (+0.23/−0.22) is compared approximately (J23 does not
   say which O24 bins it used).
-- R2 on O24 is not done: O24 has no systematic-error column, so a fit would not be comparable with
-  Table 4's O23 column (a deviation from plan 018 §4, recorded here).
+- R2 on O24, descriptive: the seven models fitted to O24's 37 bins with symmetrised errors, compared
+  with Table 4's O23 column. We cannot tell which errors J23 used for O24 (J23 Sec. 4.1 says that
+  error bars account for systematic uncertainties in both studies, while O24 publishes no
+  systematic-error column), so differences are reported, not judged.
 
 ### 2.5 R5 (descriptive)
 
 - For model E dJ (primary R_vir definition): the model-free V²R/G at 26.5 kpc; the enclosed mass
   M(<26.5 kpc) inside a sphere (disc mass inside the sphere by numerical integration, plus the bulge,
-  plus the halo); and the extrapolated M(<32.4 kpc), M(<100 kpc) and M_vir, each with its 68% interval.
+  plus the halo); and the extrapolated M(<32.4 kpc), M(<100 kpc) and M_vir (= M_dyn, baryons plus dark matter
+  inside R_vir, both R_vir definitions), each with its 68% interval.
 - The same for an NFW halo, ρ = ρ_s / [(r/r_s)(1 + r/r_s)²], with E dJ baryons, log-uniform priors
   ρ_s ∈ [10⁴, 10¹⁰] M☉/kpc³ and r_s ∈ [1, 100] kpc, fitted to the same 18 points, with the same R_vir
   rules.
