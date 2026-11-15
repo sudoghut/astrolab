@@ -14,10 +14,12 @@ sources:
   - cite: "Ou, Eilers, Necib & Frebel 2024, MNRAS 528, 693"
     arxiv: "2303.12838"
 reproduction:
-  status: not-started
-  study: null
+  status: partial
+  study: 009-m06-mw-outer-rotation-curve-decline
   quantities:
-    - {name: "M_total (Jiao 2023)", paper: "2.06 +0.24/-0.13 e11 Msun", ours: null}
+    - {name: "power-law slope beyond 19 kpc (Jiao 2023)", paper: "gamma = -0.47 +- 0.15, flat rejected at 3 sigma", ours: "-0.466, S = 3.15 under J23's flat-A prior; 2.7 sigma from the likelihood alone; errors not independent (chi2 1.3 for 15 dof)"}
+    - {name: "M_dyn, six baryon models (Jiao 2023 Table 4)", paper: "1.97-1.99 e11 Msun", ours: "1.969-1.980 e11 Msun (Einasto); NFW fits acceptably and gives 7.1 e11"}
+    - {name: "M_total (Jiao 2023)", paper: "2.06 +0.24/-0.13 e11 Msun", ours: "set by the Einasto shape: 99.8% of M_vir inside 26.5 kpc; V^2R/G(26.5 kpc) = 1.90 e11"}
 open_questions:
   - "Joint propagation of Jeans-modelling systematics (cross-term, disequilibrium, disk scale length)."
 notes: "Milestone M6."
