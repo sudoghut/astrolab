@@ -38,6 +38,18 @@ def test_cache_roundtrip_and_prune(tmp_cache):
     assert cache.get(key, ".bin") is None
 
 
+def test_cache_json_payload_kept_apart_from_sidecar(tmp_cache):
+    key = cache.key_for("t", {"j": 1})
+    src = cache.staging_path(".json")
+    src.write_text('{"events": {"a": 1, "b": 2}}', encoding="utf-8")
+    cache.put_file(key, ".json", src, {"provenance": {"source": "test", "request": "r"}})
+    hit = cache.get(key, ".json")
+    assert hit and hit.payload != hit.meta_path
+    assert json.loads(hit.payload.read_text(encoding="utf-8")) == {"events": {"a": 1, "b": 2}}
+    assert hit.meta["provenance"]["source"] == "test"
+    assert cache.info()["entries"] == 1
+
+
 def test_tap_refuses_above_hard_ceiling(tmp_cache):
     with pytest.raises(fetch.TooLarge):
         fetch.tap("SELECT 1", "gaia", max_rows=config.TAP_HARD_MAX_ROWS + 1)
