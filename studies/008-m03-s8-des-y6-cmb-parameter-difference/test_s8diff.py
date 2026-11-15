@@ -147,3 +147,12 @@ def test_support_names_only_omega_m_and_amplitude():
 def test_ragged_rows_counted(tmp_path):
     fmt = sd.read_format(_write(tmp_path, "#a b c\n1 2 3\n1 2\n"))
     assert fmt["ragged_rows"] == 1
+
+
+def test_whitening_identity_and_singular():
+    rng = np.random.default_rng(6)
+    x = rng.multivariate_normal([2.0, 0.0], [[1.0, 0.9], [0.9, 2.0]], 400_000)
+    r = sd.nsigma_binned(x)
+    assert np.isfinite(r["n_sigma"])
+    bad = np.column_stack([np.ones(1000), np.ones(1000)])
+    assert "error" in sd.nsigma_binned(bad)
