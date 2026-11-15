@@ -168,6 +168,8 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 
 ### M9 · 纳赫兹引力波背景（X，strong evidence）
 
+（证据等级是 L8 的背景：Hellings–Downs 相关的显著性需要完整的计时数据，计划 014 不复现它，只做自由谱的幂律拟合与振幅比较。）
+
 **文献**
 - NANOGrav 15 年数据：Agazie et al. 2023, ApJL 951, L8, arXiv:2306.16213 [V]
   - 振幅 A = 2.4 (+0.7/−0.6) × 10⁻¹⁵。
