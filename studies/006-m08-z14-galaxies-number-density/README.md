@@ -210,7 +210,7 @@ propagate (`explore/lf_uncertainty.py`, one Bouwens et al. 2021 z ~ 8 parameter 
 4.1–22 and flips R3. Removing a uniform z ≈ 8 dust attenuation of 0.3 (0.5, 1.0) mag gives ratio
 20 (31, 99) and σ 1.24 (1.15, 0.88) mag, R3 "different": any dust correction moves R3 away from N26.
 The robust statement is therefore narrower: an independent constant-SFE model calibrated on the
-pre-JWST z ≈ 8 LF predicts more z = 14–15 galaxies than N26's baseline (2–37×, mostly > 3×), and the
+pre-JWST z ≈ 8 LF predicts more z = 14–15 galaxies than N26's baseline (2.5–37× across the pre-registered variant grid, mostly > 3×; 1.9–99× including the post-hoc explorations), and the
 σ_UV it needs lies around 1–2 mag, with no stable verdict on overlap with N26's 1.5–2 mag.
 
 ## 6. Referee notes
