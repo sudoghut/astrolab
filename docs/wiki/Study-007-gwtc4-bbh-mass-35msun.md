@@ -245,7 +245,7 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
 - **R3 (toy fits).** The answer depends on the toy selection function, which is what
   section 2.3 predicted.
   - A plain broken power law steepens at 42–45 M☉ when the selection keeps rising.
-  - Adding a Gaussian bump improves the fit by 2Δln L = 15–25 (27 with the post-hoc 153 events).
+  - Adding a Gaussian bump improves the fit by 2Δln L = 15–25 (17–27 with the post-hoc 153 events).
   - With the registered bounds the bump fits sit on the bounds. With wider bounds (post hoc) the
     bump sits at 34–39 M☉ when the toy selection turns over by 80 M☉, but becomes a broad
     (σ ≈ 15 M☉) shoulder pressed against the 25 M☉ lower limit of the peak centre when it does not.
@@ -436,7 +436,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
   - 30–40 M☉ 处单个事件的质量不确定度约为质量的 45%（90% 宽度中位数）。
 - **R3（玩具拟合）。** 答案取决于玩具选择函数，正如第 2.3 节所预料。
   - 选择效应持续上升时，普通折断幂律在 42–45 M☉ 变陡。
-  - 加一个高斯包使拟合改善 2Δln L = 15–25（事后 153 个事件时为 27）。
+  - 加一个高斯包使拟合改善 2Δln L = 15–25（事后 153 个事件时为 17–27）。
   - 用预注册的边界时，加包的拟合落在边界上。放宽边界后（事后），玩具选择函数在 80 M☉ 以内转平时包位于 34–39 M☉；不转平时变成贴着峰中心 25 M☉ 下限的宽肩（σ ≈ 15 M☉）。
   - 所以"35 M☉"是峰还是弯折，没有真实的、基于注入（injection）的选择函数就无法确定，而那需要本项目不下载的数据。
 - **R4。** GW231123（总质量 236 M☉）在样本中遥遥领先地最重，所以它的百分位（100）几乎没有信息量。
