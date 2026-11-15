@@ -64,7 +64,8 @@ DERIVED = {"sigma_8", "sigma8", "s_8", "s8", "omega_lambda", "omega_nu", "omega_
            "h0", "theta_star", "100theta_star"}
 
 
-AMPLITUDE = {"a_s", "as", "log1e10as", "ln10^{10}a_s", "logA", "loga", "ln10_10_as", "sigma8_input"}
+AMPLITUDE = {"a_s", "as", "log1e10as", "ln10^{10}a_s", "loga", "ln10_10_as", "log10as", "ln_as1e10",
+             "logas", "ln10as", "ln_1e10_as", "logA_s".lower()}
 
 
 def _parse_priors(lines):
@@ -98,12 +99,17 @@ def _parse_priors(lines):
         name, rhs = f"{section}--{m.group(1).lower()}", m.group(2).split()
         if block.startswith("PRIORS") and rhs and rhs[0].lower() in ("gaussian", "gauss", "normal") and len(rhs) >= 3:
             out.setdefault(name, {})["gaussian_sigma"] = float(rhs[2])
-        elif not block.startswith("PRIORS") and len(rhs) == 3:
+        elif block.startswith("PRIORS") and rhs and rhs[0].lower() == "uniform" and len(rhs) >= 3:
+            out.setdefault(name, {})["uniform"] = (float(rhs[1]), float(rhs[2]))
+        elif block.startswith("VALUES") and len(rhs) == 3:
             try:
                 lo, _, hi = (float(x) for x in rhs)
             except ValueError:
                 continue
             out.setdefault(name, {})["range"] = (lo, hi)
+    for v in out.values():           # a priors.ini uniform prior narrows the values.ini range
+        if "uniform" in v and "range" in v:
+            v["range"] = (max(v["range"][0], v["uniform"][0]), min(v["range"][1], v["uniform"][1]))
     return out
 
 
@@ -132,8 +138,11 @@ def main(ctx):
         maps[key], status[key] = s8diff.column_map(formats[key], key, key in P["positional_ok"])
         ctx.log(f"step A {key}: {formats[key]['ncols']} cols, {formats[key]['nrows']} rows, "
                 f"header {'yes' if formats[key]['header'] else 'no'}, sampler {formats[key]['sampler']}; {status[key]}")
-    formats_out = {k: {**{kk: vv for kk, vv in f.items()}, "column_map": maps[k], "status": status[k]}
-                   for k, f in formats.items()}
+    def _status(k):
+        return status[k] if not formats[k]["ragged_rows"] else f"{status[k]}, but {formats[k]['ragged_rows']} ragged rows: not loaded"
+
+    formats_out = {k: {**{kk: vv for kk, vv in f.items() if kk != "prior_lines"}, "column_map": maps[k],
+                       "status": _status(k)} for k, f in formats.items()}
     ctx.save("formats", formats_out)
     if P["step_a_only"]:
         return {"step": "A"}
@@ -172,8 +181,8 @@ def main(ctx):
         formats["des_xipm_nla"] = s8diff.read_format(paths["des_xipm_nla"])
         maps["des_xipm_nla"], status["des_xipm_nla"] = s8diff.column_map(
             formats["des_xipm_nla"], "des_xipm_nla", "des_xipm_nla" in P["positional_ok"])
-        formats_out["des_xipm_nla"] = {**formats["des_xipm_nla"], "column_map": maps["des_xipm_nla"],
-                                       "status": status["des_xipm_nla"]}
+        formats_out["des_xipm_nla"] = {**{kk: vv for kk, vv in formats["des_xipm_nla"].items() if kk != "prior_lines"},
+                                       "column_map": maps["des_xipm_nla"], "status": _status("des_xipm_nla")}
         ctx.save("formats", formats_out)
         load("des_xipm_nla")
         r1["des_xipm_nla"] = r1_one("des_xipm_nla", P["published"]["des_xipm_nla"])
@@ -216,6 +225,8 @@ def main(ctx):
             bad = bad or any(v is not None and v > P["support_frac_max"] for v in fr.values())
         support["fails"] = bad
         support["other_shared_ranges"] = sorted((set(ranges["des_3x2pt"]) & set(ranges["cmb"])) - set(names))
+    amp = [n for n in names if n.split("--")[-1] in AMPLITUDE]
+    support["amplitude_name"] = amp if amp else "none found"
 
     r2 = {"gate_r1_means": bool(gate), "support": support}
     if des is not None and cmb is not None:
