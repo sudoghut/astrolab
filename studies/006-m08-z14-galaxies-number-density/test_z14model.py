@@ -151,3 +151,60 @@ def test_verdict_helpers(monkeypatch):
     assert run.r3_verdict(roots, [1.5, 2.0]).startswith("consistent")
     roots = {"lower": {"value": 0.7, "censored": "le"}, "upper": {"value": 1.4, "censored": None}}
     assert run.r3_verdict(roots, [1.5, 2.0]) == "different"
+
+
+def test_eh_wiggles_against_nowiggle():
+    c = zm.cosmo_params(Planck18)
+    k = np.logspace(-3, 1, 600)
+    r = zm.eisenstein_hu(k, c) / zm.eisenstein_hu_nowiggle(k, c)
+    assert np.all((r > 0.95) & (r < 1.05))
+    assert abs(zm.eh_sound_horizon(c) - 150.0) < 3.0
+
+
+def test_growth_against_cpt():
+    c = zm.cosmo_params(Planck18)
+    Om, a = c["Om"], 0.5
+    Omz = Om / (Om + (1 - Om) * a ** 3)
+    Olz = 1 - Omz
+    g = lambda om, ol: 2.5 * om / (om ** (4 / 7) - ol + (1 + om / 2) * (1 + ol / 70))  # noqa: E731
+    cpt = a * g(Omz, Olz) / g(Om, 1 - Om)
+    assert abs(zm.growth(1.0, c)[0] / cpt - 1) < 0.01
+
+
+def test_sigma_small_mass(setup):
+    c, pk = setup[0], setup[1]
+    assert 5.0 < pk.sigma_M(np.array([1e8]))[0] < 7.0
+
+
+def test_reed_close_to_st_shape():
+    s = np.array([0.8, 1.0, 1.2])
+    r = zm.f_reed07(s, n_eff=1e6) / zm.f_st(s)
+    assert np.all(np.abs(r - 1) < 0.35)    # Reed's G1/G2 bumps and c = 1.08 change ST by tens of percent
+    assert np.all(np.isfinite(r))
+
+
+def test_solve_sigma_and_monotonic(monkeypatch):
+    monkeypatch.syspath_prepend(str(HERE))
+    run = _import("run")
+    sg = np.arange(0.7, 4.0 + 1e-9, 0.05)
+    phi_fn = lambda s: 1e-8 * np.exp(2.0 * s)   # noqa: E731  increasing
+    phis = phi_fn(sg)
+    assert run.monotonic_kind(phis) == "increasing"
+    assert run.monotonic_kind(phis[::-1]) == "decreasing"
+    assert run.monotonic_kind(np.array([1.0, 2.0, 1.5])) == "not monotonic"
+    tgt = {"central": phi_fn(2.0), "lower": phi_fn(0.5), "upper": phi_fn(4.5), "edge": phi_fn(0.7)}
+    roots = run.solve_sigma(sg, phis, tgt, phi_fn)
+    assert abs(roots["central"]["value"] - 2.0) < 1e-3 and roots["central"]["censored"] is None
+    assert roots["lower"]["censored"] == "le" and roots["upper"]["censored"] == "gt"
+    assert roots["edge"]["censored"] is None and abs(roots["edge"]["value"] - 0.7) < 1e-9
+
+
+def test_robustness_rule(monkeypatch):
+    monkeypatch.syspath_prepend(str(HERE))
+    run = _import("run")
+    rows48 = [{"r2": "higher"}] * 48
+    assert run.robustness(rows48, "r2", "higher", 48) == "robust"
+    assert run.robustness(rows48[:47], "r2", "higher", 48) == "not assessable"
+    mixed = rows48[:47] + [{"r2": "lower"}]
+    assert run.robustness(mixed, "r2", "higher", 48) == "calibration-dependent"
+    assert run.robustness(rows48, "r2", "not evaluable", 48) == "not assessable"

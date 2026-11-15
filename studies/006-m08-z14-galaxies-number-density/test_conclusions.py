@@ -37,12 +37,39 @@ def test_r2_verdict_follows_ratio():
     assert r2["variant_counts"]["total"] == 72
 
 
-def test_r3_roots_ordered():
+def _overlap(roots, target):
+    lo, hi = roots["lower"], roots["upper"]
+    a = float("-inf") if lo["censored"] == "le" else lo["value"]
+    b = float("inf") if hi["censored"] == "gt" else hi["value"]
+    return "consistent with N26" if (a <= target[1] and b >= target[0]) else "different"
+
+
+def test_r3_verdict_and_roots():
     r3 = load("r3")
     if r3.get("verdict") == "not evaluable":
         pytest.skip(r3.get("reason"))
     roots = r3["sigma_roots"]
     assert roots["upper"]["value"] >= roots["central"]["value"] >= roots["lower"]["value"]
+    assert r3["verdict"] == _overlap(roots, r3["target"])
+
+
+def _robust(rows, key, fid, n_min=48):
+    if fid in (None, "not evaluable") or len(rows) < n_min:
+        return "not assessable"
+    return "robust" if all(r[key] == fid for r in rows) else "calibration-dependent"
+
+
+def test_robustness_rederived():
+    r2, r3, var = load("r2"), load("r3"), load("variants")
+    rows = var["rows"]
+    if not rows:
+        pytest.skip("variants not run")
+    ev = [v for v in rows if v["evaluable"]]
+    assert r2["robustness"] == _robust(ev, "r2", r2.get("verdict"))
+    ev3 = [v for v in ev if v.get("r3_evaluable")]
+    assert r3["robustness"] == _robust(ev3, "r3", r3.get("verdict"))
+    for v in ev3:
+        assert v["r3"] == _overlap(v["sigma_roots"], r3["target"])
 
 
 def test_result_files_small():
