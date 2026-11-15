@@ -1,0 +1,82 @@
+{
+ "KiDS-Legacy": {
+  "mean": 0.813,
+  "sigma_plus": 0.018,
+  "sigma_minus": 0.018,
+  "reference": "arXiv:2503.19441 Table 4 (mean)",
+  "n_sigma": 1.040168274418792,
+  "s": 0.0035763292132238796
+ },
+ "HSC Y3 (Zhang+ 2025)": {
+  "mean": 0.78,
+  "sigma_plus": 0.029,
+  "sigma_minus": 0.03,
+  "reference": "arXiv:2507.01386",
+  "n_sigma": 1.73926633064187,
+  "s": 0.006049026821110825
+ },
+ "ACT DR6 + Planck lensing + BAO": {
+  "mean": 0.831,
+  "sigma_plus": 0.023,
+  "sigma_minus": 0.023,
+  "reference": "arXiv:2304.05203",
+  "n_sigma": 0.1848595828294591,
+  "s": 0.016932070759102143
+ },
+ "eROSITA eRASS1": {
+  "mean": 0.86,
+  "sigma_plus": 0.01,
+  "sigma_minus": 0.01,
+  "reference": "arXiv:2402.08458 eq. 83",
+  "n_sigma": 1.5148069715645682,
+  "s": 0.0031320445892184605
+ },
+ "DES Y3 3x2pt": {
+  "mean": 0.776,
+  "sigma_plus": 0.017,
+  "sigma_minus": 0.017,
+  "reference": "arXiv:2105.13549",
+  "n_sigma": 2.8254148026822907,
+  "s": 0.012124481029751784
+ },
+ "KiDS-1000 3x2pt": {
+  "mean": 0.766,
+  "sigma_plus": 0.02,
+  "sigma_minus": 0.014,
+  "reference": "arXiv:2007.15632",
+  "n_sigma": 3.1440448605690734,
+  "s": 0.008366606718440634
+ },
+ "KiDS-1000 cosmic shear": {
+  "mean": 0.759,
+  "sigma_plus": 0.024,
+  "sigma_minus": 0.021,
+  "reference": "arXiv:2007.15633",
+  "n_sigma": 2.9180384236732193,
+  "s": 0.009481865235796859
+ },
+ "HSC Y3 shear (Li+ 2023)": {
+  "mean": 0.769,
+  "sigma_plus": 0.031,
+  "sigma_minus": 0.034,
+  "reference": "arXiv:2304.00702",
+  "n_sigma": 1.9267076732801265,
+  "s": 0.0037169432881719146
+ },
+ "HSC Y3 shear (Dalal+ 2023)": {
+  "mean": 0.776,
+  "sigma_plus": 0.032,
+  "sigma_minus": 0.033,
+  "reference": "arXiv:2304.00701",
+  "n_sigma": 1.7149344884161195,
+  "s": 0.005467406991113381
+ },
+ "HSC Y3 3x2pt (Sugiyama+ 2023)": {
+  "mean": 0.775,
+  "sigma_plus": 0.043,
+  "sigma_minus": 0.038,
+  "reference": "arXiv:2304.00705",
+  "n_sigma": 1.4419268590815384,
+  "s": 0.003499736632679787
+ }
+}

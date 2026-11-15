@@ -1,0 +1,13 @@
+{
+ "study": "008-m03-s8-des-y6-cmb-parameter-difference",
+ "finished_at": "2026-11-15T09:55:33+00:00",
+ "seconds": 70.66,
+ "outputs": [
+  "formats.json",
+  "r1.json",
+  "r2.json",
+  "r3.json",
+  "r4.json",
+  "r5.json"
+ ]
+}

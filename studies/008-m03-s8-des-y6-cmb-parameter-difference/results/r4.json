@@ -1,0 +1,144 @@
+{
+ "projection_shift": {
+  "shift": 0.00204,
+  "n_sigma": 2.554492130422189,
+  "s": 0.002920044650970702,
+  "per_seed": [
+   2.5539207418685494,
+   2.5555093906394712,
+   2.5496778503868796,
+   2.556561113697255,
+   2.556791555518789
+  ],
+  "diagnostics": [
+   {
+    "lower_bound": false,
+    "outside_grid": 1,
+    "cell_over_h": 0.026018212323255466,
+    "cell_flag": false
+   },
+   {
+    "lower_bound": false,
+    "outside_grid": 3,
+    "cell_over_h": 0.025788273337581373,
+    "cell_flag": false
+   },
+   {
+    "lower_bound": false,
+    "outside_grid": 3,
+    "cell_over_h": 0.025652166973610405,
+    "cell_flag": false
+   },
+   {
+    "lower_bound": false,
+    "outside_grid": 1,
+    "cell_over_h": 0.025976161671259913,
+    "cell_flag": false
+   },
+   {
+    "lower_bound": false,
+    "outside_grid": 6,
+    "cell_over_h": 0.025458847725190924,
+    "cell_flag": false
+   }
+  ],
+  "cell_flag": false,
+  "finite": true
+ },
+ "map_shift": {
+  "shift": 0.0040000000000000036,
+  "n_sigma": 2.4424083126206866,
+  "s": 0.0012827266950043437,
+  "per_seed": [
+   2.4443460483453716,
+   2.4429129746249143,
+   2.441781233473576,
+   2.4420159826349974,
+   2.440985324024575
+  ],
+  "diagnostics": [
+   {
+    "lower_bound": false,
+    "outside_grid": 1,
+    "cell_over_h": 0.026018212323255466,
+    "cell_flag": false
+   },
+   {
+    "lower_bound": false,
+    "outside_grid": 3,
+    "cell_over_h": 0.025788273337581373,
+    "cell_flag": false
+   },
+   {
+    "lower_bound": false,
+    "outside_grid": 3,
+    "cell_over_h": 0.025652166973610405,
+    "cell_flag": false
+   },
+   {
+    "lower_bound": false,
+    "outside_grid": 1,
+    "cell_over_h": 0.025976161671259913,
+    "cell_flag": false
+   },
+   {
+    "lower_bound": false,
+    "outside_grid": 6,
+    "cell_over_h": 0.025458847725190924,
+    "cell_flag": false
+   }
+  ],
+  "cell_flag": false,
+  "finite": true
+ },
+ "algorithms_1d": {
+  "iso_density": 2.673520330573508,
+  "equal_tail": {
+   "p_far_side": 0.00378775,
+   "n_sigma": 2.6704262997208623
+  },
+  "gaussian": 2.67709831896761
+ },
+ "threshold": {
+  "1d": {
+   "n_sigma": 2.673520330573508,
+   "below_3": true
+  },
+  "2d": {
+   "n_sigma": 2.1776961690496206,
+   "below_3": true
+  }
+ },
+ "full_space": {
+  "parameters": [
+   "cosmological_parameters--a_s_1e9",
+   "cosmological_parameters--h0",
+   "cosmological_parameters--mnu",
+   "cosmological_parameters--n_s",
+   "cosmological_parameters--omega_b",
+   "cosmological_parameters--omega_m"
+  ],
+  "rows_dropped_nonfinite": {
+   "des_3x2pt": 0,
+   "cmb": 0
+  },
+  "all": {
+   "status": "ok",
+   "k": 6,
+   "chi2": 6.446647988408108,
+   "condition": 4593.930086750595,
+   "n_sigma": 0.8870401642247885
+  },
+  "constrained_parameters": [
+   "cosmological_parameters--a_s_1e9",
+   "cosmological_parameters--omega_m"
+  ],
+  "constrained": {
+   "status": "ok",
+   "k": 2,
+   "chi2": 0.583528963279689,
+   "condition": 49.6265077473685,
+   "n_sigma": 0.32267097698132063
+  }
+ }
+}

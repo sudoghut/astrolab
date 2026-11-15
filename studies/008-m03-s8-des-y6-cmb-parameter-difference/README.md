@@ -227,7 +227,83 @@ interpretation step `gap_conv` (wiki 2.3).
 
 ## 5. Results
 
-Filled after running. Link to `web/index.html` and key numbers in `results/`.
+Run 2026-11-15 (`python -m astrolab run 008`, 71 s from cache). Step A downloaded 170,910,687 bytes
+in three guarded fetches; all three chains are CosmoSIS Nautilus output with headers (3x2pt: 64
+columns, 115,920 rows; CMB: 18, 36,000; ξ±: 39, 19,456) and were mapped by name; one dated
+column-mapping amendment (section 2.0). Page: [`web/index.html`](web/index.html). Numbers are from
+`results/*.json`.
+
+**R1 (verdict per chain): all three reproduced.**
+
+| Chain | weighted mean S8 (published) | shortest 68% interval around the mean (published) | ESS | verdict |
+|---|---|---|---|---|
+| CMB | 0.8357 (0.836) | [0.8229, 0.8481] ([0.823, 0.848]) | 10,401 | reproduced |
+| DES Y6 3x2pt | 0.7893 (0.789) | [0.7777, 0.8019] ([0.777, 0.801]) | 10,472 | reproduced |
+| DES Y6 ξ± | 0.7834 (0.783) | [0.7671, 0.8010] ([0.768, 0.802]) | 10,061 | reproduced |
+
+The stored S8 columns agree with σ8 (Ωm/0.3)^0.5 to 1e-4 in every row. The 3x2pt mean Ωm is
+0.3328 (published 0.333). Rows dropped: zero weight (CMB 8,309; 3x2pt 13,263; ξ± 403) and non-finite
+values in the used columns (677; 226; 41), as is usual for Nautilus output. The ξ± chain passed, so the NLA
+fallback was not downloaded.
+
+**R2 (verdict): both reproduced.**
+
+| Projection | n_σ (5 seeds) | s | bandwidth ×0.5 / ×2 | D26 | tolerance 0.15 + 2s | verdict |
+|---|---|---|---|---|---|---|
+| S8 (1-D) | 2.674 | 0.0023 | 2.675 / 2.673 | 2.6 | 0.155 | reproduced |
+| S8–Ωm (2-D) | 2.178 | 0.0112 | 2.191 / 2.172 | 2.2 | 0.172 | reproduced |
+
+- Prior support (Ωm and A_s, from the `##` ranges): no weight of either chain lies outside the other
+  chain's prior range; the test was performed and passed.
+- Cross-checks (no verdict): 1-D numerical convolution 2.642; Gaussian estimate with means 2.677,
+  with KDE modes 2.652; truncation to the common sampled Ωm range drops no weight
+  (1-D 2.676, 2-D 2.191). No bandwidth dependence and no grid flag.
+- The 1-D value lies 0.07σ above D26's 2.6, within the allowance for D26's unquoted flow noise and
+  rounding.
+
+**R3 (descriptive).** DES ξ± against the CMB: 2.53σ in S8 and 2.18σ in S8–Ωm (s = 0.004, 0.005).
+
+**R4 (exploration, no verdict).**
+- Projection effects: shifting DES S8 up by +0.00204 (Table 9) gives 2.55σ; using D26's MAP
+  (+0.004) gives 2.44σ. Both directions lower the difference, as expected.
+- Algorithms on the same 1-D comparison: iso-density 2.674, equal-tail 2.670, Gaussian 2.677. The 1-D
+  posteriors are close to Gaussian, so the choice of algorithm does not matter here.
+- Threshold: both R2 numbers are below 3; the 1-D number would be at or above a threshold of 2.67
+  or lower (a threshold of 2.5 would classify it as a difference; the MAP variant would sit at 2.44).
+- Full space (Gaussian approximation, not a reproduction): over the six sampled parameters both
+  chains share (A_s, h, Σmν, n_s, Ωb, Ωm), χ² = 6.45 for k = 6, n_σ = 0.89; over the two
+  data-constrained ones (A_s, Ωm), n_σ = 0.32. Both are far below D26's 1.8σ, and below our own
+  2.18σ in the S8–Ωm plane. The reason is the shape of the posterior: S8 is a nonlinear combination
+  of A_s and Ωm, so in the sampled parameters the DES posterior is curved, and a Gaussian
+  approximation of it smears out the difference that is sharp in S8. This is why D26 needs
+  normalizing flows for the full space; the Gaussian number is not a test of D26's 1.8σ.
+
+**R5 (descriptive).** Published S8 summaries against the same CMB chain (split normals with the
+published means; not comparable with each paper's own significance):
+
+| Probe | S8 | n_σ vs CMB |
+|---|---|---|
+| ACT DR6 + Planck lensing + BAO | 0.831 ± 0.023 | 0.18 |
+| KiDS-Legacy | 0.813 ± 0.018 | 1.04 |
+| HSC Y3 3x2pt (Sugiyama+ 2023) | 0.775 (+0.043/−0.038) | 1.44 |
+| eROSITA eRASS1 | 0.86 ± 0.01 | 1.51 |
+| HSC Y3 shear (Dalal+ 2023) | 0.776 (+0.032/−0.033) | 1.71 |
+| HSC Y3 (Zhang+ 2025) | 0.780 (+0.029/−0.030) | 1.74 |
+| HSC Y3 shear (Li+ 2023) | 0.769 (+0.031/−0.034) | 1.93 |
+| DES Y3 3x2pt | 0.776 ± 0.017 | 2.83 |
+| KiDS-1000 cosmic shear | 0.759 (+0.024/−0.021) | 2.92 |
+| KiDS-1000 3x2pt | 0.766 (+0.020/−0.014) | 3.14 |
+
+The previous generation (DES Y3, KiDS-1000) sits at 2.8–3.1σ from this CMB; the current results
+of other probes at 0.2–1.9σ; DES Y6 3x2pt itself at 2.67σ in S8 (R2). eROSITA lies above the CMB,
+the lensing probes below it.
+
+**Reading.** The public chains reproduce D26's inputs and its 1-D and 2-D differences: the numbers
+behind the conclusion are right. Whether 2.6–2.7σ is "no substantial evidence" is the interpretation
+step `gap_conv` of the wiki's Lean analysis (a 3σ-as-evidence usage, not stated by D26); the numbers
+show how close it is to that line (2.67σ, and 2.44–2.55σ under D26's own projection-effect estimates).
+For DES the "easing" is relative: the earlier DES Y3 result was 2.83σ from this CMB, the Y6 3x2pt
+result 2.67σ, while other current probes have moved closer to the CMB.
 
 ## 6. Referee notes
 
@@ -242,14 +318,27 @@ How a coding agent answers "what if" questions about this study without touching
 
 | Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
 |---|---|---|---|
-| TODO | | | |
+| `n_pairs` | resampled pairs per estimate | 1e6–1e7 | cache only |
+| `seeds` | seeds of the estimator | any list of ≥ 2 integers | cache only |
+| `bw_variants` | bandwidth factors reported beside the base | 0.25–4 | cache only |
+| `proj_shift`, `map_shift` | shifts of DES S8 in R4 | ±0.01 | cache only |
+| `published_nsigma`, `tol_nsigma` | R2 targets and allowance (changing them is not the registered verdict) | – | cache only |
+| `probes` | R5 summaries: name -> [mean, σ₊, σ₋, reference] | any published S8 | cache only |
+| `chains` | chain file names on the DES server | other files in `chains_release/` | new data: check sizes first (50 MB cap; only the 32pt chain has the user-approved exception) |
 
 - Rerun with an override: `python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --set KEY=VALUE`
-  (outputs in `explore/<date>-<topic>/`, not committed; about N s from cache).
+  (outputs in `explore/<date>-<topic>/`, not committed; about 70 s from cache).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --script explore/<name>.py`.
-- Results files and keys: TODO (`results/<file>.json`: key - meaning).
-- Example questions: TODO (question -> knob or script an agent would use).
+  Existing: `explore/estimator_calibration.py` (the synthetic calibration of the estimator).
+- Results files and keys: `results/formats.json` (step A: headers, column maps, row counts);
+  `results/r1.json` (per chain: `mean`, `lo`, `hi`, `equal_lo`, `equal_hi`, `kde_mode`, `verdict`,
+  `chain` diagnostics); `results/r2.json` (`1d`, `2d`: `n_sigma`, `s`, `per_seed`,
+  `bandwidth_variants`, `verdict`; `support`; `gaussian_means`; `gaussian_modes`;
+  `truncated_sensitivity`); `results/r3.json`; `results/r4.json` (`projection_shift`, `map_shift`,
+  `algorithms_1d`, `threshold`, `full_space`); `results/r5.json` (per probe `n_sigma`).
+- Example questions: "what if the CMB were shifted by 1σ?" -> a script that shifts the CMB samples;
+  "how does KiDS-Legacy's 0.815 mode (not the mean) compare?" -> `--set` on `probes`.
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.
 

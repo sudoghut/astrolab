@@ -4,27 +4,117 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>M3 S8 tension: DES Y6 3x2pt vs CMB parameter difference and multi-probe summary</title>
-<!-- Bilingual rule (AGENTS.md): keep this script, write text as <span class="en">…</span><span class="zh">…</span>,
-     use i18n.L(en, zh) for generated HTML and i18n.t(en, zh) + i18n.onLangChange for plain text / charts. -->
 <script src="../../../atlas/web/i18n.js"></script>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
+<style>
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin: 12px 0; }
+  .card { border: 1px solid var(--line, #ccc); border-radius: 8px; padding: 10px 12px; }
+  .card .big { font-size: 1.6em; font-weight: 600; }
+  .good { color: #1b7f3b; } .bad { color: #b3261e; } .muted { opacity: .75; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td { border-bottom: 1px solid var(--line, #ddd); padding: 4px 6px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  .scroll { overflow-x: auto; }
+  svg text { font-size: 11px; fill: currentColor; }
+  .band { fill: #4c78a8; opacity: .18; }
+  .dot { fill: currentColor; } .dot.des { fill: #e45756; } .dot.old { fill: #9d755d; }
+  .bar { stroke: currentColor; stroke-width: 1.5; } .bar.des { stroke: #e45756; } .bar.old { stroke: #9d755d; }
+</style>
 </head>
 <body>
 <main>
   <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 008-m03-s8-des-y6-cmb-parameter-difference</p>
-  <h1><span class="en">M3 S8 tension: DES Y6 3x2pt vs CMB parameter difference and multi-probe summary</span><span class="zh">M3 S8 张力：DES Y6 3x2pt 与 CMB 的参数差异及多探针汇总</span></h1>
-  <p class="muted"><span class="en">Replace this page freely: design whatever this question needs (visualization, interactive analysis, several pages). It does not have to follow the Atlas. Data comes from <code>../results/*.json</code>.</span><span class="zh">可以完全替换本页面：按研究问题的需要来设计（可视化、交互式分析、多个页面），不必遵循 Atlas 的样式。数据来自 <code>../results/*.json</code>。</span></p>
-  <pre id="out"><span class="en">loading…</span><span class="zh">加载中……</span></pre>
+  <h1><span class="en">Has the S8 tension eased? DES Y6 against the CMB</span><span class="zh">S8 张力减弱了吗？DES Y6 与 CMB 的比较</span></h1>
+  <p class="muted"><span class="en">Paper: DES Y6 3x2pt (arXiv:2601.14559). Pre-registration in the study <code>README.md</code> sections 1–4. R1 and R2 carry verdicts; R3–R5 are descriptive or exploratory. S8 = σ8 (Ωm/0.3)^0.5.</span><span class="zh">论文：DES Y6 3x2pt（arXiv:2601.14559）。预注册见研究 <code>README.md</code> 第 1–4 节。只有 R1 与 R2 给出判决；R3–R5 是描述性或探索性的。S8 = σ8 (Ωm/0.3)^0.5。</span></p>
+
+  <div class="grid" id="cards"></div>
+
+  <h2><span class="en">S8 of each data set against the CMB</span><span class="zh">各数据集的 S8 与 CMB 的比较</span></h2>
+  <p class="muted"><span class="en">Points: means with 68% intervals (chains recomputed here; other probes as published). Blue band: the CMB chain's 68% interval. Red: DES Y6; brown: previous generation.</span><span class="zh">点：均值与 68% 区间（链由本研究复算；其他探针为发表值）。蓝色带：CMB 链的 68% 区间。红色：DES Y6；棕色：上一代。</span></p>
+  <div class="scroll"><svg id="forest" viewBox="0 0 680 400" width="100%" role="img"></svg></div>
+
+  <h2><span class="en">R2 · Parameter difference, DES Y6 3x2pt against the CMB</span><span class="zh">R2 · 参数差异：DES Y6 3x2pt 对 CMB</span></h2>
+  <div class="scroll"><table id="r2"></table></div>
+  <p class="muted" id="r2note"></p>
+
+  <h2><span class="en">R4 · Sensitivity (exploration)</span><span class="zh">R4 · 敏感度（探索）</span></h2>
+  <div class="scroll"><table id="r4"></table></div>
+  <p class="muted" id="r4note"></p>
+  <p class="muted" id="err"></p>
 </main>
 <script>
-fetch('../results/summary.json')
-  .then(r => { if (!r.ok) throw new Error(`results/summary.json: HTTP ${r.status}`); return r.json(); })
-  .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
-  .catch(e => {
-    const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
-    // Both languages in the DOM, so the message follows later language switches.
-    document.getElementById('out').innerHTML = i18n.L('Could not load results (run the study first?) or render them: ', '无法加载或显示结果（是否已运行研究？）：') + msg;
+const L = (en, zh) => i18n.L(en, zh);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const f = (x, d = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '–' : Number(x).toFixed(d);
+const get = n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`${n}.json: HTTP ${r.status}`); return r.json(); });
+const card = (t, v, cls, note) => `<div class="card"><div class="muted">${t}</div><div class="big ${cls || ''}">${v}</div><div class="muted">${note || ''}</div></div>`;
+const vz = v => ({'reproduced': '复现', 'not reproduced': '未复现'})[v] || v;
+
+function render(d) {
+  const {r1, r2, r3, r4, r5} = d;
+  const okc = v => v === 'reproduced' ? 'good' : 'bad';
+  document.getElementById('cards').innerHTML =
+    card(L('R1 · chain means', 'R1 · 链的均值'), ['cmb', 'des_3x2pt', 'des_xipm'].every(k => r1[k].verdict === 'reproduced') ? L('3 / 3 reproduced', '3 / 3 复现') : L('see table', '见表'), 'good',
+         L(`CMB ${f(r1.cmb.mean, 4)}, DES ${f(r1.des_3x2pt.mean, 4)}, ξ± ${f(r1.des_xipm.mean, 4)}`, `CMB ${f(r1.cmb.mean, 4)}，DES ${f(r1.des_3x2pt.mean, 4)}，ξ± ${f(r1.des_xipm.mean, 4)}`)) +
+    card(L('R2 · S8 (1-D)', 'R2 · S8（1 维）'), `${f(r2['1d'].n_sigma, 2)}σ`, okc(r2['1d'].verdict), L(`D26: 2.6σ · ${esc(r2['1d'].verdict)}`, `D26：2.6σ · ${vz(r2['1d'].verdict)}`)) +
+    card(L('R2 · S8–Ωm (2-D)', 'R2 · S8–Ωm（2 维）'), `${f(r2['2d'].n_sigma, 2)}σ`, okc(r2['2d'].verdict), L(`D26: 2.2σ · ${esc(r2['2d'].verdict)}`, `D26：2.2σ · ${vz(r2['2d'].verdict)}`)) +
+    card(L('R3 · DES ξ± vs CMB', 'R3 · DES ξ± 对 CMB'), `${f(r3['1d'].n_sigma, 2)}σ`, '', L(`2-D: ${f(r3['2d'].n_sigma, 2)}σ (descriptive)`, `2 维：${f(r3['2d'].n_sigma, 2)}σ（描述）`));
+
+  // forest plot
+  const rows = [
+    {n: 'CMB (Planck+ACT+SPT)', m: r1.cmb.mean, lo: r1.cmb.lo, hi: r1.cmb.hi, c: ''},
+    {n: 'DES Y6 3x2pt', m: r1.des_3x2pt.mean, lo: r1.des_3x2pt.lo, hi: r1.des_3x2pt.hi, c: 'des', ns: r2['1d'].n_sigma},
+    {n: 'DES Y6 ξ±', m: r1.des_xipm.mean, lo: r1.des_xipm.lo, hi: r1.des_xipm.hi, c: 'des', ns: r3['1d'].n_sigma},
+  ];
+  const old = new Set(['DES Y3 3x2pt', 'KiDS-1000 3x2pt', 'KiDS-1000 cosmic shear']);
+  for (const [name, p] of Object.entries(r5)) rows.push({n: name, m: p.mean, lo: p.mean - p.sigma_minus, hi: p.mean + p.sigma_plus, c: old.has(name) ? 'old' : '', ns: p.n_sigma});
+  const W = 680, top = 14, rowh = 26, left = 230, right = 70, x0 = 0.70, x1 = 0.90;
+  const H = top + rowh * rows.length + 34;
+  const X = v => left + (W - left - right) * (v - x0) / (x1 - x0);
+  let s = `<rect class="band" x="${X(r1.cmb.lo)}" y="${top - 6}" width="${X(r1.cmb.hi) - X(r1.cmb.lo)}" height="${rowh * rows.length + 6}"/>`;
+  rows.forEach((r, i) => {
+    const y = top + rowh * i + rowh / 2;
+    s += `<text x="${left - 8}" y="${y + 4}" text-anchor="end">${esc(r.n)}</text>`;
+    s += `<line class="bar ${r.c}" x1="${X(r.lo)}" x2="${X(r.hi)}" y1="${y}" y2="${y}"/>`;
+    s += `<circle class="dot ${r.c}" cx="${X(r.m)}" cy="${y}" r="4"><title>${esc(r.n)}: ${f(r.m, 3)} [${f(r.lo, 3)}, ${f(r.hi, 3)}]</title></circle>`;
+    if (r.ns !== undefined) s += `<text x="${W - right + 8}" y="${y + 4}">${f(r.ns, 2)}σ</text>`;
   });
+  const yAx = top + rowh * rows.length + 4;
+  s += `<line x1="${left}" x2="${W - right}" y1="${yAx}" y2="${yAx}" stroke="currentColor"/>`;
+  for (let v = 0.70; v <= 0.9001; v += 0.05) s += `<text x="${X(v)}" y="${yAx + 14}" text-anchor="middle">${v.toFixed(2)}</text>`;
+  s += `<text x="${(left + W - right) / 2}" y="${yAx + 28}" text-anchor="middle">S8</text>`;
+  s += `<text x="${W - right + 8}" y="${top - 2}" class="muted">n_σ</text>`;
+  const svg = document.getElementById('forest');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = s;
+
+  let h = `<tr><th>${L('Projection', '投影')}</th><th>n_σ</th><th>s</th><th>${L('bandwidth ×0.5 / ×2', '带宽 ×0.5 / ×2')}</th><th>D26</th><th>${L('verdict', '判决')}</th></tr>`;
+  for (const [t, lab] of [['1d', L('S8 (1-D)', 'S8（1 维）')], ['2d', L('S8–Ωm (2-D)', 'S8–Ωm（2 维）')]]) {
+    const v = r2[t];
+    h += `<tr><td>${lab}</td><td>${f(v.n_sigma)}</td><td>${f(v.s, 4)}</td><td>${f(v.bandwidth_variants['bw_x0.5'])} / ${f(v.bandwidth_variants['bw_x2.0'])}</td><td>${v.published}</td><td>${L(esc(v.verdict), vz(v.verdict))}</td></tr>`;
+  }
+  document.getElementById('r2').innerHTML = h;
+  document.getElementById('r2note').innerHTML = L(
+    `Cross-checks: numerical convolution ${f(r2['1d'].convolution_check.n_sigma)}σ; Gaussian estimate ${f(r2.gaussian_means)}σ. Prior support (Ωm, A_s): ${esc(r2.support.status)}${r2.support.fails ? ', fails' : ', passes'}.`,
+    `交叉检查：数值卷积 ${f(r2['1d'].convolution_check.n_sigma)}σ；高斯估计 ${f(r2.gaussian_means)}σ。先验支撑（Ωm、A_s）：${r2.support.status === 'performed' ? '已检验' : esc(r2.support.status)}，${r2.support.fails ? '未通过' : '通过'}。`);
+
+  const fs = r4.full_space || {};
+  let g = `<tr><th>${L('Variant', '变体')}</th><th>n_σ</th></tr>`;
+  g += `<tr><td>${L('DES shifted by +0.17σ (projection effects, Table 9)', 'DES 上移 0.17σ（投影效应，表 9）')}</td><td>${f(r4.projection_shift.n_sigma)}</td></tr>`;
+  g += `<tr><td>${L('DES centred on its MAP (+0.004)', 'DES 以 MAP 为中心（+0.004）')}</td><td>${f(r4.map_shift.n_sigma)}</td></tr>`;
+  g += `<tr><td>${L('1-D, equal-tail', '1 维，等尾')}</td><td>${f(r4.algorithms_1d.equal_tail.n_sigma)}</td></tr>`;
+  if (fs.all && fs.all.status === 'ok') g += `<tr><td>${L(`Full space, Gaussian (${fs.all.k} parameters)`, `全空间，高斯近似（${fs.all.k} 个参数）`)}</td><td>${f(fs.all.n_sigma)}</td></tr>`;
+  if (fs.constrained && fs.constrained.status === 'ok') g += `<tr><td>${L('Full space, Gaussian (data-constrained: A_s, Ωm)', '全空间，高斯近似（数据约束的 A_s、Ωm）')}</td><td>${f(fs.constrained.n_sigma)}</td></tr>`;
+  document.getElementById('r4').innerHTML = g;
+  document.getElementById('r4note').innerHTML = L(
+    'The Gaussian full-space numbers are far below D26\'s 1.8σ because S8 is a nonlinear combination of A_s and Ωm: in the sampled parameters the DES posterior is curved, and a Gaussian approximation smears out the difference. It is not a test of D26\'s full-space number.',
+    '全空间的高斯近似数字远低于 D26 的 1.8σ，因为 S8 是 A_s 与 Ωm 的非线性组合：在采样参数中 DES 后验是弯曲的，高斯近似会抹平差别。它不是对 D26 全空间数字的检验。');
+}
+
+let data = null;
+Promise.all(['r1', 'r2', 'r3', 'r4', 'r5'].map(get))
+  .then(([r1, r2, r3, r4, r5]) => { data = {r1, r2, r3, r4, r5}; render(data); i18n.onLangChange(() => render(data)); })
+  .catch(e => { document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + esc(e); });
 </script>
 </body>
 </html>
