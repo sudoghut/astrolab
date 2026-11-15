@@ -175,7 +175,7 @@ that into "disfavored".
 |---|---|---|
 | The fields are overdense (cosmic variance) | `gap_poisson` | no: N26 does not discuss cosmic variance |
 | Further comparable area without detections belongs in the census | `gap_area` | no |
-| A two-count fluctuation | `mod_poisson` | implicitly ("high confidence") |
+| A two-count fluctuation | `mod_poisson`, `gap_rule` | no test given: "high confidence" signals a claimed inference but specifies neither the count model nor the test |
 
 **Inference (Lean excerpt).**
 
@@ -391,7 +391,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 |---|---|---|
 | 视场过密（宇宙方差） | `gap_poisson` | 否：N26 没有讨论宇宙方差 |
 | 还有同等条件、没有探测的面积应计入普查 | `gap_area` | 否 |
-| 两个计数的涨落 | `mod_poisson` | 隐含（"高置信度"） |
+| 两个计数的涨落 | `mod_poisson`、`gap_rule` | 没有给出检验："高置信度"表明作者作了推断，但没有说明计数模型或检验方法 |
 
 **推理（Lean 摘录）。**
 
