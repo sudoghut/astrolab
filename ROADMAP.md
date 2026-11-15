@@ -173,7 +173,7 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 **文献**
 - NANOGrav 15 年数据：Agazie et al. 2023, ApJL 951, L8, arXiv:2306.16213 [V]
   - 振幅 A = 2.4 (+0.7/−0.6) × 10⁻¹⁵。
-  - Hellings–Downs 角关联（angular correlation）显著性约 3σ。
+  - Hellings–Downs 角关联（angular correlation）：贝叶斯因子 200–1000（HD 对无关联的共同红噪声），对相位移动背景的贝叶斯 p 值约 10⁻³（约 3σ），最优统计量的频率学 p 值约 5 × 10⁻⁵–1.9 × 10⁻⁴（约 3.5–4σ）；计划 014 不复现这些。
 - 其他脉冲星计时阵（PTA, Pulsar Timing Array）[V]：
   - EPTA：A&A 678, A50
   - PPTA：Reardon et al. 2023 ApJL
