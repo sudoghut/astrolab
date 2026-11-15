@@ -6,7 +6,7 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-014** M9：纳赫兹引力波背景（NANOGrav 15 年数据） · 登记 2026-11-14 · 分支 feat/m9-nanograv-gwb
+- [ ] **T-014** M9：纳赫兹引力波背景（NANOGrav 15 年数据） · 登记 2026-11-14 · 分支 feat/m9-nanograv-gwb · 计划 [014](design/014-plan_m09-nanograv-free-spectrum-power-law-and-spectral-index.md)
   - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Agazie et al. 2023 arXiv:2306.16213 [S]。数据：zenodo.org/records/10344086 v1.1.0 [S] 中公开的汇总量（自由谱、后验摘要），MB 级。能力：自由谱拟合、模型比较。
   - 备注：论文研究；与 T-013 并行（T-013 等待第 A 步取数时开工）。
 
