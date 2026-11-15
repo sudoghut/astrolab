@@ -49,6 +49,7 @@ def test_weight_priority_and_ambiguity(tmp_path):
 def test_no_header_rules(tmp_path):
     fmt = {"header": None, "ncols": 12}
     assert sd.column_map(fmt, "cmb", positional_ok=False)[0] is None
+    assert sd.column_map({"header": None, "ncols": 6}, "des", positional_ok=True)[0] is None
     cmap, _ = sd.column_map(fmt, "des", positional_ok=True)
     assert cmap["omega_m"] == 0 and cmap["sigma_8"] == 5 and cmap["log_weight"] == 9
 
