@@ -122,7 +122,7 @@ only (parallax_over_error > 40, C24 §2.2.2) is a diagnostic variant.
 | A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, rv_method_used (non-null when a radial velocity exists) | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); no velocity condition (as in C24, which has no velocity cut at pair finding; C26's velocity-related cuts ΔRV < 10 km/s, σ(ṽ) < 0.1 and ṽ ≤ 2.5 are applied after B1, section 4) | each region counted first; the total is known only from those counts (expected tens of thousands of rows; ≤ 50,000 per query, max_rows = 50,000, a region that overflows is split), ~600 B per row by conservative estimate |
 | A2 neighbour counts | per parent star: source_id, number of relaxed neighbours, and the smallest neighbour source_id | neighbours as defined above (no velocity condition); only stars with n ≥ 1 returned | ≤ 50,000 rows per strip (max_rows = 50,000, split if it overflows); at most one row per parent star, so ≤ 824,463 rows and ≤ 33 MB in total at 40 B per row (likely ≤ 200,000 rows, ≤ 8 MB) |
 | A3 FLAME masses (velocity-free) | per parent star in the region with a FLAME mass: source_id, mass_flame | parent stars of the region (same half-open rule as star a) joined on the server to `gaiadr3.astrophysical_parameters` with mass_flame not null | counted first; at most one row per parent star (≤ 824,463 in total, ~19% expected per C26 §4.1.2), 24 B per row, ≤ 20 MB |
-| B1 velocities (after the pre-registration commit) | the A1 pairs with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | A1's WHERE plus velocity-free cuts: r_sky ≤ 30 kAU at the weighted parallax and radial_velocity not null for both stars | counted per region with this exact WHERE before each fetch (no total is assumed); ~600 B per row by conservative estimate |
+| B1 velocities (after the pre-registration commit) | the A1 pairs with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | A1's WHERE plus velocity-free cuts: r_sky ≤ 30 kAU at the weighted parallax and radial_velocity not null for both stars | counted per region with this exact WHERE before each fetch (no total is assumed); ~300 B per row by conservative estimate (17 numeric columns, fewer than A1's 20 plus strings) |
 
 Totals are known only from the per-region counts (A1, A2, A3 before step B; B1 in step B); the
 cumulative estimate is checked before every fetch (expected 25–60 MB), including the relaxed-neighbour
@@ -133,7 +133,7 @@ same strip plus a margin of 3.3° in declination at every boundary and, in right
 θ = 3.15° at a weighted parallax of 110 mas (star a < 100 mas); the exact half-width in right
 ascension is asin(sin θ / cos δ) (7.0° at δ = 63.3°, 27.7° at 83.3°), so the margins cover star a with
 parallax < 100 mas (checked by an offline test at 110 mas). Stars with parallax ≥ 100 mas (d < 10 pc,
-a few hundred stars, so this query cannot approach the 50,000-row cap and needs no splitting) are
+a few hundred stars; the 50,000-row cap is verified by the query's own count, since pairs can outnumber stars, and the run stops if it is exceeded) are
 queried once with star b restricted to parallax + 3σ > 80 mas, counted first.
 Each pair is kept once (canonical source_id_a < source_id_b; duplicates from the margins dropped);
 this logic has an offline test. **Units.** Parallaxes are in mas, distances in pc (d = 1000/ϖ), r_sky in AU from d and the angle.
@@ -158,7 +158,8 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
    count (A2) is 1 and that neighbour is the partner; pairs sharing a star are thereby removed. The
    fraction of A1 pairs surviving degrouping is reported (velocity-free); it does not change the
    rule.
-2. **Common distance and separation.** ϖ̄ = (σ²_ϖ2 ϖ1 + σ²_ϖ1 ϖ2)/(σ²_ϖ1 + σ²_ϖ2) (C24 Eq. A2);
+2. **Common distance and separation.** ϖ̄ = (σ²_ϖ2 ϖ1 + σ²_ϖ1 ϖ2)/(σ²_ϖ1 + σ²_ϖ2) (C24 Eq. A2), where σ_ϖ1 and σ_ϖ2 are
+   the two stars' parallax_error;
    d = 1/ϖ̄; r_sky = d·θ (θ the angular separation, exact great-circle formula).
 3. **Masses (C26 §4.1.2).** FLAME mass when available (A3), else, for every star without one, M⋆ = 10^{0.0725(M_G,⊙ − M_G)} with
    M_G,⊙ = 4.67 (Gaia G, Vega; Willmer 2018, ApJS 236, 47, Table 3 — verified against the table
