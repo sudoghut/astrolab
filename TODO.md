@@ -6,6 +6,10 @@
 
 ## 进行中（Doing）
 
+- [ ] **T-019** M5：银河系厚盘早期形成（亚巨星年龄） · 登记 2026-11-14 · 分支 feat/m5-thick-disc-ages
+  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Xiang & Rix 2022 arXiv:2203.12110 及 2025 年的更新星表（320,028 颗亚巨星，NADC，DOI 10.12149/101467）。能力：外部星表与 Gaia 的交叉匹配，只取所需列，预计不超过 20 MB；NADC 文件的实际大小为 [U]，取数前先核实（AGENTS.md 1.3）。
+  - 备注：论文研究；设计计划编号 019。
+
 ## 下一步（Next）
 
 按优先级排序，最重要的在最上面。
@@ -15,8 +19,6 @@
   - 备注：DR4 运行后 `results/` 不再有 DR3 的 `post_hoc.R1b_*`，届时把 `argument/Argument.lean` 中 `num_astro1` 的绑定路径改为 `results/dr3/summary.json`，并且与 DR4 的 `results/` 放在同一个 PR 里，否则研究状态为 reproduced 时 Lean 测试会失败（来源 T-010）。
 - [ ] **T-013** M7：宽双星引力检验（MOND 之争） · 登记 2026-11-14
   - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Cookson, Banik, El-Badry et al. 2026 arXiv:2602.24035；Chae et al. arXiv:2601.21728（修改中）。能力：服务器端自连接配对、前向建模、污染成分建模。数据 5–20 MB，必须服务器端自连接，不下载 El-Badry 2021 星表（AGENTS.md 1.5）。
-- [ ] **T-019** M5：银河系厚盘早期形成（亚巨星年龄） · 登记 2026-11-14
-  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Xiang & Rix 2022 arXiv:2203.12110 及 2025 年的更新星表（320,028 颗亚巨星，NADC，DOI 10.12149/101467）。能力：外部星表与 Gaia 的交叉匹配，只取所需列，预计不超过 20 MB；NADC 文件的实际大小为 [U]，取数前先核实（AGENTS.md 1.3）。
 
 ## 待办池（Backlog）
 
