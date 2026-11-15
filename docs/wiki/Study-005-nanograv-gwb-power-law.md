@@ -157,7 +157,8 @@ Scope of the encoding: only the amplitude sentence of §III is formalised, and o
 "These amplitudes" there refers to both the γ = 13/3 amplitude (2.4 × 10⁻¹⁵) and the free-γ
 amplitude (6.4 × 10⁻¹⁵); we encode only the first, because the published predictions are quoted
 at a fixed spectral shape, so comparing them with a γ ≈ 3.2 amplitude is not like for like
-(6.4 × 10⁻¹⁵ falls inside only one Table A1 range, McWilliams et al.). The encoded conclusion is
+(6.4 × 10⁻¹⁵ falls inside only one Table A1 range, McWilliams et al.); this reason concerns
+route 1, while route 2 (the holodeck populations) is compared by L37 with the spectrum itself. The encoded conclusion is
 therefore weaker than the paper's sentence. The spectral-index
 statement (γ < 13/3 "can be accommodated" by mechanisms the paper does not quantify), the
 statement that exotic sources cannot be excluded, and the HD significance are left out: the
@@ -200,7 +201,7 @@ that reproduces it (route 2).
 | `num_contain`: at least one Table A1 model's 16–84% range contains the median amplitude | NUM | stated 2306.16220: "Although the inferred GWB amplitudes are within the range of some of these model predictions"; bound to `results/r2b.json:n_models_contain_median >= 1` | L37 §V; Table A1, Fig. A1 |
 | `mod_contain`: a value inside a model's 16–84% predicted range is not in tension with that model | MOD | implied (posterior predictive reasoning; Gelman et al. 2013, *Bayesian Data Analysis*, ch. 6) | – |
 | `stat_holo`: some holodeck populations reproduce the inferred amplitude and spectral shape | STAT | stated 2306.16220: "we are able to reproduce the inferred GWB amplitude and spectral shape" | L37 §V |
-| `mod_holo`: a population that reproduces the measured amplitude is not in tension with it | MOD | implied (Gelman et al. 2013, ch. 6) | – |
+| `mod_holo`: a population that reproduces the measured amplitude is not in tension with it | MOD | implied (Gelman et al. 2013, ch. 6); L37 compares the populations with the 15 yr spectrum, so applying this to the γ = 13/3 amplitude is our reading | – |
 
 The quote of `num_contain` is about the inferred amplitudes (the posteriors); our binding uses the
 posterior median, which is our operationalisation.
@@ -250,8 +251,10 @@ theorem final : ∀ v, Premises v → Conclusion v := by
   exact p .mod_rule h1 (p .gap_repr)  -- Sec. III; GAP
 ```
 
-**Critique.** This is the weak link, and it applies to both routes: the holodeck populations that
-reproduce the amplitude are those with parameters at the edges of expected values. The
+**Critique.** This is the weak link, and it applies to both routes. L37 §V says the populations
+reproduce the amplitude "With reasonable choices of astrophysical parameters", while its abstract
+says this needs many parameters at the edges of expected values (or a few notably different);
+"reasonable" is not the same as "representative of expectations", so `gap_repr` stays a gap. The
 abstract's "consistent with astrophysical expectations" and the discussion's "toward the upper
 end of predictions" are both true only if "expectations" means "the range spanned by published
 models and populations", including their high tails.
@@ -402,7 +405,7 @@ A. L8 测得 γ = 13/3 时的 A → B. 经两条途径之一与某些模型相�
 
 Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒真（`final_nontrivial`）；前提能否同时成立（`consistent`）；单个前提不能单独推出结论（`alone_insufficient`）；每个前提是必要的（去掉它时的反例模型）还是多余的；论文明说的前提是否足够（`stated_*`）；加上标准知识后是否足够（`explicit_*`，`explicit_insufficient` 即存在真正的缺口）。Lean 不检查每个前提内部的物理是否正确，那是第一、三部分和研究本身的任务。
 
-编码范围：只形式化第 III 节的振幅句，而且只形式化一部分。句中的"These amplitudes"同时指 γ = 13/3 的振幅（2.4 × 10⁻¹⁵）与 γ 自由时的振幅（6.4 × 10⁻¹⁵）；我们只编码前者，因为已发表的预言是在固定谱形下给出的，拿 γ ≈ 3.2 的振幅与之比较不是同类比较（6.4 × 10⁻¹⁵ 只落在表 A1 中 McWilliams 等一行的范围内）。因此编码的结论比论文的句子弱。谱指数的陈述（γ < 13/3 "可以被"论文没有定量的机制"容纳"）、"更奇异的来源不能排除"与 HD 显著性不形式化：前两者不够精确，不能写成链条；第三者需要本项目不用的数据。
+编码范围：只形式化第 III 节的振幅句，而且只形式化一部分。句中的"These amplitudes"同时指 γ = 13/3 的振幅（2.4 × 10⁻¹⁵）与 γ 自由时的振幅（6.4 × 10⁻¹⁵）；我们只编码前者，因为已发表的预言是在固定谱形下给出的，拿 γ ≈ 3.2 的振幅与之比较不是同类比较（6.4 × 10⁻¹⁵ 只落在表 A1 中 McWilliams 等一行的范围内）；这一理由针对途径 1，途径 2（holodeck 群体）L37 是直接与谱比较的。因此编码的结论比论文的句子弱。谱指数的陈述（γ < 13/3 "可以被"论文没有定量的机制"容纳"）、"更奇异的来源不能排除"与 HD 显著性不形式化：前两者不够精确，不能写成链条；第三者需要本项目不用的数据。
 
 #### 2.1 环节 A · 振幅的测量
 
@@ -434,7 +437,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 | `num_contain`：表 A1 中至少一个模型的 16%–84% 范围包含振幅中位数 | NUM | stated 2306.16220："Although the inferred GWB amplitudes are within the range of some of these model predictions"；绑定 `results/r2b.json:n_models_contain_median >= 1` | L37 第 V 节；表 A1、图 A1 |
 | `mod_contain`：落在某模型 16%–84% 预测范围内的值与该模型没有张力 | MOD | implied（后验预测推理（posterior predictive reasoning）；Gelman 等 2013，*Bayesian Data Analysis*，第 6 章） | – |
 | `stat_holo`：某些 holodeck 群体再现了推断的振幅与谱形 | STAT | stated 2306.16220："we are able to reproduce the inferred GWB amplitude and spectral shape" | L37 第 V 节 |
-| `mod_holo`：再现了测量振幅的群体模型与它没有张力 | MOD | implied（Gelman 等 2013，第 6 章） | – |
+| `mod_holo`：再现了测量振幅的群体模型与它没有张力 | MOD | implied（Gelman 等 2013，第 6 章）；L37 是把群体与 15 年的谱比较，把它用于 γ = 13/3 的振幅是我们的解读 | – |
 
 `num_contain` 的引文说的是推断的振幅（后验）；我们的绑定用后验中位数，这是我们的操作化。
 
@@ -478,7 +481,7 @@ theorem final : ∀ v, Premises v → Conclusion v := by
   exact p .mod_rule h1 (p .gap_repr)  -- Sec. III; GAP
 ```
 
-**评析。** 这是最弱的一环，而且对两条途径都适用：再现这一振幅的 holodeck 群体，是参数处在预期值边缘的那些。摘要的"与天体物理预期一致"和讨论的"在预测的上端"，只有当"预期"指"已发表模型与群体覆盖的范围（含其高尾部）"时才同时成立。
+**评析。** 这是最弱的一环，而且对两条途径都适用。L37 第 V 节说群体在"With reasonable choices of astrophysical parameters"时再现了振幅，而它的摘要说这需要许多参数处在预期值的边缘（或少数参数明显不同）；"合理"不等于"代表预期"，所以 `gap_repr` 仍是缺口。摘要的"与天体物理预期一致"和讨论的"在预测的上端"，只有当"预期"指"已发表模型与群体覆盖的范围（含其高尾部）"时才同时成立。
 
 #### 2.4 Lean 检查发现的问题
 
