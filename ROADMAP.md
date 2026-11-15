@@ -169,7 +169,7 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 ### M9 · 纳赫兹引力波背景（X，strong evidence）
 
 **文献**
-- NANOGrav 15 年数据：Agazie et al. 2023, ApJL 951, L8, arXiv:2306.16213 [S]
+- NANOGrav 15 年数据：Agazie et al. 2023, ApJL 951, L8, arXiv:2306.16213 [V]
   - 振幅 A = 2.4 (+0.7/−0.6) × 10⁻¹⁵。
   - Hellings–Downs 角关联（angular correlation）显著性约 3σ。
 - 其他脉冲星计时阵（PTA, Pulsar Timing Array）[V]：
@@ -179,10 +179,10 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 - 截至 2026 年 11 月，未找到 IPTA DR3 的背景结果 [S]。
 
 **数据**
-- NANOGrav 15 年自由谱的核密度估计（KDE, Kernel Density Estimate）后验，MB 级：zenodo.org/records/10344086，使用 v1.1.0 版 [S]。
+- NANOGrav 15 年自由谱的核密度估计（KDE, Kernel Density Estimate）后验，MB 级：以 zenodo.org/records/21844115 的 v2.0.0（2026，修正了采样器偏差，3.0 MB）为主，zenodo.org/records/10344086 的 v1.1.0（5.3 MB）作比较 [V]（计划 014）。
 
 **方法**
-- 用 PTArcade/ceffyl 拟合约 14 个频率点的自由谱（free spectrum）。
+- 在 KDE 自由谱网格上用 numpy 拟合约 14 个频率点的自由谱（free spectrum），不安装 PTArcade/ceffyl（计划 014）。
 - 比较的模型：超大质量黑洞双星（SMBHB, Supermassive Black Hole Binaries）幂律、环境导致的谱转折（environmental turnover）、宇宙学起源模板（cosmological templates）。
 
 ### M8 · z ≈ 14 星系（L1）
