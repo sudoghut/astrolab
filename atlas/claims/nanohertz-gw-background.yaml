@@ -23,4 +23,4 @@ reproduction:
     - {name: "Hellings-Downs significance", paper: "Bayes factor 200-1000", ours: null, verified: S}
 open_questions:
   - "Is the SMBHB amplitude consistent with galaxy-merger and BH mass-function priors?"
-notes: "Milestone M9. Grade 'hint' here means strong evidence below 5 sigma. Study 005 refits the NANOGrav KDE free spectrum (Zenodo 21844115 v2.0.0; v1.1.0 = Zenodo 10344086 as a post-hoc comparison). The HD significance is not reproduced (needs the full timing data)."
+notes: "Milestone M9. Grade 'hint' here means strong evidence below 5 sigma. Study 005 refits the NANOGrav KDE free spectrum (Zenodo 21844115 v2.0.0; v1.1.0 = Zenodo 10344086 as a post-hoc comparison). The HD significance is not reproduced (needs the full timing data). The agreement is conditional on L8's fiducial DMX noise model: on the DMGP free spectrum (v1.1.0) the refit gives A = 2.19e-15 (Hellinger 0.31 to L8's interval) and the HPD level of gamma = 13/3 falls to 0.62 (study 005, post hoc)."

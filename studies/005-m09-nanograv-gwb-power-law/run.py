@@ -50,8 +50,9 @@ def _round(a, sig=5):
     return [float(f"{v:.{sig}g}") for v in a.ravel()]
 
 
-def _load(ctx, P, version):
-    path = ctx.http(P["urls"][version], label=f"NANOGrav 15yr KDE free spectra {version}")
+def _load(ctx, P, version, path=None):
+    if path is None:
+        path = ctx.http(P["urls"][version], label=f"NANOGrav 15yr KDE free spectra {version}")
     prod = gwb.load_product(path, P["dir_key"], max_member_bytes=P["max_member_bytes"],
                             max_total_bytes=P["max_total_bytes"], max_members=P["max_members"])
     return gwb.check_product(prod, n_freq_file=P["n_freq_file"], t_yr=P["t_yr"],
@@ -90,13 +91,13 @@ def main(ctx):
     summary = {"params": P}
     prods = {}
     for v in P["versions"]:
+        path = ctx.http(P["urls"][v], label=f"NANOGrav 15yr KDE free spectra {v}")
         try:
-            prods[v] = _load(ctx, P, v)
+            prods[v] = _load(ctx, P, v, path)
         except gwb.NotEvaluable as e:
             prods[v] = None
             summary[f"load_{v}"] = {"verdict": "not evaluable", "reason": str(e)}
             ctx.log(f"{v}: not evaluable: {e}")
-            path = ctx.http(P["urls"][v], label=f"NANOGrav 15yr KDE free spectra {v}")
             ctx.log(f"{v}: archive members: {gwb.list_members(path)}")
         else:
             p = prods[v]

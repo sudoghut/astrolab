@@ -211,11 +211,51 @@ pre-registered fidelity, free-γ medians within 0.05 in γ and 1% in A), the spe
 is of the same order (q ≈ 0.98 here against "within 99%"), and route 1 of the Lean argument holds
 on our data. The two gaps (`gap_overlap`, `gap_repr`) are untouched by these numbers.
 
+**Explorations after the referee (post hoc; outputs in `explore/`, not committed; 2026-11-15).**
+DMGP noise model (v1.1.0 `30f_fs{hd}_100fDMGP_ceffyl`, tag `dmgp`): R1 A = 2.19 [1.69, 2.60] × 10⁻¹⁵,
+H = 0.312 (would be "differs"); R2 q = 0.621, γ = 3.75 [3.13, 4.43]; R4 ln BF = 0.99.
+K = 30 (tag `k30`): H = 0.093, q = 0.993, γ = 3.04, ln BF 2.63. K = 5 (tag `k5`): H = 0.243, q = 0.917.
+`explore/r4_gamma_free.py`: ln BF free-γ power law vs γ = 13/3 = 1.76; turnover vs free-γ = 0.61.
+
 ## 6. Referee notes
 
-Independent critique: selection effects, systematics, alternative explanations.
+Independent referee (2026-11-15; a subagent given the code, pre-registration and results, not our
+reading). It found no code bugs and reproduced every number from the cached inputs. Triage:
+
+1. **Noise model dominates R1 and R2 (accepted limitation).** On the DMGP free spectrum the R1
+   verdict flips to "differs" (H = 0.312) and q falls to 0.62 (γ = 3.75); L8 §V.1 notes the same
+   shift of γ towards 13/3. Our product choice (`30f_fs{hd}`, DMX) matches L8's fiducial model, so
+   the pre-registered results stand, but they are conditional on that noise model. Recorded here,
+   in the wiki and in the claim.
+2. **Like-for-like version (accepted).** L8's numbers come from the 2023 chains; v1.1.0 is the
+   contemporaneous product and gives H = 0.143 (post hoc). The approximation error against L8 is
+   better read from that than from v2.0.0's 0.099.
+3. **R3 not evaluable (as handled).** The directory rule failed on v1.1.0 because of the DMGP
+   directory; the v1.1.0 numbers stay post hoc and are not written into `r3.json`. The v2.0.0
+   directory name carries a trailing space (`30f_fs{hd}_ceffyl `), which a future exact-name rule
+   must allow for.
+4. **R4 is mostly a γ preference (accepted, verified).** Free-γ vs 13/3: ln BF 1.76; turnover vs
+   free-γ: 0.61 (`explore/r4_gamma_free.py`). L8 App. E: turnover BF 1.46 under CURN, "inconclusive".
+   The f_b edge mass (0.008) is close to 0.01 (not a criterion).
+5. **Grid range and off-grid rule (no effect).** Truncating v1.1.0 to v2.0.0's grid range or using
+   −∞ below the grid changes R1, R2, R4 only in the 3rd–4th decimal; R2 step 0.0025 gives q = 0.9787.
+6. **Number of frequencies (reported above).** K = 14 follows L8.
+7. **Code (fixed).** `provenance.json` listed v1.1.0 twice (a second `ctx.http` on the
+   not-evaluable path; fixed, rerun gives identical results); a stale "< 0.1" in plan 014 corrected.
+   The 1-D HPD level is a node sum (negligible).
+8. **Pre-registration followed (confirmed).** The 0.1 → 0.15 threshold change is in commit
+   ed8a634 (2026-11-14 23:22 EST), before the first data fetch (2026-11-15 04:59 UTC per the cache).
+9. **Lean (accepted).** `mod_holo` relabelled as GAP `gap_holo` (applying L37's comparison with its
+   own spectra to L8's γ = 13/3 amplitude is our reading); `num_overlap` now notes that the quote is
+   about L37's own inferred amplitudes (5-bin fits, about 2.1 × 10⁻¹⁵) while the binding uses our
+   14-bin interval. The binding holds under every variant tried (DMX/DMGP, v1/v2, K = 5–30).
 
 ## 7. Open questions
+
+- Which noise model should a "reproduction" of L8 use when the two available ones disagree this
+  much on γ (DMX q = 0.98–0.99, DMGP q = 0.62)? A pre-registered comparison of both is the next test.
+- NG15 running-spectral-index analysis (Agazie et al. 2024, arXiv:2408.10166, unverified): does it
+  change the reading of R4?
 
 ## 8. Exploring via chat
 
