@@ -50,9 +50,14 @@ verdict, the numbers, and our explanation of any failure.
   **"lower"** (by the factor). This is a model-to-model comparison; agreement is not a validation
   of N26's baseline.
 - **Robustness:** the same verdict is computed for every combination of the variant grid
-  (section 4, step 7). **"robust"** if all variants give the same verdict as the fiducial;
-  otherwise **"calibration-dependent"**, with the fraction of variants per verdict and the
+  (section 4, step 7), over the evaluable combinations only (the number not evaluable, and why, is
+  reported). **"robust"** if at least 48 of the 72 combinations are evaluable and all evaluable ones
+  give the same verdict as the fiducial; otherwise **"calibration-dependent"** (or **"not
+  assessable"** if fewer than 48 are evaluable), with the fraction of variants per verdict and the
   envelope (min, max) of φ_ours.
+- N26 does not give its baseline's σ_UV numerically ("low UV variability"), so part of any ratio
+  may come from a different scatter; φ_ours at σ = 0.5 and 0.9 (the σ_cal variants) is reported
+  next to the fiducial ratio.
 - Reported (descriptive): P(N ≥ 2 | μ = φ_ours × V × 1 mag) for the fiducial model and its
   envelope over variants.
 
@@ -63,7 +68,10 @@ bounds). If φ_model(0.7) already exceeds a target, that end is reported as "σ 
 φ_model(4.0) is still below it, "σ > 4.0".
 - **"consistent with N26"** if [σ(lower bound), σ(upper bound)] overlaps [1.5, 2.0] mag; otherwise
   **"different"**. Reported with the R2 verdict it is conditional on, and with the envelope of the
-  central σ over the variant grid ("robust" if the verdict holds for all variants).
+  central σ over the variant grid ("robust" under the same rule as R2: over evaluable combinations,
+  at least 48 of 72 evaluable; non-monotonic φ(σ) and "σ > 4.0" cases are counted and reported).
+- The roots at large σ depend on the lowest halo mass included; they are reported for the
+  fiducial floor M_min and for 10 M_min (section 4, step 2).
 - S23's 2.0 mag (z ≈ 12) and 2.5 mag (z ≈ 16) are descriptive comparisons.
 
 **R4 (context, no criterion).** H25 Table 2, z ~ 14 bin (13.5–15.0), M = −20.8:
@@ -90,23 +98,31 @@ Nothing is downloaded (all values hand-transcribed and verified against the pape
    from eqs. 2–7, 10–12, 14–15), Ωm = Om0, Ωb = Ob0, T_CMB = 2.7255 K; normalised to σ8 = 0.8102
    (top-hat, R = 8 h⁻¹ Mpc) at z = 0. Linear growth D(z) for flat ΛCDM (integral form, D(0) = 1).
    Units: Mpc and M☉ without h.
-2. **σ(M) and halo mass function.** Top-hat σ(M, z) on a grid log10 M_h ∈ [7, 14] (step 0.02),
+2. **σ(M) and halo mass function.** Top-hat σ(M, z) on a grid log10 M_h ∈ [log10 M_min, 14]
+   (step 0.02), with M_min = 10⁸ M☉ (about the atomic-cooling limit, virial temperature 10⁴ K, at
+   z ≈ 14; halos below it are not assumed to host galaxies),
    k integration in log k over [10⁻⁴, 10³] Mpc⁻¹ (4096 points). dn/dln M = (ρ̄_m/M) f(σ) |d ln σ/d ln M|
    with f from Sheth–Tormen (fiducial) or Reed et al. 2007 eq. 11 with n_eff from eq. 13 (variant).
 3. **Galaxies.** Halo growth Ṁ_h (fiducial: Fakhouri et al. 2010 mean, 46.1 M☉/yr (M/10¹² M☉)^1.1
    (1 + 1.11 z) √(Ωm(1+z)³ + ΩΛ)); SFR = ε(M_h) f_b Ṁ_h with f_b = Ωb/Ωm; L_ν(1500 Å) = SFR / K with
    K = 0.63 × 1.15 × 10⁻²⁸ M☉ yr⁻¹ (erg s⁻¹ Hz⁻¹)⁻¹ (Madau & Dickinson 2014, Chabrier); median
    M_UV = 51.595 − 2.5 log10 L_ν (AB). Scatter: M_UV is Gaussian about the median with σ (mag).
-   ε(M_h) is a double power law 2ε₀ / [(M_h/M₁)^{−β} + (M_h/M₁)^{γ}] with ε₀ ∈ (0, 1],
-   log10 M₁ ∈ [9, 13], β ∈ [0, 3], γ ∈ [0, 3]. The model LF at z is
+   ε(M_h) is a double power law 2ε₀ / [(M_h/M₁)^{−β} + (M_h/M₁)^{γ}] with ε₀ ∈ [10⁻⁶, 1],
+   log10 M₁ ∈ [9, 13], β ∈ [0, 3], γ ∈ [0, 3]. The median M_UV(M_h) need not be monotonic: if γ
+   exceeds the growth-rate exponent (1.1 for Fakhouri), the median turns over at a peak halo mass
+   M_peak and fainter medians above it are allowed; the median relation, M_peak and the brightest
+   median are reported at z_cal and z = 14.5. The model LF at z is
    φ(M_UV) = ∫ dn/dln M · N(M_UV; M_med(M_h, z), σ) d ln M.
 4. **Calibration (deconvolved abundance matching).** At z_cal = 7.9 (fiducial; Bouwens et al. 2021
    z ~ 8 Schechter function) fit (ε₀, log10 M₁, β, γ) by least squares in log10 φ between the model
    with σ = σ_cal = 0.7 mag (fiducial) and the Schechter function on M_UV ∈ [−22.0, −17.0] in
    steps of 0.25 mag (21 points), with scipy `least_squares` from the start (0.1, 11.5, 1.0, 0.5),
-   bounds as above. The fit must reach rms < 0.05 dex over the 21 points; otherwise R2 and R3
-   are **not evaluable** for that combination (reported). The halo-mass range covered by the
-   calibration is recorded (M_h whose median M_UV lies in [−22, −17] at z_cal).
+   bounds as above (loss "linear", ftol = xtol = gtol = 10⁻¹⁰, max_nfev = 2000; parameters at a
+   bound are allowed and reported). The fit must reach rms < 0.05 dex over the 21 points;
+   otherwise R2 and R3 are **not evaluable** for that combination (reported). The calibrated
+   halo-mass range is defined on the rising branch of the median relation: from the lowest M_h
+   whose median M_UV at z_cal is ≤ −17 up to M_peak (or up to the M_h whose median reaches −22 if
+   the median is monotonic over the range).
 5. **Prediction at z = 14–15.** Same ε(M_h) (frozen), σ = 0.7 mag (fiducial), Ṁ_h at each z. φ_ours
    is the average over M_UV ∈ [−21, −20] (21 points, trapezoid) and over z ∈ [14, 15] (11 points)
    weighted by dV_c/dz (trapezoid).
@@ -115,16 +131,20 @@ Nothing is downloaded (all values hand-transcribed and verified against the pape
    R3 is not evaluable.
 7. **Variant grid (R2/R3 robustness; fixed now).** Halo mass function {Sheth–Tormen, Reed et al.
    2007 eq. 11}; halo growth {Fakhouri mean, Fakhouri median (25.3 M☉/yr, (1 + 1.65 z)), Dekel et
-   al. 2013 eq. 8 with s = 0.030 × (0.82/σ8) Gyr⁻¹}; calibration {z ~ 8 at z = 7.9, z ~ 7 at z = 6.8};
+   al. 2013 eq. 8 (below)}; calibration {z ~ 8 at z = 7.9, z ~ 7 at z = 6.8};
    σ_cal ∈ {0.5, 0.7, 0.9} mag (the z = 14–15 σ in R2 equals σ_cal); ε extrapolation {the fitted
-   double power law; ε held constant at its value at the edges of the calibrated halo-mass range}.
+   double power law; ε held constant below the low-mass edge of the calibrated range at its value
+   there, with the fitted double power law kept above it (including above M_peak)}. Dekel et al.
+   2013 eq. 8: Ṁ_h/M_h = s (1 + z)^{5/2} with s = 0.030 Gyr⁻¹ × (0.82/σ8) (their s ≃ 0.030 Gyr⁻¹
+   for σ8 = 0.82, scaling as σ8⁻¹; β → 0 as in their eq. 8).
    2 × 3 × 2 × 3 × 2 = 72 combinations. Fiducial: Sheth–Tormen, Fakhouri mean, z ~ 8, σ_cal = 0.7,
    double power law.
 8. **Dust.** ε absorbs the z ≈ 8 attenuation (the calibration LF is observed); no dust evolution is
    assumed. (Exploration only: section 8.)
 
 Checks before results: σ8 reproduced to 10⁻³ by the normalisation; the Sheth–Tormen f(σ)
-integrates to 1 within 1% over ln σ⁻¹ ∈ [−3, 3]; the mass function at z = 0 is compared with the
+integrates to 1 within 1% over ln σ⁻¹ ∈ [−20, 3] (the low-σ⁻¹ tail converges slowly; over
+[−3, 3] it reaches only about 0.76); the mass function at z = 0 is compared with the
 Sheth–Tormen analytic limit (descriptive).
 
 Systematics to keep in view: the S23-type baseline of N26 is not public in detail, so R2 compares
@@ -156,7 +176,8 @@ How a coding agent answers "what if" questions about this study without touching
 | `eps_extrap` | ε outside the calibrated range | `"dpl"`, `"const"` | no data |
 | `completeness` | spectroscopic completeness c (φ_obs → φ_obs/c) | 0.1–1 | no data |
 | `area_factor` | effective area / declared area (`gap_area`) | 1–10 | no data |
-| `dust_auv_z8` | A_UV(M_UV) removed at z ≈ 8 only (mag; 0 = none) | 0–1 | no data |
+| `dust_auv_z8` | remove dust at z ≈ 8 only: A_UV = 4.43 + 1.99 β (Meurer et al. 1999) with β(M_UV) at z ~ 8 from Bouwens et al. 2014 (ApJ 793, 115), values transcribed and verified in the exploration script; `false` = none | `true` / `false` | no data |
+| `m_h_min` | lowest halo mass included (M☉) | 10⁷–10⁹ | no data |
 
 - Rerun with an override: `python -m astrolab explore 006-m08-z14-galaxies-number-density --tag <topic> --set KEY=VALUE`
   (outputs in `explore/<date>-<topic>/`, not committed; seconds to a minute).
