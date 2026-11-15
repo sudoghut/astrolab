@@ -246,7 +246,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | B: an independent constant-SFE prediction (R2) | testable now (comparison, not a reproduction of N26's baseline) | Eisenstein–Hu P(k) → Sheth–Tormen halo mass function; SFR = ε(M_h) f_b Ṁ_h (Fakhouri et al. 2010); ε calibrated at z ≈ 8 by deconvolved abundance matching (σ_cal = 0.7 mag) and frozen; predict φ at z = 14–15 | pre-JWST z ≈ 8 LF parameters (paper table, ~1 KB) | φ_model(ours)/φ_model(N26 ≈ 2.4 × 10⁻⁸) within 1/3–3: "same order"; verdict conditional on the fiducial model, with robustness over a pre-declared variant grid | **higher**: 9.4× N26's baseline (fiducial); **calibration-dependent** (61 higher, 11 same order of 72; 2.5–37×) |
 | D: the σ_UV needed (R3) | testable now | with the median relation fixed, solve φ_model(σ) = φ_obs (and its Poisson limits) | same | central σ reported; interval overlaps N26's ≈ 1.5–2 mag: "consistent"; conditional on R2 | **consistent with N26**: 1.38 mag (1.15–1.57); **calibration-dependent** (38 consistent, 34 different; 1.07–1.60 mag) |
 | H25's z ~ 14 point (R4) | context only | H25's z ~ 14 bin contains only GS-z14-0 (shared with N26) and includes cosmic variance | H25 Table 2 | none (background) | H25 is 8.6× φ_obs (shared object, ≈ 39× smaller area) |
-| Model ingredients (R5) | explorable (not decisive) | halo mass function, accretion fit, calibration redshift, σ_cal, ε extrapolation, dust, completeness c | same | none - exploration only, see README §8 | σ_cal and the ε extrapolation drive the variant spread (see What we found) |
+| Model ingredients (R5) | explorable (not decisive) | halo mass function, accretion fit, calibration redshift, σ_cal, ε extrapolation, dust, completeness c | same | none - exploration only, see README §8 | σ_cal, the halo mass function (all 11 "same order" variants use Reed et al. 2007) and the ε extrapolation (decides R3) drive the spread |
 | D: cosmic variance (`gap_poisson`) | explorable (not decisive) | halo-bias estimate of the field-to-field variance for two counts | same | none - exploration only | not yet explored |
 | E: effective area (`gap_area`) | explorable (not decisive) | tail probability as a function of the effective area (ratio): crosses 2 × 10⁻⁴ at ≈ 1.8× (ratio ≈ 99) and 1.35 × 10⁻³ at ≈ 4.8× (ratio ≈ 38) the declared area (these are properties of the Poisson tail, reported for orientation, not decision thresholds) | – | none - exploration only | not yet explored |
 | The baseline represents the consensus (2.3) | out of scope as a test | would need the pre-JWST model ensemble | – | – | – |
@@ -267,7 +267,7 @@ scatter assumed at calibration and how the efficiency is extended to small halos
 relation fixed, the scatter that reproduces the observed density is σ_UV ≈ 1.4 mag (1.15–1.57 within
 the Poisson range; 1.07–1.60 across variants): at the low end of, or just below, N26's 1.5–2 mag,
 and above the ≈ 0.7 mag inferred to z ≈ 9. The three gaps of the argument (decision rule, cosmic
-variance, effective area) are untouched by these numbers.
+variance, effective area), and the fourth found by the referee (`gap_bin`), are untouched by these numbers.
 
 Results: [`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r1.json), [`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r2.json), [`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r3.json),
 [`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json). The interactive page runs locally with `python -m astrolab serve`.
@@ -275,8 +275,9 @@ Results: [`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-
 **After the independent referee (2026-11-15; post hoc, explorations).** Neither fiducial verdict is
 stable against the uncertainty of the z ≈ 8 calibration data, which the pre-registration did not
 propagate: moving one Bouwens et al. 2021 parameter by its 1σ error changes the ratio from 1.9 to 35
-and the required σ from 1.70 to 1.10 mag, flipping both R2 and R3. Removing even 0.3 mag of z ≈ 8
-dust takes the ratio to 20 and σ to 1.24 mag ("different"). The robust statement is narrower: an
+and the required σ from 1.70 to 1.10 mag: every such shift flips R3, and φ* −1σ also flips R2 (ratio
+1.9, "same order"). Removing even 0.3 mag of z ≈ 8 dust raises the ratio to 20 (R2 stays "higher")
+and takes σ to 1.24 mag (R3 "different"). The robust statement is narrower: an
 independent constant-SFE model predicts more z = 14–15 galaxies than N26's baseline (2–37×, mostly
 more than 3×), so the factor 182 depends strongly on the baseline; the σ_UV it needs lies around
 1–2 mag, with no stable verdict on overlap with N26's 1.5–2 mag. The referee also found a fourth gap
@@ -309,7 +310,7 @@ Follow-up: calibrate on binned data with errors and propagate the posterior (T-0
 
 Newest first.
 
-- 2026-11-15: independent referee: z ≈ 8 LF uncertainty and dust flip both verdicts (post-hoc explorations); fourth gap `gap_bin`; follow-up T-025.
+- 2026-11-15: independent referee: the z ≈ 8 LF uncertainty flips R3 (and R2 for φ* −1σ) and dust flips R3 (post-hoc explorations); fourth gap `gap_bin`; follow-up T-025.
 - 2026-11-15: results: Part 3 result column and "What we found" (R1 reproduced; R2 higher, calibration-dependent; R3 consistent, calibration-dependent).
 - 2026-11-15: gate-2 review, round 2: the step from tail probability to "high confidence" is our decision rule, now GAP `gap_rule` (three gaps); age at z ≈ 14 aligned with N26 (280 Myr).
 - 2026-11-15: gate-2 review: the Poisson tail is now a bound tied to the count and the ratio (`mod_poisson`), not a free-standing number; `obs_count` labelled as N26's counting assumption, observational part kept.
@@ -480,7 +481,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | B：独立的恒定 SFE 预言（R2） | 现在可检验（比较，不是复现 N26 的基准） | Eisenstein–Hu 功率谱 → Sheth–Tormen 晕质量函数；SFR = ε(M_h) f_b Ṁ_h（Fakhouri 等 2010）；ε 在 z ≈ 8 用去卷积的丰度匹配（abundance matching，σ_cal = 0.7 mag）校准后冻结；预言 z = 14–15 的 φ | JWST 之前 z ≈ 8 光度函数的参数（论文表格，约 1 KB） | φ_model(本研究)/φ_model(N26 ≈ 2.4 × 10⁻⁸) 在 1/3–3 之间："同一量级"；判定以基准组合为条件，并报告在预先列出的变体网格上是否稳健 | **更高**：基准组合为 N26 基准的 9.4 倍；**依赖校准**（72 个中 61 个更高、11 个同一量级；2.5–37 倍） |
 | D：所需的 σ_UV（R3） | 现在可检验 | 固定中位数关系，解 φ_model(σ) = φ_obs（及其泊松限） | 同上 | 报告中心值；区间与 N26 的 ≈ 1.5–2 mag 重叠："一致"；以 R2 为前提 | **与 N26 一致**：1.38 mag（1.15–1.57）；**依赖校准**（38 个一致、34 个不同；1.07–1.60 mag） |
 | H25 的 z ~ 14 点（R4） | 只作背景 | H25 的 z ~ 14 箱只含 GS-z14-0（与 N26 共用），误差含宇宙方差 | H25 表 2 | 无（背景） | H25 为 φ_obs 的 8.6 倍（共用天体，面积约小 39 倍） |
-| 模型组成（R5） | 可探索（不能判决） | 晕质量函数、吸积拟合式、校准红移、σ_cal、ε 外推、尘埃、完备性 c | 同上 | 无——仅供探索，见 README 第 8 节 | σ_cal 与 ε 外推方式决定变体之间的差别（见"我们的发现"） |
+| 模型组成（R5） | 可探索（不能判决） | 晕质量函数、吸积拟合式、校准红移、σ_cal、ε 外推、尘埃、完备性 c | 同上 | 无——仅供探索，见 README 第 8 节 | σ_cal、晕质量函数（11 个"同一量级"的变体都用 Reed 等 2007）与 ε 外推方式（决定 R3）造成变体之间的差别 |
 | D：宇宙方差（`gap_poisson`） | 可探索（不能判决） | 用晕偏置（halo bias）估计两个计数的视场间弥散 | 同上 | 无——仅供探索 | 尚未探索 |
 | E：有效面积（`gap_area`） | 可探索（不能判决） | 尾概率随有效面积（比值）的变化：约为所述面积的 1.8 倍（比值约 99）时越过 2 × 10⁻⁴，约 4.8 倍（比值约 38）时越过 1.35 × 10⁻³（这是泊松尾概率本身的性质，用于参照，不是判决门槛） | – | 无——仅供探索 | 尚未探索 |
 | 基准代表共识（2.3） | 不在检验范围内 | 需要 JWST 之前的模型集合 | – | – | – |
@@ -489,11 +490,11 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 数密度由两个源与 N26 的体积得出：用 Gehrels 泊松限，log φ = −5.364（+0.365/−0.451）；由 388 arcmin² 在 Planck 2018 下复算的体积相差不到 0.5%。在 N26 的基准下，看到两个或更多源的泊松概率为 6 × 10⁻⁵（比值为 100 时为 2 × 10⁻⁴），所以 Lean 论证中用到的界成立。
 
-一个独立的恒定恒星形成效率模型，用 Bouwens 等 2021 的 JWST 之前 z ≈ 8 光度函数校准后冻结，在同一箱中预言 φ = 2.2 × 10⁻⁷ Mpc⁻³ mag⁻¹：为 N26 基准的 9.4 倍（观测数密度约为这一预言的 19 倍，看到两个源的泊松概率约 0.5%）。在 72 个预先列出的变体中，这个倍数从 2.5 到 37（61 个"更高"、11 个"同一量级"），所以判定依赖校准。影响最大的是校准时假定的弥散，以及效率如何外推到小晕。固定中位数关系时，再现观测数密度所需的弥散为 σ_UV ≈ 1.4 mag（泊松范围内 1.15–1.57；各变体 1.07–1.60）：位于 N26 的 1.5–2 mag 的低端或略低，并高于推断到 z ≈ 9 的约 0.7 mag。论证的三个缺口（判决规则、宇宙方差、有效面积）不受这些数字影响。
+一个独立的恒定恒星形成效率模型，用 Bouwens 等 2021 的 JWST 之前 z ≈ 8 光度函数校准后冻结，在同一箱中预言 φ = 2.2 × 10⁻⁷ Mpc⁻³ mag⁻¹：为 N26 基准的 9.4 倍（观测数密度约为这一预言的 19 倍，看到两个源的泊松概率约 0.5%）。在 72 个预先列出的变体中，这个倍数从 2.5 到 37（61 个"更高"、11 个"同一量级"），所以判定依赖校准。影响最大的是校准时假定的弥散，以及效率如何外推到小晕。固定中位数关系时，再现观测数密度所需的弥散为 σ_UV ≈ 1.4 mag（泊松范围内 1.15–1.57；各变体 1.07–1.60）：位于 N26 的 1.5–2 mag 的低端或略低，并高于推断到 z ≈ 9 的约 0.7 mag。论证的三个缺口（判决规则、宇宙方差、有效面积）以及审稿人发现的第四个缺口（`gap_bin`）都不受这些数字影响。
 
 结果：[`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r1.json)、[`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r2.json)、[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r3.json)、[`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json)。交互网页在本地用 `python -m astrolab serve` 打开。
 
-**独立审稿之后（2026-11-15；事后，仅为探索）。** 两个基准判定都不能抵御 z ≈ 8 校准数据的不确定性，而预注册没有传播这一不确定性：把 Bouwens 等 2021 的任一参数按 1σ 移动，比值在 1.9 到 35 之间变化，所需 σ 在 1.70 到 1.10 mag 之间变化，R2 与 R3 都会翻转。只要去掉 0.3 mag 的 z ≈ 8 尘埃消光，比值就变为 20、σ 变为 1.24 mag（"不同"）。稳健的说法更窄：独立的恒定 SFE 模型预言的 z = 14–15 星系多于 N26 的基准（2–37 倍，大多超过 3 倍），所以 182 倍强烈依赖基准；它所需的 σ_UV 在 1–2 mag 左右，与 N26 的 1.5–2 mag 是否重叠没有稳定的判定。审稿人还发现论证的第四个缺口：箱是围绕两个探测选的（`gap_bin`，旁视效应）。后续：用带误差的分箱数据校准并传播后验（T-025）。
+**独立审稿之后（2026-11-15；事后，仅为探索）。** 两个基准判定都不能抵御 z ≈ 8 校准数据的不确定性，而预注册没有传播这一不确定性：把 Bouwens 等 2021 的任一参数按 1σ 移动，比值在 1.9 到 35 之间变化，所需 σ 在 1.70 到 1.10 mag 之间变化：每一种移动都会使 R3 翻转，φ* 减 1σ 还会使 R2 翻转（比值 1.9，"同一量级"）。只要去掉 0.3 mag 的 z ≈ 8 尘埃消光，比值就升到 20（R2 仍为"更高"），σ 变为 1.24 mag（R3"不同"）。稳健的说法更窄：独立的恒定 SFE 模型预言的 z = 14–15 星系多于 N26 的基准（2–37 倍，大多超过 3 倍），所以 182 倍强烈依赖基准；它所需的 σ_UV 在 1–2 mag 左右，与 N26 的 1.5–2 mag 是否重叠没有稳定的判定。审稿人还发现论证的第四个缺口：箱是围绕两个探测选的（`gap_bin`，旁视效应）。后续：用带误差的分箱数据校准并传播后验（T-025）。
 
 ### 术语表
 
@@ -520,7 +521,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 按时间倒序。
 
-- 2026-11-15：独立审稿：z ≈ 8 光度函数的不确定性与尘埃会使两个判定翻转（事后探索）；第四个缺口 `gap_bin`；后续 T-025。
+- 2026-11-15：独立审稿：z ≈ 8 光度函数的不确定性使 R3 翻转（φ* 减 1σ 时 R2 也翻转），尘埃使 R3 翻转（事后探索）；第四个缺口 `gap_bin`；后续 T-025。
 - 2026-11-15：结果：第三部分"结果"一列与"我们的发现"（R1 复现；R2 更高、依赖校准；R3 一致、依赖校准）。
 - 2026-11-15：闸门 2 审查第 2 轮：从尾概率到"高置信度"的一步是我们定的判决规则，改为 GAP `gap_rule`（三个缺口）；z ≈ 14 的宇宙年龄按 N26 改为 2.8 亿年。
 - 2026-11-15：闸门 2 审查：泊松尾概率改为与计数和比值相连的界（`mod_poisson`），不再是单独的数值；`obs_count` 注明是 N26 的计数假设，只保留观测部分。

@@ -151,7 +151,7 @@ theorem gap_bin_needed : ¬ ∀ v, Without .gap_bin v → Conclusion v := fun h 
   h ⟨2, 182, 60, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 /-- What the paper writes is not enough: the Poisson tail is standard background (implied), and
-the decision rule, the Poisson and the area assumptions are not stated. -/
+the decision rule, the Poisson, the area and the bin assumptions are not stated. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   h ⟨2, 182, 1000, False, False, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 

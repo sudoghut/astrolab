@@ -187,9 +187,10 @@ pre-registered flag "inside the calibrated range" reads false; weighted by abund
 1.000 of them is inside (the falling-branch halos are about 10⁻¹³ as abundant).
 
 What drives the variants (ratio to N26's baseline; central σ): the scatter σ_cal (0.5: 2.5–9.4×,
-1.07–1.53 mag; 0.9: 5.9–37×, 1.16–1.60 mag) and the extrapolation ("dpl": 2.5–19×, 1.33–1.60 mag;
-"const": 2.5–37×, 1.07–1.39 mag). The halo mass function, the growth-rate fit and the calibration
-redshift matter less.
+1.07–1.53 mag; 0.9: 5.9–37×, 1.16–1.60 mag), the halo mass function (Sheth–Tormen 6.6–37×, Reed et
+al. 2007 2.5–16×; all 11 "same order" R2 variants use Reed et al. 2007) and the extrapolation
+("dpl": 2.5–19×, 1.33–1.60 mag; "const": 2.5–37×, 1.07–1.39 mag), which decides R3 ("dpl" 36/36
+consistent, "const" 2/36). The growth-rate fit and the calibration redshift matter less.
 
 Reading. The number density follows from the two sources and the stated volume. An independent
 constant-SFE model, calibrated on the pre-JWST z ≈ 8 LF, predicts about 9 times more such galaxies
@@ -218,7 +219,7 @@ Independent referee (2026-11-15; a subagent given the code, pre-registration and
 reading). It checked the physics line by line and found no code bugs. Triage:
 
 1. **z ≈ 8 LF uncertainty not propagated (accepted; dominant).** Verified with
-   `explore/lf_uncertainty.py` (section 5): ±1σ in φ*, M* or α flips both R2 and R3. The fiducial
+   `explore/lf_uncertainty.py` (section 5): ±1σ in φ*, M* or α flips R3; φ* −1σ also flips R2 (ratio 1.9, "same order"); removing z ≈ 8 dust raises the ratio (R2 stays "higher") and flips R3. The fiducial
    verdicts stand as pre-registered but are not robust to the calibration data; the follow-up is a
    calibration against binned z ≈ 8 data with errors and posterior propagation (TODO T-025).
 2. **R3 is driven by halos below the calibrated range (accepted).** At σ ≈ 1.4 most of the bin's
@@ -226,7 +227,7 @@ reading). It checked the physics line by line and found no code bugs. Triage:
    "dpl"/"const" axis nearly decides R3. The 10 M_min test does not probe this.
 3. **Halo mass function in the extreme tail (accepted limitation).** ν ≈ 5–7: a 1–2% error in σ(M)
    changes n by tens of percent; Sheth–Tormen is known to overpredict rare halos at high z (Reed
-   07 lowers the ratio by 2.5–4×, which is why it gives most "same order" variants).
+   07 lowers the ratio by 2.5–4×; all 11 "same order" variants use it).
 4. **The accretion variants are nearly redundant (accepted).** After calibration the three fits
    scale almost identically from z = 7.9 to 14.5 (ratios 9.4 / 9.8 / 9.3), so that axis adds little
    independent spread; an extended-Press–Schechter rate would be a real alternative.
@@ -270,7 +271,7 @@ How a coding agent answers "what if" questions about this study without touching
 | `eps_extrap` | ε outside the calibrated range | `"dpl"`, `"const"` | no data |
 | `completeness` | spectroscopic completeness c (φ_obs → φ_obs/c) | 0.1–1 | no data |
 | `area_factor` | effective area / declared area (`gap_area`) | 1–10 | no data |
-| (script) dust at z ≈ 8 | an exploration script `explore/dust_z8.py` (not a `run.py` knob): remove A_UV = max(0, 4.43 + 1.99 β) (Meurer et al. 1999) at z ≈ 8 only, with β(M_UV) at z ~ 8 from Bouwens et al. 2014 (ApJ 793, 115) transcribed and verified in the script; scatter in β ignored | – | no data |
+| (script) dust at z ≈ 8 | planned exploration script `explore/dust_z8.py` (not yet written): remove A_UV = max(0, 4.43 + 1.99 β) (Meurer et al. 1999) at z ≈ 8, with β(M_UV) from Bouwens et al. 2014 (ApJ 793, 115) transcribed and verified in the script. The exploration done so far (`explore/lf_uncertainty.py`) uses a uniform A_UV shift of the z ≈ 8 LF | – | no data |
 | `m_h_min` | lowest halo mass included (M☉); values below 10⁸ include halos not assumed to host galaxies | 10⁷–10⁹ | no data |
 
 - Rerun with an override: `python -m astrolab explore 006-m08-z14-galaxies-number-density --tag <topic> --set KEY=VALUE`
