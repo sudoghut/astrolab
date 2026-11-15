@@ -57,6 +57,26 @@ python -m pytest                   # library tests + each study's conclusion tes
 python -m astrolab serve           # Atlas and study pages at http://127.0.0.1:8765/atlas/web/
 ```
 
+### Configuration
+
+- **Data limits** live in `astrolab/config.py` (per download, per TAP query, per study run, cache size).
+  They are deliberate guards (AGENTS.md section 1); do not raise them or set `ASTROLAB_*` overrides
+  without a recorded reason.
+- **Cache**: the system cache directory (`%LOCALAPPDATA%strolab\Cache` on Windows), never the
+  project folder. `python -m astrolab cache [info|prune|clear]`.
+- **Gaia archive login (optional).** Anonymous jobs on the ESA Gaia archive stop after 60 s; a free
+  Gaia archive account gets much longer limits. astrolab finds credentials in this order:
+  1. environment variables `GAIA_USERNAME` and `GAIA_PASSWORD`;
+  2. a `.env` file at the project root: copy `.env.example` to `.env` and fill in both lines. `.env`
+     is git-ignored. If the project folder is synced (e.g. Dropbox), the file is synced too; use the
+     environment variables instead if that matters;
+  3. otherwise `python -m astrolab gaia-login` asks interactively (password not echoed).
+
+  The password is never stored by astrolab: only the session cookie returned by the archive is kept,
+  in `%LOCALAPPDATA%strolab\gaia_session.json` (outside the project). With credentials configured
+  and no cookie yet, Gaia queries log in once automatically. `python -m astrolab gaia-logout` ends the
+  session and deletes the cookie.
+
 ### License
 
 [MIT](LICENSE). Data products remain under the terms of their original providers
@@ -114,6 +134,17 @@ python -m astrolab run 001         # 重跑某个研究（第一次运行后即�
 python -m pytest                   # 运行核心库测试和各研究的结论测试
 python -m astrolab serve           # 本地浏览 Atlas 与研究网页：http://127.0.0.1:8765/atlas/web/
 ```
+
+### 配置
+
+- **数据上限**写在 `astrolab/config.py` 中（单次下载、单次 TAP 查询、单次研究运行、缓存总量）。它们是有意设置的保护（AGENTS.md 第一条）；没有记录理由时不要调高，也不要用 `ASTROLAB_*` 环境变量绕过。
+- **缓存**放在系统缓存目录（Windows 上为 `%LOCALAPPDATA%strolab\Cache`），从不放在项目目录。命令：`python -m astrolab cache [info|prune|clear]`。
+- **Gaia 档案登录（可选）。** ESA Gaia 档案对匿名作业限制执行 60 秒；免费注册的 Gaia 档案账号限制宽得多。astrolab 按以下顺序寻找凭据：
+  1. 环境变量 `GAIA_USERNAME` 与 `GAIA_PASSWORD`；
+  2. 项目根目录下的 `.env` 文件：把 `.env.example` 复制为 `.env` 并填写两行。`.env` 不受 git 追踪；若项目目录被同步（例如 Dropbox），这个文件也会被同步，介意时请改用环境变量；
+  3. 都没有时，`python -m astrolab gaia-login` 以交互方式询问（密码不回显）。
+
+  astrolab 从不保存密码，只保存档案返回的会话 cookie，位置是 `%LOCALAPPDATA%strolab\gaia_session.json`（项目目录之外）。配置了凭据而还没有 cookie 时，Gaia 查询会自动登录一次。`python -m astrolab gaia-logout` 结束会话并删除 cookie。
 
 ### 许可证
 
