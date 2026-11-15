@@ -34,7 +34,8 @@ set S_O4a and a GWTC-3.0 set S_O3.
 *O4a comparison target.* P26's list in Zenodo `o4a_event_list.tar` is the comparison target only.
 Before comparing, the run records the tar's members and the names found in them (pattern
 GW\d{6}_\d{6}, or GW\d{6} for old-style names). The target T is the set of those names whose
-date part falls in the O4a window (section 4). Names are matched on the GWyymmdd_hhmmss string (a
+full GWyymmdd_hhmmss time, converted to GPS, falls in the O4a window (section 4, the same half-open
+interval). Names are matched on the GWyymmdd_hhmmss string (a
 GWOSC version suffix such as `-v1` is ignored). If T is empty or |T| ≠ 84, the target is ambiguous
 and R1 is **"described"** (the members and counts are reported).
 Allowed difference (type a): S_O4a may contain extra events whose m2 90% lower bound lies in
@@ -43,12 +44,14 @@ Allowed difference (type a): S_O4a may contain extra events whose m2 90% lower b
 
 *GWTC-3.0 part.* No published list of the 69 events is used; the count is the criterion.
 Allowed difference types: (i) the mass proxy (adds events, as above); (ii) events with FAR < 1/yr
-missing from both the confident and the marginal GWOSC lists (removes events; reported as a count
-that cannot be checked here); (iii) PE or FAR version differences between the GWOSC lists and the
+missing from both the confident and the marginal GWOSC lists (removes events; not measurable here: a
+shortfall is noted as possibly type ii or iii); (iii) PE or FAR version differences between the GWOSC lists and the
 values P26 used (reported per event when a GWTC-2.1 and a GWTC-3 entry disagree). **GWTC-3.0 part
-reproduced** if |S_O3| = 69 ± 2 and every event beyond 69 is of type (i); the named checks below must
-all pass. Named checks (each must be excluded, with the reason recorded): GW170817, GW190425,
-GW190814, GW190917_114630, GW190426_152155, GW200105_162426, GW200115_042309.
+reproduced** if |S_O3| = 69 ± 2, and, when |S_O3| > 69, the number of S_O3 events with an m2 90% lower
+bound in (3, 5] M☉ is at least |S_O3| − 69 (a shortfall of 1 or 2 passes without attribution); the
+named checks below must all pass. Named checks (each must be excluded, with the reason recorded): GW170817, GW190425,
+GW190814, GW190917_114630, GW190426_152155, GW200105_162426, GW200115_042309. An event excluded
+because it has no PE masses in the lists counts as "excluded (no PE)", not as a failed check.
 
 **R1 verdict:** "reproduced" if both parts are reproduced; "described" if the O4a target is
 ambiguous; otherwise "not reproduced", with every difference listed. The FAR cut uses GWOSC's
@@ -74,12 +77,14 @@ feature. Also reported: the median fractional 90% width of m1 for events with me
 p(m1) = f(m1) VT(m1) / ∫_10^100 f VT, with f ∝ m1^(−λ) (larger λ is steeper) and the same VT family
 and M_t values. (A) broken power law: λ1, λ2 ∈ [−2, 10], m_break ∈ [20, 60], continuous at the break.
 (B) mixture f = (1 − w) BPL/∫BPL + w N(μ, σ)/∫N, both normalised on [10, 100], μ ∈ [25, 45],
-σ ∈ [1, 10], w ∈ [0, 1]. scipy `minimize` (L-BFGS-B) from 20 starting points drawn with seed 0, plus
+σ ∈ [1, 10], w ∈ [0, 1]. scipy `minimize` (L-BFGS-B) from 20 starting points drawn uniformly within the parameter bounds with
+seed 0 (the bounds stay fixed when `m_range` changes), plus
 for (B) the best (A) fit with w = 0, so that 2Δln L ≥ 0. Reported per M_t: λ2 − λ1 of (A) (flagged when
 m_break is at a bound) and 2Δln L of (B) against (A). No p-value is attached (w = 0 is a boundary).
 m_break and M_t are expected to be degenerate when M_t lies in [20, 60]. Not a reproduction of P26.
 
-**R4 (descriptive).** Percentile of GW231123's median total mass among all sample medians (not P26's
+**R4 (descriptive).** Percentile of GW231123's median total mass among the median total masses of
+the full sample S_O4a ∪ S_O3 (all masses, GW231123 included) (not P26's
 "maximum detectable mass" statistic).
 
 ## 3. Data (with size estimate)
@@ -148,8 +153,9 @@ How a coding agent answers "what if" questions about this study without touching
   (outputs in `explore/<date>-<topic>/`, not committed; seconds from cache).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 007-m10-gwtc4-bbh-mass-35msun --tag <topic> --script explore/<name>.py`.
-- Results files and keys (planned): `results/r1.json` (`n_o4a`, `n_o3`, `missing`, `extra`,
-  `verdict`); `results/r2.json` (`n_lo`, `n_hi`, per-turnover predictions and ratios, `width_30_40`);
+- Results files and keys (planned): `results/r1.json` (`n_o4a`, `n_o3`, `target_size`, `missing`,
+  `extra`, `named_checks`, `gwtc1_missing`, `verdict`); `results/r2.json` (`n_lo`, `n_hi`, `n_outside_range`, per-turnover `f_pred`, `frac_obs`, `binom_p`,
+  `width_30_40`);
   `results/r3.json` (per-turnover fits); `results/r4.json`; `results/sample.json` (the event table).
 - Example questions: "what if VT turns over at 40 M☉?" → `--set turnovers=[40]`; "does the R2 count
   change with the 30 M☉ split?" → `--set m_split=30`.
