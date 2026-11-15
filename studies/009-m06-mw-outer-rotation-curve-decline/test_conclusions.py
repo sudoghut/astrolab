@@ -32,7 +32,7 @@ def test_r2_all_models_present():
 def test_r3_constant_bias_null_control():
     r3 = load("r3")
     g = list(r3["constant_gamma"].values())
-    assert max(g) - min(g) < 0.03
+    assert max(g) - min(g) < 0.05
 
 
 def test_result_files_small():

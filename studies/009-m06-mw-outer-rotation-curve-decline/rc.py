@@ -34,6 +34,8 @@ def disc_v2(R, M, L, H, kmax_factor=200.0, rel_tol=1e-6):
             val = val2
             break
         val, kmax = val2, 2 * kmax
+    else:
+        raise RuntimeError(f"disc_v2 did not converge at R = {R} (L = {L}, H = {H})")
     return 2 * np.pi * G * sigma0 * L ** 2 * R * val
 
 
@@ -82,7 +84,9 @@ def baryon_v2(R, model):
 def einasto_mass(r, M0, h, inv_n):
     """M_DM(<r) = M0 n Gamma(3n) P(3n, (r/h)^(1/n)), M0 = 4 pi h^3 rho0."""
     n = 1.0 / inv_n
-    return M0 * n * np.exp(special.gammaln(3 * n)) * special.gammainc(3 * n, (r / h) ** inv_n)
+    with np.errstate(divide="ignore"):
+        logp = np.log(special.gammainc(3 * n, (r / h) ** inv_n))
+    return M0 * n * np.exp(special.gammaln(3 * n) + logp)          # in log space (no overflow for large n)
 
 
 def nfw_mass(r, rho_s, r_s):
@@ -104,22 +108,32 @@ def r_vir(mass_fn, rho_cr, extra_mass=0.0, bracket=(1.0, 1e3)):
 
 # ------------------------------------------------------------ power law ----
 
-def powerlaw_lnpost(theta, R, V, sig, pivot, a_max, cov_inv=None, log_a=False):
-    a, gamma = theta
-    if not (-10 <= gamma <= 5):
+def powerlaw_lnpost(theta, R, V, sig, pivot, a_max, cov_inv=None, log_a=False, sample_pivot=None):
+    """Posterior of V = A (R/pivot)^gamma with flat gamma in [-10, 5] and A flat on [0, a_max]
+    (or log10 A flat on [0, log10 a_max] when log_a).
+
+    Sampled coordinates (Vs, gamma) with Vs = V(sample_pivot) = A (sample_pivot/pivot)^gamma; the
+    log-Jacobian of A -> Vs keeps the prior on A exactly as stated (README 2.1; reparametrisation only
+    improves mixing, the posterior is unchanged).
+    """
+    vs, gamma = theta
+    if not (-10 <= gamma <= 5) or vs <= 0:
         return -np.inf
+    rs = pivot if sample_pivot is None else sample_pivot
+    ratio = rs / pivot
+    amp = vs * ratio ** (-gamma)
     if log_a:
-        if not (0 <= a <= np.log10(a_max)):
+        if not (1.0 <= amp <= a_max):
             return -np.inf
-        amp = 10 ** a
+        log_jac = -np.log(vs)                       # flat in log A: p(Vs) = 1/A dA/dVs = 1/Vs
     else:
-        if not (0 <= a <= a_max):
+        if not (0.0 <= amp <= a_max):
             return -np.inf
-        amp = a
-    r = V - amp * (R / pivot) ** gamma
+        log_jac = -gamma * np.log(ratio)            # dA/dVs = ratio^(-gamma)
+    r = V - vs * (R / rs) ** gamma
     if cov_inv is None:
-        return -0.5 * np.sum((r / sig) ** 2)
-    return -0.5 * r @ cov_inv @ r
+        return -0.5 * np.sum((r / sig) ** 2) + log_jac
+    return -0.5 * r @ cov_inv @ r + log_jac
 
 
 def run_emcee(lnpost, start, args, nwalkers, nsteps, burn, seed, rel_width=1e-3, tau_factor=50):
@@ -128,7 +142,7 @@ def run_emcee(lnpost, start, args, nwalkers, nsteps, burn, seed, rel_width=1e-3,
     ndim = len(start)
     p0 = start * (1 + rel_width * rng.standard_normal((nwalkers, ndim))) + 1e-6 * rng.standard_normal((nwalkers, ndim))
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnpost, args=args)
-    np.random.seed(seed)
+    sampler.random_state = np.random.RandomState(seed).get_state()   # seed the stretch moves
     sampler.run_mcmc(p0, nsteps, progress=False)
     chain = sampler.get_chain(discard=burn, flat=True)
     try:
@@ -144,6 +158,10 @@ def s_statistic(gamma):
     return float((0 - med) / (np.percentile(gamma, 84) - med))
 
 
-def one_sided_sigma(p):
-    p = min(max(p, 1e-300), 1 - 1e-16)
-    return float(special.ndtri(1 - p))
+def one_sided_sigma(p, n_samples=None):
+    """One-sided Gaussian significance of a tail probability; p = 0 gives a lower bound from 1/n_samples."""
+    lower_bound = p <= 0
+    if lower_bound:
+        p = 1.0 / n_samples if n_samples else 1e-16
+    p = min(p, 1 - 1e-16)
+    return float(special.ndtri(1 - p)), bool(lower_bound)
