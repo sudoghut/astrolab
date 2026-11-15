@@ -110,12 +110,17 @@ advance.
   with the true age) and e = r·A (errors scale with the observed age, computed iteratively from the
   draw); observed ages Gaussian around τ, truncated to [0, 20]; for S15 the cut e/A < 0.15 is applied
   and draws continue until the bin's observed count is reached. Null and power results are reported
-  per mechanism; d_crit is the smaller of the two mechanisms' values, and the bin counts as
-  resolvable only if power ≥ 80% under both.
-- **Null:** a skew-normal latent distribution (unimodal, non-Gaussian) fitted to the bin in M0;
-  50 mocks; d_crit = the 3rd smallest null d (empirical 5%; with 50 mocks the binomial uncertainty of
-  the false-positive rate is about ±3%). If fewer than 3 null mocks have a valley, d_crit = 1 and the
-  rule reduces to d ≤ 0.25 with a valley present.
+  per mechanism; the bin counts as resolvable only if power ≥ 80% under both (power computed with
+  the d_crit applied, see Null).
+- **Null:** two unimodal, log-concave, non-Gaussian latent families, each fitted to the bin in M0:
+  a skew-normal and a two-piece (split) normal (different widths on each side of the mode). 50 mocks
+  per family; for each family d_crit = the 3rd smallest null d (empirical 5%; with 50 mocks the
+  binomial uncertainty of the false-positive rate is about ±3%). The d_crit applied is the smallest
+  over the two families and the two error mechanisms (the strictest). If fewer than 3 null mocks of a
+  set have a valley, that set's d_crit = 1. *Deviation from plan 019:* the plan asked for a
+  log-concave sensitivity check; a non-parametric log-concave deconvolution with truncation and the
+  S15 term is not practical here, so a second parametric log-concave family is used and enters the
+  verdict instead of being reported only.
 - **Power:** per bin, a two-component latent model built from XR22's numbers: an old component
   N(τ̄0 + a·[Fe/H]_centre, 0.82²) with τ̄0 = 9.38, a = −3.8 (8.6 Gyr at +0.2, 11.7 Gyr at −0.6), and a
   young component uniform from 1.5 Gyr to 7 Gyr (XR22's late phase, ending before 8 Gyr), with
@@ -126,7 +131,7 @@ advance.
   further if mock power is low (for example because the Gaussian fit smooths the uniform edge); the
   generating models are recorded. 50 mocks; power = fraction with d < d_crit and
   d ≤ 0.25. Bins with power < 80% are "cannot resolve" and excluded.
-- **Recorded per bin:** both mechanisms' d_crit and which one was applied.
+- **Recorded per bin:** the d_crit of each family and mechanism and which one was applied.
 - **Per bin:** "almost disjoint" if d < d_crit **and** d ≤ 0.25. Young-side upper edge = 97.5th
   percentile of the latent mass younger than the valley (our proxy; XR22 give no definition).
 - **Verdict:** **reproduced** if at least 3 bins are resolvable, at least 3 of them are almost
@@ -233,10 +238,13 @@ memory and are never written to the project directory. Mock samples for R1 and t
 use their own generator, independent of the likelihood code. Analytic gradients are used for the
 mixtures and the R3/R4 models. Cost estimate: one R1 evaluation about 1–3 ms, one R3/R4 evaluation
 about 10–20 ms (cells are nearly one per star); a fit takes a few hundred evaluations. R1
-calibration is 5 bins × 2 samples × 2 mechanisms × 100 mocks × about 12–15 fits (K and starts), about
-3–10 h; the R3/R4 and sample-B mocks (200 mocks × 3 starts × about 300 evaluations) add about 2–3.5 h,
+calibration is 5 bins × 2 samples × 2 mechanisms × 150 mocks (two null families and power) × about 12–15 fits (K and starts), about
+5–15 h; the R3/R4 and sample-B mocks (200 mocks × 3 starts × about 300 evaluations) add about 2–3.5 h,
 plus the robustness refits. The budget
-rule of 2.1 therefore probably applies (30 mocks per set). All tunable numbers (cuts, bins,
+rule of 2.1 therefore probably applies (30 mocks per set). This exceeds the minutes-scale runs of
+other studies; it is a one-off calibration, cached results are reused by `explore`, and the main fits
+(without mocks) take minutes. The Monte Carlo uncertainty of every mock-based rate is written to the
+results. All tunable numbers (cuts, bins,
 grid, K range, mock counts, thresholds, seeds) are in `PARAMS`, saved with the results. Results go to
 `results/` as small JSON files (no per-star output). A web page shows the age–[Fe/H] densities, the
 R1 bin densities with valleys, the R2 histogram and fits, the R3/R4 sequence and the R7 spreads.
