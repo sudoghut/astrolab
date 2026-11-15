@@ -279,7 +279,7 @@ propagate: moving one Bouwens et al. 2021 parameter by its 1σ error changes the
 and the required σ from 1.70 to 1.10 mag: every such shift flips R3, and φ* −1σ also flips R2 (ratio
 1.9, "same order"). Removing even 0.3 mag of z ≈ 8 dust raises the ratio to 20 (R2 stays "higher")
 and takes σ to 1.24 mag (R3 "different"). The robust statement is narrower: an
-independent constant-SFE model predicts more z = 14–15 galaxies than N26's baseline (2–37×, mostly
+independent constant-SFE model predicts more z = 14–15 galaxies than N26's baseline (2.5–37× across the pre-registered variant grid, mostly
 more than 3×), so the factor 182 depends strongly on the baseline; the σ_UV it needs lies around
 1–2 mag, with no stable verdict on overlap with N26's 1.5–2 mag. The referee also found a fourth gap
 in the argument: the bin was drawn around the two detections (`gap_bin`, look-elsewhere effect).
@@ -495,7 +495,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 结果：[`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r1.json)、[`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r2.json)、[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r3.json)、[`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json)。交互网页在本地用 `python -m astrolab serve` 打开。
 
-**独立审稿之后（2026-11-15；事后，仅为探索）。** 两个基准判定都不能抵御 z ≈ 8 校准数据的不确定性，而预注册没有传播这一不确定性：把 Bouwens 等 2021 的任一参数按 1σ 移动，比值在 1.9 到 35 之间变化，所需 σ 在 1.70 到 1.10 mag 之间变化：每一种移动都会使 R3 翻转，φ* 减 1σ 还会使 R2 翻转（比值 1.9，"同一量级"）。只要去掉 0.3 mag 的 z ≈ 8 尘埃消光，比值就升到 20（R2 仍为"更高"），σ 变为 1.24 mag（R3"不同"）。稳健的说法更窄：独立的恒定 SFE 模型预言的 z = 14–15 星系多于 N26 的基准（2–37 倍，大多超过 3 倍），所以 182 倍强烈依赖基准；它所需的 σ_UV 在 1–2 mag 左右，与 N26 的 1.5–2 mag 是否重叠没有稳定的判定。审稿人还发现论证的第四个缺口：箱是围绕两个探测选的（`gap_bin`，旁视效应）。后续：用带误差的分箱数据校准并传播后验（T-025）。
+**独立审稿之后（2026-11-15；事后，仅为探索）。** 两个基准判定都不能抵御 z ≈ 8 校准数据的不确定性，而预注册没有传播这一不确定性：把 Bouwens 等 2021 的任一参数按 1σ 移动，比值在 1.9 到 35 之间变化，所需 σ 在 1.70 到 1.10 mag 之间变化：每一种移动都会使 R3 翻转，φ* 减 1σ 还会使 R2 翻转（比值 1.9，"同一量级"）。只要去掉 0.3 mag 的 z ≈ 8 尘埃消光，比值就升到 20（R2 仍为"更高"），σ 变为 1.24 mag（R3"不同"）。稳健的说法更窄：独立的恒定 SFE 模型预言的 z = 14–15 星系多于 N26 的基准（预注册的变体网格上 2.5–37 倍，大多超过 3 倍；含事后探索为 1.9–99 倍），所以 182 倍强烈依赖基准；它所需的 σ_UV 在 1–2 mag 左右，与 N26 的 1.5–2 mag 是否重叠没有稳定的判定。审稿人还发现论证的第四个缺口：箱是围绕两个探测选的（`gap_bin`，旁视效应）。后续：用带误差的分箱数据校准并传播后验（T-025）。
 
 ### 术语表
 
