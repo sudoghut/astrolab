@@ -239,8 +239,8 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 ### M6 · 银河系外区旋转曲线（L3，contested）
 
 **文献** [V]
-- Jiao et al. 2023, A&A 678, A208：19.5 kpc 到 26.5 kpc 之间旋转速度下降约 30 km/s；银河系总质量 2.06 (+0.24/−0.13) × 10¹¹ M☉。
-- Ou et al. 2024, MNRAS 528, 693。
+- Jiao et al. 2023, A&A 678, A208, arXiv:2309.00048：19.5 kpc 到 26.5 kpc 之间旋转速度下降约 30 km/s，平坦曲线以 3σ 被拒绝；银河系总质量 2.06 (+0.24/−0.13) × 10¹¹ M☉（爱纳斯托晕）。分箱曲线为正文表 3（18 个箱）。
+- Ou et al. 2024, MNRAS 528, 693, arXiv:2303.12838：APOGEE DR17 + Gaia DR3，表 1（37 个箱），M200 = 1.81 × 10¹¹ M☉（有核爱纳斯托晕）。
 - 综述：Melchiorri & Ruchika 2026, arXiv:2608.10189，认为星流（streams）和卫星星系（satellites）等其他示踪体支持更重的暗物质晕（halo）。
 
 **方法**
