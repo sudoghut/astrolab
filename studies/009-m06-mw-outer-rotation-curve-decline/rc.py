@@ -84,9 +84,20 @@ def baryon_v2(R, model):
 def einasto_mass(r, M0, h, inv_n):
     """M_DM(<r) = M0 n Gamma(3n) P(3n, (r/h)^(1/n)), M0 = 4 pi h^3 rho0."""
     n = 1.0 / inv_n
+    a = 3 * n
+    x = np.atleast_1d(np.asarray((r / h) ** inv_n, dtype=float))
+    p = special.gammainc(a, x)
     with np.errstate(divide="ignore"):
-        logp = np.log(special.gammainc(3 * n, (r / h) ** inv_n))
-    return M0 * n * np.exp(special.gammaln(3 * n) + logp)          # in log space (no overflow for large n)
+        log_lower = special.gammaln(a) + np.log(p)                   # log of the lower incomplete gamma
+    small = ~(p > 0)
+    if np.any(small):                                                # underflow: series for large a
+        xs = x[small]
+        k = np.arange(400)
+        terms = np.cumsum(np.log(xs[:, None]) - np.log(a + 1 + k[None, :]), axis=1)
+        series = np.logaddexp.reduce(np.concatenate([np.zeros((xs.size, 1)), terms], axis=1), axis=1)
+        log_lower[small] = a * np.log(xs) - xs - np.log(a) + series
+    out = M0 * n * np.exp(log_lower)
+    return out if np.ndim(r) else float(out[0])
 
 
 def nfw_mass(r, rho_s, r_s):
