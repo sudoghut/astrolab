@@ -156,3 +156,8 @@ def test_whitening_identity_and_singular():
     assert np.isfinite(r["n_sigma"])
     bad = np.column_stack([np.ones(1000), np.ones(1000)])
     assert "error" in sd.nsigma_binned(bad)
+
+
+def test_full_space_empty():
+    w = np.ones(10)
+    assert sd.full_space_gaussian(np.zeros((10, 0)), w, np.zeros((10, 0)), w, 1e8)["status"].startswith("no parameters")

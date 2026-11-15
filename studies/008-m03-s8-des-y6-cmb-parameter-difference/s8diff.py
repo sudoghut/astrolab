@@ -295,6 +295,8 @@ def split_normal_draws(mean, sig_plus, sig_minus, n, rng):
 
 def full_space_gaussian(xa, wa, xb, wb, max_cond):
     """Gaussian parameter difference over columns of xa, xb (same order)."""
+    if xa.ndim != 2 or xa.shape[1] == 0:
+        return {"status": "no parameters left after the exclusions"}
     ma = np.average(xa, axis=0, weights=wa)
     mb = np.average(xb, axis=0, weights=wb)
     ca = np.atleast_2d(np.cov(xa.T, aweights=wa))
