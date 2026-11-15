@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-14T21:42:21+00:00",
+ "generated_at": "2026-11-15T05:01:56+00:00",
  "levels": [
   "L0",
   "L1",
@@ -259,7 +259,7 @@
     ]
    },
    "open_questions": [
-    "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003, post-data host labelling: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run. The 2.2 sigma uses C-propagated errors; random 10-host subsets show 1.33 times more scatter, placing the CCHP set at the 4.7th-5.7th percentile, about 1.7 sigma empirically (the subset spread is itself uncertain).)"
+    "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003, post-data host labelling: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run. The 2.2 sigma uses C-propagated errors; random 10-host subsets show 1.33 times more scatter, placing the CCHP set at the 4.7th-5.7th percentile, about 1.7 sigma empirically (the subset spread is itself uncertain), where the pre-registered table would read no significant effect.)"
    ],
    "notes": "Milestone M2."
   },
@@ -574,7 +574,7 @@
    "title": "Hubble tension: SH0ES distance ladder and host selection",
    "title_zh": "哈勃张力：SH0ES 距离阶梯与校准宿主的选择",
    "level": "L2",
-   "status": "active",
+   "status": "concluded",
    "question": "Does a GLS fit of the public SH0ES distance-ladder matrices reproduce H0, and does restricting the ladder to the CCHP-selected hosts lower H0 as much as Riess et al. 2024 claim?",
    "question_zh": "用 SH0ES 公开的距离阶梯矩阵做广义最小二乘拟合能否复现 H0？把阶梯限制在 CCHP 选出的宿主上，H0 是否像 Riess 等 2024 所说的那样降低？",
    "claims": [
@@ -597,6 +597,31 @@
       "name": "SH0ES + Pantheon+",
       "note": "Cepheid hosts and Hubble-flow SNe Ia across the sky (public SH0ES matrices); CCHP JWST hosts are a subset"
      },
+     "targets": []
+    }
+   }
+  },
+  {
+   "id": "005-m09-nanograv-gwb-power-law",
+   "title": "M9 NANOGrav 15-yr GWB: power-law amplitude and spectral index from the KDE free spectrum",
+   "title_zh": "M9 NANOGrav 15 年引力波背景：由 KDE 自由谱拟合幂律振幅与谱指数",
+   "level": "X",
+   "status": "planned",
+   "question": "Does a laptop refit of the NANOGrav 15-yr KDE free spectrum agree with the power-law amplitude and spectral-index statements of Agazie et al. 2023 (ApJL 951 L8), and how does the amplitude overlap with the SMBHB-population prediction of the companion paper L37?",
+   "question_zh": "在本机用 NANOGrav 15 年 KDE 自由谱重拟幂律，振幅与谱指数是否与 Agazie et al. 2023（ApJL 951 L8）的陈述一致？振幅与姊妹论文 L37 的 SMBHB 群体预测重叠多少？",
+   "claims": [],
+   "has_web": true,
+   "last_run": true,
+   "footprint": {
+    "scale": {
+     "log10_min": -6.0,
+     "log10_max": 10.15,
+     "note": null,
+     "default": true
+    },
+    "sky": {
+     "modes": [],
+     "survey": null,
      "targets": []
     }
    }

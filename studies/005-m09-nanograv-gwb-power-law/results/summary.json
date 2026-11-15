@@ -1,0 +1,96 @@
+{
+ "params": {
+  "versions": [
+   "v2.0.0",
+   "v1.1.0"
+  ],
+  "urls": {
+   "v2.0.0": "https://zenodo.org/records/21844115/files/ceffyl_data.zip?download=1",
+   "v1.1.0": "https://zenodo.org/records/10344086/files/NANOGrav15yr_KDE-FreeSpectra_v1.1.0.zip?download=1"
+  },
+  "dir_key": "30f_fs{hd}",
+  "n_freq_file": 30,
+  "n_freq": 14,
+  "t_yr": 16.03,
+  "freq_tol": 0.01,
+  "grid_rtol": 1e-06,
+  "below_grid": "clip",
+  "gamma_fixed": 4.333333333333333,
+  "r1_range": [
+   -18.0,
+   -14.0
+  ],
+  "r1_step": 0.001,
+  "r2_range_a": [
+   -18.0,
+   -11.0
+  ],
+  "r2_range_g": [
+   0.0,
+   7.0
+  ],
+  "r2_step": 0.005,
+  "r4_range_fb": [
+   -9.0,
+   -7.5
+  ],
+  "r4_range_k": [
+   0.0,
+   7.0
+  ],
+  "r4_steps": [
+   0.01,
+   0.025,
+   0.1
+  ],
+  "chunk": 64,
+  "edge_frac": 0.01,
+  "edge_max": 0.01,
+  "l8_A_13_3": [
+   2.4e-15,
+   1.8e-15,
+   3.1e-15
+  ],
+  "h_max": 0.15,
+  "q_cat": [
+   0.95,
+   0.997
+  ],
+  "max_member_bytes": 52428800,
+  "max_total_bytes": 157286400,
+  "max_members": 10000
+ },
+ "load_v2.0.0": {
+  "dir": "ceffyl_data/30f_fs{hd}_ceffyl ",
+  "n_grid": 10000,
+  "grid_lo": -9.0,
+  "grid_hi": -4.0,
+  "db": 0.0005000500050005,
+  "T_yr": 16.029777268872294,
+  "f1_nHz": 1.976826457568005
+ },
+ "load_v1.1.0": {
+  "verdict": "not evaluable",
+  "reason": "expected exactly one directory containing '30f_fs{hd}', found ['ceffyl_data/30f_fs{hd}_100fDMGP_ceffyl', 'ceffyl_data/30f_fs{hd}_ceffyl']"
+ },
+ "r1": {
+  "median_A": 2.3118890032182373e-15,
+  "q05_A": 1.822197676080652e-15,
+  "q95_A": 2.9245868215259814e-15,
+  "hellinger": 0.09933503440825894,
+  "verdict": "consistent with L8's interval"
+ },
+ "r2": {
+  "q_hpd_13_3": 0.9787541035974688,
+  "category": "same order as L8's stated tension (descriptive category)",
+  "gamma_median": 3.250194005884221,
+  "A_median": 6.3326684214336804e-15
+ },
+ "r2b": {
+  "n_models_overlap_ci90": 8,
+  "n_models_contain_median": 5
+ },
+ "r4": {
+  "ln_bf_turnover_vs_pl": 2.3711635219568308
+ }
+}

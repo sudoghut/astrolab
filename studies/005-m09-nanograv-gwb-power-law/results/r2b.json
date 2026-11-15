@@ -1,0 +1,181 @@
+{
+ "n_rows": 24,
+ "n_models_overlap_ci90": 8,
+ "n_models_contain_median": 5,
+ "n_rows_merged": 23,
+ "n_models_overlap_ci90_merged": 8,
+ "n_models_contain_median_merged": 5,
+ "rows": [
+  {
+   "model": "Rajagopal & Romani 1995",
+   "p16": 9.32e-17,
+   "p84": 2.41e-16,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Jaffe & Backer 2003",
+   "p16": 8.1e-17,
+   "p84": 1.5e-16,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Wyithe & Loeb 2003",
+   "p16": 4.77e-16,
+   "p84": 8.84e-16,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Enoki et al. 2004",
+   "p16": 4.7e-16,
+   "p84": 1.25e-15,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Sesana et al. 2008",
+   "p16": 1.15e-16,
+   "p84": 2.88e-15,
+   "overlap_ci90": true,
+   "contains_median": true
+  },
+  {
+   "model": "Sesana et al. 2009a",
+   "p16": 2.79e-16,
+   "p84": 8.21e-16,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Sesana 2013b",
+   "p16": 3.5e-16,
+   "p84": 1.5e-15,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "McWilliams et al. 2014",
+   "p16": 1.07e-15,
+   "p84": 1.51e-14,
+   "overlap_ci90": true,
+   "contains_median": true
+  },
+  {
+   "model": "Ravi et al. 2014",
+   "p16": 6.51e-16,
+   "p84": 2.1e-15,
+   "overlap_ci90": true,
+   "contains_median": false
+  },
+  {
+   "model": "Kulier et al. 2015",
+   "p16": 1.58e-15,
+   "p84": 2.51e-15,
+   "overlap_ci90": true,
+   "contains_median": true
+  },
+  {
+   "model": "Ravi et al. 2015",
+   "p16": 5.1e-16,
+   "p84": 2.4e-15,
+   "overlap_ci90": true,
+   "contains_median": true
+  },
+  {
+   "model": "Rosado et al. 2015",
+   "p16": 1.91e-16,
+   "p84": 2.01e-15,
+   "overlap_ci90": true,
+   "contains_median": false
+  },
+  {
+   "model": "Roebber et al. 2016",
+   "p16": 4e-16,
+   "p84": 7.23e-16,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Sesana et al. 2016",
+   "p16": 2.15e-16,
+   "p84": 7.08e-16,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Rasskazov & Merritt 2017",
+   "p16": 8.74e-17,
+   "p84": 6.57e-16,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Dvorkin & Barausse 2017",
+   "p16": 8.74e-17,
+   "p84": 6.57e-16,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Kelley et al. 2017b",
+   "p16": 1e-16,
+   "p84": 6e-16,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Ryu et al. 2018",
+   "p16": 5.3e-16,
+   "p84": 7e-16,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Bonetti et al. 2018b",
+   "p16": 5.83e-16,
+   "p84": 1.01e-15,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Zhu et al. 2019",
+   "p16": 6.1e-17,
+   "p84": 2.4e-15,
+   "overlap_ci90": true,
+   "contains_median": true
+  },
+  {
+   "model": "Chen et al. 2019",
+   "p16": 1.04e-16,
+   "p84": 1.05e-15,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Chen et al. 2020",
+   "p16": 6.1e-17,
+   "p84": 5.4e-16,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Siwek et al. 2020",
+   "p16": 2.5e-16,
+   "p84": 1e-15,
+   "overlap_ci90": false,
+   "contains_median": false
+  },
+  {
+   "model": "Simon 2023",
+   "p16": 1.46e-15,
+   "p84": 2.26e-15,
+   "overlap_ci90": true,
+   "contains_median": false
+  }
+ ],
+ "A_q05": 1.822197676080652e-15,
+ "A_median": 2.3118890032182373e-15,
+ "A_q95": 2.9245868215259814e-15
+}

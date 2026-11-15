@@ -1,0 +1,15 @@
+{
+ "primary": "v2.0.0",
+ "versions": {
+  "v1.1.0": {
+   "r1": {
+    "verdict": "not evaluable",
+    "reason": "data product not evaluable"
+   },
+   "r2": {
+    "verdict": "not evaluable",
+    "reason": "data product not evaluable"
+   }
+  }
+ }
+}

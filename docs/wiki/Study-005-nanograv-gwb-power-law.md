@@ -4,11 +4,11 @@
 
 *Paper(s): Agazie et al. 2023, ApJL 951, L8, arXiv:2306.16213 (main paper, "L8"); Agazie et al. 2023, ApJL 952, L37, arXiv:2306.16220, erratum ApJL 1006, L67 (2026) (the SMBHB companion, "L37"); Lamb, Taylor & van Haasteren 2023, PRD 108, 103019, arXiv:2303.15442 (the refitting method); Afzal et al. 2023, ApJL 951, L11, arXiv:2306.16219 (new-physics context). Study:
 [`studies/005-m09-nanograv-gwb-power-law`](https://github.com/sudoghut/astrolab/tree/main/studies/005-m09-nanograv-gwb-power-law).
-Status: planned. Last updated: 2026-11-14 (see the
+Status: reproduced. Last updated: 2026-11-15 (see the
 changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：NANOGrav 15 年：引力波背景有多强？这是黑洞双星所预言的吗？状态：计划中。论文：Agazie 等 2023, ApJL 951, L8, arXiv:2306.16213（主论文，"L8"）；Agazie 等 2023, ApJL 952, L37, arXiv:2306.16220，勘误 ApJL 1006, L67（2026）（SMBHB 姊妹论文，"L37"）；Lamb, Taylor & van Haasteren 2023, PRD 108, 103019, arXiv:2303.15442（重拟方法）；Afzal 等 2023, ApJL 951, L11, arXiv:2306.16219（新物理背景）。研究：[`studies/005-m09-nanograv-gwb-power-law`](https://github.com/sudoghut/astrolab/tree/main/studies/005-m09-nanograv-gwb-power-law)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：NANOGrav 15 年：引力波背景有多强？这是黑洞双星所预言的吗？状态：已复现。论文：Agazie 等 2023, ApJL 951, L8, arXiv:2306.16213（主论文，"L8"）；Agazie 等 2023, ApJL 952, L37, arXiv:2306.16220，勘误 ApJL 1006, L67（2026）（SMBHB 姊妹论文，"L37"）；Lamb, Taylor & van Haasteren 2023, PRD 108, 103019, arXiv:2303.15442（重拟方法）；Afzal 等 2023, ApJL 951, L11, arXiv:2306.16219（新物理背景）。研究：[`studies/005-m09-nanograv-gwb-power-law`](https://github.com/sudoghut/astrolab/tree/main/studies/005-m09-nanograv-gwb-power-law)。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -301,15 +301,38 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
-| A: amplitude at γ = 13/3 (R1) | testable now | refit log10 A on the v2.0.0 KDE free spectrum, 14 lowest frequencies, factorised likelihood, L8's prior | Zenodo 21844115 `ceffyl_data.zip`, 3.0 MB | Hellinger distance between our log10 A posterior and a median-pinned two-piece normal built from L8's 5/50/95% values < 0.15: "consistent with L8's interval"; otherwise "differs" | pending |
-| L8's spectral-index statement (R2) | testable now (comparison under an approximate likelihood, not a reproduction) | 2-D (log10 A, γ) posterior; q = credible level of the smallest 2-D HPD region touching γ = 13/3 | same | descriptive category (project convention): 95–99.7% "same order as L8's tension", < 95% "weaker", > 99.7% "stronger"; q itself is the result | pending |
-| B1: within the range of published models (R2b) | testable now (overlap summary, not a compatibility test) | for each L37 Table A1 model: does its 16–84% range overlap our 90% credible interval; is our median inside it; closed intervals (an endpoint equal to the other range's endpoint counts as overlap); Table A1 rows counted as listed (24 rows; the two identical rows, Rasskazov & Merritt and Dvorkin & Barausse, count separately), with the count after merging identical rows reported alongside | L37 Table A1 (paper table, 24 rows, ~1 KB, transcribed by hand) | `n_models_overlap_ci90 >= 1` (Lean NUM binding); the median count and per-model results descriptive | pending |
+| A: amplitude at γ = 13/3 (R1) | testable now | refit log10 A on the v2.0.0 KDE free spectrum, 14 lowest frequencies, factorised likelihood, L8's prior | Zenodo 21844115 `ceffyl_data.zip`, 3.0 MB | Hellinger distance between our log10 A posterior and a median-pinned two-piece normal built from L8's 5/50/95% values < 0.15: "consistent with L8's interval"; otherwise "differs" | **consistent with L8's interval**: A = 2.31 [1.82, 2.92] × 10⁻¹⁵, H = 0.099 |
+| L8's spectral-index statement (R2) | testable now (comparison under an approximate likelihood, not a reproduction) | 2-D (log10 A, γ) posterior; q = credible level of the smallest 2-D HPD region touching γ = 13/3 | same | descriptive category (project convention): 95–99.7% "same order as L8's tension", < 95% "weaker", > 99.7% "stronger"; q itself is the result | q = 0.979: same order as L8's stated tension (descriptive category); γ = 3.25 [2.65, 3.89] |
+| B1: within the range of published models (R2b) | testable now (overlap summary, not a compatibility test) | for each L37 Table A1 model: does its 16–84% range overlap our 90% credible interval; is our median inside it; closed intervals (an endpoint equal to the other range's endpoint counts as overlap); Table A1 rows counted as listed (24 rows; the two identical rows, Rasskazov & Merritt and Dvorkin & Barausse, count separately), with the count after merging identical rows reported alongside | L37 Table A1 (paper table, 24 rows, ~1 KB, transcribed by hand) | `n_models_overlap_ci90 >= 1` (Lean NUM binding); the median count and per-model results descriptive | 8 of 24 rows overlap (binding holds); 5 contain the median |
 | B2: holodeck populations reproduce A | out of scope | needs L37's population libraries and their likelihood | – | – | – |
 | C: the models represent expectations (`gap_repr`) | out of scope as a test | would need a definition of what "expectations" covers; L37 itself says the high end | – | – | – |
-| Sampler-bug sensitivity (R3) | explorable (not decisive) | redo R1 and R2 on v1.1.0 | Zenodo 10344086, 5.3 MB | none - exploration only, see README §8 | pending |
-| Spectral shape (R4) | explorable (not decisive) | Bayes factor of a power law against a power law with a low-frequency turnover | same | none - exploration only (prior-dependent; L11 warns) | pending |
-| Off-grid rule, number of frequencies | explorable (not decisive) | values below the grid floor clipped (ceffyl) vs −∞; 14 vs 30 frequencies | same | none - exploration only | pending |
+| Sampler-bug sensitivity (R3) | explorable (not decisive) | redo R1 and R2 on v1.1.0 | Zenodo 10344086, 5.3 MB | none - exploration only, see README §8 | pre-registered rule: not evaluable (two matching directories); post hoc with the exact directory: A −8%, γ +0.17 in v2.0.0 |
+| Spectral shape (R4) | explorable (not decisive) | Bayes factor of a power law against a power law with a low-frequency turnover | same | none - exploration only (prior-dependent; L11 warns) | ln BF = 2.37 (turnover vs γ = 13/3 power law; prior-dependent) |
+| Off-grid rule, number of frequencies | explorable (not decisive) | values below the grid floor clipped (ceffyl) vs −∞; 14 vs 30 frequencies | same | none - exploration only | not yet explored |
 | HD significance | out of scope | needs the full timing data and noise models | GB-scale | – | – |
+
+#### What we found (2026-11-15)
+
+On NANOGrav's 2026 KDE free spectrum (v2.0.0), the laptop refit lands on L8's numbers. At
+γ = 13/3 the amplitude is A = 2.31 [1.82, 2.92] × 10⁻¹⁵ (median, 5–95%) against L8's
+2.4 [1.8, 3.1] × 10⁻¹⁵; the Hellinger distance to the pre-registered reference is 0.099 (threshold
+0.15). With γ free, A = 6.33 × 10⁻¹⁵ and γ = 3.25 [2.65, 3.89] against L8's 6.4 × 10⁻¹⁵ and
+3.2 ± 0.6. The smallest 2-D HPD region that touches γ = 13/3 holds q = 0.979 of the posterior, the
+same order as L8's "within the 99% region" (under our approximate, factorised likelihood).
+Eight of the 24 Table A1 ranges overlap our 90% interval, so the `NUM` premise of route 1 holds;
+five contain our median. These numbers do not touch the two gaps: whether an overlap means "no
+tension" (`gap_overlap`) and whether those models represent "astrophysical expectations"
+(`gap_repr`).
+
+The pre-registered comparison with the 2023 product (R3) could not be evaluated: its archive holds
+two directories matching our rule (the second uses a different noise model). Reading the exact
+directory instead (post hoc) shows the 2026 sampler fix lowering A at γ = 13/3 by about 8%
+(2.52 → 2.31 × 10⁻¹⁵) and raising γ by about 0.17. A low-frequency turnover is mildly preferred
+over the γ = 13/3 power law (ln Bayes factor 2.37), a prior-dependent, descriptive number.
+
+Results: [`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r1.json), [`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2.json), [`r2b.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2b.json),
+[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r3.json), [`r4.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r4.json). The interactive page runs locally with
+`python -m astrolab serve`.
 
 ### Glossary
 
@@ -334,6 +357,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 Newest first.
 
+- 2026-11-15: results: Part 3 result column and "What we found" (R1 consistent, q = 0.979, R2b binding holds, R3 not evaluable as pre-registered with a post-hoc comparison, R4 ln BF 2.37).
 - 2026-11-14: first version: parts 1–3 (pre-registration source; plan `design/014-plan_*`).
 
 ### Sources
@@ -513,15 +537,23 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
-| A：γ = 13/3 时的振幅（R1） | 现在可检验 | 在 v2.0.0 KDE 自由谱上、用最低 14 个频率、分解似然与 L8 的先验重拟 log10 A | Zenodo 21844115 `ceffyl_data.zip`，3.0 MB | 我们的 log10 A 后验与由 L8 的 5/50/95% 值构造、以中位数为界的两段半正态（median-pinned two-piece half-normal）之间的 Hellinger 距离 < 0.15："与 L8 的区间一致"；否则"不同" | 待定 |
-| L8 的谱指数陈述（R2） | 现在可检验（近似似然下的比较，不是复现） | 二维 (log10 A, γ) 后验；q = 与 γ = 13/3 相交的最小二维最高后验密度（HPD, highest posterior density）区域的可信水平 | 同上 | 描述类别（本项目的约定）：95%–99.7% "与 L8 所称张力同一量级"，< 95% "更弱"，> 99.7% "更强"；结果就是 q 本身 | 待定 |
-| B1：落在已发表模型的范围内（R2b） | 现在可检验（重叠摘要，不是相容性检验） | 对 L37 表 A1 的每个模型：其 16%–84% 范围是否与我们的 90% 可信区间重叠；我们的中位数是否在其中；闭区间（端点相等算重叠）；表 A1 的行按原样计数（24 行；两行数值相同的 Rasskazov & Merritt 与 Dvorkin & Barausse 分别计数），同时报告合并相同行后的计数 | L37 表 A1（论文表格，24 行，约 1 KB，手工抄入） | `n_models_overlap_ci90 >= 1`（Lean 的 NUM 绑定）；中位数计数与逐个模型的结果只作描述 | 待定 |
+| A：γ = 13/3 时的振幅（R1） | 现在可检验 | 在 v2.0.0 KDE 自由谱上、用最低 14 个频率、分解似然与 L8 的先验重拟 log10 A | Zenodo 21844115 `ceffyl_data.zip`，3.0 MB | 我们的 log10 A 后验与由 L8 的 5/50/95% 值构造、以中位数为界的两段半正态（median-pinned two-piece half-normal）之间的 Hellinger 距离 < 0.15："与 L8 的区间一致"；否则"不同" | **与 L8 的区间一致**：A = 2.31 [1.82, 2.92] × 10⁻¹⁵，H = 0.099 |
+| L8 的谱指数陈述（R2） | 现在可检验（近似似然下的比较，不是复现） | 二维 (log10 A, γ) 后验；q = 与 γ = 13/3 相交的最小二维最高后验密度（HPD, highest posterior density）区域的可信水平 | 同上 | 描述类别（本项目的约定）：95%–99.7% "与 L8 所称张力同一量级"，< 95% "更弱"，> 99.7% "更强"；结果就是 q 本身 | q = 0.979：与 L8 所称张力同一量级（描述类别）；γ = 3.25 [2.65, 3.89] |
+| B1：落在已发表模型的范围内（R2b） | 现在可检验（重叠摘要，不是相容性检验） | 对 L37 表 A1 的每个模型：其 16%–84% 范围是否与我们的 90% 可信区间重叠；我们的中位数是否在其中；闭区间（端点相等算重叠）；表 A1 的行按原样计数（24 行；两行数值相同的 Rasskazov & Merritt 与 Dvorkin & Barausse 分别计数），同时报告合并相同行后的计数 | L37 表 A1（论文表格，24 行，约 1 KB，手工抄入） | `n_models_overlap_ci90 >= 1`（Lean 的 NUM 绑定）；中位数计数与逐个模型的结果只作描述 | 24 行中 8 行重叠（绑定成立）；5 行包含中位数 |
 | B2：holodeck 群体再现 A | 不在范围内 | 需要 L37 的群体库及其似然 | – | – | – |
 | C：模型代表预期（`gap_repr`） | 不在检验范围内 | 需要先界定"预期"指什么；L37 自己说在高端 | – | – | – |
-| 采样器错误的敏感度（R3） | 可探索（不能判决） | 在 v1.1.0 上重做 R1、R2 | Zenodo 10344086，5.3 MB | 无——仅供探索，见 README 第 8 节 | 待定 |
-| 谱形（R4） | 可探索（不能判决） | 幂律对带低频转折的幂律的贝叶斯因子 | 同上 | 无——仅供探索（依赖先验；L11 有提醒） | 待定 |
-| 越界规则、频率个数 | 可探索（不能判决） | 低于网格下边界取边界值（ceffyl）对 −∞；14 对 30 个频率 | 同上 | 无——仅供探索 | 待定 |
+| 采样器错误的敏感度（R3） | 可探索（不能判决） | 在 v1.1.0 上重做 R1、R2 | Zenodo 10344086，5.3 MB | 无——仅供探索，见 README 第 8 节 | 预注册规则：不可评估（两个目录匹配）；事后用精确目录：v2.0.0 中 A 降低 8%、γ 升高 0.17 |
+| 谱形（R4） | 可探索（不能判决） | 幂律对带低频转折的幂律的贝叶斯因子 | 同上 | 无——仅供探索（依赖先验；L11 有提醒） | ln BF = 2.37（转折对 γ = 13/3 幂律；依赖先验） |
+| 越界规则、频率个数 | 可探索（不能判决） | 低于网格下边界取边界值（ceffyl）对 −∞；14 对 30 个频率 | 同上 | 无——仅供探索 | 尚未探索 |
 | HD 显著性 | 不在范围内 | 需要完整的计时数据与噪声模型 | GB 级 | – | – |
+
+#### 我们的发现（2026-11-15）
+
+在 NANOGrav 2026 年的 KDE 自由谱（v2.0.0）上，本机重拟得到了 L8 的数字。γ = 13/3 时振幅 A = 2.31 [1.82, 2.92] × 10⁻¹⁵（中位数与 5%–95%），L8 为 2.4 [1.8, 3.1] × 10⁻¹⁵；与预注册参考分布的 Hellinger 距离为 0.099（门槛 0.15）。γ 自由时 A = 6.33 × 10⁻¹⁵、γ = 3.25 [2.65, 3.89]，L8 为 6.4 × 10⁻¹⁵ 与 3.2 ± 0.6。与 γ = 13/3 相交的最小二维 HPD 区域含后验的 q = 0.979，与 L8 的"在 99% 区域内"同一量级（在我们的近似分解似然下）。表 A1 的 24 个范围中有 8 个与我们的 90% 区间重叠，所以途径 1 的 `NUM` 前提成立；5 个包含我们的中位数。这些数字不触及两个缺口：重叠是否意味着"没有张力"（`gap_overlap`），以及这些模型是否代表"天体物理预期"（`gap_repr`）。
+
+与 2023 年产品的预注册比较（R3）不可评估：其压缩包里有两个目录符合我们的规则（另一个用不同的噪声模型）。事后改读精确目录可见，2026 年的采样器修正使 γ = 13/3 时的 A 降低约 8%（2.52 → 2.31 × 10⁻¹⁵），γ 升高约 0.17。低频转折相对 γ = 13/3 幂律略受偏好（ln 贝叶斯因子 2.37），这是依赖先验的描述性数字。
+
+结果：[`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r1.json)、[`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2.json)、[`r2b.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2b.json)、[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r3.json)、[`r4.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r4.json)。交互网页在本地用 `python -m astrolab serve` 打开。
 
 ### 术语表
 
@@ -546,6 +578,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 按时间倒序。
 
+- 2026-11-15：结果：第三部分"结果"一列与"我们的发现"（R1 一致，q = 0.979，R2b 绑定成立，R3 按预注册不可评估、另有事后比较，R4 ln BF 2.37）。
 - 2026-11-14：第一版：第一至三部分（预注册的来源；计划 `design/014-plan_*`）。
 
 ### 来源

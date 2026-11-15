@@ -1,0 +1,15 @@
+{
+ "version": "v2.0.0",
+ "q_hpd_13_3": 0.9787541035974688,
+ "q_hpd_13_3_ge": 0.9787541035974688,
+ "gamma_median": 3.250194005884221,
+ "gamma_q05": 2.6467062098942025,
+ "gamma_q95": 3.8872986027359846,
+ "gamma_hpd1d_13_3": 0.9933434035109765,
+ "A_median": 6.3326684214336804e-15,
+ "A_q05": 3.460807475389179e-15,
+ "A_q95": 1.0787966967677338e-14,
+ "edge_mass_log10A": 0.0,
+ "edge_mass_gamma": 1.4544698778706788e-11,
+ "category": "same order as L8's stated tension (descriptive category)"
+}
