@@ -140,7 +140,8 @@ scales the errors too).
   plus the halo); and the extrapolated M(<32.4 kpc), M(<100 kpc) and M_vir (= M_dyn, baryons plus dark matter
   inside R_vir, both R_vir definitions), each with its 68% interval.
 - The same for an NFW halo, ρ = ρ_s / [(r/r_s)(1 + r/r_s)²], with E dJ baryons, log-uniform priors
-  ρ_s ∈ [10⁴, 10¹⁰] M☉/kpc³ and r_s ∈ [1, 100] kpc, fitted to the same 18 points, with the same R_vir
+  ρ_s ∈ [10⁴, 10¹⁰] M☉/kpc³ and r_s ∈ [1, 100] kpc, fitted to the same 18 points with the same
+  likelihood as R2 (independent Gaussian errors, Table 3's combined σ; MCMC as in R2), with the same R_vir
   rules.
 - Order-of-magnitude, cross-model comparison with stream masses: Koposov et al. 2023, (2.85 ± 0.10) ×
   10¹¹ M☉ inside 32.4 kpc; Vasiliev et al. 2021, (5.6 ± 0.4) × 10¹¹ M☉ inside 100 kpc (a model with a
