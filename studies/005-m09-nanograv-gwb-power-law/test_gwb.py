@@ -104,6 +104,12 @@ def test_lnlike_bins(prod):
     top = np.array([[GRID[-1], GRID[20]]])
     assert np.isclose(gwb.lnlike(prod, top, below_grid="clip")[0], d[0, -1] + d[1, 20])
     assert gwb.lnlike(prod, top + np.array([[1e-9, 0.0]]), below_grid="clip")[0] == -np.inf
+    # ceffyl (Ceffyl.py __init__): binedges = rho_grid - 0.5*db, then
+    # np.append(binedges, binedges[-1] + 0.5*db), so the last edge is rho_grid[-1]: the top cell is
+    # half-width and grid[-1] + 0.25*db is above the grid (-inf), as is grid[-1] + 0.5*db
+    db0 = GRID[1] - GRID[0]
+    for off in (0.25, 0.5):
+        assert gwb.lnlike(prod, top + np.array([[off * db0, 0.0]]), below_grid="clip")[0] == -np.inf
     assert k == x.shape[-1]
     # half-bin boundaries around node j
     db = GRID[1] - GRID[0]
