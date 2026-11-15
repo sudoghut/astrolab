@@ -54,7 +54,7 @@ function render(d) {
   const {r1, r2, r3, r4, r5} = d;
   const okc = v => v === 'reproduced' ? 'good' : 'bad';
   document.getElementById('cards').innerHTML =
-    card(L('R1 · chain means', 'R1 · 链的均值'), ['cmb', 'des_3x2pt', 'des_xipm'].every(k => r1[k].verdict === 'reproduced') ? L('3 / 3 reproduced', '3 / 3 复现') : L('see table', '见表'), 'good',
+    card(L('R1 · chain means', 'R1 · 链的均值'), ['cmb', 'des_3x2pt', 'des_xipm'].every(k => r1[k].verdict === 'reproduced') ? L('3 / 3 reproduced', '3 / 3 复现') : L('see table', '见表'), ['cmb', 'des_3x2pt', 'des_xipm'].every(k => r1[k].verdict === 'reproduced') ? 'good' : 'bad',
          L(`CMB ${f(r1.cmb.mean, 4)}, DES ${f(r1.des_3x2pt.mean, 4)}, ξ± ${f(r1.des_xipm.mean, 4)}`, `CMB ${f(r1.cmb.mean, 4)}，DES ${f(r1.des_3x2pt.mean, 4)}，ξ± ${f(r1.des_xipm.mean, 4)}`)) +
     card(L('R2 · S8 (1-D)', 'R2 · S8（1 维）'), `${f(r2['1d'].n_sigma, 2)}σ`, okc(r2['1d'].verdict), L(`D26: 2.6σ · ${esc(r2['1d'].verdict)}`, `D26：2.6σ · ${vz(r2['1d'].verdict)}`)) +
     card(L('R2 · S8–Ωm (2-D)', 'R2 · S8–Ωm（2 维）'), `${f(r2['2d'].n_sigma, 2)}σ`, okc(r2['2d'].verdict), L(`D26: 2.2σ · ${esc(r2['2d'].verdict)}`, `D26：2.2σ · ${vz(r2['2d'].verdict)}`)) +
@@ -66,7 +66,8 @@ function render(d) {
     {n: 'DES Y6 3x2pt', m: r1.des_3x2pt.mean, lo: r1.des_3x2pt.lo, hi: r1.des_3x2pt.hi, c: 'des', ns: r2['1d'].n_sigma},
     {n: 'DES Y6 ξ±', m: r1.des_xipm.mean, lo: r1.des_xipm.lo, hi: r1.des_xipm.hi, c: 'des', ns: r3['1d'].n_sigma},
   ];
-  const old = new Set(['DES Y3 3x2pt', 'KiDS-1000 3x2pt', 'KiDS-1000 cosmic shear']);
+  const old = new Set(['DES Y3 3x2pt', 'KiDS-1000 3x2pt', 'KiDS-1000 cosmic shear', 'HSC Y3 shear (Li+ 2023)',
+                       'HSC Y3 shear (Dalal+ 2023)', 'HSC Y3 3x2pt (Sugiyama+ 2023)']);
   for (const [name, p] of Object.entries(r5)) rows.push({n: name, m: p.mean, lo: p.mean - p.sigma_minus, hi: p.mean + p.sigma_plus, c: old.has(name) ? 'old' : '', ns: p.n_sigma});
   const W = 680, top = 14, rowh = 26, left = 230, right = 70, x0 = 0.70, x1 = 0.90;
   const H = top + rowh * rows.length + 34;
@@ -95,8 +96,8 @@ function render(d) {
   }
   document.getElementById('r2').innerHTML = h;
   document.getElementById('r2note').innerHTML = L(
-    `Cross-checks: numerical convolution ${f(r2['1d'].convolution_check.n_sigma)}σ; Gaussian estimate ${f(r2.gaussian_means)}σ. Prior support (Ωm, A_s): ${esc(r2.support.status)}${r2.support.fails ? ', fails' : ', passes'}.`,
-    `交叉检查：数值卷积 ${f(r2['1d'].convolution_check.n_sigma)}σ；高斯估计 ${f(r2.gaussian_means)}σ。先验支撑（Ωm、A_s）：${r2.support.status === 'performed' ? '已检验' : esc(r2.support.status)}，${r2.support.fails ? '未通过' : '通过'}。`);
+    `s is the spread over resampling seeds only; a bootstrap over chain rows (post hoc) gives about ±0.03 in both projections. Cross-checks: numerical convolution ${f(r2['1d'].convolution_check.n_sigma)}σ (biased low by about 0.03); Gaussian estimate ${f(r2.gaussian_means)}σ. Prior support (Ωm, A_s): ${esc(r2.support.status)}${r2.support.fails ? ', fails' : ', passes'}.`,
+    `s 只是重抽样种子之间的离散；对链的行作自助法（bootstrap，事后）得到两种投影都约 ±0.03。交叉检查：数值卷积 ${f(r2['1d'].convolution_check.n_sigma)}σ（偏低约 0.03）；高斯估计 ${f(r2.gaussian_means)}σ。先验支撑（Ωm、A_s）：${r2.support.status === 'performed' ? '已检验' : esc(r2.support.status)}，${r2.support.fails ? '未通过' : '通过'}。`);
 
   const fs = r4.full_space || {};
   let g = `<tr><th>${L('Variant', '变体')}</th><th>n_σ</th></tr>`;
@@ -107,8 +108,8 @@ function render(d) {
   if (fs.constrained && fs.constrained.status === 'ok') g += `<tr><td>${L('Full space, Gaussian (data-constrained: A_s, Ωm)', '全空间，高斯近似（数据约束的 A_s、Ωm）')}</td><td>${f(fs.constrained.n_sigma)}</td></tr>`;
   document.getElementById('r4').innerHTML = g;
   document.getElementById('r4note').innerHTML = L(
-    'The Gaussian full-space numbers are far below D26\'s 1.8σ because S8 is a nonlinear combination of A_s and Ωm: in the sampled parameters the DES posterior is curved, and a Gaussian approximation smears out the difference. It is not a test of D26\'s full-space number.',
-    '全空间的高斯近似数字远低于 D26 的 1.8σ，因为 S8 是 A_s 与 Ωm 的非线性组合：在采样参数中 DES 后验是弯曲的，高斯近似会抹平差别。它不是对 D26 全空间数字的检验。');
+    'The Gaussian full-space numbers depend on the parametrization (post hoc, after the referee): 0.32σ in (A_s, Ωm) but 2.21σ in (S8, Ωm), and 1.48σ for the six parameters with S8 in place of A_s. None of them is a test of D26\'s flow-based 1.8σ.',
+    '全空间的高斯近似数字依赖参数化（审稿后事后补做）：(A_s, Ωm) 上 0.32σ，(S8, Ωm) 上 2.21σ，以 S8 代替 A_s 的六参数为 1.48σ。它们都不是对 D26 基于归一化流的 1.8σ 的检验。');
 }
 
 let data = null;

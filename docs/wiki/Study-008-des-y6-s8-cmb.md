@@ -296,11 +296,11 @@ cosmic-shear chain (14.9 MB) are under the limit. Other probes enter only as pub
 |---|---|---|---|---|---|
 | Inputs: the S8 means of the CMB (0.836 +0.012/−0.013), DES 3x2pt (0.789 ± 0.012) and DES cosmic shear (0.783 +0.019/−0.015) (R1) | testable now | weighted mean and 68% interval from each public chain | DES chains: 144 + 11.8 + 14.9 MB | each mean within a tolerance fixed in README §2 before running (planned: Monte Carlo error plus a stated allowance) | **reproduced**: 0.8357, 0.7893, 0.7834 |
 | Stage B: 2.6σ (S8) and 2.2σ (S8–Ωm) (R2) | testable now | eqs. 17–19 from the two chains: weighted independent draws, pairwise differences, one kernel density estimate evaluated at the differences and at zero (split halves), n_σ = √2 erf⁻¹(Δ); convergence and bandwidth diagnostics fixed in advance | same | reproduced if within a tolerance fixed in README §2 before running (planned: Monte Carlo error plus an allowance of about ±0.15σ for D26's unquoted flow noise) | **reproduced**: 2.67σ (S8), 2.18σ (S8–Ωm) |
-| Stage B: 1.8σ (full space) | explorable (not decisive) | Gaussian approximation over the shared parameters, with and without the directions dominated by the prior; no normalizing flows | same | none - exploration only | 0.89σ (6 parameters), 0.32σ (A_s, Ωm): the Gaussian approximation fails for the curved posterior; not a test of 1.8σ |
+| Stage B: 1.8σ (full space) | explorable (not decisive) | Gaussian approximation over the shared parameters, with and without the directions dominated by the prior; no normalizing flows | same | none - exploration only | 0.89σ (6 parameters), 0.32σ (A_s, Ωm); depends on the parametrization (2.21σ in S8, Ωm); not a test of 1.8σ |
 | DES cosmic shear against the CMB (R3) | explorable (not decisive; D26 quotes no number for it) | as R2, chain against chain | same | none - descriptive | 2.53σ (S8), 2.18σ (S8–Ωm) |
 | Stage B: projection effects; Stage C: threshold and metric (R4) | explorable (not decisive) | shift DES by +0.17σ (Table 9) or use the MAP; compare iso-density, equal-tail and Gaussian versions of the same 1-D comparison; report where the threshold flips the classification | same | none - exploration only | 2.55σ (+0.17σ shift), 2.44σ (MAP); algorithms 2.67–2.68σ |
-| Other probes against the CMB (R5) | explorable (not decisive) | each published S8 summary (split-normal) against the CMB chain; no averaging (probes are correlated and constrain different directions) | published values (kB) | none - descriptive | 0.2–1.9σ (ACT 0.18, KiDS-Legacy 1.04, eROSITA 1.51, HSC 1.4–1.9) |
-| Previous generation ("easing") | explorable (not decisive) | published S8 of DES Y3 3x2pt (0.776 ± 0.017), KiDS-1000 (0.766 +0.020/−0.014 3x2pt; 0.759 +0.024/−0.021 shear) and HSC Y3 (2023: cosmic shear 0.769 +0.031/−0.034, Li et al., arXiv:2304.00702, and 0.776 +0.032/−0.033, Dalal et al., arXiv:2304.00701; 3x2pt 0.775 +0.043/−0.038, Sugiyama et al., arXiv:2304.00705) against the same CMB chain, beside the new values | published values (kB) | none - descriptive | 2.8–3.1σ (DES Y3 2.83, KiDS-1000 2.92–3.14) |
+| Other probes against the CMB (R5) | explorable (not decisive) | each published S8 summary (split-normal) against the CMB chain; no averaging (probes are correlated and constrain different directions) | published values (kB) | none - descriptive | 0.2–1.7σ (ACT 0.18, KiDS-Legacy 1.04, eROSITA 1.51, HSC Zhang+ 2025 1.74) |
+| Previous generation ("easing") | explorable (not decisive) | published S8 of DES Y3 3x2pt (0.776 ± 0.017), KiDS-1000 (0.766 +0.020/−0.014 3x2pt; 0.759 +0.024/−0.021 shear) and HSC Y3 (2023: cosmic shear 0.769 +0.031/−0.034, Li et al., arXiv:2304.00702, and 0.776 +0.032/−0.033, Dalal et al., arXiv:2304.00701; 3x2pt 0.775 +0.043/−0.038, Sugiyama et al., arXiv:2304.00705) against the same CMB chain, beside the new values | published values (kB) | none - descriptive | 1.4–3.1σ (DES Y3 2.83, KiDS-1000 2.92–3.14, HSC Y3 2023 1.44–1.93) |
 | `gap_conv` (is below 3σ "no evidence"?) | out of scope | a judgement about evidence, not a computation; the study reports the numbers it is applied to and where the threshold flips the classification (R4) | – | – | – |
 | DES systematics, blinding, the flow estimator itself | out of scope | needs the data vectors, simulations and the analysis pipeline | – | – | – |
 
@@ -312,8 +312,8 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
   parameter difference, computed directly from D26's equations 17–19 with a calibrated binned density
   estimate: **2.67σ ± 0.03 in S8** (D26: 2.6σ) and **2.18σ ± 0.03 in S8–Ωm** (D26: 2.2σ), both within
   the pre-registered tolerance (uncertainties from a bootstrap over chain rows, added after the
-  referee). Prior support (Ωm, A_s) passed. Three estimators agree on about 2.67σ, so the small excess
-  over 2.6 lies between the public chains and D26's flow estimate.
+  referee). Prior support (Ωm, A_s) passed. The small excess over 2.6 (0.07σ) is about one bootstrap standard
+  deviation.
 - **How close to 3σ depends on projection effects.** Shifting DES by D26's own simulated bias
   (+0.17σ) gives 2.55σ; centring it on the MAP gives 2.44σ. So the S8 number sits between about
   2.4σ and 2.7σ: below the informal 3σ line in every variant, but by 0.3–0.6σ. Whether that is "no
@@ -324,10 +324,12 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
   several parameters are prior-dominated in DES, so a Gaussian in sampled coordinates dilutes the
   difference. This is why D26 uses normalizing flows; no Gaussian number tests the 1.8σ.
 - **"Easing", measured on one ruler.** Against the same CMB chain, the previous generation sits at
-  2.8–3.1σ (DES Y3 2.83σ, KiDS-1000 2.92–3.14σ), other current probes at 0.2–1.9σ (KiDS-Legacy
-  1.04σ, HSC Y3 1.4–1.9σ, ACT lensing 0.18σ, eROSITA 1.51σ above the CMB), and DES Y6 3x2pt at 2.67σ.
-  The field has moved towards the CMB; DES Y6 has moved less than KiDS. (If the older papers quote
-  modes rather than means, KiDS-1000 3x2pt is at 2.93σ instead of 3.14σ.)
+  1.4–3.1σ (DES Y3 2.83σ, KiDS-1000 2.92–3.14σ, HSC Y3 2023 1.44–1.93σ) and the other current probes
+  at 0.2–1.7σ (KiDS-Legacy 1.04σ, HSC Y3 2025 1.74σ, ACT lensing 0.18σ, eROSITA 1.51σ above the CMB);
+  DES Y6 3x2pt is at 2.67σ. Survey by survey: KiDS moved a lot (2.9–3.1σ to 1.0σ), DES a little
+  (2.83σ to 2.67σ), HSC hardly at all (1.4–1.9σ to 1.74σ). So "easing" is mainly a KiDS result, not a
+  general move of every survey. (If the older papers quote modes (most probable values) rather than
+  means, KiDS-1000 3x2pt is at 2.93σ instead of 3.14σ.)
 
 ### Glossary
 
@@ -356,7 +358,7 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
 Newest first.
 
 - 2026-11-15: referee: bootstrap uncertainties (±0.03), the Gaussian full-space number depends on the parametrization, the step-A amendment labelled as procedural, R5 with modes.
-- 2026-11-15: results: R1 and R2 reproduced (2.67σ in S8, 2.18σ in S8–Ωm); projection-effect variants 2.44–2.55σ; the Gaussian full-space approximation fails for the curved posterior; previous generation 2.8–3.1σ against the same CMB.
+- 2026-11-15: results: R1 and R2 reproduced (2.67σ in S8, 2.18σ in S8–Ωm); projection-effect variants 2.44–2.55σ; the Gaussian full-space approximation depends on the parametrization; against the same CMB, KiDS moved from 2.9–3.1σ to 1.0σ, DES from 2.83σ to 2.67σ, HSC hardly at all.
 - 2026-11-15: gate-2 review: no authoritative source fixes "below 3σ means no evidence" (Lyons 2013 discusses 5σ and argues against uniform thresholds), so the step is a gap (`gap_conv`) again; headline `explicit_insufficient`.
 - 2026-11-15: gate-1 review: the step to "no substantial evidence" is the standard 3σ convention (`[implied]`), not a gap; D26's combination criterion is redundant for the conclusion; S8 is not claimed to be pre-chosen or best-constrained (footnote 7); Table 6 PTEs; part 3 rows for the previous generation.
 - 2026-11-15: first version: parts 1–3 (pre-registration source; plan `design/017-plan_*`).
@@ -547,20 +549,20 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 |---|---|---|---|---|---|
 | 输入：CMB（0.836 +0.012/−0.013）、DES 3x2pt（0.789 ± 0.012）与 DES 宇宙剪切（0.783 +0.019/−0.015）的 S8 均值（R1） | 现在可检验 | 由每条公开链算加权均值与 68% 区间 | DES 链：144 + 11.8 + 14.9 MB | 每个均值与发表值之差在运行前于 README 第 2 节写定的容差内（计划：蒙特卡罗误差加写明的余量） | **复现**：0.8357、0.7893、0.7834 |
 | 环节 B：2.6σ（S8）与 2.2σ（S8–Ωm）（R2） | 现在可检验 | 由两条链按式 17–19 计算：按权重独立抽样、逐对相减，用同一个核密度估计在差值样本与零点求值（拆分两半），n_σ = √2 erf⁻¹(Δ)；收敛与带宽诊断事先写定 | 同上 | 在运行前于 README 第 2 节写定的容差内（计划：蒙特卡罗误差加约 ±0.15σ 的余量，涵盖 D26 未报告的流噪声）→ 复现 | **复现**：2.67σ（S8）、2.18σ（S8–Ωm） |
-| 环节 B：1.8σ（全空间） | 可探索（不能判决） | 对共有参数作高斯近似，包含与不含主要由先验决定的方向；不用归一化流 | 同上 | 无——仅供探索 | 0.89σ（6 个参数）、0.32σ（A_s、Ωm）：高斯近似对弯曲的后验失效，不是对 1.8σ 的检验 |
+| 环节 B：1.8σ（全空间） | 可探索（不能判决） | 对共有参数作高斯近似，包含与不含主要由先验决定的方向；不用归一化流 | 同上 | 无——仅供探索 | 0.89σ（6 个参数）、0.32σ（A_s、Ωm）；依赖参数化（S8、Ωm 上为 2.21σ）；不是对 1.8σ 的检验 |
 | DES 宇宙剪切对 CMB（R3） | 可探索（不能判决；D26 没有给出对应的数字） | 同 R2，链对链 | 同上 | 无——描述 | 2.53σ（S8）、2.18σ（S8–Ωm） |
 | 环节 B 的投影效应；环节 C 的阈值与度量（R4） | 可探索（不能判决） | DES 上移 +0.17σ（表 9）或改用 MAP；同一个 1 维比较的等密度、等尾与高斯三种算法；报告阈值在哪里改变分类 | 同上 | 无——仅供探索 | 2.55σ（上移 0.17σ）、2.44σ（MAP）；三种算法 2.67–2.68σ |
-| 其他探针对 CMB（R5） | 可探索（不能判决） | 各已发表的 S8 汇总值（分裂正态）对 CMB 链；不做平均（探针相关，且约束的方向不同） | 发表值（kB） | 无——描述 | 0.2–1.9σ（ACT 0.18，KiDS-Legacy 1.04，eROSITA 1.51，HSC 1.4–1.9） |
-| 上一代（"减弱"） | 可探索（不能判决） | DES Y3 3x2pt（0.776 ± 0.017）、KiDS-1000（3x2pt 0.766 +0.020/−0.014；剪切 0.759 +0.024/−0.021）与 HSC Y3（2023：宇宙剪切 0.769 +0.031/−0.034，Li et al.，arXiv:2304.00702；0.776 +0.032/−0.033，Dalal et al.，arXiv:2304.00701；3x2pt 0.775 +0.043/−0.038，Sugiyama et al.，arXiv:2304.00705）发表的 S8 对同一条 CMB 链，与新值并列 | 发表值（kB） | 无——描述 | 2.8–3.1σ（DES Y3 2.83，KiDS-1000 2.92–3.14） |
+| 其他探针对 CMB（R5） | 可探索（不能判决） | 各已发表的 S8 汇总值（分裂正态）对 CMB 链；不做平均（探针相关，且约束的方向不同） | 发表值（kB） | 无——描述 | 0.2–1.7σ（ACT 0.18，KiDS-Legacy 1.04，eROSITA 1.51，HSC Zhang+ 2025 1.74） |
+| 上一代（"减弱"） | 可探索（不能判决） | DES Y3 3x2pt（0.776 ± 0.017）、KiDS-1000（3x2pt 0.766 +0.020/−0.014；剪切 0.759 +0.024/−0.021）与 HSC Y3（2023：宇宙剪切 0.769 +0.031/−0.034，Li et al.，arXiv:2304.00702；0.776 +0.032/−0.033，Dalal et al.，arXiv:2304.00701；3x2pt 0.775 +0.043/−0.038，Sugiyama et al.，arXiv:2304.00705）发表的 S8 对同一条 CMB 链，与新值并列 | 发表值（kB） | 无——描述 | 1.4–3.1σ（DES Y3 2.83，KiDS-1000 2.92–3.14，HSC Y3 2023 1.44–1.93） |
 | `gap_conv`（低于 3σ 是否等于"没有证据"） | 不在范围内 | 是关于证据的判断，不是计算；研究报告它所作用的数字，以及阈值在哪里改变分类（R4） | – | – | – |
 | DES 的系统误差、盲化与流估计器本身 | 不在范围内 | 需要数据向量、模拟与分析流程 | – | – | – |
 
 **结果（运行后补写，2026-11-15；上表保留预注册时的设计）。** 细节见 [研究 README 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/README.md#5-results)；网页：[`web/index.html`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/index.html)。
 
-- **D26 结论所依据的数字由公开链复现。** S8 均值：CMB 0.8357，DES 3x2pt 0.7893，DES 宇宙剪切 0.7834，与发表值之差都在 0.001 以内。直接按 D26 的式 17–19、用校准过的分箱密度估计计算参数差异：**S8 上 2.67σ ± 0.03**（D26：2.6σ），**S8–Ωm 上 2.18σ ± 0.03**（D26：2.2σ），都在预注册容差内（不确定度来自审稿后补做的、对链的行的自助法重抽样）。先验支撑（Ωm、A_s）检验通过。三种估计量都给出约 2.67σ，所以比 2.6 略高的部分来自公开链与 D26 的流估计之间，而不是我们的估计量。
+- **D26 结论所依据的数字由公开链复现。** S8 均值：CMB 0.8357，DES 3x2pt 0.7893，DES 宇宙剪切 0.7834，与发表值之差都在 0.001 以内。直接按 D26 的式 17–19、用校准过的分箱密度估计（binned density estimate）计算参数差异：**S8 上 2.67σ ± 0.03**（D26：2.6σ），**S8–Ωm 上 2.18σ ± 0.03**（D26：2.2σ），都在预注册容差内（不确定度来自审稿后补做的、对链的行的自助法（bootstrap）重抽样）。先验支撑（Ωm、A_s）检验通过。比 2.6 略高的 0.07σ 约为一个自助法（bootstrap）标准差。
 - **离 3σ 多近取决于投影效应。** 按 D26 自己的模拟偏差（+0.17σ）平移 DES 得 2.55σ；以 MAP 为中心得 2.44σ。所以 S8 的数字在约 2.4σ 到 2.7σ 之间：每种变体都低于非正式的 3σ 线，但只差 0.3–0.6σ。这算不算"没有实质证据"，正是第二部分的缺口 `gap_conv`。
 - **全空间需要归一化流。** 在采样参数中作高斯近似得到 0.89σ，而且它依赖坐标：(A_s, Ωm) 上 0.32σ，(S8, Ωm) 上 2.21σ，以 S8 代替 A_s 时 1.48σ（审稿后事后补做）。S8 是 A_s 与 Ωm 的非线性组合，DES 中好几个参数主要由先验决定，所以在采样坐标中作高斯近似会冲淡差别。这就是 D26 用归一化流的原因；没有哪个高斯数字能检验 1.8σ。
-- **用同一把尺子量"减弱"。** 对同一条 CMB 链，上一代为 2.8–3.1σ（DES Y3 2.83σ，KiDS-1000 2.92–3.14σ），当前其他探针为 0.2–1.9σ（KiDS-Legacy 1.04σ，HSC Y3 1.4–1.9σ，ACT 透镜 0.18σ，eROSITA 在 CMB 之上 1.51σ），DES Y6 3x2pt 为 2.67σ。整个领域向 CMB 靠拢；DES Y6 移动得比 KiDS 少。（若较早的论文给出的是众数而不是均值，KiDS-1000 3x2pt 为 2.93σ 而不是 3.14σ。）
+- **用同一把尺子量"减弱"。** 对同一条 CMB 链，上一代为 1.4–3.1σ（DES Y3 2.83σ，KiDS-1000 2.92–3.14σ，HSC Y3 2023 1.44–1.93σ），当前其他探针为 0.2–1.7σ（KiDS-Legacy 1.04σ，HSC Y3 2025 1.74σ，ACT 透镜 0.18σ，eROSITA 在 CMB 之上 1.51σ）；DES Y6 3x2pt 为 2.67σ。逐个巡天看：KiDS 移动很大（2.9–3.1σ 到 1.0σ），DES 移动很小（2.83σ 到 2.67σ），HSC 几乎没动（1.4–1.9σ 到 1.74σ）。所以"减弱"主要是 KiDS 的结果，而不是所有巡天的普遍变化。（若较早的论文给出的是众数（mode，最可能值）而不是均值，KiDS-1000 3x2pt 为 2.93σ 而不是 3.14σ。）
 
 ### 术语表
 
@@ -587,7 +589,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 按时间倒序。
 
 - 2026-11-15：审稿：自助法不确定度（±0.03），全空间高斯数字依赖参数化，第 A 步修订标注为程序性说明，R5 的众数读法。
-- 2026-11-15：结果：R1 与 R2 复现（S8 上 2.67σ，S8–Ωm 上 2.18σ）；投影效应变体 2.44–2.55σ；全空间高斯近似对弯曲的后验失效；上一代对同一 CMB 为 2.8–3.1σ。
+- 2026-11-15：结果：R1 与 R2 复现（S8 上 2.67σ，S8–Ωm 上 2.18σ）；投影效应变体 2.44–2.55σ；全空间高斯近似依赖参数化；对同一 CMB，KiDS 由 2.9–3.1σ 变为 1.0σ，DES 由 2.83σ 变为 2.67σ，HSC 几乎没动。
 - 2026-11-15：闸门 2 审查：没有权威来源规定"低于 3σ 即没有证据"（Lyons 2013 讨论 5σ 并反对统一阈值），这一步重新标为缺口（`gap_conv`）；主要结果为 `explicit_insufficient`。
 - 2026-11-15：闸门 1 审查：走到"没有实质证据"的一步是标准的 3σ 约定（`[implied]`），不是缺口；D26 的合并判据对结论是多余的；不再说 S8 是事先选定或约束最好的方向（脚注 7）；表 6 的 PTE；第三部分加上一代的比较。
 - 2026-11-15：第一版：第一至三部分（预注册的来源；计划 `design/017-plan_*`）。
