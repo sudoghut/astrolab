@@ -70,8 +70,10 @@ combinations of an exponential or Gaussian triaxial bulge with three disc models
 Einasto dark-matter halo, ρ(r) = ρ0 exp[−(r/h)^(1/n)], and fits the 18 points (Table 4). For model B2
 the halo has n = 0.43 and h = 11.41 kpc: a halo whose density falls steeply at large radius.
 
-**Step 5 · Total mass.** The fitted halo is extrapolated to the virial radius R_vir, where the mean
-dark-matter density equals 200 times the critical density of the Universe (about 121 kpc), and the
+**Step 5 · Total mass.** The fitted halo is extrapolated to the virial radius R_vir, which J23 defines
+as the radius where the mean dark-matter density equals 200 times the critical density of the
+Universe and quotes as about 121 kpc (our fits show that 121 kpc corresponds to the mean total
+density; the stated dark-matter definition gives about 107 kpc, with the same mass; see part 3), and the
 "dynamical mass" is baryons plus dark matter inside R_vir. The seven models give 1.97–2.05 × 10¹¹ M☉
 (mean 1.99); the O24 curve gives a mean of 2.13; the abstract's 2.06 (+0.24/−0.13) × 10¹¹ M☉ is the
 average of the two curves. Using the upper ends of the O24 velocities gives at most 5.4 × 10¹¹ M☉,
@@ -287,6 +289,7 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
 
 Newest first.
 
+- 2026-11-15: final review: part 1 now states that J23's 121 kpc corresponds to the total-density R_vir.
 - 2026-11-15: results: R1 reproduced under J23's prior (2.7σ from the likelihood); errors not independent; Table 4 masses reproduced, but 99.8% of the Einasto mass lies inside the data and an acceptable NFW fit gives 7 × 10¹¹ M☉; referee notes; T-028 registered.
 - 2026-11-15: gate-1 round 2: the Keplerian shape now rests on its own stated premise (`stat_kepler`, Sec. 5.3) and on the gap.
 - 2026-11-15: gate-1 review: the Lean conclusion is now the Keplerian decline (two gaps); the mass and its extrapolation are discussed in 2.3, not encoded (the mass fit does not use the decline test); quotes corrected; the error-wording inconsistency described with both sentences.
@@ -330,7 +333,7 @@ Gaia 卫星测量了十多亿颗恒星的位置、视差（距离）与自行（
 
 **第 4 步 · 质量模型。** J23 把恒星与气体（七个已发表的重子模型：B2，以及指数或高斯三轴核球与三种盘模型的六种组合）加上球对称的爱纳斯托（Einasto）暗物质晕 ρ(r) = ρ0 exp[−(r/h)^(1/n)]，拟合 18 个点（表 4）。对模型 B2，晕的 n = 0.43、h = 11.41 kpc：一个在大半径处密度急剧下降的晕。
 
-**第 5 步 · 总质量。** 把拟合的晕外推到位力半径（virial radius）R_vir（暗物质平均密度等于宇宙临界密度的 200 倍处，约 121 kpc），"动力学质量"（dynamical mass）是 R_vir 以内的重子加暗物质。七个模型给出 1.97–2.05 × 10¹¹ M☉（平均 1.99）；O24 曲线的平均为 2.13；摘要的 2.06 (+0.24/−0.13) × 10¹¹ M☉ 是两条曲线的平均。用 O24 速度的上端得到至多 5.4 × 10¹¹ M☉，J23 称之为不可逾越的上限。
+**第 5 步 · 总质量。** 把拟合的晕外推到位力半径（virial radius）R_vir（J23 定义为暗物质平均密度等于宇宙临界密度 200 倍之处，给出约 121 kpc；我们的拟合表明 121 kpc 对应总密度的定义，写明的暗物质定义给出约 107 kpc，质量相同，见第三部分），"动力学质量"（dynamical mass）是 R_vir 以内的重子加暗物质。七个模型给出 1.97–2.05 × 10¹¹ M☉（平均 1.99）；O24 曲线的平均为 2.13；摘要的 2.06 (+0.24/−0.13) × 10¹¹ M☉ 是两条曲线的平均。用 O24 速度的上端得到至多 5.4 × 10¹¹ M☉，J23 称之为不可逾越的上限。
 
 **粗略估算。** 圆速度 V 对应的 R 以内质量约为 M ≈ V²R/G。在 26.5 kpc 处取 176 km/s：M ≈ (176 km/s)² × 26.5 kpc / G ≈ 1.9 × 10¹¹ M☉。这已经是所声称的全部总质量：结论等于说 26.5 kpc 以外几乎没有新增质量。
 
@@ -467,6 +470,7 @@ J23 的质量并不来自下降检验。它来自用球对称爱纳斯托晕（�
 
 按时间倒序。
 
+- 2026-11-15：收尾审查：第一部分写明 J23 的 121 kpc 对应总密度定义的 R_vir。
 - 2026-11-15：结果：R1 在 J23 的先验下复现（似然本身 2.7σ）；误差不独立；表 4 的质量复现，但爱纳斯托质量 99.8% 在数据范围以内，可接受的 NFW 拟合给出 7 × 10¹¹ M☉；审稿意见；登记 T-028。
 - 2026-11-15：闸门 1 第 2 轮：开普勒式的形状现在依靠单独的、论文明说的前提（`stat_kepler`，第 5.3 节）与缺口。
 - 2026-11-15：闸门 1 审查：Lean 的结论改为开普勒式下降（两个缺口）；质量及其外推在 2.3 中讨论，不编码（质量拟合不用下降检验）；改正引文；误差措辞的不一致引用两句原文说明。
