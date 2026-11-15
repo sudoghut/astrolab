@@ -123,6 +123,9 @@ def test_vsky_sigma_matches_monte_carlo():
 
 def test_merge_and_bins():
     assert wb.merge_outer([100, 80, 50, 20, 10, 4], 15) == ([0, 1, 2, 3, 3, 3], True)
+    assert wb.merge_outer([3, 9, 50, 20, 30, 28], 15) == ([0, 0, 0, 1, 2, 3], True)   # low end merges up
+    assert wb.merge_outer([3, 20, 50, 20, 30, 28], 15) == ([0, 0, 1, 2, 3, 4], True)
+    assert wb.merge_outer([3, 9, 50, 20, 30, 4], 15) == ([0, 0, 0, 1, 2, 2], True)
     assert wb.merge_outer([100, 80, 50, 20, 12, 4], 15) == ([0, 1, 2, 3, 4, 4], True)
     assert wb.merge_outer([100, 80, 50, 20, 30, 28], 15) == ([0, 1, 2, 3, 4, 5], True)
     assert wb.merge_outer([10, 3], 15)[1] is False
@@ -206,3 +209,63 @@ def test_corrected_sigma_matches_monte_carlo():
         vr, vd = wb.perspective_vsky(ra1, dec1, a[1], a[2], ra2, dec2, b[1], b[2], pbar, rv1, correct=True)
         vs.append(np.hypot(vr, vd))
     assert sig == pytest.approx(np.std(vs), rel=0.05)
+
+
+def _synthetic(n=900, seed=11):
+    """A fake merged A1+B1 table with the column names step B expects (no data access)."""
+    import pandas as pd
+    rng = np.random.default_rng(seed)
+    rows = {}
+    plx = rng.uniform(8.0, 30.0, n)
+    ra = rng.uniform(10, 50, n)
+    dec = rng.uniform(-20, 20, n)
+    sep_au = 10 ** rng.uniform(np.log10(1500), np.log10(28000), n)
+    theta = sep_au * plx / 1000.0 / 3600.0
+    for s, dra, dd in (("a", 0.0, 0.0), ("b", theta, 0.0)):
+        rows[f"source_id_{s}"] = (np.arange(n) * 2 + (0 if s == "a" else 1) + 10 ** 18).astype(np.int64)
+        rows[f"ra_{s}"] = ra + dra / np.cos(np.radians(dec))
+        rows[f"dec_{s}"] = dec + dd
+        rows[f"parallax_{s}"] = plx + rng.normal(0, 0.02, n)
+        rows[f"parallax_error_{s}"] = np.full(n, 0.03)
+        bprp = rng.uniform(0.8, 2.8, n)
+        mg = 3.3 * bprp + 1.0 + 0.4
+        rows[f"bp_rp_{s}"] = bprp
+        rows[f"phot_g_mean_mag_{s}"] = mg - 5 * np.log10(plx / 100.0)
+        rows[f"ruwe_{s}"] = np.full(n, 1.0)
+        rows[f"ipd_frac_multi_peak_{s}"] = np.zeros(n)
+        rows[f"rv_method_used_{s}"] = np.ones(n)
+        rows[f"pmra_{s}"] = 50.0 + (rng.normal(0, 0.05, n) if s == "b" else 0.0)
+        rows[f"pmdec_{s}"] = -20.0 + (rng.normal(0, 0.05, n) if s == "b" else 0.0)
+        for c in ("pmra_error", "pmdec_error"):
+            rows[f"{c}_{s}"] = np.full(n, 0.02)
+        for c in ("parallax_pmra_corr", "parallax_pmdec_corr", "pmra_pmdec_corr"):
+            rows[f"{c}_{s}"] = np.zeros(n)
+        rows[f"radial_velocity_{s}"] = 10.0 + rng.normal(0, 1, n)
+        rows[f"radial_velocity_error_{s}"] = np.full(n, 1.0)
+    pairs = pd.DataFrame(rows)
+    a2 = pd.DataFrame({"source_id": np.concatenate([pairs["source_id_a"], pairs["source_id_b"]]),
+                       "n": 1, "first_neighbour": np.concatenate([pairs["source_id_b"], pairs["source_id_a"]])})
+    a3 = pd.DataFrame({"source_id": pairs["source_id_a"][:100], "mass_flame": 0.9})
+    return pairs, a2, a3
+
+
+def test_step_b_pipeline_on_synthetic_table():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("run004_test", Path(__file__).parent / "run.py")
+    run = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(run)
+    P = dict(run.PARAMS, hr_c=1.0, n_boot=200)
+    pairs, a2, a3 = _synthetic()
+    df = run.build_sample(pairs, a2, a3, P, {})
+    assert len(df) > 100 and {"x", "vt", "sig_vt", "M"} <= set(df.columns)
+    assert (df["sig_vt"] < 0.1).all() and (df["vt"] <= 2.5).all()
+    out = run.analyse(df, P, with_boot=True)
+    assert out["N"] == len(df)
+    if out["evaluable"]:
+        assert "primary" in out and out["primary"]["dof"] == out["n_bins"] - 1
+    # a pair whose member has another neighbour is degrouped
+    a2b = a2.copy()
+    a2b.loc[0, "n"] = 2
+    assert len(run.build_sample(pairs, a2b, a3, P, {})) == len(df) - (1 if pairs.index[0] in df.index else 0)
+    # cleaning removes NaN for JSON
+    assert run._clean({"a": float("nan"), "b": [1.0, float("inf")]}) == {"a": None, "b": [1.0, None]}

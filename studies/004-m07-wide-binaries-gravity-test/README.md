@@ -49,10 +49,14 @@ r_sky/r_M, concluding that "Newtonian gravity is up to 1500× more likely than M
 - Δχ² = χ²_MOND − χ²_Newton, each at its best A; relative likelihood L = exp(Δχ²/2). The two models
   are not nested; L is a relative likelihood, not a Wilks test or posterior odds.
 
-**Fit validity.** Each bin must hold at least 15 pairs. If only the outermost bins fall short, the
-highest bin is merged inward with its neighbours until it holds at least 15 (its x_j is then the
-merged median); if any bin below the merged block is still under 15, no merging is tried and the fit
-is not evaluable. Evaluable means: every final bin holds at least 15 pairs and at least two bins
+**Fit validity.** Each bin must hold at least 15 pairs. If the outermost bins fall short, the
+highest bin is merged inward and the lowest bin is merged upward with their neighbours until each
+end holds at least 15 (the merged x_j is the merged median). (Dated amendment, 2026-11-14, before
+any data: the lower end was added after the gate-1 review of the step-B code noted that x < 0.1057
+needs r_sky ≈ 1 kAU and M ≳ 1.8 M☉, so the lowest bin may be sparse; C26's own lowest-bin median,
+x = 0.073 with 368 pairs, implies separations below the stated 1 kAU for typical masses, an
+inconsistency recorded under systematics.) If any interior bin is still under 15, the fit is not
+evaluable. Evaluable means: every final bin holds at least 15 pairs and at least two bins
 remain; otherwise no verdict is given. All degrees of freedom are n_bins − 1 with the final n_bins,
 including the Newtonian p-value. No other merging or edge change is allowed once counts are seen. The 15-pair minimum applies to every bootstrap replicate too: a
 replicate with fewer than 15 pairs in any (merged) bin is redrawn; if more than 5% of draws are
@@ -90,7 +94,8 @@ Newtonian χ² and its p-value (n_bins − 1 degrees of freedom; 5 if no bins ar
 
 **R3 (descriptive).** Each variant changes one choice from the main sample: no perspective
 correction; no HR cut; HR constant c ± 0.2 mag; d < 150 pc; d < 200 pc (needs its own A/B queries beyond the 150 pc parent cut; run only if their counts fit, otherwise reported as not run); parallax S/N > 100
-(catalogue C10); ipd = 0 at 130 pc and at 150 pc; no degrouping; degrouping with C25 neighbours only (diagnostic); perspective correction
+(catalogue C10); ipd = 0 at 130 pc and at 150 pc; no degrouping; degrouping with C25 neighbours only (diagnostic; needs a second set of A2 queries, counted first;
+run only if time before 2026-11-24 allows, otherwise reported as not run); perspective correction
 from the inverse-variance-weighted mean RV of both stars instead of the primary's; ṽ ≤ 1.5 and ≤ 2. All are reported together in one table with
 L (primary errors), compared with C26's quantitative statements (150 pc: MOND 12×; 150 pc with
 ipd = 0: Newton 88×; no projection correction raises the outer-bin median by about 0.15). No
@@ -196,7 +201,9 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
 **Blinding fallback.** If the pre-registration commit misses 2026-11-24, B1 is still fetched before
 the archive goes offline, and the study is labelled "unblinded" throughout.
 
-**Systematics and limits.** Our pair finding (projected 0.5 pc with parallax consistency) is our
+**Systematics and limits.** C26's x convention is ambiguous: its Table 2 lowest-bin median
+x = 0.073 sits below what r_sky ≥ 1 kAU allows for typical masses with r_M = √(GM/a0); our x is
+r_sky/r_M as written in C26, and the per-bin counts against Figure 8 are reported. Our pair finding (projected 0.5 pc with parallax consistency) is our
 reading of C24's "within 0.5 pc of one another", which does not say whether the distance is 2D or
 3D; the HR band's exact position and C26's bin edges are not published; FLAME masses exist for
 only part of the sample; the sample-size discrepancy inside C26 (1421 vs 900) means R1's size

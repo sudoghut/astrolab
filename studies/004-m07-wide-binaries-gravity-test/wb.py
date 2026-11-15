@@ -255,21 +255,30 @@ def bin_index(x, edges):
 
 
 def merge_outer(counts, min_count):
-    """README section 2: merge the highest bin inward until it holds min_count. Returns (mapping
-    old bin -> new bin, evaluable); evaluable only if every final bin holds min_count and at least
-    two bins remain (an underfilled bin below the merged block is not merged)."""
+    """README section 2: merge the highest bin inward and the lowest bin upward until each end holds
+    min_count. Returns (mapping old bin -> new bin index 0..n_final-1, evaluable); evaluable only if
+    every final bin holds min_count and at least two bins remain."""
     counts = list(counts)
     n = len(counts)
-    mapping = list(range(n))
     top = n - 1
-    total = counts[top]
-    while total < min_count and top > 0:
+    tot_top = counts[top]
+    while tot_top < min_count and top > 0:
         top -= 1
-        total += counts[top]
-    for b in range(top, n):
-        mapping[b] = top
-    evaluable = total >= min_count and top >= 1 and all(c >= min_count for c in counts[:top])
-    return mapping, evaluable
+        tot_top += counts[top]
+    bot = 0
+    tot_bot = counts[0]
+    while tot_bot < min_count and bot < top - 1:
+        bot += 1
+        tot_bot += counts[bot]
+    groups = []
+    for b in range(n):
+        g = 0 if b <= bot else (b - bot if b < top else top - bot)
+        groups.append(g)
+    finals = {}
+    for b, g in enumerate(groups):
+        finals[g] = finals.get(g, 0) + counts[b]
+    evaluable = len(finals) >= 2 and all(v >= min_count for v in finals.values())
+    return groups, evaluable
 
 
 def bin_medians(vt, b, nbins):

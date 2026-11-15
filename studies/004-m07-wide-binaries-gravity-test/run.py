@@ -30,7 +30,7 @@ PARAMS = {
     "near_plx": 100.0, "near_b": "parallax + 3 * parallax_error > 80",
     "vcap_kms": None,                  # no velocity condition in A1 (README section 3)
     "max_rows": 50000,
-    "bytes_per_row_pair": 400, "bytes_per_row_count": 40,
+    "bytes_a1": 600, "bytes_a2": 40, "bytes_a3": 24, "bytes_b1": 300,   # README section 3 estimates
     "budget_bytes": 200 * 1024 ** 2,
     "workers": 4,
     "region_limit": None,              # exploration only: run the first N regions
@@ -103,9 +103,9 @@ def _a1(ctx, P, name, r, near, budget):
     n = _count(ctx, qc, f"A1 {name}")
     if n >= P["max_rows"]:
         return _split(ctx, P, name, r, near, budget, _a1)
-    if n * 600 > _max_bytes():
+    if n * P["bytes_a1"] > _max_bytes():
         return _split(ctx, P, name, r, near, budget, _a1)
-    budget.reserve(n * 600, f"A1 {name}")
+    budget.reserve(n * P["bytes_a1"], f"A1 {name}")
     q = qc.replace("SELECT COUNT(*) AS n", "SELECT " + Q.a1_select(), 1)
     df = ctx.tap(q, "gaia", label=f"A1 {name}", max_rows=P["max_rows"], mode="async", release="Gaia DR3")
     return n, df
@@ -119,7 +119,7 @@ def _a2(ctx, P, name, r, near, neighbour_key, budget):
     n = _count(ctx, qc, f"A2 {name}")
     if n >= P["max_rows"]:
         return _split(ctx, P, name, r, near, budget, _a2, neighbour_key)
-    budget.reserve(n * P["bytes_per_row_count"], f"A2 {name}")
+    budget.reserve(n * P["bytes_a2"], f"A2 {name}")
     q = Q.neighbour_query(r, P["parent"], nb, "rows", near=near)
     df = ctx.tap(q, "gaia", label=f"A2 {name}", max_rows=P["max_rows"], mode="async", release="Gaia DR3")
     return n, df
@@ -130,7 +130,7 @@ def _a3(ctx, P, name, r, near, budget):
     n = _count(ctx, qc, f"A3 {name}")
     if n >= P["max_rows"]:
         return _split(ctx, P, name, r, near, budget, _a3)
-    budget.reserve(n * 24, f"A3 {name}")
+    budget.reserve(n * P["bytes_a3"], f"A3 {name}")
     df = ctx.tap(Q.flame_query(r, P["parent"], "rows", near=near), "gaia", label=f"A3 {name}",
                  max_rows=P["max_rows"], mode="async", release="Gaia DR3")
     return n, df
@@ -199,9 +199,9 @@ def _b1(ctx, P, name, r, near, budget):
         qc = qc.replace(f"FROM gaiadr3.gaia_source WHERE {parent}) AS b",
                         f"FROM gaiadr3.gaia_source WHERE {parent} AND {P['near_b']}) AS b")
     n = _count(ctx, qc, f"B1 {name}")
-    if n >= P["max_rows"] or n * 300 > _max_bytes():
+    if n >= P["max_rows"] or n * P["bytes_b1"] > _max_bytes():
         return _split(ctx, P, name, r, near, budget, _b1)
-    budget.reserve(n * 300, f"B1 {name}")
+    budget.reserve(n * P["bytes_b1"], f"B1 {name}")
     q = qc.replace("SELECT COUNT(*) AS n", "SELECT " + Q.b1_select(), 1)
     df = ctx.tap(q, "gaia", label=f"B1 {name}", max_rows=P["max_rows"], mode="async", release="Gaia DR3")
     return n, df
@@ -217,11 +217,15 @@ def gather(ctx, P):
     budget = Budget(P["budget_bytes"])
     budget.used = int(sa["est_bytes"])
 
+    known = sa.get("counts_per_region", {})
+
     def one(item):
         name, r, near = item
-        _, d1 = _a1(ctx, P, name, r, near, free)
-        _, d2 = _a2(ctx, P, name, r, near, "neighbour", free)
-        _, d3 = _a3(ctx, P, name, r, near, free)
+        n1, d1 = _a1(ctx, P, name, r, near, free)
+        n2, d2 = _a2(ctx, P, name, r, near, "neighbour", free)
+        n3, d3 = _a3(ctx, P, name, r, near, free)
+        if name in known and known[name] != {"A1": n1, "A2": n2, "A3": n3}:
+            raise RuntimeError(f"{name}: step A counts changed since step_a.json; stop (README section 3)")
         _, db = _b1(ctx, P, name, r, near, budget)
         return d1, d2, d3, db
 
@@ -233,7 +237,12 @@ def gather(ctx, P):
     a1, a2, a3, b1 = (pd.concat(x, ignore_index=True) if x else pd.DataFrame() for x in parts)
     keep = wb.canonical_pairs(a1["source_id_a"].to_numpy(), a1["source_id_b"].to_numpy())
     a1 = a1.iloc[keep].reset_index(drop=True)
+    keep_b = wb.canonical_pairs(b1["source_id_a"].to_numpy(), b1["source_id_b"].to_numpy())
+    b1 = b1.iloc[keep_b].reset_index(drop=True)
     pairs = a1.merge(b1, on=["source_id_a", "source_id_b"], how="inner")
+    if len(pairs) != len(b1):
+        raise RuntimeError(f"{len(b1) - len(pairs)} B1 pairs are missing from A1; stop")
+    ctx.log(f"A1 pairs {len(a1)}, B1 pairs {len(b1)}, merged {len(pairs)}")
     return pairs, a2, a3, budget.used
 
 
@@ -248,13 +257,14 @@ def build_sample(pairs, a2, a3, P, variant):
     v = dict(variant)
     df = pairs.copy()
     if not v.get("no_degroup"):          # each member's only neighbour is its partner (A2)
-        nb = a2.drop_duplicates("source_id").set_index("source_id")
-        n_a = df["source_id_a"].map(nb["n"])
-        n_b = df["source_id_b"].map(nb["n"])
-        f_a = df["source_id_a"].map(nb["first_neighbour"])
-        f_b = df["source_id_b"].map(nb["first_neighbour"])
-        ok = (n_a == 1) & (n_b == 1) & (f_a == df["source_id_b"]) & (f_b == df["source_id_a"])
-        df = df[ok.fillna(False).astype(bool)]
+        nb = {int(s): (int(n), int(f)) for s, n, f in
+              zip(a2["source_id"], a2["n"], a2["first_neighbour"])}       # exact integer ids
+
+        def single(sid, partner):
+            v = nb.get(int(sid))
+            return v is not None and v[0] == 1 and v[1] == int(partner)
+        ok = [single(a, b) and single(b, a) for a, b in zip(df["source_id_a"], df["source_id_b"])]
+        df = df[np.array(ok, dtype=bool)]
     pbar, _, _ = wb.weighted_parallax(df["parallax_a"].to_numpy(), df["parallax_error_a"].to_numpy(),
                                       df["parallax_b"].to_numpy(), df["parallax_error_b"].to_numpy())
     df = df.assign(pbar=pbar)
@@ -297,8 +307,13 @@ def build_sample(pairs, a2, a3, P, variant):
         vcor, sig = wb.vsky_corrected_sigma(r[f"ra_{p}"], r[f"dec_{p}"], r[f"ra_{q}"], r[f"dec_{q}"], rv1,
                                             _star(r, p), _star(r, q))
         if v.get("no_projection"):
+            s1, s2 = _star(r, p), _star(r, q)
             vcor = float(wb.KAPPA / r["pbar"] * np.hypot(r[f"pmra_{q}"] - r[f"pmra_{p}"],
                                                          r[f"pmdec_{q}"] - r[f"pmdec_{p}"]))
+            sig = float(wb.vsky_sigma((s1["pmra"], s1["pmdec"]), (s2["pmra"], s2["pmdec"]), s1["p"], s2["p"],
+                                      s1["e_p"], s2["e_p"], s1["e_pmra"], s1["e_pmdec"], s2["e_pmra"],
+                                      s2["e_pmdec"], s1["c_ppa"], s1["c_ppd"], s1["c_pad"], s2["c_ppa"],
+                                      s2["c_ppd"], s2["c_pad"]))
         vs_list.append(vcor)
         sig_list.append(sig)
     vsky = np.array(vs_list)
@@ -378,6 +393,18 @@ VARIANTS = {
 }
 
 
+def _clean(obj):
+    """Replace NaN/inf by None so the saved JSON is standard."""
+    import math
+    if isinstance(obj, dict):
+        return {k: _clean(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_clean(v) for v in obj]
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return None
+    return obj
+
+
 def step_b(ctx, P):
     if P["hr_c"] is None:
         raise RuntimeError("PARAMS['hr_c'] must be committed (dated) from step A before step B")
@@ -393,12 +420,22 @@ def step_b(ctx, P):
           "N_cleanest": results["cleanest_vt1.5_ipd0"]["N"], "target_cleanest": 1216,
           "fig8_counts": [368, 228, 144, 99, 33, 28]}
     r1["verdict"] = "reproduced sample size" if r1["within_20pct"] else "different sample"
-    ctx.save("variants", results)
-    return {"step": "B", "R1": r1, "R2": main_r.get("primary", {}).get("verdict"),
+    r1["N_vs_fig8_sum"] = {"N": main_r["N"], "fig8_sum": 900}
+    r1["counts_vs_fig8"] = {"ours": main_r.get("counts_raw"), "fig8": r1["fig8_counts"]}
+    r1["A_newton_vs_0.489"] = main_r.get("primary", {}).get("A_newton")
+    if not r1["within_20pct"]:     # diagnostic chain: switch the cuts back on one at a time
+        chain = {}
+        steps = [("no_cuts_beyond_degroup", {"no_hr": True, "vt_max": 1e9}),
+                 ("+hr", {"vt_max": 1e9}), ("+vt_cap", {})]
+        for label, var in steps:
+            chain[label] = int(len(build_sample(pairs, a2, a3, P, var)))
+        r1["diagnostic_chain"] = chain
+    ctx.save("variants", _clean(results))
+    return _clean({"step": "B", "R1": r1, "R2": main_r.get("primary", {}).get("verdict"),
             "R2_L": main_r.get("primary", {}).get("L"), "n_candidate_pairs": int(len(pairs)),
             "est_bytes": int(used),
             "not_run": {"d200": "needs its own queries beyond the 150 pc parent cut",
-                        "c25_neighbour_degrouping": "diagnostic; its extra A2 queries were not run"}}
+                        "c25_neighbour_degrouping": "diagnostic; its extra A2 queries were not run"}})
 
 
 def main(ctx):
