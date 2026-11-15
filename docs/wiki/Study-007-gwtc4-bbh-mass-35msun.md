@@ -80,7 +80,7 @@ For the 35 M☉ feature to be wrong, both the strongly and the weakly modeled ro
 misled by something they share: errors in the selection function at high mass, systematic errors in
 the event masses (P26 reports a likelihood normalisation error, for which it does not use the
 corrected samples, and a calibration-prior error whose impact it expects to be negligible), or the expected noise events among the candidates (about 6.7 of the 161 compact-binary
-candidates with FAR below one per year).
+candidates with FAR below one per year; a general contamination figure, not specific to 35 M☉).
 
 ### Part 2 · The logic of the argument
 
@@ -139,12 +139,12 @@ high mass is assumed, and it matters directly for a slope above 35 M☉.
 
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
-| `stat_steep`: λ2 > λ1 with credibility ≥ 95% (P26 reports 97.7%; the 95% threshold is our deliberately weaker convention) | STAT | stated 2508.18083: "at 97.7% credibility" | §6.1 |
+| `stat_steep`: λ2 > λ1 with credibility 97.7% (encoded as the reported value) | STAT | stated 2508.18083: "at 97.7% credibility" | §6.1 |
 | `stat_bspline`: the B-spline has a local peak near 33.5 M☉ | STAT | stated 2508.18083: "which exhibits a local peak at" | §6.1 |
 | `stat_weak`: it agrees with the other weakly modeled approaches | STAT | stated 2508.18083: "consistent with other models that employ a weakly modeled approach" | §6.1, App. D.4 |
 | `gap_syst`: PE systematics and noise events make no spurious feature near 35 M☉ | GAP | reconstructed | not propagated in the paper |
-| `mod_route1`: a credible slope change (with the above) is a feature in the §6.1 sense | MOD | stated 2508.18083: "or (ii) a broken power law with break" (a break is one form of the feature) | §6.1 |
-| `mod_route2`: an agreed flexible-model peak (with the above) is a feature | MOD | stated 2508.18083: "former conclusion is supported by the B-Spline model" | §6.1 |
+| `gap_route1`: a credible slope change (with the above) is a feature in the §6.1 sense | GAP | reconstructed (P26 presents the slope result and then identifies a feature that may be a break, §6.1, but states no bridging rule) | not stated |
+| `gap_route2`: an agreed flexible-model peak (with the above) is a feature | GAP | reconstructed (P26 says the B-Spline peak supports the over-density reading, but states no bridging rule) | not stated |
 
 **Rival explanations.**
 
@@ -159,8 +159,8 @@ high mass is assumed, and it matters directly for a slope above 35 M☉.
 ```lean
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  exact p .mod_route1 (p .obs_sample) (p .mod_sel) (p .gap_sel) (p .stat_steep)
-    (p .gap_syst)  -- Sec. 3.3, 6, 6.1; two GAPs
+  exact p .gap_route1 (p .obs_sample) (p .mod_sel) (p .gap_sel) (p .stat_steep)
+    (p .gap_syst)  -- Sec. 3.3, 6, 6.1; GAPs
 ```
 
 #### 2.3 Peak or break? (discussed, not encoded)
@@ -178,25 +178,23 @@ gate-1 review showed it followed from our own encoding of the rule, so we remove
 
 #### 2.4 What the Lean check found
 
-1. **`explicit_insufficient`**: both routes need the same two gaps: an adequate selection function
-   at high mass (`gap_sel`) and no spurious feature from parameter-estimation systematics or noise
-   events (`gap_syst`). Model shape is not a gap here because the two routes agree that something
-   lies near 35 M☉ (a break in one, a peak in the other); that each route alone suffices is our
-   encoding, following §6.1's broad sense of feature, and the flexible fits carry their own
-   smoothness priors.
-2. **`stated_insufficient`**: everything the paper states, including both routes from evidence to
-   feature (§6.1), still leaves the two gaps; nothing standard closes them, so `stated_*` and
-   `explicit_*` coincide here. (An earlier version labelled the route steps as implied; Codex's
-   review pointed out that §6.1 states them.)
-3. **Two independent routes**: `stat_steep` and `mod_route1` are redundant given route 2, and
-   `stat_bspline`, `stat_weak` and `mod_route2` are redundant given route 1. The feature does not
-   rest on either model family alone. Four premises are needed: the sample, the injection selection
-   and the two gaps.
+1. **`explicit_insufficient`**: the chain needs the two shared gaps, an adequate selection function at
+   high mass (`gap_sel`) and no spurious feature from parameter-estimation systematics or noise
+   events (`gap_syst`), plus the bridging rule of at least one route (`gap_route1` or `gap_route2`):
+   P26 presents the slope result and the B-spline peak and then identifies a feature, but does not
+   state the rule that takes either result to a feature. (Two review rounds tried "implied" and then
+   "stated" for these rules; neither fits, so they are gaps.)
+2. **`stated_insufficient`**: what the paper states (sample, injections, the 97.7% slope result, the
+   B-spline peak and its agreement with other flexible models) does not by itself give the feature.
+3. **Two independent routes**: each route's statistical premise and bridging gap are redundant given
+   the other route. Four premises are needed: the sample, the injection selection and the two shared
+   gaps. Model shape is not a gap here because the two routes agree that something lies near 35 M☉
+   (a break in one, a peak in the other); that each route alone suffices is our encoding, following
+   §6.1's broad sense of feature, and the flexible fits carry their own smoothness priors.
 4. **Consistency** holds; weak here (every premise is positive). `stated_insufficient` and
    `explicit_insufficient` share one countermodel (both gaps false); the `_needed` theorems show that
    each gap matters on its own.
-5. **Limits.** Lean checks the logical structure under our encoding, not the physics; the 95%
-   threshold on the credibility is our convention.
+5. **Limits.** Lean checks the logical structure under our encoding, not the physics.
 
 ```lean
 inductive Field where
@@ -207,8 +205,8 @@ inductive Field where
   | stat_bspline  -- STAT [stated 2508.18083]
   | stat_weak     -- STAT [stated 2508.18083]
   | gap_syst      -- GAP [reconstructed]
-  | mod_route1    -- MOD [stated 2508.18083]
-  | mod_route2    -- MOD [stated 2508.18083]
+  | gap_route1    -- GAP [reconstructed]
+  | gap_route2    -- GAP [reconstructed]
 
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
   h ⟨True, True, False, 977, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
@@ -246,7 +244,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 Newest first.
 
-- 2026-11-15: gate-2 review: the route steps are stated in §6.1 (relabelled from implied); the gaps are the finding.
+- 2026-11-15: gate-2 review: the route bridging rules are neither standard knowledge nor stated in P26; they are now gaps (`gap_route1`, `gap_route2`); the slope premise encodes the reported 97.7%.
 - 2026-11-15: gate-1 review: two routes (strongly and weakly modeled) with two shared gaps (`gap_sel`, `gap_syst`); the over-density theorem removed (it followed from our own rule); quotes re-sourced.
 - 2026-11-15: first version: parts 1–3 (pre-registration source; plan `design/016-plan_*`).
 
@@ -288,7 +286,7 @@ GWTC-4.0 在早期目录之外加入了第四观测期前半段（O4a）的 128 
 
 摘要："We resolve multiple over- and under-densities in the black hole mass distribution: features persist at primary masses of 10 M⊙ and 35 M⊙ with a possible third feature at 20 M⊙. These are departures from an otherwise power-law-like continuum that steepens above 35 M⊙." 变陡的可信度为 97.7%；35 M☉ 的特征是峰还是只是弯折，正文中没有定论。
 
-35 M☉ 的特征若要不成立，强模型化与弱模型化两条途径都必须被它们共有的东西误导：高质量处选择函数的误差、事件质量的系统误差（P26 报告了一个似然归一化错误，没有使用改正后的样本，以及一个它认为影响可忽略的校准先验错误），或候选体中预期的噪声事件（FAR 低于每年一次的 161 个致密双星并合（CBC, compact binary coalescence）候选体中约 6.7 个）。
+35 M☉ 的特征若要不成立，强模型化与弱模型化两条途径都必须被它们共有的东西误导：高质量处选择函数的误差、事件质量的系统误差（P26 报告了一个似然归一化错误，没有使用改正后的样本，以及一个它认为影响可忽略的校准先验错误），或候选体中预期的噪声事件（FAR 低于每年一次的 161 个致密双星并合（CBC, compact binary coalescence）候选体中约 6.7 个；这是总体的污染估计，并非针对 35 M☉）。
 
 ### 第二部分 · 论证逻辑
 
@@ -327,12 +325,12 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 
 | 前提（Lean 构造子） | 标签 | 出处性质 | 论文出处 |
 |---|---|---|---|
-| `stat_steep`：λ2 > λ1 的可信度 ≥ 95%（P26 报告 97.7%；95% 是我们有意取弱的约定） | STAT | stated 2508.18083："at 97.7% credibility" | 第 6.1 节 |
+| `stat_steep`：λ2 > λ1 的可信度 97.7%（按报告值编码） | STAT | stated 2508.18083："at 97.7% credibility" | 第 6.1 节 |
 | `stat_bspline`：B 样条在约 33.5 M☉ 有局部峰 | STAT | stated 2508.18083："which exhibits a local peak at" | 第 6.1 节 |
 | `stat_weak`：它与其他弱模型化方法一致 | STAT | stated 2508.18083："consistent with other models that employ a weakly modeled approach" | 第 6.1 节、附录 D.4 |
 | `gap_syst`：参数估计的系统误差与噪声事件不会在 35 M☉ 附近造成虚假的特征 | GAP | reconstructed | 论文没有传播 |
-| `mod_route1`：（在上述条件下）可信的斜率变化即第 6.1 节意义上的特征 | MOD | stated 2508.18083："or (ii) a broken power law with break"（折断是特征的一种形式） | 第 6.1 节 |
-| `mod_route2`：（在上述条件下）各灵活模型一致的峰即特征 | MOD | stated 2508.18083："former conclusion is supported by the B-Spline model" | 第 6.1 节 |
+| `gap_route1`：（在上述条件下）可信的斜率变化即第 6.1 节意义上的特征 | GAP | reconstructed（P26 先给出斜率结果，再认定一个可能是折断的特征（第 6.1 节），但没有写出这一桥接规则） | 论文没有写 |
+| `gap_route2`：（在上述条件下）各灵活模型一致的峰即特征 | GAP | reconstructed（P26 说 B 样条的峰支持过密的解读，但没有写出这一桥接规则） | 论文没有写 |
 
 **其他解释（rival explanations）。**
 
@@ -347,8 +345,8 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 ```lean
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
-  exact p .mod_route1 (p .obs_sample) (p .mod_sel) (p .gap_sel) (p .stat_steep)
-    (p .gap_syst)  -- Sec. 3.3, 6, 6.1; two GAPs
+  exact p .gap_route1 (p .obs_sample) (p .mod_sel) (p .gap_sel) (p .stat_steep)
+    (p .gap_syst)  -- Sec. 3.3, 6, 6.1; GAPs
 ```
 
 #### 2.3 峰还是折断？（只讨论，不编码）
@@ -357,11 +355,11 @@ P26 第 6.1 节说 35 M☉ 的特征"consistent with either"峰值约 32.7 M☉ 
 
 #### 2.4 Lean 检查发现的问题
 
-1. **`explicit_insufficient`**：两条途径都需要同样的两个缺口：高质量处的选择函数适当（`gap_sel`），以及参数估计的系统误差与噪声事件不会造成虚假的特征（`gap_syst`）。这里模型形状不是缺口，因为两条途径都在约 35 M☉ 处有东西（一个是折断，一个是峰）；每条途径单独就足够，是我们按第 6.1 节宽泛的"特征"含义所作的编码，而且灵活模型也有它们自己的平滑先验。
-2. **`stated_insufficient`**：论文明说的一切，包括从证据到特征的两条途径（第 6.1 节），仍然留下两个缺口；没有标准知识能补上，所以这里 `stated_*` 与 `explicit_*` 一致。（早期版本把途径的推理步骤标为 implied；Codex 审查指出第 6.1 节明说了它们。）
-3. **两条独立的途径**：有途径 2 时 `stat_steep` 与 `mod_route1` 多余，有途径 1 时 `stat_bspline`、`stat_weak` 与 `mod_route2` 多余。特征不只依赖某一类模型。必要的前提有四个：样本、注入的选择效应与两个缺口。
+1. **`explicit_insufficient`**：链条需要两个共同的缺口，即高质量处的选择函数适当（`gap_sel`）、参数估计的系统误差与噪声事件不会造成虚假的特征（`gap_syst`），再加上至少一条途径的桥接规则（`gap_route1` 或 `gap_route2`）：P26 给出斜率结果与 B 样条的峰，然后认定一个特征，但没有写出从任一结果到特征的规则。（两轮审查先后尝试了 implied 与 stated 两种标注，都不合适，所以它们是缺口。）
+2. **`stated_insufficient`**：论文明说的内容（样本、注入、97.7% 的斜率结果、B 样条的峰及其与其他灵活模型的一致）本身推不出特征。
+3. **两条独立的途径**：有了另一条途径，每条途径的统计前提与桥接缺口都是多余的。必要的前提有四个：样本、注入的选择效应与两个共同的缺口。这里模型形状不是缺口，因为两条途径都在约 35 M☉ 处有东西（一个是折断，一个是峰）；每条途径单独就足够，是我们按第 6.1 节宽泛的"特征"含义所作的编码，而且灵活模型也有它们自己的平滑先验。
 4. **相容性**成立；在这里分量较弱（所有前提都是肯定命题）。`stated_insufficient` 与 `explicit_insufficient` 共用一个反例模型（两个缺口都不成立）；各自的 `_needed` 定理表明每个缺口单独都起作用。
-5. **局限。** Lean 检查的是在我们的编码下的逻辑结构，不检查物理；可信度的 95% 门槛是我们的约定。
+5. **局限。** Lean 检查的是在我们的编码下的逻辑结构，不检查物理。
 
 ```lean
 inductive Field where
@@ -372,8 +370,8 @@ inductive Field where
   | stat_bspline  -- STAT [stated 2508.18083]
   | stat_weak     -- STAT [stated 2508.18083]
   | gap_syst      -- GAP [reconstructed]
-  | mod_route1    -- MOD [stated 2508.18083]
-  | mod_route2    -- MOD [stated 2508.18083]
+  | gap_route1    -- GAP [reconstructed]
+  | gap_route2    -- GAP [reconstructed]
 
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
   h ⟨True, True, False, 977, True, True, False, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
@@ -411,7 +409,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 按时间倒序。
 
-- 2026-11-15：闸门 2 审查：途径的推理步骤在第 6.1 节中明说（由 implied 改标）；两个缺口才是发现。
+- 2026-11-15：闸门 2 审查：途径的桥接规则既不是标准知识，也没有在 P26 中明说，现在是缺口（`gap_route1`、`gap_route2`）；斜率前提按报告的 97.7% 编码。
 - 2026-11-15：闸门 1 审查：两条途径（强模型化与弱模型化）与两个共同的缺口（`gap_sel`、`gap_syst`）；删除过密定理（它由我们自己的规则推出）；引文改换出处。
 - 2026-11-15：第一版：第一至三部分（预注册的来源；计划 `design/016-plan_*`）。
 
