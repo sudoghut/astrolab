@@ -254,6 +254,8 @@ def main(ctx):
             ok = abs(base["n_sigma"] - pub) <= P["tol_nsigma"] + 2 * base["s"]
             if not gate:
                 verdict = "not evaluable (R1 gate)"
+            elif not base["finite"]:
+                verdict = "not evaluable (singular covariance or non-finite n_sigma)"
             elif base["s"] > P["s_max"]:
                 verdict = "not evaluable (s > s_max)"
             elif support.get("fails"):

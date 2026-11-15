@@ -37,7 +37,7 @@ def test_r2_verdict_rule():
             continue
         v = r2[tag]
         ok = abs(v["n_sigma"] - v["published"]) <= 0.15 + 2 * v["s"]
-        if not gate:
+        if not gate or not v.get("finite", True):
             assert v["verdict"].startswith("not evaluable")
         elif v["s"] > 0.03:
             assert v["verdict"] == "not evaluable (s > s_max)"

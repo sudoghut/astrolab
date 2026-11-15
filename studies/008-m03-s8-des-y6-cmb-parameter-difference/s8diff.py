@@ -74,6 +74,8 @@ def column_map(fmt, name, positional_ok):
     if header is None:
         if not positional_ok:
             return None, "not mapped (no header)"
+        if fmt["ncols"] is None or fmt["ncols"] < 8:
+            return None, f"not mapped (no header and only {fmt['ncols']} columns; the positional layout needs at least 8)"
         return {"omega_m": POSITIONAL["omega_m"] % fmt["ncols"], "sigma_8": POSITIONAL["sigma_8"] % fmt["ncols"],
                 "s_8": None, "weight": None, "log_weight": POSITIONAL["log_weight"] % fmt["ncols"],
                 "source": "positional (read_chains_y6.py)"}, "mapped"
@@ -248,8 +250,9 @@ def parameter_difference(a, wa, b, wb, n, seeds, bw_factor=1.0):
         r = nsigma_binned(draw_pairs(a, wa, b, wb, n, rng), bw_factor=bw_factor)
         vals.append(r["n_sigma"])
         extra.append({k: r[k] for k in ("lower_bound", "outside_grid", "cell_over_h", "cell_flag")})
+    finite = bool(np.all(np.isfinite(vals)))
     return {"n_sigma": float(np.mean(vals)), "s": float(np.std(vals, ddof=1)), "per_seed": vals,
-            "diagnostics": extra, "cell_flag": any(e["cell_flag"] for e in extra)}
+            "diagnostics": extra, "cell_flag": any(e["cell_flag"] for e in extra), "finite": finite}
 
 
 def equal_tail(dp):
