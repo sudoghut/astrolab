@@ -321,6 +321,12 @@ def main(ctx):
             cand = sorted(sampled("des_3x2pt", low_d) & sampled("cmb", low_c))
             xa = np.column_stack([des["data"][:, low_d.index(n)] for n in cand]) if cand else None
             xb = np.column_stack([cmb["data"][:, low_c.index(n)] for n in cand]) if cand else None
+            # full-space input: drop rows with a non-finite value in any candidate column (counted)
+            wa_fs, wb_fs, fs_dropped = des["w"], cmb["w"], {}
+            if xa is not None:
+                ok_a, ok_b = np.all(np.isfinite(xa), axis=1), np.all(np.isfinite(xb), axis=1)
+                fs_dropped = {"des_3x2pt": int(np.sum(~ok_a)), "cmb": int(np.sum(~ok_b))}
+                xa, xb, wa_fs, wb_fs = xa[ok_a], xb[ok_b], des["w"][ok_a], cmb["w"][ok_b]
             has_om = any(n.split("--")[-1] in ("omega_m", "omegam") for n in cand)
             if xa is None or len(cand) < 2 or not has_om:
                 fs = {"status": "chains share no sampled parameter beyond Omega_m (or Omega_m is not sampled in both)",
@@ -334,11 +340,11 @@ def main(ctx):
                 # chain, is excluded (both members of the pair)
                 n_c = len(cand)
                 drop = {i for i in range(n_c) for j in range(n_c) if i != j
-                        and max(_corr(xa, des["w"], i, j), _corr(xb, cmb["w"], i, j)) > P["corr_max"]}
+                        and max(_corr(xa, wa_fs, i, j), _corr(xb, wb_fs, i, j)) > P["corr_max"]}
                 keep = [i for i in range(n_c) if i not in drop]
                 names = [cand[i] for i in keep]
-                fs = {"parameters": names,
-                      "all": s8diff.full_space_gaussian(xa[:, keep], des["w"], xb[:, keep], cmb["w"], P["max_cond"])}
+                fs = {"parameters": names, "rows_dropped_nonfinite": fs_dropped,
+                      "all": s8diff.full_space_gaussian(xa[:, keep], wa_fs, xb[:, keep], wb_fs, P["max_cond"])}
                 if ranges["des_3x2pt"]:
                     con = []
                     for i, n in zip(keep, names):
@@ -350,10 +356,10 @@ def main(ctx):
                             var_prior = (hi - lo) ** 2 / 12.0
                         else:
                             continue
-                        if s8diff.wstd(xa[:, i], des["w"]) ** 2 < P["constrained_ratio"] * var_prior:
+                        if s8diff.wstd(xa[:, i], wa_fs) ** 2 < P["constrained_ratio"] * var_prior:
                             con.append(i)
                     fs["constrained_parameters"] = [cand[i] for i in con]
-                    fs["constrained"] = (s8diff.full_space_gaussian(xa[:, con], des["w"], xb[:, con], cmb["w"], P["max_cond"])
+                    fs["constrained"] = (s8diff.full_space_gaussian(xa[:, con], wa_fs, xb[:, con], wb_fs, P["max_cond"])
                                          if con else {"status": "no data-constrained parameter"})
                 else:
                     fs["constrained"] = {"status": "no prior ranges"}
