@@ -23,9 +23,9 @@ def _match(names, options):
     return hits
 
 
-def read_format(path, max_comment_lines=5000):
+def read_format(path, max_comment_lines=20000):
     """Step A: comment lines, header, column count and data row count; no statistics."""
-    comments, header, ncols, nrows, first = [], None, None, 0, []
+    comments, header, ncols, nrows, first, ragged = [], None, None, 0, [], 0
     with open(path, encoding="utf-8", errors="replace") as fh:
         for line in fh:
             s = line.strip()
@@ -35,8 +35,11 @@ def read_format(path, max_comment_lines=5000):
                 if len(comments) < max_comment_lines:
                     comments.append(s)
                 continue
+            n = len(s.split())
             if ncols is None:
-                ncols = len(s.split())
+                ncols = n
+            elif n != ncols:
+                ragged += 1
             nrows += 1
             if len(first) < 10:
                 first.append(s)
@@ -46,15 +49,21 @@ def read_format(path, max_comment_lines=5000):
             if ncols is not None and len(fields) == ncols:
                 header = fields
                 break
-    sampler = None
-    for c in comments:
-        m = re.match(r"#+\s*sampler\s*=\s*(\S+)", c, re.I)
-        if m:
-            sampler = m.group(1).lower()
+    sampler, sampler_line = None, None
+    for pattern in (r"#\s*sampler\s*=\s*(\S+)", r"##+\s*sampler\s*=\s*(\S+)"):
+        for c in comments:
+            if pattern.startswith("#\\s") and c.startswith("##"):
+                continue
+            m = re.match(pattern, c, re.I)
+            if m:
+                sampler, sampler_line = m.group(1).lower(), c
+                break
+        if sampler:
             break
-    priors = [c for c in comments if c.startswith("##")]
-    return {"ncols": ncols, "nrows": nrows, "header": header, "sampler": sampler,
-            "n_comment_lines": len(comments), "prior_lines": priors[:200], "first_rows": first}
+    double = [c for c in comments if c.startswith("##")]
+    return {"ncols": ncols, "nrows": nrows, "ragged_rows": ragged, "header": header, "sampler": sampler,
+            "sampler_line": sampler_line, "n_comment_lines": len(comments), "comment_lines": comments,
+            "prior_lines": double, "first_rows": first}
 
 
 def column_map(fmt, name, positional_ok):
@@ -106,7 +115,8 @@ def load_chain(path, cmap, burn):
     else:
         w = np.ones(len(data))
     used = np.column_stack([om, sg, w])
-    good = np.all(np.isfinite(used), axis=1) & (w > 0)
+    finite = np.all(np.isfinite(used), axis=1)
+    good = finite & (w > 0)
     s8 = sg * np.sqrt(om / 0.3)
     stored_ok = None
     if cmap.get("s_8") is not None:
@@ -115,7 +125,8 @@ def load_chain(path, cmap, burn):
     out = {"omega_m": om[good], "sigma_8": sg[good], "s8": s8[good], "w": w[good] / w[good].sum(),
            "data": data[good]}
     info = {"rows_read": n0, "rows_after_burn": int(len(data)), "nonfinite_any_column": nonfinite_any,
-            "dropped_used_columns": int(np.sum(~good)), "stored_s8_consistent": stored_ok,
+            "nonfinite_used_columns": int(np.sum(~finite)), "zero_weight": int(np.sum(finite & ~(w > 0))),
+            "stored_s8_consistent": stored_ok,
             "ess": float(1.0 / np.sum(out["w"] ** 2))}
     return out, info
 
@@ -210,8 +221,9 @@ def nsigma_binned(dp, bw_factor=1.0, n_grid_1d=8000, n_grid_2d=1024, q=1e-6):
     lower_bound = frac >= 1.0
     if lower_bound:
         frac = 1.0 - 1.0 / n
+    ratio = float(np.max(dx) / h)
     return {"n_sigma": float(np.sqrt(2) * special.erfinv(frac)), "delta": frac, "lower_bound": lower_bound,
-            "outside_grid": outside, "cell_over_h": float(np.max(dx) / h), "h": float(h)}
+            "outside_grid": outside, "cell_over_h": ratio, "cell_flag": ratio > 1 / 3, "h": float(h)}
 
 
 def draw_pairs(a, wa, b, wb, n, rng):
@@ -227,9 +239,9 @@ def parameter_difference(a, wa, b, wb, n, seeds, bw_factor=1.0):
         rng = np.random.default_rng(seed)
         r = nsigma_binned(draw_pairs(a, wa, b, wb, n, rng), bw_factor=bw_factor)
         vals.append(r["n_sigma"])
-        extra.append({k: r[k] for k in ("lower_bound", "outside_grid", "cell_over_h")})
+        extra.append({k: r[k] for k in ("lower_bound", "outside_grid", "cell_over_h", "cell_flag")})
     return {"n_sigma": float(np.mean(vals)), "s": float(np.std(vals, ddof=1)), "per_seed": vals,
-            "diagnostics": extra}
+            "diagnostics": extra, "cell_flag": any(e["cell_flag"] for e in extra)}
 
 
 def equal_tail(dp):

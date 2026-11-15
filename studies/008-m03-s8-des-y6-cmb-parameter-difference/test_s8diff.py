@@ -108,3 +108,39 @@ def test_full_space_gaussian():
     w = np.ones(100_000)
     r = sd.full_space_gaussian(a, w, b, w, 1e8)
     assert r["status"] == "ok" and r["k"] == 2 and abs(r["chi2"] - 4.5) < 0.2
+
+
+def _import_run():
+    sys.path.insert(0, str(HERE))
+    try:
+        return _import("run")
+    finally:
+        sys.path.remove(str(HERE))
+
+
+def test_parse_priors_long_params_block(tmp_path):
+    run = _import_run()
+    lines = ["## START_OF_PARAMS_INI"] + [f"## key{i} = {i}" for i in range(300)] + ["## END_OF_PARAMS_INI",
+             "## START_OF_VALUES_INI", "## [cosmological_parameters]", "## omega_m = 0.1 0.3 0.9 ; comment",
+             "## n_s = 0.87 0.97 1.07", "## h0 = 0.7", "## END_OF_VALUES_INI",
+             "## START_OF_PRIORS_INI", "## [cosmological_parameters]", "## n_s = gaussian 0.96 0.01",
+             "## END_OF_PRIORS_INI"]
+    pr = run._parse_priors(lines)
+    assert pr["cosmological_parameters--omega_m"]["range"] == (0.1, 0.9)
+    assert pr["cosmological_parameters--n_s"]["gaussian_sigma"] == 0.01
+    assert "cosmological_parameters--h0" not in pr
+    text = "#omega_m sigma_8 weight\n" + "\n".join(lines) + "\n0.3 0.8 1\n"
+    fmt = sd.read_format(_write(tmp_path, text))
+    assert len(fmt["prior_lines"]) == len(lines) and fmt["ragged_rows"] == 0
+
+
+def test_support_names_only_omega_m_and_amplitude():
+    run = _import_run()
+    names = ["cosmological_parameters--omega_m", "cosmological_parameters--n_s", "cosmological_parameters--a_s",
+             "cosmological_parameters--h0", "intrinsic_alignment--a1"]
+    assert run._support_names(names) == ["cosmological_parameters--a_s", "cosmological_parameters--omega_m"]
+
+
+def test_ragged_rows_counted(tmp_path):
+    fmt = sd.read_format(_write(tmp_path, "#a b c\n1 2 3\n1 2\n"))
+    assert fmt["ragged_rows"] == 1

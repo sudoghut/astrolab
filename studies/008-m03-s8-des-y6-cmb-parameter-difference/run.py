@@ -64,19 +64,57 @@ DERIVED = {"sigma_8", "sigma8", "s_8", "s8", "omega_lambda", "omega_nu", "omega_
            "h0", "theta_star", "100theta_star"}
 
 
+AMPLITUDE = {"a_s", "as", "log1e10as", "ln10^{10}a_s", "logA", "loga", "ln10_10_as", "sigma8_input"}
+
+
 def _parse_priors(lines):
-    """CosmoSIS values.ini echoed as '##' lines: '## [section]' then '## name = lo start hi'."""
-    out, section = {}, ""
+    """CosmoSIS ini files echoed as '##' lines.
+
+    values.ini: '## [section]' then '## name = lo start hi' (uniform range);
+    priors.ini (between START_OF_PRIORS_INI and END_OF_PRIORS_INI): '## name = gaussian mu sigma'.
+    Returns {section--name: {"range": (lo, hi)} or {"gaussian_sigma": s}}; inline ';' or '#' comments
+    are stripped before matching.
+    """
+    out, section, block = {}, "", ""
     for line in lines:
         s = line.lstrip("#").strip()
-        m = re.match(r"\[(.+)\]", s)
+        up = s.upper()
+        if up.startswith("START_OF_"):
+            block = up[len("START_OF_"):]
+            continue
+        if up.startswith("END_OF_"):
+            block = ""
+            continue
+        s = re.split(r"[;#]", s)[0].strip()
+        m = re.match(r"\[(.+)\]$", s)
         if m:
             section = m.group(1).strip().lower()
             continue
-        m = re.match(r"([\w\-]+)\s*=\s*([-+\d.eE]+)\s+([-+\d.eE]+)\s+([-+\d.eE]+)\s*$", s)
-        if m and section:
-            out[f"{section}--{m.group(1).lower()}"] = (float(m.group(2)), float(m.group(4)))
+        if not section:
+            continue
+        m = re.match(r"([\w\-]+)\s*=\s*(.+)$", s)
+        if not m:
+            continue
+        name, rhs = f"{section}--{m.group(1).lower()}", m.group(2).split()
+        if block.startswith("PRIORS") and rhs and rhs[0].lower() in ("gaussian", "gauss", "normal") and len(rhs) >= 3:
+            out.setdefault(name, {})["gaussian_sigma"] = float(rhs[2])
+        elif not block.startswith("PRIORS") and len(rhs) == 3:
+            try:
+                lo, _, hi = (float(x) for x in rhs)
+            except ValueError:
+                continue
+            out.setdefault(name, {})["range"] = (lo, hi)
     return out
+
+
+def _support_names(names):
+    """README 2.2: Omega_m and the amplitude parameter only."""
+    keep = []
+    for n in names:
+        short = n.split("--")[-1].lower()
+        if short in ("omega_m", "omegam") or short in AMPLITUDE:
+            keep.append(n)
+    return sorted(keep)
 
 
 def _fetch(ctx, P, key):
@@ -103,7 +141,7 @@ def main(ctx):
     chains, info = {}, {}
 
     def load(key):
-        if maps[key] is None:
+        if maps[key] is None or formats[key]["ragged_rows"]:
             return None
         burn, why = s8diff.burn_in_fraction(formats[key]["sampler"], P["mcmc_burn"])
         c, inf = s8diff.load_chain(paths[key], maps[key], burn)
@@ -118,7 +156,7 @@ def main(ctx):
     def r1_one(key, pub):
         c = chains.get(key)
         if c is None:
-            return {"status": "not evaluable (not mapped)"}
+            return {"status": f"not evaluable ({status.get(key)}; ragged rows {formats[key]['ragged_rows']})"}
         iv = s8diff.interval_around_mean(c["s8"], c["w"], P["mass"], P["n_grid"])
         mean_ok = abs(iv["mean"] - pub[0]) <= P["tol_mean"]
         end_ok = (abs(iv["hi"] - (pub[0] + pub[1])) <= P["tol_end"]
@@ -132,7 +170,11 @@ def main(ctx):
     if not r1["des_xipm"].get("mean_ok"):
         paths["des_xipm_nla"] = _fetch(ctx, P, "des_xipm_nla")
         formats["des_xipm_nla"] = s8diff.read_format(paths["des_xipm_nla"])
-        maps["des_xipm_nla"], status["des_xipm_nla"] = s8diff.column_map(formats["des_xipm_nla"], "des_xipm_nla", True)
+        maps["des_xipm_nla"], status["des_xipm_nla"] = s8diff.column_map(
+            formats["des_xipm_nla"], "des_xipm_nla", "des_xipm_nla" in P["positional_ok"])
+        formats_out["des_xipm_nla"] = {**formats["des_xipm_nla"], "column_map": maps["des_xipm_nla"],
+                                       "status": status["des_xipm_nla"]}
+        ctx.save("formats", formats_out)
         load("des_xipm_nla")
         r1["des_xipm_nla"] = r1_one("des_xipm_nla", P["published"]["des_xipm_nla"])
         xi_key = "des_xipm_nla" if r1["des_xipm_nla"].get("mean_ok") else None
@@ -150,35 +192,39 @@ def main(ctx):
         s8 = c["s8"] + shift
         return s8[:, None] if d == 1 else np.column_stack([s8, c["omega_m"]])
 
-    # prior support from '##' lines (shared sampled parameters)
+    # prior support from '##' lines: Omega_m and the amplitude parameter only (README 2.2)
     priors = {k: _parse_priors(formats[k]["prior_lines"]) for k in ("des_3x2pt", "cmb")}
-    support = {"status": "not performed (no prior ranges in headers)"}
-    shared = sorted(set(priors["des_3x2pt"]) & set(priors["cmb"]))
-    if shared and des is not None and cmb is not None:
-        support = {"status": "performed", "parameters": {}}
+    ranges = {k: {n: v["range"] for n, v in priors[k].items() if "range" in v} for k in priors}
+    support = {"status": "not performed (no prior ranges in either header)"}
+    names = _support_names(set(ranges["des_3x2pt"]) | set(ranges["cmb"]))
+    if names and des is not None and cmb is not None:
+        support = {"status": "performed", "parameters": {}, "rule": "weight of each chain outside the other "
+                   "chain's prior range, where that range is given"}
         bad = False
-        for name in shared:
+        for name in names:
             fr = {}
             for a, b in (("des_3x2pt", "cmb"), ("cmb", "des_3x2pt")):
                 hdr = formats[a]["header"]
-                if not hdr or name not in [h.lower() for h in hdr]:
-                    fr[a] = None
+                low = [h.lower() for h in hdr] if hdr else []
+                if name not in ranges[b] or name not in low:
+                    fr[f"{a}_outside_{b}"] = None
                     continue
-                col = [h.lower() for h in hdr].index(name)
-                x = chains[a]["data"][:, col]
-                lo, hi = priors[b][name]
-                fr[a] = float(np.sum(chains[a]["w"][(x < lo) | (x > hi)]))
+                x = chains[a]["data"][:, low.index(name)]
+                lo, hi = ranges[b][name]
+                fr[f"{a}_outside_{b}"] = float(np.sum(chains[a]["w"][(x < lo) | (x > hi)]))
             support["parameters"][name] = fr
             bad = bad or any(v is not None and v > P["support_frac_max"] for v in fr.values())
         support["fails"] = bad
+        support["other_shared_ranges"] = sorted((set(ranges["des_3x2pt"]) & set(ranges["cmb"])) - set(names))
 
     r2 = {"gate_r1_means": bool(gate), "support": support}
     if des is not None and cmb is not None:
         for d, tag in ((1, "1d"), (2, "2d")):
             base = s8diff.parameter_difference(vec(des, d), des["w"], vec(cmb, d), cmb["w"], P["n_pairs"], P["seeds"])
-            variants = {f"bw_x{bw}": s8diff.parameter_difference(vec(des, d), des["w"], vec(cmb, d), cmb["w"],
-                                                                 P["n_pairs"], P["seeds"], bw_factor=bw)["n_sigma"]
-                        for bw in P["bw_variants"]}
+            variants_full = {f"bw_x{bw}": s8diff.parameter_difference(vec(des, d), des["w"], vec(cmb, d), cmb["w"],
+                                                                      P["n_pairs"], P["seeds"], bw_factor=bw)
+                             for bw in P["bw_variants"]}
+            variants = {k: v["n_sigma"] for k, v in variants_full.items()}
             pub = P["published_nsigma"][tag]
             ok = abs(base["n_sigma"] - pub) <= P["tol_nsigma"] + 2 * base["s"]
             if not gate:
@@ -190,10 +236,13 @@ def main(ctx):
             else:
                 verdict = "reproduced" if ok else "not reproduced"
             flag = any(abs(v - base["n_sigma"]) > P["bw_flag"] for v in variants.values())
-            r2[tag] = {**base, "published": pub, "bandwidth_variants": variants, "bandwidth_dependent": flag,
-                       "within_tolerance": bool(ok), "verdict": verdict}
+            r2[tag] = {**base, "published": pub, "bandwidth_variants": variants,
+                       "bandwidth_variant_diagnostics": {k: v["diagnostics"] for k, v in variants_full.items()},
+                       "cell_flag_any": base["cell_flag"] or any(v["cell_flag"] for v in variants_full.values()),
+                       "bandwidth_dependent": flag, "within_tolerance": bool(ok), "verdict": verdict}
             ctx.log(f"R2 {tag}: n_sigma {base['n_sigma']:.3f} (s {base['s']:.4f}) vs {pub} -> {verdict}")
         r2["1d"]["convolution_check"] = s8diff.convolution_check(des["s8"], des["w"], cmb["s8"], cmb["w"], P["conv_spacing"])
+        r2["1d"]["convolution_check"]["note"] = "cross-check only; not used for the bandwidth flag"
         ms = {k: (s8diff.wmean(c["s8"], c["w"]), s8diff.wstd(c["s8"], c["w"])) for k, c in (("des", des), ("cmb", cmb))}
         r2["gaussian_means"] = s8diff.gaussian_estimate(ms["des"][0], ms["des"][1], ms["cmb"][0], ms["cmb"][1])
         r2["gaussian_modes"] = s8diff.gaussian_estimate(r1["des_3x2pt"]["kde_mode"], ms["des"][1],
@@ -235,16 +284,19 @@ def main(ctx):
         fs = {"status": "no headers"}
         if hd and hc:
             low_d, low_c = [h.lower() for h in hd], [h.lower() for h in hc]
-            if priors["des_3x2pt"] and priors["cmb"]:
-                cand = [n for n in shared if n.startswith("cosmological_parameters--")]
+            if ranges["des_3x2pt"] and ranges["cmb"]:
+                cand = [n for n in set(ranges["des_3x2pt"]) & set(ranges["cmb"])
+                        if n.startswith("cosmological_parameters--") and n in low_d and n in low_c]
             else:
                 cand = [n for n in set(low_d) & set(low_c)
                         if n.startswith("cosmological_parameters--") and n.split("--")[-1] not in DERIVED]
             cand = sorted(cand)
             xa = np.column_stack([des["data"][:, low_d.index(n)] for n in cand]) if cand else None
             xb = np.column_stack([cmb["data"][:, low_c.index(n)] for n in cand]) if cand else None
-            if xa is None or len(cand) < 2:
-                fs = {"status": "chains share no sampled parameter beyond Omega_m", "candidates": cand}
+            has_om = any(n.split("--")[-1] in ("omega_m", "omegam") for n in cand)
+            if xa is None or len(cand) < 2 or not has_om:
+                fs = {"status": "chains share no sampled parameter beyond Omega_m (or Omega_m is not sampled in both)",
+                      "candidates": cand}
             else:
                 keep = []
                 for i in range(len(cand)):
@@ -255,14 +307,19 @@ def main(ctx):
                 names = [cand[i] for i in keep]
                 fs = {"parameters": names,
                       "all": s8diff.full_space_gaussian(xa[:, keep], des["w"], xb[:, keep], cmb["w"], P["max_cond"])}
-                if priors["des_3x2pt"]:
+                if ranges["des_3x2pt"]:
                     con = []
                     for i, n in zip(keep, names):
-                        if n in priors["des_3x2pt"]:
-                            lo, hi = priors["des_3x2pt"][n]
+                        pr = priors["des_3x2pt"].get(n, {})
+                        if "gaussian_sigma" in pr:
+                            var_prior = pr["gaussian_sigma"] ** 2
+                        elif "range" in pr:
+                            lo, hi = pr["range"]
                             var_prior = (hi - lo) ** 2 / 12.0
-                            if s8diff.wstd(xa[:, i], des["w"]) ** 2 < P["constrained_ratio"] * var_prior:
-                                con.append(i)
+                        else:
+                            continue
+                        if s8diff.wstd(xa[:, i], des["w"]) ** 2 < P["constrained_ratio"] * var_prior:
+                            con.append(i)
                     fs["constrained_parameters"] = [cand[i] for i in con]
                     fs["constrained"] = (s8diff.full_space_gaussian(xa[:, con], des["w"], xb[:, con], cmb["w"], P["max_cond"])
                                          if con else {"status": "no data-constrained parameter"})
