@@ -61,7 +61,7 @@ structure Vocab where
 inductive Field where
   /-- OBS [stated 2505.11263: "we assume MoM-z14 and JADES-GS-z14-0 are the only −21<MUV<−20 sources"] Sec. 4.1 (z = 14-15, PRIMER and JOF area); the spectroscopic confirmations are N26 Sec. 3 and C24; the body uses only that there are at least two -/
   | obs_count
-  /-- STAT [stated 2505.11263: "Such an LF underestimates the incidence of observed sources by ≈200×"] Sec. 4.1 (182, interval +329 and -105, which comes from the Poisson uncertainty of the observed count) -/
+  /-- STAT [stated 2505.11263: "Such an LF underestimates the incidence of observed sources by ≈200×"] Sec. 4.1 (182, interval +329 and -105, presumably from the Poisson uncertainty of the observed count; N26 does not say) -/
   | stat_ratio
   /-- NUM [implied] Poisson tail P(N >= 2) for expected count 2/182 in the declared area; textbook Poisson statistics (e.g. Gehrels 1986, ApJ 303, 336) NUM[results/r1.json:p_tail_n26_ppm <= 200] -/
   | num_tail

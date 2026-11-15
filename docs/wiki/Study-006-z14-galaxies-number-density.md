@@ -61,8 +61,8 @@ and the scatter of galaxies around the mean relation (σ_UV) is low.
 
 **(c) The comparison.** In the same bin and area this LF predicts about 182 times fewer galaxies
 (182, +329/−105): about 2.4 × 10⁻⁸ Mpc⁻³ mag⁻¹. N26: "Such an LF underestimates the incidence
-of observed sources by ≈200×" and "is disfavored at high confidence". The interval on 182 comes
-from the Poisson uncertainty of the observed count (it mirrors the interval on φ, with the signs
+of observed sources by ≈200×" and "is disfavored at high confidence". The interval on 182 presumably
+comes from the Poisson uncertainty of the observed count (N26 does not say; it mirrors the interval on φ, with the signs
 swapped: +0.45/−0.37 dex against +0.37/−0.45 dex, which we flag rather than resolve).
 
 *Back of the envelope (our reading; N26 gives no number for "high confidence").* Over the declared
@@ -209,9 +209,9 @@ LF", the encoded conclusion is about that LF.
 2. **`stated_insufficient`**: the paper states the count and the ratio; the significance step and
    its number are unstated background.
 3. **Every premise is needed** (six `_needed` countermodels); none is redundant.
-4. **The census assumption cuts one way only**: further sources inside the declared area would
-   strengthen the conclusion (the count enters as "at least two"); more searched area without
-   detections would weaken it (`gap_area`).
+4. **The census assumption cuts both ways**: through the count it can only strengthen the
+   conclusion (further sources inside the declared area enter as "at least two"); through the area it can weaken it (more searched
+   area without detections, `gap_area`).
 5. **Consistency** holds but is weak here: every premise is positive.
 6. **Limits.** Lean checks the logical structure under our encoding, not the physics inside each
    premise; with uninterpreted atoms "needed" means "used by this encoding".
@@ -240,7 +240,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | H25's z ~ 14 point (R4) | context only | H25's z ~ 14 bin contains only GS-z14-0 (shared with N26) and includes cosmic variance | H25 Table 2 | none (background) | pending |
 | Model ingredients (R5) | explorable (not decisive) | halo mass function, accretion fit, calibration redshift, σ_cal, ε extrapolation, dust, completeness c | same | none - exploration only, see README §8 | pending |
 | D: cosmic variance (`gap_poisson`) | explorable (not decisive) | halo-bias estimate of the field-to-field variance for two counts | same | none - exploration only | pending |
-| E: effective area (`gap_area`) | explorable (not decisive) | tail probability as a function of the effective area (ratio): crosses 2 × 10⁻⁴ at ≈ 1.8× and 1.35 × 10⁻³ at ≈ 4.8× the declared area | – | none - exploration only | pending |
+| E: effective area (`gap_area`) | explorable (not decisive) | tail probability as a function of the effective area (ratio): crosses 2 × 10⁻⁴ at ≈ 1.8× (ratio ≈ 99) and 1.35 × 10⁻³ at ≈ 4.8× (ratio ≈ 38) the declared area | – | none - exploration only | pending |
 | The baseline represents the consensus (2.3) | out of scope as a test | would need the pre-JWST model ensemble | – | – | – |
 
 ### Glossary
@@ -262,7 +262,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 - How much does cosmic variance for two rare objects in 388 arcmin² weaken "high confidence"?
 - What is the full effective area searched for z = 14–15 sources at this depth with spectroscopic
-  follow-up?
+  follow-up (for example the rest of JADES GOODS-S, CEERS, NGDEEP)?
 - How strongly does the factor 182 depend on which pre-JWST model represents the consensus?
 
 ### Changelog
@@ -310,7 +310,7 @@ N26 统计 z = 14–15、−21 < M_UV < −20 的星系。在 PRIMER 与 JOF 巡
 
 **(b) JWST 之前的基准。** N26 写道"To represent the pre-JWST theoretical consensus"，按 S23 的框架构造了一个 ΛCDM 紫外光度函数：晕按暗物质吸积决定的速率增长，流入气体中按文献平均比例的部分形成恒星（恒星形成效率，SFE, star-formation efficiency），紫外光度由恒星形成率按 Chabrier 初始质量函数（IMF, initial mass function）换算，星系相对平均关系的弥散（σ_UV）较小。
 
-**(c) 比较。** 在同一个箱与面积里，这个光度函数预言的星系约少 182 倍（182，+329/−105）：约 2.4 × 10⁻⁸ Mpc⁻³ mag⁻¹。N26："Such an LF underestimates the incidence of observed sources by ≈200×"，并且"is disfavored at high confidence"。182 的区间来自观测计数的泊松不确定性（它与 φ 的区间互为镜像、正负号对调：+0.45/−0.37 dex 对 +0.37/−0.45 dex，我们只指出而不解决这一点）。
+**(c) 比较。** 在同一个箱与面积里，这个光度函数预言的星系约少 182 倍（182，+329/−105）：约 2.4 × 10⁻⁸ Mpc⁻³ mag⁻¹。N26："Such an LF underestimates the incidence of observed sources by ≈200×"，并且"is disfavored at high confidence"。182 的区间大概来自观测计数的泊松不确定性（N26 没有说明；它与 φ 的区间互为镜像、正负号对调：+0.45/−0.37 dex 对 +0.37/−0.45 dex，我们只指出而不解决这一点）。
 
 *粗略估算（我们的解读；N26 没有给出"高置信度"的数值）。* 在所述面积上，基准模型下预期的星系个数是 2/182 ≈ 0.011。看到两个或更多的泊松概率约为 0.011²/2 ≈ 6 × 10⁻⁵。若改用比值区间的下端（77 倍），会把观测计数的泊松不确定性计算两次，因为检验已经把计数当作数据。
 
@@ -407,7 +407,7 @@ N26 构造了一个光度函数"to represent the pre-JWST theoretical consensus"
 1. **`explicit_insufficient`**：即使加上标准背景知识，链条仍需要两个缺口：计数服从泊松分布、没有宇宙方差的额外弥散（`gap_poisson`），以及所述面积就是完整的有效搜索（`gap_area`）。N26 第 4 节都没有讨论它们。
 2. **`stated_insufficient`**：论文明说了计数与比值；显著性一步及其数值是没写出的背景知识。
 3. **每个前提都是必要的**（六个 `_needed` 反例模型），没有多余的前提。
-4. **普查假设只在一个方向上起作用**：所述面积内更多的源会加强结论（计数以"至少两个"进入）；搜索了更多面积却没有探测会削弱结论（`gap_area`）。
+4. **普查假设在两个方向上起作用**：经由计数，只会加强结论（所述面积内更多的源以"至少两个"进入）；经由面积，可能削弱结论（搜索了更多面积却没有探测，`gap_area`）。
 5. **相容性**成立，但在这里分量很弱：所有前提都是肯定命题。
 6. **局限。** Lean 检查的是在我们的编码下的逻辑结构，不检查每个前提内部的物理；原子命题不加解释时，"必要"指"本编码用到了它"。
 
@@ -435,7 +435,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | H25 的 z ~ 14 点（R4） | 只作背景 | H25 的 z ~ 14 箱只含 GS-z14-0（与 N26 共用），误差含宇宙方差 | H25 表 2 | 无（背景） | 待定 |
 | 模型组成（R5） | 可探索（不能判决） | 晕质量函数、吸积拟合式、校准红移、σ_cal、ε 外推、尘埃、完备性 c | 同上 | 无——仅供探索，见 README 第 8 节 | 待定 |
 | D：宇宙方差（`gap_poisson`） | 可探索（不能判决） | 用晕偏置（halo bias）估计两个计数的视场间弥散 | 同上 | 无——仅供探索 | 待定 |
-| E：有效面积（`gap_area`） | 可探索（不能判决） | 尾概率随有效面积（比值）的变化：约为所述面积的 1.8 倍时越过 2 × 10⁻⁴，约 4.8 倍时越过 1.35 × 10⁻³ | – | 无——仅供探索 | 待定 |
+| E：有效面积（`gap_area`） | 可探索（不能判决） | 尾概率随有效面积（比值）的变化：约为所述面积的 1.8 倍（比值约 99）时越过 2 × 10⁻⁴，约 4.8 倍（比值约 38）时越过 1.35 × 10⁻³ | – | 无——仅供探索 | 待定 |
 | 基准代表共识（2.3） | 不在检验范围内 | 需要 JWST 之前的模型集合 | – | – | – |
 
 ### 术语表
@@ -456,7 +456,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 ### 开放问题
 
 - 对 388 arcmin² 中的两个稀有天体，宇宙方差在多大程度上削弱"高置信度"？
-- 在这一深度、做过光谱跟进的 z = 14–15 源的完整有效搜索面积是多少？
+- 在这一深度、做过光谱跟进的 z = 14–15 源的完整有效搜索面积是多少（例如 JADES GOODS-S 的其余部分、CEERS、NGDEEP）？
 - 182 倍在多大程度上取决于用哪个 JWST 之前的模型代表共识？
 
 ### 研究进展
