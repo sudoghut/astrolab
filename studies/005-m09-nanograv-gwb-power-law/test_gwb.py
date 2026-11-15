@@ -69,6 +69,12 @@ def test_unsafe_and_missing(tmp_path):
     with pytest.raises(gwb.NotEvaluable):
         gwb.load_product(_zip(tmp_path, extra=[("../evil.txt", b"x")]), "30f_fs{hd}", **LIMITS)
     with pytest.raises(gwb.NotEvaluable):
+        gwb.load_product(_zip(tmp_path, extra=[("a..b/x.npy", b"x")]), "30f_fs{hd}", **LIMITS)
+    bad = tmp_path / "bad.zip"
+    bad.write_bytes(b"not a zip")
+    with pytest.raises(gwb.NotEvaluable):
+        gwb.load_product(bad, "30f_fs{hd}", **LIMITS)
+    with pytest.raises(gwb.NotEvaluable):
         gwb.load_product(_zip(tmp_path, dirname="30f_fs{cp}_ceffyl"), "30f_fs{hd}", **LIMITS)
     small = dict(LIMITS, max_member_bytes=100)
     with pytest.raises(gwb.NotEvaluable):
@@ -99,6 +105,12 @@ def test_lnlike_bins(prod):
     assert np.isclose(gwb.lnlike(prod, top, below_grid="clip")[0], d[0, -1] + d[1, 20])
     assert gwb.lnlike(prod, top + np.array([[1e-9, 0.0]]), below_grid="clip")[0] == -np.inf
     assert k == x.shape[-1]
+    # half-bin boundaries around node j
+    db = GRID[1] - GRID[0]
+    j = 100
+    for off, jj in ((0.49, j), (-0.49, j), (0.51, j + 1), (-0.51, j - 1)):
+        y = np.array([[GRID[j] + off * db]])
+        assert np.isclose(gwb.lnlike(prod, y, below_grid="clip")[0], d[0, jj])
 
 
 def test_two_piece_quantiles():
@@ -152,6 +164,46 @@ def test_r2_truth_off_line(tmp_path):
     out = gwb.r2(p, **R2KW)
     assert out["q_hpd_13_3"] > 0.95
     assert gwb.category(out["q_hpd_13_3"], 0.95, 0.997).endswith("(descriptive category)")
+
+
+def test_r2_q_brute_force(prod):
+    kw = dict(R2KW, step=0.05)
+    out = gwb.r2(prod, **kw)
+    xa = gwb.axis(-18.0, -11.0, 0.05)
+    xg = gwb.axis(0.0, 7.0, 0.05)
+    f = FREQS[:14]
+    ln = np.array([[gwb.lnlike(prod, gwb.log10rho_powerlaw(a, g, f, T_S)[None, :], below_grid="clip")[0]
+                    for a in xa] for g in xg])
+    line = np.array([gwb.lnlike(prod, gwb.log10rho_powerlaw(a, 13.0 / 3.0, f, T_S)[None, :],
+                                below_grid="clip")[0] for a in xa])
+    top = max(ln.max(), line.max())
+    p, pl = np.exp(ln - top), np.exp(line - top)
+    w = p.copy()
+    w[0, :] *= 0.5; w[-1, :] *= 0.5; w[:, 0] *= 0.5; w[:, -1] *= 0.5
+    w /= w.sum()
+    assert abs(out["q_hpd_13_3"] - w[p > pl.max()].sum()) < 1e-12
+
+
+def test_r4_brute_force(prod):
+    steps = (0.25, 0.5, 1.75)
+    out = gwb.r4(prod, n_freq=14, gamma=13.0 / 3.0, lo_a=-18.0, hi_a=-11.0, lo_fb=-9.0, hi_fb=-7.5,
+                 lo_k=0.0, hi_k=7.0, steps=steps, below_grid="clip", edge_frac=0.01, edge_max=1.0, chunk=2)
+    xa, xf, xk = gwb.axis(-18, -11, steps[0]), gwb.axis(-9, -7.5, steps[1]), gwb.axis(0, 7, steps[2])
+    f = FREQS[:14]
+    tw = gwb.trap_weights
+    z = 0.0
+    for i, k in enumerate(xk):
+        for j, fb in enumerate(xf):
+            for m, a in enumerate(xa):
+                ll = gwb.lnlike(prod, gwb.log10rho_turnover(a, fb, k, 13.0 / 3.0, f, T_S)[None, :],
+                                below_grid="clip")[0]
+                z += np.exp(ll) * tw(xk.size)[i] * tw(xf.size)[j] * tw(xa.size)[m]
+    z *= steps[0] * steps[1] * steps[2] / (7.0 * 1.5 * 7.0)
+    zp = sum(np.exp(gwb.lnlike(prod, gwb.log10rho_powerlaw(a, 13.0 / 3.0, f, T_S)[None, :],
+                               below_grid="clip")[0]) * tw(xa.size)[m] for m, a in enumerate(xa))
+    zp *= steps[0] / 7.0
+    assert abs(out["ln_Z_turn"] - np.log(z)) < 1e-9
+    assert abs(out["ln_Z_pl"] - np.log(zp)) < 1e-9
 
 
 def test_r2b_closed_intervals():

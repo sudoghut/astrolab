@@ -24,13 +24,30 @@ class NotEvaluable(Exception):
 
 def load_product(zip_path, dir_key, *, max_member_bytes, max_total_bytes, max_members):
     """Read the three arrays of the directory whose name contains `dir_key` from an untrusted zip."""
+    try:
+        return _load_product(zip_path, dir_key, max_member_bytes=max_member_bytes,
+                             max_total_bytes=max_total_bytes, max_members=max_members)
+    except (zipfile.BadZipFile, RuntimeError, ValueError, OSError, EOFError) as e:
+        raise NotEvaluable(f"cannot read archive: {type(e).__name__}: {e}") from e
+
+
+def list_members(zip_path, limit=200):
+    """Member names (for the log when a structural check fails)."""
+    try:
+        with zipfile.ZipFile(zip_path) as zf:
+            return [i.filename for i in zf.infolist()[:limit]]
+    except (zipfile.BadZipFile, OSError) as e:
+        return [f"unreadable: {e}"]
+
+
+def _load_product(zip_path, dir_key, *, max_member_bytes, max_total_bytes, max_members):
     with zipfile.ZipFile(zip_path) as zf:
         infos = zf.infolist()
         if len(infos) > max_members:
             raise NotEvaluable(f"archive lists {len(infos)} members > {max_members}")
         for info in infos:
             name = info.filename
-            if ".." in name.split("/") or name.startswith("/") or "\\" in name:
+            if ".." in name or name.startswith("/") or "\\" in name:
                 raise NotEvaluable(f"unsafe member name {name!r}")
         dirs = sorted({i.filename.rsplit("/", 1)[0] for i in infos
                        if "/" in i.filename and dir_key in i.filename.rsplit("/", 1)[0].split("/")[-1]})
@@ -68,6 +85,8 @@ def check_product(prod, *, n_freq_file, t_yr, freq_tol, grid_rtol):
     if dens.ndim != 2 or dens.shape != (n_freq_file, grid.size):
         raise NotEvaluable(f"density shape {np.shape(prod['density'])} does not match "
                            f"({n_freq_file}, {grid.size})")
+    if not (np.all(np.isfinite(grid)) and np.all(np.isfinite(freqs)) and np.all(freqs > 0)):
+        raise NotEvaluable("non-finite or non-positive values in the grid or frequencies")
     if grid.size < 2:
         raise NotEvaluable("grid has fewer than 2 points")
     steps = np.diff(grid)
@@ -311,6 +330,8 @@ def r4(prod, *, n_freq, gamma, lo_a, hi_a, lo_fb, hi_fb, lo_k, hi_k, steps, belo
         marg_f = np.logaddexp(marg_f, [_logsumexp(lw[:, j]) for j in range(xf.size)])
         marg_a = np.logaddexp(marg_a, [_logsumexp(lw[:, :, j]) for j in range(xa.size)])
     ln_z_turn = _logsumexp(terms) + np.log(sa * sf * sk) + ln_prior
+    if not (np.isfinite(ln_z_pl) and np.isfinite(ln_z_turn)):
+        raise NotEvaluable(f"R4 evidence not finite (ln Z_PL = {ln_z_pl}, ln Z_turn = {ln_z_turn})")
 
     def em(x, lm, w):
         p = np.exp(lm - np.max(lm) - w)     # undo trapezoid weights -> density on nodes

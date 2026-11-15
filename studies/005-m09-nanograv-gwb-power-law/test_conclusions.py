@@ -48,6 +48,13 @@ def test_r2b_counts_consistent():
     assert r2b["n_models_overlap_ci90"] == sum(r["overlap_ci90"] for r in rows)
     assert r2b["n_models_contain_median"] == sum(r["contains_median"] for r in rows)
     assert r2b["n_models_contain_median"] <= r2b["n_models_overlap_ci90"]
+    assert r2b["n_models_overlap_ci90_merged"] <= r2b["n_models_overlap_ci90"]
+    assert r2b["n_models_contain_median_merged"] <= r2b["n_models_contain_median"]
+
+
+def test_result_files_small():
+    for path in RESULTS.glob("*.json"):
+        assert path.stat().st_size < 1024 ** 2, path.name
 
 
 def test_r4_present():
