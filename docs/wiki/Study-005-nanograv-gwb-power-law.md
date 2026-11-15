@@ -201,7 +201,7 @@ that reproduces it (route 2).
 | `num_overlap`: at least one Table A1 model's 16–84% range overlaps the 90% credible interval of A | NUM | stated 2306.16220: "Although the inferred GWB amplitudes are within the range of some of these model predictions"; bound to `results/r2b.json:n_models_overlap_ci90 >= 1` | L37 §V; Table A1, Fig. A1 |
 | `gap_overlap`: a measurement whose 90% credible interval overlaps a model's 16–84% predicted range is not in tension with that model | GAP | reconstructed (neither paper defines a tension criterion for Table A1; overlap is only a descriptive comparison) | – |
 | `stat_holo`: some holodeck populations reproduce the inferred amplitude and spectral shape (only the amplitude part is used) | STAT | stated 2306.16220: "we are able to reproduce the inferred GWB amplitude and spectral shape" | L37 §V |
-| `mod_holo`: a population whose predicted spectra reproduce the measured amplitude is not in tension with it | MOD | implied (posterior predictive check; Gelman et al. 2013, *Bayesian Data Analysis*, ch. 6); L37 compares the populations with the 15 yr spectrum, so applying this to the γ = 13/3 amplitude is our reading | – |
+| `gap_holo`: a population whose predicted spectra reproduce the measured spectrum is not in tension with the γ = 13/3 amplitude | GAP | reconstructed (L37 compares the populations with its own spectra, a posterior predictive check in the sense of Gelman et al. 2013, ch. 6; applying it to L8's γ = 13/3 amplitude is our reading; relabelled from MOD after the referee, 2026-11-15) | – |
 
 The quote of `num_overlap` is about the inferred amplitudes (the posteriors). A posterior within a
 range overlaps it, so the overlap count is no stronger than the quote; whether the median itself
@@ -269,11 +269,11 @@ models and populations", including their high tails.
    *expectations* unless those models are representative. The countermodel has every stated and
    implied premise true, `Representative` false and the conclusion false.
 2. **`stated_insufficient`**: the papers state the measurement, the "within the range of some
-   model predictions" fact and the holodeck reproduction; the inference steps `mod_holo` and
-   `mod_rule` are unstated background, and route 1's overlap step is a second gap (`gap_overlap`).
+   model predictions" fact and the holodeck reproduction; `mod_rule` is unstated background, and
+   each route has a gap of its own (`gap_overlap` on route 1, `gap_holo` on route 2).
 3. **Needed and redundant premises.** `stat_amp`, `gap_repr` and `mod_rule` are needed. The two
    routes are alternatives, so each route's premises are redundant (`num_overlap_redundant`,
-   `gap_overlap_redundant`, `stat_holo_redundant`, `mod_holo_redundant`): either route alone
+   `gap_overlap_redundant`, `stat_holo_redundant`, `gap_holo_redundant`): either route alone
    gives compatibility with some models. This is a finding about the argument's structure: our
    NUM check of route 1 can fail without breaking the chain, as long as route 2 holds.
 4. **The encoded conclusion is narrower than the paper's sentence** (γ = 13/3 amplitude only; see
@@ -289,7 +289,7 @@ inductive Field where
   | num_overlap   -- NUM [stated 2306.16220] NUM[results/r2b.json:n_models_overlap_ci90 >= 1]
   | gap_overlap   -- GAP [reconstructed]
   | stat_holo     -- STAT [stated 2306.16220]
-  | mod_holo      -- MOD [implied]
+  | gap_holo      -- GAP [reconstructed]
   | gap_repr      -- GAP [reconstructed]
   | mod_rule      -- MOD [implied]
 
@@ -334,6 +334,24 @@ Results: [`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-
 [`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r3.json), [`r4.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r4.json). The interactive page runs locally with
 `python -m astrolab serve`.
 
+**After the independent referee (2026-11-15; post hoc, explorations only).** Three caveats change how
+these numbers should be read:
+
+- **The noise model dominates.** On the v1.1.0 free spectrum fitted with a Gaussian-process model
+  of dispersion-measure variations (DMGP) instead of L8's fiducial DMX model, R1 gives
+  A = 2.19 × 10⁻¹⁵ with H = 0.312 ("differs"), R2 gives q = 0.62 and γ = 3.75 [3.13, 4.43], and
+  R4 gives ln BF = 0.99. L8 §V.1 itself notes that DMGP shifts γ towards 13/3. Our agreement with
+  L8 is therefore conditional on the DMX noise model, which is the one L8's headline numbers use.
+- **The size of the approximation error is better read from v1.1.0.** L8's numbers come from the
+  2023 chains, whose like-for-like product is v1.1.0: there H = 0.143, just under the 0.15
+  threshold. The smaller v2.0.0 distance (0.099) partly reflects the 2026 product's own changes.
+- **R4 is mostly a preference for γ < 13/3, not for a turnover.** A free-γ power law against the
+  γ = 13/3 power law gives ln BF = 1.76; the turnover adds only 0.61 over the free-γ power law.
+  L8 Appendix E calls the turnover Bayes factor (1.46, under a different model) inconclusive.
+
+Number of frequencies: with all 30, H = 0.093 and q = 0.993; with only 5, H = 0.243 and q = 0.92.
+L8 uses 14. The KDE grid range and the off-grid rule make no difference (checked by the referee).
+
 ### Glossary
 
 | Term | Meaning |
@@ -357,6 +375,7 @@ Results: [`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-
 
 Newest first.
 
+- 2026-11-15: independent referee: noise-model (DMGP), data-version and R4 caveats added after "What we found"; `mod_holo` relabelled as GAP `gap_holo`; `num_overlap` notes the substitution of our 14-bin interval for L37's own amplitudes.
 - 2026-11-15: results: Part 3 result column and "What we found" (R1 consistent, q = 0.979, R2b binding holds, R3 not evaluable as pre-registered with a post-hoc comparison, R4 ln BF 2.37).
 - 2026-11-14: first version: parts 1–3 (pre-registration source; plan `design/014-plan_*`).
 
@@ -464,7 +483,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 | `num_overlap`：表 A1 中至少一个模型的 16%–84% 范围与 A 的 90% 可信区间重叠 | NUM | stated 2306.16220："Although the inferred GWB amplitudes are within the range of some of these model predictions"；绑定 `results/r2b.json:n_models_overlap_ci90 >= 1` | L37 第 V 节；表 A1、图 A1 |
 | `gap_overlap`：90% 可信区间与某模型 16%–84% 预测范围重叠的测量与该模型没有张力 | GAP | reconstructed（两篇论文都没有为表 A1 定义张力判据；区间重叠只是描述性比较） | – |
 | `stat_holo`：某些 holodeck 群体再现了推断的振幅与谱形（只用到振幅部分） | STAT | stated 2306.16220："we are able to reproduce the inferred GWB amplitude and spectral shape" | L37 第 V 节 |
-| `mod_holo`：预测谱再现了测量振幅的群体模型与它没有张力 | MOD | implied（后验预测检验（posterior predictive check）；Gelman 等 2013，*Bayesian Data Analysis*，第 6 章）；L37 是把群体与 15 年的谱比较，把它用于 γ = 13/3 的振幅是我们的解读 | – |
+| `gap_holo`：预测谱再现了测量谱的群体模型与 γ = 13/3 的振幅没有张力 | GAP | reconstructed（L37 把群体与它自己的谱比较，即 Gelman 等 2013 第 6 章意义上的后验预测检验（posterior predictive check）；把它用于 L8 的 γ = 13/3 振幅是我们的解读；审稿后由 MOD 改标，2026-11-15） | – |
 
 `num_overlap` 的引文说的是推断的振幅（后验）。后验落在某范围内必然与它重叠，所以重叠计数不强于引文；中位数本身是否落在范围内（更强的说法）只作描述。
 
@@ -513,8 +532,8 @@ theorem final : ∀ v, Premises v → Conclusion v := by
 #### 2.4 Lean 检查发现的问题
 
 1. **`explicit_insufficient`**：即使加上标准背景知识，两条途径都仍需要 `gap_repr`：与*某些*模型相容，并不能推出与*预期*相容，除非这些模型有代表性。反例模型中所有明说与隐含的前提都成立，`Representative` 为假，结论为假。
-2. **`stated_insufficient`**：论文明说了测量值、"在一些模型预测的范围内"与 holodeck 的再现；推理步骤 `mod_holo` 与 `mod_rule` 是没写出的背景知识，途径 1 的重叠一步是第二个缺口（`gap_overlap`）。
-3. **必要与多余的前提。** `stat_amp`、`gap_repr` 与 `mod_rule` 是必要的。两条途径互为替代，所以每条途径的前提都是多余的（`num_overlap_redundant`、`gap_overlap_redundant`、`stat_holo_redundant`、`mod_holo_redundant`）：任一途径单独就能给出与某些模型相容。这是关于论证结构的发现：只要途径 2 成立，我们对途径 1 的 NUM 检验即使失败，链条也不会断。
+2. **`stated_insufficient`**：论文明说了测量值、"在一些模型预测的范围内"与 holodeck 的再现；`mod_rule` 是没写出的背景知识，每条途径各有一个缺口（途径 1 的 `gap_overlap`、途径 2 的 `gap_holo`）。
+3. **必要与多余的前提。** `stat_amp`、`gap_repr` 与 `mod_rule` 是必要的。两条途径互为替代，所以每条途径的前提都是多余的（`num_overlap_redundant`、`gap_overlap_redundant`、`stat_holo_redundant`、`gap_holo_redundant`）：任一途径单独就能给出与某些模型相容。这是关于论证结构的发现：只要途径 2 成立，我们对途径 1 的 NUM 检验即使失败，链条也不会断。
 4. **编码的结论比论文的句子窄**（只含 γ = 13/3 的振幅；见 2.0 的范围说明）。
 5. **相容性**成立，但在这里分量很弱：所有前提都是肯定命题。
 6. **局限。** Lean 检查的是在我们的编码下的逻辑结构。原子命题不加解释时，"必要"指"本编码用到了它"。HD 相关的过程是否真是引力波背景、分解似然是否忠实，都在 Lean 能看到的范围之外。
@@ -525,7 +544,7 @@ inductive Field where
   | num_overlap   -- NUM [stated 2306.16220] NUM[results/r2b.json:n_models_overlap_ci90 >= 1]
   | gap_overlap   -- GAP [reconstructed]
   | stat_holo     -- STAT [stated 2306.16220]
-  | mod_holo      -- MOD [implied]
+  | gap_holo      -- GAP [reconstructed]
   | gap_repr      -- GAP [reconstructed]
   | mod_rule      -- MOD [implied]
 
@@ -555,6 +574,14 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 结果：[`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r1.json)、[`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2.json)、[`r2b.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2b.json)、[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r3.json)、[`r4.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r4.json)。交互网页在本地用 `python -m astrolab serve` 打开。
 
+**独立审稿之后（2026-11-15；事后，仅为探索）。** 三条保留意见改变了对这些数字的解读：
+
+- **噪声模型占主导。** 在 v1.1.0 中用色散量（dispersion measure）变化的高斯过程模型（DMGP）而不是 L8 基准的 DMX 模型拟合的自由谱上，R1 得 A = 2.19 × 10⁻¹⁵、H = 0.312（"不同"），R2 得 q = 0.62、γ = 3.75 [3.13, 4.43]，R4 得 ln BF = 0.99。L8 第 V.1 节自己也指出 DMGP 会把 γ 推向 13/3。所以我们与 L8 的一致以 DMX 噪声模型为条件，而 L8 的主要数字用的正是它。
+- **近似误差的大小更应以 v1.1.0 为准。** L8 的数字来自 2023 年的链，与之同期的产品是 v1.1.0：那里 H = 0.143，刚好低于 0.15。v2.0.0 上较小的距离（0.099）部分来自 2026 年产品自身的变化。
+- **R4 主要反映 γ < 13/3 的偏好，而不是转折。** 自由 γ 幂律对 γ = 13/3 幂律的 ln BF = 1.76；转折相对自由 γ 幂律只多 0.61。L8 附录 E 称（不同模型下的）转折贝叶斯因子 1.46 不确定。
+
+频率个数：用全部 30 个时 H = 0.093、q = 0.993；只用 5 个时 H = 0.243、q = 0.92。L8 用 14 个。KDE 网格范围与越界规则没有影响（审稿人核对过）。
+
 ### 术语表
 
 | 术语 | 含义 |
@@ -578,6 +605,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 按时间倒序。
 
+- 2026-11-15：独立审稿：在"我们的发现"之后补上噪声模型（DMGP）、数据版本与 R4 的保留意见；`mod_holo` 改标为 GAP `gap_holo`；`num_overlap` 注明以我们的 14 频率区间替代 L37 自己的振幅。
 - 2026-11-15：结果：第三部分"结果"一列与"我们的发现"（R1 一致，q = 0.979，R2b 绑定成立，R3 按预注册不可评估、另有事后比较，R4 ln BF 2.37）。
 - 2026-11-14：第一版：第一至三部分（预注册的来源；计划 `design/014-plan_*`）。
 

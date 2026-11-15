@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-15T04:59:55+00:00",
+  "generated_at": "2026-11-15T05:06:59+00:00",
   "inputs": [
     {
       "source": "http",
@@ -9,15 +9,6 @@
       "bytes": 2975291,
       "cache_key": "6297f8d3a9c299b4f3cd1568",
       "label": "NANOGrav 15yr KDE free spectra v2.0.0"
-    },
-    {
-      "source": "http",
-      "request": "https://zenodo.org/records/10344086/files/NANOGrav15yr_KDE-FreeSpectra_v1.1.0.zip?download=1",
-      "retrieved_at": "2026-11-15T04:59:50+00:00",
-      "sha256": "feed174024e6ad4cf1a17cf9c110f46a4760868aceb9bba539c78270ed7599a1",
-      "bytes": 5334077,
-      "cache_key": "6488d5d8ab7b592f4f093153",
-      "label": "NANOGrav 15yr KDE free spectra v1.1.0"
     },
     {
       "source": "http",
