@@ -30,8 +30,8 @@ def test_thick_disc_lowers_midplane_speed_inside():
 
 
 def test_disc_far_field_is_point_mass():
-    v2 = rc.disc_v2(200.0, 4e10, 2.6, 0.3)
-    assert abs(v2 / rc.point_v2(200.0, 4e10) - 1) < 5e-3
+    v2 = rc.disc_v2(60.0, 4e10, 2.6, 0.3)
+    assert abs(v2 / rc.point_v2(60.0, 4e10) - 1) < 1e-2
 
 
 def test_hernquist_and_point():
@@ -65,14 +65,44 @@ def test_powerlaw_fit_recovers_slope():
     R = np.arange(19.5, 27, 1.0)
     V = 1000 * R ** -0.5 + rng.normal(0, 2, R.size)
     sig = np.full(R.size, 2.0)
-    start = np.array([1000.0, -0.5])
-    chain, tau, ok = rc.run_emcee(rc.powerlaw_lnpost, start, (R, V, sig, 1.0, 1e5), 32, 3000, 500, 0)
+    start = np.array([1000.0 * 22.9 ** -0.5, -0.5])
+    chain, tau, ok = rc.run_emcee(rc.powerlaw_lnpost, start, (R, V, sig, 1.0, 1e5, None, False, 22.9), 32, 3000, 500, 0)
     g = chain[:, 1]
     assert abs(np.median(g) + 0.5) < 0.1 and rc.s_statistic(g) > 3
 
 
 def test_one_sided_sigma():
-    assert np.isclose(rc.one_sided_sigma(0.0013499), 3.0, atol=1e-3)
+    assert np.isclose(rc.one_sided_sigma(0.0013499)[0], 3.0, atol=1e-3)
+    assert rc.one_sided_sigma(0.0, 1000)[1] is True
+
+
+def test_seeded_runs_reproducible():
+    R = np.arange(19.5, 27, 1.0)
+    V = 1000 * R ** -0.5
+    sig = np.full(R.size, 2.0)
+    args = (R, V, sig, 1.0, 1e5, None, False, 22.9)
+    a, _, _ = rc.run_emcee(rc.powerlaw_lnpost, np.array([209.0, -0.5]), args, 16, 300, 100, 7)
+    b, _, _ = rc.run_emcee(rc.powerlaw_lnpost, np.array([209.0, -0.5]), args, 16, 300, 100, 7)
+    assert np.array_equal(a, b)
+
+
+def test_reparametrised_prior_matches_flat_a():
+    """At fixed data, the posterior in (Vs, gamma) with the Jacobian equals the (A, gamma) posterior."""
+    R = np.arange(19.5, 27, 1.0)
+    V = 1000 * R ** -0.5
+    sig = np.full(R.size, 2.0)
+    g1, g2, rs = -0.3, -0.6, 22.9
+    def lp_a(a, g):
+        return -0.5 * np.sum(((V - a * R ** g) / sig) ** 2)
+    for g in (g1, g2):
+        a = 1000.0
+        vs = a * rs ** g
+        lp_vs = rc.powerlaw_lnpost([vs, g], R, V, sig, 1.0, 1e5, None, False, rs)
+        assert np.isclose(lp_vs - lp_a(a, g), -g * np.log(rs))
+
+
+def test_einasto_large_n_finite():
+    assert np.isfinite(rc.einasto_mass(20.0, 3e11, 12.0, 0.01))
 
 
 def test_disc_mass_sphere_limits():

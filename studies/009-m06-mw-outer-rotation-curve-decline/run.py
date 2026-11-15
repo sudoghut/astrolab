@@ -92,23 +92,27 @@ def component_mass(model):
 
 # ------------------------------------------------------------------ R1 ----
 
-def powerlaw_fit(R, V, sig, P, pivot=1.0, a_max=None, log_a=False, cov=None, nsteps=None, seed=None):
+def powerlaw_fit(R, V, sig, P, pivot=1.0, a_max=None, log_a=False, cov=None, nsteps=None, seed=None, double=True):
+    """README 2.1 posterior; sampled in (V at the inverse-variance-weighted radius, gamma) for mixing."""
     a_max = P["a_max"] if a_max is None else a_max
     cov_inv = None if cov is None else np.linalg.inv(cov)
-    nll = lambda th: -rc.powerlaw_lnpost(th if not log_a else [np.log10(max(th[0], 1e-9)), th[1]], R, V, sig,
-                                         pivot, a_max, cov_inv, log_a)
-    start = optimize.minimize(nll, [np.median(V) * (np.median(R) / pivot) ** 0.4, -0.4], method="Nelder-Mead").x
-    if log_a:
-        start = np.array([np.log10(start[0]), start[1]])
-    chain, tau, ok = rc.run_emcee(rc.powerlaw_lnpost, np.array(start), (R, V, sig, pivot, a_max, cov_inv, log_a),
-                                  P["nwalkers"], nsteps or P["nsteps"], P["burn"], P["seed"] if seed is None else seed)
-    if not ok and nsteps is None:
-        chain, tau, ok = rc.run_emcee(rc.powerlaw_lnpost, np.array(start), (R, V, sig, pivot, a_max, cov_inv, log_a),
-                                      P["nwalkers"], 2 * P["nsteps"], P["burn"], P["seed"] if seed is None else seed)
+    rs = float(np.sum(R / sig ** 2) / np.sum(1 / sig ** 2))
+    args = (R, V, sig, pivot, a_max, cov_inv, log_a, rs)
+    nll = lambda th: -rc.powerlaw_lnpost(th, *args) if np.isfinite(rc.powerlaw_lnpost(th, *args)) else 1e30
+    start = optimize.minimize(nll, [float(np.interp(rs, R, V)), -0.4], method="Nelder-Mead").x
+    seed = P["seed"] if seed is None else seed
+    steps = nsteps or P["nsteps"]
+    chain, tau, ok = rc.run_emcee(rc.powerlaw_lnpost, np.array(start), args, P["nwalkers"], steps, P["burn"], seed)
+    doubled = False
+    if not ok and double and nsteps is None:
+        chain, tau, ok = rc.run_emcee(rc.powerlaw_lnpost, np.array(start), args, P["nwalkers"], 2 * steps, P["burn"], seed)
+        doubled = True
     g = chain[:, 1]
+    p0 = float(np.mean(g >= 0))
+    sig1, lb = rc.one_sided_sigma(p0, len(g))
     return {"median_gamma": float(np.median(g)), "p16": float(np.percentile(g, 16)), "p84": float(np.percentile(g, 84)),
-            "S": rc.s_statistic(g), "p_gamma_ge_0": float(np.mean(g >= 0)),
-            "one_sided_sigma": rc.one_sided_sigma(float(np.mean(g >= 0))), "tau": tau, "converged": ok,
+            "S": rc.s_statistic(g), "p_gamma_ge_0": p0, "one_sided_sigma": sig1, "one_sided_is_lower_bound": lb,
+            "tau": tau, "converged": ok, "steps_doubled": doubled, "sampling_radius_kpc": rs,
             "contains_minus_half": bool(np.percentile(g, 16) <= -0.5 <= np.percentile(g, 84))}
 
 
@@ -161,17 +165,18 @@ def derived_masses(chain, mass_fn_of, m_bar, P, radii, m_bar_sphere=None):
     """Per-sample R_vir (primary: DM-only; secondary: DM + all of M_bar), M_dyn and enclosed masses."""
     rng = np.random.default_rng(P["seed"])
     idx = rng.choice(len(chain), size=min(P["n_derived"], len(chain)), replace=False)
-    out = {"rvir_dm": [], "rvir_tot": [], "mdyn_dm": [], "mdyn_tot": [], "no_root": 0, "no_root_wide": 0}
+    out = {"rvir_dm": [], "rvir_tot": [], "mdyn_dm": [], "mdyn_tot": [],
+           "no_root_dm": 0, "no_root_wide_dm": 0, "no_root_tot": 0, "no_root_wide_tot": 0}
     out.update({f"m_lt_{r}": [] for r in radii})
     for i in idx:
         mfn = mass_fn_of(chain[i])
         for key, extra in (("dm", 0.0), ("tot", m_bar)):
             rv = rc.r_vir(mfn, P["rho_cr"], extra)
             if rv is None:
-                out["no_root"] += 1
+                out[f"no_root_{key}"] += 1
                 rv = rc.r_vir(mfn, P["rho_cr"], extra, bracket=(1.0, 1e4))
                 if rv is None:
-                    out["no_root_wide"] += 1
+                    out[f"no_root_wide_{key}"] += 1
             out[f"rvir_{key}"].append(rv)
             out[f"mdyn_{key}"].append(None if rv is None else m_bar + mfn(rv))
         for r in radii:
@@ -182,7 +187,7 @@ def derived_masses(chain, mass_fn_of, m_bar, P, radii, m_bar_sphere=None):
 def fit_halo(kind, R, V, sig, vb2, P, start, seed=None):
     lnp = {"einasto": einasto_lnpost, "einasto_logm0": einasto_lnpost_logm0, "nfw": nfw_lnpost}[kind]
     nll = lambda th: -lnp(th, R, V, sig, vb2, P) if np.isfinite(lnp(th, R, V, sig, vb2, P)) else 1e30
-    best = optimize.minimize(nll, start, method="Nelder-Mead", options={"maxiter": 20000, "xatol": 1e-8, "fatol": 1e-8})
+    best = optimize.minimize(nll, start, method="Nelder-Mead", options={"maxiter": 20000, "xatol": 1e-4, "fatol": 1e-6})
     chain, tau, ok = rc.run_emcee(lnp, np.array(best.x), (R, V, sig, vb2, P), P["nwalkers"], P["nsteps"], P["burn"],
                                   P["seed"] if seed is None else seed)
     if not ok:
@@ -225,21 +230,25 @@ def main(ctx):
     R, V, sig = j23["R"][sel], j23["V"][sel], j23["sig"][sel]
     base = powerlaw_fit(R, V, sig, P)
     check = powerlaw_fit(R, V, sig, P, seed=P["seed_check"])
+    seed_rerun = None
     if abs(check["median_gamma"] - base["median_gamma"]) > P["seed_diff"]:
+        seed_rerun = {"first_base": base, "first_check": check}
         P2 = dict(P, nsteps=2 * P["nsteps"])
-        base = powerlaw_fit(R, V, sig, P2)
-        check = powerlaw_fit(R, V, sig, P2, seed=P["seed_check"])
+        base = powerlaw_fit(R, V, sig, P2, double=False)
+        check = powerlaw_fit(R, V, sig, P2, seed=P["seed_check"], double=False)
     ok = (abs(base["median_gamma"] - P["gamma_target"]) <= P["gamma_tol"]
           and abs(base["S"] - P["s_target"]) <= P["s_tol"])
     pivot = float(np.sum(R / sig ** 2) / np.sum(1 / sig ** 2))
-    r1 = {"bins": R.tolist(), "base": base, "seed_check": check,
+    r1 = {"bins": R.tolist(), "base": base, "seed_check": check, "seed_rerun": seed_rerun,
+          "seed_check_S_diff": abs(check["S"] - base["S"]), "converged": bool(base["converged"]),
           "verdict": "reproduced" if ok else "not reproduced",
           "sensitivity_log_a": powerlaw_fit(R, V, sig, P, log_a=True),
           "sensitivity_pivot": dict(powerlaw_fit(R, V, sig, P, pivot=pivot, a_max=P["a_max_pivot"]), pivot_kpc=pivot),
           "delta_chi2": delta_chi2(R, V, sig),
           "leave_one_out": {str(r): powerlaw_fit(np.delete(R, i), np.delete(V, i), np.delete(sig, i), P,
                                                  nsteps=P["nsteps_scan"])["S"] for i, r in enumerate(R)}}
-    ctx.log(f"R1: median gamma {base['median_gamma']:.3f}, S {base['S']:.2f} -> {r1['verdict']}; "
+    ctx.log(f"R1: median gamma {base['median_gamma']:.3f}, S {base['S']:.2f} (converged {base['converged']}, "
+            f"tau {base['tau']:.1f}) -> {r1['verdict']}; "
             f"log-A S {r1['sensitivity_log_a']['S']:.2f}; pivot S {r1['sensitivity_pivot']['S']:.2f}")
     ctx.save("r1", r1)
 
@@ -250,6 +259,8 @@ def main(ctx):
         res["table4_mdyn"] = float(t4[m]["Mdyn_TW"]) * 1e11
         res["diff_primary"] = res["mdyn_dm"]["median"] - res["table4_mdyn"]
         res["diff_secondary"] = res["mdyn_tot"]["median"] - res["table4_mdyn"]
+        res["rvir_dm_minus_121"] = res["rvir_dm"]["median"] - 121.03
+        res["rvir_tot_minus_121"] = res["rvir_tot"]["median"] - 121.03
         r2["models"][m] = res
         ctx.log(f"R2 {m}: Mdyn {res['mdyn_dm']['median']:.3e} (DM rule), {res['mdyn_tot']['median']:.3e} (total rule); "
                 f"Table 4 {res['table4_mdyn']:.3e}; Rvir {res['rvir_dm']['median']:.1f} / {res['rvir_tot']['median']:.1f} kpc")
@@ -269,7 +280,10 @@ def main(ctx):
         r3["constant_gamma"][str(b)] = powerlaw_fit(R, V * f, sig * f, P, nsteps=P["nsteps_scan"])["median_gamma"]
         res = einasto_r2(j23["R"], j23["V"] * f, j23["sig"] * f, models["E dJ"], mbar["E dJ"], P)
         r3["constant_mass_EdJ"][str(b)] = {"mdyn_dm": res["mdyn_dm"], "mdyn_tot": res["mdyn_tot"]}
-    r3["constant_gamma"]["0.0"] = base["median_gamma"]
+    r3["constant_gamma"]["0.0"] = powerlaw_fit(R, V, sig, P, nsteps=P["nsteps_scan"])["median_gamma"]
+    # Monte Carlo noise of S at the scan length (3 seeds at b = 0), the basis of the monotonicity tolerance
+    s_noise = [powerlaw_fit(R, V, sig, P, nsteps=P["nsteps_scan"], seed=sd)["S"] for sd in (10, 11, 12)]
+    r3["s_noise_sd_scan"] = float(np.std(s_noise, ddof=1))
     s_curve = []
     for bmax in P["bmax_grid"]:
         b = np.clip((R - P["ramp_start"]) / (P["ramp_end"] - P["ramp_start"]), 0, 1) * bmax
@@ -277,7 +291,8 @@ def main(ctx):
         s_curve.append(powerlaw_fit(R, V * f, sig * f, P, nsteps=P["nsteps_scan"])["S"])
     crossing = next((bm for bm, s in zip(P["bmax_grid"], s_curve) if s < 2), None)
     r3["ramp"] = {"b_max": P["bmax_grid"], "S": s_curve, "first_below_2": crossing,
-                  "monotonic": bool(np.all(np.diff(s_curve) <= 0.05))}
+                  "monotonic_tolerance": 3 * r3["s_noise_sd_scan"],
+                  "monotonic": bool(np.all(np.diff(s_curve) <= 3 * r3["s_noise_sd_scan"]))}
     if crossing is not None:
         b = np.clip((R - P["ramp_start"]) / (P["ramp_end"] - P["ramp_start"]), 0, 1) * crossing
         f = 1.0 / (1 - b)
