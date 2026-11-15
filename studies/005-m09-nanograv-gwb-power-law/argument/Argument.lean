@@ -63,9 +63,9 @@ inductive Field where
   | mod_contain
   /-- STAT [stated 2306.16220: "we are able to reproduce the inferred GWB amplitude and spectral shape"] Sec. V -/
   | stat_holo
-  /-- MOD [implied] a population model that reproduces the measured amplitude is not in tension with it (posterior predictive reasoning, Gelman et al. 2013, ch. 6) -/
+  /-- MOD [implied] a population model that reproduces the measured amplitude is not in tension with it (posterior predictive reasoning, Gelman et al. 2013, ch. 6); L37 compares the holodeck populations with the 15 yr spectrum, so applying the result to the gamma = 13/3 amplitude is our reading -/
   | mod_holo
-  /-- GAP [reconstructed] the models that contain or reproduce the amplitude stand for astrophysical expectations in general; L37 (arXiv:2306.16220) says in its abstract that the amplitude needs either many parameters at the edges of expected values or a few notably different from standard expectations, and in Sec. V and App. A that it lies at the high-amplitude end of the predicted ranges, so compatibility with some models does not by itself give compatibility with expectations -/
+  /-- GAP [reconstructed] the models that contain or reproduce the amplitude stand for astrophysical expectations in general; L37 (arXiv:2306.16220) says in its abstract that the amplitude needs either many parameters at the edges of expected values or a few notably different from standard expectations, and in Sec. V and App. A that it lies at the high-amplitude end of the predicted ranges; Sec. V calls the reproducing parameter choices reasonable, but reasonable is not the same as representative of expectations, so compatibility with some models does not by itself give compatibility with expectations -/
   | gap_repr
   /-- MOD [implied] inference rule: compatibility with models that represent the expectations is compatibility with the expectations (definitional unfolding of the claim; modus ponens, Enderton 2001, A Mathematical Introduction to Logic, ch. 1) -/
   | mod_rule
