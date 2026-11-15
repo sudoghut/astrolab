@@ -47,8 +47,8 @@ check of the mapping; a failed R1 does not allow a second remapping.
 **Step B** computes everything else.
 
 **Column rules.**
-- The header is the first line that starts with a single `#` (not `##`) and has as many
-  whitespace-separated fields as the data rows.
+- The header is the first line that starts with a single `#` (not `##`) whose number of
+  whitespace-separated fields (after the `#`) equals the number of fields in each data row.
 - Names are matched case-insensitively on the part after the last `--`. Ωm: `omega_m` or `omegam`;
   σ8: `sigma_8` or `sigma8`; a stored S8: `s_8` or `s8`. Exactly one column must match each; zero
   or several matches make the chain "not mapped".
@@ -184,6 +184,9 @@ chain (76 MB), any KiDS, ACT, SPT or eROSITA product.
 2. **Step B**, R1: weighted means; a weighted Gaussian KDE of S8 on a grid of 2,000 points between
    the weighted 0.01% and 99.99% quantiles (Scott's rule with the effective sample size); the
    shortest interval containing the mean and 68% of the KDE mass, and the equal-34% interval.
+   Endpoints are grid points: each candidate lower end is a grid point at or below the mean, and its
+   upper end is the first grid point at which the cumulative KDE mass (trapezoidal) reaches the lower
+   end's value plus 0.68; the grid spacing (range/2,000) is far below the 0.003 tolerance.
 3. **R2 estimator** (D26 eqs. 17–19), for p = S8 (1-D) and p = (S8, Ωm) (2-D):
    - draw N = 4,000,000 indices from each chain independently, with probability proportional to the
      weights, with replacement; Δp_i = p_DES,i − p_CMB,i are equally weighted samples of P(Δp)
