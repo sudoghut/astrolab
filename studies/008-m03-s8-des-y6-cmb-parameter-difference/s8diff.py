@@ -205,7 +205,13 @@ def nsigma_binned(dp, bw_factor=1.0, n_grid_1d=8000, n_grid_2d=1024, q=1e-6):
     n, d = dp.shape
     mu = dp.mean(0)
     cov = np.atleast_2d(np.cov(dp.T))
-    L = np.linalg.cholesky(np.linalg.inv(cov))
+    try:
+        # sigma^-1 = L L^T, so z = x L has covariance L^T sigma L = I (row-vector samples)
+        L = np.linalg.cholesky(np.linalg.inv(cov))
+    except np.linalg.LinAlgError:
+        return {"n_sigma": float("nan"), "delta": float("nan"), "lower_bound": False, "outside_grid": 0,
+                "cell_over_h": float("nan"), "cell_flag": True, "h": float("nan"),
+                "error": "singular covariance of the differences"}
     z = (dp - mu) @ L
     z0 = (np.zeros(d) - mu) @ L
     h = bw_factor * n ** (-1.0 / (d + 4))
