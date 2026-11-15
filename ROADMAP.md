@@ -183,7 +183,7 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 
 **方法**
 - 在 KDE 自由谱网格上用 numpy 拟合约 14 个频率点的自由谱（free spectrum），不安装 PTArcade/ceffyl（计划 014）。
-- 比较的模型：超大质量黑洞双星（SMBHB, Supermassive Black Hole Binaries）幂律、环境导致的谱转折（environmental turnover）、宇宙学起源模板（cosmological templates）。
+- 比较的模型：超大质量黑洞双星（SMBHB, Supermassive Black Hole Binaries）幂律、环境导致的谱转折（environmental turnover）；宇宙学起源模板（cosmological templates）不在计划 014 之内。
 
 ### M8 · z ≈ 14 星系（L1）
 
