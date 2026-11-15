@@ -89,10 +89,13 @@ advance.
   finite-difference Hessian at the optimum (flat priors make this the large-sample posterior; plan
   019 spoke of posterior medians, replaced because the grid likelihood is too slow for MCMC at this
   sample size), checked by 50 bootstrap resamples for σ_sel.
-- **Error-scale factor f.** If true errors are f × e_Age: (i) in the late phase (eq. 1), in 0.1 dex
-  [Fe/H] bins from −0.5 to 0.3, the ratio of observed age standard deviation to rms e_Age is an
-  **upper** bound on f (true ages also spread); (ii) from sample A, f ≤ √(1 + σ_sel²/⟨e²⟩), also an
-  upper bound. f_max = min(i, ii). No data here bound f from below; a fixed f_min = 0.8 is used
+- **Error-scale factor f.** If true errors are f × e_Age, two heuristic upper values are computed
+  (heuristic because they rest on approximations, not on a full forward model): (i) in the late
+  phase (eq. 1), in 0.1 dex [Fe/H] bins from −0.5 to 0.3, using only stars with Age − 2e_Age > 0 and
+  Age + 2e_Age < 20 (so that truncation at the grid edges does not reduce the variance), the ratio
+  of the observed age standard deviation to the rms e_Age (true ages also spread, so f lies below
+  it); (ii) from sample A, √(1 + σ_sel²/⟨e²⟩), where σ_sel is the M0 fit, which models the
+  truncation. f_max = min(i, ii), used as a sensitivity value, not as a proven bound. No data here bound f from below; a fixed f_min = 0.8 is used
   (wide binaries find XR22's errors consistent with the scatter of 11 pairs, Shariat, El-Badry &
   Bhattacharjee 2025, arXiv:2510.08675, which does not exclude modest overestimates). Sensitivity
   runs use f ∈ {0.8, 1, f_max}.
@@ -186,7 +189,9 @@ advance.
 - **Recovery (before the verdicts are read):** 50 mocks with the real [Fe/H] and e_Age/Age of
   sample A's Full parent, generated from the fitted (τ̄0, a, σ) under both error mechanisms of 2.1,
   with the S15 cut applied. Tolerance: per mechanism, |bias| ≤ 0.1 Gyr in σ and ≤ 0.2 Gyr/dex in a, where bias = mean over
-  the 50 mocks of (recovered − generating value). If the e = r·A
+  the 50 mocks of (recovered − generating value); its Monte Carlo uncertainty (standard deviation
+  / √n) is reported, and a bias within one such uncertainty of the tolerance is flagged "near
+  tolerance" in the results (the rule itself is unchanged). If the e = r·A
   mechanism breaks the tolerance, the S15 verdicts are reported as not robust and the Full fits
   become primary; if the e = r·τ mechanism also breaks it, R3 and R4 are **cannot determine**.
 - **R4 (verdict, on σ_sel = the M0 σ of sample A at f = 1):** **reproduced** if |σ_sel − 0.82| ≤ 0.1 Gyr.
@@ -219,7 +224,8 @@ advance.
     age under each error mechanism, truncation to [0, 20] and the S15 cut, in the fitted proportions.
   - Bias of a mock set = mean over its mocks of (recovered σ_int − generating σ_int), signed. There
     are four sets (identifiability and misspecification, each under both error mechanisms). If
-    |bias| > 0.1 Gyr in any set, the verdict is **cannot determine**;
+    |bias| > 0.1 Gyr in any set, the verdict is **cannot determine** (bias uncertainties reported and
+    flagged as for sample A);
     otherwise **confirmed** if σ_int < 0.82 Gyr (plan 019's criterion), **not confirmed** if not.
   - The physical claim depends on the error scale: the fit is repeated at f = 0.8 and f_max, and the
     verdict is "robust" only if all three give the same verdict.
