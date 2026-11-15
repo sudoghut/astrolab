@@ -1,0 +1,23 @@
+title: "M5 Milky Way thick disc: early formation from subgiant ages"
+title_zh: "M5 银河系厚盘：由亚巨星年龄看早期形成"
+id: "010-m05-thick-disc-subgiant-ages"
+level: L3              # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
+status: planned               # planned | active | reproduced | concluded | paused | abandoned
+created: 2026-11-15
+question: "Does the published LAMOST/Gaia subgiant age catalogue of Xiang & Rix 2022 reproduce its thick-disc onset at about 13 Gyr, the split of the age-metallicity plane at 8 Gyr and the tight old-disc age-metallicity sequence, and how much of each depends on the absolute age scale, the error model and the sample selection?"
+question_zh: "Xiang & Rix 2022 发表的 LAMOST/Gaia 亚巨星年龄星表能否复现厚盘约 13 Gyr 前开始形成、年龄–金属丰度平面在 8 Gyr 处分开以及老盘紧致的年龄–金属丰度序列？各项在多大程度上依赖绝对年龄标尺、误差模型与样本选择？"
+claims: ["early-thick-disk-formation"]                    # claim ids in atlas/claims/ this study reproduces or tests
+milestone: M5               # roadmap milestone id, e.g. M1
+papers: ["2203.12110"]                    # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
+wiki: Study-010-thick-disc-early-formation                    # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3
+
+# Where this study sits on the Atlas (optional; schema in design plan 011). Remove or fill.
+# footprint:
+#   scale: {min_pc: 1.0, max_pc: 1000.0, note: "distance range the study probes"}
+#   sky:
+#     mode: all-sky | survey | targets | none    # combine with ' + ', e.g. "survey + targets"
+#     survey: {name: "...", note: "..."}
+#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS; ra/dec may be omitted if
+#                                                  # results/targets.json gives them by name
+#   (write exponents as 4.0e+8: PyYAML reads 4e8 as a string; both are accepted)
+#   data: [...]
