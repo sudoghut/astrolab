@@ -72,9 +72,9 @@ inductive Field where
   | stat_weak
   /-- GAP [reconstructed] parameter-estimation systematics and residual noise events (about 6.7 expected among the 161 candidates with FAR below 1 per yr, Sec. 3.2.1) do not make a spurious feature near 35 Msun; P26 does not propagate either into the mass spectrum -/
   | gap_syst
-  /-- MOD [implied] route 1: with the sample and an adequate selection function, and no spurious systematics, a credible change of slope near 35 Msun is a feature in the Sec. 6.1 sense, which includes a break (Bayesian inference, Gelman et al. 2013, Bayesian Data Analysis, 3rd ed., ch. 1) -/
+  /-- MOD [implied] route 1: with the sample and an adequate selection function, and no spurious systematics, a credible change of slope near 35 Msun is a feature in the Sec. 6.1 sense, which includes a break; the broken-power-law reading follows Callister and Farr 2024 (arXiv:2310.12148), and reading a posterior probability as credibility is standard Bayesian inference (Gelman et al. 2013, Bayesian Data Analysis, 3rd ed., ch. 1) -/
   | mod_route1
-  /-- MOD [implied] route 2: under the same conditions, a local peak in a flexible model that agrees with the other flexible models is a feature in the Sec. 6.1 sense (Gelman et al. 2013, ch. 1) -/
+  /-- MOD [implied] route 2: under the same conditions, a local peak in a flexible model that agrees with the other flexible models is a feature in the Sec. 6.1 sense (P26 own usage in Sec. 6.1 and App. D.4; Gelman et al. 2013, ch. 1 for the Bayesian reading) -/
   | mod_route2
   deriving DecidableEq, Repr
 

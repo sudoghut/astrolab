@@ -78,8 +78,8 @@ is credible at 97.7%; whether the 35 M☉ feature is a peak or only a bend is le
 
 For the 35 M☉ feature to be wrong, both the strongly and the weakly modeled routes would have to be
 misled by something they share: errors in the selection function at high mass, systematic errors in
-the event masses (P26 discusses a parameter-estimation error and a calibration issue, and judges their
-effect small), or the expected noise events among the candidates (about 6.7 of the 161 compact-binary
+the event masses (P26 reports a likelihood normalisation error, for which it does not use the
+corrected samples, and a calibration-prior error whose impact it expects to be negligible), or the expected noise events among the candidates (about 6.7 of the 161 compact-binary
 candidates with FAR below one per year).
 
 ### Part 2 · The logic of the argument
@@ -150,8 +150,8 @@ high mass is assumed, and it matters directly for a slope above 35 M☉.
 
 | Alternative | Excluded by premise | Excluded explicitly by the paper? |
 |---|---|---|
-| One model shape forces a break | the second route (`stat_bspline`, `stat_weak`) | yes: strongly and weakly modeled fits agree |
-| Mass systematics or noise events near 35 M☉ | `gap_syst` | partly (discussed and judged small; not propagated) |
+| One model shape forces a break | the second route (`stat_bspline`, `stat_weak`) | largely: strongly and weakly modeled fits agree that something lies near 35 M☉ (a break in one, a peak in the other) |
+| Mass systematics or noise events near 35 M☉ | `gap_syst` | partly (errors reported, one judged negligible; not propagated) |
 | Selection-function errors at high mass | `gap_sel` | no direct test |
 
 **Inference (Lean excerpt).**
@@ -180,15 +180,19 @@ gate-1 review showed it followed from our own encoding of the rule, so we remove
 
 1. **`explicit_insufficient`**: both routes need the same two gaps: an adequate selection function
    at high mass (`gap_sel`) and no spurious feature from parameter-estimation systematics or noise
-   events (`gap_syst`). Model shape is not a gap, because the strongly and weakly modeled routes
-   agree.
+   events (`gap_syst`). Model shape is not a gap here because the two routes agree that something
+   lies near 35 M☉ (a break in one, a peak in the other); that each route alone suffices is our
+   encoding, following §6.1's broad sense of feature, and the flexible fits carry their own
+   smoothness priors.
 2. **`stated_insufficient`**: the stated premises omit the inference steps of both routes (standard
    Bayesian reading) and both gaps.
 3. **Two independent routes**: `stat_steep` and `mod_route1` are redundant given route 2, and
    `stat_bspline`, `stat_weak` and `mod_route2` are redundant given route 1. The feature does not
    rest on either model family alone. Four premises are needed: the sample, the injection selection
    and the two gaps.
-4. **Consistency** holds; weak here (every premise is positive).
+4. **Consistency** holds; weak here (every premise is positive). `stated_insufficient` and
+   `explicit_insufficient` share one countermodel (both gaps false); the `_needed` theorems show that
+   each gap matters on its own.
 5. **Limits.** Lean checks the logical structure under our encoding, not the physics; the 95%
    threshold on the credibility is our convention.
 
@@ -281,7 +285,7 @@ GWTC-4.0 在早期目录之外加入了第四观测期前半段（O4a）的 128 
 
 摘要："We resolve multiple over- and under-densities in the black hole mass distribution: features persist at primary masses of 10 M⊙ and 35 M⊙ with a possible third feature at 20 M⊙. These are departures from an otherwise power-law-like continuum that steepens above 35 M⊙." 变陡的可信度为 97.7%；35 M☉ 的特征是峰还是只是弯折，正文中没有定论。
 
-35 M☉ 的特征若要不成立，强模型化与弱模型化两条途径都必须被它们共有的东西误导：高质量处选择函数的误差、事件质量的系统误差（P26 讨论了一个参数估计错误与一个校准问题，判断其影响较小），或候选体中预期的噪声事件（FAR 低于每年一次的 161 个致密双星并合（CBC, compact binary coalescence）候选体中约 6.7 个）。
+35 M☉ 的特征若要不成立，强模型化与弱模型化两条途径都必须被它们共有的东西误导：高质量处选择函数的误差、事件质量的系统误差（P26 报告了一个似然归一化错误，没有使用改正后的样本，以及一个它认为影响可忽略的校准先验错误），或候选体中预期的噪声事件（FAR 低于每年一次的 161 个致密双星并合（CBC, compact binary coalescence）候选体中约 6.7 个）。
 
 ### 第二部分 · 论证逻辑
 
@@ -331,8 +335,8 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 
 | 其他可能 | 由哪个前提排除 | 论文是否明确排除 |
 |---|---|---|
-| 某一种模型形状强加了折断 | 第二条途径（`stat_bspline`、`stat_weak`） | 是：强模型化与弱模型化的拟合一致 |
-| 35 M☉ 附近的质量系统误差或噪声事件 | `gap_syst` | 部分（有讨论并判断影响小；没有传播） |
+| 某一种模型形状强加了折断 | 第二条途径（`stat_bspline`、`stat_weak`） | 大体上：强模型化与弱模型化的拟合都在约 35 M☉ 处有东西（一个是折断，一个是峰） |
+| 35 M☉ 附近的质量系统误差或噪声事件 | `gap_syst` | 部分（报告了错误，其中一个判断为可忽略；没有传播） |
 | 高质量处选择函数的误差 | `gap_sel` | 没有直接检验 |
 
 **推理（Lean 摘录）。**
@@ -350,10 +354,10 @@ P26 第 6.1 节说 35 M☉ 的特征"consistent with either"峰值约 32.7 M☉ 
 
 #### 2.4 Lean 检查发现的问题
 
-1. **`explicit_insufficient`**：两条途径都需要同样的两个缺口：高质量处的选择函数适当（`gap_sel`），以及参数估计的系统误差与噪声事件不会造成虚假的特征（`gap_syst`）。模型形状不是缺口，因为强模型化与弱模型化两条途径一致。
+1. **`explicit_insufficient`**：两条途径都需要同样的两个缺口：高质量处的选择函数适当（`gap_sel`），以及参数估计的系统误差与噪声事件不会造成虚假的特征（`gap_syst`）。这里模型形状不是缺口，因为两条途径都在约 35 M☉ 处有东西（一个是折断，一个是峰）；每条途径单独就足够，是我们按第 6.1 节宽泛的"特征"含义所作的编码，而且灵活模型也有它们自己的平滑先验。
 2. **`stated_insufficient`**：论文明说的前提缺少两条途径的推理步骤（标准的贝叶斯解读）与两个缺口。
 3. **两条独立的途径**：有途径 2 时 `stat_steep` 与 `mod_route1` 多余，有途径 1 时 `stat_bspline`、`stat_weak` 与 `mod_route2` 多余。特征不只依赖某一类模型。必要的前提有四个：样本、注入的选择效应与两个缺口。
-4. **相容性**成立；在这里分量较弱（所有前提都是肯定命题）。
+4. **相容性**成立；在这里分量较弱（所有前提都是肯定命题）。`stated_insufficient` 与 `explicit_insufficient` 共用一个反例模型（两个缺口都不成立）；各自的 `_needed` 定理表明每个缺口单独都起作用。
 5. **局限。** Lean 检查的是在我们的编码下的逻辑结构，不检查物理；可信度的 95% 门槛是我们的约定。
 
 ```lean
