@@ -281,8 +281,8 @@ def main(ctx):
         res = einasto_r2(j23["R"], j23["V"] * f, j23["sig"] * f, models["E dJ"], mbar["E dJ"], P)
         r3["constant_mass_EdJ"][str(b)] = {"mdyn_dm": res["mdyn_dm"], "mdyn_tot": res["mdyn_tot"]}
     r3["constant_gamma"]["0.0"] = powerlaw_fit(R, V, sig, P, nsteps=P["nsteps_scan"])["median_gamma"]
-    # Monte Carlo noise of S at the scan length (3 seeds at b = 0), the basis of the monotonicity tolerance
-    s_noise = [powerlaw_fit(R, V, sig, P, nsteps=P["nsteps_scan"], seed=sd)["S"] for sd in (10, 11, 12)]
+    # Monte Carlo noise of S at the scan length (5 seeds at b = 0), the basis of the monotonicity tolerance
+    s_noise = [powerlaw_fit(R, V, sig, P, nsteps=P["nsteps_scan"], seed=sd)["S"] for sd in (10, 11, 12, 13, 14)]
     r3["s_noise_sd_scan"] = float(np.std(s_noise, ddof=1))
     s_curve = []
     for bmax in P["bmax_grid"]:

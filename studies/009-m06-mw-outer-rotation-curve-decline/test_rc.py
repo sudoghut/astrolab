@@ -101,8 +101,13 @@ def test_reparametrised_prior_matches_flat_a():
         assert np.isclose(lp_vs - lp_a(a, g), -g * np.log(rs))
 
 
-def test_einasto_large_n_finite():
-    assert np.isfinite(rc.einasto_mass(20.0, 3e11, 12.0, 0.01))
+def test_einasto_large_n_against_quad():
+    from scipy import integrate
+    M0, h = 3e11, 12.0
+    rho0 = M0 / (4 * np.pi * h ** 3)
+    for inv_n in (0.02, 0.01, 0.005):
+        m = integrate.quad(lambda r: 4 * np.pi * r ** 2 * rho0 * np.exp(-(r / h) ** inv_n), 0, 20.0)[0]
+        assert np.isclose(rc.einasto_mass(20.0, M0, h, inv_n), m, rtol=1e-6)
 
 
 def test_disc_mass_sphere_limits():
