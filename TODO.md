@@ -6,6 +6,9 @@
 
 ## 进行中（Doing）
 
+- [ ] **T-016** M10：GWTC-4.0 双黑洞质量谱结构 · 登记 2026-11-14 · 分支 feat/m10-gwtc4-bbh-mass
+  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：GWTC-4.0 arXiv:2508.18082、群体分析 arXiv:2508.18083。能力：群体推断、汇总量再分析。只取事件列表（GWOSC 事件接口，kB 级）、图表包（约 8.7 MB）与 popsummary，禁止下载 35 GB 数据发布的大文件与单事件后验（AGENTS.md 1.5）。
+  - 备注：论文研究；设计计划编号 016。
 
 ## 下一步（Next）
 
@@ -16,8 +19,6 @@
   - 备注：DR4 运行后 `results/` 不再有 DR3 的 `post_hoc.R1b_*`，届时把 `argument/Argument.lean` 中 `num_astro1` 的绑定路径改为 `results/dr3/summary.json`，并且与 DR4 的 `results/` 放在同一个 PR 里，否则研究状态为 reproduced 时 Lean 测试会失败（来源 T-010）。
 - [ ] **T-013** M7：宽双星引力检验（MOND 之争） · 登记 2026-11-14
   - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：Cookson, Banik, El-Badry et al. 2026 arXiv:2602.24035；Chae et al. arXiv:2601.21728（修改中）。能力：服务器端自连接配对、前向建模、污染成分建模。数据 5–20 MB，必须服务器端自连接，不下载 El-Badry 2021 星表（AGENTS.md 1.5）。
-- [ ] **T-016** M10：GWTC-4.0 双黑洞质量谱结构 · 登记 2026-11-14
-  - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：GWTC-4.0 arXiv:2508.18082、群体分析 arXiv:2508.18083。能力：群体推断、汇总量再分析。只取事件列表（GWOSC 事件接口，kB 级）、图表包（约 8.7 MB）与 popsummary，禁止下载 35 GB 数据发布的大文件与单事件后验（AGENTS.md 1.5）。
 - [ ] **T-017** M3：S8 张力减弱的多探针一致性 · 登记 2026-11-14
   - 计划：按论文立项流程（`paper-study` 技能）：先把 ROADMAP 中本里程碑的 [S]/[U] 项核实为 [V]，写双语 Wiki 文章与 Lean 论证拆解，再预注册、实现 `run.py` 与网页；复杂度达到第二条标准时先写 design 计划。论文：DES Y6 3x2pt arXiv:2601.14559 及 ROADMAP 所列其他探针。能力：多探针一致性元分析。数据为各探针公开的后验与链文件（chains）：下载前先按 AGENTS.md 第一条核对大小，能用汇总值时不取链文件。
 - [ ] **T-018** M6：银河系外区旋转曲线下降 · 登记 2026-11-14
