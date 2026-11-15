@@ -1,0 +1,7 @@
+{
+ "phi_h25": 3.7e-05,
+ "m_uv_h25": -20.8,
+ "ratio_h25_to_n26": 8.558988,
+ "area_ratio_n26_to_h25": 38.8,
+ "note": "context only: shares JADES-GS-z14-0 with N26; H25 errors include cosmic variance"
+}

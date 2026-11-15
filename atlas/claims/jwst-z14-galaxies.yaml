@@ -16,10 +16,13 @@ sources:
   - cite: "Harikane et al. 2025, ApJ"
     arxiv: "2406.18352"
 reproduction:
-  status: not-started
-  study: null
+  status: partial
+  study: 006-m08-z14-galaxies-number-density
   quantities:
-    - {name: "z_spec MoM-z14", paper: "14.44 +/- 0.02", ours: null, verified: S}
+    - {name: "z_spec MoM-z14", paper: "14.44 +/- 0.02", ours: null, verified: V}
+    - {name: "log phi, z = 14-15, -21 < M_UV < -20 (N26, two sources)", paper: "-5.36 +0.37/-0.45", ours: "-5.364 +0.365/-0.451 (Gehrels; volume 460,463 Mpc^3)"}
+    - {name: "observed / pre-JWST baseline", paper: "182 (+329/-105), N26's S23-type LF", ours: "constant-SFE model calibrated at z ~ 8 predicts 9.4x N26's baseline (2.5-37x across 72 variants), i.e. observed / ours ~ 19"}
+    - {name: "sigma_UV needed at z = 14-15", paper: "~1.5-2 mag (N26)", ours: "1.38 mag (1.15-1.57 Poisson; 1.07-1.60 across variants)"}
 open_questions:
   - "Minimal UV burstiness / star-formation efficiency needed at z ~ 12-15."
-notes: "Milestone M8. Detection is established; the interpretation of the excess is contested."
+notes: "Milestone M8. Detection is established; the interpretation of the excess is contested. Study 006: the size of the excess depends strongly on the pre-JWST baseline (calibration-dependent across 72 model variants); the counts are two sources with Poisson errors only (cosmic variance and the effective area are open gaps)."
