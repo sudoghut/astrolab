@@ -157,8 +157,8 @@ How a coding agent answers "what if" questions about this study without touching
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 007-m10-gwtc4-bbh-mass-35msun --tag <topic> --script explore/<name>.py`.
 - Results files and keys (planned): `results/r1.json` (`n_o4a`, `n_o3`, `target_size`, `missing`,
-  `extra`, `named_checks`, `gwtc1_missing`, `verdict`); `results/r2.json` (`n_lo`, `n_hi`, `n_outside_range`, per-turnover `f_pred`, `frac_obs`, `binom_p`,
-  `width_30_40`);
+  `extra`, `named_checks`, `gwtc1_missing`, `verdict`); `results/r2.json` (`n_lo`, `n_hi`, `n_outside_range`, `per_turnover` with `f_pred`, `frac_obs`,
+  `ratio`, `binom_p`; `width_30_40`);
   `results/r3.json` (per-turnover fits); `results/r4.json`; `results/sample.json` (the event table).
 - Example questions: "what if VT turns over at 40 M☉?" → `--set turnovers=[40]`; "does the R2 count
   change with the 30 M☉ split?" → `--set m_split=30`.
