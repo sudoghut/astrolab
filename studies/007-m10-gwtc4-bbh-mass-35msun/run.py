@@ -140,12 +140,15 @@ def main(ctx):
     # ---------------- R2 ----------------
     n_lo = int(np.sum(mm < P["m_split"]))
     n_hi = int(np.sum(mm >= P["m_split"]))
+    if n_lo + n_hi == 0:
+        raise ValueError("R2: no events in the mass range")
     per_mt = []
     for mt in P["turnovers"]:
         f = gwtc.r2_prediction(P["lambda1"], P["vt_slope"], mt, m_lo, P["m_split"], m_hi, P["n_grid"])
         per_mt.append({"m_t": mt, "f_pred": f, "frac_obs": n_hi / (n_lo + n_hi),
                        "ratio": (n_hi / (n_lo + n_hi)) / f, "binom_p": gwtc.binom_le(n_hi, n_lo + n_hi, f)})
     in_3040 = [r for r in sample if r["m1"] is not None and 30 <= r["m1"] <= 40]
+    # m1_hi, m1_lo are signed offsets from the median: (m1 + hi) - (m1 + lo) = hi - lo
     widths = [(r["m1_hi"] - r["m1_lo"]) / r["m1"] for r in in_3040 if r["m1_hi"] is not None and r["m1_lo"] is not None]
     r2 = {"n_lo": n_lo, "n_hi": n_hi, "n_outside_range": int(np.sum(~inside)),
           "outside": [r["name"] for r, ok in zip(sample, inside) if not ok], "per_turnover": per_mt,

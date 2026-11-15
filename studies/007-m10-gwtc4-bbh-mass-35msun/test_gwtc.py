@@ -39,8 +39,9 @@ def test_load_list_keeps_latest_version(tmp_path):
     ev = {}
     ev.update(_event("GW230601_000000", 1.37e9, 0.1, 30, -3, 4, 20, -2, version=1))
     ev.update(_event("GW230601_000000", 1.37e9, 0.1, 31, -3, 4, 21, -2, version=2))
+    ev["GW000000_000000-v1"] = None
     rows = gw.load_list(_write(tmp_path, "l.json", ev))
-    assert rows["GW230601_000000"]["m1"] == 31
+    assert rows["GW230601_000000"]["m1"] == 31 and len(rows) == 1
 
 
 def test_lower_bound_and_cuts():
