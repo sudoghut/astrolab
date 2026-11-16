@@ -477,7 +477,7 @@ def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):
                              "p84": float(np.percentile(flat[:, j], 84))}
                          for j, n in enumerate(["eps0", "log_m1", "beta", "gamma", "f"])},
            "bound_fractions": zm.bound_fractions(draws)}
-    r2v, r3v, ratios, centrals = [], [], [], []
+    r2v, r3v, ratios, centrals, roots_list = [], [], [], [], []
     for x in draws:
         theta = [float(v) for v in x[:4]]
         fres = run_model(S, P, combo, phi_obs, fixed={"theta": theta, "m_cal_lo": None,
@@ -485,6 +485,7 @@ def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):
         ratio = fres["phi_ours"] / phi_n26
         ratios.append(float(ratio))
         r2v.append(r2_verdict(ratio, P["r2_factor"]))
+        roots_list.append(fres.get("sigma_roots") if fres.get("r3_evaluable") else None)
         if fres.get("r3_evaluable"):
             r3v.append(r3_verdict(fres["sigma_roots"], P["r3_target"]))
             centrals.append(fres["sigma_roots"].get("central"))
@@ -513,7 +514,7 @@ def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):
                                                     "calibration": {"theta": med_theta, "rms": 0.0}})
     out["at_posterior_median"] = {"theta": med_theta, "ratio": float(fmed["phi_ours"] / phi_n26),
                                   "sigma_roots": fmed.get("sigma_roots")}
-    out.update({"r2_verdicts": r2v, "r3_verdicts": r3v, "ratios": ratios, "r3_central_roots": centrals,
+    out.update({"r2_verdicts": r2v, "r3_verdicts": r3v, "ratios": ratios, "r3_central_roots": centrals, "r3_roots": roots_list,
                 "r2_probabilities": p2, "r3_probabilities": p3,
                 "r3_evaluable_fraction": len(ev3) / n,
                 "n_eff": float(min(n, n_eff_chain)),
