@@ -119,25 +119,28 @@ all its calibrator SN rows (rows with a non-zero in the M⁰_B column and in exa
 column, `row_classes`' `calib`), Gaussian with variance τ²:
 V(τ) = C + τ² Σ_j h_j h_jᵀ, where h_j is the indicator of host j's calibrator SN rows. τ is one
 number for all 37 hosts (the minimal one-parameter model; with 37 groups τ̂ is poorly constrained,
-hence the interval below). Other rows are unchanged. Equivalences, stated so they are not
-re-litigated: every host has a free distance μ₀,j that enters its Cepheid and SN rows with the same
-coefficient, so the same offset on host j's Cepheid rows, or on μ₀,j, gives the identical REML
-likelihood, H0 estimate and variance. A per-SN effect is not available (the light-curve rows are
-matched to hosts, not to SNe, section 4) and equals the per-host one for single-SN hosts. For
-single-SN hosts τ is indistinguishable from extra scatter of calibrator SNe relative to their
-Cepheid distance; that is what τ measures.
+hence the interval below). Other rows are unchanged. Placement: a random effect on the host
+distance μ₀,j itself is not identifiable (μ₀,j is a free parameter and absorbs it); the same
+offset on host j's Cepheid rows instead of its SN rows is a different covariance direction and is
+reported as a sensitivity check (estimated and applied in the same way), not used for the verdict.
+A per-SN effect is not available (the light-curve rows are matched to hosts, not to SNe,
+section 4) and would equal the per-host one for single-SN hosts. For single-SN hosts τ is
+indistinguishable from extra scatter of calibrator SNe relative to their Cepheid distance; that is
+what τ measures.
 
-- **Estimate.** τ̂ by restricted maximum likelihood (REML, restricted maximum likelihood) on that
+- **Estimate.** τ̂ by restricted maximum likelihood (REML) on that
   system: −2ℓ_R(τ) = log det V + log det(Xᵀ V⁻¹ X) + rᵀ V⁻¹ r, with X the columns of L fitted in
   that system (`infer.gls`'s `kept`) on those rows, r the GLS residual under V, and all constraint
   rows kept (their τ-independent terms are constants). Search: a grid τ = 0, 0.01, …, 0.50 mag,
   then `scipy.optimize.minimize_scalar` (method "bounded", xatol 10⁻⁵) on the grid interval around
-  the grid minimum (at an end point, the one adjacent interval); τ̂ is the better of the refined
-  and the grid minimum. τ̂ < 10⁻³ counts as zero (V = C; R2-RE then equals R2). τ̂ > 0.5 − 10⁻³ is
+  the grid's global minimum (at an end point, the one adjacent interval); τ̂ is the better of the
+  refined and the grid minimum (the grid minimum if the refinement fails). Other local minima of
+  the grid are reported. τ̂ < 10⁻³ counts as zero (V = C; R2-RE then equals R2). τ̂ > 0.5 − 10⁻³ is
   "at the upper bound": R2-RE is **not evaluable (bound)**.
 - **Interval.** The 68% interval is where −2ℓ_R exceeds its minimum by 1, found by root finding
   (`brentq`) on each side of τ̂; the lower end is 0 if −2ℓ_R(0) is within 1 of the minimum; the
-  upper end is reported as "> 0.5" if not reached by 0.5.
+  upper end is reported as "> 0.5" if not reached by 0.5, and as "not determined" if the root
+  search fails.
 - **Host step under V(τ̂).** As R2's host step with C replaced by V(τ̂) in both fits and in the
   shift variance: Δ_h' = 5 log H0(10 CCHP hosts) − 5 log H0(37 hosts), σ_h'² = a'ᵀ V a', z' = Δ_h'/σ_h',
   with the host labelling of the 2026-11-14 run (amended, section 4 note); R2-RE inherits R2's
@@ -149,16 +152,21 @@ Cepheid distance; that is what τ measures.
   R2-RE is **not evaluable (fit)**.
 - **Headline, fixed now.** The R2-RE verdict row, whatever it is, becomes the headline host-step
   verdict in section 5, `summary.json` (`R2_host`) and the claim, and replaces the inflated-σ
-  sentence in the public `verdict` of `r2.json`. R2 (C errors) stays recorded as the pre-registered
+  sentence in the public `verdict` of `r2.json` and on the web page. R2 (C errors) stays recorded as the pre-registered
   outcome of 2026-11-14 (`criterion_outcome`, `R2_host_preregistered`). The inflated-σ figure and
   the diagnostics below are labelled descriptive and cannot override R2-RE. If R2-RE is not
   evaluable, the headline stays R2 with its existing qualification, labelled as such.
 - **Reported, not decisive.** z' at the upper end of the τ interval (if finite); R4 rerun under
-  V(τ̂) with exactly the draws R4 ends with (same seed, same count): each draw refits the 37-host
-  system and the subset under V, σ'² = σ²_sub,V − σ²_full,V (the nested identity holds under V because
-  τ² blocks lie within hosts and draws select whole hosts; checked exactly on the first draw with
-  a'ᵀ V a'), the spread of Δ/σ' (near 1 if τ absorbs the excess) and the CCHP percentile of z'; the
-  host-level χ² of the 37 leave-one-host-out SN residuals under C and under V(τ̂).
+  V(τ̂) with exactly the draws R4 ends with (same seed, same count): the 37-host system is fitted
+  once under V and each draw refits only its subset under V, σ'² = σ²_sub,V − σ²_full,V. Derivation:
+  both are GLS estimators under the same V (the subset uses V's sub-block), the full one is the
+  best linear unbiased estimator on the full data and the subset one is another linear unbiased
+  estimator on the same data, so Cov(full, sub) = Var(full) and Var(sub − full) = Var(sub) −
+  Var(full) for any V; checked exactly with a'ᵀ V a' on the R2-RE host step and on the first draw, the spread of Δ/σ' (near 1 if τ absorbs the excess) and the CCHP percentile of z'; the
+  host-level χ² of the 37 leave-one-host-out SN residuals under C and under V(τ̂): for each host j,
+  refit the 37-host system without host j's calibrator SN rows (its Cepheids kept), predict those
+  rows, and form r_jᵀ S_j⁻¹ r_j with S_j = W_jj + X_j Cov(q̂) X_jᵀ (W = C or V); report the sum and its
+  number of SN rows, compared with χ² with that many degrees of freedom.
 - **Runtime.** One REML evaluation is a Cholesky of a 3489 × 3489 matrix (about 0.3 s); the grid,
   refinement and interval take about 1 min. R4 under V costs about as much as R4 (8-15 min).
 
