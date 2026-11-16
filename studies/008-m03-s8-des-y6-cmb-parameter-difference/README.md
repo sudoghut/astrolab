@@ -235,7 +235,7 @@ Five repetitions, seeds 0–4. n̄ = mean of the five n_σ, s = their sample sta
 difference distribution with the structures expected here, with an analytic density:
 - a curved pair, like the As–Ωm ridge: x₁ ~ N(2.0, 1), x₂ = z + 0.3 (x₁ − 2.0)² with z ~ N(1.0, 1)
   (unit Jacobian, so p(x₁, x₂) = N(x₁; 2.0, 1) N(x₂ − 0.3 (x₁ − 2.0)²; 1.0, 1)); the curvature 0.3 is
-  set qualitatively, not from the chains;
+  set qualitatively, not from the chains; N(m, 1) denotes a normal with mean m and standard deviation 1;
 - three flat-topped box directions with 0 inside the plateau (a uniform variable on [−0.6, 1.4] minus an
   independent normal variable of width 0.05), like h, ns and Ωb;
 - one box direction with 0 about one edge width inside its lower edge (a uniform variable on [−0.1, 1.9]
