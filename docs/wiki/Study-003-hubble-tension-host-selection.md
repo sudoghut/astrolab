@@ -206,7 +206,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
 | R1 · the SH0ES baseline | testable now | GLS fit of R22's y, L, C | C 46.5 MiB (Git LFS FITS), L 0.66 MB, y 17 kB, lstsq 0.7 kB; total about 47.2 MiB (below the 200 MB study budget) | primary: reproduce the authors' `lstsq_results.txt` (47 parameters); secondary: 73.04 ± 1.01 (tolerances in README §2) | not reproduced against the file (it is a different fit, about 73.3); our fit matches the printed baseline, 73.04, χ²/dof 1.031 |
-| R2 · stage A–B: anchor and host shifts | testable now | refit with NGC 4258 only (drop the other anchors' geometric rows), then restrict to the CCHP hosts; shifts in 5 log H0 with exact linear error propagation | same | anchor shift vs R22's −0.0158 mag; host shift: null "no shift", four-outcome table vs −0.0405 mag (our conversion of the paper's 72.54 → 71.2 to 5 log H0; README §2) | anchor shift reproduced (−0.0184, σ 0.0461); host shift −0.073 ± 0.033 mag (−2.2σ) under a post-data host labelling, pre-registered verdict "not evaluable"; see 3.1 |
+| R2 · stage A–B: anchor and host shifts | testable now | refit with NGC 4258 only (drop the other anchors' geometric rows), then restrict to the CCHP hosts; shifts in 5 log H0 with exact linear error propagation | same | anchor shift vs R22's −0.0158 mag; host shift: null "no shift", four-outcome table vs −0.0405 mag (our conversion of the paper's 72.54 → 71.2 to 5 log H0; README §2) | anchor shift reproduced (−0.0184, σ 0.0461); host shift −0.073 ± 0.033 mag (−2.2σ) under a post-data host labelling, pre-registered verdict "not evaluable"; R2-RE (2026-11-16): −0.062 ± 0.040 mag (z = −1.53), not detected; see 3.1 |
 | R3 · stages C and E: same hosts, Cepheid vs TRGB | explorable (descriptive by default) | joint linear estimator with CCHP's JWST TRGB distances; first reproduce CCHP's TRGB + Pantheon+ value 69.29 (not the paper's recalibrated Table 4 value 70.1) | CCHP Table 3 (paper) | descriptive unless the full CCHP error budget can be mapped before data; see README §8 | CCHP side 69.70 against 69.29 (matched); same hosts: d = +0.010 ± 0.048 mag |
 | R4 · is the CCHP choice unusual? | explorable (descriptive) | random 10-host subsets of the 37 hosts, ΔH0 percentile (the paper did an 8-SN version for JAGB, Fig. 6: ~5%) | same | none — exploration only, see README §8 | CCHP choice at the 5.7th percentile (4.7th in Δ/σ) |
 | Cross-paper comparison | explorable (descriptive) | pairwise differences for independent pairs only (ladder vs CMB, TDCOSMO vs others) | paper numbers | none — see README §8 | ladder vs CMB-only 5.3σ; TDCOSMO vs ladder −0.4σ; TDCOSMO vs CMB-only 1.3σ |
@@ -235,12 +235,12 @@ section were added after the run (study README section 5; [web page](https://git
   with a host-level random effect is registered for later (T-023).
 - **Update 2026-11-16, R2-RE (T-023, pre-registered addendum): no host-selection effect detected.**
   A host-level random effect estimated by restricted maximum likelihood (REML) is 0.077 mag
-  (0.048–0.105); it removes the excess random-subset scatter (spread of Δ/σ 1.33 → 1.005). With it
+  (68% interval 0.048–0.105); it removes the excess random-subset scatter (spread of Δ/σ 1.33 → 1.005). With it
   the CCHP host shift is −0.062 ± 0.040 mag (z = −1.53), and the unchanged pre-registered table gives
   "no host-selection effect detected", which is now the headline host-step verdict (the 2026-11-14
   verdict stays recorded). The shift keeps its sign and size (about −2 km/s/Mpc); its significance
   does not survive. The independent referee (post hoc) found no bug but stressed how soft this null is:
-  z crosses −2 already at τ ≈ 0.03 mag, the evidence for τ > 0 is modest (p ≈ 0.03), τ̂ may rest on a
+  z crosses −2 already at τ ≈ 0.03 mag (the referee's estimate), the evidence for τ > 0 is modest (p ≈ 0.03), τ̂ may rest on a
   few non-CCHP hosts, and the rule was fixed knowing the first result; so the honest summary is a
   shift of about −2 km/s/Mpc at 1.5σ–2.2σ. A leave-one-host-out check is registered (T-032). Numbers: [`results/r2_re.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re.json).
 - **Same hosts, two indicators (stages C and E).** Putting CCHP's JWST TRGB distances in place
@@ -250,8 +250,8 @@ section were added after the run (study README section 5; [web page](https://git
 - **What this means for the argument.** The inputs of `gap_rule` that this repo can recompute
   hold in R22's data: the selected hosts give a lower H0 than the full sample, and on those hosts
   Cepheids and TRGB agree. The rule itself (that this makes the difference "entirely" a matter of
-  selection) is not tested, and the selection effect is at most about 2σ and marginal once the
-  host-to-host scatter is counted.
+  selection) is not tested, and the selection effect is at most about 2σ and not significant once a
+  host-level random effect is modelled (R2-RE, below).
 
 ### Glossary
 
@@ -389,7 +389,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 | 环节 / 论断 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
 | R1 · SH0ES 的基线 | 现在可检验 | 对 R22 的 y、L、C 做广义最小二乘（GLS, generalised least squares）拟合 | C 46.5 MiB（Git LFS 的 FITS），L 0.66 MB，y 17 kB，lstsq 0.7 kB；合计约 47.2 MiB（低于研究预算 200 MB） | 主要：复现作者的 `lstsq_results.txt`（47 个参数）；次要：73.04 ± 1.01（容差见 README 第 2 节） | 对作者文件未复现（那是另一个拟合，约 73.3）；我们的拟合与印出的基线一致，73.04，χ²/自由度 1.031 |
-| R2 · 环节 A–B：锚点与宿主的移动 | 现在可检验 | 只用 NGC 4258（去掉其他锚点的几何约束行）重拟，再限于 CCHP 宿主；在 5 log H0 中用精确的线性误差传播（linear error propagation） | 同上 | 锚点移动对 R22 的 −0.0158 mag；宿主移动：零假设（null hypothesis）"无移动"，四种结果的判定表，对 −0.0405 mag（我们把该文的 72.54 → 71.2 换算到 5 log H0；README 第 2 节） | 锚点移动复现（−0.0184，σ 0.0461）；宿主移动在数据之后的宿主标注下为 −0.073 ± 0.033 mag（−2.2σ），预注册判定为"不可评估"；见 3.1 |
+| R2 · 环节 A–B：锚点与宿主的移动 | 现在可检验 | 只用 NGC 4258（去掉其他锚点的几何约束行）重拟，再限于 CCHP 宿主；在 5 log H0 中用精确的线性误差传播（linear error propagation） | 同上 | 锚点移动对 R22 的 −0.0158 mag；宿主移动：零假设（null hypothesis）"无移动"，四种结果的判定表，对 −0.0405 mag（我们把该文的 72.54 → 71.2 换算到 5 log H0；README 第 2 节） | 锚点移动复现（−0.0184，σ 0.0461）；宿主移动在数据之后的宿主标注下为 −0.073 ± 0.033 mag（−2.2σ），预注册判定为"不可评估"；R2-RE（2026-11-16）：−0.062 ± 0.040 mag（z = −1.53），未检出；见 3.1 |
 | R3 · 环节 C 与 E：同宿主上造父变星对 TRGB | 可探索（默认只作描述） | 与 CCHP 的 JWST TRGB 距离做联合线性估计；先复现 CCHP 的 TRGB + Pantheon+ 数值 69.29（不是论文重新标定的表 4 数值 70.1） | CCHP 表 3（论文） | 只有在取数前能写出 CCHP 完整的误差预算时才作检验，否则只作描述；见 README 第 8 节 | CCHP 一侧 69.70 对 69.29（一致）；同宿主 d = +0.010 ± 0.048 mag |
 | R4 · CCHP 的选择是否不寻常 | 可探索（只作描述） | 37 个宿主中随机 10 个的子样本，ΔH0 的百分位（percentile）（论文对 JAGB 做过 8 颗超新星的版本，图 6：约 5%） | 同上 | 无——只作探索，见 README 第 8 节 | CCHP 的选择位于第 5.7 百分位（按 Δ/σ 为第 4.7） |
 | 跨论文比较 | 可探索（只作描述） | 只对近似独立的组合给出两两之差（距离阶梯对 CMB、TDCOSMO 对其他） | 论文数字 | 无——见 README 第 8 节 | 距离阶梯对只用 CMB 5.3σ；TDCOSMO 对距离阶梯 −0.4σ；TDCOSMO 对只用 CMB 1.3σ |
@@ -403,8 +403,8 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 - **偏离预注册。** 公开的方程矩阵的列不是按 R22 宿主表的顺序排列的，所以预注册的宿主识别失败，宿主一步（R2）、R3 与 R4 按预注册为*不可评估*。第一次运行之后，我们只用超新星星等、造父变星数目与宿主距离重新标注各列；这样 CCHP 宿主集合是唯一确定的。下面的结果都依赖这一数据之后的标注。
 - **宿主一步（环节 A–B）。** 把只用 NGC 4258 的阶梯限于 10 个 CCHP 宿主，5 log H0 移动 −0.073 ± 0.033 mag（H0 72.4 → 70.0），按协方差传播的误差为 −2.2σ。这符合预注册判定表中"显著，且大小与该文一致"一行，但我们的移动是论文的 −1.3 km/s/Mpc 的 1.8 倍，只在宽的容差内一致。随机 10 宿主子样本的离散大于协方差的预期（Δ/σ 的离散为 1.33），在这一经验尺度上 CCHP 的选择约低 1.7σ（第 4.7–5.7 百分位）：偏低，但不算异常。按这一倍数膨胀误差后，预注册判定表会给出"未检测到宿主选择的效应"；独立审稿把这一点列为最主要的意见，带逐宿主随机效应（random effect）的检验已登记待做（T-023）。
 - **同样的宿主、两种指示器（环节 C 与 E）。** 在同样 10 个宿主上用 CCHP 的 JWST TRGB 距离代替造父变星，得到 69.70，与 CCHP 自己的 69.29 接近；这些宿主上 SH0ES 与 CCHP 两个阶梯相差 +0.010 ± 0.048 mag（0.3 km/s/Mpc），没有宿主偏离超过 1.2σ。
-- **对论证的意义。** 本项目能重算的 `gap_rule` 输入在 R22 的数据中成立：选出的宿主给出比全样本低的 H0，而在这些宿主上造父变星与 TRGB 一致。规则本身（因此差异"完全"是选择造成的）没有被检验，而选择效应至多约 2σ，计入宿主之间的离散后只是边缘显著。
-- **2026-11-16 更新，R2-RE（T-023，预注册附录）：未检出宿主选择效应。** 用限制最大似然（REML, restricted maximum likelihood）估计的宿主级随机效应（random effect）为 0.077 mag（0.048–0.105），它消除了随机子样本多出来的离散（Δ/σ 的离散 1.33 → 1.005）。计入它之后，CCHP 宿主一步为 −0.062 ± 0.040 mag（z = −1.53），不变的预注册判定表给出"未检出宿主选择效应"，现在是宿主一步的标题判定（2026-11-14 的判定保留记录）。移动的方向与大小（约 −2 km/s/Mpc）不变，不成立的是显著性。独立审稿（事后）没有发现错误，但强调这个"未检出"很软：τ ≈ 0.03 mag 时 z 就越过 −2，τ > 0 的证据不强（p ≈ 0.03），τ̂ 可能由少数非 CCHP 宿主决定，而且规则是在已知第一次结果后定的；所以如实的概括是约 −2 km/s/Mpc 的移动，显著性 1.5σ–2.2σ。逐一剔除宿主的检验已登记（T-032）。数字见 [`results/r2_re.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re.json)。
+- **对论证的意义。** 本项目能重算的 `gap_rule` 输入在 R22 的数据中成立：选出的宿主给出比全样本低的 H0，而在这些宿主上造父变星与 TRGB 一致。规则本身（因此差异"完全"是选择造成的）没有被检验，而选择效应至多约 2σ，加入宿主级随机效应后不显著（R2-RE，下一条）。
+- **2026-11-16 更新，R2-RE（T-023，预注册附录）：未检出宿主选择效应。** 用限制最大似然（REML, restricted maximum likelihood）估计的宿主级随机效应（random effect）为 0.077 mag（68% 区间 0.048–0.105），它消除了随机子样本多出来的离散（Δ/σ 的离散 1.33 → 1.005）。计入它之后，CCHP 宿主一步为 −0.062 ± 0.040 mag（z = −1.53），不变的预注册判定表给出"未检出宿主选择效应"，现在是宿主一步的标题判定（2026-11-14 的判定保留记录）。移动的方向与大小（约 −2 km/s/Mpc）不变，不成立的是显著性。独立审稿（事后）没有发现错误，但强调这个"未检出"很软：τ ≈ 0.03 mag 时 z 就越过 −2（审稿的估计），τ > 0 的证据不强（p ≈ 0.03），τ̂ 可能由少数非 CCHP 宿主决定，而且规则是在已知第一次结果后定的；所以如实的概括是约 −2 km/s/Mpc 的移动，显著性 1.5σ–2.2σ。逐一剔除宿主的检验已登记（T-032）。数字见 [`results/r2_re.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re.json)。
 
 ### 术语表
 
