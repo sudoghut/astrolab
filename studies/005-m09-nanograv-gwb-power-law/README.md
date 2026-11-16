@@ -255,7 +255,12 @@ reading). It found no code bugs and reproduced every number from the cached inpu
 ## 7. Open questions
 
 - Which noise model should a "reproduction" of L8 use when the two available ones disagree this
-  much on γ (DMX q = 0.98–0.99, DMGP q = 0.62)? A pre-registered comparison of both is the next test.
+  much on γ (DMX q = 0.98–0.99, DMGP q = 0.62)? A pre-registered comparison of both was planned
+  (T-024), but it cannot be blind (2026-11-16): the v2.0.0 product has no DMGP free spectrum (its
+  30-frequency directories are `30f_fs{cp}_ceffyl`, `30f_fs{hd+mp+dp+cp}_ceffyl_hd-only` and
+  `30f_fs{hd}_ceffyl`), and the only DMGP product, v1.1.0 `30f_fs{hd}_100fDMGP_ceffyl`, was already
+  analysed after the referee (section 5). The comparison stays the post-hoc one in section 5; a blind
+  test needs a new DMGP free spectrum (e.g. a future NANOGrav release).
 - NG15 running-spectral-index analysis (Agazie et al. 2024, arXiv:2408.10166, unverified): does it
   change the reading of R4?
 
