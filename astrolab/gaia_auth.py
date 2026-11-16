@@ -54,11 +54,17 @@ def credentials(dotenv: Path | None = None) -> tuple[str, str] | None:
     return (user, pw) if user and pw else None
 
 
+class LoginRejected(RuntimeError):
+    """The archive refused the credentials (HTTP 401/403, or no session cookie)."""
+
+
 def _post_login(user: str, pw: str) -> None:
     import requests
 
     r = requests.post(LOGIN_URL, data={"username": user, "password": pw}, timeout=60)
-    if r.status_code != 200 or not r.cookies:
+    if r.status_code in (401, 403) or (r.status_code == 200 and not r.cookies):
+        raise LoginRejected(f"Gaia archive login failed (HTTP {r.status_code})")
+    if r.status_code != 200:
         raise RuntimeError(f"Gaia archive login failed (HTTP {r.status_code})")
     p = session_path()
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -127,9 +133,9 @@ def session_with_cookies(url: str):
                 try:
                     _post_login(*creds)        # non-interactive login from configured credentials
                 except Exception as exc:      # noqa: BLE001 - fall back to anonymous access
-                    # _post_login raises RuntimeError when the archive rejects the login; a network
-                    # error leaves the flag unset so a later call may log in
-                    if isinstance(exc, RuntimeError):
+                    # only rejected credentials are remembered; a network or server error (5xx)
+                    # leaves the flag unset so a later call may log in
+                    if isinstance(exc, LoginRejected):
                         _LOGIN_FAILED = True
                     print(f"  Gaia login from configured credentials failed ({exc}); continuing anonymously")
                     return None, None
