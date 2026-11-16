@@ -6,6 +6,8 @@
 
 ## 进行中（Doing）
 
+- [ ] **T-007** 技能：文献核实（literature verification） · 登记 2026-11-14 · 分支 chore/skill-literature-verification
+  - 计划：写 `.claude/skills/literature-verification/SKILL.md`（把 [S]/[U] 提升为 [V] 的流程与检查清单，规则引用 AGENTS.md 与 ROADMAP.md 的标记定义），在 AGENTS.md 第二条的已有技能清单中登记；双闸审查后合并。
 ## 下一步（Next）
 
 按优先级排序，最重要的在最上面。
@@ -22,7 +24,6 @@
 
 未排序，暂不安排的事都放这里，新条目加在末尾。工作中发现、但不属于当前分支的问题也登记在这里，并写明 `来源 T-NNN`；其他条目不必写来源。
 
-- [ ] **T-007** 技能：文献核实（literature verification） · 登记 2026-11-14
 - [ ] **T-008** 技能：出报告（report） · 登记 2026-11-14
 - [ ] **T-020** 候选 M11：Radcliffe 波的振荡 · 登记 2026-11-14
   - 计划：论文：Konietzka et al. 2024, Nature 628, 62 [V]；细节为 [U]，立项前先核实。
