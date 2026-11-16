@@ -328,8 +328,8 @@ def reml_tau(f, tau_max, step):
     grid = np.round(np.arange(0.0, tau_max + step / 2, step), 10)
     vals = np.array([f(t) for t in grid])
     k = int(np.argmin(vals))
-    local = [float(grid[i]) for i in range(1, len(grid) - 1)
-             if vals[i] < vals[i - 1] and vals[i] < vals[i + 1] and i != k]
+    local = [float(grid[i]) for i in range(len(grid)) if i != k
+             and (i == 0 or vals[i] < vals[i - 1]) and (i == len(grid) - 1 or vals[i] < vals[i + 1])]
     lo, hi = grid[max(k - 1, 0)], grid[min(k + 1, len(grid) - 1)]
     tau_hat, f_hat, refined = float(grid[k]), float(vals[k]), False
     try:
@@ -345,7 +345,12 @@ def reml_tau(f, tau_max, step):
         while 0 <= j + direction < len(grid):
             j += direction
             if vals[j] - f_hat - 1.0 > 0:
-                a, b = sorted((tau_hat, float(grid[j])))
+                # within that grid interval (README): between the last grid point below the
+                # threshold (or tau_hat itself, when that is closer) and the first one above it
+                inner = float(grid[j - direction])
+                if (inner - tau_hat) * direction < 0:
+                    inner = tau_hat
+                a, b = sorted((inner, float(grid[j])))
                 try:
                     return float(optimize.brentq(g, a, b, xtol=1e-6))
                 except Exception:
@@ -386,7 +391,7 @@ def host_step_under(L, y, V, rows_a, rows_s):
             - to_h0(float(res_a["q"][C_H0]))}, res_a
 
 
-def loo_chi2(L, y, W, rows_a, groups):
+def loo_chi2(L, y, W, rows_a, groups, labels):
     """Host-level chi^2 of the leave-one-host-out calibrator-SN residuals (README R2-RE)."""
     total, n, per = 0.0, 0, []
     rows_a = np.asarray(rows_a)
@@ -399,7 +404,7 @@ def loo_chi2(L, y, W, rows_a, groups):
         r = y[g] - Xg @ res["q"][kept]
         S = W[np.ix_(g, g)] + Xg @ res["cov"] @ Xg.T
         c = float(r @ np.linalg.solve(S, r))
-        per.append(c)
+        per.append({"host": labels[len(per)], "chi2": c, "n_rows": int(len(g))})
         total += c
         n += len(g)
     return {"chi2": total, "n_rows": n, "per_host": per}
@@ -409,7 +414,8 @@ def to_h0(q):
     return float(10 ** (q / 5.0))
 
 
-def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks, d_h_c):
+def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks, c_step, anchor_status,
+          labels):
     """R2-RE (README section 2, addendum 2026-11-16)."""
     t0 = time.perf_counter()
     calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]
@@ -420,7 +426,11 @@ def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks,
     def estimate(groups):
         return reml_tau(lambda t: reml_m2l(L, y, C, rows_a, groups, t), P["re_tau_max"], P["re_grid_step"])
 
-    est = estimate(calib_groups)
+    try:
+        est = estimate(calib_groups)
+    except (np.linalg.LinAlgError, ValueError) as e:
+        out.update(status=f"not evaluable (fit: {e})")
+        return out
     out["reml"] = est
     ctx.log(f"R2-RE: tau_hat {est['tau_hat']:.4f} mag, 68% {est['interval_68']}, "
             f"refined {est['refined']}, other local minima {est['other_local_minima']}")
@@ -435,29 +445,53 @@ def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks,
         out.update(status=f"not evaluable (fit: {e})", tau_hat=tau)
         return out
     v = host_step_verdict(hs["z"], hs["shift"], hs["shift_sigma"], P["host_ref"], P["host_ref_extra"])
-    out.update(status="evaluated", tau_hat=tau, interval_68=est["interval_68"], host_step=hs,
-               z=hs["z"], verdict=v, reference=P["host_ref"],
-               reference_tol=2 * hs["shift_sigma"] + P["host_ref_extra"],
-               c_errors={"shift": d_h_c})
+    out.update(status="evaluated", anchor_status=anchor_status, tau_hat=tau, interval_68=est["interval_68"],
+               host_step=hs, z=hs["z"], verdict=v, reference=P["host_ref"],
+               reference_tol=2 * hs["shift_sigma"] + P["host_ref_extra"], c_errors=c_step)
     ctx.log(f"R2-RE host step: {hs['shift']:+.4f} +- {hs['shift_sigma']:.4f} (z {hs['z']:.2f}) -> {v}")
 
-    # reported, not decisive
+    # reported, not decisive; a failure here is recorded and does not stop the run
+    errs = out.setdefault("diagnostic_errors", {})
     hi = est["interval_68"][1]
     if isinstance(hi, float):
-        hs_hi, _ = host_step_under(L, y, with_re(C, calib_groups, hi), rows_a, rows_s)
-        out["at_interval_upper"] = {"tau": hi, "z": hs_hi["z"], "shift": hs_hi["shift"],
-                                    "shift_sigma": hs_hi["shift_sigma"]}
-    est_c = estimate(ceph_groups)
-    sens = {"reml": {k: est_c[k] for k in ("tau_hat", "interval_68", "refined", "other_local_minima",
-                                            "at_zero", "at_upper_bound")}}
-    if not est_c["at_upper_bound"]:
-        tc = 0.0 if est_c["at_zero"] else est_c["tau_hat"]
-        hs_c, _ = host_step_under(L, y, with_re(C, ceph_groups, tc), rows_a, rows_s)
-        sens.update(host_step=hs_c, verdict_row=host_step_verdict(hs_c["z"], hs_c["shift"], hs_c["shift_sigma"],
-                                                                 P["host_ref"], P["host_ref_extra"]))
-    out["sensitivity_cepheid_rows"] = sens
+        try:
+            hs_hi, _ = host_step_under(L, y, with_re(C, calib_groups, hi), rows_a, rows_s)
+            out["at_interval_upper"] = {"tau": hi, "z": hs_hi["z"], "shift": hs_hi["shift"],
+                                        "shift_sigma": hs_hi["shift_sigma"]}
+        except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
+            errs["at_interval_upper"] = str(e)
+    try:
+        est_c = estimate(ceph_groups)
+        sens = {"reml": {k: est_c[k] for k in ("tau_hat", "interval_68", "refined", "other_local_minima",
+                                                "at_zero", "at_upper_bound")}}
+        if not est_c["at_upper_bound"]:
+            tc = 0.0 if est_c["at_zero"] else est_c["tau_hat"]
+            hs_c, _ = host_step_under(L, y, with_re(C, ceph_groups, tc), rows_a, rows_s)
+            sens.update(host_step=hs_c, verdict_row=host_step_verdict(
+                hs_c["z"], hs_c["shift"], hs_c["shift_sigma"], P["host_ref"], P["host_ref_extra"]))
+        out["sensitivity_cepheid_rows"] = sens
+    except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
+        errs["sensitivity_cepheid_rows"] = str(e)
+    try:
+        r2_re_r4(out, L, y, V, res_aV, hs, rows_a, base_rows, host_rows, picks)
+    except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
+        errs["r4_under_v"] = str(e)
+    try:
+        out["loo_chi2"] = {"C": loo_chi2(L, y, C, rows_a, calib_groups, labels),
+                           "V": loo_chi2(L, y, V, rows_a, calib_groups, labels),
+                           "note": "predicted from the fit without the host's SN rows; the cross-covariance "
+                                   "of those rows with the kept rows is ignored (README definition), so the "
+                                   "comparison with chi^2(n) is approximate"}
+    except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
+        errs["loo_chi2"] = str(e)
+    out["seconds"] = time.perf_counter() - t0
+    ctx.log(f"R2-RE diagnostics: R4 under V z spread {out.get('r4_under_v', {}).get('z_std')}; "
+            f"LOO chi2 {[(k, out['loo_chi2'][k]['chi2']) for k in ('C', 'V')] if 'loo_chi2' in out else errs}")
+    return out
 
-    # R4 under V: the same draws as R4; full system fitted once under V
+
+def r2_re_r4(out, L, y, V, res_aV, hs, rows_a, base_rows, host_rows, picks):
+    """R4 under V: the same draws as R4; the full system fitted once under V (in host_step_under)."""
     qa_v, sa_v = hs["fivelogh0_37"], hs["sigma_37"]
     zs, deltas = [], []
     for i, pick in enumerate(picks):
@@ -478,13 +512,6 @@ def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks,
         out["r4_under_v"] = {"draws": len(zs), "z_std": float(zs_a.std()), "z_mean": float(zs_a.mean()),
                              "cchp_z": hs["z"], "z_percentile": float(100.0 * np.mean(zs_a <= hs["z"])),
                              "shift_percentile": float(100.0 * np.mean(np.array(deltas) <= hs["shift"]))}
-    out["loo_chi2"] = {"C": loo_chi2(L, y, C, rows_a, calib_groups),
-                       "V": loo_chi2(L, y, V, rows_a, calib_groups)}
-    out["seconds"] = time.perf_counter() - t0
-    ctx.log(f"R2-RE diagnostics: R4 under V z spread {out.get('r4_under_v', {}).get('z_std')}; "
-            f"LOO chi2 C {out['loo_chi2']['C']['chi2']:.1f}, V {out['loo_chi2']['V']['chi2']:.1f} "
-            f"for {out['loo_chi2']['C']['n_rows']} rows")
-    return out
 
 
 # ---------------------------------------------------------------- main
@@ -831,8 +858,9 @@ def main(ctx):
     # ---- R2-RE (README section 2, addendum 2026-11-16): host-level random effect
     re = {"status": "not run"}
     if P["re_check"] and ident["host_step_evaluable"]:
-        re = r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks, d_h)
-        ctx.save("r2_re", re)
+        re = r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks,
+                   {"shift": d_h, "shift_sigma": s_h, "z": z}, status, col_host[:NH])
+    ctx.save("r2_re", re)                 # always written, so no stale file survives
 
     # One canonical qualified verdict for the host step (gate-2 review): states the labelling mode
     # and, when R4 ran, the empirical (random-subset) scale next to the C-propagated significance.
@@ -854,9 +882,11 @@ def main(ctx):
     # host-step verdict; R2 (C errors) stays recorded; the inflated-sigma text becomes descriptive
     if re.get("status") == "evaluated":
         r2h["descriptive_inflated_sigma"] = r2h["qualified_verdict"]
-        r2h["verdict"] = (re["verdict"] + " [R2-RE: host-level random effect, pre-registered 2026-11-16; "
-                          + ("; ".join(["post-data host labelling"] if mode != "pre-registered" else [])
-                             or "pre-registered labelling") + "]")
+        tags = ["R2-RE: host-level random effect, pre-registered 2026-11-16",
+                "post-data host labelling" if mode != "pre-registered" else "pre-registered labelling"]
+        if not anchor_repro:
+            tags.append("conditional (anchor rule not validated)")
+        r2h["verdict"] = re["verdict"] + " [" + "; ".join(tags) + "]"
         r2h["headline_source"] = "R2-RE"
     else:
         r2h["headline_source"] = "R2 (C errors) with qualification; R2-RE " + re.get("status", "not run")
