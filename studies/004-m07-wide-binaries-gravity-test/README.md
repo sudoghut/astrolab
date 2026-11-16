@@ -195,9 +195,14 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
    c ± 0.2. *Dated note 2026-11-16 (after step A, before any velocity column was fetched):* c =
    1.5909 (2081 stars in the 0.05 window; `results/step_a.json`), committed as `PARAMS["hr_c"]`.
    Velocity-free occupancy check (exploration script `explore/occupancy_step_a.py`, same cuts up to
-   the HR band, masses and x without velocities): per x bin 3, 371, 407, 204, 162, 223 pairs, so the
-   pre-registered symmetric merging joins the lowest bin to the next and leaves five bins (374, 407,
-   204, 162, 223) as upper bounds before the RV, σ(ṽ) and ṽ cuts. Both stars with radial velocities and |ΔRV| < 10 km/s; σ(ṽ) < 0.1; ṽ ≤ 2.5.
+   the HR band, masses and x without velocities): per x bin 3, 371, 407, 204, 162, 223 pairs, each an
+   upper bound for step B (A1 ⊇ the merged step-B pairs; the RV, σ(ṽ) and ṽ cuts only remove pairs);
+   the final merge is decided from the step-B counts by the same rule (here it would join the lowest
+   bin to the next). These counts lie at larger x than C26's Fig. 8, a velocity-free sign of the x
+   convention issue listed under systematics; no edge, x definition or merge rule is changed in
+   response (section 2 forbids it). Before step A, only server-side pair counts under the earlier
+   velocity-cap guard were run (plan 013); no velocity value has been fetched. *(End of note.)*
+   Both stars with radial velocities and |ΔRV| < 10 km/s; σ(ṽ) < 0.1; ṽ ≤ 2.5.
 6. **Statistics.** Section 2 definitions; bootstrap covariance; GLS fits for A.
 7. **Parameters (`PARAMS` in run.py, saved with the results):** a0, bins, bootstrap count and seed,
    the cut values above, variant switches for R3. Changing a committed value amends this
