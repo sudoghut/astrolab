@@ -346,7 +346,7 @@ def reml_tau(f, tau_max, step):
         j = k
         while 0 <= j + direction < len(grid):
             j += direction
-            if vals[j] - f_hat - 1.0 > 0:
+            if vals[j] - f_hat - 1.0 >= 0:
                 # within that grid interval (README): between the last grid point below the
                 # threshold (or tau_hat itself, when that is closer) and the first one above it
                 inner = float(grid[j - direction])
@@ -444,7 +444,7 @@ def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks,
     try:
         V = with_re(C, calib_groups, tau)
         hs, res_aV = host_step_under(L, y, V, rows_a, rows_s)
-    except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
+    except np.linalg.LinAlgError as e:      # V not positive definite numerically; other errors propagate
         out.update(status=f"not evaluable (fit: {e})", tau_hat=tau, anchor_status=anchor_status)
         return out
     v = host_step_verdict(hs["z"], hs["shift"], hs["shift_sigma"], P["host_ref"], P["host_ref_extra"])
