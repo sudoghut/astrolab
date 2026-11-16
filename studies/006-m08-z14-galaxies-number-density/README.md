@@ -92,8 +92,9 @@ uncertainty was never propagated. This addendum calibrates on the binned luminos
 with its errors and reports the probability of each verdict.
 
 *Seen before this addendum.* All results in sections 5-6 (fiducial R2 "higher", ratio 9.4; R3
-central σ 1.38 mag, "consistent"; the variant grids; the referee's 1σ flips). No fit to the binned
-data below has been made.
+central σ 1.38 mag, "consistent"; the variant grids; the referee's 1σ flips; the exploration
+`explore/lf_uncertainty.py`). The binned tables were read while verifying them, including Bouwens et
+al. 2022's Fig. 4 (lensing points against Bouwens+21); no fit to the binned data has been made.
 
 *Data (verified 2026-11-16 against the PDF tables).*
 - Blank fields: Bouwens et al. 2021 (arXiv:2102.07775) Table 4, z ~ 8 column, all 7 rows: M_1600 =
@@ -104,9 +105,12 @@ data below has been made.
   column, the 8 rows brighter than −15.0 mag: −18.75 0.0018 (+0.0006/−0.0006), −18.25 0.0016
   (+0.0007/−0.0007), −17.75 0.0037 (+0.0012/−0.0012), −17.25 0.0058 (+0.0023/−0.0020), −16.75 0.0063
   (+0.0040/−0.0030), −16.25 0.019 (+0.013/−0.008), −15.75 0.016 (+0.018/−0.011), −15.25 0.014
-  (+0.026/−0.011). Its footnote: no magnification-map uncertainty is included. The fainter rows
-  (−14.75 upper limit < 0.068, −14.25, −13.75, −13.25) are not used in the primary fit (below the
-  halo-mass floor's influence and beyond the fiducial ε extrapolation); they enter a sensitivity fit.
+  (+0.026/−0.011). Its footnote: no magnification-map uncertainty is included, and its errors include
+  a size–luminosity systematic. The fainter rows (−14.75 upper limit < 0.068 at 1σ, −14.25, −13.75,
+  −13.25) are not used in the primary fit: the missing magnification uncertainty matters most there,
+  the values are erratic (0.11, 0.53, 0.20) and one is a limit; they enter a sensitivity fit. (At the
+  section 5 fiducial θ these magnitudes map to halo masses of about 10^9.1–10^9.7 M☉, well above the
+  10⁸ M☉ floor.)
 - The paper allows a 20% uncertainty in the relative normalisation of blank-field and cluster LFs
   at z ~ 8 (its §3.3.2); this enters as a nuisance factor.
 
@@ -117,14 +121,26 @@ normalisation factor) with a Gaussian prior N(1, 0.2) truncated to f > 0. The mo
 `lf_model` at the bin centre (point evaluation; the bins' widths are 0.5 mag except where the
 printed centres are 0.75-1.0 mag apart, so this is an approximation stated as such). Each point
 contributes a two-piece Gaussian in φ: (φ_data − φ_model)/σ with σ the upper error if φ_model >
-φ_data and the lower error otherwise; lensing-field points compare f·φ_model with the data.
+φ_data and the lower error otherwise; lensing-field points compare f·φ_model with the data. Stated
+approximations: independent Gaussian errors (the stepwise bins may be correlated and the brightest
+hold few sources); the papers' cosmology (H0 = 70, Ωm = 0.3) is not converted to Planck18 (about 10%
+in φ and 0.07 mag, shared with the section 4 calibration). The blank-field and lensing points are
+disjoint samples (blank fields and HFF parallels against the HFF cluster fields).
 
-*Sampling.* emcee, 32 walkers started in a 10⁻³ ball (relative) around the least-squares optimum
-of the same likelihood (scipy `least_squares` from the section 4 start), 6000 steps, the first 2000
-discarded, seed 0. Valid if the post-burn length is at least 50 integrated autocorrelation times
-(largest over parameters); otherwise R2/R3-POST are **not evaluable** (no step changes allowed).
+*Sampling.* Start: scipy `least_squares` on the residuals of the same likelihood plus the prior
+residual (f − 1)/0.2, from (0.1, 11.5, 1.0, 0.5, f = 1), bounds the prior box and f ∈ [0.01, 3],
+loss "linear", ftol = xtol = gtol = 10⁻¹⁰, max_nfev = 2000. emcee (stretch move), 32 walkers started
+at the optimum plus N(0, (10⁻³ × (hi − lo))²) per parameter (for f, hi − lo = 2.99), each coordinate
+reflected into its prior box; 6000 steps; the first 2000 discarded; numpy seed 0. Valid if the
+post-burn length is at least 50 integrated autocorrelation times, τ from
+`emcee.autocorr.integrated_time` (c = 5, tol = 0) on the post-burn chain, maximum over the five
+parameters; otherwise R2/R3-POST are **not evaluable** (no step changes allowed). Fit quality: the
+χ² at the optimum (15 points, 5 parameters with the f prior as one more point: 11 degrees of
+freedom); if P(χ²₁₁ ≥ χ²) < 0.01 the result is labelled **"model misfit"** and the probabilities are
+reported but not used as a verdict. The section 4 rms rule does not apply here.
 
-*Propagation.* 500 posterior draws, equally spaced in the flattened post-burn chain. For each: R2
+*Propagation.* 500 posterior draws: emcee's flattened post-burn chain (step-major order, N = 4000 ×
+32) at indices `np.linspace(0, N − 1, 500).round().astype(int)`. For each: R2
 ratio φ_ours/φ_N26 and its section 2 verdict (factor 3), and R3's roots and overlap verdict (section 2
 rules, same σ grid and censoring). A draw whose φ(σ) is not monotonic is "not evaluable" for R3.
 
@@ -132,12 +148,17 @@ rules, same σ grid and censoring). A draw whose φ(σ) is not monotonic is "not
 calibration uncertainty"** if one verdict has P ≥ 0.95 (naming it); otherwise **"calibration-
 uncertain"** with the probabilities. For R3 the same with P(consistent), P(different) over the
 evaluable draws, which must be at least 90% of the 500 (else **not evaluable**). The section 5
-fiducial verdicts stay recorded unchanged; R2/R3-POST is a sensitivity result.
+fiducial verdicts stay recorded unchanged; R2/R3-POST is a sensitivity result, conditional on the
+fiducial ingredients (in particular the "dpl" extrapolation of ε below the calibrated range, which
+decided R3 across the section 4 variants); "robust" here means robust to the LF calibration
+uncertainty only. The fraction of draws within 1% (of the box width) of each prior bound is
+reported; if more than 5% of draws sit at any bound the result is labelled **"prior-bounded"**.
 
 *Reported, not decisive.* Posterior medians and 68% intervals of θ and f; the best-fit χ² and the
 number of points; the ratio and R3 central root at the posterior median θ; the same probabilities
-for σ_cal = 0.5 and 0.9 (separate chains) and for a fit that adds the four faint lensing rows (the
-upper limit as a one-sided Gaussian, 1σ at 0.068).
+for σ_cal = 0.5 and 0.9 (separate chains; as in section 4 step 7, the z = 14–15 σ used for R2 equals
+σ_cal) and for a fit that adds the four faint lensing rows (the upper limit as a one-sided Gaussian,
+1σ at 0.068), each with the same sampling, propagation and labels.
 
 ## 3. Data (with size estimate)
 
