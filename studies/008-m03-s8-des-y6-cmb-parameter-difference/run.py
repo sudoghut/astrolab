@@ -10,11 +10,14 @@ R2  DES 3x2pt - CMB parameter difference, 1-D (S8) and 2-D (S8, Omega_m), D26 eq
 R3  DES xi+- - CMB parameter difference (descriptive).
 R4  sensitivity: projection shift, MAP shift, algorithms, threshold, full-space Gaussian.
 R5  published S8 summaries of other probes against the CMB chain (descriptive).
+R6  full-space difference with normalizing flows (README 2.6, added 2026-11-16; runs in the separate TF
+    environment through r6flow.py / flowshift.py; several hours).
 """
 import re
 
 import numpy as np
 
+import r6flow
 import s8diff
 
 BASE = "https://desdr-server.ncsa.illinois.edu/despublic/y6a2_files/y6_key/chains_release/"
@@ -59,6 +62,15 @@ PARAMS = {
         "HSC Y3 3x2pt (Sugiyama+ 2023)": [0.775, 0.043, 0.038, "arXiv:2304.00705"],
     },
     "n_probe": 1_000_000,
+    # R6 (README 2.6)
+    "r6": True,
+    "r6_published": 1.8, "r6_tol": 0.15, "r6_s_max": 0.07, "r6_lb_margin": 0.10, "r6_n": 100_000,
+    "r6_seeds_main": [0, 1, 2, 3, 4], "r6_seeds_reported": [0, 1, 2],
+    "r6_estimate": {"tol": 0.02, "max_iter": 1000, "step": 100_000},
+    "r6_gate": {"mu1": 2.0, "mu2": 1.0, "curv": 0.3,
+                "boxes": [[-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.1, 1.9, 0.1]],
+                "n_exact": 2_000_000, "exact_seed": 999, "seeds": [10, 11, 12], "sample_seed_offset": 1000,
+                "tol_mean": 0.10, "tol_each": 0.20},
 }
 
 # The user's one-off exception to the 50 MB per-download cap (2026-11-15; log.md, README section 3),
@@ -404,7 +416,38 @@ def main(ctx):
                         "n_sigma": float(np.mean(vals)), "s": float(np.std(vals, ddof=1))}
     ctx.save("r5", r5)
 
+    # ---------------------------------------------------------------- R6 ----
+    r6 = {"status": "not run (PARAMS r6 false)"}
+    if P["r6"] and des is not None and cmb is not None and isinstance(r4.get("full_space"), dict)             and "parameters" in r4["full_space"]:
+        six = r4["full_space"]["parameters"]
+        support6 = r6flow.support_all(six, chains, formats, ranges, P["support_frac_max"])
+        arrays = r6flow.columns(chains, formats, six)
+        short = [n.split("--")[-1] for n in six]
+        amp = [c for c in short if c in AMPLITUDE]
+        cases = {"main": {"columns": short, "seeds": P["r6_seeds_main"]},
+                 "s8_for_as": {"columns": [("s8" if c in amp else c) for c in short], "seeds": P["r6_seeds_reported"]},
+                 "constrained": {"columns": amp + ["omega_m"], "seeds": P["r6_seeds_reported"]},
+                 "flow_1d": {"columns": ["s8"], "seeds": P["r6_seeds_reported"]},
+                 "flow_2d": {"columns": ["s8", "omega_m"], "seeds": P["r6_seeds_reported"]}}
+        cfg = {"n": P["r6_n"], "estimate": P["r6_estimate"], "gate": P["r6_gate"], "cases": cases}
+        ctx.log("R6: known-answer gate, then the chains (several hours)")
+        res = r6flow.run_flows(arrays, cfg, ctx.log)
+        v, why = r6flow.verdict(res, support6, bool(gate), P["r6_published"], P["r6_tol"], P["r6_s_max"],
+                                P["r6_lb_margin"])
+        # README 2.6: the binned-KDE n_sigma of (As, Omega_m) with the R2 estimator, next to its flow
+        ka = np.column_stack([arrays["des_" + c] for c in cases["constrained"]["columns"]])
+        kb = np.column_stack([arrays["cmb_" + c] for c in cases["constrained"]["columns"]])
+        kde_con = s8diff.parameter_difference(ka, arrays["des_w"], kb, arrays["cmb_w"], P["n_pairs"], P["seeds"])
+        r6 = {"parameters": six, "support": support6, "flows": res, "verdict": v, "reason": why,
+              "kde_reference": {"1d": r2.get("1d", {}).get("n_sigma"), "2d": r2.get("2d", {}).get("n_sigma"),
+                                "constrained": kde_con.get("n_sigma"), "constrained_s": kde_con.get("s")},
+              "gaussian_reference": {"all": r4["full_space"].get("all", {}).get("n_sigma"),
+                                     "constrained": r4["full_space"].get("constrained", {}).get("n_sigma")}}
+        ctx.log(f"R6: {v} ({why})")
+    ctx.save("r6", r6)
+
     return {"r1": {k: v.get("verdict") for k, v in r1.items() if isinstance(v, dict)},
             "r2": {t: r2[t]["verdict"] for t in ("1d", "2d") if t in r2},
             "r2_nsigma": {t: r2[t]["n_sigma"] for t in ("1d", "2d") if t in r2},
-            "r3_nsigma": {t: r3[t]["n_sigma"] for t in ("1d", "2d") if t in r3}}
+            "r3_nsigma": {t: r3[t]["n_sigma"] for t in ("1d", "2d") if t in r3},
+            "r6": r6.get("verdict", r6.get("status"))}
