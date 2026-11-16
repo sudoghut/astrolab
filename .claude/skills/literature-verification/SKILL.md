@@ -11,12 +11,13 @@ work and the checklist.
 
 ## 1. List what needs checking
 
-- Collect every item the task will rely on: references, numbers, data products, dates. Take the
-  marker from `ROADMAP.md`, the design plan or the study README; anything without a marker counts
-  as [U].
-- Every [S]/[U] item of the milestone or plan goes to [V] before the work starts (AGENTS.md
-  section 2). Check first what the study will compare with, cut on or quote; that is an order,
-  not an exemption. What cannot be confirmed is handled in step 3.
+- Collect every item the task will rely on: references, numbers, data products, dates, with the
+  marker from `ROADMAP.md`, the design plan or the study README (an item with no marker has not
+  been checked).
+- When: the milestone's [S]/[U] items in `ROADMAP.md` before work on the milestone starts
+  (AGENTS.md section 2, top of `ROADMAP.md`); any other item before the step that relies on it.
+  Within that, check first what the study will compare with, cut on or quote. What cannot be
+  confirmed is handled in step 3.
 
 ## 2. Check each item against the primary source (read only)
 
