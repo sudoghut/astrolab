@@ -6,13 +6,13 @@
 
 ## 1. 目标
 
-研究 006 的独立审稿（referee）指出：Bouwens 等 2021 的 z ~ 8 舍克特（Schechter）参数任一按 1σ 移动都会使 R3 翻转，φ* 减 1σ 还会使 R2 翻转。本计划改用带误差的分箱光度函数（luminosity function, LF）——空白场（blank field）的 Bouwens 等 2021 表 4 与透镜星系团场（lensing cluster）的 Bouwens 等 2022 表 4——在似然中拟合恒定恒星形成效率（SFE, star formation efficiency）模型的参数，用 emcee 采样后验，并把后验传播到 R2 的比值与 R3 的所需 σ_UV，报告各判定的概率。全部输入是论文表格，已于 2026-11-16 对照 PDF 核实。
+研究 006 的独立审稿（referee）指出：Bouwens 等 2021 的 z ~ 8 舍克特（Schechter）参数任一按 1σ 移动都会使 R3 翻转，φ* 减 1σ 还会使 R2 翻转。本计划改用带误差的分箱光度函数（luminosity function, LF）——空白场（blank field）的 Bouwens 等 2021 表 4 与透镜星系团场（lensing cluster）的 Bouwens 等 2022 表 4——在似然（likelihood）中拟合恒定恒星形成效率（SFE, star formation efficiency）模型的参数，用 emcee 采样后验（posterior），并把后验传播到 R2 的比值与 R3 的所需 σ_UV，报告各判定的概率。全部输入是论文表格，已于 2026-11-16 对照 PDF 核实。
 
 ## 2. 范围
 
 - 预注册写在研究 006 `README.md` 第 2 节的附录（2026-11-16，R2/R3-POST）。
 - 只用基准组合（fiducial）；σ_cal = 0.5、0.9 与加入四个暗端透镜点作为报告的敏感性。
-- 原来的判定不变，本检验是敏感性结果。
+- 原来的判定不变，本检验是敏感性（sensitivity）结果。
 
 ## 3. 环节与审查
 
@@ -22,10 +22,11 @@
 
 ## 4. 验收标准（acceptance criteria）
 
-- `results/post.json` 含链的收敛诊断、参数后验、500 次抽样的 R2/R3 判定与概率、敏感性。
+- `results/post.json` 含马尔可夫链（Markov chain）的收敛诊断（convergence diagnostics）、参数后验、500 次抽样的 R2/R3 判定与概率、敏感性。
 - 测试按附录规则复算概率与判定；`python -m pytest` 通过。
 - README、Wiki（中英）、结论条目、STATUS、DONE 同步；独立审稿已处理；收尾双闸通过。
 
 ## 5. 执行记录
 
 - 2026-11-16：开分支 `feat/m8-lf-calibration-posterior`；对照 PDF 核实两张表（空白场 7 行，z ~ 8 的最后一行是 −17.60，−17.61 一行属于 z ~ 2；透镜场 12 行，其中一个上限）；写预注册附录，此前没有对分箱数据做过任何拟合。
+- 2026-11-16：闸门 1 第 1 轮：严重 2 条——(1) 最优点在先验边界上时相对球会塌缩：改为绝对球并反射回先验盒子，报告贴边的抽样比例，超过 5% 标为"受先验限制"；(2) "等间隔抽样"有歧义：写明 emcee 的步优先展平链与 `np.linspace(...).round()` 下标，以及自相关时间的估计方法。次要采纳：去掉四个暗端点的理由改正、明说只对基准成分稳健、加 χ² 拟合优度门槛（p < 0.01 标为模型不符）、f 的起点与界、σ_cal 变体的弥散、列出近似（误差相关、宇宙学参数）、披露看过的图与探索脚本、术语括注。
