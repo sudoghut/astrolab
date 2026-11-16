@@ -424,14 +424,16 @@ def main(ctx):
         arrays = r6flow.columns(chains, formats, six)
         short = [n.split("--")[-1] for n in six]
         amp = [c for c in short if c in AMPLITUDE]
+        con_short = [n.split("--")[-1] for n in r4["full_space"].get("constrained_parameters", [])]
         cases = {"main": {"columns": short, "seeds": P["r6_seeds_main"]},
                  "s8_for_as": {"columns": [("s8" if c in amp else c) for c in short], "seeds": P["r6_seeds_reported"]},
-                 "constrained": {"columns": amp + ["omega_m"], "seeds": P["r6_seeds_reported"]},
+                 "constrained": {"columns": con_short or amp + ["omega_m"], "seeds": P["r6_seeds_reported"]},
                  "flow_1d": {"columns": ["s8"], "seeds": P["r6_seeds_reported"]},
                  "flow_2d": {"columns": ["s8", "omega_m"], "seeds": P["r6_seeds_reported"]}}
         cfg = {"n": P["r6_n"], "estimate": P["r6_estimate"], "gate": P["r6_gate"], "cases": cases}
         ctx.log("R6: known-answer gate, then the chains (several hours)")
-        res = r6flow.run_flows(arrays, cfg, ctx.log)
+        # README 2.6 order (1): a failed R1 gate decides; the flows are then not run
+        res = r6flow.run_flows(arrays, cfg, ctx.log) if gate else {"status": "not run (R1 gate failed)"}
         v, why = r6flow.verdict(res, support6, bool(gate), P["r6_published"], P["r6_tol"], P["r6_s_max"],
                                 P["r6_lb_margin"])
         # README 2.6: the binned-KDE n_sigma of (As, Omega_m) with the R2 estimator, next to its flow

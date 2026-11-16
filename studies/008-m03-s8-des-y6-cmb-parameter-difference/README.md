@@ -247,7 +247,10 @@ evaluated exactly at each z_i and at 0 (no density estimate), Δ_ref = the fract
 log p(z_i) > log p(0), and n_σ = √2 erf⁻¹(Δ_ref); it was not computed before this was written. "Exact value" below means this reference. The estimator above (steps 1, 3–5; the synthetic samples are
 drawn fresh for each seed with `default_rng(1000 + k)`, N = 100,000) is run for seeds 10, 11, 12,
 none of which was used during the design. The gate passes if the mean flow n_σ is within 0.10 of the
-exact value and each of the three within 0.20. If it fails, R6 is "not evaluable" and no flow is
+exact value and each of the three within 0.20; a gate repetition that fails, has not converged or is a
+lower bound fails the gate (dated clarification 2026-11-16, from the stage-2 code review, before any
+run). A repetition whose interval end is undefined (for example the flow density at 0 undefined) has
+not converged. If it fails, R6 is "not evaluable" and no flow is
 trained on the chains. The gate tests the flow's accuracy on these structures, not the 1.8 level: its
 exact n_σ need not be near 1.8. Seen during the design (all with seed 0, on simpler synthetic cases, before
 any flow on the chains): a single 100-epoch flow gave 0.03σ against an exact 0.003σ (a cusped,

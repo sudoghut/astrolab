@@ -60,13 +60,17 @@ def test_r6_verdict_rule():
     if "verdict" not in r6:
         pytest.skip(r6.get("status", "R6 not run"))
     res = r6["flows"]
+    if not load("r2")["gate_r1_means"]:             # README 2.6 order (1)
+        assert r6["verdict"] == "not evaluable" and "R1" in r6["reason"]
+        return
     if "status" in res:
-        assert r6["verdict"] == "not evaluable"
+        assert r6["verdict"] == "not evaluable" and r6["reason"] == res["status"]
         return
     gate = res["gate"]
     exact = gate["exact"]["n_sigma"]
     vals = [r.get("n_sigma") for r in gate["repetitions"]]
-    passed = all(v is not None and math.isfinite(v) for v in vals) and \
+    passed = all(v is not None and math.isfinite(v) and r.get("converged") and not r.get("lower_bound")
+                 for v, r in zip(vals, gate["repetitions"])) and \
         abs(sum(vals) / len(vals) - exact) <= 0.10 and all(abs(v - exact) <= 0.20 for v in vals)
     assert gate["passed"] == passed
     if not passed:
