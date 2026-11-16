@@ -204,6 +204,18 @@ def test_staging_paths_unique_and_put_file_overwrites(tmp_cache):
         cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": "r"}})
         assert not src.exists()
     assert cache.get(key, ".bin").payload.read_bytes() == b"b" * 10
+    # many threads storing the same key: payload and meta always come from the same write
+    def store(i):
+        src = cache.staging_path(".bin")
+        src.write_bytes(str(i).encode() * 100)
+        cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": str(i)}})
+
+    th = [threading.Thread(target=store, args=(i,)) for i in range(20)]
+    [t.start() for t in th]
+    [t.join() for t in th]
+    hit = cache.get(key, ".bin")
+    req = hit.meta["provenance"]["request"]
+    assert hit.payload.read_bytes() == req.encode() * 100
 
 
 def test_unauthorized_detected_through_exception_chain():
@@ -222,6 +234,7 @@ def test_unauthorized_detected_through_exception_chain():
     assert fetch._unauthorized(Exception("401 Client Error: 401 for url: https://x"))
     assert fetch._unauthorized(Exception("job failed: HTTP 401 Unauthorized"))
     assert not fetch._unauthorized(Exception("503 Server Error"))
+    assert not fetch._unauthorized(Exception("Unauthorized column access"))
 
 
 def test_run_tap_relogs_once_with_saved_cookie_on_401(monkeypatch):

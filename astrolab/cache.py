@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import threading
 import time
 import uuid
 from dataclasses import dataclass
@@ -55,9 +56,27 @@ def get(key: str, suffix: str, root: Path | None = None) -> Entry | None:
     return None
 
 
+_KEY_LOCKS: dict[str, threading.Lock] = {}
+_KEY_LOCKS_GUARD = threading.Lock()
+
+
+def _key_lock(path: Path) -> threading.Lock:
+    with _KEY_LOCKS_GUARD:
+        return _KEY_LOCKS.setdefault(str(path), threading.Lock())
+
+
 def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path | None = None) -> Entry:
     payload, meta_path = _paths(key, suffix, root)
     payload.parent.mkdir(parents=True, exist_ok=True)
+    # One writer per key at a time (threads of one process), so a payload and its meta always
+    # come from the same write.
+    with _key_lock(payload):
+        _store(src, payload, meta, meta_path, root)
+    prune(root=root)
+    return Entry(key, payload, meta_path)
+
+
+def _store(src: Path, payload: Path, meta: dict[str, Any], meta_path: Path, root: Path | None) -> None:
     # payload first, then meta (written to staging and replaced atomically): get() needs both, so
     # a reader never sees a half-written meta file. On Windows os.replace fails while another thread
     # has the target open; the copy already in place is then kept together with its own meta.
@@ -72,18 +91,11 @@ def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path 
                 time.sleep(0.05 * (attempt + 1))
         else:
             # never pair a new payload with stale provenance: drop the entry (get() needs both
-            # files), so the next call fetches again
+            # files), so the next call fetches again; if even that fails, raise rather than keep
+            # a mismatched pair
             tmp_meta.unlink(missing_ok=True)
-            try:
-                payload.unlink(missing_ok=True)
-            except PermissionError:
-                pass
-            try:
-                meta_path.unlink(missing_ok=True)
-            except PermissionError:
-                pass
-    prune(root=root)
-    return Entry(key, payload, meta_path)
+            payload.unlink(missing_ok=True)
+            meta_path.unlink(missing_ok=True)
 
 
 def _replace_or_keep(src: Path, dst: Path) -> bool:

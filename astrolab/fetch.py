@@ -150,7 +150,7 @@ def _unauthorized(exc: Exception) -> bool:
         resp = getattr(e, "response", None)
         msg = str(e)
         if (getattr(resp, "status_code", None) == 401 or getattr(e, "code", None) == 401
-                or "401 Client Error" in msg or "Unauthorized" in msg or "HTTP 401" in msg):
+                or "401 Client Error" in msg or "HTTP 401" in msg or "401 Unauthorized" in msg):
             return True
         e = e.__cause__ or e.__context__
     return False
