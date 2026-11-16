@@ -3,6 +3,13 @@
 An entry is identified by a hash of (kind, params). Each entry is a payload file
 plus a ``.json`` sidecar holding metadata (incl. provenance). Total size is kept
 under ``config.CACHE_LIMIT_BYTES`` by pruning least-recently-used entries.
+
+Accepted limits (T-035, rare cases):
+- One URL fetched with two suffixes shares one meta file; fetch's sha256 check turns the other
+  payload into a miss (a re-download, never mismatched data), and prune, which locks one payload
+  per entry, may then remove the other payload mid-read (a miss on POSIX; kept on Windows).
+- The per-key lock map grows with the number of keys a process touches (small for one run).
+- Every HTTP cache hit hashes its payload (at most the 50 MB per-download cap).
 """
 from __future__ import annotations
 
@@ -94,18 +101,22 @@ def read(key: str, suffix: str, reader, root: Path | None = None):
 MTIME_GRANULARITY_S = 2.0      # FAT/exFAT and some network or synced drives store mtime in 2 s steps
 
 
-def _replace(src: Path, dst: Path, tries: int = 6) -> None:
-    """os.replace, retried briefly when Windows refuses because another process has `dst` open (a
-    reader in another run); the last failure is raised with a clear message."""
+def _retry(op, what: str, tries: int = 6) -> None:
+    """Run a file operation, retried for about 1.5 s when Windows refuses (another process holding
+    the file open, an indexer or antivirus); the last failure keeps its cause in the message."""
     for i in range(tries):
         try:
-            os.replace(src, dst)
+            op()
             return
-        except PermissionError:
+        except PermissionError as exc:
             if i == tries - 1:
-                raise PermissionError(f"cache file {dst.name} is held open by another process; "
-                                      "close the other run and fetch again") from None
+                raise PermissionError(f"cache {what} refused ({exc}); another run may hold the file "
+                                      "open: close it and fetch again") from exc
             time.sleep(0.05 * 2 ** i)
+
+
+def _replace(src: Path, dst: Path, tries: int = 6) -> None:
+    _retry(lambda: os.replace(src, dst), f"replace of {dst.name}", tries)
 
 
 def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path | None = None,
@@ -142,7 +153,9 @@ def _store(src: Path, payload: Path, meta: dict[str, Any], meta_path: Path, root
         return
     try:
         # get() needs both files: without a meta file the entry is invisible while it is written
-        meta_path.unlink(missing_ok=True)
+        _retry(lambda: meta_path.unlink(missing_ok=True), f"removal of {meta_path.name}")
+        # if the payload replace finally fails, the old payload is left without its meta: the entry
+        # is invisible (a miss) and the next fetch rewrites it; prune removes the orphan
         _replace(src, payload)
         tmp_meta = staging_path(".json", root)
         try:
@@ -189,12 +202,10 @@ def info(root: Path | None = None) -> dict[str, Any]:
     }
 
 
-def prune(limit_bytes: int | None = None, root: Path | None = None) -> int:
-    """Delete LRU entries until total size <= limit. Returns number removed.
-
-    Accepted limits (T-035): one URL fetched with two suffixes shares one meta file; the sha256
-    check in fetch then treats the other payload as a miss (a re-download, never mismatched data).
-    The per-key lock map grows with the number of keys a process touches (small for a run)."""
+def prune(limit_bytes: int | None = None, root: Path | None = None, keep_recent: bool = True) -> int:
+    """Delete LRU entries until total size <= limit. Returns number removed. With keep_recent, an
+    entry used within MTIME_GRANULARITY_S before the prune started is kept (so the cache can exceed
+    the limit by what was written in the last ~2 s until the next prune); clear() does not keep it."""
     root = root or config.cache_dir()
     limit = config.CACHE_LIMIT_BYTES if limit_bytes is None else limit_bytes
     started = time.time()
@@ -211,8 +222,10 @@ def prune(limit_bytes: int | None = None, root: Path | None = None) -> int:
         with _key_lock(payload):
             try:
                 newest = max(f.stat().st_mtime for f in files if f.exists())
-                # used since the snapshot, or so recently that a coarse mtime cannot tell (T-035)
-                if newest > mtime or newest >= started - MTIME_GRANULARITY_S:
+                # used since the snapshot, or so recently that a coarse mtime cannot tell (T-035);
+                # an mtime in the future (clock set back) does not protect an entry for ever
+                recent = keep_recent and started - MTIME_GRANULARITY_S <= newest <= started + MTIME_GRANULARITY_S
+                if newest > mtime or recent:
                     continue
             except (OSError, ValueError):         # removed meanwhile: no longer counts
                 total -= size
@@ -231,4 +244,5 @@ def prune(limit_bytes: int | None = None, root: Path | None = None) -> int:
 
 
 def clear(root: Path | None = None) -> int:
-    return prune(limit_bytes=0, root=root)
+    """Remove every entry (explicit: recently used entries are not kept)."""
+    return prune(limit_bytes=0, root=root, keep_recent=False)

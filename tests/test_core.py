@@ -596,6 +596,7 @@ def test_replace_retries_then_explains(tmp_path, monkeypatch):
     import os
 
     calls = {"n": 0}
+    os_replace = os.replace
 
     def flaky(a, b):
         calls["n"] += 1
@@ -603,7 +604,6 @@ def test_replace_retries_then_explains(tmp_path, monkeypatch):
             raise PermissionError("busy")
         return os_replace(a, b)
 
-    os_replace = os.replace
     monkeypatch.setattr(cache.os, "replace", flaky)
     a, b = tmp_path / "a", tmp_path / "b"
     a.write_text("1")
@@ -612,5 +612,14 @@ def test_replace_retries_then_explains(tmp_path, monkeypatch):
     monkeypatch.setattr(cache.os, "replace", lambda a, b: (_ for _ in ()).throw(PermissionError("busy")))
     c = tmp_path / "c"
     c.write_text("2")
-    with pytest.raises(PermissionError, match="held open by another process"):
+    with pytest.raises(PermissionError, match="another run may hold the file open"):
         cache._replace(c, b, tries=2)
+
+
+
+def test_clear_removes_recent_entries(tmp_cache):
+    key = cache.key_for("test", {"clear": 1})
+    src = cache.staging_path(".bin")
+    src.write_bytes(b"x")
+    cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": "r"}})
+    assert cache.clear() == 1 and cache.get(key, ".bin") is None
