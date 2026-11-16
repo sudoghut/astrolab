@@ -124,19 +124,26 @@ def _download_votable(svc, uri: str, data: dict | None = None):
                                        "downloading; narrow the query.")
                     fh.write(chunk)
         vot = votable.parse(str(tmp))
-        status, message = _query_status(vot)
+        res = _results_resource(vot)
+        status, message = _query_status(vot, res)
         if status is not None and status.lower() not in ("ok", "overflow"):
             raise _TapQueryError(f"TAP query error ({status}): {message or 'no error message'}")
-        if not (vot.resources and vot.resources[0].tables):
+        if res is None or not res.tables:
             # a real zero-row result still has a TABLE element: never cache this as empty
             raise _TapQueryError(f"TAP response has no result table: {message or 'no message'}")
-        table = vot.get_first_table().to_table(use_names_over_ids=True)
+        table = res.tables[0].to_table(use_names_over_ids=True)
         return _VOResult(table, status.upper() if status else None)
     finally:
         tmp.unlink(missing_ok=True)
 
 
-def _query_status(vot):
+def _results_resource(vot):
+    """The RESOURCE of type "results", else the first RESOURCE, else None."""
+    return next((r for r in vot.resources if (r.type or "").lower() == "results"),
+                vot.resources[0] if vot.resources else None)
+
+
+def _query_status(vot, res):
     """(QUERY_STATUS value, message) as pyvo finds it: the results RESOURCE, then the first TABLE,
     then the VOTABLE root; the last match within a list wins (a trailing OVERFLOW counts)."""
     def scan(infos):
@@ -146,8 +153,6 @@ def _query_status(vot):
                 found = (info.value, info.content)
         return found
 
-    res = next((r for r in vot.resources if (r.type or "").lower() == "results"),
-               vot.resources[0] if vot.resources else None)
     places = []
     if res is not None:
         places.append(res.infos)
@@ -185,7 +190,8 @@ def _run_async(svc, query: str, maxrec: int):
                 msg = summary.message.content if summary is not None and summary.message is not None else None
             except Exception:  # noqa: BLE001 - best effort
                 msg = None
-            raise RuntimeError(f"TAP async job {phase}: {msg or 'no error message'}")
+            # the job ran and failed (bad query, aborted): not a transient server error
+            raise _TapQueryError(f"TAP async job {phase}: {msg or 'no error message'}")
         return _download_votable(svc, job.result_uri)
     finally:
         try:
