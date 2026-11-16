@@ -83,6 +83,44 @@ the Planck 2018 reference point (section 4) and treated as a constant. Reported:
 Δχ²_MAP in R2 when K is changed by ±1 prior σ of θ*, and the deviation of our 100θ* at a second
 reference point (sanity check only).
 
+### Addendum 2026-11-16: R2-CAMB (T-022, plan 020), pre-registered before any CAMB value at a fit point
+
+*Why.* The referee (section 6, point 1) found that the R2 split between readings A and B is of
+the size of the θ* calibration error, and that the cosmology dependence of the calibration
+between the Planck reference point and the R2 fit points was unmeasured. The user consented on
+2026-11-16 to installing CAMB (`camb` 2.0.5 in the project venv; not a data download). Seen before
+this addendum: the 2026-11-14 results in section 5, and CAMB's 100θ* at the Planck reference point
+only (1.04116 with the settings below, against 1.041085 in Planck 2018 Table 1), from a speed test.
+
+*Question.* Do the R2 verdicts of readings A and B change when θ* comes from CAMB instead of the
+calibrated fitting formula?
+
+*What changes.* Only θ* in the CMB-prior term of χ²_R2. BAO distances, r_d (Aubourg formula),
+the prior mean and covariance, both readings, bounds, starts (`n_starts`, nested optimum, paper
+point), validity checks and the tolerance stay as pre-registered in this section.
+
+- **θ*_CAMB.** CAMB background (`camb.get_background`) with H0, ωb, ωc, Σmν = `mnu` in one massive
+  eigenstate, N_eff = 3.044 (as `astrolab/cosmo.py`), T_CMB 2.7255 K, helium from CAMB's BBN
+  default, w0, wa through CAMB's PPF dark energy; θ* = `thetastar`/100 from
+  `get_derived_params()`.
+- **Primary, R2-CAMB-anchored.** θ* = K_C · θ*_CAMB with the constant K_C fixed so that
+  100θ* = 1.041085 at the same Planck reference point as K (section 4). This keeps the original
+  anchor and replaces only the cosmology dependence of the calibration, which is what the
+  referee asked about.
+- **Secondary, R2-CAMB-raw.** θ* = θ*_CAMB without rescaling (absolute CAMB). Reported; not decisive.
+- **Rule.** For each variant, the R2 rule of this section unchanged: per reading
+  |Δχ²_MAP − (−8.0)| ≤ 1.0, overall from the two readings as above.
+- **Conclusion for T-022.** "R2 robust to the θ* calibration" if R2-CAMB-anchored gives the same
+  per-reading verdicts as the 2026-11-14 run (A not reproduced, B reproduced); otherwise "R2 depends
+  on the θ* calibration", naming which reading flipped. The 2026-11-14 R2 verdict stays the
+  recorded verdict either way (it was pre-registered); this addendum adds a sensitivity result
+  and its interpretation, it does not replace R2.
+- **Diagnostics (reported only).** At the eight optima (2 readings × ΛCDM/w0waCDM × formula/CAMB
+  anchored): 100θ* from the formula (K) minus from CAMB anchored, in prior σ of 100θ*; the ratio
+  of the Aubourg r_d to CAMB's `rdrag`; the shift of Δχ² per reading between formula and CAMB.
+- **Validity.** Each R2-CAMB fit passes the same checks as R2. A CAMB error at a trial point
+  counts as χ² = ∞ (as non-finite values do now) and the number of such points is reported.
+
 ## 3. Data (with size estimate)
 
 File sizes from GitHub API metadata (no download), 2026-11-14. All fetched through `ctx.http`
@@ -140,8 +178,10 @@ Exploration only (README section 8): DES-Dovekie (`DES-Dovekie_HD.csv` 0.11 MB,
 - **Tests.** Offline unit tests for `cosmo` (limits, Planck reference point, K) and `infer`
   (analytic marginalisation against a brute-force grid, Δχ² → σ conversion: 12.5 → 3.1σ,
   8.0 → 2.4σ).
+- **θ* from CAMB (addendum 2026-11-16).** R2-CAMB in section 2; code in `camb_theta.py`, results
+  in `results/r2_camb.json`; switched by `PARAMS["camb_check"]` (CAMB must be installed).
 - **Known limitations.** No full CMB likelihood; θ* via a calibrated fitting formula, not CAMB
-  (installing CAMB needs the user's consent and is not planned); the Wilks calibration
+  in R2 itself (CAMB enters only in the R2-CAMB sensitivity check, addendum 2026-11-16); the Wilks calibration
   (wiki `gap_regular`) is assumed here as in the paper and only explored (section 8).
 
 ## 5. Results (2026-11-14)
