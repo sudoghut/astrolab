@@ -157,10 +157,21 @@ def main(argv):
                         "getdist": getdist.__version__, "numpy": np.__version__,
                         "legacy_keras": os.environ.get("TF_USE_LEGACY_KERAS")},
            "settings": defaults()}
+    def finite(o):                     # strict JSON: NaN and infinities become null
+        if isinstance(o, dict):
+            return {k: finite(v) for k, v in o.items()}
+        if isinstance(o, (list, tuple)):
+            return [finite(v) for v in o]
+        if isinstance(o, (float, np.floating)):
+            return float(o) if np.isfinite(o) else None
+        if isinstance(o, np.integer):
+            return int(o)
+        return o
+
     def save():
         tmp = out_path + ".part"
         with open(tmp, "w", encoding="utf-8") as fh:
-            json.dump(out, fh, indent=1, default=float)
+            json.dump(finite(out), fh, indent=1, allow_nan=False)
         os.replace(tmp, out_path)
 
     log("known-answer gate")
