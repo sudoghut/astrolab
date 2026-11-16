@@ -351,7 +351,7 @@ is "more than 5%"). All draws were evaluable for R3. Posterior medians (primary,
 (0.016–0.025), log₁₀ M₁ = 10.98 (10.11–11.71), β = 0.48 (0.24–1.11), γ = 0.49 (0.12–1.64), f = 1.08
 (0.91–1.25); γ is far lower than the fiducial point fit's 1.98, so the posterior median relation is
 monotonic. At the posterior median θ the ratio is 7.4 and the central root 1.54 mag [1.27, 1.78];
-over the draws the central root is 1.49 mag (16–84%: 1.37–1.67).
+over the draws the central root is 1.49 mag (16–84%: 1.37–1.66).
 
 Reading. R2 "higher" is robust to the uncertainty of the z ≈ 8 calibration data in every fit (the
 5th percentile of the ratio is 5.9 in the primary fit, 4.3 with σ_cal = 0.5). R3 is not settled:
@@ -359,7 +359,7 @@ P(consistent with N26) is 0.96 in the primary fit, just short of the pre-registe
 moves from 0.86 to 1.00 with σ_cal, so the overlap verdict depends on the scatter assumed at
 calibration. After the referee (below): the Monte Carlo spread between chains is about 2 SE, so
 "borderline" and "calibration-uncertain" are not distinguishable here, and the unmodelled effects
-the referee found (Gaussian bright bins, the γ ≥ 0 edge) all push towards "consistent". Both statements are conditional on the fiducial ingredients (Sheth–Tormen, the "dpl"
+the referee found (Gaussian bright bins, the γ ≥ 0 edge) likely push towards "consistent". Both statements are conditional on the fiducial ingredients (Sheth–Tormen, the "dpl"
 extrapolation of ε, no dust), which section 4 showed decide R3 and set most of R2's spread; the
 posterior covers the LF calibration uncertainty only. The post-hoc one-at-a-time shifts in the
 referee section (φ* −1σ: ratio 1.9) were more extreme than the joint posterior: the binned data
@@ -411,12 +411,12 @@ applied as written. Triage:
 |---|---|---|---|
 | 1 | R3 depends more on σ_cal than on the calibration posterior: P(consistent) 0.86 / 0.96 / 1.00 for σ_cal 0.5 / 0.7 / 0.9, a spread much larger than the posterior uncertainty; σ_cal is fixed, not marginalised | yes (`post.json`) | **Accepted**; section 5 states it; R3 must not be described as near-robust. |
 | 2 | The blank-field bright bins (about 2 and 9 sources) enter as Gaussian in φ; a model 3× too high costs Δχ² = 9 where a Poisson likelihood costs about 4–6, which suppresses posterior volume with more bright galaxies, the side that gives "different" | partly (the direction follows from the residual form; the size is the referee's estimate) | **Accepted limitation**; it pushes towards "consistent", so the borderline label is if anything optimistic; follow-up T-036. |
-| 3 | The γ ≥ 0 prior edge holds 25 of 500 primary draws (0.050, the "prior-bounded" label needs more than 5%): one more draw would have attached it; allowing γ < 0 would likely add "different" draws | yes | **Accepted**; disclosed in section 5; follow-up T-036. |
+| 3 | The γ ≥ 0 prior edge holds 25 of 500 primary draws (0.050, the "prior-bounded" label needs more than 5%): one more draw would have attached it; allowing γ < 0 would likely add "different" draws | partly (25/500 from `post.json`; the direction is the referee's expectation, per-draw θ is not saved) | **Accepted**; disclosed in section 5; follow-up T-036. |
 | 4 | The two chain-length amendments overrode a "no step changes" clause; disclosed, step count only, no threshold moved; R3 P went 0.948 → 0.938 → 0.962 across chains (the first two unconverged), a swing of about 2 SE, so "borderline" and "calibration-uncertain" are not distinguishable here | yes | **Accepted**; stated in section 5. |
 | 5 | The lensing errors include a coherent size–luminosity systematic, treated as independent per bin; the fit is "too good" (data χ² 4.6 for 15 points, bootstrap p 0.955); magnification-map uncertainty is not included | yes (the χ²; the paper's footnote) | **Accepted limitation**. |
 | 6 | The −13.25 z ~ 8 lensing value (0.20 +0.99/−0.16) may belong to the z ~ 6 column (the arXiv HTML row has three values for four columns) | checked against the typeset PDF Table 4 (page 11): the z ~ 8 column has −13.25 → 0.20 (+0.99/−0.16); the HTML extraction dropped the z ~ 6 cell alignment | **Rejected**: the transcription is correct. |
 | 7 | Bins are evaluated at the bin centre, not averaged (a few percent, inside the errors) | partly (referee's computation) | Accepted, negligible. |
-| 8 | The SE rule is degenerate at P = 1 (SE = 0); the Clopper–Pearson lower bound for 500/500 is about 0.993, so R2's "robust" stands; n_eff slightly overstated (about 450, not 500) | yes | Noted; no label change. |
+| 8 | The SE rule is degenerate at P = 1 (SE = 0); the Clopper–Pearson lower bound for 500/500 is about 0.993, so R2's "robust" stands; n_eff slightly overstated (about 450, not 500) | partly (the Clopper–Pearson bound recomputed; n_eff ≈ 450 is the referee's estimate) | Noted; no label change. |
 
 ## 7. Open questions
 
