@@ -13,6 +13,7 @@ from __future__ import annotations
 import getpass
 import json
 import os
+import threading
 from pathlib import Path
 
 from . import config
@@ -79,6 +80,22 @@ def load_cookies() -> dict | None:
         return None
     cookies = data.get("cookies")
     return cookies if isinstance(cookies, dict) and cookies else None
+
+
+_RELOGIN_LOCK = threading.Lock()
+
+
+def refresh_session(url: str, stale: dict | None):
+    """After an HTTP 401 with the saved cookie `stale`: drop that cookie and build a new session
+    (a fresh non-interactive login when credentials are configured, else anonymous). Threads that
+    hit the same 401 log in once: a cookie that already differs from `stale` is reused."""
+    with _RELOGIN_LOCK:
+        if load_cookies() == stale:
+            try:
+                session_path().unlink()
+            except OSError:
+                pass
+        return session_for(url)
 
 
 def session_for(url: str):

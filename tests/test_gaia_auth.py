@@ -61,3 +61,18 @@ def test_env_file_is_git_ignored():
     assert ".env" in [line.strip() for line in lines]
     example = (config.ROOT / ".env.example").read_text(encoding="utf-8")
     assert "GAIA_USERNAME=\n" in example and "GAIA_PASSWORD=\n" in example   # placeholders only
+
+
+def test_refresh_session_drops_stale_cookie_only(tmp_path, monkeypatch):
+    _no_creds(monkeypatch, tmp_path)
+    monkeypatch.setenv("ASTROLAB_CACHE_DIR", str(tmp_path / "Cache"))
+    url = "https://gea.esac.esa.int/tap-server/tap"
+    p = gaia_auth.session_path()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps({"cookies": {"JSESSIONID": "new"}}), encoding="utf-8")
+    # another thread already logged in again: the newer cookie is kept and reused
+    s = gaia_auth.refresh_session(url, {"JSESSIONID": "old"})
+    assert s is not None and s.cookies.get("JSESSIONID") == "new"
+    # the stale cookie is dropped; without configured credentials the session becomes anonymous
+    assert gaia_auth.refresh_session(url, {"JSESSIONID": "new"}) is None
+    assert not p.exists()

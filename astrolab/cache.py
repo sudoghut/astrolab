@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-import shutil
+import os
 import time
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -57,7 +58,9 @@ def get(key: str, suffix: str, root: Path | None = None) -> Entry | None:
 def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path | None = None) -> Entry:
     payload, meta_path = _paths(key, suffix, root)
     payload.parent.mkdir(parents=True, exist_ok=True)
-    shutil.move(str(src), payload)
+    # os.replace overwrites atomically (two threads that fetched the same key store identical data;
+    # shutil.move would fail on Windows when the payload already exists)
+    os.replace(src, payload)
     meta_path.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
     prune(root=root)
     return Entry(key, payload, meta_path)
@@ -67,7 +70,8 @@ def staging_path(suffix: str, root: Path | None = None) -> Path:
     root = root or config.cache_dir()
     tmp = root / "_staging"
     tmp.mkdir(parents=True, exist_ok=True)
-    return tmp / f"{time.time_ns()}{suffix}"
+    # unique per call: time_ns alone collides between threads on Windows' coarse clock
+    return tmp / f"{time.time_ns()}-{uuid.uuid4().hex}{suffix}"
 
 
 def _entries(root: Path) -> list[tuple[float, int, list[Path]]]:

@@ -185,3 +185,39 @@ def test_every_web_page_loads_i18n():
         assert 'class="zh"' in text or "L(" in text or "t(" in text, f"{p} has no Chinese text"
         if "_template" not in p.parts:
             assert "TODO: 中文" not in text, f"{p} still has the template's Chinese placeholder"
+
+
+def test_staging_paths_unique_and_put_file_overwrites(tmp_cache):
+    """Parallel fetches of the same key (e.g. two threads issuing an identical count query) must not
+    collide in staging, and storing an existing key again must succeed (Windows)."""
+    import threading
+
+    paths = []
+    th = [threading.Thread(target=lambda: paths.append(cache.staging_path(".bin"))) for _ in range(50)]
+    [t.start() for t in th]
+    [t.join() for t in th]
+    assert len(set(paths)) == 50
+    key = cache.key_for("t", {"dup": 1})
+    for payload in (b"a" * 10, b"b" * 10):
+        src = cache.staging_path(".bin")
+        src.write_bytes(payload)
+        cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": "r"}})
+        assert not src.exists()
+    assert cache.get(key, ".bin").payload.read_bytes() == b"b" * 10
+
+
+def test_unauthorized_detected_through_exception_chain():
+    class _Resp:
+        status_code = 401
+
+    inner = Exception("boom")
+    inner.response = _Resp()
+    try:
+        try:
+            raise inner
+        except Exception as e:
+            raise RuntimeError("wrapped") from e
+    except RuntimeError as outer:
+        assert fetch._unauthorized(outer)
+    assert fetch._unauthorized(Exception("401 Client Error: 401 for url: https://x"))
+    assert not fetch._unauthorized(Exception("503 Server Error"))
