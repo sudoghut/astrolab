@@ -87,8 +87,7 @@ def test_streamed_votable_download_capped(tmp_cache, monkeypatch):
         def __exit__(self, *a):
             return False
 
-        def raise_for_status(self):
-            pass
+        status_code = 200
 
         def iter_content(self, n):
             for _ in range(100):
@@ -104,6 +103,46 @@ def test_streamed_votable_download_capped(tmp_cache, monkeypatch):
     monkeypatch.setattr(config, "HTTP_MAX_BYTES", 5000)
     with pytest.raises(fetch.TooLarge):
         fetch._download_votable(_Svc(), "http://example.invalid/result")
+
+
+def test_sync_tap_streams_with_byte_cap_and_reports_errors(monkeypatch):
+    """Sync queries POST to <base>/sync and are streamed under the cap; HTTP errors keep the code."""
+    seen = {}
+
+    class _Resp:
+        def __init__(self, code):
+            self.status_code = code
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def iter_content(self, n):
+            for _ in range(100):
+                yield b"x" * 1000
+
+    class _Sess:
+        code = 200
+
+        def post(self, uri, data=None, stream=True, timeout=0):
+            seen.update(uri=uri, data=data)
+            return _Resp(self.code)
+
+    class _Svc:
+        baseurl = "http://example.invalid/tap/"
+        _session = _Sess()
+
+    monkeypatch.setattr(config, "HTTP_MAX_BYTES", 5000)
+    with pytest.raises(fetch.TooLarge):
+        fetch._run_sync(_Svc(), "SELECT 1", 10)
+    assert seen["uri"] == "http://example.invalid/tap/sync"
+    assert seen["data"]["QUERY"] == "SELECT 1" and seen["data"]["MAXREC"] == "10"
+    _Svc._session.code = 401
+    with pytest.raises(RuntimeError) as e:
+        fetch._run_sync(_Svc(), "SELECT 1", 10)
+    assert fetch._unauthorized(e.value)
 
 
 def test_cached_tap_result_over_limit_refused(tmp_cache, monkeypatch):
@@ -279,6 +318,7 @@ def test_run_tap_relogs_once_with_saved_cookie_on_401(monkeypatch):
 
     disk = {"cookies": {"JSESSIONID": "dead"}}
     monkeypatch.setattr(pyvo.dal, "TAPService", _Svc)
+    monkeypatch.setattr(fetch, "_run_sync", lambda svc, q, maxrec: svc.run_sync(q, maxrec=maxrec))
     monkeypatch.setattr(gaia_auth, "load_cookies", lambda: dict(disk["cookies"]))
     monkeypatch.setattr(gaia_auth, "session_with_cookies",
                         lambda url: (fake_session(disk["cookies"]["JSESSIONID"]), dict(disk["cookies"])))

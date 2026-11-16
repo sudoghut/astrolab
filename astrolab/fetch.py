@@ -74,8 +74,12 @@ class _VOResult:
         return self._table
 
 
-def _download_votable(svc, uri: str):
-    """Stream an async job's VOTable with the per-download byte cap enforced during transfer."""
+def _download_votable(svc, uri: str, data: dict | None = None):
+    """Stream a VOTable with the per-download byte cap enforced during transfer.
+
+    GET for an async job's result URI; POST with ``data`` for a synchronous query, so that a sync
+    result is never buffered whole before its size is checked.
+    """
     from astropy.io import votable
 
     session = getattr(svc, "_session", None)
@@ -85,8 +89,17 @@ def _download_votable(svc, uri: str):
     tmp = cache.staging_path(".xml")
     written = 0
     try:
-        with session.get(uri, stream=True, timeout=600) as r:
-            r.raise_for_status()
+        req = (session.post(uri, data=data, stream=True, timeout=600) if data is not None
+               else session.get(uri, stream=True, timeout=600))
+        with req as r:
+            if r.status_code >= 400:
+                # keep the code in the message: _unauthorized and _transient read it
+                import re
+
+                body = b"".join(c for _, c in zip(range(4), r.iter_content(4096))).decode("utf-8", "replace")
+                m = re.search(r'name="QUERY_STATUS"[^>]*>(.*?)</INFO>', body, re.S)
+                detail = (m.group(1).strip() if m else body)[:500]
+                raise RuntimeError(f"TAP HTTP {r.status_code}: {detail}")
             with open(tmp, "wb") as fh:
                 for chunk in r.iter_content(1 << 16):
                     written += len(chunk)
@@ -95,11 +108,13 @@ def _download_votable(svc, uri: str):
                                        "downloading; narrow the query.")
                     fh.write(chunk)
         vot = votable.parse(str(tmp))
-        status = None
+        status, message = None, None
         for res in vot.resources:
             for info in res.infos:
                 if info.name == "QUERY_STATUS":
-                    status = info.value
+                    status, message = info.value, info.content
+        if status == "ERROR":
+            raise RuntimeError(f"TAP query error: {message or 'no error message'}")
         table = (vot.get_first_table().to_table(use_names_over_ids=True)
                  if vot.resources and vot.resources[0].tables else None)
         if table is None:
@@ -143,6 +158,15 @@ def _run_async(svc, query: str, maxrec: int):
             pass
 
 
+def _run_sync(svc, query: str, maxrec: int):
+    """Synchronous TAP query, streamed through the byte-capped download (not pyvo's run_sync,
+    which reads the whole response into memory before any size check)."""
+    data = {"REQUEST": "doQuery", "LANG": "ADQL", "QUERY": query, "FORMAT": "votable"}
+    if maxrec is not None:
+        data["MAXREC"] = str(int(maxrec))
+    return _download_votable(svc, svc.baseurl.rstrip("/") + "/sync", data=data)
+
+
 def _unauthorized(exc: Exception) -> bool:
     """HTTP 401 from the TAP server (pyvo wraps the requests error; check the chain and message)."""
     e: BaseException | None = exc
@@ -172,14 +196,14 @@ def _run_tap(url: str, query: str, maxrec: int, mode: str):
     relogged = False
     for attempt, delay in enumerate((0,) + RETRY_DELAYS):
         if delay:
-            print(f"  TAP transient error ({last}); retry {attempt}/{len(RETRY_DELAYS)} in {delay}s")
+            print(f"  TAP transient error ({type(last).__name__}: {str(last)[:200]}); retry {attempt}/{len(RETRY_DELAYS)} in {delay}s")
             time.sleep(delay)
         m = modes[min(attempt, len(modes) - 1)] if attempt < 2 else modes[-1]
         while True:   # runs at most twice: once more after a single re-login on HTTP 401
             try:
                 if m == "async":
                     return _run_async(svc, query, maxrec)
-                return svc.run_sync(query, maxrec=maxrec)
+                return _run_sync(svc, query, maxrec)
             except Exception as exc:  # pyvo raises several DAL* types
                 if session is not None and not relogged and _unauthorized(exc):
                     # saved Gaia cookie no longer valid (e.g. after an archive restart): drop it,
