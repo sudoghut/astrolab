@@ -13,6 +13,7 @@ Both cache results in the system cache directory and return provenance.
 from __future__ import annotations
 
 import hashlib
+import io
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -289,17 +290,20 @@ def tap(
         if path.stat().st_size > config.HTTP_MAX_BYTES:
             raise TooLarge(f"cached TAP result {path.stat().st_size / 1024**2:.1f} MB exceeds the "
                            "per-download limit; narrow the query (or clear this entry deliberately).")
-        return _sha256(path), pd.read_parquet(path)
+        data = path.read_bytes()                 # hash and parse the same bytes, read once
+        return hashlib.sha256(data).hexdigest(), data
+
 
     # the payload must match the sha256 in its own provenance: the key locks are per process, so
     # two processes refreshing one query could otherwise leave one's data under the other's meta
     hit = None if refresh else cache.read(key, ".parquet", _read_parquet)
-    recorded = hit[0]["provenance"].get("sha256") if hit is not None else None
-    if hit is not None and recorded is not None and hit[1][0] != recorded:
+    # every writer records the sha256; an entry without one cannot be verified and is a miss
+    if hit is not None and hit[1][0] != hit[0]["provenance"].get("sha256"):
         hit, refresh = None, True            # mismatched entry: fetch again and replace it
     if hit is not None:
-        meta, (_, df) = hit
+        meta, (_, data) = hit
         prov = Provenance(**meta["provenance"])
+        df = pd.read_parquet(io.BytesIO(data))
         if int(df.memory_usage(deep=True).sum()) > config.HTTP_MAX_BYTES:
             raise TooLarge("cached TAP result exceeds the per-download limit in memory; narrow the query.")
         return Fetched(df, prov, True)
