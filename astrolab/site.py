@@ -107,8 +107,8 @@ def sensitive(site: Path) -> list[str]:
     """Published files that contain a local path or a credential-like string (file: first match)."""
     bad = []
     for f in sorted(Path(site).rglob("*")):
-        if f.is_file() and f.suffix.lower() in {".json", ".csv", ".html", ".js"}:
-            m = _SENSITIVE.search(f.read_text(encoding="utf-8", errors="replace"))
+        if f.is_file():                              # every published file, images as raw bytes
+            m = _SENSITIVE.search(f.read_bytes().decode("latin-1"))
             if m:
                 bad.append(f"{f.relative_to(site).as_posix()}: {m.group(0)}")
     return bad
