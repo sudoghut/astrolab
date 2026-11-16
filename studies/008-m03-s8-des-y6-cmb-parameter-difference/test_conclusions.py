@@ -50,3 +50,46 @@ def test_r2_verdict_rule():
 def test_result_files_small():
     for path in RESULTS.glob("*.json"):
         assert path.stat().st_size < 1024 ** 2, path.name
+
+
+def test_r6_verdict_rule():
+    """README 2.6: re-derive R6 from the saved numbers (independently of r6flow.verdict)."""
+    import math
+
+    r6 = load("r6")
+    if "verdict" not in r6:
+        pytest.skip(r6.get("status", "R6 not run"))
+    res = r6["flows"]
+    if "status" in res:
+        assert r6["verdict"] == "not evaluable"
+        return
+    gate = res["gate"]
+    exact = gate["exact"]["n_sigma"]
+    vals = [r.get("n_sigma") for r in gate["repetitions"]]
+    passed = all(v is not None and math.isfinite(v) for v in vals) and \
+        abs(sum(vals) / len(vals) - exact) <= 0.10 and all(abs(v - exact) <= 0.20 for v in vals)
+    assert gate["passed"] == passed
+    if not passed:
+        assert r6["verdict"] == "not evaluable"
+        return
+    reps = res["main"]["repetitions"]
+    assert [r["seed"] for r in reps] == [0, 1, 2, 3, 4]
+    ns = [r.get("n_sigma") for r in reps]
+    if any(v is None or not math.isfinite(v) for v in ns) or not all(r["converged"] for r in reps):
+        assert r6["verdict"] == "not evaluable"
+        return
+    if r6["support"]["fails"]:
+        assert r6["verdict"] == "descriptive (prior support)"
+        return
+    if any(r["lower_bound"] for r in reps):
+        low = min(r["n_sigma"] for r in reps if r["lower_bound"])
+        assert r6["verdict"] == ("not reproduced" if low > 1.8 + 0.15 + 0.10 else "not evaluable")
+        return
+    n_bar = sum(ns) / len(ns)
+    s = math.sqrt(sum((v - n_bar) ** 2 for v in ns) / (len(ns) - 1))
+    assert abs(n_bar - res["main"]["n_bar"]) < 1e-9 and abs(s - res["main"]["s"]) < 1e-9
+    if s > 0.07:
+        expected = "not evaluable"
+    else:
+        expected = "reproduced" if abs(n_bar - 1.8) <= 0.15 + 2 * s else "not reproduced"
+    assert r6["verdict"] == expected
