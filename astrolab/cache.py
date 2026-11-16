@@ -73,8 +73,10 @@ def read(key: str, suffix: str, reader, root: Path | None = None):
     """Read one cache entry consistently: under the same per-key lock as writers, return
     (meta, reader(payload_path)), or None on a miss. A refresh of the same key in another thread
     cannot then pair one write's metadata with another write's payload while it is read. The locks
-    are per process: separate processes refreshing the same key are not serialised (a failed
-    replace there leaves the entry missing, never mismatched). An entry pruned meanwhile is a miss."""
+    are per process: separate processes refreshing the same key are not serialised and may leave a
+    payload under the other's meta, so callers check the payload against the sha256 in its
+    provenance (fetch.tap and fetch.http do) and treat a mismatch as a miss. An entry pruned
+    meanwhile is a miss."""
     payload, meta_path = _paths(key, suffix, root)
     with _key_lock(payload):
         if not (payload.exists() and meta_path.exists()):

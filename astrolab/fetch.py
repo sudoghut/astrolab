@@ -289,10 +289,16 @@ def tap(
         if path.stat().st_size > config.HTTP_MAX_BYTES:
             raise TooLarge(f"cached TAP result {path.stat().st_size / 1024**2:.1f} MB exceeds the "
                            "per-download limit; narrow the query (or clear this entry deliberately).")
-        return pd.read_parquet(path)
+        return _sha256(path), pd.read_parquet(path)
 
-    if not refresh and (hit := cache.read(key, ".parquet", _read_parquet)):
-        meta, df = hit
+    # the payload must match the sha256 in its own provenance: the key locks are per process, so
+    # two processes refreshing one query could otherwise leave one's data under the other's meta
+    hit = None if refresh else cache.read(key, ".parquet", _read_parquet)
+    recorded = hit[0]["provenance"].get("sha256") if hit is not None else None
+    if hit is not None and recorded is not None and hit[1][0] != recorded:
+        hit, refresh = None, True            # mismatched entry: fetch again and replace it
+    if hit is not None:
+        meta, (_, df) = hit
         prov = Provenance(**meta["provenance"])
         if int(df.memory_usage(deep=True).sum()) > config.HTTP_MAX_BYTES:
             raise TooLarge("cached TAP result exceeds the per-download limit in memory; narrow the query.")
@@ -393,10 +399,11 @@ def http(
         source="http", request=url, release=release, bytes=written,
         sha256=_sha256(tmp), cache_key=key, note=note,
     )
-    entry = cache.put_file(key, suffix, tmp, {"provenance": prov.to_dict()}, replace=refresh,
-                           same_payload=lambda p: _sha256(p) == prov.sha256)
+    cache.put_file(key, suffix, tmp, {"provenance": prov.to_dict()}, replace=refresh,
+                   same_payload=lambda p: _sha256(p) == prov.sha256)
     # return what is stored now (another thread's complete entry may have been kept), with its
     # own provenance, so the path and the provenance always describe the same bytes
     if ok := _consistent(cache.read(key, suffix, _verified)):
         return Fetched(ok[0], ok[1], False)
-    return Fetched(entry.payload, prov, False)
+    raise RuntimeError(f"cache entry for {url} changed or vanished right after it was stored "
+                       "(another process refreshing or clearing the cache?); fetch again.")
