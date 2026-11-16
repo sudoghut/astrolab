@@ -68,6 +68,21 @@ def cmd_atlas(args) -> None:
     print(f"wrote {out.relative_to(config.ROOT)}: {len(data['claims'])} claims, {len(data['studies'])} studies")
 
 
+def cmd_site(args) -> None:
+    from pathlib import Path
+
+    from . import site
+
+    dest = Path(args.dest)
+    r = site.build(dest)
+    bad = site.broken_links(dest)
+    print(f"site: {r['files']} files, {r['bytes'] / 1024 ** 2:.2f} MB -> {dest}; skipped {len(r['skipped'])}")
+    for s in r["skipped"]:
+        print(f"  skipped (type or size): {s}")
+    if bad:
+        raise SystemExit("broken relative links: " + "; ".join(bad))
+
+
 def cmd_cache(args) -> None:
     if args.action == "prune":
         print(f"removed {cache.prune()} entries")
@@ -124,6 +139,10 @@ def main(argv: list[str] | None = None) -> None:
     sp.set_defaults(func=cmd_claims)
 
     sub.add_parser("atlas", help="build atlas/web/data/atlas.json").set_defaults(func=cmd_atlas)
+
+    sp = sub.add_parser("site", help="build the static site for GitHub Pages (Atlas + study pages)")
+    sp.add_argument("dest")
+    sp.set_defaults(func=cmd_site)
 
     sp = sub.add_parser("cache", help="cache info / prune / clear")
     sp.add_argument("action", nargs="?", default="info", choices=["info", "prune", "clear"])
