@@ -6,9 +6,6 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-033** 核心库：压缩研究结果中的来源记录（provenance），避免大量查询使 `results/provenance.json` 超过 1 MB · 登记 2026-11-16 · 来源 T-013 · 分支 feat/t033-compact-provenance
-  - 备注：研究 004 第 A 步的 `provenance.json` 为 2.7 MB（约 2000 条、每条约 1.3 KB 的 ADQL），第 B 步后预计 3.6–4 MB；可改为请求哈希加标签、或每类查询一个模板，不改任何上限。
-  - 计划：结果超过约 256 KB 时 `ProvenanceLog.write` 改写为模板格式（ADQL 中只有各记录间不同的数字作为参数，其余并入模板；共同字段提到 `defaults`），记录格式名；`provenance.expand` 完全还原原记录（作为字典相等）；小文件保持原格式；测试覆盖往返还原（含花括号、科学计数法、负数）；重跑写出研究 004 的 provenance.json（只用缓存，不取数据）。
 
 ## 下一步（Next）
 
