@@ -193,11 +193,14 @@ def prune(limit_bytes: int | None = None, root: Path | None = None) -> int:
             except (OSError, ValueError):         # removed meanwhile: no longer counts
                 total -= size
                 continue
+            kept = False
             for f in files:
                 try:
                     f.unlink(missing_ok=True)
                 except PermissionError:   # open in another process (Windows): left for a later prune
-                    pass
+                    kept = True
+        if kept:                          # still on disk: does not reduce the total
+            continue
         total -= size
         removed += 1
     return removed
