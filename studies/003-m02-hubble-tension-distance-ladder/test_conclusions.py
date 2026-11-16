@@ -113,9 +113,12 @@ def test_r2_re_rule_and_headline():
         assert all(v[i] < thr for i in range(len(g)) if g[i] < est["tau_hat"])
     assert re_["tau_hat"] == (0.0 if est["at_zero"] else est["tau_hat"])
     # descriptive diagnostics: internal consistency
-    if "r4_under_v" in re_:
-        assert re_["r4_under_v"]["draws"] == load("r4")["draws"]
-    if "loo_chi2" in re_:
+    assert re_["r4_under_v"]["draws"] == load("r4")["draws"]          # required when evaluated
+    assert "loo_chi2" in re_ and "sensitivity_cepheid_rows" in re_
+    for e_, m in zip(re_["interval_68"], est["m2l_at_interval"]):    # each finite end is a +1 crossing
+        if isinstance(e_, float) and e_ > 0:
+            assert abs(m - thr) < 1e-3
+    if True:
         for w in ("C", "V"):
             lc = re_["loo_chi2"][w]
             assert abs(lc["chi2"] - sum(x["chi2"] for x in lc["per_host"])) < 1e-6

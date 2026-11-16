@@ -359,9 +359,11 @@ def reml_tau(f, tau_max, step):
                     return "not determined"
         return 0.0 if direction < 0 else "> %.1f" % tau_max
 
+    ends = [crossing(-1), crossing(+1)]
     return {"tau_hat": tau_hat, "m2l_min": f_hat, "refined": refined, "refine_error": refine_error,
+            "m2l_at_interval": [float(f(e)) if isinstance(e, float) else None for e in ends],
             "grid": [float(t) for t in grid], "grid_m2l": [float(v) for v in vals],
-            "other_local_minima": local, "interval_68": [crossing(-1), crossing(+1)],
+            "other_local_minima": local, "interval_68": ends,
             "at_zero": tau_hat < 1e-3, "at_upper_bound": tau_hat > tau_max - 1e-3}
 
 
@@ -475,10 +477,8 @@ def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks,
         out["sensitivity_cepheid_rows"] = sens
     except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
         errs["sensitivity_cepheid_rows"] = str(e)
-    try:
-        r2_re_r4(out, L, y, V, res_aV, hs, rows_a, base_rows, host_rows, picks)
-    except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
-        errs["r4_under_v"] = str(e)
+    # R4 under V: an identity or variance failure is a bug and stops the run (not swallowed)
+    r2_re_r4(out, L, y, V, res_aV, hs, rows_a, base_rows, host_rows, picks)
     try:
         out["loo_chi2"] = {"C": loo_chi2(L, y, C, rows_a, calib_groups, labels),
                            "V": loo_chi2(L, y, V, rows_a, calib_groups, labels),
@@ -509,7 +509,9 @@ def r2_re_r4(out, L, y, V, res_aV, hs, rows_a, base_rows, host_rows, picks):
                 raise RuntimeError(f"nested-variance identity failed under V on draw 0: {exact} vs {var}")
             out["r4_identity_check"] = {"exact_aVa": exact, "nested": var}
         deltas.append(dl)
-        zs.append(dl / np.sqrt(max(var, 1e-30)))
+        if not var > 0:                  # the nested identity guarantees var > 0: anything else is a bug
+            raise RuntimeError(f"non-positive nested variance under V on draw {i}: {var}")
+        zs.append(dl / np.sqrt(var))
     if zs:
         zs_a = np.array(zs)
         out["r4_under_v"] = {"draws": len(zs), "z_std": float(zs_a.std()), "z_mean": float(zs_a.mean()),
