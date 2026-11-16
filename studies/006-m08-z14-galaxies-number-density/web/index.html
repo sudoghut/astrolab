@@ -106,7 +106,7 @@ function render() {
         return `<tr><td>${names[k] ? i18n.L(...names[k]) : esc(k)}</td><td>${(v.tau ? Math.round(Math.max(...v.tau)) : '–')}${v.converged ? '' : ' ' + i18n.L('(not converged)', '（未收敛）')}</td><td>${fmt(v.lsq.p_bootstrap)}</td>` +
           `<td>${fmt(v.r2_probabilities.higher)}</td><td><span class="${pcls(v.r2_label)}">${tr(v.r2_label)}</span></td>` +
           `<td>${fmt(v.r3_probabilities['consistent with N26'])}</td><td><span class="${pcls(v.r3_label)}">${tr(v.r3_label)}</span></td>` +
-          `<td>${q.length ? q.slice(1, 4).map(x => Number(x).toFixed(1)).join('–') : '–'}</td></tr>`;
+          `<td>${q.length ? q.slice(1, 4).map(x => (x === null || x === undefined) ? '–' : Number(x).toFixed(1)).join('–') : '–'}</td></tr>`;
       }).join('') + '</tbody></table>';
   } catch (e) {
     document.getElementById('post').innerHTML = i18n.L('Could not show results/post.json: ', '无法显示 results/post.json：') + esc(e);
