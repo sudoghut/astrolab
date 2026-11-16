@@ -3,8 +3,8 @@ the GWTC-3 population paper (arXiv:2111.03634)?
 
 Our 69 = the 59 O1-O3 events of `results/sample.json` (names GW19*/GW20*) plus the ten O1/O2 BBHs that
 enter only with the FAR fallback (`explore/gwtc1_far.py`). The paper's event list is taken from its
-data release's table archive (Zenodo 11254021 `table_data.tar.gz`, 4.9 kB; a supersedes-v1 record
-with no changed results). Run with:
+data release's table archive (Zenodo 11254021 `table_data.tar.gz`, 4.9 kB; the record's README says
+it is v3 and that no results changed since v2). Run with:
     python -m astrolab explore 007 --tag gwtc3-pop-events --script explore/gwtc3_pop_events.py
 """
 import io
@@ -51,12 +51,16 @@ def main(ctx):
         ctx.log("no event names in the table archive")
 
     # The paper's BBH set: Table 1 (all 76 events used) minus the events of Table 3 (the events
-    # whose components may be neutron stars). Table 1 has no BBH column, so this rule is our
-    # reading; it is checked against the paper's stated count of 69 BBHs. Names are compared after
+    # whose classification considers a neutron-star component; it labels GW190814 most likely a BBH,
+    # which the paper's BBH analyses leave out as an outlier). Table 1 has no BBH column, so this rule
+    # is our reading; it is checked against the count of 69 BBHs quoted by P26. Names are compared after
     # mapping our short names (GW190412) to the full names that start with them (GW190412_053044).
     t1 = set(found.get("table_data/gwtc-3_pop_events_table_1.csv", []))
     t3 = set(found.get("table_data/gwtc-3_pop_ns_classification_table_3.csv", []))
     ns = {n for n in t1 if any(n == s or n.startswith(s + "_") for s in t3)}
+    unmatched = sorted(s for s in t3 if not any(n == s or n.startswith(s + "_") for n in t1))
+    if unmatched:
+        ctx.log(f"Table 3 names with no Table 1 event: {unmatched}")
     bbh = t1 - ns
 
     def full(n):
@@ -66,7 +70,8 @@ def main(ctx):
         return hits[0] if len(hits) == 1 else n
 
     mine_full = {full(n) for n in mine}
-    out["paper_bbh"] = {"n_table1": len(t1), "n_ns_table3": len(ns), "n_bbh": len(bbh),
+    out["paper_bbh"] = {"n_table1": len(t1), "n_table3": len(t3), "n_table3_matched": len(ns),
+                        "table3_unmatched": unmatched, "n_bbh": len(bbh),
                         "only_in_paper": sorted(bbh - mine_full), "only_in_ours": sorted(mine_full - bbh),
                         "same_set": bbh == mine_full,
                         "renamed": sorted(f"{n} = {full(n)}" for n in mine if full(n) != n)}
