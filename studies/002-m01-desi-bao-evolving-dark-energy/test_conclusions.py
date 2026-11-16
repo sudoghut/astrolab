@@ -59,7 +59,10 @@ def test_r2_camb_rule():
     rc = load("r2_camb")
     rec = {"A": "not reproduced", "B": "reproduced"}
     assert rc["recorded"] == rec
-    assert rc["settings"]["camb_version"] and rc["settings"]["dark_energy_model"] == "ppf"
+    st = rc["settings"]       # pre-registered CAMB configuration (README addendum)
+    assert (st["camb_version"], st["nnu"], st["TCMB"], st["num_massive_neutrinos"],
+            st["recombination"], st["dark_energy_model"]) == ("2.0.5", 3.044, 2.7255, 1, "Recfast", "ppf")
+    assert abs(rc["K_C"] * rc["theta100_raw_at_reference"] - 1.041085) < 1e-9   # anchor
     keys = {"A": "reading_A_with_nu", "B": "reading_B_without_nu"}
     verdicts = {}
     for var in ("anchored", "raw"):
