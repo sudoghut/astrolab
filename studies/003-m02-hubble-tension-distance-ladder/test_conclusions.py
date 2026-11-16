@@ -90,4 +90,10 @@ def test_r2_re_rule_and_headline():
     # R2 with C errors stays recorded
     assert h["criterion_outcome"].startswith("host selection significantly lowers H0")
     lo, hi = re_["interval_68"]
-    assert (lo == 0.0 or lo <= re_["tau_hat"]) and (not isinstance(hi, float) or hi >= re_["tau_hat"])
+    assert not isinstance(lo, float) or lo <= re_["tau_hat"]
+    assert not isinstance(hi, float) or hi >= re_["tau_hat"]
+    # grid points inside a determined interval lie within min + 1 of the REML minimum
+    if isinstance(lo, float) and isinstance(hi, float):
+        for t, v in zip(est["grid"], est["grid_m2l"]):
+            if lo + 1e-9 < t < hi - 1e-9:
+                assert v <= est["m2l_min"] + 1.0 + 1e-6
