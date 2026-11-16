@@ -84,6 +84,7 @@ def load_cookies() -> dict | None:
 
 # re-entrant: refresh_session holds it while session_with_cookies may log in
 _RELOGIN_LOCK = threading.RLock()
+_LOGIN_FAILED = False   # a failed credential login is not retried in this process (no lockout risk)
 
 
 def refresh_session(url: str, stale: dict | None):
@@ -114,15 +115,19 @@ def session_with_cookies(url: str):
         return None, None
     cookies = load_cookies()
     if not cookies:
+        global _LOGIN_FAILED
         with _RELOGIN_LOCK:            # threads without a saved cookie log in once, not each
             cookies = load_cookies()
             if not cookies:
+                if _LOGIN_FAILED:
+                    return None, None
                 creds = credentials()
                 if creds is None:
                     return None, None
                 try:
                     _post_login(*creds)        # non-interactive login from configured credentials
                 except Exception as exc:      # noqa: BLE001 - fall back to anonymous access
+                    _LOGIN_FAILED = True
                     print(f"  Gaia login from configured credentials failed ({exc}); continuing anonymously")
                     return None, None
                 cookies = load_cookies()
