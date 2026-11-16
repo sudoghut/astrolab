@@ -49,6 +49,8 @@
   "labelling_mode": "amended (post-data labelling)",
   "qualified_verdict": "host selection significantly lowers H0, by the size the paper reports (supports the paper) [post-data host labelling, with identification check (ii) changed to compare means; -2.2 sigma uses C-propagated errors; on the random-subset scale (Delta/sigma spread 1.33, itself uncertain) about -1.7 sigma (post-hoc Delta/sigma percentile 4.7; pre-registered R4 Delta percentile 5.7); with sigma inflated by that spread the verdict table would give 'no host-selection effect detected']",
   "criterion_outcome": "host selection significantly lowers H0, by the size the paper reports (supports the paper)",
-  "verdict": "host selection significantly lowers H0, by the size the paper reports (supports the paper) [post-data host labelling, with identification check (ii) changed to compare means; -2.2 sigma uses C-propagated errors; on the random-subset scale (Delta/sigma spread 1.33, itself uncertain) about -1.7 sigma (post-hoc Delta/sigma percentile 4.7; pre-registered R4 Delta percentile 5.7); with sigma inflated by that spread the verdict table would give 'no host-selection effect detected']"
+  "verdict": "no host-selection effect detected in these data (does not support the paper's quantitative claim) [R2-RE: host-level random effect, pre-registered 2026-11-16; post-data host labelling]",
+  "descriptive_inflated_sigma": "host selection significantly lowers H0, by the size the paper reports (supports the paper) [post-data host labelling, with identification check (ii) changed to compare means; -2.2 sigma uses C-propagated errors; on the random-subset scale (Delta/sigma spread 1.33, itself uncertain) about -1.7 sigma (post-hoc Delta/sigma percentile 4.7; pre-registered R4 Delta percentile 5.7); with sigma inflated by that spread the verdict table would give 'no host-selection effect detected']",
+  "headline_source": "R2-RE"
  }
 }

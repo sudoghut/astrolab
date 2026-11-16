@@ -25,7 +25,10 @@
   "host_ref": -0.0405,
   "host_ref_extra": 0.02,
   "cchp_target_5logh0": 9.2034,
-  "cchp_match_tol": 0.02
+  "cchp_match_tol": 0.02,
+  "re_check": true,
+  "re_tau_max": 0.5,
+  "re_grid_step": 0.01
  },
  "validity": {
   "row_counts": {
@@ -49,7 +52,18 @@
  "R1_h0": 73.04281910198733,
  "R2_anchor": "reproduced",
  "R2_anchor_shift": -0.018430806133437727,
- "R2_host": "host selection significantly lowers H0, by the size the paper reports (supports the paper) [post-data host labelling, with identification check (ii) changed to compare means; -2.2 sigma uses C-propagated errors; on the random-subset scale (Delta/sigma spread 1.33, itself uncertain) about -1.7 sigma (post-hoc Delta/sigma percentile 4.7; pre-registered R4 Delta percentile 5.7); with sigma inflated by that spread the verdict table would give 'no host-selection effect detected']",
+ "R2_host": "no host-selection effect detected in these data (does not support the paper's quantitative claim) [R2-RE: host-level random effect, pre-registered 2026-11-16; post-data host labelling]",
+ "R2_host_headline_source": "R2-RE",
+ "R2_RE": {
+  "status": "evaluated",
+  "verdict": "no host-selection effect detected in these data (does not support the paper's quantitative claim)",
+  "tau_hat": 0.07669875579792439,
+  "interval_68": [
+   0.04768311007723558,
+   0.10502256205809637
+  ],
+  "z": -1.5309076707291918
+ },
  "R2_host_status": "evaluated; amended (post-data labelling)",
  "R2_host_preregistered": "not evaluable (host identification)",
  "host_labelling_mode": "amended (post-data labelling)",
@@ -61,5 +75,5 @@
  "R3_sigma_d": 0.04783482196376176,
  "R4_percentile": 5.680000000000001,
  "R4_verdict": "consistent with random-subset fluctuations",
- "runtime_s": 773.2529265999328
+ "runtime_s": 1678.0003021999728
 }
