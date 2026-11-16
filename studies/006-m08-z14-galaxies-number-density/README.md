@@ -132,8 +132,9 @@ residual (f − 1)/0.2, from (0.1, 11.5, 1.0, 0.5, f = 1), bounds the prior box 
 loss "linear", ftol = xtol = gtol = 10⁻¹⁰, max_nfev = 2000. emcee (stretch move), 32 walkers started
 at the optimum plus N(0, (10⁻³ × (hi − lo))²) per parameter (for f, hi − lo = 2.99), each coordinate
 reflected into its prior box; 6000 steps; the first 2000 discarded; one `np.random.default_rng(0)`
-generator drives the start ball and is passed to emcee (`EnsembleSampler(..., seed=...)` from it) so
-the chain is reproducible. Valid if the
+generator draws the start ball and then an integer s = `integers(2**32)`; `np.random.seed(s)` is
+called immediately before constructing the `EnsembleSampler` (emcee 3 copies the global numpy state),
+so the chain is reproducible. Valid if the
 post-burn length is at least 50 integrated autocorrelation times, τ from
 `emcee.autocorr.integrated_time` (c = 5, tol = 0) on the post-burn chain, maximum over the five
 parameters; otherwise R2/R3-POST are **not evaluable** (no step changes allowed). Fit quality: the
