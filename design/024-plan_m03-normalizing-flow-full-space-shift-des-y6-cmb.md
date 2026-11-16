@@ -11,7 +11,7 @@
 ## 2. 范围与设计
 
 - 预注册写在研究 008 `README.md`（及 `README.zh.md`）第 2.6 节（R6-FLOW）。参数集是我们的重建：D26 没有写明全空间包含哪些参数，我们用 R4 的六个共同采样参数（即 D26 的六个 ΛCDM 自由参数）。
-- **两个环境的分工**：项目 venv 中的 `run.py` 照常经 `ctx.http` 从缓存读链（有来源记录、预算计费），只把六列、S8、Ωm 与权重写成一个临时 `.npz`，放在缓存目录的 staging 区（不写进项目目录，运行后删除）；再用子进程调用 TF 环境的解释器运行研究目录下的 `flowshift.py`（只依赖 numpy、getdist、tensiometer），结果以 JSON 返回，由 `run.py` 判定并保存到 `results/r6.json`。TF 解释器路径放在 `PARAMS["tf_python"]`；找不到时 R6 记为"无法评估（没有 TF 环境）"，其余结果不受影响。
+- **两个环境的分工**：项目 venv 中的 `run.py` 照常经 `ctx.http` 从缓存读链（有来源记录、预算计费），只把六列、S8、Ωm 与权重写成一个临时 `.npz`，放在缓存目录的 staging 区（不写进项目目录，运行后删除）；再用子进程（`PYTHONNOUSERSITE=1`、`TF_USE_LEGACY_KERAS=1`、`-I`、干净的工作目录）调用 TF 环境的解释器运行研究目录下的 `flowshift.py`（只依赖 numpy、scipy、getdist、tensiometer），先跑已知答案的合成校准，再跑链；结果以 JSON 返回，由 `run.py` 判定并保存到 `results/r6.json`。TF 解释器在运行时由 `%LOCALAPPDATA%` 确定，不写进 `PARAMS`（`PARAMS` 随结果入库，不能含本机路径）；结果中只记录它是否可用与各包版本。找不到时 R6 记为"无法评估（没有 TF 环境）"，其余结果不受影响。临时 `.npz` 在 `try/finally` 中写入并删除，不登记为缓存条目。
 - 不新取数据；原有 R1–R5 的结果不变（`run.py` 中 R6 是独立的一段，另有开关 `PARAMS["r6"]`）。
 
 ## 3. 环节与审查
@@ -23,9 +23,10 @@
 ## 4. 验收标准（acceptance criteria）
 
 - `results/r6.json` 含五次重复的 n_σ、Δ 及其区间、训练时间、tensiometer 默认设置、验证结果与判定；
-- `test_conclusions.py` 由保存的数字独立复算 R6 判定；`python -m pytest` 通过（没有 TF 环境时 R6 测试跳过而不是失败）；
+- `test_conclusions.py` 由保存的数字独立复算 R6 判定；`python -m pytest` 通过（`r6.json` 的状态为无法评估时，测试检查原因而不复算数值）；
 - README（中英文）、网页、结论条目与 Wiki 同步；`log.md`、STATUS、DONE 更新。
 
 ## 5. 执行记录
 
 - 2026-11-16：开分支 `feat/t027-flow-full-space-shift`；核对 D26（arXiv:2601.14559v2）第 IV.1、IV.6 节与表 3、表 6；查看 tensiometer 1.1.0 的接口源代码（未对链训练任何流）；写本计划与预注册附录。
+- 2026-11-16：环节 1 闸门 1：严重 4 条——(1) tensiometer 的 `parameter_diff_chain` 按固定循环顺序配对，不用随机数，改为按权重独立重抽样；(2) getdist 链的构造须写明（采样器等）；(3) 一维、二维的流与 KDE 比较不能检验六维估计，改为六维已知答案的合成门槛，一维、二维只作报告；(4) 参数化依赖须披露，并报告 S8 变体。次要全部采纳（s 门槛 0.05、收敛判据、先验支撑扩展到六个参数、默认设置与确定性、解释器路径不入 PARAMS、算术）。设计中在合成数据上发现：TF 2.21 的 Keras 3 下流没有可训练权重（须 `TF_USE_LEGACY_KERAS=1`）；单次训练的流误差约 0.26–0.32σ，而默认的十次训练（pop_size=10）误差 0.02σ，每次约 10 分钟；据此修订附录（未对链训练任何流）。

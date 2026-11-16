@@ -32,7 +32,8 @@ and concludes that there is "no substantial evidence for a discrepancy" (Sec. VI
 
 ## 2. Hypotheses and decision criteria
 
-Only R1 and R2 carry verdicts. All rules below are fixed before any chain is downloaded.
+Only R1 and R2 carry verdicts. All rules below are fixed before any chain is downloaded. (Exception, dated: R6 in section 2.6 was added on 2026-11-16, after the download
+and after R1–R5 were known, and is disclosed there.)
 
 ### 2.0 Step A: reading the chains (no statistics)
 
@@ -179,57 +180,88 @@ approximation and are not comparable with the significances in the probes' own p
 
 ### 2.6 Addendum 2026-11-16: R6-FLOW, the full-space difference with normalizing flows (T-027, plan 024)
 
-Written before any normalizing flow was trained on the chains (the tensiometer API was inspected
-on its source code only). It adds one verdict, R6, and changes nothing above.
+Written before any normalizing flow was trained on the chains; only the tensiometer source code and
+synthetic data (below) were used. It adds one verdict, R6, and changes nothing above. Revised the
+same day after the gate-1 review, still before any flow was trained on the chains.
 
 **What D26 states and what it does not** (arXiv:2601.14559v2, read 2026-11-16): the full-space
 number is 1.8σ for 3x2pt against the CMB (Table 6, PTE 0.08), computed with eqs. 17–19 where the
 density P̂ of the parameter difference is "given by the normalizing flow model", "executed by the
-tensiometer code"; the ΛCDM model has the six free parameters As, Ωm, h, Ωb, ns and Σmν (Sec. IV.1,
-Table 3). D26 does not state which parameters enter the full-space difference, the flow settings,
-the number of flows, or an uncertainty on 1.8σ. The parameter set below is therefore our
-reconstruction.
+tensiometer code"; the ΛCDM model has the six free parameters As, Ωm, h, Ωb, ns and Σmν, with As (not
+ln As or S8) the sampled amplitude (Sec. IV.1, Table 3). D26 does not state which parameters enter
+the full-space difference, the flow settings, the number of flows, or an uncertainty on 1.8σ. The
+parameter set below is therefore our reconstruction.
+
+**Known when this was written.** The iso-density Δ is not invariant under a nonlinear change of
+coordinates, and the Gaussian full-space numbers of R4 and section 6 already show it: 0.89σ for the
+six parameters with As, 1.48σ with S8 in place of As, 1.26–1.36σ for other sets, 0.32σ for (As, Ωm),
+2.21σ for (S8, Ωm). The verdict uses As because D26 samples As; the S8 variant is reported beside it.
 
 **Parameters.** The six parameters of the R4 full-space item ("all" variant), as mapped from the
 chain headers: `cosmological_parameters--a_s_1e9`, `--h0`, `--mnu`, `--n_s`, `--omega_b`,
-`--omega_m` (both chains sample them; they are D26's six free ΛCDM parameters). Same chains, rows,
-weights and burn-in as R2 (the DES 3x2pt and CMB chains; the R1 gate applies).
+`--omega_m`. Same chains, rows, weights and burn-in as R2 (the DES 3x2pt and CMB chains; the R1 gate
+applies).
 
-**Estimator.** tensiometer 1.1.0, run in the separate environment of T-027 (TensorFlow 2.21,
-TensorFlow Probability 0.25), with its defaults unless stated here:
-1. Build getdist `MCSamples` for each chain from the six columns and the chain weights.
-2. The difference chain: `parameter_diff_chain(DES, CMB, boost=1)` (Δθ = θ_DES − θ_CMB).
-3. Train a flow with `flow_from_chain(diff_chain)` (tensiometer's default architecture and training
-   schedule; the exact default settings are written into the results), then
-   `estimate_shift(flow, tol=0.02, max_iter=1000, step=100000)`, which compares the flow density of
-   flow samples with the flow density at Δθ = 0 (eq. 18) and returns the probability Δ with a
-   Clopper–Pearson interval; n_σ = √2 erf⁻¹(Δ) (eq. 19).
-4. Five independent repetitions with seeds 0–4 (numpy and TensorFlow seeded before step 2, so the
-   pairing of the difference chain and the flow training both change with the seed). n̄ = mean of the
-   five n_σ, s = their standard deviation.
+**Prior support.** The R2 rule is applied to all six parameters: for each, the weight of each chain
+outside the other chain's prior range (from the `##` lines) is computed; if it exceeds 1% for any
+parameter, R6 is reported as descriptive (no verdict). A parameter with no prior range in either
+header is listed as not checkable.
 
-**Validation (in the same run, before the verdict).** The same pipeline (steps 1–4) on the 1-D S8
-difference and on the 2-D (S8, Ωm) difference, compared with this study's binned-KDE R2 values from
-`results/r2.json` (mean over seeds): if either flow n̄ differs from the KDE value by more than 0.15,
-the flow is not validated on these chains and R6 is "not evaluable".
+**Estimator** (tensiometer 1.1.0 in the separate environment of T-027: TensorFlow 2.21 with the
+legacy Keras 2 API, `TF_USE_LEGACY_KERAS=1`, which tensiometer's flows need; under Keras 3 the flow has
+no trainable weights). For repetition k (seed k):
+1. Seed numpy and TensorFlow with `tf.keras.utils.set_random_seed(k)` and
+   `tf.config.experimental.enable_op_determinism()`.
+2. Draw N = 100,000 indices from each chain independently, with probability proportional to the
+   weights, with replacement (numpy `default_rng(k)`); Δθ = θ_DES − θ_CMB are equally weighted samples
+   of P(Δθ), as in R2. tensiometer's `parameter_diff_chain` is not used: it pairs rows in a fixed
+   cyclic order without random numbers.
+3. A getdist `MCSamples(samples=Δθ, names=<the six names>, ignore_rows=0)` (default sampler, unit
+   weights, no ranges given).
+4. `flow_from_chain(chain, feedback=0, plot_every=0)`, all other settings tensiometer's defaults:
+   an affine masked autoregressive flow, `pop_size=10` trainings of `epochs=100` each with its
+   default early-stopping schedule, the best kept by validation loss (`validation_split=0.1`); the
+   default settings are written into the results.
+5. `estimate_shift(flow, tol=0.02, max_iter=1000, step=100000)` returns Δ and its Clopper–Pearson
+   68% interval (low, up); n_σ = √2 erf⁻¹(Δ) (eq. 19). The estimate has converged if
+   σ(up) − σ(low) ≤ 0.02, computed from the returned interval.
+Five repetitions, seeds 0–4. n̄ = mean of the five n_σ, s = their standard deviation.
+
+**Known-answer gate (synthetic, run before the chains).** The calibration step of `flowshift.py`
+(the study's TF-side module, run by `run.py` before any flow on the chains): a 6-D
+synthetic difference distribution with the structure expected here, two correlated Gaussian
+directions (mean (2.276, 1.138), unit variances, correlation 0.6) and four flat-topped box directions
+(uniform on [−0.6, 1.4] minus a normal of width 0.05, so that 0 lies inside the plateau), whose exact
+n_σ is computed from its analytic density with 2,000,000 Monte Carlo draws (1.640). The estimator above
+(steps 1–5 with N = 100,000) is run for seeds 0–2. The gate passes if the mean flow n_σ is within 0.10
+of the exact value and each of the three within 0.20. If it fails, R6 is "not evaluable" and no flow
+is trained on the chains. During the design (on this synthetic case only, before any flow on the
+chains): one flow of 100 epochs gave 1.38 (exact 1.64), 300 epochs on 200,000 points the same order
+of error on a cusped variant, and the default ten trainings gave 1.618; this is why the defaults are
+used and why the gate exists.
 
 **Verdict (R6).**
 - "Reproduced" if |n̄ − 1.8| ≤ 0.15 + 2s (the 0.15 allowance as in R2: D26's unquoted flow noise and
   the rounding to 0.1); otherwise "not reproduced".
-- "Not evaluable" if the validation fails, if s > 0.15, if any repetition fails or returns a
-  non-finite n_σ, if any `estimate_shift` stops at `max_iter` without reaching the tolerance, or if
-  the R1 gate fails. No rerun with other settings.
-- An n_σ that `estimate_shift` reports at its Monte Carlo floor (Δ = 1) is a lower bound and is
-  reported as such.
+- "Not evaluable" if the known-answer gate fails, if s > 0.05, if any repetition fails or returns a
+  non-finite n_σ, if any estimate has not converged, or if the R1 gate fails. No rerun with other
+  settings.
+- If an estimate returns Δ = 1 (no flow sample below the density at 0), n_σ is recorded as a lower
+  bound from the interval's lower end; it counts as converged, and a lower bound above
+  1.8 + 0.15 + 2s gives "not reproduced".
 
-**Reported, not decisive.** The same flow n_σ for the two data-constrained parameters of R4
-(`a_s_1e9`, `omega_m`); each repetition's Δ with its Clopper–Pearson interval and training time;
-the R4 Gaussian values (0.89σ and 0.32σ) next to the flow values. D26 does not say how it treats
-the different prior ranges of the two chains (Table 3: for example h in [0.58, 0.8] for DES); like
-R2, R6 uses the chains as they are, with no prior flow and no truncation.
+**Reported, not decisive** (same estimator, seeds 0–2, so that the run stays within a few hours):
+the six-parameter flow with S8 in place of As; the two data-constrained parameters of R4 (As, Ωm);
+the 1-D S8 and 2-D (S8, Ωm) flows next to this study's binned-KDE values (`r2.json` `1d.n_sigma`
+2.6735 and `2d.n_sigma` 2.1777); each repetition's Δ, interval and training time; the R4 Gaussian
+values beside the flow values. Like R2, R6 uses the chains as they are: no prior flow, no truncation.
 
-**Data.** No new download: the two chains are read from the cache through `ctx.http`
-(charged 156 MiB against the 200 MiB budget, as in the existing run).
+**Data and environment.** No new download: the two chains are read from the cache through `ctx.http`
+(the existing run, with the ξ± chain, is charged 163.0 MiB of the 200 MiB budget). The six columns,
+S8 and the weights are passed to the TF environment as one temporary file in the cache staging area
+(about 9 MB), written and deleted inside `try/finally`, never a cache entry; the interpreter is
+resolved from `%LOCALAPPDATA%` at run time and only its availability and package versions are
+saved. Expected run time about 3–4 hours (each training about 10 minutes).
 
 ## 3. Data (with size estimate)
 
