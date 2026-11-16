@@ -27,19 +27,7 @@ ORIGINAL = {
 }
 
 # studies whose README.zh.md is not written yet (plan 023, stage 2); remove an entry with its translation
-PENDING = {
-    "000-smoke-test_gaia-dr3-10pc-census",
-    "001-m04-gaia-dormant-black-holes",
-    "002-m01-desi-bao-evolving-dark-energy",
-    "003-m02-hubble-tension-distance-ladder",
-    "004-m07-wide-binaries-gravity-test",
-    "005-m09-nanograv-gwb-power-law",
-    "006-m08-z14-galaxies-number-density",
-    "007-m10-gwtc4-bbh-mass-35msun",
-    "008-m03-s8-des-y6-cmb-parameter-difference",
-    "009-m06-mw-outer-rotation-curve-decline",
-    "010-m05-thick-disc-subgiant-ages",
-}
+PENDING: set[str] = set()   # all 11 translated (2026-11-16)
 
 FOLDERS = sorted(p for p in STUDIES.iterdir() if p.is_dir() and (p / "README.md").exists())
 
