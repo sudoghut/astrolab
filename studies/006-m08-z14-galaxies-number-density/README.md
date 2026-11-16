@@ -142,9 +142,11 @@ so the chain is reproducible. Valid if the
 post-burn length is at least 50 integrated autocorrelation times, τ from
 `emcee.autocorr.integrated_time` (c = 5, tol = 0) on the post-burn chain, maximum over the five
 parameters; otherwise R2/R3-POST are **not evaluable** (no step changes allowed). Fit quality: the
-χ² at the optimum (15 points, 5 parameters with the f prior as one more point: 11 degrees of
-freedom); if P(χ²₁₁ ≥ χ²) < 0.01 the result is labelled **"model misfit"** and the probabilities are
-reported but not used as a verdict. The section 4 rms rule does not apply here.
+data χ² at the optimum (the prior residual excluded) is compared with a parametric bootstrap: 200
+data sets drawn from the best-fit model with split-normal errors (each point's upper and lower error
+on its two sides; f drawn from its prior), each refitted by the same least squares; p = the fraction
+of refits whose data χ² is at least the observed one (numpy `default_rng(1)`). If p < 0.01 the result
+is labelled **"model misfit"** and the probabilities are reported but not used as a verdict. The section 4 rms rule does not apply here.
 
 *Propagation.* 500 posterior draws: emcee's flattened post-burn chain (step-major order, N = 4000 ×
 32) at indices `np.linspace(0, N − 1, 500).round().astype(int)`. For each: R2
@@ -171,8 +173,9 @@ but not used as a verdict; "prior-bounded" is attached to whatever remains.
 number of points; the ratio and R3 central root at the posterior median θ; the same probabilities
 for σ_cal = 0.5 and 0.9 (separate chains; as in section 4 step 7, the z = 14–15 σ used for R2 equals
 σ_cal) and for a fit that adds the four faint lensing rows (the upper limit as a one-sided Gaussian,
-1σ at 0.068), each with the same sampling, propagation and labels (the faint-row fit has 19 points,
-the limit counted as one, plus the prior point, minus 5 parameters: 15 degrees of freedom).
+1σ at 0.068, entering as a Gaussian term with data value 0 and σ = 0.068, i.e. residual
+f·φ_model/0.068; in the bootstrap it is redrawn as max(0, N(f·φ_model, 0.068))), each with the same
+sampling, propagation, fit-quality test and labels.
 
 ## 3. Data (with size estimate)
 
