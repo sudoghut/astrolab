@@ -12,6 +12,8 @@
 
 ## 2026-11
 
+- [x] **T-023** M2：CCHP 的 10 个宿主对其余 27 个宿主，加入逐宿主随机效应的预注册判定 · 完成 2026-11-16 · PR #24 · 计划 [021](design/021-plan_m02-host-level-random-effect-for-the-cchp-host-selection-shift.md) — REML 给出宿主级随机效应 0.077 mag，CCHP 宿主一步为 −0.062 ± 0.040 mag（z = −1.53），预注册判定为"未检出宿主选择效应"（标题判定）；独立审稿：判定处在刀刃上（τ ≈ 0.03 时翻转），后续检验登记为 T-032。
+
 - [x] **T-019** M5：银河系厚盘早期形成（亚巨星年龄） · 完成 2026-11-16 · PR #19 · 计划 [019](design/019-plan_m05-thick-disc-early-formation-subgiant-age-metallicity-sequence.md) — 论文研究（Wiki、Lean、预注册、M0 去卷积与模拟校准）：R2 的 13 Gyr 均值复现（12.93 Gyr；年龄标尺包络 0.7–1.1 Gyr 与到大爆炸的 0.87 Gyr 余量相当）；R1 无法判定；R3/R4 与内禀离散无法判定（独立审稿事后发现 S15 选择项设定错误，重新检验登记为 T-031）；Lean 有三个缺口。
 
 - [x] **T-022** M1：在 R2 的拟合点用 CAMB 核对 θ* 标定，判断 R2 是否依赖压缩 CMB 先验的 ωbc 约定 · 完成 2026-11-16 · PR #23 · 计划 [020](design/020-plan_m01-camb-theta-star-check-of-desi-compressed-cmb-prior-r2.md) — 预注册附录 R2-CAMB：锚定与原始 CAMB θ* 下两种解读的判定都不变（Δχ² 移动 −0.002 到 −0.125），R2 对 θ* 标定稳健、确实依赖 ωbc 约定；独立审稿发现（事后）先验来源与解读 A 一致，后续登记为 T-030。
