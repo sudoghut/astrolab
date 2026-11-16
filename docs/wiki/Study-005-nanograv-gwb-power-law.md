@@ -373,11 +373,11 @@ L8 uses 14. The KDE grid range and the off-grid rule make no difference (checked
 
 ### Changelog
 
+Newest first.
+
 - 2026-11-16: a blind pre-registered DMX-versus-DMGP comparison (T-024) is not possible: the v2.0.0
   product has no DMGP free spectrum and the only one (v1.1.0) was already explored post hoc; the
   noise-model caveat above stays a post-hoc result.
-Newest first.
-
 - 2026-11-15: independent referee: noise-model (DMGP), data-version and R4 caveats added after "What we found"; `mod_holo` relabelled as GAP `gap_holo`; `num_overlap` notes the substitution of our 14-bin interval for L37's own amplitudes.
 - 2026-11-15: results: Part 3 result column and "What we found" (R1 consistent, q = 0.979, R2b binding holds, R3 not evaluable as pre-registered with a post-hoc comparison, R4 ln BF 2.37).
 - 2026-11-14: first version: parts 1–3 (pre-registration source; plan `design/014-plan_*`).
@@ -606,9 +606,9 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 ### 研究进展
 
-- 2026-11-16：无法做盲的、预注册的 DMX 与 DMGP 比较（T-024）：v2.0.0 数据产品没有 DMGP 自由谱，唯一的一个（v1.1.0）已经做过事后探索；上面关于噪声模型的保留意见仍是事后结果。
 按时间倒序。
 
+- 2026-11-16：无法做盲的、预注册的 DMX 与 DMGP 比较（T-024）：v2.0.0 数据产品没有 DMGP 自由谱，唯一的一个（v1.1.0）已经做过事后探索；上面关于噪声模型的保留意见仍是事后结果。
 - 2026-11-15：独立审稿：在"我们的发现"之后补上噪声模型（DMGP）、数据版本与 R4 的保留意见；`mod_holo` 改标为 GAP `gap_holo`；`num_overlap` 注明以我们的 14 频率区间替代 L37 自己的振幅。
 - 2026-11-15：结果：第三部分"结果"一列与"我们的发现"（R1 一致，q = 0.979，R2b 绑定成立，R3 按预注册不可评估、另有事后比较，R4 ln BF 2.37）。
 - 2026-11-14：第一版：第一至三部分（预注册的来源；计划 `design/014-plan_*`）。
