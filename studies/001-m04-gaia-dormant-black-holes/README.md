@@ -1,5 +1,7 @@
 # M4: Gaia dormant black holes - DR3 reproduction and DR4-ready screen
 
+> 中文：[README.zh.md](README.zh.md)
+
 > Sections 1-4 were written on 2026-11-11 BEFORE run.py (pre-registration).
 > Later edits to them must carry a dated note.
 

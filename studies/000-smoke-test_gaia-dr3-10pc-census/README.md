@@ -1,5 +1,7 @@
 # Smoke test: Gaia DR3 census of the 10 pc neighbourhood
 
+> 中文：[README.zh.md](README.zh.md)
+
 ## 1. Question
 
 Does the environment work end to end on real data? This is an engineering check,

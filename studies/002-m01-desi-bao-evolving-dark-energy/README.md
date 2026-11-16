@@ -1,5 +1,7 @@
 # M1: DESI DR2 BAO and evolving dark energy
 
+> 中文：[README.zh.md](README.zh.md)
+
 > Sections 1-4 were written on 2026-11-14 BEFORE run.py and before any data were fetched
 > (pre-registration; derived from part 3 of the wiki article
 > [Study-002](https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-002-desi-bao-evolving-dark-energy.md)

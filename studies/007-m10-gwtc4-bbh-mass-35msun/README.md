@@ -1,5 +1,7 @@
 # M10 GWTC-4.0 BBH mass spectrum: the 35 Msun feature and the event sample
 
+> 中文：[README.zh.md](README.zh.md)
+
 > Sections 1-4 were written on 2026-11-15 BEFORE run.py and before any data were fetched
 > (pre-registration; derived from part 3 of the wiki article
 > [Study-007](https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-007-gwtc4-bbh-mass-35msun.md)

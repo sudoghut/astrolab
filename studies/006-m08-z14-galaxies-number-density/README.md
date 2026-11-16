@@ -1,5 +1,7 @@
 # M8 z ~ 14 galaxies: number density and the UV scatter a constant-efficiency model needs
 
+> 中文：[README.zh.md](README.zh.md)
+
 > Sections 1-4 were written on 2026-11-15 BEFORE run.py and before any computation
 > (pre-registration; derived from part 3 of the wiki article
 > [Study-006](https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-006-z14-galaxies-number-density.md)

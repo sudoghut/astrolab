@@ -1,5 +1,7 @@
 # Wide binaries: Newton or MOND at low acceleration?
 
+> 中文：[README.zh.md](README.zh.md)
+
 > Sections 1-4 are the pre-registration (derived from part 3 of the wiki article
 > [Study-004](https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-004-wide-binaries-newton-or-mond.md)
 > and design plan 013). Because the Gaia archive is offline 2026-11-25 to 12-02, data are fetched in
