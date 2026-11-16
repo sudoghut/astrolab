@@ -201,7 +201,8 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
    bin to the next). These counts lie at larger x than C26's Fig. 8, a velocity-free sign of the x
    convention issue listed under systematics; no edge, x definition or merge rule is changed in
    response (section 2 forbids it). Before step A, only server-side pair counts under the earlier
-   velocity-cap guard were run (plan 013); no velocity value has been fetched. *(End of note.)*
+   velocity-cap guard were run (plan 013); no velocity value has been fetched (A1's `rv_method_used` is
+   the availability flag listed in the section 3 table, not a velocity, and is not used). *(End of note.)*
    Both stars with radial velocities and |ΔRV| < 10 km/s; σ(ṽ) < 0.1; ṽ ≤ 2.5.
 6. **Statistics.** Section 2 definitions; bootstrap covariance; GLS fits for A.
 7. **Parameters (`PARAMS` in run.py, saved with the results):** a0, bins, bootstrap count and seed,
