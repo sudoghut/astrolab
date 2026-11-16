@@ -8,7 +8,7 @@ description: Write a report on one study or on the state of the project for a hu
 Rules live in `AGENTS.md` (pre-registration, bilingual text and exploration in section 2;
 completion criteria in section 5); principles in `design/000-principles_*` (provenance,
 negative results recorded). This skill is the order of work and the checklist. A report adds no
-analysis: a question the results do not answer goes to chat exploration or a new TODO item.
+analysis: name a question the results do not answer as open (README section 7 holds them).
 
 ## 1. Scope and freshness
 
@@ -19,7 +19,8 @@ analysis: a question the results do not answer goes to chat exploration or a new
   `results/run_info.json` (`git log -1 --format=%H -- <study>/results/run_info.json`); no later
   commit changed the study's code (`run.py` and the `.py` modules beside it) or the `astrolab/`
   modules it uses (`git log <commit>..HEAD -- <files>` is empty), `git status` shows them clean,
-  and the saved `params` (where the study saves them) equal the current `PARAMS`. Do not compare
+  and the `params` saved with the results (AGENTS.md section 2; in `summary.json` or similar) equal
+  the current `PARAMS`. Do not compare
   timestamps: results are committed after the run. An edit committed together with the results
   cannot be seen this way; say so if it matters. If stale, say so in the report. Rerun only if
   the user asks: a formal run can take hours and rewrites committed `results/`, so it goes on a
@@ -35,11 +36,11 @@ analysis: a question the results do not answer goes to chat exploration or a new
 
 - `README.md` sections 1-4 (question, criteria as frozen, with dated amendments), 5 (results),
   6 (referee notes), 7 (open questions); `study.yaml` (status, claims).
-- `results/*.json`: every number in the report comes from here, with its uncertainty and the
-  file and key it came from (e.g. `r2.json: primary.mu`). Do not round away the uncertainty or
+- `results/*.json`: every number in the report comes from here, with its uncertainty where the
+  results give one, and the file and key it came from (e.g. `r2.json: primary.mu`). Do not round away the uncertainty or
   quote a number that is only in prose.
-- `results/provenance.json` (per input: `request`, `release`, `label`, `rows` for TAP, `bytes`,
-  `retrieved_at`, `sha256`) and `run_info.json` (`finished_at`, `seconds`).
+- `results/provenance.json` (per input, the fields present: `request`, `retrieved_at`, and where
+  recorded `release`, `label`, `rows`, `bytes`, `sha256`; report a missing field as missing) and `run_info.json` (`finished_at`, `seconds`).
 - Linked claims in `atlas/claims/`: `reproduction.quantities` (paper versus ours), `grade`.
 - `log.md` for dead ends and decisions; the wiki article (part 3) for paper studies. Numbers from
   chat exploration (`log.md`, `explore/`) are labelled as exploration, never as formal results,
@@ -58,6 +59,8 @@ For a study, in this order:
 4. Everything decided after seeing data: dated amendments and post-hoc analyses, labelled as such.
 5. Referee points and accepted limitations; what would change the conclusion.
 6. Open questions; how to reproduce (`python -m astrolab run <id>`) and explore (README section 8).
+7. Completion: which AGENTS.md section 5 criteria are met and which are not yet (for example no
+   referee yet, wiki not synced, Lean test skipped). A report does not complete a study.
 
 For a project report: one line per study (status, headline verdict, date), blocked items with the
 reason, upcoming dates, and the TODO items next in line.
@@ -71,6 +74,7 @@ written to the project.
 
 - Default: in chat. A report meant to be kept goes where it will be maintained: the study README
   or the wiki article (on a branch, through a PR; for the wiki, the sync and publish steps of the
-  `paper-study` skill), not a new file elsewhere in the project.
+  `paper-study` skill; languages per the AGENTS.md section 2 bilingual rules), not a new file
+  elsewhere in the project.
 - If the user wants a standalone document, write it outside the project directory (or publish it
   with the agent's own tools) and say where it is.
