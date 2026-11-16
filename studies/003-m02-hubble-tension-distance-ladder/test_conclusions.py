@@ -188,3 +188,14 @@ def test_reml_tau_grid_refinement_and_interval():
     assert flat["interval_68"][1] == "> 0.5"
     dec = run.reml_tau(lambda t: -t, 0.5, 0.01)
     assert dec["at_upper_bound"]
+
+
+def test_fit_failure_classification():
+    """Offline: only the pre-registered fit failures make R2-RE 'not evaluable (fit)'."""
+    import numpy as np
+    run = _run_module()
+    assert run.is_fit_failure(np.linalg.LinAlgError("x"))
+    assert run.is_fit_failure(ValueError("C is not positive definite: 2-th leading minor"))
+    assert run.is_fit_failure(ValueError("L^T C^-1 L is rank deficient (min/max eigenvalue 1e-20)"))
+    assert not run.is_fit_failure(ValueError("y has shape (3,), expected (4,)"))
+    assert not run.is_fit_failure(RuntimeError("nested-variance identity failed"))

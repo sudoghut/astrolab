@@ -287,6 +287,17 @@ def shift_vector(res_sub, rows_sub, res_full, rows_full, col=C_H0):
 
 
 # ---------------------------------------------------------------- R2-RE (addendum 2026-11-16)
+_FIT_FAILURES = ("is not positive definite", "rank deficient")
+
+
+def is_fit_failure(exc):
+    """The pre-registered 'not evaluable (fit)' cases: V not positive definite or a rank-deficient
+    normal matrix (numpy LinAlgError, or infer.gls's ValueError for those two cases). Any other
+    error is a bug and propagates."""
+    return isinstance(exc, np.linalg.LinAlgError) or (
+        isinstance(exc, ValueError) and any(m in str(exc) for m in _FIT_FAILURES))
+
+
 def with_re(C, groups, tau):
     """V = C + tau^2 sum_j h_j h_j^T (h_j: indicator of the row indices in groups[j])."""
     V = C.copy()
@@ -432,7 +443,9 @@ def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks,
 
     try:
         est = estimate(calib_groups)
-    except np.linalg.LinAlgError as e:
+    except (np.linalg.LinAlgError, ValueError) as e:
+        if not is_fit_failure(e):
+            raise
         out.update(status=f"not evaluable (fit: {e})", anchor_status=anchor_status)
         return out
     out["reml"] = est
@@ -446,7 +459,9 @@ def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks,
     try:
         V = with_re(C, calib_groups, tau)
         hs, res_aV = host_step_under(L, y, V, rows_a, rows_s)
-    except np.linalg.LinAlgError as e:      # V not positive definite numerically; other errors propagate
+    except (np.linalg.LinAlgError, ValueError) as e:   # pre-registered fit failures only
+        if not is_fit_failure(e):
+            raise
         out.update(status=f"not evaluable (fit: {e})", tau_hat=tau, anchor_status=anchor_status)
         return out
     v = host_step_verdict(hs["z"], hs["shift"], hs["shift_sigma"], P["host_ref"], P["host_ref_extra"])
