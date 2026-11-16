@@ -28,12 +28,15 @@ def ours() -> set[str]:
 def main(ctx):
     path = ctx.http(TABLES_URL, label="GWTC-3 population tables (Zenodo 11254021)", suffix=".tar.gz",
                     max_bytes=1024**2)
-    members, found = [], {}
+    members, found, total = [], {}, 0
     with tarfile.open(path, "r:gz") as tar:
         for m in tar.getmembers():
             members.append({"name": m.name, "size": m.size})
             if not m.isfile() or m.size > 1024**2:
                 continue
+            total += m.size
+            if total > 4 * 1024**2:          # a table archive is kilobytes; refuse anything larger
+                raise RuntimeError("table archive larger than expected when uncompressed")
             text = tar.extractfile(m).read().decode("utf-8", "replace")
             names = sorted(set(NAME.findall(text)))
             if names:
