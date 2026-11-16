@@ -27,6 +27,8 @@ and concludes that there is "no substantial evidence for a discrepancy" (Sec. VI
    approximation give in the full parameter space?
 5. **R5 (descriptive).** Where do the published S8 summaries of other probes, and of the
    previous generation, sit relative to the same CMB chain?
+6. **R6 (added 2026-11-16, section 2.6).** Does a normalizing-flow estimate over the six sampled
+   ΛCDM parameters reproduce D26's full-space 1.8σ?
 
 ## 2. Hypotheses and decision criteria
 
@@ -174,6 +176,60 @@ Y3 3x2pt (0.776 ± 0.017), KiDS-1000 3x2pt (0.766 +0.020/−0.014) and cosmic sh
 combination includes Planck lensing and BAO, eROSITA's mass calibration uses weak lensing) and S8
 with exponent 0.5 is not each probe's best-constrained direction. These n_σ are a uniform
 approximation and are not comparable with the significances in the probes' own papers.
+
+### 2.6 Addendum 2026-11-16: R6-FLOW, the full-space difference with normalizing flows (T-027, plan 024)
+
+Written before any normalizing flow was trained on the chains (the tensiometer API was inspected
+on its source code only). It adds one verdict, R6, and changes nothing above.
+
+**What D26 states and what it does not** (arXiv:2601.14559v2, read 2026-11-16): the full-space
+number is 1.8σ for 3x2pt against the CMB (Table 6, PTE 0.08), computed with eqs. 17–19 where the
+density P̂ of the parameter difference is "given by the normalizing flow model", "executed by the
+tensiometer code"; the ΛCDM model has the six free parameters As, Ωm, h, Ωb, ns and Σmν (Sec. IV.1,
+Table 3). D26 does not state which parameters enter the full-space difference, the flow settings,
+the number of flows, or an uncertainty on 1.8σ. The parameter set below is therefore our
+reconstruction.
+
+**Parameters.** The six parameters of the R4 full-space item ("all" variant), as mapped from the
+chain headers: `cosmological_parameters--a_s_1e9`, `--h0`, `--mnu`, `--n_s`, `--omega_b`,
+`--omega_m` (both chains sample them; they are D26's six free ΛCDM parameters). Same chains, rows,
+weights and burn-in as R2 (the DES 3x2pt and CMB chains; the R1 gate applies).
+
+**Estimator.** tensiometer 1.1.0, run in the separate environment of T-027 (TensorFlow 2.21,
+TensorFlow Probability 0.25), with its defaults unless stated here:
+1. Build getdist `MCSamples` for each chain from the six columns and the chain weights.
+2. The difference chain: `parameter_diff_chain(DES, CMB, boost=1)` (Δθ = θ_DES − θ_CMB).
+3. Train a flow with `flow_from_chain(diff_chain)` (tensiometer's default architecture and training
+   schedule; the exact default settings are written into the results), then
+   `estimate_shift(flow, tol=0.02, max_iter=1000, step=100000)`, which compares the flow density of
+   flow samples with the flow density at Δθ = 0 (eq. 18) and returns the probability Δ with a
+   Clopper–Pearson interval; n_σ = √2 erf⁻¹(Δ) (eq. 19).
+4. Five independent repetitions with seeds 0–4 (numpy and TensorFlow seeded before step 2, so the
+   pairing of the difference chain and the flow training both change with the seed). n̄ = mean of the
+   five n_σ, s = their standard deviation.
+
+**Validation (in the same run, before the verdict).** The same pipeline (steps 1–4) on the 1-D S8
+difference and on the 2-D (S8, Ωm) difference, compared with this study's binned-KDE R2 values from
+`results/r2.json` (mean over seeds): if either flow n̄ differs from the KDE value by more than 0.15,
+the flow is not validated on these chains and R6 is "not evaluable".
+
+**Verdict (R6).**
+- "Reproduced" if |n̄ − 1.8| ≤ 0.15 + 2s (the 0.15 allowance as in R2: D26's unquoted flow noise and
+  the rounding to 0.1); otherwise "not reproduced".
+- "Not evaluable" if the validation fails, if s > 0.15, if any repetition fails or returns a
+  non-finite n_σ, if any `estimate_shift` stops at `max_iter` without reaching the tolerance, or if
+  the R1 gate fails. No rerun with other settings.
+- An n_σ that `estimate_shift` reports at its Monte Carlo floor (Δ = 1) is a lower bound and is
+  reported as such.
+
+**Reported, not decisive.** The same flow n_σ for the two data-constrained parameters of R4
+(`a_s_1e9`, `omega_m`); each repetition's Δ with its Clopper–Pearson interval and training time;
+the R4 Gaussian values (0.89σ and 0.32σ) next to the flow values. D26 does not say how it treats
+the different prior ranges of the two chains (Table 3: for example h in [0.58, 0.8] for DES); like
+R2, R6 uses the chains as they are, with no prior flow and no truncation.
+
+**Data.** No new download: the two chains are read from the cache through `ctx.http`
+(charged 156 MiB against the 200 MiB budget, as in the existing run).
 
 ## 3. Data (with size estimate)
 
