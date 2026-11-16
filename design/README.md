@@ -45,6 +45,7 @@ NNN-<类型>_<核心内容>.md
 | 018 | plan | [M6：银河系外区旋转曲线下降——显著性、质量模型与系统误差](018-plan_m06-milky-way-outer-rotation-curve-decline-and-mass-model-systematics.md) | 已完成 |
 | 019 | plan | [M5：厚盘早期形成——亚巨星年龄–金属丰度序列的复现与年龄标尺系统误差](019-plan_m05-thick-disc-early-formation-subgiant-age-metallicity-sequence.md) | 已完成 |
 | 020 | plan | [M1：用 CAMB 核对 R2 的 θ* 标定（研究 002）](020-plan_m01-camb-theta-star-check-of-desi-compressed-cmb-prior-r2.md) | 已完成 |
+| 021 | plan | [M2：用宿主级随机效应重新检验 CCHP 宿主选择造成的 H0 移动（研究 003）](021-plan_m02-host-level-random-effect-for-the-cchp-host-selection-shift.md) | 执行中 |
 
 ## 术语约定
 

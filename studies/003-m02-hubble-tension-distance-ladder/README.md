@@ -100,6 +100,44 @@ the early-universe reference is the CMB-only 67.19 ± 0.38 (arXiv:2506.20707); T
 asymmetric error is taken on the side facing the other value. SH0ES, H0DN and CCHP share data:
 their values are listed as "not independent, not interpreted" and are not averaged.
 
+### Addendum 2026-11-16: R2-RE, host step with a host-level random effect (T-023, plan 021), pre-registered before any random-effect fit
+
+*Why.* R2's host step uses errors propagated from C. Across random 10-host subsets (R4) the ratio
+Δ/σ scatters by 1.33 rather than 1, which suggests that C understates host-to-host scatter; with
+σ inflated by that factor the verdict table would flip (referee point 1, section 6). Inflating by
+an empirical spread is post hoc; this addendum fixes a model-based test in advance.
+
+*Seen before this addendum.* All results in sections 5 and 6 (R1-R4, the 1.33 spread, the CCHP
+host shift −0.0730 ± 0.0331 mag, z = −2.21). No random-effect variance has been estimated or
+tried.
+
+*Model.* In the NGC 4258-only system (R2's anchor-step rows), each calibrator host j gets an
+additive offset shared by all its calibrator SN rows (rows with a non-zero in the M⁰_B column and
+in exactly one host column, `row_classes`' `calib`), Gaussian with variance τ²:
+V(τ) = C + τ² Σ_j h_j h_jᵀ, where h_j is the indicator of host j's calibrator SN rows. Cepheid,
+anchor, Hubble-flow and constraint rows are unchanged. τ is one number for all 37 hosts.
+
+- **Estimate.** τ̂ by restricted maximum likelihood (REML) on the 37-host NGC 4258-only system:
+  minimise −2ℓ_R(τ) = log det V + log det(Xᵀ V⁻¹ X) + rᵀ V⁻¹ r, X = the fitted columns of L on those
+  rows, r the GLS residual under V; bounded scalar minimisation over τ ∈ [0, 0.5] mag
+  (`scipy.optimize.minimize_scalar`, method "bounded", xatol 10⁻⁴). The 68% interval is where
+  −2ℓ_R rises by 1 from its minimum (clipped at 0). τ̂ at the lower bound (< 10⁻³ mag) means no
+  excess host scatter: then V = C and R2-RE equals R2.
+- **Host step under V(τ̂).** As R2's host step with C replaced by V(τ̂) in both fits and in the
+  shift variance: Δ_h' = 5 log H0(10 CCHP hosts) − 5 log H0(37 hosts), σ_h'² = a'ᵀ V a', z' = Δ_h'/σ_h',
+  same host labelling as the 2026-11-14 run (the amended one, section 4 note).
+- **Rule.** R2's verdict table unchanged (z' ≤ −2 with |Δ_h' − (−0.0405)| ≤ 2σ_h' + 0.02 → "supports
+  the paper"; z' ≤ −2 otherwise → "different size"; |z'| < 2 → "no host-selection effect
+  detected"; z' ≥ 2 → "raises H0").
+- **Validity.** The REML minimum must be interior or at the lower bound (τ̂ = 0.5 is reported as
+  "not evaluable (bound)"); both GLS fits must succeed with V positive definite.
+- **Reported, not decisive.** z' at the upper end of the τ interval; R4 rerun under V(τ̂) (same
+  draws, seed and guard as R4): the spread of Δ/σ' (near 1 if the random effect absorbs the excess
+  scatter) and the CCHP percentiles.
+- **Interpretation fixed now.** R2's recorded verdicts stay as they are (pre-registered, C errors).
+  R2-RE is the pre-registered answer to whether the host-selection shift is significant once
+  host-level scatter is modelled; section 5 will lead with it if it differs from R2.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
