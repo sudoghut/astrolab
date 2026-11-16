@@ -331,6 +331,38 @@ The robust statement is therefore narrower: an independent constant-SFE model ca
 pre-JWST z ≈ 8 LF predicts more z = 14–15 galaxies than N26's baseline (2.5–37× across the pre-registered variant grid, mostly > 3×; 1.9–99× including the post-hoc explorations), and the
 σ_UV it needs lies around 1–2 mag, with no stable verdict on overlap with N26's 1.5–2 mag.
 
+**R2/R3-POST (2026-11-16; pre-registered in the section 2 addendum, plan 022).** Calibration on the
+binned Bouwens et al. 2021 z ~ 8 LF (7 points) and the Bouwens et al. 2022 lensing rows (8 points; 4
+faint rows only in the sensitivity fit), with a lensing normalisation f, emcee with 32 walkers,
+100,000 steps, the first 20,000 discarded; 500 posterior draws propagated through the fiducial model
+(`results/post.json`; run time 54 min, no data downloaded).
+
+| Fit | τ_max (50 τ ≤ 80,000?) | data χ² (points); bootstrap p | P(R2 higher) | R2 label | P(R3 consistent with N26) | R3 label | ratio to N26 baseline, 16–50–84% |
+|---|---|---|---|---|---|---|---|
+| primary (σ_cal = 0.7) | 578 (yes) | 4.6 (15); 0.955 | 1.000 | **robust (higher)** | 0.962 (P − 2SE = 0.945) | **calibration-uncertain (borderline)** | 7.5–10.5–14.2 |
+| σ_cal = 0.5 | 562 (yes) | 4.6 (15); 0.955 | 0.994 | robust (higher) | 0.856 | calibration-uncertain | 5.1–7.2–9.6 |
+| σ_cal = 0.9 | 637 (yes) | 4.6 (15); 0.960 | 1.000 | robust (higher) | 0.998 | robust (consistent with N26) | 11.6–16.5–21.7 |
+| + 4 faint lensing rows | 584 (yes) | 6.8 (19); 0.945 | 1.000 | robust (higher) | 0.930 | calibration-uncertain | 7.5–10.2–13.5 |
+
+n_eff = 500 in every fit (32 × 80,000 / τ_max ≥ 4000), so SE = √(P(1 − P)/500). No fit is a model
+misfit (all bootstrap p ≥ 0.945, none of the 200 refits failed) and none is prior-bounded; the largest
+bound fraction is γ at its lower bound in the primary fit, 0.050, exactly at the 5% line (the rule
+is "more than 5%"). All draws were evaluable for R3. Posterior medians (primary, 16–84%): ε₀ = 0.021
+(0.016–0.025), log₁₀ M₁ = 10.98 (10.11–11.71), β = 0.48 (0.24–1.11), γ = 0.49 (0.12–1.64), f = 1.08
+(0.91–1.25); γ is far lower than the fiducial point fit's 1.98, so the posterior median relation is
+monotonic. At the posterior median θ the ratio is 7.4 and the central root 1.54 mag [1.27, 1.78];
+over the draws the central root is 1.49 mag (16–84%: 1.37–1.67).
+
+Reading. R2 "higher" is robust to the uncertainty of the z ≈ 8 calibration data in every fit (the
+5th percentile of the ratio is 5.9 in the primary fit, 4.3 with σ_cal = 0.5). R3 is not settled:
+P(consistent with N26) is 0.96 in the primary fit, just short of the pre-registered margin, and
+moves from 0.86 to 1.00 with σ_cal, so the overlap verdict depends on the scatter assumed at
+calibration. Both statements are conditional on the fiducial ingredients (Sheth–Tormen, the "dpl"
+extrapolation of ε, no dust), which section 4 showed decide R3 and set most of R2's spread; the
+posterior covers the LF calibration uncertainty only. The post-hoc one-at-a-time shifts in the
+referee section (φ* −1σ: ratio 1.9) were more extreme than the joint posterior: the binned data
+constrain the combination that matters, and the 5th–95th percentile range of the ratio is 5.9–17.6.
+
 ## 6. Referee notes
 
 Independent referee (2026-11-15; a subagent given the code, pre-registration and results, not our
@@ -369,9 +401,10 @@ reading). It checked the physics line by line and found no code bugs. Triage:
 
 ## 7. Open questions
 
-- Propagate the z ≈ 8 LF uncertainty (binned data with errors, including faint lensing-field
-  points that constrain ε at 10^9–10^10 M☉) into distributions of the R2 ratio and the σ roots
-  (T-025).
+- The z ≈ 8 LF uncertainty is now propagated (R2/R3-POST, section 5): R2 is robust to it, R3 is
+  borderline and depends on σ_cal. The remaining R3 drivers are model ingredients the posterior
+  does not cover: the extrapolation of ε below the calibrated range, the halo mass function and
+  dust at z ≈ 8.
 - How large is cosmic variance for two sources in 388 arcmin² at z ≈ 14 (`gap_poisson`), and what is
   the full effective area (`gap_area`)?
 
