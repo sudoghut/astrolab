@@ -333,7 +333,7 @@ How a coding agent answers "what if" questions about this study without touching
   `R2_L`; `not_run`), `variants.json` (per variant: `N`, `counts_raw`, `counts`, `medians`, `x_median`,
   `reproduction` (MAD/√N fits), `primary` (bootstrap fit: `L`, `dchi2`, `p_newton`, `boot_errors`,
   `boot_over_mad`, `redraw_fraction`, `verdict`), `cut_trace`), `step_a.json` (step-A counts, HR c),
-  `provenance.json` (every query).
+  `provenance.json` (every query; templated format, read it with `astrolab.provenance.expand`).
 - Example questions: "Does a 500 AU r_sky floor bring the counts closer to C26?" → `--set rsky_min_au=500`.
   "How does the verdict depend on the bootstrap?" → `--set n_boot=5000 --set boot_seed=1`.
   "What if a0 = 1.0e-10?" → `--set a0=1.0e-10`. The velocity-free occupancy check:

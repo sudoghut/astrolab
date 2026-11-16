@@ -25,5 +25,7 @@ def test_density_covers_full_sky():
 
 
 def test_provenance_recorded():
-    prov = load("provenance")
+    from astrolab.provenance import expand
+
+    prov = expand(load("provenance"))      # either the plain or the templated format
     assert all("request" in r and "sha256" in r for r in prov["inputs"])
