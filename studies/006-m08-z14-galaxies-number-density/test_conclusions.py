@@ -75,3 +75,49 @@ def test_robustness_rederived():
 def test_result_files_small():
     for path in RESULTS.glob("*.json"):
         assert path.stat().st_size < 1024 ** 2, path.name
+
+
+def _post_label(probs, n_eff, thr=0.95):
+    best = max(probs, key=probs.get)
+    p = probs[best]
+    se = (p * (1 - p) / n_eff) ** 0.5
+    if p - 2 * se >= thr:
+        return f"robust to the calibration uncertainty ({best})"
+    return "calibration-uncertain (borderline)" if p >= thr else "calibration-uncertain"
+
+
+def test_r23_post_rules():
+    """R2/R3-POST (README section 2, addendum 2026-11-16): probabilities, Monte Carlo rule, labels and
+    their precedence recomputed from the saved per-draw verdicts."""
+    post = load("post")
+    for name, fit in post.items():
+        r2v, r3v = fit["r2_verdicts"], fit["r3_verdicts"]
+        n = len(r2v)
+        assert n == 500, name
+        for ratio, v in zip(fit["ratios"], r2v):
+            exp = "same order as N26's baseline" if 1 / 3 <= ratio <= 3 else ("higher" if ratio > 3 else "lower")
+            assert v == exp
+        p2 = {k: r2v.count(k) / n for k in ("higher", "same order as N26's baseline", "lower")}
+        assert p2 == fit["r2_probabilities"] and abs(sum(p2.values()) - 1) < 1e-12
+        ev3 = [v for v in r3v if v != "not evaluable"]
+        n_eff_chain = 32 * fit["n_post_steps"] / max(fit["tau"])
+        assert abs(fit["n_eff"] - min(n, n_eff_chain)) < 1e-6
+        assert fit["converged"] == (fit["n_post_steps"] >= 50 * max(fit["tau"]))
+        bounded = any(max(b["lower"], b["upper"]) > 0.05 for b in fit["bound_fractions"].values())
+        assert fit["prior_bounded"] == bounded
+
+        def label(probs, evaluable, n_draws):
+            if not fit["converged"] or not evaluable:
+                return "not evaluable"
+            lab = _post_label(probs, min(n_draws, n_eff_chain))
+            if fit["lsq"]["p_bootstrap"] < 0.01:
+                lab = "model misfit (probabilities reported, not a verdict)"
+            return lab + ("; prior-bounded" if bounded else "")
+        assert fit["r2_label"] == label(p2, True, n), name
+        if ev3:
+            p3 = {k: ev3.count(k) / len(ev3) for k in ("consistent with N26", "different")}
+            assert p3 == fit["r3_probabilities"]
+            assert fit["r3_label"] == label(p3, len(ev3) >= 0.9 * n, len(ev3)), name
+    s = load("summary")
+    assert s["R2_post"]["r2_label"] == post["primary"]["r2_label"]
+    assert s["R3_post"]["r3_label"] == post["primary"]["r3_label"]

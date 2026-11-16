@@ -51,6 +51,10 @@ PARAMS = {
         "eps_extrap": ["dpl", "const"],
     },
     "run_variants": True,
+    # R2/R3-POST (README section 2, addendum 2026-11-16)
+    "post_check": True, "post_walkers": 32, "post_steps": 100000, "post_burn": 20000, "post_draws": 500,
+    "post_seed": 0, "post_tau_factor": 50, "post_p_threshold": 0.95, "post_r3_min_frac": 0.9,
+    "post_misfit_p": 0.01, "post_bound_frac": 0.05, "post_sensitivity": True,
     # exploration-only knobs (README section 8); defaults leave the pre-registered analysis unchanged
     "completeness": 1.0,
     "area_factor": 1.0,
@@ -380,5 +384,138 @@ def main(ctx):
                                            "verdict_volume", "p_tail_n26_ppm", "p_tail_ratio100_ppm")},
                "r2": {k: r2.get(k) for k in ("phi_ours", "ratio_to_n26", "verdict", "robustness")},
                "r3": {k: r3.get(k) for k in ("verdict", "robustness")}}
+    if P["post_check"]:
+        post = {"primary": r23_post(ctx, S, P, phi_obs, phi_n26, P["sigma_cal"], faint=False)}
+        if P["post_sensitivity"]:
+            for name, sc, faint in (("sigma_cal_0.5", 0.5, False), ("sigma_cal_0.9", 0.9, False),
+                                    ("faint_rows", P["sigma_cal"], True)):
+                post[name] = r23_post(ctx, S, P, phi_obs, phi_n26, sc, faint=faint)
+        ctx.save("post", post)
+        summary["R2_post"] = {k: post["primary"].get(k) for k in ("r2_label", "r2_probabilities")}
+        summary["R3_post"] = {k: post["primary"].get(k) for k in ("r3_label", "r3_probabilities")}
     ctx.save("summary", summary)
     return summary
+
+
+def post_label(probs, threshold, n_eff):
+    """README section 2, R2/R3-POST: 'robust' if the leading verdict has P - 2 SE >= threshold
+    (SE = sqrt(P(1-P)/n_eff)); 'borderline' if only P >= threshold; else 'calibration-uncertain'."""
+    best = max(probs, key=probs.get)
+    p = probs[best]
+    se = float(np.sqrt(p * (1.0 - p) / n_eff))
+    if p - 2.0 * se >= threshold:
+        return f"robust to the calibration uncertainty ({best})"
+    if p >= threshold:
+        return "calibration-uncertain (borderline)"
+    return "calibration-uncertain"
+
+
+def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):
+    """R2/R3-POST: binned-LF calibration posterior (emcee) propagated to the R2/R3 verdicts."""
+    import emcee
+
+    combo = {"hmf": P["hmf"], "accretion": P["accretion"], "cal": "z8", "sigma_cal": sigma_cal,
+             "eps_extrap": "dpl"}
+    z_cal = inp.BOUWENS21["z8"]["z"]
+    hmf_cal = S.hmf(z_cal, combo["hmf"])
+    lens = inp.BINNED_Z8_LENS + (inp.BINNED_Z8_LENS_FAINT if faint else [])
+    limits = inp.BINNED_Z8_LENS_LIMITS if faint else []
+
+    def resid(x):
+        return zm.binned_residuals(x, S.M, S.lnM, hmf_cal, z_cal, S.c, combo["accretion"], sigma_cal,
+                                   inp.BINNED_Z8_BLANK, lens, limits)
+
+    def logp(x):
+        if not zm.in_box(x):
+            return -np.inf
+        r = resid(x)
+        return -0.5 * float(r @ r)
+
+    lsq = optimize.least_squares(resid, np.array([0.1, 11.5, 1.0, 0.5, 1.0]), bounds=(zm.POST_LO, zm.POST_HI),
+                                 loss="linear", ftol=1e-10, xtol=1e-10, gtol=1e-10, max_nfev=2000)
+    r0 = resid(lsq.x)
+    chi2 = float(r0[:-1] @ r0[:-1])           # data chi2, prior residual excluded
+    rng_b = np.random.default_rng(1)
+    boot = []
+    for _ in range(200):
+        sb, sl, su = zm.simulate_binned(rng_b, lsq.x, S.M, S.lnM, hmf_cal, z_cal, S.c, combo["accretion"],
+                                        sigma_cal, inp.BINNED_Z8_BLANK, lens, limits)
+
+        def resid_b(x, sb=sb, sl=sl, su=su):
+            return zm.binned_residuals(x, S.M, S.lnM, hmf_cal, z_cal, S.c, combo["accretion"], sigma_cal,
+                                       sb, sl, su)
+        rb = optimize.least_squares(resid_b, lsq.x, bounds=(zm.POST_LO, zm.POST_HI), loss="linear",
+                                    ftol=1e-10, xtol=1e-10, gtol=1e-10, max_nfev=2000)
+        fb = resid_b(rb.x)
+        boot.append(float(fb[:-1] @ fb[:-1]))
+    p_fit = float(np.mean(np.array(boot) >= chi2))
+    rng = np.random.default_rng(P["post_seed"])
+    nw = int(P["post_walkers"])
+    width = 1e-3 * (zm.POST_HI - zm.POST_LO)
+    start = np.array([zm.reflect_into_box(lsq.x + rng.normal(0.0, width)) for _ in range(nw)])
+    np.random.seed(int(rng.integers(2 ** 32)))   # emcee 3 copies the global numpy state
+    sampler = emcee.EnsembleSampler(nw, 5, logp)
+    sampler.run_mcmc(start, int(P["post_steps"]), progress=False)
+    burn = int(P["post_burn"])
+    chain = sampler.get_chain(discard=burn)
+    tau = emcee.autocorr.integrated_time(chain, c=5, tol=0)
+    n_post = chain.shape[0]
+    converged = bool(n_post >= P["post_tau_factor"] * float(np.max(tau)))
+    flat = sampler.get_chain(discard=burn, flat=True)
+    idx = np.linspace(0, len(flat) - 1, int(P["post_draws"])).round().astype(int)
+    draws = flat[idx]
+    out = {"combo": combo, "faint_rows": faint, "lsq": {"x": lsq.x.tolist(), "chi2_data": chi2,
+                                                         "p_bootstrap": p_fit, "n_bootstrap": len(boot),
+                                                         "boot_chi2_quantiles": [float(q) for q in
+                                                                                 np.percentile(boot, [5, 50, 95])],
+                                                         "success": bool(lsq.success)},
+           "tau": tau.tolist(), "n_post_steps": n_post, "converged": converged,
+           "acceptance": float(np.mean(sampler.acceptance_fraction)),
+           "posterior": {n: {"median": float(np.median(flat[:, j])),
+                             "p16": float(np.percentile(flat[:, j], 16)),
+                             "p84": float(np.percentile(flat[:, j], 84))}
+                         for j, n in enumerate(["eps0", "log_m1", "beta", "gamma", "f"])},
+           "bound_fractions": zm.bound_fractions(draws)}
+    r2v, r3v, ratios, centrals = [], [], [], []
+    for x in draws:
+        theta = [float(v) for v in x[:4]]
+        fres = run_model(S, P, combo, phi_obs, fixed={"theta": theta, "m_cal_lo": None,
+                                                       "calibration": {"theta": theta, "rms": 0.0}})
+        ratio = fres["phi_ours"] / phi_n26
+        ratios.append(float(ratio))
+        r2v.append(r2_verdict(ratio, P["r2_factor"]))
+        if fres.get("r3_evaluable"):
+            r3v.append(r3_verdict(fres["sigma_roots"], P["r3_target"]))
+            centrals.append(fres["sigma_roots"].get("central"))
+        else:
+            r3v.append("not evaluable")
+    n = len(draws)
+    p2 = {k: r2v.count(k) / n for k in ("higher", "same order as N26's baseline", "lower")}
+    ev3 = [v for v in r3v if v != "not evaluable"]
+    p3 = {k: (ev3.count(k) / len(ev3) if ev3 else None) for k in ("consistent with N26", "different")}
+    if abs(sum(p2.values()) - 1.0) > 1e-9 or (ev3 and abs(sum(p3.values()) - 1.0) > 1e-9):
+        raise RuntimeError(f"verdict labels not all counted: {set(r2v)} {set(r3v)}")
+    bounded = any(max(b["lower"], b["upper"]) > P["post_bound_frac"] for b in out["bound_fractions"].values())
+
+    n_eff_chain = nw * n_post / float(np.max(tau))
+
+    def label(probs, evaluable, n_draws):
+        if not converged or not evaluable:
+            return "not evaluable"
+        lab = post_label(probs, P["post_p_threshold"], min(n_draws, n_eff_chain))
+        if p_fit < P["post_misfit_p"]:
+            lab = "model misfit (probabilities reported, not a verdict)"
+        return lab + ("; prior-bounded" if bounded else "")
+
+    out.update({"r2_verdicts": r2v, "r3_verdicts": r3v, "ratios": ratios,
+                "r2_probabilities": p2, "r3_probabilities": p3,
+                "r3_evaluable_fraction": len(ev3) / n,
+                "n_eff": float(min(n, n_eff_chain)),
+                "r2_label": label(p2, True, n),
+                "r3_label": label(p3, len(ev3) >= P["post_r3_min_frac"] * n, len(ev3)),
+                "ratio_quantiles": [float(q) for q in np.percentile(ratios, [5, 16, 50, 84, 95])],
+                "prior_bounded": bounded})
+    ctx.log(f"R2/R3-POST sigma_cal={sigma_cal} faint={faint}: data chi2 {chi2:.1f} (bootstrap p {p_fit:.3f}), "
+            f"converged {converged} (max tau {np.max(tau):.0f}), R2 {p2} -> {out['r2_label']}; "
+            f"R3 {p3} -> {out['r3_label']}")
+    return out
