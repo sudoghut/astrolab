@@ -221,3 +221,45 @@ def test_unauthorized_detected_through_exception_chain():
         assert fetch._unauthorized(outer)
     assert fetch._unauthorized(Exception("401 Client Error: 401 for url: https://x"))
     assert not fetch._unauthorized(Exception("503 Server Error"))
+
+
+def test_run_tap_relogs_once_with_saved_cookie_on_401(monkeypatch):
+    """A 401 refreshes the session with the cookie loaded from disk (not the live jar, which the
+    server's response may have changed), retries at once in the same mode, and only once."""
+    import pyvo
+    import requests
+
+    from astrolab import gaia_auth
+
+    calls = {"run": 0, "stale": []}
+
+    class _Svc:
+        def __init__(self, url, session=None):
+            self.session = session
+
+        def run_sync(self, q, maxrec=None):
+            calls["run"] += 1
+            if self.session is not None and any(c.value == "dead" for c in self.session.cookies):
+                raise Exception("401 Client Error: 401 for url: https://gea.esac.esa.int/tap-server/tap/sync")
+            return "ok"
+
+    def fake_session(cookie):
+        s = requests.Session()
+        s.cookies.set("JSESSIONID", cookie, domain=gaia_auth.GAIA_HOST)
+        s.cookies.set("JSESSIONID", "server-set", domain=gaia_auth.GAIA_HOST, path="/tap-server")
+        return s
+
+    disk = {"cookies": {"JSESSIONID": "dead"}}
+    monkeypatch.setattr(pyvo.dal, "TAPService", _Svc)
+    monkeypatch.setattr(gaia_auth, "load_cookies", lambda: dict(disk["cookies"]))
+    monkeypatch.setattr(gaia_auth, "session_for", lambda url: fake_session(disk["cookies"]["JSESSIONID"]))
+
+    def refresh(url, stale):
+        calls["stale"].append(stale)
+        disk["cookies"] = {"JSESSIONID": "fresh"}
+        return fake_session("fresh")
+
+    monkeypatch.setattr(gaia_auth, "refresh_session", refresh)
+    url = "https://gea.esac.esa.int/tap-server/tap"
+    assert fetch._run_tap(url, "SELECT 1", 2, "sync") == "ok"
+    assert calls["stale"] == [{"JSESSIONID": "dead"}] and calls["run"] == 2

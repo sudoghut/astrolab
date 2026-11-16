@@ -148,7 +148,8 @@ def _unauthorized(exc: Exception) -> bool:
     e: BaseException | None = exc
     while e is not None:
         resp = getattr(e, "response", None)
-        if getattr(resp, "status_code", None) == 401 or "401 Client Error" in str(e):
+        if (getattr(resp, "status_code", None) == 401 or getattr(e, "code", None) == 401
+                or "401 Client Error" in str(e)):
             return True
         e = e.__cause__ or e.__context__
     return False
@@ -162,7 +163,10 @@ def _run_tap(url: str, query: str, maxrec: int, mode: str):
 
     from . import gaia_auth
 
+    saved = gaia_auth.load_cookies() if gaia_auth.GAIA_HOST in url else None
     session = gaia_auth.session_for(url)   # the user's own Gaia login, if any (longer job limits)
+    if session is not None and saved is None:
+        saved = gaia_auth.load_cookies()   # session_for just logged in from configured credentials
     svc = pyvo.dal.TAPService(url, session=session) if session is not None else pyvo.dal.TAPService(url)
     modes = [mode] + (["async"] if mode == "sync" else [])
     last: Exception | None = None
@@ -172,24 +176,28 @@ def _run_tap(url: str, query: str, maxrec: int, mode: str):
             print(f"  TAP transient error ({last}); retry {attempt}/{len(RETRY_DELAYS)} in {delay}s")
             time.sleep(delay)
         m = modes[min(attempt, len(modes) - 1)] if attempt < 2 else modes[-1]
-        try:
-            if m == "async":
-                return _run_async(svc, query, maxrec)
-            return svc.run_sync(query, maxrec=maxrec)
-        except Exception as exc:  # pyvo raises several DAL* types
-            if session is not None and not relogged and _unauthorized(exc):
-                # saved Gaia cookie no longer valid (e.g. after an archive restart): log in again
-                # once from the configured credentials (or continue anonymously) and retry
-                relogged = True
-                stale = {c.name: c.value for c in session.cookies}
-                session = gaia_auth.refresh_session(url, stale)
-                svc = pyvo.dal.TAPService(url, session=session) if session is not None else pyvo.dal.TAPService(url)
-                print("  TAP 401 with the saved Gaia session; logged in again and retrying")
+        while True:   # runs at most twice: once more after a single re-login on HTTP 401
+            try:
+                if m == "async":
+                    return _run_async(svc, query, maxrec)
+                return svc.run_sync(query, maxrec=maxrec)
+            except Exception as exc:  # pyvo raises several DAL* types
+                if session is not None and not relogged and _unauthorized(exc):
+                    # saved Gaia cookie no longer valid (e.g. after an archive restart): drop it,
+                    # log in again once from configured credentials (else anonymous), retry now
+                    relogged = True
+                    session.close()
+                    session = gaia_auth.refresh_session(url, saved)
+                    saved = gaia_auth.load_cookies()
+                    svc = (pyvo.dal.TAPService(url, session=session) if session is not None
+                           else pyvo.dal.TAPService(url))
+                    print("  TAP 401 with the saved Gaia session; " +
+                          ("logged in again, retrying" if session is not None else "continuing anonymously"))
+                    continue
+                if not _transient(exc):
+                    raise
                 last = exc
-                continue
-            if not _transient(exc):
-                raise
-            last = exc
+                break
     raise RuntimeError(f"TAP service {url} kept failing: {last}")
 
 

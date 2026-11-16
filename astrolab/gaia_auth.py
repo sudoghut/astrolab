@@ -86,9 +86,11 @@ _RELOGIN_LOCK = threading.Lock()
 
 
 def refresh_session(url: str, stale: dict | None):
-    """After an HTTP 401 with the saved cookie `stale`: drop that cookie and build a new session
-    (a fresh non-interactive login when credentials are configured, else anonymous). Threads that
-    hit the same 401 log in once: a cookie that already differs from `stale` is reused."""
+    """After an HTTP 401: `stale` is the saved cookie dict the failing session was built from
+    (load_cookies() at that time, not the live cookie jar, which the server's 401 response may have
+    changed). Drop that cookie and build a new session (a fresh non-interactive login when
+    credentials are configured, else anonymous). Threads that hit the same 401 log in once: a saved
+    cookie that already differs from `stale` is reused."""
     with _RELOGIN_LOCK:
         if load_cookies() == stale:
             try:

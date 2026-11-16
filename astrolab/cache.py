@@ -58,12 +58,25 @@ def get(key: str, suffix: str, root: Path | None = None) -> Entry | None:
 def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path | None = None) -> Entry:
     payload, meta_path = _paths(key, suffix, root)
     payload.parent.mkdir(parents=True, exist_ok=True)
-    # os.replace overwrites atomically (two threads that fetched the same key store identical data;
-    # shutil.move would fail on Windows when the payload already exists)
-    os.replace(src, payload)
-    meta_path.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
+    # meta first (atomically), then the payload: get() needs both, so a reader never sees a payload
+    # with a missing or half-written meta file. Two threads that fetched the same key store
+    # identical data; on Windows os.replace fails while another thread has the target open, and
+    # then the copy already in place is kept.
+    tmp_meta = staging_path(".json", root)
+    tmp_meta.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
+    _replace_or_keep(tmp_meta, meta_path)
+    _replace_or_keep(src, payload)
     prune(root=root)
     return Entry(key, payload, meta_path)
+
+
+def _replace_or_keep(src: Path, dst: Path) -> None:
+    try:
+        os.replace(src, dst)
+    except PermissionError:
+        if not dst.exists():
+            raise
+        Path(src).unlink(missing_ok=True)
 
 
 def staging_path(suffix: str, root: Path | None = None) -> Path:
@@ -80,9 +93,11 @@ def _entries(root: Path) -> list[tuple[float, int, list[Path]]]:
         groups.setdefault(p.name.split(".")[0], []).append(p)
     out = []
     for files in groups.values():
-        atime = max(f.stat().st_mtime for f in files)
-        size = sum(f.stat().st_size for f in files)
-        out.append((atime, size, files))
+        try:                      # another thread may prune or replace files meanwhile
+            stats = [f.stat() for f in files]
+        except OSError:
+            continue
+        out.append((max(s.st_mtime for s in stats), sum(s.st_size for s in stats), files))
     return out
 
 
@@ -108,7 +123,10 @@ def prune(limit_bytes: int | None = None, root: Path | None = None) -> int:
         if total <= limit:
             break
         for f in files:
-            f.unlink(missing_ok=True)
+            try:
+                f.unlink(missing_ok=True)
+            except PermissionError:   # open in another thread (Windows): left for a later prune
+                pass
         total -= size
         removed += 1
     return removed
