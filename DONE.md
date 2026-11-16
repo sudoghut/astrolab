@@ -12,7 +12,7 @@
 
 ## 2026-11
 
-- [x] **T-013** M7：宽双星引力检验（MOND 之争） · 完成 2026-11-16 · PR #13 · 计划 [013](design/013-plan_m07-wide-binaries-median-scaled-velocity-newton-vs-mond.md) — 论文研究（Wiki、Lean、预注册、两步取数）：服务器端重建 C26 样本 639 对（样本不同）；自助法误差下无法区分（L = 0.49）且检验没有功效；用 C26 的误差时偏向 MOND（`gap_err`）；事后探索与重新检验见 T-034。
+- [x] **T-013** M7：宽双星引力检验（MOND 之争） · 完成 2026-11-16 · PR #27 · 计划 [013](design/013-plan_m07-wide-binaries-median-scaled-velocity-newton-vs-mond.md) — 论文研究（Wiki、Lean、预注册、两步取数）：服务器端重建 C26 样本 639 对（样本不同）；自助法误差下无法区分（L = 0.49）且检验没有功效；用 C26 的误差时偏向 MOND（`gap_err`）；事后探索与重新检验见 T-034。
 
 - [-] **T-024** M9：DMX 与 DMGP 两种色散量噪声模型下的 NANOGrav 自由谱重拟比较（预注册） · 放弃 2026-11-16 — 无法做盲的预注册：v2.0.0 数据产品没有 DMGP 自由谱，唯一的 DMGP 产品（v1.1.0）已在研究 005 的独立审稿后做过事后探索；比较维持为研究 005 README 第 5 节的事后结果，开放问题已更新。
 
