@@ -227,13 +227,13 @@ and it is the one encoded.
 4. **`stated_insufficient`** holds as well, for the same reason: no premise is merely implied (the
    age of the universe is stated in Methods), so the stated and the explicit premises coincide and
    only the three gaps are missing.
-7. **Deviation from the plan.** Plan 019 foresaw a NUM premise bound to an R2 result; the mean is
-   encoded as XR22's stated number (STAT) instead, because the argument is the paper's, and our R2
-   result is reported in part 3.
 5. **Consistency** (`consistent`) is a weak check here: no premise is negative.
 6. **Limits:** Lean checks the logical structure under our encoding, not the stellar physics inside
    each premise. In particular the consequent of `gap_onset` is the conclusion itself: Lean shows that
    the conclusion depends on this unstated bridge, not that the bridge holds.
+7. **Deviation from the plan.** Plan 019 foresaw a NUM premise bound to an R2 result; the mean is
+   encoded as XR22's stated number (STAT) instead, because the argument is the paper's, and our R2
+   result is reported in part 3.
 
 ### Part 3 · What astrolab can test or explore
 
@@ -251,7 +251,7 @@ measured age Gaussian around the true one with its e_Age, truncated to the grid,
 |---|---|---|---|---|---|
 | Stage B: onset at 13 Gyr (R2) | testable now | Gaussian fit to observed ages in XR22's Extended Data Fig. 1 selection (early phase, J_φ > 500, −1.05 < [Fe/H] < −0.95), and the same without the early-phase filter; also the deconvolved mean (M0), the fraction of ages above 13.8 Gyr and near the 20 Gyr grid edge, and sensitivity to the J_φ cut and the error cut | catalogue (16 MB) | reproduced if the observed-age Gaussian mean is 12.5–13.5 Gyr (a tolerance for the rounded "13 Gyr") | **reproduced**: 12.93 ± 0.06 Gyr (σ 2.40); deconvolved 12.19–12.59 |
 | Stage A: absolute scale (`gap_scale`) | explorable (not decisive) | envelope from literature magnitudes: MIST +0.5 Gyr, [α/Fe] error and LAMOST–APOGEE α offset through XR22's age–α sensitivity, LAMOST [Fe/H]/Teff offsets, parallax zero point | – | none - exploration only | envelope 0.7–1.1 Gyr; re-analysis −1.7 Gyr; margin to the Big Bang 0.87 Gyr |
-| 8 Gyr split (R1) | testable now | without the chemical split: in five 0.2 dex [Fe/H] bins (−0.7 to +0.3), deconvolved latent age density (Gaussian mixture, K = 1–4 by the Bayesian information criterion, BIC, in M0); valley depth d between 5 and 11 Gyr; threshold d* = min(0.25, 3rd smallest null d) over two log-concave null families (skew-normal and split normal; a parametric stand-in for plan 019's non-parametric log-concave check, a labelled deviation) and two error mechanisms, 50 mocks each; power from XR22-like two-component mocks; young-side 97.5th percentile compared with 8 Gyr | catalogue (16 MB) | a bin is "almost disjoint" if a valley exists and d < d* (at most 2 of 50 null mocks pass); reproduced if ≥ 3 resolvable bins (power ≥ 80%), ≥ 3 almost disjoint, median young-side edge 6.5–9.5 Gyr; robust only if S15 and Full agree | **undetermined** (2 of 5 bins resolvable; none almost disjoint, d = 0.30–0.58) |
+| 8 Gyr split (R1) | testable now | without the chemical split: in five 0.2 dex [Fe/H] bins (−0.7 to +0.3), deconvolved latent age density (Gaussian mixture, K = 1–4 by the Bayesian information criterion, BIC, in M0); valley depth d between 5 and 11 Gyr; threshold d* = min(0.25, 3rd smallest null d) over two log-concave null families (skew-normal and split normal; a parametric stand-in for plan 019's non-parametric log-concave check, a labelled deviation) and two error mechanisms, 50 mocks each; power from XR22-like two-component mocks; young-side 97.5th percentile compared with 8 Gyr | catalogue (16 MB) | a bin is "almost disjoint" if a valley exists and d < d* (at most 2 of 50 null mocks pass); reproduced if ≥ 3 resolvable bins (power ≥ 80%), ≥ 3 almost disjoint, median young-side edge 6.5–9.5 Gyr; robust only if S15 and Full agree | **undetermined** (2 of 5 bins resolvable; none almost disjoint, d = 0.29–0.58) |
 | Old-disc sequence: slope, 5–6 Gyr span, σ_int (R3/R4) | testable now | XR22's linear-plus-scatter model in M0 on sample A (S15, above the α line, J_φ > 500, −1.2 < [Fe/H] < 0.5): σ_sel is the scatter of this α-selected sample, a like-for-like reproduction of XR22's number, not the intrinsic-scatter test; recovery mocks under two error mechanisms; intrinsic scatter from sample B (no α cut) with a background component whose mean is linear in [Fe/H], checked with identifiability and misspecification mocks; error-scale factor f = 0.8, 1 and an upper bound from the data | catalogue | R4: \|σ_sel − 0.82\| ≤ 0.1 Gyr; R3: span \|a\| × 1.5 dex in 4.5–6.5 Gyr; robust only if each sensitivity fit passes; intrinsic: σ_int + 1.645 SE < 0.82 Gyr confirms, σ_int − 1.645 SE ≥ 0.82 does not, otherwise (or if a mock-set bias exceeds 0.1 Gyr) "cannot determine" | **cannot determine** (recovery σ bias +0.25–0.28 Gyr; span 6.0, σ_sel 2.67, σ_int 0.79) |
 | Tension with Miglio et al. 2021 (R7) | explorable (qualified comparison) | deconvolved total age spread of the high-α disc: central 95% width and the largest fraction in any 1.5 Gyr window, for XR22's sample and an APOGEE-like high-α cut | catalogue | none - comparison across tracers | broad: 95% width 12.6–13.0 Gyr at f = 1 |
 | Halo–disc offset at [Fe/H] ≈ −1 (R5) | explorable (plots only) | age–[Fe/H] density split by J_φ | catalogue | none | plots on the study page |
@@ -260,7 +260,7 @@ measured age Gaussian around the true one with its e_Age, truncated to the grid,
 
 **What we found (2026-11-16).** On the published table, the 13 Gyr mean of the oldest disc bin is
 reproduced on the catalogue's own age scale (12.93 Gyr), but it moves by about 1 Gyr with the isochrone
-set and α scale and by 0.3–0.7 Gyr with deconvolution, while the margin to the Big Bang is 0.8 Gyr,
+set and α scale and by 0.3–0.7 Gyr with deconvolution, while the margin to the Big Bang is 0.87 Gyr,
 so `gap_scale` is the binding step. The 8 Gyr split could not be decided: in the bins the data can
 resolve, the latent age density dips between the phases but not to "almost disjoint" (and a power
 floor made one metal-rich bin unresolvable by construction). The old-disc sequence could not be
@@ -270,7 +270,7 @@ the span (about 6 Gyr) agrees and the scatter of the α-selected sample (2.4–2
 times XR22's 0.82 Gyr, likely not a like-for-like comparison. A re-test is registered (T-031).
 Numbers and page: the study README section 5 and `web/index.html`.
 
-Exploring via chat: once the study is implemented, `python -m astrolab explore 010 --tag <topic> --set key=value`
+Exploring via chat: `python -m astrolab explore 010 --tag <topic> --set key=value`
 reruns any fit with changed parameters (for example the J_φ cut, the error cut or the high-α
 threshold) without touching the formal results; see the study README section 8.
 
@@ -416,9 +416,9 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 2. **排序。** `gap_onset` 最重要：它是论文没有讨论的建模选择，而该箱的拟合宽度（1.8 Gyr）大于到大爆炸的 0.8 Gyr 余量。`gap_scale` 是已知的等年龄线系统误差（YY 与 MIST 差 0.5 Gyr）。
 3. **在本编码下七个前提都是必要的**，没有多余的。
 4. **`stated_insufficient`** 也成立，原因相同：没有只属标准知识的前提（宇宙年龄在方法部分写明），所以论文明说的前提与显式前提相同，缺的只是三个缺口。
-7. **与计划的偏离。** 计划 019 设想一个绑定 R2 结果的 NUM 前提；这里均值按 XR22 明说的数字编码（STAT），因为论证是论文的论证，我们的 R2 结果在第三部分报告。
 5. **相容性**（`consistent`）在这里是弱检查：没有否定形式的前提。
 6. **局限：** Lean 检查的是在我们的编码下论证的逻辑结构，不检查每个前提内部的恒星物理。特别是 `gap_onset` 的后件就是结论本身：Lean 说明结论依赖这座没写出的桥，而不说明这座桥成立。
+7. **与计划的偏离。** 计划 019 设想一个绑定 R2 结果的 NUM 前提；这里均值按 XR22 明说的数字编码（STAT），因为论证是论文的论证，我们的 R2 结果在第三部分报告。
 
 ### 第三部分 · 本项目可检验或探索的环节
 
@@ -428,16 +428,16 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 |---|---|---|---|---|---|
 | 环节 B：13 Gyr 的起点（R2） | 现在可检验 | 在 XR22 扩展数据图 1 的选择（早期、J_φ > 500、−1.05 < [Fe/H] < −0.95）以及不加早期过滤的选择中对观测年龄拟合高斯；另报告去卷积的均值（M0）、年龄超过 13.8 Gyr 与靠近 20 Gyr 网格边缘的比例，以及对 J_φ 截断与误差截断的敏感度 | 星表（16 MB） | 观测年龄的高斯均值在 12.5–13.5 Gyr 即复现（对取整的"13 Gyr"的容差） | **复现**：12.93 ± 0.06 Gyr（σ 2.40）；去卷积 12.19–12.59 |
 | 环节 A：绝对标尺（`gap_scale`） | 可探索（不能判决） | 由文献幅度构成的包络：MIST +0.5 Gyr，[α/Fe] 误差与 LAMOST–APOGEE 的 α 偏移经 XR22 的年龄–α 敏感度传播，LAMOST [Fe/H]/Teff 偏移，视差零点 | – | 无，只作探索 | 包络 0.7–1.1 Gyr；重新分析 −1.7 Gyr；距大爆炸余量 0.87 Gyr |
-| 8 Gyr 分界（R1） | 现在可检验 | 不用化学分群：在五个 0.2 dex 的 [Fe/H] 箱（−0.7 到 +0.3）中，用 M0 去卷积潜在年龄密度（高斯混合（Gaussian mixture），K = 1–4 按贝叶斯信息准则（Bayesian information criterion, BIC）选取）；5–11 Gyr 之间的谷深（valley depth）d；阈值 d* = min(0.25, 零模型第 3 小的 d)，取自两个对数凹（log-concave）零模型族（偏斜正态（skew-normal）与两段正态（split normal）；代替计划 019 的非参数对数凹检查，标为偏离）与两种误差机制，各 50 个模拟；检出率来自类 XR22 的两分量模拟；年轻一侧的 97.5% 分位数与 8 Gyr 比较 | 星表（16 MB） | 有谷且 d < d* 的箱为"几乎不相交"（每组零模拟至多 2/50 通过）；可分辨的箱（检出率 ≥ 80%）≥ 3 个、其中几乎不相交的 ≥ 3 个、年轻一侧上缘中位数在 6.5–9.5 Gyr 即复现；S15 与全样本一致才算稳健 | **无法判定**（5 个箱中 2 个可分辨；没有几乎不相交的箱，d = 0.30–0.58） |
-| 老盘序列：斜率、5–6 Gyr 跨度、σ_int（R3/R4） | 现在可检验 | 在 M0 中对样本 A（S15、高于 α 线、J_φ > 500、−1.2 < [Fe/H] < 0.5）拟合 XR22 的线性加弥散模型：σ_sel 是这一 α 选择样本的弥散，与 XR22 的数字同类比较，不是本征弥散的检验；两种误差机制的恢复模拟；本征弥散由样本 B（不加 α 截断）与均值随 [Fe/H] 线性变化的背景分量判定，用可辨识性与误设模拟检查；误差标尺因子 f = 0.8、1 与由数据得到的上限 | 星表 | R4：\|σ_sel − 0.82\| ≤ 0.1 Gyr；R3：跨度 \|a\| × 1.5 dex 在 4.5–6.5 Gyr；每个敏感度拟合都通过才算稳健；本征：σ_int + 1.645 SE < 0.82 Gyr 为确认，σ_int − 1.645 SE ≥ 0.82 为不确认，其余（或任一组模拟偏差超过 0.1 Gyr）为"不能判定" | **无法判定**（恢复检验 σ 偏差 +0.25–0.28 Gyr；跨度 6.0，σ_sel 2.67，σ_int 0.79） |
+| 8 Gyr 分界（R1） | 现在可检验 | 不用化学分群：在五个 0.2 dex 的 [Fe/H] 箱（−0.7 到 +0.3）中，用 M0 去卷积潜在年龄密度（高斯混合（Gaussian mixture），K = 1–4 按贝叶斯信息准则（Bayesian information criterion, BIC）选取）；5–11 Gyr 之间的谷深（valley depth）d；阈值 d* = min(0.25, 零模型第 3 小的 d)，取自两个对数凹（log-concave）零模型族（偏斜正态（skew-normal）与两段正态（split normal）；代替计划 019 的非参数对数凹检查，标为偏离）与两种误差机制，各 50 个模拟；检出率来自类 XR22 的两分量模拟；年轻一侧的 97.5% 分位数与 8 Gyr 比较 | 星表（16 MB） | 有谷且 d < d* 的箱为"几乎不相交"（每组零模拟至多 2/50 通过）；可分辨的箱（检出率 ≥ 80%）≥ 3 个、其中几乎不相交的 ≥ 3 个、年轻一侧上缘中位数在 6.5–9.5 Gyr 即复现；S15 与全样本一致才算稳健 | **无法判定**（5 个箱中 2 个可分辨；没有几乎不相交的箱，d = 0.29–0.58） |
+| 老盘序列：斜率、5–6 Gyr 跨度、σ_int（R3/R4） | 现在可检验 | 在 M0 中对样本 A（S15、高于 α 线、J_φ > 500、−1.2 < [Fe/H] < 0.5）拟合 XR22 的线性加弥散模型：σ_sel 是这一 α 选择样本的弥散，与 XR22 的数字同类比较，不是本征弥散的检验；两种误差机制的恢复模拟；本征弥散由样本 B（不加 α 截断）与均值随 [Fe/H] 线性变化的背景分量判定，用可辨识性与误设模拟检查；误差标尺因子 f = 0.8、1 与由数据得到的上限 | 星表 | R4：\|σ_sel − 0.82\| ≤ 0.1 Gyr；R3：跨度 \|a\| × 1.5 dex 在 4.5–6.5 Gyr；每个敏感度拟合都通过才算稳健；本征：σ_int + 1.645 SE < 0.82 Gyr 为确认，σ_int − 1.645 SE ≥ 0.82 为不确认，其余（或任一组模拟偏差超过 0.1 Gyr）为"无法判定" | **无法判定**（恢复检验 σ 偏差 +0.25–0.28 Gyr；跨度 6.0，σ_sel 2.67，σ_int 0.79） |
 | 与 Miglio et al. 2021 的张力（R7） | 可探索（有限定的比较） | 高 α 盘去卷积的总年龄跨度：中心 95% 宽度与任一 1.5 Gyr 窗口内的最大比例，分别用 XR22 的样本与类 APOGEE 的高 α 截断 | 星表 | 无，跨示踪体（tracer）的比较 | 很宽：f = 1 时 95% 宽度 12.6–13.0 Gyr |
 | [Fe/H] ≈ −1 处晕与盘的偏移（R5） | 可探索（只作图） | 按 J_φ 分面的年龄–[Fe/H] 密度 | 星表 | 无 | 见研究网页的图 |
 | 11 Gyr / GSE（R6） | 可描述，不能检验 | 低 J_φ 老盘星年龄的 5% 与 10% 分位数；未做体积改正的年龄峰 | 星表 | 无，体积改正未公开 | 观测年龄峰 11.1 Gyr（J_φ > 500） |
 | `gap_onset` 本身（幸存者、迁移） | 不在范围内 | 需要化学演化与迁移模型 | – | – | – |
 
-**我们的发现（2026-11-16）。** 在已发表的星表上，最老盘箱的 13 Gyr 均值在星表自己的年龄标尺上复现（12.93 Gyr），但它随等年龄线与 α 标尺变化约 1 Gyr、随去卷积变化 0.3–0.7 Gyr，而距大爆炸只有 0.8 Gyr 的余量，所以 `gap_scale` 是关键的一步。8 Gyr 分界无法判定：在数据能分辨的箱里，潜在年龄密度在两个阶段之间下凹，但没有到"几乎不相交"（而且功效模型的下限使一个富金属箱按构造无法分辨）。老盘序列也无法判定，因为我们去卷积中 15% 误差截断的选择项在两种模拟误差机制下都设定错误（独立审稿发现，事后（post hoc））；非正式地看，跨度（约 6 Gyr）一致，α 选择样本的离散（2.4–2.7 Gyr）约为 XR22 的 0.82 Gyr 的三倍，可能不是同类比较。已登记重新检验（T-031）。数字与网页见研究 README 第 5 节与 `web/index.html`。
+**我们的发现（2026-11-16）。** 在已发表的星表上，最老盘箱的 13 Gyr 均值在星表自己的年龄标尺上复现（12.93 Gyr），但它随等年龄线与 α 标尺变化约 1 Gyr、随去卷积变化 0.3–0.7 Gyr，而距大爆炸只有 0.87 Gyr 的余量，所以 `gap_scale` 是关键的一步。8 Gyr 分界无法判定：在数据能分辨的箱里，潜在年龄密度在两个阶段之间下凹，但没有到"几乎不相交"（而且功效模型（power model）的下限使一个富金属箱按构造无法分辨）。老盘序列也无法判定，因为我们去卷积中 15% 误差截断的选择项（selection term）在两种模拟误差机制下都设定错误（独立审稿（referee）发现，事后（post hoc））；非正式地看，跨度（约 6 Gyr）一致，α 选择样本的离散（2.4–2.7 Gyr）约为 XR22 的 0.82 Gyr 的三倍，可能不是同类比较。已登记重新检验（T-031）。数字与网页见研究 README 第 5 节与 `web/index.html`。
 
-对话探索：研究实现后，`python -m astrolab explore 010 --tag <主题> --set 键=值` 可用改变的参数（例如 J_φ 截断、误差截断或高 α 阈值）重跑任一拟合，不影响正式结果；见研究 README 第 8 节。
+对话探索：`python -m astrolab explore 010 --tag <主题> --set 键=值` 可用改变的参数（例如 J_φ 截断、误差截断或高 α 阈值）重跑任一拟合，不影响正式结果；见研究 README 第 8 节。
 
 ### 术语表
 
@@ -462,7 +462,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 按时间倒序。
 
-- 2026-11-16：研究运行与独立审稿：R2 复现（12.93 Gyr）；R1 无法判定；R3/R4 与内禀离散无法判定（M0 的 S15 选择项设定错误，独立审稿发现；重新检验 T-031）；`mod_bin` 改为 `gap_bin`（GAP），因而有三个缺口；补上第三部分的结果。
+- 2026-11-16：研究运行与独立审稿：R2 复现（12.93 Gyr）；R1 无法判定；R3/R4 与本征弥散无法判定（M0 的 S15 选择项设定错误，独立审稿发现；重新检验 T-031）；`mod_bin` 改为 `gap_bin`（GAP），因而有三个缺口；补上第三部分的结果。
 - 2026-11-15：闸门 1 审查：宇宙年龄由 XR22 写明（Planck 2015），没有只属标准知识的前提；`gap_onset` 列出四个步骤，扩展数据图 2 的尾巴描述为溅出的盘星，而不是晕的混入。
 - 2026-11-15：第一版：第一至第三部分（预注册的来源；计划 `design/019-plan_*`）。
 
