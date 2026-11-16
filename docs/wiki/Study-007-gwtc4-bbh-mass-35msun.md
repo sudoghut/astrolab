@@ -233,7 +233,7 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
   - GWOSC stores no false-alarm rate on those re-analysed rows, while the GWTC-1 rows of the same
     events carry one.
   - Our rule "no FAR → excluded" therefore drops all ten. Taking the FAR from GWTC-1 for them (a
-    labelled post-hoc exploration) gives exactly 69, and 84 + 69 = 153, the same total as P26's sample (whether the 69 are the same O1–O3 events was open; answered 2026-11-16, post hoc: they are the same set as the GWTC-3 population paper's 69 BBHs, Table 1 minus the 7 possible-neutron-star events of its Table 3, T-026).
+    labelled post-hoc exploration) gives exactly 69, and 84 + 69 = 153, the same total as P26's sample (whether the 69 are the same O1–O3 events was open; answered 2026-11-16, post hoc: they are the same set as the GWTC-3 population paper's 69 BBHs, Table 1 minus the 7 events of its Table 3 whose classification considers a neutron-star component, GW190814 among them as the outlier the paper's BBH analyses leave out, T-026).
   - The sample can be rebuilt; the public lists just need a FAR fallback that the pre-registration
     did not foresee. The independent referee found the same cause without seeing our diagnosis.
 - **R2 (counts).** 79 of 139 events lie above 35 M☉.
@@ -429,7 +429,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 - **按冻结的规则，R1 为"未复现"，原因很平常。** O4a 一半与 P26 完全一致：84 个事件，不缺不多。O1–O3 一半得到 59 个而不是 69 个。
   - 按我们预注册的优先级（较新的星表优先），十个 O1/O2 双黑洞取自重新分析过质量的 GWTC-2.1。
   - GWOSC 在这些重新分析的行上没有存误报率（FAR, false alarm rate），而同一批事件在 GWTC-1 中的行有。
-  - 规则"没有 FAR → 排除"于是去掉了这十个。为它们改从 GWTC-1 取 FAR（标明为事后（post hoc）探索），得到正好 69 个，84 + 69 = 153，与 P26 样本的总数相同（这 69 个是否与 P26 的 O1–O3 事件为同一组曾待核对；2026-11-16 事后核对：与 GWTC-3 群体论文的 69 个 BBH 是同一个集合，即其表 1 减去表 3 中 7 个可能含中子星的事件，T-026）。
+  - 规则"没有 FAR → 排除"于是去掉了这十个。为它们改从 GWTC-1 取 FAR（标明为事后（post hoc）探索），得到正好 69 个，84 + 69 = 153，与 P26 样本的总数相同（这 69 个是否与 P26 的 O1–O3 事件为同一组曾待核对；2026-11-16 事后核对：与 GWTC-3 群体论文的 69 个 BBH 是同一个集合，即其表 1 减去表 3 中分类时考虑了中子星分量的 7 个事件（其中 GW190814 是论文 BBH 分析排除的离群点），T-026）。
   - 样本可以重建，只是公开列表需要一条预注册没有预见到的 FAR 回退规则。独立审稿在看不到我们诊断的情况下找到了同一原因。
 - **R2（计数）。** 139 个事件中有 79 个在 35 M☉ 以上。
   - 与单一幂律乘以玩具选择函数相比，除非选择效应在约 30 M☉ 就不再上升，否则高质量端偏少。
