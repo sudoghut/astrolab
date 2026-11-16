@@ -192,7 +192,12 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
    (130 pc) and |BP−RP − 1.8| < 0.05; c = median(M_G − 3.3·(BP−RP)) − 0.4, so the band is centred on
    the K-star locus. If fewer than 30 stars qualify, the window widens once to |BP−RP − 1.8| < 0.15;
    if still fewer than 30, the main sample is not evaluable and R1–R2 are reported as not run. The numeric c is committed (dated) after A1 and before B1; the R3 variant uses
-   c ± 0.2. Both stars with radial velocities and |ΔRV| < 10 km/s; σ(ṽ) < 0.1; ṽ ≤ 2.5.
+   c ± 0.2. *Dated note 2026-11-16 (after step A, before any velocity column was fetched):* c =
+   1.5909 (2081 stars in the 0.05 window; `results/step_a.json`), committed as `PARAMS["hr_c"]`.
+   Velocity-free occupancy check (exploration script `explore/occupancy_step_a.py`, same cuts up to
+   the HR band, masses and x without velocities): per x bin 3, 371, 407, 204, 162, 223 pairs, so the
+   pre-registered symmetric merging joins the lowest bin to the next and leaves five bins (374, 407,
+   204, 162, 223) as upper bounds before the RV, σ(ṽ) and ṽ cuts. Both stars with radial velocities and |ΔRV| < 10 km/s; σ(ṽ) < 0.1; ṽ ≤ 2.5.
 6. **Statistics.** Section 2 definitions; bootstrap covariance; GLS fits for A.
 7. **Parameters (`PARAMS` in run.py, saved with the results):** a0, bins, bootstrap count and seed,
    the cut values above, variant switches for R3. Changing a committed value amends this

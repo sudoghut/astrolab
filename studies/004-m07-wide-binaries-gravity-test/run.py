@@ -35,7 +35,7 @@ PARAMS = {
     "workers": 4,
     "region_limit": None,              # exploration only: run the first N regions
     # step B (README sections 2 and 4); fixed by the pre-registration
-    "hr_c": None,                      # numeric HR constant, committed (dated) after step A, before step B
+    "hr_c": 1.590861779261529,         # HR constant from step A (README 4.5, dated note 2026-11-16)
     "a0": 1.2e-10, "gne_over_a0": 1.184, "mg_sun": 4.67,
     "edges": [0.1057, 0.2307, 0.5088, 1.0275, 2.0902],
     "min_per_bin": 15, "n_boot": 2000, "boot_seed": 0, "L_threshold": 100.0,
