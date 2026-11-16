@@ -179,14 +179,24 @@ def prune(limit_bytes: int | None = None, root: Path | None = None) -> int:
     entries = sorted(_entries(root))  # oldest first
     total = sum(e[1] for e in entries)
     removed = 0
-    for _, size, files in entries:
+    for mtime, size, files in entries:
         if total <= limit:
             break
-        for f in files:
+        # under the entry's key lock (as read() and put_file() take it), and only if nobody has
+        # used the entry since the snapshot: an entry being read or just stored is never deleted
+        payload = next((f for f in files if not (f.name.endswith(".json")
+                                                 and not f.name.endswith(".payload.json"))), files[0])
+        with _key_lock(payload):
             try:
-                f.unlink(missing_ok=True)
-            except PermissionError:   # open in another thread (Windows): left for a later prune
-                pass
+                if max(f.stat().st_mtime for f in files if f.exists()) > mtime:
+                    continue
+            except (OSError, ValueError):         # removed meanwhile
+                continue
+            for f in files:
+                try:
+                    f.unlink(missing_ok=True)
+                except PermissionError:   # open in another process (Windows): left for a later prune
+                    pass
         total -= size
         removed += 1
     return removed
