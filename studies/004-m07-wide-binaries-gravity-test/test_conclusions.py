@@ -30,8 +30,12 @@ def test_r1_different_sample():
 
 def test_r2_cannot_distinguish():
     s = load("summary")
-    assert s["R2"].startswith("cannot distinguish")
-    assert 1 / 100 < s["R2_L"] < 100
+    L = s["R2_L"]
+    # pre-registered thresholds (README section 2): >= 100 Newton, <= 1/100 MOND, else cannot distinguish
+    derived = "Newton" if L >= 100 else "MOND" if L <= 1 / 100 else "cannot distinguish"
+    assert derived == "cannot distinguish"
+    assert s["R2"].startswith(derived)
+    assert abs(L - 0.49) < 0.01
 
 
 def test_mad_errors_favour_mond():
