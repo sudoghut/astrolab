@@ -259,7 +259,7 @@ K = 30（标签 `k30`）：H = 0.093，q = 0.993，γ = 3.04，ln BF 2.63。K = 
   对 L8 的"复现"应该用哪一个？原计划对两者做预注册比较
   （T-024），但它无法盲化（2026-11-16）：v2.0.0 产品中没有 DMGP 自由谱（其
   30 频率目录为 `30f_fs{cp}_ceffyl`、`30f_fs{hd+mp+dp+cp}_ceffyl_hd-only` 与
-  `30f_fs{hd}_ceffyl`，名称有删节），而唯一的 DMGP 产品 v1.1.0 `30f_fs{hd}_100fDMGP_ceffyl` 已在
+  `30f_fs{hd}_ceffyl`，名称已去掉末尾空格），而唯一的 DMGP 产品 v1.1.0 `30f_fs{hd}_100fDMGP_ceffyl` 已在
   审稿之后分析过（第 5 节）。该比较仍然是第 5 节中的事后比较；盲化
   检验需要新的 DMGP 自由谱（例如将来的 NANOGrav 发布）。
 - NG15 的谱指数跑动（running spectral index）分析（Agazie 等人 2024，arXiv:2408.10166，未核实）：它是否
