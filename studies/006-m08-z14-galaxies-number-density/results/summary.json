@@ -31,6 +31,18 @@
   "robust_min_evaluable": 48,
   "sigma8_tol": 0.001,
   "run_variants": true,
+  "post_check": true,
+  "post_walkers": 32,
+  "post_steps": 100000,
+  "post_burn": 20000,
+  "post_draws": 500,
+  "post_seed": 0,
+  "post_tau_factor": 50,
+  "post_p_threshold": 0.95,
+  "post_r3_min_frac": 0.9,
+  "post_misfit_p": 0.01,
+  "post_bound_frac": 0.05,
+  "post_sensitivity": true,
   "completeness": 1.0,
   "area_factor": 1.0
  },
@@ -53,5 +65,20 @@
  "r3": {
   "verdict": "consistent with N26",
   "robustness": "calibration-dependent"
+ },
+ "R2_post": {
+  "r2_label": "robust to the calibration uncertainty (higher)",
+  "r2_probabilities": {
+   "higher": 1.0,
+   "same order as N26's baseline": 0.0,
+   "lower": 0.0
+  }
+ },
+ "R3_post": {
+  "r3_label": "calibration-uncertain (borderline)",
+  "r3_probabilities": {
+   "consistent with N26": 0.962,
+   "different": 0.038
+  }
  }
 }
