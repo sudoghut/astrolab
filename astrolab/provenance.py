@@ -48,9 +48,13 @@ class ProvenanceLog:
         path.parent.mkdir(parents=True, exist_ok=True)
         doc = {"generated_at": now_iso(), "inputs": self.records}
         text = json.dumps(doc, indent=2)
-        if len(text.encode("utf-8")) > COMPACT_ABOVE_BYTES:
+        if len(text.encode("utf-8")) > COMPACT_ABOVE_BYTES and compactable(self.records):
             text = _dump_compact(compact(doc))
         path.write_text(text, encoding="utf-8")
+        size = len(text.encode("utf-8"))
+        if size > SIZE_WARN_BYTES:
+            print(f"WARNING: {path.name} is {size / 1024**2:.1f} MB (result files should stay under "
+                  f"{SIZE_WARN_BYTES / 1024**2:.0f} MB; AGENTS.md section 1.1)")
 
 
 # ---------------------------------------------------------------------------------------------
@@ -62,10 +66,16 @@ class ProvenanceLog:
 # "defaults". The transformation is exact: expand(compact(doc)) == doc.
 
 COMPACT_ABOVE_BYTES = 256 * 1024
+SIZE_WARN_BYTES = 1024**2
 COMPACT_FORMAT = "templated-v1"
 _NUM = re.compile(r"(?<![A-Za-z_\d.])-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?")
 _SLOT = re.compile(r"\{\{|\}\}|\{\}")
 _HOIST = ("source", "release")
+_RESERVED = ("request_template", "request_params")
+HOW_TO_READ = (
+    "astrolab.provenance.expand(json) restores the plain records. By hand: a record's request is "
+    "templates[request_template] (0-based) with each {} slot filled, in order, by request_params; "
+    "{{ and }} are literal braces; the fields in defaults belong to every record.")
 
 
 def _split(request: str) -> tuple[str, list[str]]:
@@ -87,8 +97,16 @@ def _fill(template: str, params: list[str]) -> str:
     return out
 
 
+def compactable(records: list[dict[str, Any]]) -> bool:
+    """Every record has a string request and no field that the templated format reserves."""
+    return all(isinstance(r.get("request"), str) and not any(k in r for k in _RESERVED)
+               for r in records)
+
+
 def compact(doc: dict[str, Any]) -> dict[str, Any]:
     records = doc["inputs"]
+    if not compactable(records):
+        raise ValueError("records need a string 'request' and no request_template/request_params field")
     groups: dict[str, list[list[str]]] = {}
     for r in records:
         skel, toks = _split(r["request"])
@@ -97,8 +115,9 @@ def compact(doc: dict[str, Any]) -> dict[str, Any]:
                for skel, toks in groups.items()}
 
     templates: dict[str, int] = {}
+    # a field is hoisted only if every record has it with the same value (missing is not None)
     defaults = {k: records[0][k] for k in _HOIST
-                if records and k in records[0] and all(r.get(k) == records[0][k] for r in records)}
+                if records and all(k in r and r[k] == records[0][k] for r in records)}
     out = []
     for r in records:
         skel, toks = _split(r["request"])
@@ -111,12 +130,13 @@ def compact(doc: dict[str, Any]) -> dict[str, Any]:
         rec["request_params"] = [toks[i] for i in sorted(var)]
         out.append(rec)
     return {"generated_at": doc["generated_at"], "format": COMPACT_FORMAT,
-            "how_to_read": "astrolab.provenance.expand(json) restores the plain records",
+            "how_to_read": HOW_TO_READ,
             "defaults": defaults, "templates": list(templates), "inputs": out}
 
 
 def expand(doc: dict[str, Any]) -> dict[str, Any]:
-    """The plain form {"generated_at", "inputs": [records with "request"]} of either format."""
+    """The plain form {"generated_at", "inputs": [records with "request"]} of either format. The
+    records are equal to the originals as dicts (the key order may differ)."""
     if doc.get("format") != COMPACT_FORMAT:
         return doc
     templates, defaults = doc["templates"], doc.get("defaults", {})
