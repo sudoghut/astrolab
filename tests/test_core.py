@@ -389,3 +389,32 @@ def test_run_tap_relogs_once_with_saved_cookie_on_401(monkeypatch):
     url = "https://gea.esac.esa.int/tap-server/tap"
     assert fetch._run_tap(url, "SELECT 1", 2, "sync") == "ok"
     assert calls["stale"] == [{"JSESSIONID": "dead"}] and calls["run"] == 2
+
+
+def test_cache_read_blocks_a_concurrent_refresh(tmp_cache):
+    """cache.read holds the writers' key lock: a refresh of the same key waits until the read
+    (meta and payload) is finished, so they always come from the same write."""
+    import threading
+
+    key = cache.key_for("test", {"x": 1})
+    assert cache.read(key, ".txt", lambda p: p.read_text()) is None
+
+    def write(gen):
+        src = cache.staging_path(".txt")
+        src.write_text(str(gen))
+        cache.put_file(key, ".txt", src, {"gen": gen}, replace=True)
+
+    write(0)
+    writer = threading.Thread(target=write, args=(1,))
+
+    def reader(path):
+        writer.start()
+        writer.join(0.3)
+        assert writer.is_alive()            # blocked on the key lock while we read
+        return path.read_text()
+
+    meta, text = cache.read(key, ".txt", reader)
+    writer.join()
+    assert meta["gen"] == 0 and text == "0"
+    meta, text = cache.read(key, ".txt", lambda p: p.read_text())
+    assert meta["gen"] == 1 and text == "1"
