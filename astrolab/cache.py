@@ -190,7 +190,8 @@ def prune(limit_bytes: int | None = None, root: Path | None = None) -> int:
             try:
                 if max(f.stat().st_mtime for f in files if f.exists()) > mtime:
                     continue
-            except (OSError, ValueError):         # removed meanwhile
+            except (OSError, ValueError):         # removed meanwhile: no longer counts
+                total -= size
                 continue
             for f in files:
                 try:
