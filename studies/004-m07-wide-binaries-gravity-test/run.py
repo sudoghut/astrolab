@@ -20,7 +20,7 @@ import wb
 
 # Tunable knobs (AGENTS.md section 2). Read inside main() and passed on as arguments.
 PARAMS = {
-    "step": "A",                       # "A" (velocity-free) or "B" (after the pre-registration commit)
+    "step": "B",                       # "A" (velocity-free) or "B" (after the pre-registration commit)
     "parent": "parallax > 6.6667 AND parallax_over_error > 40",
     # main degrouping uses relaxed neighbours (C26 section 3.2.2); C25-only is a diagnostic
     "neighbour": ("parallax_over_error > 5 AND phot_g_mean_flux_over_error > 5"
