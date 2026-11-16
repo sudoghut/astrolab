@@ -293,7 +293,6 @@ def tap(
         data = path.read_bytes()                 # hash and parse the same bytes, read once
         return hashlib.sha256(data).hexdigest(), data
 
-
     # the payload must match the sha256 in its own provenance: the key locks are per process, so
     # two processes refreshing one query could otherwise leave one's data under the other's meta
     hit = None if refresh else cache.read(key, ".parquet", _read_parquet)

@@ -527,3 +527,29 @@ def test_tap_cache_hit_with_mismatched_payload_is_refetched(tmp_cache, monkeypat
     assert not res.from_cache and list(res.data.a) == [7, 8]
     again = fetch.tap(adql, "gaia")
     assert again.from_cache and list(again.data.a) == [7, 8]
+
+
+def test_prune_skips_entry_used_since_snapshot(tmp_cache, monkeypatch):
+    """prune deletes an entry only under its key lock and only if it was not touched meanwhile."""
+    import os
+
+    keys = []
+    for i in range(2):
+        key = cache.key_for("test", {"p": i})
+        src = cache.staging_path(".bin")
+        src.write_bytes(b"x" * 100)
+        cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": str(i)}})
+        keys.append(key)
+    old = cache.get(keys[0], ".bin")
+    for f in (old.payload, old.meta_path):
+        os.utime(f, (1, 1))                      # oldest entry by far
+    real = cache._entries
+
+    def snapshot_then_touch(root):
+        out = real(root)
+        cache.read(keys[0], ".bin", lambda p: None)   # used after the snapshot
+        return out
+
+    monkeypatch.setattr(cache, "_entries", snapshot_then_touch)
+    cache.prune(limit_bytes=1)
+    assert cache.read(keys[0], ".bin", lambda p: p.read_bytes()) is not None
