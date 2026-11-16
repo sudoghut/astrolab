@@ -65,49 +65,40 @@ def _key_lock(path: Path) -> threading.Lock:
         return _KEY_LOCKS.setdefault(str(path), threading.Lock())
 
 
-def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path | None = None) -> Entry:
+def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path | None = None,
+             replace: bool = False) -> Entry:
+    """Store `src` (moved) with its meta. A complete entry already stored under `key` (for example
+    by another thread that ran the identical query) is kept and `src` is discarded, so a stored
+    payload and its meta are never modified implicitly and always come from one write; only
+    `replace=True` (an explicit refresh) overwrites, removing the old meta first so readers miss
+    the entry while it is rewritten."""
     payload, meta_path = _paths(key, suffix, root)
     payload.parent.mkdir(parents=True, exist_ok=True)
-    # One writer per key at a time (threads of one process), so a payload and its meta always
-    # come from the same write.
-    with _key_lock(payload):
-        _store(src, payload, meta, meta_path, root)
+    with _key_lock(payload):                 # one writer per key within the process
+        _store(Path(src), payload, meta, meta_path, root, replace)
     prune(root=root)
     return Entry(key, payload, meta_path)
 
 
-def _store(src: Path, payload: Path, meta: dict[str, Any], meta_path: Path, root: Path | None) -> None:
-    # payload first, then meta (written to staging and replaced atomically): get() needs both, so
-    # a reader never sees a half-written meta file. On Windows os.replace fails while another thread
-    # has the target open; the copy already in place is then kept together with its own meta.
-    if _replace_or_keep(src, payload):
-        tmp_meta = staging_path(".json", root)
-        tmp_meta.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
-        for attempt in range(5):           # the old sidecar may be open in another thread briefly
-            try:
-                os.replace(tmp_meta, meta_path)
-                break
-            except PermissionError:
-                time.sleep(0.05 * (attempt + 1))
-        else:
-            # never pair a new payload with stale provenance: drop the entry (get() needs both
-            # files), so the next call fetches again; if even that fails, raise rather than keep
-            # a mismatched pair
-            tmp_meta.unlink(missing_ok=True)
-            payload.unlink(missing_ok=True)
-            meta_path.unlink(missing_ok=True)
-
-
-def _replace_or_keep(src: Path, dst: Path) -> bool:
-    """os.replace; True if replaced, False if `dst` was in use and kept (src discarded)."""
+def _store(src: Path, payload: Path, meta: dict[str, Any], meta_path: Path, root: Path | None,
+           replace: bool) -> None:
+    if not replace and payload.exists() and meta_path.exists():
+        src.unlink(missing_ok=True)          # keep the complete pair already stored
+        return
     try:
-        os.replace(src, dst)
-        return True
-    except PermissionError:
-        if not dst.exists():
+        # get() needs both files: without a meta file the entry is invisible while it is written
+        meta_path.unlink(missing_ok=True)
+        os.replace(src, payload)
+        tmp_meta = staging_path(".json", root)
+        try:
+            tmp_meta.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
+            os.replace(tmp_meta, meta_path)
+        except BaseException:
+            tmp_meta.unlink(missing_ok=True)
+            payload.unlink(missing_ok=True)  # no payload without its own meta
             raise
-        Path(src).unlink(missing_ok=True)
-        return False
+    finally:
+        src.unlink(missing_ok=True)
 
 
 def staging_path(suffix: str, root: Path | None = None) -> Path:

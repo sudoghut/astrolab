@@ -253,7 +253,7 @@ def tap(
         source=f"tap:{service}", request=query, release=release, rows=len(df),
         bytes=tmp.stat().st_size, sha256=_sha256(tmp), cache_key=key, note=note,
     )
-    cache.put_file(key, ".parquet", tmp, {"provenance": prov.to_dict()})
+    cache.put_file(key, ".parquet", tmp, {"provenance": prov.to_dict()}, replace=refresh)
     return Fetched(df, prov, False)
 
 
@@ -306,5 +306,5 @@ def http(
         source="http", request=url, release=release, bytes=written,
         sha256=_sha256(tmp), cache_key=key, note=note,
     )
-    entry = cache.put_file(key, suffix, tmp, {"provenance": prov.to_dict()})
+    entry = cache.put_file(key, suffix, tmp, {"provenance": prov.to_dict()}, replace=refresh)
     return Fetched(entry.payload, prov, False)

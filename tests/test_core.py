@@ -198,18 +198,20 @@ def test_staging_paths_unique_and_put_file_overwrites(tmp_cache):
     [t.join() for t in th]
     assert len(set(paths)) == 50
     key = cache.key_for("t", {"dup": 1})
-    for payload in (b"a" * 10, b"b" * 10):
+    for payload, rep in ((b"a" * 10, False), (b"b" * 10, False), (b"c" * 10, True)):
         src = cache.staging_path(".bin")
         src.write_bytes(payload)
-        cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": "r"}})
+        cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": "r"}}, replace=rep)
         assert not src.exists()
-    assert cache.get(key, ".bin").payload.read_bytes() == b"b" * 10
+        # a complete entry is kept unless replace=True (explicit refresh)
+        assert cache.get(key, ".bin").payload.read_bytes() == (b"a" * 10 if not rep else b"c" * 10)
     # many threads storing the same key: payload and meta always come from the same write
     def store(i):
         src = cache.staging_path(".bin")
         src.write_bytes(str(i).encode() * 100)
         cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": str(i)}})
 
+    key = cache.key_for("t", {"dup": 2})
     th = [threading.Thread(target=store, args=(i,)) for i in range(20)]
     [t.start() for t in th]
     [t.join() for t in th]
