@@ -373,8 +373,10 @@ passed; page: [`web/index.html`](web/index.html); numbers in `results/*.json`).
   of that empirical distribution, about 1.7σ on that scale (a descriptive diagnostic added after the
   first results, at the gate-1 review). With σ inflated by that factor the pre-registered verdict
   table would give "no host-selection effect detected" (referee point 1; a pre-registered test with
-  a host-level random effect is T-023). **Overall: in R22's data the CCHP hosts give a lower H0, by
-  about 2σ at most; the evidence that the selection effect is significant is marginal.**
+  a host-level random effect is T-023). **Overall (2026-11-14): in R22's data the CCHP hosts give a
+  lower H0, by about 2σ at most; the evidence that the selection effect is significant is marginal.**
+  **Headline since 2026-11-16 (R2-RE, pre-registered): no host-selection effect detected** once a
+  host-level random effect is modelled (next subsection); the 2026-11-14 verdict above stays recorded.
 - **R3.** On the same 10 hosts the SH0ES Cepheid ladder and CCHP's JWST TRGB distances give the
   same H0 within 0.01 mag (0.3 km/s/Mpc); no host deviates by more than 1.2σ.
 - **R4.** The CCHP selection sits at the low edge (5.7th percentile) of random 10-host subsets:
@@ -384,6 +386,31 @@ passed; page: [`web/index.html`](web/index.html); numbers in `results/*.json`).
   percentile (spread of Δ/σ: 1.33).
 - **Cross-paper (descriptive).** SH0ES R22 vs CMB-only 5.3σ; TDCOSMO vs SH0ES −0.4σ; TDCOSMO vs
   CMB-only 1.3σ; CCHP TRGB vs CMB-only 1.6σ (`results/cross_paper.json`).
+
+### R2-RE (addendum 2026-11-16, T-023)
+
+Run of 2026-11-16 (`python -m astrolab run 003`, 1678 s; R1, the anchor and host steps with C, R3,
+R4 and the host identification reproduce the 2026-11-14 numbers exactly). Numbers:
+`results/r2_re.json`.
+
+| Quantity | Value |
+|---|---|
+| τ̂ (REML, host-level random effect on calibrator SN rows) | 0.077 mag, 68% interval 0.048–0.105 (grid minimum refined; no other local minimum) |
+| Host step under V(τ̂) | Δ_h' = −0.0618 ± 0.0404 mag, z' = −1.53 (H0 shift −2.0 km/s/Mpc) |
+| Verdict row (R2's table, unchanged) | **no host-selection effect detected in these data (does not support the paper's quantitative claim)** — the headline host-step verdict, with the amended (post-data) host labelling |
+| At the upper end of the τ interval (0.105) | z' = −1.25 |
+| Same offset on the Cepheid rows (sensitivity) | τ̂ and z' identical to 10⁻¹¹ (the two placements differ only in the host distances; see plan 021) |
+| R4 under V(τ̂), same 10,000 draws | spread of Δ/σ' = 1.005 (was 1.33 under C); CCHP z' at the 6.9th percentile, shift at the 7.6th |
+| Leave-one-host-out χ² of the 77 calibrator SN rows | 64.9 under C, 52.4 under V (approximate, see note in the results) |
+
+- The random effect accounts for the excess host-to-host scatter seen in R4: under V the random
+  subsets' Δ/σ' spread is 1.005, as expected for correctly scaled errors. With that scatter included
+  the CCHP shift is −0.062 ± 0.040 mag, 1.5σ, and the pre-registered table gives "no host-selection
+  effect detected". The shift keeps its sign and roughly its size (−2.0 against −2.4 km/s/Mpc under
+  C), so the data still lean the way the paper says; what fails is significance.
+- The leave-one-host-out χ² (64.9 for 77 rows under C) does not by itself show excess scatter, so
+  the two diagnostics point in different directions; the χ² is approximate (it ignores the
+  cross-covariance of a host's SN rows with the kept rows) and is reported only.
 
 ## 6. Referee notes
 
@@ -407,8 +434,9 @@ sections 5-8). Triage:
 
 - Why the public `lstsq_results.txt` differs from the printed baseline (a later or variant fit).
 - How the 2024 data (SMC anchor, more Cepheids) change the host shift; not public as matrices.
-- Does C understate host-to-host scatter? A host-level χ² of the 37 leave-one-host-out SN
-  residuals would test the 1.33 spread of Δ/σ seen in R4 (an exploration script).
+- Does C understate host-to-host scatter? Answered by R2-RE (2026-11-16): a host-level random
+  effect of 0.077 mag (0.048–0.105) brings the random-subset spread of Δ/σ from 1.33 to 1.005; its
+  physical origin (SN-host properties, Cepheid crowding, the SN–Cepheid host mismatch) is open.
 - A Cepheid-only per-host comparison for R3 (μ from fits without each host's SN rows).
 - R4 suggests the CCHP selection is a low but ordinary draw: is there a property of those hosts
   (for example the TRGB-friendly, low-extinction halos) that correlates with their SN magnitudes?

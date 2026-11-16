@@ -7,11 +7,11 @@ Subsample Explains Differences in JWST Estimates of Local H0", ApJ (accepted), a
 context: Riess et al. 2022 (R22), ApJL, doi:10.3847/2041-8213/ac5c5b, arXiv:2112.04510; Freedman et
 al. 2025 (CCHP), arXiv:2408.06153. Study:
 [`studies/003-m02-hubble-tension-distance-ladder`](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder).
-Status: concluded (referee done). Last updated: 2026-11-14 (see the changelog at the end). The source of this page
+Status: concluded (referee done). Last updated: 2026-11-16 (see the changelog at the end). The source of this page
 lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：哈勃张力：校准星系的选择能否解释 JWST 给出的较低数值？状态：已结束（已做独立审稿）。论文：Riess 等 2024，arXiv:2408.11770（ApJ 已接收）；背景：Riess 等 2022（R22），ApJL，doi:10.3847/2041-8213/ac5c5b，arXiv:2112.04510；Freedman 等 2025（CCHP），arXiv:2408.06153。研究：[`studies/003-m02-hubble-tension-distance-ladder`](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：哈勃张力：校准星系的选择能否解释 JWST 给出的较低数值？状态：已结束（已做独立审稿）。论文：Riess 等 2024，arXiv:2408.11770（ApJ 已接收）；背景：Riess 等 2022（R22），ApJL，doi:10.3847/2041-8213/ac5c5b，arXiv:2112.04510；Freedman 等 2025（CCHP），arXiv:2408.06153。研究：[`studies/003-m02-hubble-tension-distance-ladder`](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder)。最后更新：2026-11-16（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -233,6 +233,13 @@ section were added after the run (study README section 5; [web page](https://git
   exceptional draw. With errors inflated by that factor the pre-registered table would read "no
   host-selection effect detected"; the independent referee made this its main point, and a test
   with a host-level random effect is registered for later (T-023).
+- **Update 2026-11-16, R2-RE (T-023, pre-registered addendum): no host-selection effect detected.**
+  A host-level random effect estimated by restricted maximum likelihood (REML) is 0.077 mag
+  (0.048–0.105); it removes the excess random-subset scatter (spread of Δ/σ 1.33 → 1.005). With it
+  the CCHP host shift is −0.062 ± 0.040 mag (z = −1.53), and the unchanged pre-registered table gives
+  "no host-selection effect detected", which is now the headline host-step verdict (the 2026-11-14
+  verdict stays recorded). The shift keeps its sign and size (about −2 km/s/Mpc); its significance
+  does not survive. Numbers: [`results/r2_re.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re.json).
 - **Same hosts, two indicators (stages C and E).** Putting CCHP's JWST TRGB distances in place
   of the Cepheids on the same 10 hosts gives 69.70, close to CCHP's own 69.29; the SH0ES and CCHP
   ladders on those hosts differ by +0.010 ± 0.048 mag (0.3 km/s/Mpc), and no host deviates by
@@ -255,6 +262,8 @@ section were added after the run (study README section 5; [web page](https://git
 
 ### Changelog
 
+- 2026-11-16: R2-RE (T-023, plan 021): host-level random effect (REML 0.077 mag); the host step
+  becomes "no host-selection effect detected" (z = −1.53), now the headline (part 3 update).
 - 2026-11-14: independent referee: the host step's significance depends on the error scale (about 1.7σ with the random-subset scatter, where the pre-registered table would read no effect); R3's per-host distances include each host's own SNe; Lean gloss of `ResidSmall` clarified; follow-up test T-023 registered.
 - 2026-11-14: results added after implementation (Part 3 "Result" column and section 3.1): R22's printed fit reproduced; host step −0.073 ± 0.033 mag under a post-data host labelling (pre-registered verdict: not evaluable); same-host Cepheid–TRGB agreement; the CCHP choice is a low but ordinary draw.
 - 2026-11-14: first version: parts 1–3, written before implementation (T-012, plan 012); revised after
@@ -392,6 +401,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 - **宿主一步（环节 A–B）。** 把只用 NGC 4258 的阶梯限于 10 个 CCHP 宿主，5 log H0 移动 −0.073 ± 0.033 mag（H0 72.4 → 70.0），按协方差传播的误差为 −2.2σ。这符合预注册判定表中"显著，且大小与该文一致"一行，但我们的移动是论文的 −1.3 km/s/Mpc 的 1.8 倍，只在宽的容差内一致。随机 10 宿主子样本的离散大于协方差的预期（Δ/σ 的离散为 1.33），在这一经验尺度上 CCHP 的选择约低 1.7σ（第 4.7–5.7 百分位）：偏低，但不算异常。按这一倍数膨胀误差后，预注册判定表会给出"未检测到宿主选择的效应"；独立审稿把这一点列为最主要的意见，带逐宿主随机效应（random effect）的检验已登记待做（T-023）。
 - **同样的宿主、两种指示器（环节 C 与 E）。** 在同样 10 个宿主上用 CCHP 的 JWST TRGB 距离代替造父变星，得到 69.70，与 CCHP 自己的 69.29 接近；这些宿主上 SH0ES 与 CCHP 两个阶梯相差 +0.010 ± 0.048 mag（0.3 km/s/Mpc），没有宿主偏离超过 1.2σ。
 - **对论证的意义。** 本项目能重算的 `gap_rule` 输入在 R22 的数据中成立：选出的宿主给出比全样本低的 H0，而在这些宿主上造父变星与 TRGB 一致。规则本身（因此差异"完全"是选择造成的）没有被检验，而选择效应至多约 2σ，计入宿主之间的离散后只是边缘显著。
+- **2026-11-16 更新，R2-RE（T-023，预注册附录）：未检出宿主选择效应。** 用限制最大似然（REML, restricted maximum likelihood）估计的宿主级随机效应（random effect）为 0.077 mag（0.048–0.105），它消除了随机子样本多出来的离散（Δ/σ 的离散 1.33 → 1.005）。计入它之后，CCHP 宿主一步为 −0.062 ± 0.040 mag（z = −1.53），不变的预注册判定表给出"未检出宿主选择效应"，现在是宿主一步的标题判定（2026-11-14 的判定保留记录）。移动的方向与大小（约 −2 km/s/Mpc）不变，不成立的是显著性。数字见 [`results/r2_re.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re.json)。
 
 ### 术语表
 
@@ -405,6 +415,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 ### 研究进展
 
+- 2026-11-16：R2-RE（T-023，计划 021）：宿主级随机效应（REML，0.077 mag）；宿主一步变为"未检出宿主选择效应"（z = −1.53），成为标题判定（第三部分更新）。
 - 2026-11-14：独立审稿：宿主一步的显著性取决于误差尺度（按随机子样本的离散约 1.7σ，此时预注册判定表会给出没有效应）；R3 的逐宿主距离含本宿主的超新星；澄清 `ResidSmall` 的 Lean 说明；登记后续检验 T-023。
 - 2026-11-14：实现之后加入结果（第三部分"结果"一栏与 3.1 节）：复现 R22 印出的拟合；在数据之后的宿主标注下宿主移动为 −0.073 ± 0.033 mag（预注册判定：不可评估）；同宿主上造父变星与 TRGB 一致；CCHP 的选择偏低但不异常。
 - 2026-11-14：第一版：第一至三部分，在实现之前写成（T-012，计划 012）；按审查修订（闸门 1：补上 TRGB 的一致性；1σ 以内的比较论文自己写明；图 6；GAP `stat_f24`：重新标定的 JWST 数值与 CCHP 发表的 H0，因而 `explicit_insufficient`；闸门 2：报告的中心值 73.2，以及 Lean 对 `gap_rule` 能说明什么）。
