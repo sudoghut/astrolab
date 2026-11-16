@@ -65,8 +65,10 @@ def test_r2_re_rule_and_headline():
     re_ = load("r2_re")
     s = load("summary")
     h = load("r2")["host_step"]
+    assert re_["status"] in ("evaluated", "not run", "not evaluable (bound)") or         re_["status"].startswith("not evaluable (fit")
     if re_["status"] != "evaluated":
-        assert s["R2_host_headline_source"].startswith("R2 (C errors)")
+        assert s["R2_host_headline_source"] == "R2 (C errors) with qualification; R2-RE " + re_["status"]
+        assert h["verdict"] == h["qualified_verdict"]
         if "reml" in re_ and re_["reml"]["at_upper_bound"]:
             assert re_["status"] == "not evaluable (bound)"
         return
@@ -93,6 +95,31 @@ def test_r2_re_rule_and_headline():
     lo, hi = re_["interval_68"]
     assert not isinstance(lo, float) or lo <= re_["tau_hat"]
     assert not isinstance(hi, float) or hi >= re_["tau_hat"]
+    # independent recomputation of the pre-registered search rules from the saved grid
+    g, v = est["grid"], est["grid_m2l"]
+    k = min(range(len(g)), key=lambda i: v[i])
+    assert g[max(k - 1, 0)] - 1e-12 <= est["tau_hat"] <= g[min(k + 1, len(g) - 1)] + 1e-12
+    assert est["m2l_min"] <= v[k] + 1e-12
+    thr = est["m2l_min"] + 1.0
+    if isinstance(hi, float):           # nearest crossing above: first grid point >= thr beyond tau_hat
+        j = next(i for i in range(len(g)) if g[i] > est["tau_hat"] and v[i] >= thr)
+        assert g[j - 1] - 1e-9 <= hi <= g[j] + 1e-9 or (j - 1 == k and est["tau_hat"] <= hi <= g[j] + 1e-9)
+    elif hi == "> 0.5":
+        assert all(v[i] < thr for i in range(len(g)) if g[i] > est["tau_hat"])
+    if isinstance(lo, float) and lo > 0:
+        j = max(i for i in range(len(g)) if g[i] < est["tau_hat"] and v[i] >= thr)
+        assert g[j] - 1e-9 <= lo <= g[j + 1] + 1e-9
+    elif lo == 0.0:
+        assert all(v[i] < thr for i in range(len(g)) if g[i] < est["tau_hat"])
+    assert re_["tau_hat"] == (0.0 if est["at_zero"] else est["tau_hat"])
+    # descriptive diagnostics: internal consistency
+    if "r4_under_v" in re_:
+        assert re_["r4_under_v"]["draws"] == load("r4")["draws"]
+    if "loo_chi2" in re_:
+        for w in ("C", "V"):
+            lc = re_["loo_chi2"][w]
+            assert abs(lc["chi2"] - sum(x["chi2"] for x in lc["per_host"])) < 1e-6
+            assert lc["n_rows"] == sum(x["n_rows"] for x in lc["per_host"]) and len(lc["per_host"]) == 37
     # grid points inside a determined interval lie within min + 1 of the REML minimum
     if isinstance(lo, float) and isinstance(hi, float):
         for t, v in zip(est["grid"], est["grid_m2l"]):
