@@ -228,27 +228,40 @@ no trainable weights). For repetition k (seed k):
 Five repetitions, seeds 0–4. n̄ = mean of the five n_σ, s = their standard deviation.
 
 **Known-answer gate (synthetic, run before the chains).** The calibration step of `flowshift.py`
-(the study's TF-side module, run by `run.py` before any flow on the chains): a 6-D
-synthetic difference distribution with the structure expected here, two correlated Gaussian
-directions (mean (2.276, 1.138), unit variances, correlation 0.6) and four flat-topped box directions
-(uniform on [−0.6, 1.4] minus a normal of width 0.05, so that 0 lies inside the plateau), whose exact
-n_σ is computed from its analytic density with 2,000,000 Monte Carlo draws (1.640). The estimator above
-(steps 1–5 with N = 100,000) is run for seeds 0–2. The gate passes if the mean flow n_σ is within 0.10
-of the exact value and each of the three within 0.20. If it fails, R6 is "not evaluable" and no flow
-is trained on the chains. During the design (on this synthetic case only, before any flow on the
-chains): one flow of 100 epochs gave 1.38 (exact 1.64), 300 epochs on 200,000 points the same order
-of error on a cusped variant, and the default ten trainings gave 1.618; this is why the defaults are
-used and why the gate exists.
+(the study's TF-side module, run by `run.py` before any flow on the chains) uses a 6-D synthetic
+difference distribution with the structures expected here, with an analytic density:
+- a curved pair, like the As–Ωm ridge: x₁ ~ N(2.0, 1), x₂ = z + 0.3 (x₁ − 2.0)² with z ~ N(1.0, 1)
+  (unit Jacobian, so p(x₁, x₂) = N(x₁; 2.0, 1) N(x₂ − 0.3 (x₁ − 2.0)²; 1.0, 1)); the curvature 0.3 is
+  set qualitatively, not from the chains;
+- three flat-topped box directions with 0 inside the plateau (uniform on [−0.6, 1.4] minus a normal of
+  width 0.05), like h, ns and Ωb;
+- one box direction with 0 about one edge width inside its lower edge (uniform on [−0.1, 1.9] minus a
+  normal of width 0.1), like Σmν against the CMB's lower bound at 0.06 eV.
+Its exact n_σ is computed from the analytic density with 2,000,000 draws (`default_rng(999)`); it was
+not computed before this was written. The estimator above (steps 1, 3–5; the synthetic samples are
+drawn fresh for each seed with `default_rng(1000 + k)`, N = 100,000) is run for seeds 10, 11, 12,
+none of which was used during the design. The gate passes if the mean flow n_σ is within 0.10 of the
+exact value and each of the three within 0.20. If it fails, R6 is "not evaluable" and no flow is
+trained on the chains. Seen during the design (all with seed 0, on simpler synthetic cases, before
+any flow on the chains): a single 100-epoch flow gave 0.03σ against an exact 0.003σ (a cusped,
+nearly zero-shift case), 0.93σ against 0.61σ (cusped boxes with a Gaussian pair), the same with 300
+epochs on 200,000 points, 1.38σ against 1.64σ (flat-topped boxes, one flow), and the default ten
+trainings 1.618σ against 1.640σ on that last case; this is why the defaults are used and why the
+gate exists.
 
 **Verdict (R6).**
 - "Reproduced" if |n̄ − 1.8| ≤ 0.15 + 2s (the 0.15 allowance as in R2: D26's unquoted flow noise and
   the rounding to 0.1); otherwise "not reproduced".
-- "Not evaluable" if the known-answer gate fails, if s > 0.05, if any repetition fails or returns a
+- "Not evaluable" if the known-answer gate fails, if s > 0.07, if any repetition fails or returns a
   non-finite n_σ, if any estimate has not converged, or if the R1 gate fails. No rerun with other
   settings.
 - If an estimate returns Δ = 1 (no flow sample below the density at 0), n_σ is recorded as a lower
-  bound from the interval's lower end; it counts as converged, and a lower bound above
-  1.8 + 0.15 + 2s gives "not reproduced".
+  bound from the interval's lower end and counts as converged. If any repetition is a lower bound,
+  n̄ and s are not used: R6 is "not reproduced" if the smallest lower bound exceeds
+  1.8 + 0.15 + 0.10 = 2.05, otherwise "not evaluable".
+- s ≤ 0.07 allows for the resampling noise of five repetitions; if the true spread were 0.05, s would
+  exceed 0.07 by chance with probability about 0.10 (χ² with 4 degrees of freedom), an accepted risk
+  of "not evaluable".
 
 **Reported, not decisive** (same estimator, seeds 0–2, so that the run stays within a few hours):
 the six-parameter flow with S8 in place of As; the two data-constrained parameters of R4 (As, Ωm);
