@@ -207,7 +207,8 @@ outside the other chain's prior range (from the `##` lines) is computed; if it e
 parameter, R6 is reported as descriptive (no verdict). Each direction is checked only where the
 other chain's header gives a range; a direction without one is listed as not checked and does not
 withhold the verdict (as in R2), and a parameter with no range in either header is listed as not
-checkable.
+checkable. "Prior support fails" means that at least one checked fraction exceeds 1%; partial or
+wholly unchecked support permits a verdict, as R2's "not performed" does.
 
 **Estimator** (tensiometer 1.1.0 in the separate environment of T-027: TensorFlow 2.21 with the
 legacy Keras 2 API, `TF_USE_LEGACY_KERAS=1`, which tensiometer's flows need; under Keras 3 the flow has
@@ -240,8 +241,10 @@ difference distribution with the structures expected here, with an analytic dens
 - one box direction with 0 about one edge width inside its lower edge (a uniform variable on [−0.1, 1.9]
   minus an independent normal variable of width 0.1), like Σmν against the CMB's lower bound at 0.06 eV.
 Its reference n_σ is computed by Monte Carlo from the analytic density with 2,000,000 draws
-(`default_rng(999)`; sampling error about 0.001σ, negligible against the tolerances); it was not
-computed before this was written. "Exact value" below means this reference. The estimator above (steps 1, 3–5; the synthetic samples are
+(`default_rng(999)`; sampling error about 0.001σ, negligible against the tolerances): 2,000,000
+points z_i are drawn from the synthetic distribution itself, the analytic log-density log p is
+evaluated exactly at each z_i and at 0 (no density estimate), Δ_ref = the fraction of z_i with
+log p(z_i) > log p(0), and n_σ = √2 erf⁻¹(Δ_ref); it was not computed before this was written. "Exact value" below means this reference. The estimator above (steps 1, 3–5; the synthetic samples are
 drawn fresh for each seed with `default_rng(1000 + k)`, N = 100,000) is run for seeds 10, 11, 12,
 none of which was used during the design. The gate passes if the mean flow n_σ is within 0.10 of the
 exact value and each of the three within 0.20. If it fails, R6 is "not evaluable" and no flow is
