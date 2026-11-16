@@ -93,7 +93,8 @@ between the Planck reference point and the R2 fit points was unmeasured. The use
 *Seen before this addendum.* The 2026-11-14 results (section 5). From a speed test, CAMB with the
 settings below at two points only: the Planck reference point (100θ* = 1.04116, against 1.041085
 in Planck 2018 Table 1, i.e. +7.5×10⁻⁵ or +0.29 prior σ of 100θ*) and the same point with
-w0 = −0.8, wa = −0.5 (100θ* = 1.04711; r_drag 147.06 Mpc at both). Implication known when the
+w0 = −0.8, wa = −0.5 (100θ* = 1.04711; r_drag 147.06 Mpc at both); the formula θ* was not evaluated at the second
+point, so no formula–CAMB difference away from the reference point was seen. Implication known when the
 variants were chosen: absolute CAMB θ* is a constant +0.29σ above the anchored one, and section 5
 shows a higher θ* moves reading A towards −8 (K + 1σ: −6.98), so the raw variant is expected to
 move A by about −0.1 relative to the anchored one. For this reason both variants enter the
@@ -120,8 +121,8 @@ non-finite → χ² = ∞) runs before any CAMB call, so the feasible region is 
   K_C fixed so that 100θ* = 1.041085 at the Planck reference point of section 4 (ωb = 0.022383,
   ωc = 0.12011, H0 = 67.32, Σmν = `PARAMS["mnu"]`, w0 = −1, wa = 0), same CAMB settings. It keeps the
   original anchor and replaces only the cosmology dependence of the calibration.
-- **Raw variant.** θ* = θ*_CAMB unscaled: current-CAMB absolute θ* (as in present-day Cobaya
-  runs), not "Planck's θ*" (Planck 2018 used an older CAMB and N_eff = 3.046).
+- **Raw variant.** θ* = θ*_CAMB unscaled: current-CAMB absolute θ* (as current Cobaya + CAMB would
+  compute it), not "Planck's θ*" (Planck 2018 used an older CAMB and N_eff = 3.046).
 - **Rule.** For each variant, the R2 rule of this section unchanged: per reading
   |Δχ²_MAP − (−8.0)| ≤ 1.0, overall from the two readings as above.
 - **Conclusion for T-022.**
@@ -130,7 +131,9 @@ non-finite → χ² = ∞) runs before any CAMB call, so the feasible region is 
   - "R2 depends on the cosmology dependence of the θ* calibration" if the anchored variant changes
     a per-reading verdict (naming the reading).
   - "R2 depends on the absolute θ* calibration (anchor)" if only the raw variant changes one.
-  - "Inconclusive" if any fit of either variant fails the validity checks. Allowed afterwards:
+  - "Inconclusive" for a variant with a failed fit (validity checks). Precedence: a variant whose
+    fits are all valid is evaluated by its own bullet above, even if the other variant is
+    inconclusive; the "robust" label needs both variants valid. Allowed afterwards:
     documented, dated bug fixes only; no change of CAMB accuracy settings, starts or tolerance.
   The 2026-11-14 R2 verdict stays the recorded verdict in every case (it was pre-registered);
   this addendum adds a sensitivity result and its interpretation, it does not replace R2.
@@ -263,8 +266,8 @@ sections 1-4 unchanged since commit 88cdacb, before the data were first used).
 - The ωbc convention of the compressed prior (Eq. 35): which quantity does the paper's code compare
   with it? A primary source (the authors' Cobaya configuration or the definition in the
   compression paper, ref. [111]) would say which convention DESI used; a CAMB check of θ* at the fit points (T-022; installing CAMB
-  needs the user's consent, which README section 4 did not plan; consent given 2026-11-16, R2-CAMB
-  addendum in section 2) would show whether R2 depends on it.
+  needs the user's consent, which README section 4 did not plan; consent given 2026-11-16,
+  R2-CAMB addendum in section 2) would show whether R2 depends on it.
 - Wilks calibration (wiki `gap_regular`): simulate the Δχ² distribution under the ΛCDM best fit
   for DESI + compressed CMB and compare with χ²(2).
 - Leave-one-tracer-out sensitivity of Δχ² (`drop_z`), and DES-Dovekie as a third SN sample.
