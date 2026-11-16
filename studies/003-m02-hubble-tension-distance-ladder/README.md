@@ -340,6 +340,7 @@ passed; page: [`web/index.html`](web/index.html); numbers in `results/*.json`).
 | R2 anchor step | −0.0184 mag; σ(5 log H0) 0.0461 | −0.0158 ± 0.005; 0.0461 ± 15% | **reproduced** |
 | R2 host step, pre-registered labelling | — | — | **not evaluable** (host identification) |
 | R2 host step, amended labelling | Δ_h = −0.0730 ± 0.0331 mag (−2.21σ); H0 72.42 → 70.03 | −0.0405 ± (2σ + 0.02) | significantly lowers H0, by the size the paper reports — **amended, post-data** (labelling and check (ii) changed); 2.2σ with C-propagated errors, about 1.7σ on the random-subset scale (itself uncertain) |
+| **R2-RE host step (headline since 2026-11-16)** | Δ_h' = −0.0618 ± 0.0404 mag (z' = −1.53) with τ̂ = 0.077 mag | R2's table | **no host-selection effect detected** — amended labelling; see the R2-RE subsection |
 | R3 CCHP-side H0, same 10 hosts (amended) | 69.70 (Δ = +0.013 mag) | 69.29 ± 0.02 mag | matched |
 | R3 d = SH0ES − CCHP, same hosts (amended) | +0.010 ± 0.048 mag (≈ +0.3 km/s/Mpc); per-host χ² 5.1 / 10 | — | descriptive |
 | R4 percentile of the CCHP host shift (amended) | 5.7th of 10,000 draws (spread σ = 0.046 mag); 4.7th in Δ/σ | 5th–95th | consistent with random-subset fluctuations |
@@ -413,7 +414,8 @@ R4 and the host identification reproduce the 2026-11-14 numbers exactly). Number
   cross-covariance of a host's SN rows with the kept rows) and is reported only.
 - **How firm the null is (referee, post hoc).** The verdict sits near a knife edge in τ: z is −2.21
   at τ = 0 and −1.53 at τ̂, and crosses −2 at about τ ≈ 0.03 mag, below the 68% interval (0.048) but
-  only about 1.5σ from τ̂; the evidence for τ > 0 itself is modest (Δ(−2ℓ_R) = 3.48 at τ = 0,
+  only about 1.5σ from τ̂ (the 0.03 is the referee's interpolation; only z at 0, τ̂ and the interval end
+  are saved); the evidence for τ > 0 itself is modest (Δ(−2ℓ_R) = 3.50 at τ = 0,
   boundary likelihood-ratio p ≈ 0.03). τ is identified mostly by non-CCHP hosts (the largest
   leave-one-out terms are N5584, N2525, N1015), and R4 under V reuses the data τ was fitted on, so
   its spread of 1.005 is not an independent check. The rule was fixed knowing z = −2.21 and the
@@ -482,16 +484,20 @@ How a coding agent answers "what if" questions about this study without touching
 | `r4_draws`, `r4_seed` | random-subset draws and seed | 1000–10,000 (about 0.08 s per draw) | cache only |
 | `sn_match_tol` | host-identification tolerance (mag) | 0.1–0.3 | cache only |
 | `trgb_tip_sys` | NGC 4258 TRGB tip uncertainty in the R3 covariance (mag) | 0–0.05 | cache only |
+| `re_check`, `re_tau_max`, `re_grid_step` | run R2-RE; τ search range and grid step (mag) | true/false; 0.3–1.0; 0.005–0.02 | cache only |
 
 - Rerun with an override: `python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --set KEY=VALUE`
-  (outputs in `explore/<date>-<topic>/`, not committed; about 15 min with the default R4;
-  `--set r4_draws=1000` takes about 2 min).
+  (outputs in `explore/<date>-<topic>/`, not committed; about 28 min with the default R4 and R2-RE;
+  `--set r4_draws=1000` takes a few minutes; `--set re_check=false` skips R2-RE).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --script explore/<name>.py`.
   Existing: `explore/diag_hosts.py` (which checks link each L column to which host).
 - Results files and keys: `summary.json` (verdicts), `r1.json` (`params` with `column_label`, `worst_param_label`,
   `fivelogh0`, `chi2`),
-  `r2.json` (`anchor_step`, `host_step.shift`, `.shift_sigma`, `.verdict`, `.preregistered_verdict`),
+  `r2.json` (`anchor_step`, `host_step.shift`, `.shift_sigma` (C errors), `.verdict` (the headline, R2-RE
+  when evaluated), `.criterion_outcome`, `.descriptive_inflated_sigma`, `.headline_source`,
+  `.preregistered_verdict`), `r2_re.json` (`tau_hat`, `interval_68`, `reml`, `host_step`, `verdict`,
+  `sensitivity_cepheid_rows`, `r4_under_v`, `loo_chi2`),
   `r3.json` (`cchp_side_h0`, `d`, `sigma_d`, `per_host`), `r4.json` (`percentile`, `quantiles`,
   histogram, `z_quantiles`, `z_std`, `z_percentile`, `cchp_z`), `host_identification.json` (`column_labels`, `relabelled`, `per_column_under_labels`),
   `cross_paper.json`.

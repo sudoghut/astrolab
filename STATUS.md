@@ -44,7 +44,7 @@
 |---|---|---|---|
 | `000-smoke-test_gaia-dr3-10pc-census` | L3 | active | 冒烟测试（smoke test），管线端到端可用 |
 | `002-m01-desi-bao-evolving-dark-energy` | L0 | reproduced | 只用 BAO 与不含 CMB 的组合已复现；压缩 CMB 先验为有条件复现（解读 B），对 θ* 标定稳健（R2-CAMB）；先验来源与解读 A 一致（事后），DESI 的用法待查（T-030） |
-| `003-m02-hubble-tension-distance-ladder` | L2 | concluded | GLS 复现 R22 基线；宿主选择使 H0 降低（修订标注，边缘显著，T-023）；同宿主造父变星与 TRGB 一致 |
+| `003-m02-hubble-tension-distance-ladder` | L2 | concluded | GLS 复现 R22 基线；宿主选择使 H0 降低约 2 km/s/Mpc，加入宿主级随机效应后不显著（R2-RE，z = −1.53；稳健性 T-032）；同宿主造父变星与 TRGB 一致 |
 | `005-m09-nanograv-gwb-power-law` | X | reproduced | 振幅与 L8 的区间一致，谱指数张力同一量级（描述；DMX 噪声模型）；表 A1 重叠 8/24；DMGP 噪声模型下差别明显（T-024） |
 | `006-m08-z14-galaxies-number-density` | L1 | reproduced | 数密度复现；恒定 SFE 模型预言 N26 基准的 2.5–37 倍（预注册变体网格），所需 σ_UV ≈ 1–2 mag；对 z ≈ 8 光度函数不确定性敏感（T-025） |
 | `007-m10-gwtc4-bbh-mass-35msun` | X | concluded | O4a 样本 84/84 复现；O1–O3 按规则 59/69（GWOSC 的 GWTC-2.1 行无 FAR，事后 69）；35 M☉ 局部峰依赖选择函数模型（探索） |
