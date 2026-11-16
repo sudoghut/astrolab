@@ -32,7 +32,7 @@ and concludes that there is "no substantial evidence for a discrepancy" (Sec. VI
 
 ## 2. Hypotheses and decision criteria
 
-Only R1 and R2 carry verdicts. All rules below are fixed before any chain is downloaded. (Exception, dated: R6 in section 2.6 was added on 2026-11-16, after the download
+Only R1 and R2 (and, added later, R6) carry verdicts. All rules below are fixed before any chain is downloaded. (Exception, dated: R6 in section 2.6 was added on 2026-11-16, after the download
 and after R1–R5 were known, and is disclosed there.)
 
 ### 2.0 Step A: reading the chains (no statistics)
@@ -204,8 +204,10 @@ applies).
 
 **Prior support.** The R2 rule is applied to all six parameters: for each, the weight of each chain
 outside the other chain's prior range (from the `##` lines) is computed; if it exceeds 1% for any
-parameter, R6 is reported as descriptive (no verdict). A parameter with no prior range in either
-header is listed as not checkable.
+parameter, R6 is reported as descriptive (no verdict). Each direction is checked only where the
+other chain's header gives a range; a direction without one is listed as not checked and does not
+withhold the verdict (as in R2), and a parameter with no range in either header is listed as not
+checkable.
 
 **Estimator** (tensiometer 1.1.0 in the separate environment of T-027: TensorFlow 2.21 with the
 legacy Keras 2 API, `TF_USE_LEGACY_KERAS=1`, which tensiometer's flows need; under Keras 3 the flow has
@@ -237,8 +239,9 @@ difference distribution with the structures expected here, with an analytic dens
   width 0.05), like h, ns and Ωb;
 - one box direction with 0 about one edge width inside its lower edge (uniform on [−0.1, 1.9] minus a
   normal of width 0.1), like Σmν against the CMB's lower bound at 0.06 eV.
-Its exact n_σ is computed from the analytic density with 2,000,000 draws (`default_rng(999)`); it was
-not computed before this was written. The estimator above (steps 1, 3–5; the synthetic samples are
+Its reference n_σ is computed by Monte Carlo from the analytic density with 2,000,000 draws
+(`default_rng(999)`; sampling error about 0.001σ, negligible against the tolerances); it was not
+computed before this was written. "Exact value" below means this reference. The estimator above (steps 1, 3–5; the synthetic samples are
 drawn fresh for each seed with `default_rng(1000 + k)`, N = 100,000) is run for seeds 10, 11, 12,
 none of which was used during the design. The gate passes if the mean flow n_σ is within 0.10 of the
 exact value and each of the three within 0.20. If it fails, R6 is "not evaluable" and no flow is
@@ -250,7 +253,11 @@ epochs on 200,000 points, 1.38σ against 1.64σ (flat-topped boxes, one flow), a
 trainings 1.618σ against 1.640σ on that last case; this is why the defaults are used and why the
 gate exists.
 
-**Verdict (R6).**
+**Verdict (R6).** The conditions are applied in this order; the first that applies decides:
+(1) the R1 gate fails → "not evaluable"; (2) the known-answer gate fails → "not evaluable";
+(3) a repetition fails, gives a non-finite n_σ or has not converged → "not evaluable"; (4) the
+lower-bound rule below; (5) s > 0.07 → "not evaluable"; (6) prior support fails → "descriptive";
+(7) the band rule.
 - "Reproduced" if |n̄ − 1.8| ≤ 0.15 + 2s (the 0.15 allowance as in R2: D26's unquoted flow noise and
   the rounding to 0.1); otherwise "not reproduced".
 - "Not evaluable" if the known-answer gate fails, if s > 0.07, if any repetition fails or returns a
