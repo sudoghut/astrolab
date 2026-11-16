@@ -67,14 +67,15 @@ def test_r2_camb_rule():
         verdicts[var] = {}
         for rd, key in keys.items():
             fit = v[key]
-            if not fit["valid"]:
-                lc, wc = fit["lcdm"], fit.get("w0wa")
-                assert (not lc["converged"] or wc is None or not wc["converged"] or lc["n_agree"] < 3
-                        or wc["n_agree"] < 3 or wc["chi2"] > lc["chi2"] + 1e-3)
+            lc, wc = fit["lcdm"], fit.get("w0wa")
+            # validity recomputed from the saved diagnostics (README section 2 checks)
+            ok = (lc["converged"] and wc is not None and wc["converged"] and lc["n_agree"] >= 3
+                  and wc["n_agree"] >= 3 and wc["chi2"] <= lc["chi2"] + 1e-3)
+            assert bool(fit["valid"]) == bool(ok), (var, rd)
+            if not ok:
                 exp = "failed fit"
             else:
-                assert fit["w0wa"]["chi2"] <= fit["lcdm"]["chi2"] + 1e-3
-                assert fit["lcdm"]["n_agree"] >= 3 and fit["w0wa"]["n_agree"] >= 3
+                assert abs(fit["dchi2"] - (wc["chi2"] - lc["chi2"])) < 1e-9
                 exp = "reproduced" if abs(fit["dchi2"] - (-8.0)) <= 1.0 else "not reproduced"
             assert fit["verdict"] == exp, (var, rd)
             verdicts[var][rd] = exp
