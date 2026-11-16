@@ -97,3 +97,56 @@ def test_r2_re_rule_and_headline():
         for t, v in zip(est["grid"], est["grid_m2l"]):
             if lo + 1e-9 < t < hi - 1e-9:
                 assert v <= est["m2l_min"] + 1.0 + 1e-6
+
+
+def _run_module():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("run003", Path(__file__).parent / "run.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_reml_objective_matches_error_contrast_likelihood():
+    """Offline, synthetic: reml_m2l equals -2 log of the error-contrast likelihood (K^T y with
+    K^T X = 0) up to a tau-independent constant."""
+    import numpy as np
+    from scipy import linalg
+
+    run = _run_module()
+    rng = np.random.default_rng(1)
+    n, p = 40, 4
+    L = np.zeros((n, p))
+    L[:, 0] = np.linspace(-1.0, 1.0, n)
+    L[:20, 1] = 1.0
+    L[20:, 2] = 1.0
+    L[:, 3] = rng.normal(size=n)
+    A = rng.normal(size=(n, n))
+    C = A @ A.T / n + np.eye(n)
+    y = rng.normal(size=n)
+    groups = [np.arange(0, 5), np.arange(20, 26)]
+    rows = np.arange(n)
+    K = linalg.null_space(L.T)
+    diffs = []
+    for tau in (0.0, 0.1, 0.4):
+        V = run.with_re(C, groups, tau)
+        S = K.T @ V @ K
+        z = K.T @ y
+        brute = np.linalg.slogdet(S)[1] + z @ np.linalg.solve(S, z)
+        diffs.append(run.reml_m2l(L, y, C, rows, groups, tau) - brute)
+    assert np.ptp(diffs) < 1e-8
+
+
+def test_reml_tau_grid_refinement_and_interval():
+    """Offline: on a parabola with minimum 0.2 and curvature giving +1 at +-0.05, the estimate and
+    the nearest crossings are recovered; flat and increasing profiles hit the documented edges."""
+    run = _run_module()
+    par = run.reml_tau(lambda t: ((t - 0.2) / 0.05) ** 2, 0.5, 0.01)
+    assert abs(par["tau_hat"] - 0.2) < 1e-4 and not par["at_zero"] and not par["at_upper_bound"]
+    assert abs(par["interval_68"][0] - 0.15) < 1e-5 and abs(par["interval_68"][1] - 0.25) < 1e-5
+    inc = run.reml_tau(lambda t: 100 * t, 0.5, 0.01)
+    assert inc["at_zero"] and inc["interval_68"][0] == 0.0 and abs(inc["interval_68"][1] - 0.01) < 1e-6
+    flat = run.reml_tau(lambda t: 0.0 * t, 0.5, 0.01)
+    assert flat["interval_68"][1] == "> 0.5"
+    dec = run.reml_tau(lambda t: -t, 0.5, 0.01)
+    assert dec["at_upper_bound"]
