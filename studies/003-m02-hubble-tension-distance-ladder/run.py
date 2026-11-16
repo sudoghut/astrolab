@@ -331,13 +331,15 @@ def reml_tau(f, tau_max, step):
     local = [float(grid[i]) for i in range(len(grid)) if i != k
              and (i == 0 or vals[i] < vals[i - 1]) and (i == len(grid) - 1 or vals[i] < vals[i + 1])]
     lo, hi = grid[max(k - 1, 0)], grid[min(k + 1, len(grid) - 1)]
-    tau_hat, f_hat, refined = float(grid[k]), float(vals[k]), False
+    tau_hat, f_hat, refined, refine_error = float(grid[k]), float(vals[k]), False, None
     try:
         r = optimize.minimize_scalar(f, bounds=(lo, hi), method="bounded", options={"xatol": 1e-5})
         if r.success and r.fun < f_hat:
             tau_hat, f_hat, refined = float(r.x), float(r.fun), True
-    except Exception:          # refinement failure: keep the grid minimum (pre-registered)
-        pass
+        elif not r.success:
+            refine_error = f"not converged: {r.message}"
+    except np.linalg.LinAlgError as e:   # numerical failure: keep the grid minimum (pre-registered);
+        refine_error = f"{type(e).__name__}: {e}"   # anything else is a bug and propagates
 
     def crossing(direction):
         g = lambda t: f(t) - f_hat - 1.0
@@ -353,11 +355,11 @@ def reml_tau(f, tau_max, step):
                 a, b = sorted((inner, float(grid[j])))
                 try:
                     return float(optimize.brentq(g, a, b, xtol=1e-6))
-                except Exception:
+                except (ValueError, RuntimeError, np.linalg.LinAlgError):   # no sign change / no convergence
                     return "not determined"
         return 0.0 if direction < 0 else "> %.1f" % tau_max
 
-    return {"tau_hat": tau_hat, "m2l_min": f_hat, "refined": refined,
+    return {"tau_hat": tau_hat, "m2l_min": f_hat, "refined": refined, "refine_error": refine_error,
             "grid": [float(t) for t in grid], "grid_m2l": [float(v) for v in vals],
             "other_local_minima": local, "interval_68": [crossing(-1), crossing(+1)],
             "at_zero": tau_hat < 1e-3, "at_upper_bound": tau_hat > tau_max - 1e-3}
@@ -428,21 +430,22 @@ def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks,
 
     try:
         est = estimate(calib_groups)
-    except (np.linalg.LinAlgError, ValueError) as e:
-        out.update(status=f"not evaluable (fit: {e})")
+    except np.linalg.LinAlgError as e:
+        out.update(status=f"not evaluable (fit: {e})", anchor_status=anchor_status)
         return out
     out["reml"] = est
     ctx.log(f"R2-RE: tau_hat {est['tau_hat']:.4f} mag, 68% {est['interval_68']}, "
             f"refined {est['refined']}, other local minima {est['other_local_minima']}")
     if est["at_upper_bound"]:
-        out.update(status="not evaluable (bound)", tau_hat=est["tau_hat"], interval_68=est["interval_68"])
+        out.update(status="not evaluable (bound)", tau_hat=est["tau_hat"], interval_68=est["interval_68"],
+                   anchor_status=anchor_status)
         return out
     tau = 0.0 if est["at_zero"] else est["tau_hat"]
     try:
         V = with_re(C, calib_groups, tau)
         hs, res_aV = host_step_under(L, y, V, rows_a, rows_s)
     except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
-        out.update(status=f"not evaluable (fit: {e})", tau_hat=tau)
+        out.update(status=f"not evaluable (fit: {e})", tau_hat=tau, anchor_status=anchor_status)
         return out
     v = host_step_verdict(hs["z"], hs["shift"], hs["shift_sigma"], P["host_ref"], P["host_ref_extra"])
     out.update(status="evaluated", anchor_status=anchor_status, tau_hat=tau, interval_68=est["interval_68"],
