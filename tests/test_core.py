@@ -430,7 +430,7 @@ def test_rejected_gaia_login_not_repeated(monkeypatch, tmp_path):
 
     def reject(u, p):
         calls.append(1)
-        raise RuntimeError("Gaia archive login failed (HTTP 401)")
+        raise gaia_auth.LoginRejected("Gaia archive login failed (HTTP 401)")
 
     monkeypatch.setattr(gaia_auth, "_post_login", reject)
     url = "https://" + gaia_auth.GAIA_HOST + "/tap-server/tap"
@@ -442,7 +442,7 @@ def test_rejected_gaia_login_not_repeated(monkeypatch, tmp_path):
 
     def blip(u, p):
         calls.append(2)
-        raise OSError("Connection reset")
+        raise RuntimeError("Gaia archive login failed (HTTP 503)")
 
     monkeypatch.setattr(gaia_auth, "_post_login", blip)
     gaia_auth.session_with_cookies(url)
@@ -477,6 +477,9 @@ def test_http_cap_cannot_be_raised_by_caller(tmp_cache, monkeypatch):
     _fake_http(monkeypatch, b"x" * 2000)
     with pytest.raises(fetch.TooLarge):
         fetch.http("http://example.invalid/f.txt", max_bytes=10_000_000)
+    _fake_http(monkeypatch, b"x" * 2000, length=0)     # no Content-Length: the streaming check
+    with pytest.raises(fetch.TooLarge):
+        fetch.http("http://example.invalid/f.txt", max_bytes=10_000_000)
 
 
 def test_http_cached_payload_verified_against_provenance(tmp_cache, monkeypatch):
@@ -487,3 +490,15 @@ def test_http_cached_payload_verified_against_provenance(tmp_cache, monkeypatch)
     a.data.write_bytes(b"tampered")           # bytes no longer match the stored sha256
     c = fetch.http("http://example.invalid/g.txt")
     assert not c.from_cache and c.data.read_bytes() == b"first"
+
+
+def test_http_refresh_keeps_identical_file_and_updates_meta(tmp_cache, monkeypatch):
+    _fake_http(monkeypatch, b"same")
+    a = fetch.http("http://example.invalid/h.txt", note="one")
+    ino = a.data.stat().st_ino            # read() touches mtime; the inode shows the file was kept
+    b = fetch.http("http://example.invalid/h.txt", note="two", refresh=True)
+    assert b.data == a.data and b.data.stat().st_ino == ino and b.provenance.note == "two"
+    assert fetch.http("http://example.invalid/h.txt").provenance.note == "two"
+    _fake_http(monkeypatch, b"changed")
+    c = fetch.http("http://example.invalid/h.txt", refresh=True)
+    assert c.data.read_bytes() == b"changed" and c.provenance.sha256 == fetch._sha256(c.data)

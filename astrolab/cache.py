@@ -90,16 +90,28 @@ def read(key: str, suffix: str, reader, root: Path | None = None):
 
 
 def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path | None = None,
-             replace: bool = False) -> Entry:
+             replace: bool = False, same_payload=None) -> Entry:
     """Store `src` (moved) with its meta. A complete entry already stored under `key` (for example
     by another thread that ran the identical query) is kept and `src` is discarded, so a stored
     payload and its meta are never modified implicitly and always come from one write; only
     `replace=True` (an explicit refresh) overwrites, removing the old meta first so readers miss
-    the entry while it is rewritten."""
+    the entry while it is rewritten. With `replace=True`, `same_payload(stored_path) -> bool` is
+    called under the key lock; when it is true the stored payload is kept (a path a caller holds is
+    not replaced) and only the meta is rewritten. Callers read the stored entry back with read()."""
     payload, meta_path = _paths(key, suffix, root)
     payload.parent.mkdir(parents=True, exist_ok=True)
     with _key_lock(payload):                 # one writer per key within the process
-        _store(Path(src), payload, meta, meta_path, root, replace)
+        if (replace and same_payload is not None and payload.exists() and meta_path.exists()
+                and same_payload(payload)):
+            Path(src).unlink(missing_ok=True)
+            tmp_meta = staging_path(".json", root)
+            try:
+                tmp_meta.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
+                os.replace(tmp_meta, meta_path)
+            finally:
+                tmp_meta.unlink(missing_ok=True)
+        else:
+            _store(Path(src), payload, meta, meta_path, root, replace)
     prune(root=root)
     return Entry(key, payload, meta_path)
 

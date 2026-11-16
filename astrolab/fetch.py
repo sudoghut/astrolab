@@ -351,16 +351,24 @@ def http(
     key = cache.key_for("http", {"url": url})
 
     # The caller reads the returned path later. Under the key lock the file is checked against its
-    # provenance sha256 (a mismatch is a miss and is downloaded again), and a refresh that fetches
-    # identical bytes keeps the stored file, so a path in use is replaced only when the server's
-    # content has really changed during a refresh of the same URL in this process.
+    # provenance sha256 (a mismatch is a miss and is downloaded again) and against the size cap; a
+    # refresh that fetches identical bytes keeps the stored file (put_file same_payload), so a path
+    # in use is replaced only when the server's content changed during a refresh in this process.
     def _verified(p: Path):
+        if p.stat().st_size > max_bytes:
+            raise TooLarge(f"cached {url} is {p.stat().st_size / 1024**2:.1f} MB > limit "
+                           f"{max_bytes / 1024**2:.0f} MB.")
         return p, _sha256(p)
 
-    if not refresh and (hit := cache.read(key, suffix, _verified)):
+    def _consistent(hit):
+        if hit is None:
+            return None
         meta, (path, digest) = hit
-        if digest == meta["provenance"].get("sha256"):
-            return Fetched(path, Provenance(**meta["provenance"]), True)
+        return (path, Provenance(**meta["provenance"])) if digest == meta["provenance"].get("sha256") else None
+
+    if not refresh and (ok := _consistent(cache.read(key, suffix, _verified))):
+        return Fetched(ok[0], ok[1], True)
+    if not refresh and cache.get(key, suffix) is not None:
         refresh = True                       # stored bytes do not match their provenance
 
     head = requests.head(url, allow_redirects=True, timeout=30)
@@ -385,10 +393,10 @@ def http(
         source="http", request=url, release=release, bytes=written,
         sha256=_sha256(tmp), cache_key=key, note=note,
     )
-    # keep the stored file only when both its bytes and its recorded sha256 equal the new download
-    same = cache.read(key, suffix, _sha256)
-    unchanged = (same is not None and same[1] == prov.sha256
-                 and same[0]["provenance"].get("sha256") == prov.sha256)
-    entry = cache.put_file(key, suffix, tmp, {"provenance": prov.to_dict()},
-                           replace=refresh and not unchanged)
+    entry = cache.put_file(key, suffix, tmp, {"provenance": prov.to_dict()}, replace=refresh,
+                           same_payload=lambda p: _sha256(p) == prov.sha256)
+    # return what is stored now (another thread's complete entry may have been kept), with its
+    # own provenance, so the path and the provenance always describe the same bytes
+    if ok := _consistent(cache.read(key, suffix, _verified)):
+        return Fetched(ok[0], ok[1], False)
     return Fetched(entry.payload, prov, False)
