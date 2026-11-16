@@ -12,6 +12,7 @@
 
 ## 2026-11
 
+- [x] **T-037** 考虑把本项目作为 GitHub Pages 直接部署，使 Atlas 与各研究网页可以在线打开 · 完成 2026-11-16 · PR #32 · 计划 [025](design/025-plan_github-pages-static-site-for-atlas-and-study-pages.md) — `python -m astrolab site` 建出 3.1 MB 的静态网站（网页不需修改），检查断链、跳过的文件与本机路径；Pages 工作流只能手动触发，启用与发布由用户决定
 - [x] **T-026** M10：核对研究 007 事后得到的 69 个 O1–O3 双黑洞是否与 GWTC-3 群体论文的 69 个是同一组 · 完成 2026-11-16 · PR #30 — 是同一个集合：论文数据发布的表 1（76 个事件）减去表 3（7 个分类时考虑了中子星分量的事件，含作为离群点排除的 GW190814）恰为 69 个，与 P26 引用的数目相同，与我们的 69 个一致（两个简称对应全名）
 - [x] **T-029** 研究 `README.md` 中英双语：为每个研究补中文对照文件 `README.zh.md` · 完成 2026-11-16 · PR #29 · 计划 [023](design/023-plan_bilingual-study-readmes-with-chinese-companion-files.md) — 11 个研究都有以英文为准的中文译本，规则写入 AGENTS.md、模板与技能，测试检查节、小节与表格一一对应；审查修正了两处改变判据含义的译文
 - [x] **T-033** 核心库：压缩研究结果中的来源记录（provenance） · 完成 2026-11-16 · PR #28 — 超过约 256 KB 的来源记录改写为模板格式（`astrolab.provenance.expand` 完全还原），研究 004 由 4.3 MB 降到 0.92 MB；小文件保持原格式
