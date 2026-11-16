@@ -46,7 +46,7 @@ structure Vocab where
   ErrCal : Prop
   /-- The likelihood ratio exp(Delta chi2 / 2) computed from those errors measures the relative support of the two models. -/
   LRValid : Prop
-  /-- Newtonian gravity is strongly favoured over MOND (likelihood ratio of order 1000). -/
+  /-- Newtonian gravity is strongly favoured over MOND (likelihood ratio of order 1000), for C26s cleanest sample. -/
   NewtonStrong : Prop
 
 /-- The premises. -/

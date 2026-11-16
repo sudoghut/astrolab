@@ -247,6 +247,14 @@ cumulative byte estimate was 155.4 MB (budget 200 MB). Page: [`web/index.html`](
   L = 6.7 × 10⁻³ (reproduction column, no verdict): on our sample the error convention, not the
   data, decides the outcome. This is numerical evidence for the Lean gap `gap_err` (the error
   model of the chain). Because the sample differs (R1), R2 is not a reproduction of C26's number.
+- **Power of the test (referee, post hoc; verified by us).** With our five bins and bootstrap errors,
+  noise-free Newtonian data (flat at A = 0.499) give L = 6.2 and noise-free MOND data L = 0.16:
+  neither reaches the pre-registered 100 or 1/100. "Cannot distinguish" was therefore almost
+  certain for this sample whatever the truth; it says the sample cannot decide, not that the data
+  disfavour C26's conclusion. The referee's design calculation with C26's own bins and counts gives
+  L ≈ 7 for flat data with correctly sized errors and L ≈ 2000 with errors halved (the size of
+  MAD/√N), i.e. the order of C26's "up to 1500×" (an estimate that assumes C26's per-pair scatter
+  equals ours).
 - **R3 (descriptive).** ṽ ≤ 2: L = 0.40; ṽ ≤ 1.5: 0.92; no perspective correction: 0.13; d < 150 pc:
   1.16; parallax S/N > 100: 0.49; mean RV: 0.44 — all "cannot distinguish". No degrouping (N = 1465):
   L = 0.034. Invalid fits (more than 5% of bootstrap replicates redrawn because the outermost bin fell
@@ -255,10 +263,32 @@ cumulative byte estimate was 155.4 MB (budget 200 MB). Page: [`web/index.html`](
   None of C26's quantitative variant statements (150 pc: MOND 12×; 150 pc with ipd = 0: Newton 88×)
   is reproduced: our 150 pc variant gives L = 1.16 and the ipd = 0 variant is invalid.
 - **R4.** Not run (optional; the B24 server-side count was not attempted before the archive outage).
+- **Exploration after the referee (post hoc, 2026-11-16; output deleted, no verdict).** The same
+  cached data with the r_sky floor lowered to 300 AU (`--set rsky_min_au=300 --set n_boot=500`):
+  main sample N = 1250, per x bin 543, 286, 232, 109, 56, 24 (C26: 368, 228, 144, 99, 33, 28), lowest
+  median x = 0.063 (C26: 0.073). So C26's sample very probably includes pairs below its stated 1 kAU
+  floor. On that sample: main L = 1.9 ("cannot distinguish"), with MAD/√N errors L = 1.9 × 10⁻⁴;
+  d < 150 pc L = 0.67; no HR cut L = 196 (Newton); no degrouping L = 4.5 × 10⁻⁴ (MOND). The outcome
+  swings by orders of magnitude with the sample definition. A pre-registered re-test is T-034.
 
 ## 6. Referee notes
 
-Independent critique: selection effects, systematics, alternative explanations.
+Independent referee, 2026-11-16 (a subagent that saw README sections 1-4, the code, the results, the
+Lean argument and its quote / kind / body table, not sections 5-8; it ran offline synthetic checks:
+perspective correction, σ(ṽ) Jacobian, MOND boost, bootstrap against MAD/√N). No bug found.
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The test had almost no power: noise-free Newtonian data give L = 6.2 and MOND data 0.16, so neither threshold can be reached; with C26's design and halved errors flat data give L ≈ 2000, C26's order | yes: L = 6.17 and 0.161 recomputed by us with `wb.compare_models` | **Accepted**; section 5 states it next to the verdict. |
+| 2 | The shortfall is almost entirely C26's lowest x bin (outside it we have 636 pairs against C26's 532); C26's lowest-bin median x = 0.073 is inconsistent with its 1 kAU floor, so C26 probably includes pairs below 1 kAU or uses a different x scale | partly: per-bin counts from `summary.json`; the exploration below | **Accepted as the likely cause**; post-hoc exploration with r_sky ≥ 300 AU (below); follow-up T-034. |
+| 3 | Degrouping with relaxed neighbours (parallax S/N > 5, 3σ parallax consistency) keeps only 38% of 1–30 kAU pairs, much stricter than C26 appears to be | yes (cut traces) | **Accepted limitation**; the C25-neighbour diagnostic was not run (section 3); follow-up T-034. |
+| 4 | The bootstrap errors are noisy (18–29% scatter at these N); a pooled error model σ_j = k/√N_j moves L from 0.49 to 0.17 | partly (referee's computation) | **Accepted**; reported as a sensitivity here; no verdict change (both "cannot distinguish"). |
+| 5 | Contamination that adds a fixed km/s grows in ṽ with x and mimics MOND (no_degroup: L = 0.034); any MOND-ward reading of the MAD/√N result may be contamination | partly | **Accepted** as context; no verdict uses it. |
+| 6 | The ">5% redrawn" rule invalidated 7 of 14 variants (a bin of 15–20 pairs); invalid variants' L (e.g. no HR cut 434) must not be quoted | yes | **Accepted**; section 5 lists them as invalid; recorded as a design lesson (section 7). |
+| 7 | No projection correction raises our outer median by 0.037, against C26's ≈ 0.15 (about 1σ given 24 pairs) | yes | Noted; the code was verified on synthetic pairs. |
+| 8 | The saved R1 chain is cumulative, not one cut at a time as section 2 says | yes | Accepted (only the HR and degrouping one-at-a-time variants exist). |
+| 9 | Lean: `[stated]` premises are no stronger than their quotes; the conclusion should carry "for our cleanest sample"; a missing gap is "x computed on the model's scale" | yes | Docstring of the conclusion qualified; the x-scale gap is recorded in section 7 and the wiki (not added to the Lean argument in this PR). |
+| 10 | Literature: Banik et al. 2024 (arXiv:2311.03436) and Chae 2023 (arXiv:2305.04613) on close-binary contamination; El-Badry, Rix & Heintz 2021 (arXiv:2101.05282) and Pittordis & Sutherland 2023 (arXiv:2205.02846) unverified | partly (the first two are study papers) | Context only. |
 
 ## 7. Open questions
 
@@ -271,6 +301,10 @@ Independent critique: selection effects, systematics, alternative explanations.
   and C26's selection would calibrate both.
 - The outermost bin (x ≈ 2.7) holds only 24 pairs, which made the ipd = 0 and HR variants invalid.
 - d < 200 pc and the C25-neighbour degrouping diagnostic were not run (sections 3–4).
+- The Lean argument lacks a premise that x is computed on the MOND model's scale (referee point 9);
+  C26's lowest bin is inconsistent with its stated 1 kAU floor.
+- Design lesson: a hard 15-pair floor with a 5% redraw limit invalidates variants whose outer bin
+  holds 15–20 pairs.
 
 ## 8. Exploring via chat
 
