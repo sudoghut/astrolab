@@ -319,11 +319,11 @@ pre-registered fallback and was applied as written.
 | Intrinsic scatter (sample B) | σ_int = 0.79 ± 0.02 Gyr | needs \|mock bias\| ≤ 0.1 | **cannot determine** (mock bias +0.13 to +0.18) |
 
 - **R1.** S15 bins [−0.7, −0.5) and [−0.5, −0.3) are resolvable (power 1.00/1.00 and 1.00/0.97 under
-  the two error mechanisms) but their valleys are shallow (d = 0.30 and 0.45 against d* = 0.25);
+  the two error mechanisms) but their valleys are shallow (d = 0.29 and 0.45 against d* = 0.25);
   [−0.3, −0.1) has d = 0.49 but power 0; the two metal-rich bins show no valley (d = 1) and power 0.
   Full: [−0.5, −0.3) and [−0.3, −0.1) resolvable (d = 0.58, 0.48), [−0.7, −0.5) power 0.67. No null
   mock of any set had a valley below 0.25 (all realised false-positive rates 0), so d* stayed at its
-  cap 0.25. Young-side edges where a valley exists: 8.6–9.5 Gyr (S15), 7.3–9.5 Gyr (Full). In words:
+  cap 0.25. Young-side edges where a valley exists: 8.6–9.4 Gyr (S15), 7.3–9.5 Gyr (Full). In words:
   where the data can resolve a split, the latent age density dips between the old and young phases
   but not to "almost disjoint"; for the metal-rich bins the error model cannot resolve one at all.
 - **R2.** The observed-age Gaussian for old, metal-poor (−1.05 to −0.95), high-J_φ disc stars gives
@@ -364,9 +364,9 @@ pre-registered fallback and was applied as written.
   (correction noted here; the frozen text is left as it was). (2) The R1 power model floors the old
   weight at 10%, which can never pass the 10% side-mass rule, so bin [−0.1, 0.1) was unresolvable by
   construction (generating model with young edge 2.0 Gyr, true d = 1). (3) Substantively: no
-  resolvable R1 bin is almost disjoint (d = 0.30–0.58 against 0.25), so with one more resolvable bin
+  resolvable R1 bin is almost disjoint (d = 0.29–0.58 against 0.25), so with one more resolvable bin
   R1 would read "not reproduced" rather than "undetermined"; R3's span is 5.7–6.2 Gyr in every
-  variant (inside 4.5–6.5); R4's σ_sel is 2.4–2.7 Gyr in every variant, about three times XR22's 0.82,
+  sample-A variant (inside 4.5–6.5; XR22 Fig. 2e's own selection gives 6.83); R4's σ_sel is 2.4–2.7 Gyr in every variant, about three times XR22's 0.82,
   so the comparison is probably not like for like (XR22's fit likely includes an outlier or
   background component, as our sample-B mixture does). A re-test with a selection term consistent
   with the mock mechanisms and a corrected power floor needs a new pre-registration (T-031).
@@ -392,20 +392,25 @@ Triage:
 
 ## 7. Open questions
 
-- **Selection term with relative errors (post hoc).** M0 conditions the S15 cut on a fixed error
-  e, but if errors scale with the true age (e = r·τ), the cut e/A < 0.15 does not depend on τ and the
-  likelihood's selection term is misspecified; this is the diagnosed cause of the +0.25–0.28 Gyr σ
-  recovery bias. A selection term conditioned on the relative error (an `explore/` script) would
-  test whether R3/R4 become determinable; it would need a new pre-registration.
-- **Sample-B bias.** Why the two-component sample-B fit overestimates σ_int by 0.13–0.18 Gyr in mocks
-  (background-component leakage or the same selection issue).
-- **R1 power.** Metal-rich bins have no power under the pre-registered generating model; a model with
-  a sharper young edge, or ages from a different pipeline, would be needed to resolve them.
+- **A selection term consistent with the error mechanism (T-031).** M0 conditions the S15 cut on a
+  fixed error e, but with r independent of τ the cut does not depend on τ under either mocked
+  mechanism (section 5, referee point 1); this drives the σ recovery bias (+0.25–0.28 Gyr), the
+  sample-B bias (+0.13–0.18 Gyr) and the S15/Full differences. A re-test with a consistent term (or
+  an empirical age-dependent pass probability from the Full sample), a corrected power floor and
+  r correlated with age as in the data (corr(e/A, Age) = +0.16) needs a new pre-registration: T-031.
+- **Limitations noted by the referee.** Mock fits start from the data fit with 3 starts while data
+  fits use 40; f_max = 2.81 (dominated by the true late-phase age spread and by σ_sel) is not a
+  usable error scale; latent peaks pile up at the 20 Gyr grid edge in metal-rich bins, which affects
+  BIC and the K cap.
+- **R1 power.** Metal-rich bins have no power under the pre-registered generating model (one by
+  construction, section 5); a model with a sharper young edge, or ages from a different pipeline,
+  would be needed to resolve them.
 - **Absolute age scale.** The 13 Gyr mean moves by ~1 Gyr with the isochrone grid and α scale, and the
   deconvolved mean is 0.3–0.7 Gyr lower; an independent age scale (e.g. Chen, Sun & Ye 2025) on the
   same stars would show whether the onset epoch survives.
-- **Mock budget.** Rerun with 50 mocks per set on an otherwise idle machine to remove the
-  reduced-mode caveat (expected to change only the Monte Carlo errors).
+- **Mock budget.** Rerun with 50 mocks per set on an otherwise idle machine: the R1 line between
+  "undetermined" and "not reproduced" sits on the Monte Carlo noise of the 30-mock power estimates
+  (Full bin 0 at 20/30, referee point 4).
 
 ## 8. Exploring via chat
 
