@@ -58,25 +58,27 @@ def get(key: str, suffix: str, root: Path | None = None) -> Entry | None:
 def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path | None = None) -> Entry:
     payload, meta_path = _paths(key, suffix, root)
     payload.parent.mkdir(parents=True, exist_ok=True)
-    # meta first (atomically), then the payload: get() needs both, so a reader never sees a payload
-    # with a missing or half-written meta file. Two threads that fetched the same key store
-    # identical data; on Windows os.replace fails while another thread has the target open, and
-    # then the copy already in place is kept.
-    tmp_meta = staging_path(".json", root)
-    tmp_meta.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
-    _replace_or_keep(tmp_meta, meta_path)
-    _replace_or_keep(src, payload)
+    # payload first, then meta (written to staging and replaced atomically): get() needs both, so
+    # a reader never sees a half-written meta file. On Windows os.replace fails while another thread
+    # has the target open; the copy already in place is then kept together with its own meta.
+    if _replace_or_keep(src, payload):
+        tmp_meta = staging_path(".json", root)
+        tmp_meta.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
+        _replace_or_keep(tmp_meta, meta_path)
     prune(root=root)
     return Entry(key, payload, meta_path)
 
 
-def _replace_or_keep(src: Path, dst: Path) -> None:
+def _replace_or_keep(src: Path, dst: Path) -> bool:
+    """os.replace; True if replaced, False if `dst` was in use and kept (src discarded)."""
     try:
         os.replace(src, dst)
+        return True
     except PermissionError:
         if not dst.exists():
             raise
         Path(src).unlink(missing_ok=True)
+        return False
 
 
 def staging_path(suffix: str, root: Path | None = None) -> Path:

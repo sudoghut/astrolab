@@ -252,12 +252,13 @@ def test_run_tap_relogs_once_with_saved_cookie_on_401(monkeypatch):
     disk = {"cookies": {"JSESSIONID": "dead"}}
     monkeypatch.setattr(pyvo.dal, "TAPService", _Svc)
     monkeypatch.setattr(gaia_auth, "load_cookies", lambda: dict(disk["cookies"]))
-    monkeypatch.setattr(gaia_auth, "session_for", lambda url: fake_session(disk["cookies"]["JSESSIONID"]))
+    monkeypatch.setattr(gaia_auth, "session_with_cookies",
+                        lambda url: (fake_session(disk["cookies"]["JSESSIONID"]), dict(disk["cookies"])))
 
     def refresh(url, stale):
         calls["stale"].append(stale)
         disk["cookies"] = {"JSESSIONID": "fresh"}
-        return fake_session("fresh")
+        return fake_session("fresh"), dict(disk["cookies"])
 
     monkeypatch.setattr(gaia_auth, "refresh_session", refresh)
     url = "https://gea.esac.esa.int/tap-server/tap"

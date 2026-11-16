@@ -90,39 +90,46 @@ def refresh_session(url: str, stale: dict | None):
     (load_cookies() at that time, not the live cookie jar, which the server's 401 response may have
     changed). Drop that cookie and build a new session (a fresh non-interactive login when
     credentials are configured, else anonymous). Threads that hit the same 401 log in once: a saved
-    cookie that already differs from `stale` is reused."""
+    cookie that already differs from `stale` is reused. Returns (session, cookies) as
+    session_with_cookies."""
     with _RELOGIN_LOCK:
         if load_cookies() == stale:
             try:
                 session_path().unlink()
             except OSError:
                 pass
-        return session_for(url)
+        return session_with_cookies(url)
 
 
 def session_for(url: str):
     """A requests.Session carrying the Gaia cookies when `url` is the Gaia archive, else None."""
+    return session_with_cookies(url)[0]
+
+
+def session_with_cookies(url: str):
+    """(session, saved cookie dict it was built from), or (None, None): lets a caller that later
+    gets HTTP 401 tell refresh_session exactly which saved cookie failed."""
     if GAIA_HOST not in url:
-        return None
+        return None, None
     cookies = load_cookies()
     if not cookies:
         creds = credentials()
         if creds is None:
-            return None
+            return None, None
         try:
             _post_login(*creds)        # non-interactive login from the user's configured credentials
         except Exception as exc:      # noqa: BLE001 - fall back to anonymous access
             print(f"  Gaia login from configured credentials failed ({exc}); continuing anonymously")
-            return None
+            return None, None
         cookies = load_cookies()
         if not cookies:
-            return None
+            return None, None
     import requests
 
     s = requests.Session()
     for k, v in cookies.items():
         s.cookies.set(k, v, domain=GAIA_HOST)
-    return s
+    return s, cookies
 
 
 def login() -> None:

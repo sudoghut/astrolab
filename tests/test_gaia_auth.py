@@ -71,8 +71,8 @@ def test_refresh_session_drops_stale_cookie_only(tmp_path, monkeypatch):
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps({"cookies": {"JSESSIONID": "new"}}), encoding="utf-8")
     # another thread already logged in again: the newer cookie is kept and reused
-    s = gaia_auth.refresh_session(url, {"JSESSIONID": "old"})
-    assert s is not None and s.cookies.get("JSESSIONID") == "new"
+    s, used = gaia_auth.refresh_session(url, {"JSESSIONID": "old"})
+    assert s is not None and s.cookies.get("JSESSIONID") == "new" and used == {"JSESSIONID": "new"}
     # the stale cookie is dropped; without configured credentials the session becomes anonymous
-    assert gaia_auth.refresh_session(url, {"JSESSIONID": "new"}) is None
+    assert gaia_auth.refresh_session(url, {"JSESSIONID": "new"}) == (None, None)
     assert not p.exists()

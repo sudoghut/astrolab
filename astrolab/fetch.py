@@ -163,10 +163,8 @@ def _run_tap(url: str, query: str, maxrec: int, mode: str):
 
     from . import gaia_auth
 
-    saved = gaia_auth.load_cookies() if gaia_auth.GAIA_HOST in url else None
-    session = gaia_auth.session_for(url)   # the user's own Gaia login, if any (longer job limits)
-    if session is not None and saved is None:
-        saved = gaia_auth.load_cookies()   # session_for just logged in from configured credentials
+    # the user's own Gaia login, if any (longer job limits), with the saved cookie it was built from
+    session, saved = gaia_auth.session_with_cookies(url)
     svc = pyvo.dal.TAPService(url, session=session) if session is not None else pyvo.dal.TAPService(url)
     modes = [mode] + (["async"] if mode == "sync" else [])
     last: Exception | None = None
@@ -187,8 +185,7 @@ def _run_tap(url: str, query: str, maxrec: int, mode: str):
                     # log in again once from configured credentials (else anonymous), retry now
                     relogged = True
                     session.close()
-                    session = gaia_auth.refresh_session(url, saved)
-                    saved = gaia_auth.load_cookies()
+                    session, saved = gaia_auth.refresh_session(url, saved)
                     svc = (pyvo.dal.TAPService(url, session=session) if session is not None
                            else pyvo.dal.TAPService(url))
                     print("  TAP 401 with the saved Gaia session; " +
