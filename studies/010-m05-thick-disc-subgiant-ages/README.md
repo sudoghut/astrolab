@@ -300,9 +300,59 @@ grid, K range, mock counts, thresholds, seeds) are in `PARAMS`, saved with the r
 `results/` as small JSON files (no per-star output). A web page shows the age–[Fe/H] densities, the
 R1 bin densities with valleys, the R2 histogram and fits, the R3/R4 sequence and the R7 spreads.
 
-## 5. Results
+## 5. Results (2026-11-16)
 
-Filled after running. Link to `web/index.html` and key numbers in `results/`.
+Run of 2026-11-16 (`python -m astrolab run 010`, 3.53 h; catalogue from the cache). Page:
+[`web/index.html`](web/index.html) (`python -m astrolab serve`); numbers in `results/*.json`.
+**Mock budget:** the projection at 50 mocks per set was 4.29 h > 4 h, so by the pre-registered rule
+every mock set used 30 (R1 q_s = 2nd smallest null d). The projection was inflated by another
+study's run on the same machine at the time (our scheduling); the reduced mode is the
+pre-registered fallback and was applied as written.
+
+| Criterion | Ours | Rule | Verdict |
+|---|---|---|---|
+| R1 8 Gyr split, S15 | resolvable bins 2 of 5; almost disjoint 0 | ≥ 3 resolvable, ≥ 3 almost disjoint, median edge 6.5–9.5 Gyr | **undetermined** |
+| R1 8 Gyr split, Full | resolvable bins 2 of 5; almost disjoint 0 | same | **undetermined** (robust: same as S15) |
+| R2 13 Gyr mean (observed ages, ED Fig. 1 selection) | μ = 12.93 ± 0.06 Gyr, σ = 2.40 ± 0.04 Gyr, n = 1891 | μ in 12.5–13.5 Gyr | **reproduced** |
+| R3 sequence span | 6.00 Gyr over 1.5 dex (sample A) | 4.5–6.5 Gyr, if recovery passes | **cannot determine** (recovery failed) |
+| R4 sequence scatter | σ = 2.67 Gyr (sample A) | \|σ − 0.82\| ≤ 0.1, if recovery passes | **cannot determine** (recovery failed) |
+| Intrinsic scatter (sample B) | σ_int = 0.79 ± 0.02 Gyr | needs \|mock bias\| ≤ 0.1 | **cannot determine** (mock bias +0.13 to +0.18) |
+
+- **R1.** S15 bins [−0.7, −0.5) and [−0.5, −0.3) are resolvable (power 1.00/1.00 and 1.00/0.97 under
+  the two error mechanisms) but their valleys are shallow (d = 0.30 and 0.45 against d* = 0.25);
+  [−0.3, −0.1) has d = 0.49 but power 0; the two metal-rich bins show no valley (d = 1) and power 0.
+  Full: [−0.5, −0.3) and [−0.3, −0.1) resolvable (d = 0.58, 0.48), [−0.7, −0.5) power 0.67. No null
+  mock of any set had a valley below 0.25 (all realised false-positive rates 0), so d* stayed at its
+  cap 0.25. Young-side edges where a valley exists: 8.6–9.5 Gyr (S15), 7.3–9.5 Gyr (Full). In words:
+  where the data can resolve a split, the latent age density dips between the old and young phases
+  but not to "almost disjoint"; for the metal-rich bins the error model cannot resolve one at all.
+- **R2.** The observed-age Gaussian for old, metal-poor (−1.05 to −0.95), high-J_φ disc stars gives
+  12.93 Gyr, inside the tolerance; XR22's width 1.81 Gyr against our 2.40 Gyr (no verdict).
+  Sensitivity: no early-phase filter 12.67, Full 12.76, J_φ > 300 / 700: 12.92 / 12.90, error cuts 10% /
+  20%: 12.81 / 12.87; the deconvolved latent mean is lower: 12.19 (S15) and 12.59 (Full). 33% of the
+  observed ages exceed 13.8 Gyr and 0.7% exceed 18 Gyr. Age-scale envelope (literature, not
+  recomputed): ±0.7–1.1 Gyr in quadrature, and a whole-pipeline re-analysis 1.7 Gyr younger, against a
+  0.87 Gyr margin to the Big Bang. So the 13 Gyr number is reproduced on the catalogue's own age scale,
+  and is sensitive at the ~1 Gyr level to the scale and to deconvolution.
+- **R3/R4.** The sample-A fit (τ̄0 = 8.07 Gyr, a = −4.00 Gyr/dex, σ = 2.67 Gyr; span 6.00 Gyr) would put
+  R3 inside its band and R4 far outside, but neither verdict applies: in mocks drawn from that model,
+  M0 recovers σ with a bias of +0.28 Gyr (e = r·τ) and +0.25 Gyr (e = r·A), beyond the 0.1 Gyr
+  tolerance, so the pre-registered rule gives "cannot determine" for both. The cause was diagnosed
+  before the run (log 2026-11-15): with the S15 cut, M0's selection term treats the error as fixed
+  while under e = r·τ the cut does not depend on τ (section 7). XR22 Fig. 2e's own selection gives
+  span 6.83 Gyr and σ = 2.71 Gyr.
+- **Intrinsic scatter.** Sample B's two-component fit gives σ_int = 0.79 ± 0.02 Gyr (close to XR22's
+  0.82), but its mock biases (+0.13 to +0.18 Gyr in all four sets) exceed 0.1, so "cannot determine".
+- **R5 (descriptive).** Of late-phase stars 23.6% have observed ages above 8 Gyr, and 19.4% of
+  early-phase stars are younger than 8 Gyr (XR22 Fig. 2 split by eq. 1).
+- **R6 (descriptive).** Early stars with −1.0 < [Fe/H] < −0.4: 5th/10th percentiles of observed age
+  7.38 ± 0.39 / 9.54 ± 0.16 Gyr for J_φ < 500 (n = 1956) and 6.09 ± 0.04 / 7.68 ± 0.04 Gyr for J_φ > 500
+  (n = 41828); peak of the observed age distribution for J_φ > 500 at 11.1 Gyr.
+- **R7 (descriptive, across tracers).** The latent age distributions of old high-α samples are broad:
+  at f = 1 the central 95% width is 12.6–13.0 Gyr and the largest fraction in any 1.5 Gyr window is
+  0.24–0.38; only at f_max = 2.81 and for [α/Fe] > 0.18 with [Fe/H] < −0.2 does it reach 0.80 (width
+  9.7 Gyr). This is far from Miglio et al.'s 95% within 1.52 Gyr, but the two use different tracers,
+  scales and deconvolutions; with the recovery bias above, our latent widths are upper-biased.
 
 ## 6. Referee notes
 
@@ -310,20 +360,56 @@ Independent critique: selection effects, systematics, alternative explanations.
 
 ## 7. Open questions
 
+- **Selection term with relative errors (post hoc).** M0 conditions the S15 cut on a fixed error
+  e, but if errors scale with the true age (e = r·τ), the cut e/A < 0.15 does not depend on τ and the
+  likelihood's selection term is misspecified; this is the diagnosed cause of the +0.25–0.28 Gyr σ
+  recovery bias. A selection term conditioned on the relative error (an `explore/` script) would
+  test whether R3/R4 become determinable; it would need a new pre-registration.
+- **Sample-B bias.** Why the two-component sample-B fit overestimates σ_int by 0.13–0.18 Gyr in mocks
+  (background-component leakage or the same selection issue).
+- **R1 power.** Metal-rich bins have no power under the pre-registered generating model; a model with
+  a sharper young edge, or ages from a different pipeline, would be needed to resolve them.
+- **Absolute age scale.** The 13 Gyr mean moves by ~1 Gyr with the isochrone grid and α scale, and the
+  deconvolved mean is 0.3–0.7 Gyr lower; an independent age scale (e.g. Chen, Sun & Ye 2025) on the
+  same stars would show whether the onset epoch survives.
+- **Mock budget.** Rerun with 50 mocks per set on an otherwise idle machine to remove the
+  reduced-mode caveat (expected to change only the Monte Carlo errors).
+
 ## 8. Exploring via chat
 
 How a coding agent answers "what if" questions about this study without touching `results/`
-(rules: AGENTS.md section 2).
+(rules: AGENTS.md section 2). All knobs below reuse the cached catalogue (about 16 MB, fetched once).
 
 | Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
 |---|---|---|---|
-| TODO | | | |
+| `cut` | S15 relative-error cut e_Age/Age | 0.10–0.20 | cache only |
+| `r1_bins` | [Fe/H] bins of R1 | 0.1–0.3 dex wide, within −1 to 0.4 | cache only |
+| `valley_lo`, `valley_hi` | age range searched for the R1 valley (Gyr) | 4–12 | cache only |
+| `kmax` | largest mixture size for R1/R7 | 3–5 | cache only |
+| `nstart`, `nstart_r1_data` | optimiser starts (models; 1-D mixture data fits) | 8–80 | cache only |
+| `n_mock` | mocks per set (R1 calibration, recovery) | 2–50 (2 for a quick run; verdicts need the full count) | cache only |
+| `seq_feh`, `seq_jphi` | [Fe/H] window and J_φ cut of samples A/B | −1.5 to 0.5; 0–1000 | cache only |
+| `r2_feh`, `r2_jphi` | R2 sample window and J_φ cut | ±0.1 dex around −1; 0–1000 | cache only |
+| `f_min` | error-scale sensitivity value | 0.6–1.0 | cache only |
+| `grid_step` | latent grid step (Gyr) | 0.02–0.1 | cache only |
 
 - Rerun with an override: `python -m astrolab explore 010-m05-thick-disc-subgiant-ages --tag <topic> --set KEY=VALUE`
-  (outputs in `explore/<date>-<topic>/`, not committed; about N s from cache).
+  (outputs in `explore/<date>-<topic>/`, not committed). Without mocks
+  (`--set n_mock=2 --set n_mock_reduced=2 --set n_boot=2 --set n_boot_r6=5`) a run takes about 30 min;
+  the full calibration takes about 5 h.
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 010-m05-thick-disc-subgiant-ages --tag <topic> --script explore/<name>.py`.
-- Results files and keys: TODO (`results/<file>.json`: key - meaning).
-- Example questions: TODO (question -> knob or script an agent would use).
-- Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
-  on a branch.
+  A script can `import run` and reuse `run.load`, `run.flags`, `run.onedim`, `run.grouped`,
+  `run.fit_mixtures`, `run.fit_seq` and `m0`/`mocks` (see the execution log of `design/019-plan_*` for examples of
+  convergence and recovery checks).
+- Results files and keys: `summary.json` (all verdicts, key numbers, mock budget, `params`);
+  `r1.json` (`bins.<sample>[i]`: d, d_star, power, edge, resolvable, almost_disjoint; `verdict`;
+  `latent_density`, `grid_mid`); `r2.json` (`primary`, `sensitivity`, `checks`, `envelope`, `verdict`);
+  `r34.json` (`sampleA`, `sampleA_sensitivity`, `fig2e`, `sampleB`, `recovery`, `sampleB_mock_bias`,
+  `error_scale`, `primary`, `verdict`); `r56.json` (age–[Fe/H] histograms, cross-fractions, R6
+  percentiles); `r7.json` (`rows`: median, 95% width, largest fraction within 1.5 Gyr).
+- Example questions: "Does the R1 valley survive a stricter error cut?" → `--set cut=0.10`.
+  "Is the 13 Gyr mean sensitive to the J_φ cut?" → `--set r2_jphi=300` (R2 also reports 300 and 700).
+  "What if the selection term conditioned on relative error instead of e?" → an `explore/` script
+  (a post hoc question, see section 7).
+- Findings that change what we know go into `log.md` (and the wiki article) on a branch.

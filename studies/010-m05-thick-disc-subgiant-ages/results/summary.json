@@ -1,0 +1,228 @@
+{
+ "R1": {
+  "S15": {
+   "verdict": "undetermined",
+   "median_edge": null
+  },
+  "Full": {
+   "verdict": "undetermined",
+   "median_edge": null
+  }
+ },
+ "R1_robust": true,
+ "R2": {
+  "verdict": "reproduced",
+  "mu": 12.926553146483341,
+  "sigma": 2.397970579415067,
+  "n": 1891
+ },
+ "R3": "cannot determine",
+ "R4": "cannot determine",
+ "R34_primary": "cannot determine (recovery failed)",
+ "intrinsic": {
+  "verdict": "cannot determine",
+  "robust": true,
+  "sigma_int": 0.7896327350601812,
+  "se": 0.022496988739886977
+ },
+ "sampleA": {
+  "tau0": 8.066121588207974,
+  "a": -3.9985814951423997,
+  "sigma": 2.665879242105774,
+  "span": 5.9978722427135995,
+  "n": 59685
+ },
+ "f_max": 2.8081627952571893,
+ "checks": {
+  "n_rows": 247104,
+  "id_unique": true,
+  "jphi_median": 1731.28,
+  "n_valid": 247079,
+  "n_s15": 222932,
+  "n_blank_alpha": 2,
+  "corr_relerr_age": 0.15907950391844686,
+  "median_relerr": 0.07520564042303172,
+  "frac_age_gt_13p8_all": 0.058268812808858705
+ },
+ "mocks": {
+  "projection_h_at_50": 4.289387282398012,
+  "n_per_set": 30,
+  "mode": "reduced",
+  "elapsed_h": 2.55142812344763,
+  "n_sets": 66
+ },
+ "runtime_h": 3.5285838415225346,
+ "params": {
+  "url": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J/other/Nat/603.599/table1&-out=Id,Age,e_Age,[Fe/H],e_[Fe/H],[alpha/Fe],e_[alpha/Fe],JPHI,MKcomb&-out.max=300000",
+  "n_rows": 247104,
+  "jphi_median_range": [
+   1500.0,
+   2100.0
+  ],
+  "cut": 0.15,
+  "tmax": 20.0,
+  "grid_step": 0.05,
+  "grid_check_step": 0.02,
+  "nclass": 20,
+  "nclass_check": 40,
+  "feh_step": 0.05,
+  "nefe": 5,
+  "nstart": 8,
+  "nstart_r1_data": 40,
+  "mock_extra_starts": 2,
+  "seed": 0,
+  "r1_bins": [
+   [
+    -0.7,
+    -0.5
+   ],
+   [
+    -0.5,
+    -0.3
+   ],
+   [
+    -0.3,
+    -0.1
+   ],
+   [
+    -0.1,
+    0.1
+   ],
+   [
+    0.1,
+    0.3
+   ]
+  ],
+  "r1_check_bin": 2,
+  "kmax": 4,
+  "valley_lo": 5.0,
+  "valley_hi": 11.0,
+  "side_mass": 0.1,
+  "prom": 0.1,
+  "d_cap": 0.25,
+  "mode_match": 0.5,
+  "edge_q": 0.975,
+  "power_old": [
+   9.38,
+   -3.8,
+   0.82
+  ],
+  "power_young": [
+   1.5,
+   7.0
+  ],
+  "power_true_d_max": 0.1,
+  "power_edge_step": 0.5,
+  "power_min_wold": 0.1,
+  "power_needed": 0.8,
+  "edge_range": [
+   6.5,
+   9.5
+  ],
+  "min_bins": 3,
+  "n_mock": 50,
+  "n_mock_reduced": 30,
+  "budget_h": 4.0,
+  "budget_bg_h": 8.0,
+  "mechs": [
+   "rtau",
+   "rA"
+  ],
+  "r2_feh": [
+   -1.05,
+   -0.95
+  ],
+  "r2_jphi": 500.0,
+  "r2_range": [
+   12.5,
+   13.5
+  ],
+  "r2_sigma_paper": 1.81,
+  "r2_jphi_alt": [
+   300.0,
+   700.0
+  ],
+  "r2_cut_alt": [
+   0.1,
+   0.2
+  ],
+  "universe": 13.8,
+  "seq_feh": [
+   -1.2,
+   0.5
+  ],
+  "seq_jphi": 500.0,
+  "seq_start": [
+   9.38,
+   -3.8,
+   0.82
+  ],
+  "sigma_paper": 0.82,
+  "sigma_tol": 0.1,
+  "span_dex": 1.5,
+  "span_range": [
+   4.5,
+   6.5
+  ],
+  "span_trunc": [
+   -0.2,
+   0.0
+  ],
+  "rec_tol_sigma": 0.1,
+  "rec_tol_a": 0.2,
+  "n_boot": 50,
+  "f_min": 0.8,
+  "late_bins": [
+   -0.5,
+   0.3,
+   0.1
+  ],
+  "z_one_sided": 1.645,
+  "bg_slices": [
+   [
+    -1.2,
+    -0.6
+   ],
+   [
+    -0.6,
+    0.0
+   ],
+   [
+    0.0,
+    0.5
+   ]
+  ],
+  "r7_alpha": [
+   0.1,
+   0.18
+  ],
+  "r7_feh_cut": -0.2,
+  "r7_window": 1.5,
+  "miglio_95": [
+   1.52,
+   0.54,
+   0.46
+  ],
+  "r6_feh": [
+   -1.0,
+   -0.4
+  ],
+  "n_boot_r6": 200,
+  "hist_age": [
+   0.0,
+   20.0,
+   0.25
+  ],
+  "hist_feh": [
+   -2.5,
+   0.6,
+   0.1
+  ],
+  "env_mist": 0.5,
+  "env_alpha": [
+   0.5,
+   1.0
+  ],
+  "env_chen_frac": -0.129
+ }
+}

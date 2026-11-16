@@ -1,0 +1,14 @@
+{
+ "study": "010-m05-thick-disc-subgiant-ages",
+ "finished_at": "2026-11-16T10:28:18+00:00",
+ "seconds": 12702.93,
+ "outputs": [
+  "r56.json",
+  "r2.json",
+  "r34_partial.json",
+  "r7.json",
+  "r1.json",
+  "r34.json",
+  "summary.json"
+ ]
+}
