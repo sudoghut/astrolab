@@ -64,7 +64,24 @@ def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path 
     if _replace_or_keep(src, payload):
         tmp_meta = staging_path(".json", root)
         tmp_meta.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
-        _replace_or_keep(tmp_meta, meta_path)
+        for attempt in range(5):           # the old sidecar may be open in another thread briefly
+            try:
+                os.replace(tmp_meta, meta_path)
+                break
+            except PermissionError:
+                time.sleep(0.05 * (attempt + 1))
+        else:
+            # never pair a new payload with stale provenance: drop the entry (get() needs both
+            # files), so the next call fetches again
+            tmp_meta.unlink(missing_ok=True)
+            try:
+                payload.unlink(missing_ok=True)
+            except PermissionError:
+                pass
+            try:
+                meta_path.unlink(missing_ok=True)
+            except PermissionError:
+                pass
     prune(root=root)
     return Entry(key, payload, meta_path)
 

@@ -220,6 +220,7 @@ def test_unauthorized_detected_through_exception_chain():
     except RuntimeError as outer:
         assert fetch._unauthorized(outer)
     assert fetch._unauthorized(Exception("401 Client Error: 401 for url: https://x"))
+    assert fetch._unauthorized(Exception("job failed: HTTP 401 Unauthorized"))
     assert not fetch._unauthorized(Exception("503 Server Error"))
 
 
