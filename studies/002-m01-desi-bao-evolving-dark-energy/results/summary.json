@@ -13,7 +13,8 @@
   "tol_dchi2": 1.0,
   "tol_r1_sigma": 0.3,
   "tol_r1_err": 0.2,
-  "drop_z": []
+  "drop_z": [],
+  "camb_check": true
  },
  "targets": {
   "R1": {
@@ -335,6 +336,21 @@
    "B-": -7.5870218068299,
    "B-_valid": true,
    "second_point_dtheta100": 3.763732460781988e-05
+  }
+ },
+ "R2_camb": {
+  "conclusion": [
+   "R2 robust to the theta* calibration"
+  ],
+  "verdicts": {
+   "anchored": {
+    "A": "not reproduced",
+    "B": "reproduced"
+   },
+   "raw": {
+    "A": "not reproduced",
+    "B": "reproduced"
+   }
   }
  }
 }
