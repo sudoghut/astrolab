@@ -4,27 +4,188 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>M5 Milky Way thick disc: early formation from subgiant ages</title>
-<!-- Bilingual rule (AGENTS.md): keep this script, write text as <span class="en">…</span><span class="zh">…</span>,
-     use i18n.L(en, zh) for generated HTML and i18n.t(en, zh) + i18n.onLangChange for plain text / charts. -->
 <script src="../../../atlas/web/i18n.js"></script>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
+<style>
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 12px 0; }
+  .card { border: 1px solid var(--line, #ccc); border-radius: 8px; padding: 10px 12px; }
+  .card .big { font-size: 1.35em; font-weight: 600; }
+  .good { color: #1b7f3b; } .bad { color: #b42318; } .muted { opacity: .75; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td { border-bottom: 1px solid var(--line, #ddd); padding: 4px 6px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  .scroll { overflow-x: auto; }
+  .ctl { margin: 8px 0; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  svg text { font-size: 11px; fill: currentColor; }
+  .axis { stroke: currentColor; opacity: .5; }
+</style>
 </head>
 <body>
 <main>
   <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 010-m05-thick-disc-subgiant-ages</p>
-  <h1><span class="en">M5 Milky Way thick disc: early formation from subgiant ages</span><span class="zh">M5 银河系厚盘：由亚巨星年龄看早期形成</span></h1>
-  <p class="muted"><span class="en">Replace this page freely: design whatever this question needs (visualization, interactive analysis, several pages). It does not have to follow the Atlas. Data comes from <code>../results/*.json</code>.</span><span class="zh">可以完全替换本页面：按研究问题的需要来设计（可视化、交互式分析、多个页面），不必遵循 Atlas 的样式。数据来自 <code>../results/*.json</code>。</span></p>
-  <pre id="out"><span class="en">loading…</span><span class="zh">加载中……</span></pre>
+  <h1><span class="en">Did the thick disc form early? Subgiant ages</span><span class="zh">厚盘形成得早吗？亚巨星年龄</span></h1>
+  <p class="muted"><span class="en">Paper: Xiang &amp; Rix 2022 (XR22, arXiv:2203.12110), about 250,000 LAMOST subgiants with ages. Pre-registration in the study <code>README.md</code> sections 1–4: R1 (an 8 Gyr split), R2 (a 13 Gyr old population), R3/R4 (the old-disc age–[Fe/H] sequence) and the intrinsic scatter carry verdicts; R5–R7 are descriptive. Ages are XR22's catalogue values; the systematic age-scale uncertainty (about 0.5–1 Gyr) is not removed.</span><span class="zh">论文：Xiang 与 Rix 2022（XR22，arXiv:2203.12110），约 25 万颗带年龄的 LAMOST 亚巨星（subgiant）。预注册见研究 <code>README.md</code> 第 1–4 节：R1（8 Gyr 的分界）、R2（13 Gyr 的老族群）、R3/R4（老盘的年龄–[Fe/H] 序列）与本征弥散（intrinsic scatter）给出判决；R5–R7 只作描述。年龄取 XR22 星表的数值，没有去掉约 0.5–1 Gyr 的年龄标尺系统误差。</span></p>
+  <div class="grid" id="cards"></div>
+
+  <h2><span class="en">Age–[Fe/H] distribution</span><span class="zh">年龄–[Fe/H] 分布</span></h2>
+  <p class="muted"><span class="en">Observed catalogue ages (S15: e_Age/Age &lt; 0.15), counts per 0.25 Gyr × 0.1 dex cell on a square-root colour scale. Early/late phase follows XR22's eq. 1 in [α/Fe]–[Fe/H].</span><span class="zh">星表观测年龄（S15：e_Age/Age &lt; 0.15），每个 0.25 Gyr × 0.1 dex 单元的星数，颜色按平方根标度。早期/晚期按 XR22 式 1 在 [α/Fe]–[Fe/H] 平面上划分。</span></p>
+  <div class="ctl"><label><span class="en">Sample</span><span class="zh">样本</span> <select id="hsel"></select></label></div>
+  <div class="scroll"><svg id="heat" viewBox="0 0 680 300" width="100%" role="img"></svg></div>
+
+  <h2><span class="en">R1 · Is there an 8 Gyr gap at fixed [Fe/H]?</span><span class="zh">R1 · 在固定 [Fe/H] 下有 8 Gyr 的空隙吗？</span></h2>
+  <p class="muted"><span class="en">Deconvolved latent age density of each [Fe/H] bin (Gaussian mixture, K by BIC). The marked valley is the deepest one in 5–11 Gyr; d is its depth relative to the lower neighbouring peak (d = 1: no valley). A bin is "almost disjoint" if d &lt; d*, the threshold calibrated on unimodal null mocks; it counts only if the bin is resolvable (power ≥ 0.8 on mocks built from XR22's own sequence).</span><span class="zh">每个 [Fe/H] 箱去卷积后的潜在年龄密度（高斯混合，K 由 BIC 选择）。标出的谷是 5–11 Gyr 内最深的一个；d 是谷深相对于较低一侧峰的比值（d = 1 表示无谷）。d &lt; d*（由单峰零模型模拟标定的阈值）的箱算"几乎不相交"；只有可分辨的箱（在按 XR22 序列构造的模拟上检出率 ≥ 0.8）才计入。</span></p>
+  <div class="ctl"><label><span class="en">Sample</span><span class="zh">样本</span> <select id="r1s"><option value="S15">S15</option><option value="Full">Full</option></select></label></div>
+  <div class="scroll"><svg id="r1plot" viewBox="0 0 680 280" width="100%" role="img"></svg></div>
+  <div class="scroll"><table id="r1tab"></table></div>
+
+  <h2><span class="en">R2 · The old population near [Fe/H] = −1</span><span class="zh">R2 · [Fe/H] ≈ −1 附近的老族群</span></h2>
+  <div class="scroll"><table id="r2tab"></table></div>
+
+  <h2><span class="en">R3/R4 · The old-disc sequence and its scatter</span><span class="zh">R3/R4 · 老盘序列与弥散</span></h2>
+  <p class="muted" id="r34note"></p>
+  <div class="scroll"><table id="r34tab"></table></div>
+  <h3><span class="en">Recovery and identifiability mocks</span><span class="zh">恢复与可辨识性模拟</span></h3>
+  <div class="scroll"><table id="rectab"></table></div>
+
+  <h2><span class="en">R7 · Total age spread of the high-α disc (descriptive)</span><span class="zh">R7 · 高 α 盘的总年龄跨度（描述性）</span></h2>
+  <div class="scroll"><table id="r7tab"></table></div>
+
+  <p class="muted" id="err"></p>
 </main>
 <script>
-fetch('../results/summary.json')
-  .then(r => { if (!r.ok) throw new Error(`results/summary.json: HTTP ${r.status}`); return r.json(); })
-  .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
-  .catch(e => {
-    const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
-    // Both languages in the DOM, so the message follows later language switches.
-    document.getElementById('out').innerHTML = i18n.L('Could not load results (run the study first?) or render them: ', '无法加载或显示结果（是否已运行研究？）：') + msg;
+const L = (en, zh) => i18n.L(en, zh);
+const T = (en, zh) => i18n.t(en, zh);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const f = (x, d = 2) => (x === null || x === undefined || Number.isNaN(x)) ? '–' : Number(x).toFixed(d);
+const getJ = n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`${n}.json: HTTP ${r.status}`); return r.json(); });
+const card = (t, v, cls, note) => `<div class="card"><div class="muted">${t}</div><div class="big ${cls || ''}">${v}</div><div class="muted">${note || ''}</div></div>`;
+const ZH = {'reproduced': '复现', 'not reproduced': '未复现', 'undetermined': '无法判定', 'cannot determine': '不能判定',
+            'confirmed': '确认', 'not confirmed': '不确认', 'robust': '稳健', 'not robust': '不稳健'};
+const vz = v => String(v).split(', ').map(p => ZH[p] || p).join('，');
+const vcls = v => String(v).startsWith('reproduced') || v === 'confirmed' ? 'good' : (String(v).startsWith('not') ? 'bad' : '');
+const verdict = v => L(esc(v), esc(vz(v)));
+const row = cells => `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
+const head = cells => `<tr>${cells.map(c => `<th>${c}</th>`).join('')}</tr>`;
+let D = null;
+
+function cards() {
+  const {summary: s} = D;
+  const r1 = s.R1;
+  document.getElementById('cards').innerHTML =
+    card(L('R1 · 8 Gyr split (S15)', 'R1 · 8 Gyr 分界（S15）'), verdict(r1.S15.verdict), vcls(r1.S15.verdict),
+         L(`Full: ${esc(r1.Full.verdict)}; median edge ${f(r1.S15.median_edge)} Gyr`, `全样本：${esc(vz(r1.Full.verdict))}；边缘中位数 ${f(r1.S15.median_edge)} Gyr`)) +
+    card(L('R2 · old population mean', 'R2 · 老族群平均年龄'), `${f(s.R2.mu)} Gyr`, vcls(s.R2.verdict),
+         L(`${esc(s.R2.verdict)} (rule 12.5–13.5 Gyr), n = ${s.R2.n}`, `${esc(vz(s.R2.verdict))}（判据 12.5–13.5 Gyr），n = ${s.R2.n}`)) +
+    card(L('R3 · sequence span', 'R3 · 序列跨度'), verdict(s.R3), vcls(s.R3),
+         L(`span ${f(s.sampleA.span)} Gyr over 1.5 dex (rule 4.5–6.5)`, `1.5 dex 上跨度 ${f(s.sampleA.span)} Gyr（判据 4.5–6.5）`)) +
+    card(L('R4 · scatter σ_sel', 'R4 · 弥散 σ_sel'), verdict(s.R4), vcls(s.R4),
+         L(`σ = ${f(s.sampleA.sigma)} Gyr (XR22: 0.82)`, `σ = ${f(s.sampleA.sigma)} Gyr（XR22：0.82）`)) +
+    card(L('Intrinsic scatter < 0.82 Gyr', '本征弥散 < 0.82 Gyr'), verdict(s.intrinsic.verdict), vcls(s.intrinsic.verdict),
+         L(`σ_int = ${f(s.intrinsic.sigma_int)} ± ${f(s.intrinsic.se, 3)} Gyr`, `σ_int = ${f(s.intrinsic.sigma_int)} ± ${f(s.intrinsic.se, 3)} Gyr`));
+}
+
+function heat() {
+  const h = D.r56.hist, sel = document.getElementById('hsel').value;
+  const H = h[sel], ae = h.age_edges, fe = h.feh_edges;
+  const W = 680, Ht = 300, m = {l: 46, r: 10, t: 10, b: 34};
+  const x = a => m.l + (a - ae[0]) / (ae[ae.length - 1] - ae[0]) * (W - m.l - m.r);
+  const y = v => Ht - m.b - (v - fe[0]) / (fe[fe.length - 1] - fe[0]) * (Ht - m.t - m.b);
+  const mx = Math.sqrt(Math.max(1, ...H.flat()));
+  let s = '';
+  for (let i = 0; i < H.length; i++) for (let j = 0; j < H[i].length; j++) {
+    if (!H[i][j]) continue;
+    const o = (Math.sqrt(H[i][j]) / mx).toFixed(3);
+    s += `<rect x="${x(ae[j]).toFixed(1)}" y="${y(fe[i + 1]).toFixed(1)}" width="${(x(ae[j + 1]) - x(ae[j]) + 0.3).toFixed(1)}" height="${(y(fe[i]) - y(fe[i + 1]) + 0.3).toFixed(1)}" fill="#4c78a8" fill-opacity="${o}"><title>${f(fe[i], 1)}–${f(fe[i + 1], 1)} dex, ${f(ae[j], 2)}–${f(ae[j + 1], 2)} Gyr: ${H[i][j]}</title></rect>`;
+  }
+  for (let a = 0; a <= 20; a += 2) s += `<text x="${x(a)}" y="${Ht - m.b + 14}" text-anchor="middle">${a}</text>`;
+  for (let v = -2.5; v <= 0.51; v += 0.5) s += `<text x="${m.l - 4}" y="${y(v) + 4}" text-anchor="end">${v.toFixed(1)}</text>`;
+  s += `<line class="axis" x1="${x(13.8)}" x2="${x(13.8)}" y1="${m.t}" y2="${Ht - m.b}" stroke-dasharray="4 3"/>`;
+  s += `<text x="${(W + m.l) / 2}" y="${Ht - 4}" text-anchor="middle">${T('catalogue age (Gyr); dashed: 13.8 Gyr', '星表年龄（Gyr）；虚线：13.8 Gyr')}</text>`;
+  s += `<text transform="translate(12 ${(Ht - m.b) / 2}) rotate(-90)" text-anchor="middle">[Fe/H]</text>`;
+  document.getElementById('heat').innerHTML = s;
+}
+
+function r1() {
+  const smp = document.getElementById('r1s').value, R = D.r1, g = R.grid_mid, bins = R.bins[smp];
+  const W = 680, Ht = 280, m = {l: 46, r: 10, t: 10, b: 34}, col = ['#4c78a8', '#f58518', '#54a24b', '#e45756', '#72b7b2'];
+  const dens = bins.map((b, i) => R.latent_density[`${smp}_${i}`]);
+  const ymax = Math.max(...dens.flat());
+  const x = a => m.l + a / 20 * (W - m.l - m.r), y = v => Ht - m.b - v / ymax * (Ht - m.t - m.b);
+  let s = `<rect x="${x(5)}" y="${m.t}" width="${x(11) - x(5)}" height="${Ht - m.t - m.b}" fill="currentColor" fill-opacity="0.05"/>`;
+  bins.forEach((b, i) => {
+    const pts = dens[i].map((v, k) => `${x(g[k]).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    s += `<polyline fill="none" stroke="${col[i]}" stroke-width="1.6" points="${pts}"><title>[Fe/H] ${b.bin[0]}–${b.bin[1]}</title></polyline>`;
+    if (b.valley_t !== null && b.valley_t !== undefined) s += `<circle cx="${x(b.valley_t)}" cy="${Ht - m.b - 4}" r="3.5" fill="${col[i]}"><title>valley ${f(b.valley_t)} Gyr, d = ${f(b.d, 3)}</title></circle>`;
+    s += `<text x="${W - m.r - 4}" y="${m.t + 14 + 14 * i}" text-anchor="end" fill="${col[i]}" style="fill:${col[i]}">[Fe/H] ${b.bin[0]} to ${b.bin[1]}</text>`;
   });
+  for (let a = 0; a <= 20; a += 2) s += `<text x="${x(a)}" y="${Ht - m.b + 14}" text-anchor="middle">${a}</text>`;
+  s += `<text x="${(W + m.l) / 2}" y="${Ht - 4}" text-anchor="middle">${T('latent age (Gyr); shaded: valley search range 5–11 Gyr; dots: valleys', '潜在年龄（Gyr）；阴影：谷的搜索范围 5–11 Gyr；圆点：谷')}</text>`;
+  s += `<text transform="translate(12 ${(Ht - m.b) / 2}) rotate(-90)" text-anchor="middle">${T('density (1/Gyr)', '密度（1/Gyr）')}</text>`;
+  document.getElementById('r1plot').innerHTML = s;
+  const pw = b => Object.entries(b.power).map(([k, v]) => `${k} ${f(v)}±${f(b.power_err ? b.power_err[k] : null)}`).join('; ');
+  document.getElementById('r1tab').innerHTML =
+    head([L('[Fe/H] bin', '[Fe/H] 箱'), 'n', 'K', 'd', 'd*', L('power', '检出率'), L('resolvable', '可分辨'), L('almost disjoint', '几乎不相交'), L('edge (Gyr)', '边缘（Gyr）')]) +
+    bins.map(b => row([`${b.bin[0]} to ${b.bin[1]}`, b.n, b.k, f(b.d, 3), f(b.d_star, 3), pw(b),
+      b.resolvable ? L('yes', '是') : L('no', '否'), b.almost_disjoint ? L('yes', '是') : L('no', '否'), f(b.edge)])).join('') +
+    `<tr><td colspan="9">${L(`Verdict (${smp}): ${esc(R.verdict[smp].verdict)}; S15 and Full agree: ${R.robust}`, `判决（${smp}）：${esc(vz(R.verdict[smp].verdict))}；S15 与全样本一致：${R.robust}`)}</td></tr>`;
+}
+
+function r2() {
+  const R = D.r2, p = R.primary;
+  const rows = [[L('primary: S15, early, J_φ > 500, −1.05 < [Fe/H] < −0.95', '主样本：S15，早期，J_φ > 500，−1.05 < [Fe/H] < −0.95'), p]];
+  for (const [k, v] of Object.entries(R.sensitivity)) rows.push([esc(k), v]);
+  for (const [k, v] of Object.entries(R.checks)) rows.push([esc(k) + L(' (check)', '（检查）'), v]);
+  document.getElementById('r2tab').innerHTML =
+    head([L('sample / fit', '样本 / 拟合'), L('mean (Gyr)', '平均（Gyr）'), 'σ (Gyr)', 'n']) +
+    rows.map(([k, v]) => row([k, f(v.mu), f(v.sigma), v.n === undefined ? '–' : v.n])).join('') +
+    `<tr><td colspan="4">${L(`Verdict: ${esc(R.verdict)}. Fraction above 13.8 Gyr: ${f(100 * p.frac_gt_13p8, 1)}%. Age-scale envelope (literature, not recomputed): MIST ${R.envelope.mist} Gyr, α ${R.envelope.alpha.join('–')} Gyr.`,
+      `判决：${esc(vz(R.verdict))}。超过 13.8 Gyr 的比例：${f(100 * p.frac_gt_13p8, 1)}%。年龄标尺包络（文献值，未复算）：MIST ${R.envelope.mist} Gyr，α ${R.envelope.alpha.join('–')} Gyr。`)}</td></tr>`;
+}
+
+function r34() {
+  const R = D.r34;
+  document.getElementById('r34note').innerHTML = L(
+    `Primary fit used for R3/R4: ${esc(R.primary)}. Model: latent τ ~ N(τ̄0 + a[Fe/H], σ²) truncated to [0, 20] Gyr, with the S15 selection term. Error-scale factor f_max = ${f(R.error_scale.f_max)} (a heuristic sensitivity value, not a bound).`,
+    `R3/R4 所用的主拟合：${esc(R.primary)}。模型：潜在年龄 τ ~ N(τ̄0 + a[Fe/H], σ²)，截断到 [0, 20] Gyr，含 S15 选择项。误差标尺因子 f_max = ${f(R.error_scale.f_max)}（启发式的敏感度取值，不是界限）。`);
+  const fits = [['sample A (S15)', R.sampleA], ['Fig. 2e (all early)', R.fig2e], ...Object.entries(R.sampleA_sensitivity)];
+  document.getElementById('r34tab').innerHTML =
+    head([L('fit', '拟合'), 'τ̄0 (Gyr)', 'a (Gyr/dex)', 'σ (Gyr)', L('span (Gyr)', '跨度（Gyr）'), 'n']) +
+    fits.map(([k, v]) => row([esc(k), f(v.tau0), f(v.a), f(v.sigma), f(v.span), v.n === undefined ? '–' : v.n])).join('') +
+    row([L('XR22', 'XR22'), '9.38', '−3.8', '0.82', '5–6', '']) +
+    row([L('sample B mixture: σ_int', '样本 B 混合：σ_int'), f(R.sampleB.tau0), f(R.sampleB.a), `${f(R.sampleB.sigma)} ± ${f(R.sampleB_se_used, 3)}`, '', R.sampleB.n]);
+  const rr = [];
+  for (const [mech, v] of Object.entries(R.recovery)) rr.push(row([`A ${esc(mech)}`, `${f(v.sigma.bias, 3)} ± ${f(v.sigma.mc_err, 3)}`, `${f(v.a.bias, 3)} ± ${f(v.a.mc_err, 3)}`, v.pass ? L('pass', '通过') : L('fail', '失败')]));
+  for (const [k, v] of Object.entries(R.sampleB_mock_bias)) rr.push(row([`B ${esc(k)}`, `${f(v.bias, 3)} ± ${f(v.mc_err, 3)}`, '–', Math.abs(v.bias) <= 0.1 ? L('pass', '通过') : L('fail', '失败')]));
+  document.getElementById('rectab').innerHTML =
+    head([L('mock set', '模拟组'), L('σ bias (Gyr)', 'σ 偏差（Gyr）'), L('a bias', 'a 偏差'), L('tolerance', '容差')]) + rr.join('');
+}
+
+function r7() {
+  const rows = D.r7.rows;
+  document.getElementById('r7tab').innerHTML =
+    head([L('sample', '样本'), '[Fe/H] <', 'f', 'n', 'K', L('median (Gyr)', '中位数（Gyr）'), L('95% width (Gyr)', '95% 宽度（Gyr）'), L('max fraction in 1.5 Gyr', '1.5 Gyr 内最大比例')]) +
+    rows.map(r => row([esc(r.sample), r.feh_lt === null ? '–' : r.feh_lt, f(r.f), r.n, r.k, f(r.median), f(r.width95), f(r.max_frac_window, 3)])).join('') +
+    `<tr><td colspan="8">${L('Miglio et al. 2021 (asteroseismic, Kepler): 95% within 1.52 (+0.54/−0.46) Gyr.', 'Miglio 等 2021（星震学，Kepler）：95% 在 1.52（+0.54/−0.46）Gyr 内。')}</td></tr>`;
+}
+
+function renderAll() {
+  try { cards(); heat(); r1(); r2(); r34(); r7(); }
+  catch (e) { document.getElementById('err').innerHTML = L('Could not render the results: ', '无法显示结果：') + esc(e); }
+}
+
+Promise.all(['summary', 'r1', 'r2', 'r34', 'r56', 'r7'].map(getJ)).then(([summary, r1d, r2d, r34d, r56d, r7d]) => {
+  D = {summary, r1: r1d, r2: r2d, r34: r34d, r56: r56d, r7: r7d};
+  const hs = document.getElementById('hsel');
+  const names = {all: ['all S15', '全部 S15'], late: ['late phase', '晚期'], early_hiJ: ['early, J_φ > 500', '早期，J_φ > 500'], early_loJ: ['early, J_φ ≤ 500', '早期，J_φ ≤ 500']};
+  const fill = () => { hs.innerHTML = Object.keys(names).map(k => `<option value="${k}">${esc(T(...names[k]))}</option>`).join(''); };
+  fill();
+  hs.addEventListener('change', heat);
+  document.getElementById('r1s').addEventListener('change', r1);
+  i18n.onLangChange(() => { const v = hs.value; fill(); hs.value = v; renderAll(); });
+  renderAll();
+}).catch(e => {
+  document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + esc(e);
+});
 </script>
 </body>
 </html>
