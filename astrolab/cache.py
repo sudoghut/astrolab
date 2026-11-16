@@ -91,6 +91,23 @@ def read(key: str, suffix: str, reader, root: Path | None = None):
         return meta, value
 
 
+MTIME_GRANULARITY_S = 2.0      # FAT/exFAT and some network or synced drives store mtime in 2 s steps
+
+
+def _replace(src: Path, dst: Path, tries: int = 6) -> None:
+    """os.replace, retried briefly when Windows refuses because another process has `dst` open (a
+    reader in another run); the last failure is raised with a clear message."""
+    for i in range(tries):
+        try:
+            os.replace(src, dst)
+            return
+        except PermissionError:
+            if i == tries - 1:
+                raise PermissionError(f"cache file {dst.name} is held open by another process; "
+                                      "close the other run and fetch again") from None
+            time.sleep(0.05 * 2 ** i)
+
+
 def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path | None = None,
              replace: bool = False, same_payload=None) -> Entry:
     """Store `src` (moved) with its meta. A complete entry already stored under `key` (for example
@@ -109,7 +126,7 @@ def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path 
             tmp_meta = staging_path(".json", root)
             try:
                 tmp_meta.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
-                os.replace(tmp_meta, meta_path)
+                _replace(tmp_meta, meta_path)
             finally:
                 tmp_meta.unlink(missing_ok=True)
         else:
@@ -126,11 +143,11 @@ def _store(src: Path, payload: Path, meta: dict[str, Any], meta_path: Path, root
     try:
         # get() needs both files: without a meta file the entry is invisible while it is written
         meta_path.unlink(missing_ok=True)
-        os.replace(src, payload)
+        _replace(src, payload)
         tmp_meta = staging_path(".json", root)
         try:
             tmp_meta.write_text(json.dumps(meta, indent=2, default=str), encoding="utf-8")
-            os.replace(tmp_meta, meta_path)
+            _replace(tmp_meta, meta_path)
         except BaseException:
             tmp_meta.unlink(missing_ok=True)
             payload.unlink(missing_ok=True)  # no payload without its own meta
@@ -173,9 +190,14 @@ def info(root: Path | None = None) -> dict[str, Any]:
 
 
 def prune(limit_bytes: int | None = None, root: Path | None = None) -> int:
-    """Delete LRU entries until total size <= limit. Returns number removed."""
+    """Delete LRU entries until total size <= limit. Returns number removed.
+
+    Accepted limits (T-035): one URL fetched with two suffixes shares one meta file; the sha256
+    check in fetch then treats the other payload as a miss (a re-download, never mismatched data).
+    The per-key lock map grows with the number of keys a process touches (small for a run)."""
     root = root or config.cache_dir()
     limit = config.CACHE_LIMIT_BYTES if limit_bytes is None else limit_bytes
+    started = time.time()
     entries = sorted(_entries(root))  # oldest first
     total = sum(e[1] for e in entries)
     removed = 0
@@ -188,7 +210,9 @@ def prune(limit_bytes: int | None = None, root: Path | None = None) -> int:
                                                  and not f.name.endswith(".payload.json"))), files[0])
         with _key_lock(payload):
             try:
-                if max(f.stat().st_mtime for f in files if f.exists()) > mtime:
+                newest = max(f.stat().st_mtime for f in files if f.exists())
+                # used since the snapshot, or so recently that a coarse mtime cannot tell (T-035)
+                if newest > mtime or newest >= started - MTIME_GRANULARITY_S:
                     continue
             except (OSError, ValueError):         # removed meanwhile: no longer counts
                 total -= size
