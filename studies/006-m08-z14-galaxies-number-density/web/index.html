@@ -67,9 +67,13 @@ const ZH = {
   'robust to the calibration uncertainty (higher)': '对校准不确定性稳健（更高）',
   'robust to the calibration uncertainty (consistent with N26)': '对校准不确定性稳健（与 N26 一致）',
   'calibration-uncertain (borderline)': '依赖校准（临界）', 'calibration-uncertain': '依赖校准',
+  'model misfit (probabilities reported, not a verdict)': '拟合失配（只报告概率，不作判定）',
   'robust': '稳健', 'holds': '成立', 'fails': '不成立', 'calibration-dependent': '依赖校准', 'not assessable': '无法评估', 'not evaluable': '不可评估',
 };
-const tr = s => i18n.L(esc(s), ZH[s] || esc(s));
+const tr = s => {
+  const parts = String(s).split('; ');
+  return i18n.L(esc(s), parts.map(p => ZH[p] || (p === 'prior-bounded' ? '受先验边界限制' : esc(p))).join('；'));
+};
 
 let D = null;
 function render() {
@@ -90,18 +94,22 @@ function render() {
   document.getElementById('criteria').innerHTML = `<table><thead><tr><th>${i18n.L('Criterion', '判据')}</th><th>${i18n.L('Ours', '本研究')}</th><th>${i18n.L('Paper / threshold', '论文 / 门槛')}</th><th>${i18n.L('Verdict', '判定')}</th></tr></thead><tbody>` +
     rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="${cls(r[3])}">${tr(r[3])}</span></td></tr>`).join('') + '</tbody></table>';
 
-  if (D.post) {
+  if (!D.post) {
+    document.getElementById('post').innerHTML = i18n.L('results/post.json not found: run the study to produce the posterior check.', '找不到 results/post.json：运行研究以生成后验检验。');
+  } else try {
     const names = {primary: ['primary (σ_cal = 0.7)', '主拟合（σ_cal = 0.7）'], 'sigma_cal_0.5': ['σ_cal = 0.5', 'σ_cal = 0.5'],
                    'sigma_cal_0.9': ['σ_cal = 0.9', 'σ_cal = 0.9'], faint_rows: ['+ 4 faint lensing rows', '加入 4 个暗端透镜行']};
     const pcls = s => String(s).startsWith('robust') ? 'ok' : 'warn';
     document.getElementById('post').innerHTML = `<table><thead><tr><th>${i18n.L('Fit', '拟合')}</th><th>τ_max</th><th>${i18n.L('bootstrap p', '自助法 p')}</th><th>P(${i18n.L('R2 higher', 'R2 更高')})</th><th>${i18n.L('R2', 'R2')}</th><th>P(${i18n.L('R3 consistent', 'R3 一致')})</th><th>${i18n.L('R3', 'R3')}</th><th>${i18n.L('ratio 16–50–84%', '比值 16–50–84%')}</th></tr></thead><tbody>` +
       Object.entries(D.post).map(([k, v]) => {
         const q = v.ratio_quantiles || [];
-        return `<tr><td>${names[k] ? i18n.L(...names[k]) : esc(k)}</td><td>${Math.round(Math.max(...v.tau))}${v.converged ? '' : ' ' + i18n.L('(not converged)', '（未收敛）')}</td><td>${fmt(v.lsq.p_bootstrap)}</td>` +
+        return `<tr><td>${names[k] ? i18n.L(...names[k]) : esc(k)}</td><td>${(v.tau ? Math.round(Math.max(...v.tau)) : '–')}${v.converged ? '' : ' ' + i18n.L('(not converged)', '（未收敛）')}</td><td>${fmt(v.lsq.p_bootstrap)}</td>` +
           `<td>${fmt(v.r2_probabilities.higher)}</td><td><span class="${pcls(v.r2_label)}">${tr(v.r2_label)}</span></td>` +
           `<td>${fmt(v.r3_probabilities['consistent with N26'])}</td><td><span class="${pcls(v.r3_label)}">${tr(v.r3_label)}</span></td>` +
-          `<td>${fmt(q[1], 2)}–${fmt(q[2], 2)}–${fmt(q[3], 2)}</td></tr>`;
+          `<td>${q.length ? q.slice(1, 4).map(x => Number(x).toFixed(1)).join('–') : '–'}</td></tr>`;
       }).join('') + '</tbody></table>';
+  } catch (e) {
+    document.getElementById('post').innerHTML = i18n.L('Could not show results/post.json: ', '无法显示 results/post.json：') + esc(e);
   }
 
   const pos = a => a.map(v => v > 0 ? v : null);
