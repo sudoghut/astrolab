@@ -141,10 +141,12 @@ def chi2_r2(bao, x, reading, mnu, K, w=True, theta=None, counts=None):
     else:
         try:
             th = theta(H0, ob, oc, w0, wa)
-        except Exception as e:          # counted, then rejected like a non-finite value
-            counts["camb_error" if isinstance(e, camb_errors()) else "other_error"] += 1
+        except camb_errors() as e:      # CAMB's own evaluation errors: counted, point rejected
+            counts["camb_error"] += 1
             counts["error_types"].add(type(e).__name__)
             return np.inf
+        except Exception as e:          # anything else is a bug: stop the run (RuntimeError is
+            raise RuntimeError(f"R2-CAMB theta failed at {list(x)}") from e   # not swallowed by infer)
         if not np.isfinite(th):
             counts["nonfinite_theta"] += 1
             return np.inf
@@ -384,7 +386,7 @@ def r2_camb(ctx, bao, b_r2, paper_r2, r2, K0, P):
         for rd, key in keys.items():
             # rejection tallies per model; "infeasible" includes the random start draws, which
             # depend only on seed and bounds (so they repeat across readings and variants)
-            counts = {m: {"infeasible": 0, "camb_error": 0, "other_error": 0, "nonfinite_theta": 0,
+            counts = {m: {"infeasible": 0, "camb_error": 0, "nonfinite_theta": 0,
                           "error_types": set()} for m in ("lcdm", "w0wa")}
             fl = lambda x, rd=rd, c=counts["lcdm"]: chi2_r2(bao, x, rd, mnu, K0, w=False, theta=th, counts=c)
             fw = lambda x, rd=rd, c=counts["w0wa"]: chi2_r2(bao, x, rd, mnu, K0, w=True, theta=th, counts=c)
@@ -401,9 +403,10 @@ def r2_camb(ctx, bao, b_r2, paper_r2, r2, K0, P):
         verdicts[var] = {rd: vres[keys[rd]]["verdict"] for rd in keys}
         res["variants"][var] = vres
 
-    # diagnostics at the optima of the formula fits and the anchored-CAMB fits (reported only)
+    # diagnostics at the optima of the formula fits and of both CAMB variants (reported only)
     diag = []
-    for src, fits in (("formula", r2), ("camb_anchored", res["variants"]["anchored"])):
+    for src, fits in (("formula", r2), ("camb_anchored", res["variants"]["anchored"]),
+                      ("camb_raw", res["variants"]["raw"])):
         for rd, key in keys.items():
             for model in ("lcdm", "w0wa"):
                 x = (fits[key].get(model) or {}).get("x")
