@@ -363,10 +363,13 @@ def reml_tau(f, tau_max, step):
         for i in side:
             if vals[i] - f_hat - 1.0 >= 0:
                 a, b = sorted((inner, float(grid[i])))
-                try:
-                    return float(optimize.brentq(g, a, b, xtol=1e-6))
-                except (ValueError, RuntimeError, np.linalg.LinAlgError):   # no sign change / no convergence
-                    return "not determined"
+                ga, gb = g(a), g(b)          # errors from the objective itself propagate
+                if ga == 0.0 or gb == 0.0:
+                    return a if ga == 0.0 else b
+                if np.sign(ga) == np.sign(gb):
+                    return "not determined"            # no sign change in the bracket
+                root, info = optimize.brentq(g, a, b, xtol=1e-6, full_output=True, disp=False)
+                return float(root) if info.converged else "not determined"
             inner = float(grid[i])
         return 0.0 if direction < 0 else "> %.1f" % tau_max
 
