@@ -268,6 +268,14 @@ point (fixed / accepted / rejected):
 
 1. Is the post-hoc 69 the *same set* as the GWTC-3 population paper's 69 BBHs (arXiv:2111.03634),
    not just the same count? This needs that paper's small event-list file (referee test (e)).
+   *Answered 2026-11-16 (T-026; post hoc, no verdict changes):* yes. The paper's data release
+   (Zenodo 11254021, `table_data.tar.gz`, 4.9 kB, via `ctx.http`) holds Table 1 (76 events) and
+   Table 3 (the 7 events whose components may be neutron stars: GW170817, GW190425, GW190426,
+   GW190814, GW190917, GW200105, GW200115). Table 1 has no BBH column; Table 1 minus Table 3 gives
+   69 events, the paper's stated BBH count, and that set equals our post-hoc 69 (the 59 O1–O3 events
+   of `results/sample.json` plus the ten O1/O2 BBHs of the FAR fallback) once our short names
+   GW190412 and GW190521 are read as GW190412_053044 and GW190521_030229. Script:
+   `explore/gwtc3_pop_events.py`.
 2. Does the bump near 35 M☉ in R3 survive a real (injection-based) selection function instead of
    the toy VT? It needs only summary products, not the 35 GB release.
 3. Should the pre-registration template for list-based reconstructions say how to handle a field
