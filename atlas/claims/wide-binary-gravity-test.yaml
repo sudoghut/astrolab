@@ -21,7 +21,7 @@ reproduction:
   quantities:
     - {name: "C26 main sample size (v~ <= 2.5)", paper: "1421", ours: "639 (different sample)"}
     - {name: "C26 Newtonian normalisation", paper: "0.489", ours: "0.499"}
-    - {name: "C26 likelihood ratio Newton/MOND", paper: "up to ~1500 (MAD/sqrt(N) errors)", ours: "0.49 with bootstrap errors (cannot distinguish; no power: flat data would give 6.2); 1.7e-5 with MAD/sqrt(N)"}
+    - {name: "C26 likelihood ratio Newton/MOND", paper: "up to ~1500 (MAD/sqrt(N) errors)", ours: "0.49 with bootstrap errors (cannot distinguish; referee, post hoc: no power, flat data would give 6.2); 1.7e-5 with MAD/sqrt(N)"}
     - {name: "alpha_grav (Banik 2024)", paper: "-0.021 +0.065/-0.045", ours: null}
     - {name: "g_obs/g_N (Chae 2023)", paper: "1.43 +/- 0.06", ours: null}
 open_questions:
