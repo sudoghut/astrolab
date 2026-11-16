@@ -554,3 +554,22 @@ def test_prune_skips_entry_used_since_snapshot(tmp_cache, monkeypatch):
     cache.prune(limit_bytes=1)
     assert cache.read(keys[0], ".bin", lambda p: p.read_bytes()) is not None
     assert cache.get(keys[1], ".bin") is None      # the unused entry is still pruned
+
+
+def test_tap_never_requests_more_than_hard_ceiling(tmp_cache, monkeypatch):
+    seen = {}
+
+    class _Res:
+        query_status = "OK"
+
+        def to_table(self):
+            from astropy.table import Table
+            return Table({"a": [1]})
+
+    def fake(url, q, maxrec, mode):
+        seen["maxrec"] = maxrec
+        return _Res()
+
+    monkeypatch.setattr(fetch, "_run_tap", fake)
+    fetch.tap("SELECT a FROM ceiling", "gaia", max_rows=config.TAP_HARD_MAX_ROWS)
+    assert seen["maxrec"] == config.TAP_HARD_MAX_ROWS
