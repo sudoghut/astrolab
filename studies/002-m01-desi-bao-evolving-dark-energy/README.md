@@ -262,8 +262,18 @@ reproduce the 2026-11-14 numbers exactly). Numbers: `results/r2_camb.json`.
 - As expected from the disclosure in section 2, the raw variant moves both readings by about −0.12;
   reading A stays 0.29 outside the tolerance.
 - **What this changes.** The R2 split between readings A and B is not an artefact of the θ*
-  calibration: R2 really depends on the ωbc convention of the compressed prior. Which convention
-  DESI used is still not known (section 7). The recorded R2 verdict is unchanged.
+  calibration: R2 really depends on the ωbc convention of the compressed prior. The recorded R2
+  verdict is unchanged.
+- **Source of the prior (referee 2026-11-16, verified by us; post hoc).** The prior's source,
+  `cmbant/PlanckEarlyLCDM` README (read 2026-11-16): Cobaya `gaussian_mixture` with `input_params: ['thetastar', 'ombh2', 'omch2']`, means `[1.04103e-2, 0.02223, 0.1192]`, transformed to (θ*, ωb, ωb + ωc) reproduces DESI's Eq. 36 covariance to every printed
+  digit and its θ* and ωb means, but gives ωb + ωc = 0.14143, while Eq. 35 prints 0.14208; the
+  difference 0.00065 is ων for 0.06 eV (0.53σ of ωbc). So **reading A is the faithful version of
+  the source prior** and reading B is that prior with its ωbc mean shifted by +0.53σ. Taken with
+  Eq. 2 (section 6, point 2), the evidence now favours A. Under A our Δχ² is −6.59 (formula), −6.59
+  (CAMB anchored), −6.71 (CAMB raw), and the referee estimates about +0.1 more with CAMB's r_drag in
+  place of the Aubourg r_d: about −6.6 against the paper's −8.0. The pre-registered verdict stays
+  "conditionally reproduced (reading B)", but B's match may be a coincidence or may reflect how
+  DESI's code applied the mean; we cannot tell without DESI's likelihood configuration (T-030).
 
 ## 6. Referee notes (independent subagent, 2026-11-14)
 
@@ -286,6 +296,21 @@ the paper):
 No code bug that changes a verdict was found; criteria were applied as pre-registered (README
 sections 1-4 unchanged since commit 88cdacb, before the data were first used).
 
+### Referee, R2-CAMB (independent subagent, 2026-11-16)
+
+The referee saw README sections 1-4 (with the R2-CAMB addendum), the code and the results, not
+sections 5-7; it ran small offline checks with camb.
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The prior's source (`cmbant/PlanckEarlyLCDM` README (read 2026-11-16): Cobaya `gaussian_mixture` with `input_params: ['thetastar', 'ombh2', 'omch2']`, means `[1.04103e-2, 0.02223, 0.1192]`) transforms to Eq. 36 exactly, but its ωb + ωc mean is 0.14143, not 0.14208; the difference is ων (0.00065). Reading A is the source prior; B shifts the mean by +0.53σ | yes: read the README ourselves and recomputed the transformation (covariance −1.19288, −94.0008, 1488.417 ×10⁻⁹) | Accepted; interpretation in section 5 and wiki revised (post hoc, labelled). Which quantity DESI's code compared with 0.14208 needs DESI's likelihood configuration: registered as T-030. Verdict unchanged. |
+| 2 | R2-CAMB keeps the Aubourg r_d; with CAMB's r_drag the formula-θ* Δχ² becomes −6.48 (A), −7.90 (B), i.e. about +0.10 | partly: our diagnostics give Aubourg/CAMB = 0.99971 at every optimum, consistent; the refit is the referee's, not rerun by us | Accepted limitation; outside the pre-registered check; a fully CAMB-consistent rerun goes with T-030. |
+| 3 | BAO distances from `cosmo.Background` agree with CAMB to < 8×10⁻⁶ at the R2 optima | not rerun | Noted; no action. |
+| 4 | The raw/anchored offset (+0.29σ) is almost all N_eff 3.044 vs 3.046 (CAMB with 3.046 gives 1.041089 at the reference); raw is probably closer to how the prior's θ* was computed, so the formula R2 carries a −0.29σ θ* bias from its anchor | partly (consistent with the disclosure; the 3.046 value not rerun) | Accepted: both variants already decide the conclusion; raw shifts Δχ² by −0.12 and changes no verdict. |
+| 5 | Low power: a verdict flip needed a ~0.5σ cosmology-dependent θ* error; the check measures ≤ 0.05σ. It shows the calibration is fine, not why A is 1.4 off | yes | Accepted; stated in section 5. |
+| 6 | Rules applied as pre-registered; the one pre-run change of the addendum made it stricter | yes | None. |
+| 7 | If the anchored variant is invalid and raw flips, the code says "depends on the absolute θ* calibration" | yes | Rejected: this is the pre-registered precedence (a valid variant is evaluated by its own rule); it did not occur. |
+
 ## 7. Open questions
 
 - The ωbc convention of the compressed prior (Eq. 35): which quantity does the paper's code compare
@@ -293,8 +318,10 @@ sections 1-4 unchanged since commit 88cdacb, before the data were first used).
   compression paper, ref. [111]) would say which convention DESI used; a CAMB check of θ* at the fit points (T-022; installing CAMB
   needs the user's consent, which README section 4 did not plan; consent given 2026-11-16,
   R2-CAMB addendum in section 2) would show whether R2 depends on it. Answered 2026-11-16: the
-  split is robust to the θ* calibration (section 5, R2-CAMB), so R2 does depend on the convention;
-  only the primary source remains.
+  split is robust to the θ* calibration (section 5, R2-CAMB), so R2 does depend on the convention.
+  The prior's source chain matches reading A (section 5, referee); what remains is which quantity
+  DESI's code compared with the 0.14208 mean, and, if A, where the remaining ~1.4 in Δχ² comes
+  from (T-030).
 - Wilks calibration (wiki `gap_regular`): simulate the Δχ² distribution under the ΛCDM best fit
   for DESI + compressed CMB and compare with χ²(2).
 - Leave-one-tracer-out sensitivity of Δχ² (`drop_z`), and DES-Dovekie as a third SN sample.
