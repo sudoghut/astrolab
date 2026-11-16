@@ -59,7 +59,23 @@ def _to_frame(table) -> pd.DataFrame:
 RETRY_DELAYS = (5, 20, 60)  # seconds between attempts on transient server errors
 
 
+class _TapHTTPError(RuntimeError):
+    """HTTP error from a streamed TAP request; ``code`` is the status (read by _unauthorized)."""
+
+    def __init__(self, code: int, detail: str):
+        super().__init__(f"TAP HTTP {code}: {detail}")
+        self.code = code
+
+
+class _TapQueryError(RuntimeError):
+    """The service answered with QUERY_STATUS=ERROR (or no result table): never transient."""
+
+
 def _transient(exc: Exception) -> bool:
+    if isinstance(exc, _TapQueryError):
+        return False
+    if isinstance(exc, _TapHTTPError):
+        return exc.code >= 500
     text = str(exc)
     return any(code in text for code in ("500", "502", "503", "504", "timed out", "Connection"))
 
@@ -97,9 +113,9 @@ def _download_votable(svc, uri: str, data: dict | None = None):
                 import re
 
                 body = b"".join(c for _, c in zip(range(4), r.iter_content(4096))).decode("utf-8", "replace")
-                m = re.search(r'name="QUERY_STATUS"[^>]*>(.*?)</INFO>', body, re.S)
-                detail = (m.group(1).strip() if m else body)[:500]
-                raise RuntimeError(f"TAP HTTP {r.status_code}: {detail}")
+                m = re.search(r'<INFO\b[^>]*name="QUERY_STATUS"[^>]*?(?:/>|>(.*?)</INFO>)', body, re.S | re.I)
+                detail = ((m.group(1) or "").strip() if m else body)[:500] or body[:500]
+                raise _TapHTTPError(r.status_code, detail)
             with open(tmp, "wb") as fh:
                 for chunk in r.iter_content(1 << 16):
                     written += len(chunk)
@@ -108,21 +124,41 @@ def _download_votable(svc, uri: str, data: dict | None = None):
                                        "downloading; narrow the query.")
                     fh.write(chunk)
         vot = votable.parse(str(tmp))
-        status, message = None, None
-        for res in vot.resources:
-            for info in res.infos:
-                if info.name == "QUERY_STATUS":
-                    status, message = info.value, info.content
-        if status == "ERROR":
-            raise RuntimeError(f"TAP query error: {message or 'no error message'}")
-        table = (vot.get_first_table().to_table(use_names_over_ids=True)
-                 if vot.resources and vot.resources[0].tables else None)
-        if table is None:
-            from astropy.table import Table
-            table = Table()
-        return _VOResult(table, status)
+        status, message = _query_status(vot)
+        if status is not None and status.lower() not in ("ok", "overflow"):
+            raise _TapQueryError(f"TAP query error ({status}): {message or 'no error message'}")
+        if not (vot.resources and vot.resources[0].tables):
+            # a real zero-row result still has a TABLE element: never cache this as empty
+            raise _TapQueryError(f"TAP response has no result table: {message or 'no message'}")
+        table = vot.get_first_table().to_table(use_names_over_ids=True)
+        return _VOResult(table, status.upper() if status else None)
     finally:
         tmp.unlink(missing_ok=True)
+
+
+def _query_status(vot):
+    """(QUERY_STATUS value, message) as pyvo finds it: the results RESOURCE, then the first TABLE,
+    then the VOTABLE root; the last match within a list wins (a trailing OVERFLOW counts)."""
+    def scan(infos):
+        found = None
+        for info in infos:
+            if (info.name or "").lower() == "query_status":
+                found = (info.value, info.content)
+        return found
+
+    res = next((r for r in vot.resources if (r.type or "").lower() == "results"),
+               vot.resources[0] if vot.resources else None)
+    places = []
+    if res is not None:
+        places.append(res.infos)
+        if res.tables:
+            places.append(res.tables[0].infos)
+    places.append(vot.infos)
+    for infos in places:
+        hit = scan(infos)
+        if hit is not None:
+            return hit
+    return None, None
 
 
 def _run_async(svc, query: str, maxrec: int):
@@ -161,7 +197,7 @@ def _run_async(svc, query: str, maxrec: int):
 def _run_sync(svc, query: str, maxrec: int):
     """Synchronous TAP query, streamed through the byte-capped download (not pyvo's run_sync,
     which reads the whole response into memory before any size check)."""
-    data = {"REQUEST": "doQuery", "LANG": "ADQL", "QUERY": query, "FORMAT": "votable"}
+    data = {"REQUEST": "doQuery", "LANG": "ADQL", "QUERY": query}   # same parameters as pyvo
     if maxrec is not None:
         data["MAXREC"] = str(int(maxrec))
     return _download_votable(svc, svc.baseurl.rstrip("/") + "/sync", data=data)

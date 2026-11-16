@@ -105,7 +105,7 @@ def test_streamed_votable_download_capped(tmp_cache, monkeypatch):
         fetch._download_votable(_Svc(), "http://example.invalid/result")
 
 
-def test_sync_tap_streams_with_byte_cap_and_reports_errors(monkeypatch):
+def test_sync_tap_streams_with_byte_cap_and_reports_errors(tmp_cache, monkeypatch):
     """Sync queries POST to <base>/sync and are streamed under the cap; HTTP errors keep the code."""
     seen = {}
 
@@ -142,7 +142,64 @@ def test_sync_tap_streams_with_byte_cap_and_reports_errors(monkeypatch):
     _Svc._session.code = 401
     with pytest.raises(RuntimeError) as e:
         fetch._run_sync(_Svc(), "SELECT 1", 10)
-    assert fetch._unauthorized(e.value)
+    assert fetch._unauthorized(e.value) and not fetch._transient(e.value)
+    _Svc._session.code = 503
+    with pytest.raises(RuntimeError) as e:
+        fetch._run_sync(_Svc(), "SELECT TOP 500 a FROM t", 10)
+    assert fetch._transient(e.value)
+    _Svc._session.code = 400
+    with pytest.raises(RuntimeError) as e:
+        fetch._run_sync(_Svc(), "SELECT TOP 500 a FROM t", 10)
+    assert not fetch._transient(e.value)
+
+
+_VOT = """<?xml version="1.0"?>
+<VOTABLE version="1.3" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+<RESOURCE type="results">
+<INFO name="QUERY_STATUS" value="{status}">{msg}</INFO>
+{table}
+</RESOURCE>
+{tail}
+</VOTABLE>"""
+_TAB = """<TABLE><FIELD name="a" datatype="int"/><DATA><TABLEDATA>
+<TR><TD>1</TD></TR></TABLEDATA></DATA></TABLE>"""
+
+
+def _vot_svc(body):
+    class _Resp:
+        status_code = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def iter_content(self, n):
+            yield body.encode()
+
+    class _Sess:
+        def post(self, uri, data=None, stream=True, timeout=0):
+            return _Resp()
+
+    class _Svc:
+        baseurl = "http://example.invalid/tap"
+        _session = _Sess()
+
+    return _Svc()
+
+
+def test_sync_tap_votable_status_handling(tmp_cache):
+    ok = fetch._run_sync(_vot_svc(_VOT.format(status="OK", msg="", table=_TAB, tail="")), "q", 5)
+    assert len(ok.to_table()) == 1 and ok.query_status == "OK"
+    trailing = _VOT.format(status="OK", msg="", table=_TAB + '\n<INFO name="QUERY_STATUS" value="OVERFLOW"/>', tail="")
+    assert fetch._run_sync(_vot_svc(trailing), "q", 5).query_status == "OVERFLOW"
+    for status in ("ERROR", "error"):
+        with pytest.raises(RuntimeError) as e:
+            fetch._run_sync(_vot_svc(_VOT.format(status=status, msg="bad column", table="", tail="")), "q", 5)
+        assert "bad column" in str(e.value) and not fetch._transient(e.value)
+    with pytest.raises(RuntimeError):      # no table, no status: not an empty success
+        fetch._run_sync(_vot_svc(_VOT.format(status="OK", msg="", table="", tail="")), "q", 5)
 
 
 def test_cached_tap_result_over_limit_refused(tmp_cache, monkeypatch):
