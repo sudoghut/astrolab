@@ -171,6 +171,23 @@ with the label attached. Precedence: "not evaluable" (convergence, or R3 with fe
 evaluable draws) replaces any verdict; otherwise "model misfit" means the probabilities are reported
 but not used as a verdict; "prior-bounded" is attached to whatever remains.
 
+*Dated amendment 2026-11-16 (after the smoke run, before the formal run).* The smoke run with the
+settings above (`explore`, variants off) found every chain failing the 50 τ rule: τ ≈ 120–270 steps
+against 4000 post-burn steps. It also showed (with a label-matching bug in the probabilities, since
+fixed) R2 P(higher) = 1.0 in all four fits and R3 P(consistent with N26) = 0.948 in the primary fit,
+i.e. near the threshold. Change: 30,000 steps with the first 5,000 discarded (so N = 25,000 × 32 in
+the draw indexing). Nothing else is changed: the thresholds, the Monte Carlo rule, the draws and the
+labels stay as written, and the R3 outcome near 0.95 was known when the chain length was set.
+
+*Second and last dated amendment 2026-11-16 (after a second smoke run with 30,000 steps).* The τ
+estimates grew with the chain length (≈ 140–670 steps; the stretch move mixes slowly along the
+ε₀–M₁–β degeneracy): the primary fit missed the rule narrowly (τ_max = 518 against 25,000 post-burn
+steps), σ_cal = 0.5 passed, σ_cal = 0.9 and the faint-row fit failed. Seen: R2 P(higher) ≥ 0.998 in
+all four; R3 P(consistent with N26) = 0.938 (primary), 0.842, 0.988, 0.922. Change: 100,000 steps
+with the first 20,000 discarded (N = 80,000 × 32). A longer chain only improves precision; it does
+not move a threshold. If a fit still fails the 50 τ rule it is **not evaluable**, with no further
+change.
+
 *Reported, not decisive.* Posterior medians and 68% intervals of θ and f; the best-fit χ² and the
 number of points; the ratio and R3 central root at the posterior median θ; the same probabilities
 for σ_cal = 0.5 and 0.9 (separate chains; as in section 4 step 7, the z = 14–15 σ used for R2 equals

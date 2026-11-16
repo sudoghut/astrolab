@@ -319,3 +319,85 @@ def mass_fraction_check(lnM, sig0, rho_m):
     order = np.argsort(x)
     frac_st = float(np.trapz(f_st(sig0[order]), x[order]))
     return {"fraction_grid": frac_grid, "fraction_st": frac_st}
+
+
+# ---------------------------------------------------------------- R2/R3-POST (addendum 2026-11-16)
+POST_LO = np.array([1e-6, 9.0, 0.0, 0.0, 0.01])     # (eps0, log10 M1, beta, gamma, f)
+POST_HI = np.array([1.0, 13.0, 3.0, 3.0, 3.0])
+
+
+def binned_residuals(params, M, lnM, hmf_cal, z_cal, c, accretion, sigma, blank, lens, limits=()):
+    """Two-piece Gaussian residuals of the binned LF points, the 1-sigma upper limits as one-sided
+    terms, and the prior residual (f - 1)/0.2 (README section 2, R2/R3-POST)."""
+    theta, f = params[:4], params[4]
+    med = muv_median(M, z_cal, c, theta, accretion)
+    mags = np.array([r[0] for r in blank] + [r[0] for r in lens] + [r[0] for r in limits])
+    phi = lf_model(mags, lnM, hmf_cal, med, sigma) if len(mags) else np.array([])
+    out = []
+    k = 0
+    for scale, rows in ((1.0, blank), (f, lens)):
+        for _, d, eh, el in rows:
+            m = scale * phi[k]
+            out.append((d - m) / (eh if m > d else el))
+            k += 1
+    for row in limits:
+        value, ul = (0.0, row[1]) if len(row) == 2 else (row[1], row[2])
+        out.append((f * phi[k] - value) / ul)
+        k += 1
+    out.append((f - 1.0) / 0.2)
+    return np.array(out)
+
+
+def in_box(params):
+    return bool(np.all(params >= POST_LO) and np.all(params <= POST_HI))
+
+
+def reflect_into_box(x, lo=POST_LO, hi=POST_HI):
+    x = np.array(x, dtype=float)
+    for _ in range(100):
+        x = np.where(x < lo, 2 * lo - x, x)
+        x = np.where(x > hi, 2 * hi - x, x)
+        if np.all((x >= lo) & (x <= hi)):
+            return x
+    raise RuntimeError("reflection did not converge")
+
+
+def bound_fractions(draws, tol=0.01):
+    """Fraction of draws within tol of the box width of each bound (eps0 in log10 over [-6, 0])."""
+    out = {}
+    names = ["eps0", "log_m1", "beta", "gamma", "f"]
+    for j, n in enumerate(names):
+        x = draws[:, j]
+        lo, hi = POST_LO[j], POST_HI[j]
+        if n == "eps0":
+            x, lo, hi = np.log10(x), -6.0, 0.0
+        w = tol * (hi - lo)
+        out[n] = {"lower": float(np.mean(x <= lo + w)), "upper": float(np.mean(x >= hi - w))}
+    return out
+
+
+def split_normal_draw(rng, centre, err_hi, err_lo):
+    """Simulated measurement around the model value `centre`, consistent with the likelihood in
+    binned_residuals (a model above the data uses err_hi): a value below the model has width
+    err_hi, one above it err_lo; below with probability err_hi / (err_hi + err_lo)."""
+    if rng.random() < err_hi / (err_hi + err_lo):
+        return centre - abs(rng.normal(0.0, err_hi))
+    return centre + abs(rng.normal(0.0, err_lo))
+
+
+def simulate_binned(rng, best, M, lnM, hmf_cal, z_cal, c, accretion, sigma, blank, lens, limits=()):
+    """Parametric-bootstrap data set from the best-fit model (README section 2, R2/R3-POST):
+    split-normal errors, f drawn from N(1, 0.2) truncated to the box, limits as max(0, N(f phi, ul))."""
+    theta = best[:4]
+    while True:
+        f = rng.normal(1.0, 0.2)
+        if POST_LO[4] <= f <= POST_HI[4]:
+            break
+    med = muv_median(M, z_cal, c, theta, accretion)
+    mags = np.array([r[0] for r in blank] + [r[0] for r in lens] + [r[0] for r in limits])
+    phi = lf_model(mags, lnM, hmf_cal, med, sigma)
+    nb, nl = len(blank), len(lens)
+    sb = [(r[0], split_normal_draw(rng, phi[k], r[2], r[3]), r[2], r[3]) for k, r in enumerate(blank)]
+    sl = [(r[0], split_normal_draw(rng, f * phi[nb + k], r[2], r[3]), r[2], r[3]) for k, r in enumerate(lens)]
+    su = [(r[0], max(0.0, rng.normal(f * phi[nb + nl + k], r[1])), r[1]) for k, r in enumerate(limits)]
+    return sb, sl, su
