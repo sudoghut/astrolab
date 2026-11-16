@@ -24,4 +24,5 @@ Goal: an adversarial read that is NOT anchored on our interpretation (AGENTS.md,
    limitation / rejected (with reason). Do not accept or reject wholesale.
 4. Record in `README.md` section 6 "Referee notes" (English) and summarise in `log.md`
    (Chinese, terms with English in parentheses). Post-hoc changes to criteria or flags must be
-   labelled post-hoc with date and reason.
+   labelled post-hoc with date and reason. Update the Chinese companion `README.zh.md` section 6 in the
+   same PR (AGENTS.md bilingual rule).

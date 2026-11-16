@@ -1,6 +1,6 @@
-# {{TITLE}}（中文）
+# TODO：中文标题（与 study.yaml 的 title_zh 相同）
 
-> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。
+> English: [README.md](README.md)（{{TITLE}}）。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。
 >
 > 第 1–4 节须在写 `run.py` 之前完成（预注册，pre-registration）；之后只能带日期注明理由地修改。
 
@@ -28,13 +28,13 @@ TODO：步骤、模型、先验、要检查的系统误差。
 
 运行后填写。链接 `web/index.html`，并给出 `results/` 中的关键数字。
 
-## 6. 审稿意见
+## 6. 审稿意见（referee notes）
 
 独立审稿：选择效应、系统误差、其他解释。
 
 ## 7. 开放问题
 
-## 8. 对话探索
+## 8. 对话探索（exploring via chat）
 
 编程智能体如何在不改动 `results/` 的前提下回答关于本研究的"如果……会怎样"问题（规则见 AGENTS.md 第二条）。
 

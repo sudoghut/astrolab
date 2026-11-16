@@ -120,7 +120,7 @@ LRU 指最近最少使用（Least Recently Used）的清理策略。
 - **术语括注英文**：设计文献与研究日志用中文书写，任何术语第一次出现时都要在括号中注明英文原文，缩写写出全称。代码与注释用英文。
 - **项目保持中英双语**（见 `design/004-plan_*`）：
   - 对外说明文档（如 `README.md`）中英双语，两种语言内容对应。
-  - 研究的 `README.md` 用英文写（预注册与判据的权威文本），旁边的 `README.zh.md` 是中文全文译本：两者第一屏互相链接，中文注明以英文为准；节号与表格一一对应，英文改动时在同一个 PR 中同步修改中文（设计见 `design/023-plan_*`，测试 `tests/test_bilingual_readmes.py`）。
+  - 研究的 `README.md` 用英文写（预注册与判据的权威文本），旁边的 `README.zh.md` 是中文全文译本：两者第一屏互相链接，中文注明以英文为准；节号、小节与表格一一对应；新研究的中文第 1–4 节与英文一起在写 `run.py` 之前完成，此后英文的任何改动（结果、审稿意见、开放问题等）在同一个 PR 中同步修改中文；术语括注英文的规则同样适用（设计见 `design/023-plan_*`，测试 `tests/test_bilingual_readmes.py`）。
   - **每个网页都要有英文/中文切换按钮，默认英文。** 一律在 `<head>` 中引用共享的 `atlas/web/i18n.js`；它自带切换按钮和隐藏样式，不依赖 `base.css`。用法：
     - 静态文字成对写成 `<span class="en">…</span><span class="zh">…</span>`。
     - 脚本生成的 HTML 用 `i18n.L(en, zh)`。
@@ -167,6 +167,7 @@ python -m pytest                          # 核心库测试 + 各研究的结论
 |---|---|
 | `study.yaml` | 元数据：层级、状态、关联结论、足迹（footprint） |
 | `README.md` | 问题、假设与判据、数据（附大小估计）、方法、结果、审稿意见、开放问题、对话探索入口（第 8 节） |
+| `README.zh.md` | `README.md` 的中文全文译本（以英文为准），节与表格一一对应，同步修改 |
 | `log.md` | 研究日志（research log），按时间倒序追加 |
 | `run.py` | `def main(ctx)`，用 `ctx.tap / ctx.http / ctx.save / ctx.log` |
 | `test_conclusions.py` | 读取 `results/`，断言结论仍然成立 |
@@ -178,7 +179,7 @@ python -m pytest                          # 核心库测试 + 各研究的结论
 
 ## 第五条：研究完成标准
 
-- README 已填写完整。
+- README 已填写完整，中文 `README.zh.md` 已同步。
 - `run.py` 可以重跑。
 - 测试通过。
 - 网页可用。

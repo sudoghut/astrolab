@@ -243,6 +243,7 @@ def test_new_study_from_template(tmp_path, monkeypatch):
     assert s.id == "000-my-question"
     assert s.meta["level"] == "L3" and s.meta["status"] == "planned"
     assert "{{" not in (s.path / "README.md").read_text(encoding="utf-8")
+    assert "{{" not in (s.path / "README.zh.md").read_text(encoding="utf-8")
     assert study.new("second", "Second").id == "001-second"
     assert study.resolve("1").id == "001-second"
 

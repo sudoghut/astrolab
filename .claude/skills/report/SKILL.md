@@ -75,7 +75,8 @@ written to the project.
 
 - Default: in chat. A report meant to be kept goes where it will be maintained: the study README
   or the wiki article (on a branch, through a PR; for the wiki, the sync and publish steps of the
-  `paper-study` skill; languages per the AGENTS.md section 2 bilingual rules), not a new file
+  `paper-study` skill; languages per the AGENTS.md section 2 bilingual rules, so a study README change also goes into
+  its README.zh.md), not a new file
   elsewhere in the project.
 - If the user wants a standalone document, write it outside the project directory (or publish it
   with the agent's own tools) and say where it is.
