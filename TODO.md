@@ -6,7 +6,7 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-023** M2：CCHP 的 10 个宿主对其余 27 个宿主（各自只用 NGC 4258），在 C 之外加入按最大似然估计的逐宿主随机效应（random effect），以膨胀后的 z 预注册判定 · 登记 2026-11-14 · 来源 T-012 · 分支 feat/m2-host-random-effect · 计划 [021](design/021-plan_m02-host-level-random-effect-for-the-cchp-host-selection-shift.md)
+- [ ] **T-023** M2：CCHP 的 10 个宿主对其余 27 个宿主（各自只用 NGC 4258），在 C 之外加入按限制最大似然（REML）估计的逐宿主随机效应（random effect），以 V(τ̂) 下的 z' 预注册判定 · 登记 2026-11-14 · 来源 T-012 · 分支 feat/m2-host-random-effect · 计划 [021](design/021-plan_m02-host-level-random-effect-for-the-cchp-host-selection-shift.md)
   - 备注：独立审稿的"最重要的补充检验"：R4 显示随机子样本的 Δ/σ 离散为 1.33，按膨胀后的误差 R2 宿主一步约 1.7σ；需要在新的预注册下检验选择效应是否仍显著。缓存中已有数据，不需新取数。
 
 ## 下一步（Next）

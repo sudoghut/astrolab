@@ -108,35 +108,59 @@ their values are listed as "not independent, not interpreted" and are not averag
 an empirical spread is post hoc; this addendum fixes a model-based test in advance.
 
 *Seen before this addendum.* All results in sections 5 and 6 (R1-R4, the 1.33 spread, the CCHP
-host shift −0.0730 ± 0.0331 mag, z = −2.21). No random-effect variance has been estimated or
-tried.
+host shift −0.0730 ± 0.0331 mag, z = −2.21), so the direction is known: more host scatter weakens
+the host-step significance. REML (below) was chosen over ML knowing this; it is the standard
+estimator for a variance component and gives the larger τ than ML. No random-effect variance has
+been estimated or tried, and the section 7 leave-one-host-out χ² exploration has not been run.
 
-*Model.* In the NGC 4258-only system (R2's anchor-step rows), each calibrator host j gets an
-additive offset shared by all its calibrator SN rows (rows with a non-zero in the M⁰_B column and
-in exactly one host column, `row_classes`' `calib`), Gaussian with variance τ²:
-V(τ) = C + τ² Σ_j h_j h_jᵀ, where h_j is the indicator of host j's calibrator SN rows. Cepheid,
-anchor, Hubble-flow and constraint rows are unchanged. τ is one number for all 37 hosts.
+*Model.* In the NGC 4258-only system (R2's anchor-step rows: all rows except the LMC and the two
+Milky Way constraint rows, about 3489), each calibrator host j gets an additive offset shared by
+all its calibrator SN rows (rows with a non-zero in the M⁰_B column and in exactly one host
+column, `row_classes`' `calib`), Gaussian with variance τ²:
+V(τ) = C + τ² Σ_j h_j h_jᵀ, where h_j is the indicator of host j's calibrator SN rows. τ is one
+number for all 37 hosts (the minimal one-parameter model; with 37 groups τ̂ is poorly constrained,
+hence the interval below). Other rows are unchanged. Equivalences, stated so they are not
+re-litigated: every host has a free distance μ₀,j that enters its Cepheid and SN rows with the same
+coefficient, so the same offset on host j's Cepheid rows, or on μ₀,j, gives the identical REML
+likelihood, H0 estimate and variance. A per-SN effect is not available (the light-curve rows are
+matched to hosts, not to SNe, section 4) and equals the per-host one for single-SN hosts. For
+single-SN hosts τ is indistinguishable from extra scatter of calibrator SNe relative to their
+Cepheid distance; that is what τ measures.
 
-- **Estimate.** τ̂ by restricted maximum likelihood (REML) on the 37-host NGC 4258-only system:
-  minimise −2ℓ_R(τ) = log det V + log det(Xᵀ V⁻¹ X) + rᵀ V⁻¹ r, X = the fitted columns of L on those
-  rows, r the GLS residual under V; bounded scalar minimisation over τ ∈ [0, 0.5] mag
-  (`scipy.optimize.minimize_scalar`, method "bounded", xatol 10⁻⁴). The 68% interval is where
-  −2ℓ_R rises by 1 from its minimum (clipped at 0). τ̂ at the lower bound (< 10⁻³ mag) means no
-  excess host scatter: then V = C and R2-RE equals R2.
+- **Estimate.** τ̂ by restricted maximum likelihood (REML, restricted maximum likelihood) on that
+  system: −2ℓ_R(τ) = log det V + log det(Xᵀ V⁻¹ X) + rᵀ V⁻¹ r, with X the columns of L fitted in
+  that system (`infer.gls`'s `kept`) on those rows, r the GLS residual under V, and all constraint
+  rows kept (their τ-independent terms are constants). Search: a grid τ = 0, 0.01, …, 0.50 mag,
+  then `scipy.optimize.minimize_scalar` (method "bounded", xatol 10⁻⁵) on the grid interval around
+  the grid minimum (at an end point, the one adjacent interval); τ̂ is the better of the refined
+  and the grid minimum. τ̂ < 10⁻³ counts as zero (V = C; R2-RE then equals R2). τ̂ > 0.5 − 10⁻³ is
+  "at the upper bound": R2-RE is **not evaluable (bound)**.
+- **Interval.** The 68% interval is where −2ℓ_R exceeds its minimum by 1, found by root finding
+  (`brentq`) on each side of τ̂; the lower end is 0 if −2ℓ_R(0) is within 1 of the minimum; the
+  upper end is reported as "> 0.5" if not reached by 0.5.
 - **Host step under V(τ̂).** As R2's host step with C replaced by V(τ̂) in both fits and in the
   shift variance: Δ_h' = 5 log H0(10 CCHP hosts) − 5 log H0(37 hosts), σ_h'² = a'ᵀ V a', z' = Δ_h'/σ_h',
-  same host labelling as the 2026-11-14 run (the amended one, section 4 note).
+  with the host labelling of the 2026-11-14 run (amended, section 4 note); R2-RE inherits R2's
+  labels (amended post-data labelling) and its anchor-step status rule.
 - **Rule.** R2's verdict table unchanged (z' ≤ −2 with |Δ_h' − (−0.0405)| ≤ 2σ_h' + 0.02 → "supports
   the paper"; z' ≤ −2 otherwise → "different size"; |z'| < 2 → "no host-selection effect
   detected"; z' ≥ 2 → "raises H0").
-- **Validity.** The REML minimum must be interior or at the lower bound (τ̂ = 0.5 is reported as
-  "not evaluable (bound)"); both GLS fits must succeed with V positive definite.
-- **Reported, not decisive.** z' at the upper end of the τ interval; R4 rerun under V(τ̂) (same
-  draws, seed and guard as R4): the spread of Δ/σ' (near 1 if the random effect absorbs the excess
-  scatter) and the CCHP percentiles.
-- **Interpretation fixed now.** R2's recorded verdicts stay as they are (pre-registered, C errors).
-  R2-RE is the pre-registered answer to whether the host-selection shift is significant once
-  host-level scatter is modelled; section 5 will lead with it if it differs from R2.
+- **Validity.** V positive definite numerically (Cholesky succeeds) and both GLS fits succeed; else
+  R2-RE is **not evaluable (fit)**.
+- **Headline, fixed now.** The R2-RE verdict row, whatever it is, becomes the headline host-step
+  verdict in section 5, `summary.json` (`R2_host`) and the claim, and replaces the inflated-σ
+  sentence in the public `verdict` of `r2.json`. R2 (C errors) stays recorded as the pre-registered
+  outcome of 2026-11-14 (`criterion_outcome`, `R2_host_preregistered`). The inflated-σ figure and
+  the diagnostics below are labelled descriptive and cannot override R2-RE. If R2-RE is not
+  evaluable, the headline stays R2 with its existing qualification, labelled as such.
+- **Reported, not decisive.** z' at the upper end of the τ interval (if finite); R4 rerun under
+  V(τ̂) with exactly the draws R4 ends with (same seed, same count): each draw refits the 37-host
+  system and the subset under V, σ'² = σ²_sub,V − σ²_full,V (the nested identity holds under V because
+  τ² blocks lie within hosts and draws select whole hosts; checked exactly on the first draw with
+  a'ᵀ V a'), the spread of Δ/σ' (near 1 if τ absorbs the excess) and the CCHP percentile of z'; the
+  host-level χ² of the 37 leave-one-host-out SN residuals under C and under V(τ̂).
+- **Runtime.** One REML evaluation is a Cholesky of a 3489 × 3489 matrix (about 0.3 s); the grid,
+  refinement and interval take about 1 min. R4 under V costs about as much as R4 (8-15 min).
 
 ## 3. Data (with size estimate)
 
