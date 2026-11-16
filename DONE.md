@@ -12,6 +12,7 @@
 
 ## 2026-11
 
+- [x] **T-029** 研究 `README.md` 中英双语：为每个研究补中文对照文件 `README.zh.md` · 完成 2026-11-16 · PR #29 · 计划 [023](design/023-plan_bilingual-study-readmes-with-chinese-companion-files.md) — 11 个研究都有以英文为准的中文译本，规则写入 AGENTS.md、模板与技能，测试检查节、小节与表格一一对应；审查修正了两处改变判据含义的译文
 - [x] **T-033** 核心库：压缩研究结果中的来源记录（provenance） · 完成 2026-11-16 · PR #28 — 超过约 256 KB 的来源记录改写为模板格式（`astrolab.provenance.expand` 完全还原），研究 004 由 4.3 MB 降到 0.92 MB；小文件保持原格式
 - [x] **T-025** M8：用带误差的 z ≈ 8 分箱光度函数校准恒定 SFE 模型并把后验传播到研究 006 的 R2 与 R3 · 完成 2026-11-16 · PR #26 · 计划 [022](design/022-plan_m08-binned-z8-lf-calibration-posterior-for-z14-verdicts.md) — R2"更高"对光度函数校准不确定性稳健（四个拟合 P ≥ 0.994）；R3 临界（主拟合 P = 0.962，随 σ_cal 在 0.86–1.00 之间），审稿指出未建模效应偏向"一致"，登记 T-036
 - [x] **T-013** M7：宽双星引力检验（MOND 之争） · 完成 2026-11-16 · PR #27 · 计划 [013](design/013-plan_m07-wide-binaries-median-scaled-velocity-newton-vs-mond.md) — 论文研究（Wiki、Lean、预注册、两步取数）：服务器端重建 C26 样本 639 对（样本不同）；自助法误差下无法区分（L = 0.49）且检验没有功效；用 C26 的误差时偏向 MOND（`gap_err`）；事后探索与重新检验见 T-034。

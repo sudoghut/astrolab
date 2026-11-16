@@ -6,9 +6,6 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-029** 研究 `README.md` 中英双语：为每个研究补中文对照文件 `README.zh.md` · 登记 2026-11-16 · 来源 T-006 · 分支 feat/t029-bilingual-study-readmes · 计划 [023](design/023-plan_bilingual-study-readmes-with-chinese-companion-files.md)
-  - 备注：AGENTS.md 第二条要求 `README.md` 这类对外说明文档中英双语，但现有 11 个研究的 `README.md` 都只有英文；需要用户决定：补中文，或在 AGENTS.md 中写明研究 README 只用英文（中文由 Wiki 文章与 `log.md` 承担）。
-  - 备注：用户决定（2026-11-16）：研究 `README.md` 也中英双语；逐个研究补中文（每个研究一个 PR），并把规则写明在 AGENTS.md。
 
 ## 下一步（Next）
 

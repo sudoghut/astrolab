@@ -48,7 +48,7 @@ NNN-<类型>_<核心内容>.md
 | 020 | plan | [M1：用 CAMB 核对 R2 的 θ* 标定（研究 002）](020-plan_m01-camb-theta-star-check-of-desi-compressed-cmb-prior-r2.md) | 已完成 |
 | 021 | plan | [M2：用宿主级随机效应重新检验 CCHP 宿主选择造成的 H0 移动（研究 003）](021-plan_m02-host-level-random-effect-for-the-cchp-host-selection-shift.md) | 已完成 |
 | 022 | plan | [M8：用带误差的 z ≈ 8 分箱光度函数校准恒定 SFE 模型（研究 006）](022-plan_m08-binned-z8-lf-calibration-posterior-for-z14-verdicts.md) | 已完成 |
-| 023 | plan | [研究 README 中英双语（中文对照文件 README.zh.md）](023-plan_bilingual-study-readmes-with-chinese-companion-files.md) | 执行中 |
+| 023 | plan | [研究 README 中英双语（中文对照文件 README.zh.md）](023-plan_bilingual-study-readmes-with-chinese-companion-files.md) | 已完成 |
 
 ## 术语约定
 
