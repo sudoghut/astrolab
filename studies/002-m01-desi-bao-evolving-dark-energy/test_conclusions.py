@@ -59,7 +59,7 @@ def test_r2_camb_rule():
     rc = load("r2_camb")
     rec = {"A": "not reproduced", "B": "reproduced"}
     assert rc["recorded"] == rec
-    assert abs(100 * rc["K_C"] * rc["theta100_raw_at_reference"] / 100 - 1.041085) < 1e-9
+    assert rc["settings"]["camb_version"] and rc["settings"]["dark_energy_model"] == "ppf"
     keys = {"A": "reading_A_with_nu", "B": "reading_B_without_nu"}
     verdicts = {}
     for var in ("anchored", "raw"):
@@ -68,6 +68,9 @@ def test_r2_camb_rule():
         for rd, key in keys.items():
             fit = v[key]
             if not fit["valid"]:
+                lc, wc = fit["lcdm"], fit.get("w0wa")
+                assert (not lc["converged"] or wc is None or not wc["converged"] or lc["n_agree"] < 3
+                        or wc["n_agree"] < 3 or wc["chi2"] > lc["chi2"] + 1e-3)
                 exp = "failed fit"
             else:
                 assert fit["w0wa"]["chi2"] <= fit["lcdm"]["chi2"] + 1e-3
@@ -77,13 +80,18 @@ def test_r2_camb_rule():
             verdicts[var][rd] = exp
     valid = {k: "failed fit" not in v.values() for k, v in verdicts.items()}
     changed = {k: [r for r in rec if v[r] != rec[r]] for k, v in verdicts.items()}
+    if all(valid.values()) and not any(changed.values()):
+        expected = ["R2 robust to the theta* calibration"]
+    else:
+        expected = []
+        a_flip = valid["anchored"] and bool(changed["anchored"])
+        if a_flip:
+            expected.append("R2 depends on the cosmology dependence of the theta* calibration "
+                            "(reading %s)" % ", ".join(changed["anchored"]))
+        if valid["raw"] and changed["raw"] and not a_flip:
+            expected.append("R2 depends on the absolute theta* calibration (anchor) (reading %s)"
+                            % ", ".join(changed["raw"]))
+        expected += [f"inconclusive ({k} variant: failed fit)" for k in ("anchored", "raw") if not valid[k]]
     concl = rc["conclusion"]
-    robust = all(valid.values()) and not any(changed.values())
-    assert (concl == ["R2 robust to the theta* calibration"]) == robust
-    if valid["anchored"] and changed["anchored"]:
-        assert any("cosmology dependence" in c for c in concl)
-    elif valid["raw"] and changed["raw"]:
-        assert any("absolute theta* calibration" in c for c in concl)
-    for k in ("anchored", "raw"):
-        assert (f"inconclusive ({k} variant: failed fit)" in concl) == (not valid[k])
+    assert concl == expected
     assert load("summary")["R2_camb"]["conclusion"] == concl

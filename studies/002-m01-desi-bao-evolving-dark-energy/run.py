@@ -141,9 +141,12 @@ def chi2_r2(bao, x, reading, mnu, K, w=True, theta=None, counts=None):
     else:
         try:
             th = theta(H0, ob, oc, w0, wa)
-        except camb_errors() as e:
-            counts["camb_error"] += 1
-            counts["camb_error_types"].add(type(e).__name__)
+        except Exception as e:          # counted, then rejected like a non-finite value
+            counts["camb_error" if isinstance(e, camb_errors()) else "other_error"] += 1
+            counts["error_types"].add(type(e).__name__)
+            return np.inf
+        if not np.isfinite(th):
+            counts["nonfinite_theta"] += 1
             return np.inf
     cm = np.array([th, ob, obc])
     return c + infer.gaussian_chi2(cm - CMB_MEAN, np.linalg.inv(CMB_COV))
@@ -349,6 +352,7 @@ def main(ctx):
     out["R2"] = r2
 
     ret = {"R1": out["R1"]["verdict"], "R2": r2["overall"], "R3": r3["overall"]}
+    ctx.save("summary", out)            # R1-R3 saved before the CAMB check, saved again after
     if P["camb_check"]:
         rc = r2_camb(ctx, bao, b_r2, paper_r2, r2, K0, P)
         out["R2_camb"] = {"conclusion": rc["conclusion"], "verdicts": rc["verdicts"]}
@@ -378,14 +382,17 @@ def r2_camb(ctx, bao, b_r2, paper_r2, r2, K0, P):
 
         vres = {}
         for rd, key in keys.items():
-            counts = {"infeasible": 0, "camb_error": 0, "camb_error_types": set()}
-            fl = lambda x, rd=rd, c=counts: chi2_r2(bao, x, rd, mnu, K0, w=False, theta=th, counts=c)
-            fw = lambda x, rd=rd, c=counts: chi2_r2(bao, x, rd, mnu, K0, w=True, theta=th, counts=c)
+            # rejection tallies per model; "infeasible" includes the random start draws, which
+            # depend only on seed and bounds (so they repeat across readings and variants)
+            counts = {m: {"infeasible": 0, "camb_error": 0, "other_error": 0, "nonfinite_theta": 0,
+                          "error_types": set()} for m in ("lcdm", "w0wa")}
+            fl = lambda x, rd=rd, c=counts["lcdm"]: chi2_r2(bao, x, rd, mnu, K0, w=False, theta=th, counts=c)
+            fw = lambda x, rd=rd, c=counts["w0wa"]: chi2_r2(bao, x, rd, mnu, K0, w=True, theta=th, counts=c)
             fit = fit_pair(fl, fw, b_r2, paper_r2, P["n_starts"], P["seed"])
             fit["target"] = TARGET["R2"]
             fit["verdict"] = verdict_dchi2(fit, TARGET["R2"], P["tol_dchi2"])
-            fit["rejected"] = {"infeasible": counts["infeasible"], "camb_error": counts["camb_error"],
-                               "camb_error_types": sorted(counts["camb_error_types"])}
+            fit["rejected"] = {m: {k: (sorted(v) if isinstance(v, set) else v) for k, v in c.items()}
+                               for m, c in counts.items()}
             if fit.get("dchi2") is not None and r2[key].get("dchi2") is not None:
                 fit["dchi2_shift_vs_formula"] = float(fit["dchi2"] - r2[key]["dchi2"])
             vres[key] = fit

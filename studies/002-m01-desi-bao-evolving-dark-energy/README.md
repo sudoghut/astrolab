@@ -286,6 +286,7 @@ How a coding agent answers "what if" questions about this study without touching
 | `mnu` | neutrino mass sum [eV], one massive state | 0.06-0.3 | cache only |
 | `n_starts` | random starts per fit | ≥ 10 (fewer weakens the validity check) | cache only |
 | `r2_mcmc`, `k_check` | run the R2 posterior chains / the K check | true, false (false: much faster) | cache only |
+| `camb_check` | run the R2-CAMB check (addendum 2026-11-16); needs `camb` installed (not in the base install line) | true, false (false: much faster, no camb needed) | cache only |
 | `r1_steps`, `r2_steps` | chain lengths | ≥ 4000 / ≥ 6000 for the pre-registered precision | cache only |
 
 - Rerun with an override: `python -m astrolab explore 002 --tag <topic> --set KEY=VALUE`
