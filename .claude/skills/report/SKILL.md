@@ -20,7 +20,7 @@ analysis: name a question the results do not answer as open (README section 7 ho
   commit changed the study's code (`run.py` and the `.py` modules beside it) or the `astrolab/`
   modules it uses (`git log <commit>..HEAD -- <files>` is empty), `git status` shows them clean,
   and the `params` saved with the results (AGENTS.md section 2; in `summary.json` or similar) equal
-  the current `PARAMS`. Do not compare
+  the current `PARAMS`; if none are saved, report parameter freshness as unverified. Do not compare
   timestamps: results are committed after the run. An edit committed together with the results
   cannot be seen this way; say so if it matters. If stale, say so in the report. Rerun only if
   the user asks: a formal run can take hours and rewrites committed `results/`, so it goes on a
@@ -39,7 +39,7 @@ analysis: name a question the results do not answer as open (README section 7 ho
 - `results/*.json`: every number in the report comes from here, with its uncertainty where the
   results give one, and the file and key it came from (e.g. `r2.json: primary.mu`). Do not round away the uncertainty or
   quote a number that is only in prose.
-- `results/provenance.json` (per input, the fields present: `request`, `retrieved_at`, and where
+- `results/provenance.json` (per input, the fields present: `source`, `request`, `retrieved_at`, and where
   recorded `release`, `label`, `rows`, `bytes`, `sha256`; report a missing field as missing) and `run_info.json` (`finished_at`, `seconds`).
 - Linked claims in `atlas/claims/`: `reproduction.quantities` (paper versus ours), `grade`.
 - `log.md` for dead ends and decisions; the wiki article (part 3) for paper studies. Numbers from
