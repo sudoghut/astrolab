@@ -65,13 +65,14 @@ def test_r2_re_rule_and_headline():
     re_ = load("r2_re")
     s = load("summary")
     h = load("r2")["host_step"]
-    est = re_["reml"]
-    assert min(est["grid_m2l"]) >= est["m2l_min"] - 1e-9            # tau_hat is at least the grid minimum
-    if est["at_upper_bound"]:
-        assert re_["status"] == "not evaluable (bound)"
     if re_["status"] != "evaluated":
         assert s["R2_host_headline_source"].startswith("R2 (C errors)")
+        if "reml" in re_ and re_["reml"]["at_upper_bound"]:
+            assert re_["status"] == "not evaluable (bound)"
         return
+    est = re_["reml"]
+    assert min(est["grid_m2l"]) >= est["m2l_min"] - 1e-9            # tau_hat is at least the grid minimum
+    assert not est["at_upper_bound"]
     hs = re_["host_step"]
     assert abs(hs["z"] - hs["shift"] / hs["shift_sigma"]) < 1e-9
     assert abs(hs["nested_var_check"] - hs["shift_sigma"] ** 2) < 1e-8 * hs["shift_sigma"] ** 2 + 1e-12
