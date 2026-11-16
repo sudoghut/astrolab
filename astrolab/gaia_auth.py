@@ -62,9 +62,9 @@ def _post_login(user: str, pw: str) -> None:
     import requests
 
     r = requests.post(LOGIN_URL, data={"username": user, "password": pw}, timeout=60)
-    if r.status_code in (401, 403) or (r.status_code == 200 and not r.cookies):
+    if r.status_code in (401, 403):
         raise LoginRejected(f"Gaia archive login failed (HTTP {r.status_code})")
-    if r.status_code != 200:
+    if r.status_code != 200 or not r.cookies:   # not sticky: may be a server quirk, not bad credentials
         raise RuntimeError(f"Gaia archive login failed (HTTP {r.status_code})")
     p = session_path()
     p.parent.mkdir(parents=True, exist_ok=True)

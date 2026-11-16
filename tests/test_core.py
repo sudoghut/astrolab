@@ -502,3 +502,26 @@ def test_http_refresh_keeps_identical_file_and_updates_meta(tmp_cache, monkeypat
     _fake_http(monkeypatch, b"changed")
     c = fetch.http("http://example.invalid/h.txt", refresh=True)
     assert c.data.read_bytes() == b"changed" and c.provenance.sha256 == fetch._sha256(c.data)
+
+
+def test_tap_cache_hit_with_mismatched_payload_is_refetched(tmp_cache, monkeypatch):
+    """Another process may leave one write's payload under another's meta: the sha256 recorded in
+    the provenance must match the payload, else the entry is a miss and is fetched again."""
+    class _Res:
+        query_status = "OK"
+
+        def to_table(self):
+            from astropy.table import Table
+            return Table({"a": [7, 8]})
+
+    adql = "SELECT a FROM mixed"
+    key = cache.key_for("tap", {"url": fetch.tap_url("gaia"), "adql": fetch._normalize_adql(adql)})
+    tmp = cache.staging_path(".parquet")
+    pd.DataFrame({"a": [1, 2]}).to_parquet(tmp)
+    cache.put_file(key, ".parquet", tmp, {"provenance": {"source": "tap:gaia", "request": adql,
+                                                         "sha256": "0" * 64}})
+    monkeypatch.setattr(fetch, "_run_tap", lambda url, q, maxrec, mode: _Res())
+    res = fetch.tap(adql, "gaia")
+    assert not res.from_cache and list(res.data.a) == [7, 8]
+    again = fetch.tap(adql, "gaia")
+    assert again.from_cache and list(again.data.a) == [7, 8]
