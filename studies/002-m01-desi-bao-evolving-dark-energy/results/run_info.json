@@ -1,8 +1,10 @@
 {
  "study": "002-m01-desi-bao-evolving-dark-energy",
- "finished_at": "2026-11-14T18:34:20+00:00",
- "seconds": 1716.97,
+ "finished_at": "2026-11-16T09:12:21+00:00",
+ "seconds": 5259.16,
  "outputs": [
+  "summary.json",
+  "r2_camb.json",
   "summary.json"
  ]
 }

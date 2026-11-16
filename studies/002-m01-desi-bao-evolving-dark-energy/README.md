@@ -240,6 +240,31 @@ Every fit passed the pre-registered validity checks (converged; at least 3 start
   θ* at the fit points (T-022, needs the user's consent to install CAMB; consent given 2026-11-16,
   see the R2-CAMB addendum in section 2) would show whether R2 depends on the convention at all; only a primary source can say which convention DESI used.
 
+### R2-CAMB (addendum 2026-11-16, T-022)
+
+Run of 2026-11-16 (`python -m astrolab run 002`, 5259 s, camb 2.0.5; R1, R2, R3 and the K check
+reproduce the 2026-11-14 numbers exactly). Numbers: `results/r2_camb.json`.
+
+| Variant | Reading A: Δχ²_MAP (shift vs formula) | Reading B: Δχ²_MAP (shift) | Verdicts |
+|---|---|---|---|
+| formula, K (2026-11-14) | −6.59 | −8.01 | A not reproduced, B reproduced |
+| CAMB anchored (K_C = 0.999928) | −6.59 (−0.007) | −8.01 (−0.002) | A not reproduced, B reproduced |
+| CAMB raw (100θ* at reference 1.041160) | −6.71 (−0.119) | −8.13 (−0.125) | A not reproduced, B reproduced |
+
+- **Conclusion (pre-registered rule): R2 robust to the θ* calibration.** Both variants are valid
+  (every fit converged, ≥ 3 starts agree, nesting holds) and keep the per-reading verdicts.
+- Diagnostics: at all twelve optima (formula, anchored, raw × readings × models) the calibrated
+  formula's 100θ* differs from anchored CAMB by −0.012 to −0.048 prior σ, so the cosmology dependence
+  of K between the reference point and the fit points is about 20 times smaller than the ~1σ the
+  referee considered plausible. The Aubourg r_d is 0.99971–0.99972 of CAMB's r_drag at every optimum
+  (r_d was not part of the check). Rejected trial points per fit: 32–60 infeasible (mostly random
+  start draws) and one CAMB error in each ΛCDM fit (`CAMBError`), none non-finite.
+- As expected from the disclosure in section 2, the raw variant moves both readings by about −0.12;
+  reading A stays 0.29 outside the tolerance.
+- **What this changes.** The R2 split between readings A and B is not an artefact of the θ*
+  calibration: R2 really depends on the ωbc convention of the compressed prior. Which convention
+  DESI used is still not known (section 7). The recorded R2 verdict is unchanged.
+
 ## 6. Referee notes (independent subagent, 2026-11-14)
 
 The referee saw only README sections 1-4, the code, the results, the Lean argument with its
@@ -267,7 +292,9 @@ sections 1-4 unchanged since commit 88cdacb, before the data were first used).
   with it? A primary source (the authors' Cobaya configuration or the definition in the
   compression paper, ref. [111]) would say which convention DESI used; a CAMB check of θ* at the fit points (T-022; installing CAMB
   needs the user's consent, which README section 4 did not plan; consent given 2026-11-16,
-  R2-CAMB addendum in section 2) would show whether R2 depends on it.
+  R2-CAMB addendum in section 2) would show whether R2 depends on it. Answered 2026-11-16: the
+  split is robust to the θ* calibration (section 5, R2-CAMB), so R2 does depend on the convention;
+  only the primary source remains.
 - Wilks calibration (wiki `gap_regular`): simulate the Δχ² distribution under the ΛCDM best fit
   for DESI + compressed CMB and compare with χ²(2).
 - Leave-one-tracer-out sensitivity of Δχ² (`drop_z`), and DES-Dovekie as a third SN sample.

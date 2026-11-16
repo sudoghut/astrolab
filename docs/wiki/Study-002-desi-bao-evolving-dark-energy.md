@@ -352,6 +352,13 @@ recomputed every number it could from about 34 MB of public files, with its own 
   Planck's ωm including neutrinos, which points to reading A. So we do not conclude which
   convention DESI's prior uses: the compressed-prior result is conditionally reproduced (reading B),
   and whether it depends on the convention at all is open (a CAMB check of θ* would show that).
+- **Update 2026-11-16, R2-CAMB (T-022, pre-registered addendum): the split is robust to the θ*
+  calibration.** With θ* from CAMB anchored at the Planck reference point, Δχ²_MAP moves by −0.007
+  (A) and −0.002 (B); with raw CAMB θ* by −0.12 and −0.13; the verdicts stay A not reproduced, B
+  reproduced. At the fit points the calibrated formula differs from CAMB by ≤ 0.05 prior σ, about
+  20 times less than the ~1σ the referee considered plausible. So R2 does depend on the ωbc
+  convention itself; which convention DESI used remains open (only a primary source can say).
+  Numbers: [`results/r2_camb.json`](https://github.com/sudoghut/astrolab/blob/main/studies/002-m01-desi-bao-evolving-dark-energy/results/r2_camb.json).
 - Not tested: the full-CMB Δχ² = −12.5 behind the headline 3.1σ (needs the full Planck and ACT
   likelihoods), the DES-SN5YR rows, and the Wilks calibration (`gap_regular`), which stays an
   exploration (README section 8).
@@ -380,6 +387,8 @@ recomputed every number it could from about 34 MB of public files, with its own 
   systematics and
   Eq. 2 points to reading A, so the convention is left open; Lean notes on `mod_sig`, `Challenged`
   and prior truncation in `gap_regular`.
+- 2026-11-16: R2-CAMB (T-022, plan 020): CAMB θ* at the fit points, pre-registered addendum; R2
+  robust to the θ* calibration, so the A/B split reflects the ωbc convention itself (part 3 update).
 
 ---
 
@@ -593,6 +602,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 - **R1，只用 BAO 的 ΛCDM：已复现。** Ωm = 0.2979 ± 0.0086，h·r_d = 101.52 ± 0.73 Mpc，与式 17 相差不到 0.05σ。
 - **R3，不含 CMB：已复现。** Δχ²_MAP = −4.65（DESI）、−4.86（加 Pantheon+）、−10.03（加 Union3），论文为 −4.7、−4.9、−10.1。第二部分列为主要薄弱点的、偏好程度随超新星样本变化的现象是真实且可复现的。
 - **R2，压缩 CMB 先验：有条件复现。** 把先验的 ωbc 均值按 ωb + ωc 解读（式 2 旁正文写明的定义；但见下文：式 2 的归一指向 A）时，Δχ²_MAP = −8.01（2.4σ），后验均值 w0 = −0.44 ± 0.23、wa = −1.69 ± 0.66，与式 24 一致。按计划阶段起初倾向的解读（均值含 ων，只有间接数值证据；与 B 并列预注册）时，Δχ²_MAP = −6.59（2.1σ）。独立审稿指出这一分歧并不稳健：θ* 标定每改变一个先验 σ，Δχ² 移动约 0.4，而标定在拟合点处随宇宙学参数的变化没有测过，可能达到约 1σ，足以让解读 A 通过；论文式 2 把 ωbc 归一到包含中微子的 Planck ωm，也指向解读 A。所以我们不下结论 DESI 的先验用的是哪种约定：压缩先验的结果为有条件复现（解读 B），它是否依赖这一约定仍未确定（用 CAMB 核对 θ* 可以说明这一点）。
+- **2026-11-16 更新，R2-CAMB（T-022，预注册附录）：这一分歧对 θ* 标定稳健。** 用 CAMB（宇宙学线性理论代码）在 Planck 参考点锚定的 θ* 时，Δχ²_MAP 移动 −0.007（A）与 −0.002（B）；用不缩放的 CAMB θ* 时移动 −0.12 与 −0.13；判定仍是 A 未复现、B 复现。在拟合点上，标定公式与 CAMB 相差不超过 0.05 个先验 σ，比独立审稿认为可能的约 1σ 小约 20 倍。所以 R2 确实依赖 ωbc 的约定本身；DESI 用的是哪种约定仍未确定（只有一手来源能回答）。数字见 [`results/r2_camb.json`](https://github.com/sudoghut/astrolab/blob/main/studies/002-m01-desi-bao-evolving-dark-energy/results/r2_camb.json)。
 - 未检验：标题数字 3.1σ 背后的完整 CMB 的 Δχ² = −12.5（需要完整的 Planck 与 ACT 似然）、DES-SN5YR 的组合，以及威尔克斯校准（`gap_regular`），后者仍是探索项（README 第 8 节）。
 
 ### 术语表
@@ -614,3 +624,4 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 - 2026-11-14：第一版：第一至三部分，在实现之前写成（T-004，计划 010）；按闸门 1 审查修订（高斯误差是明说的假设；威尔克斯正则性作为 GAP `gap_regular` 补上，因而 `explicit_insufficient`）。
 - 2026-11-14：研究运行：R1、R3 已复现；R2 有条件复现（只有把先验的 ωbc 均值按 ωb + ωc 解读时才复现）；补上第三部分的结果与"我们的发现"。
 - 2026-11-14：独立审稿：R2 两种解读的分歧可能落在（未测量的）θ* 标定系统误差之内，且式 2 指向解读 A，所以约定仍未确定；补充 `mod_sig`、`Challenged` 与 `gap_regular`（先验截断）的说明。
+- 2026-11-16：R2-CAMB（T-022，计划 020）：在拟合点用 CAMB 的 θ*，预注册附录；R2 对 θ* 标定稳健，所以 A/B 的分歧反映的是 ωbc 约定本身（第三部分更新）。
