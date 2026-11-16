@@ -34,6 +34,9 @@ def test_cache_roundtrip_and_prune(tmp_cache):
     hit = cache.get(key, ".bin")
     assert hit and hit.payload.read_bytes() == b"x" * 1000
     assert cache.info()["entries"] == 1
+    import os
+    for f in (hit.payload, hit.meta_path):           # older than the mtime granularity (T-035)
+        os.utime(f, (1, 1))
     assert cache.prune(limit_bytes=0) == 1
     assert cache.get(key, ".bin") is None
 
@@ -544,6 +547,9 @@ def test_prune_skips_entry_used_since_snapshot(tmp_cache, monkeypatch):
     old = cache.get(keys[0], ".bin")
     for f in (old.payload, old.meta_path):
         os.utime(f, (1, 1))                      # oldest entry by far
+    new = cache.get(keys[1], ".bin")
+    for f in (new.payload, new.meta_path):
+        os.utime(f, (2, 2))                      # also older than the mtime granularity (T-035)
     real = cache._entries
 
     def snapshot_then_touch(root):
@@ -574,3 +580,37 @@ def test_tap_never_requests_more_than_hard_ceiling(tmp_cache, monkeypatch):
     monkeypatch.setattr(fetch, "_run_tap", fake)
     fetch.tap("SELECT a FROM ceiling", "gaia", max_rows=config.TAP_HARD_MAX_ROWS)
     assert seen["maxrec"] == config.TAP_HARD_MAX_ROWS
+
+
+def test_prune_keeps_entries_touched_within_mtime_granularity(tmp_cache):
+    """An entry used just before the snapshot is kept even if a coarse mtime equals the snapshot's."""
+    key = cache.key_for("test", {"recent": 1})
+    src = cache.staging_path(".bin")
+    src.write_bytes(b"x" * 100)
+    cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": "r"}})
+    cache.prune(limit_bytes=1)
+    assert cache.get(key, ".bin") is not None       # stored a moment ago: kept
+
+
+def test_replace_retries_then_explains(tmp_path, monkeypatch):
+    import os
+
+    calls = {"n": 0}
+
+    def flaky(a, b):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise PermissionError("busy")
+        return os_replace(a, b)
+
+    os_replace = os.replace
+    monkeypatch.setattr(cache.os, "replace", flaky)
+    a, b = tmp_path / "a", tmp_path / "b"
+    a.write_text("1")
+    cache._replace(a, b)
+    assert b.read_text() == "1" and calls["n"] == 3
+    monkeypatch.setattr(cache.os, "replace", lambda a, b: (_ for _ in ()).throw(PermissionError("busy")))
+    c = tmp_path / "c"
+    c.write_text("2")
+    with pytest.raises(PermissionError, match="held open by another process"):
+        cache._replace(c, b, tries=2)
