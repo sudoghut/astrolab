@@ -67,6 +67,20 @@ def _key_lock(path: Path) -> threading.Lock:
         return _KEY_LOCKS.setdefault(str(path), threading.Lock())
 
 
+def read(key: str, suffix: str, reader, root: Path | None = None):
+    """Read one cache entry consistently: under the same per-key lock as writers, return
+    (meta, reader(payload_path)), or None on a miss. A refresh of the same key in another thread
+    cannot then pair one write's metadata with another write's payload while it is read."""
+    payload, meta_path = _paths(key, suffix, root)
+    with _key_lock(payload):
+        if not (payload.exists() and meta_path.exists()):
+            return None
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        value = reader(payload)
+        Entry(key, payload, meta_path).touch()
+        return meta, value
+
+
 def put_file(key: str, suffix: str, src: Path, meta: dict[str, Any], root: Path | None = None,
              replace: bool = False) -> Entry:
     """Store `src` (moved) with its meta. A complete entry already stored under `key` (for example

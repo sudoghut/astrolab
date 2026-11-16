@@ -43,3 +43,16 @@ def test_mad_errors_favour_mond():
     # the error convention, not the data, decides (Lean gap gap_err).
     mad = load("variants")["main"]["reproduction"]["mad"]
     assert mad["valid"] and mad["L"] < 1 / 100
+
+
+def test_r3_variants():
+    # descriptive (README R3): six fits invalid by the >5%-redrawn rule, every valid one
+    # "cannot distinguish"
+    v = load("variants")
+    invalid = {k for k, m in v.items() if m["primary"]["verdict"].startswith("invalid")}
+    assert invalid == {"cleanest_vt1.5_ipd0", "no_hr", "hr_c_plus_0.2", "hr_c_minus_0.2",
+                       "d150_ipd0", "ipd0"}
+    for k, m in v.items():
+        if k not in invalid:
+            assert m["primary"]["verdict"].startswith("cannot distinguish"), k
+            assert 1 / 100 < m["primary"]["L"] < 100, k

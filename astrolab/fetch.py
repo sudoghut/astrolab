@@ -285,13 +285,15 @@ def tap(
     url = tap_url(service)
     key = cache.key_for("tap", {"url": url, "adql": query})
 
-    if not refresh and (hit := cache.get(key, ".parquet")):
-        meta = hit.meta
-        prov = Provenance(**meta["provenance"])
-        if hit.payload.stat().st_size > config.HTTP_MAX_BYTES:
-            raise TooLarge(f"cached TAP result {hit.payload.stat().st_size / 1024**2:.1f} MB exceeds the "
+    def _read_parquet(path: Path):
+        if path.stat().st_size > config.HTTP_MAX_BYTES:
+            raise TooLarge(f"cached TAP result {path.stat().st_size / 1024**2:.1f} MB exceeds the "
                            "per-download limit; narrow the query (or clear this entry deliberately).")
-        df = pd.read_parquet(hit.payload)
+        return pd.read_parquet(path)
+
+    if not refresh and (hit := cache.read(key, ".parquet", _read_parquet)):
+        meta, df = hit
+        prov = Provenance(**meta["provenance"])
         if int(df.memory_usage(deep=True).sum()) > config.HTTP_MAX_BYTES:
             raise TooLarge("cached TAP result exceeds the per-download limit in memory; narrow the query.")
         return Fetched(df, prov, True)
@@ -347,8 +349,11 @@ def http(
     suffix = suffix or (Path(url.split("?")[0]).suffix or ".bin")
     key = cache.key_for("http", {"url": url})
 
-    if not refresh and (hit := cache.get(key, suffix)):
-        return Fetched(hit.payload, Provenance(**hit.meta["provenance"]), True)
+    # the payload path is read later by the caller; its meta is read under the key lock, and the
+    # caller can check the file against provenance.sha256 if another thread may refresh this URL
+    if not refresh and (hit := cache.read(key, suffix, lambda p: p)):
+        meta, path = hit
+        return Fetched(path, Provenance(**meta["provenance"]), True)
 
     head = requests.head(url, allow_redirects=True, timeout=30)
     size = int(head.headers.get("Content-Length", 0) or 0)
