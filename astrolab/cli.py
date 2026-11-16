@@ -81,6 +81,9 @@ def cmd_site(args) -> None:
         print(f"  skipped (type or size): {s}")
     if bad:
         raise SystemExit("broken relative links: " + "; ".join(bad))
+    leak = site.sensitive(dest)
+    if leak:
+        raise SystemExit("local paths or credential-like strings in the site: " + "; ".join(leak))
 
 
 def cmd_cache(args) -> None:
