@@ -1,9 +1,9 @@
 {
  "study": "004-m07-wide-binaries-gravity-test",
- "finished_at": "2026-11-16T10:45:48+00:00",
- "seconds": 3770.96,
+ "finished_at": "2026-11-16T11:41:59+00:00",
+ "seconds": 2102.67,
  "outputs": [
-  "step_a.json",
+  "variants.json",
   "summary.json"
  ]
 }
