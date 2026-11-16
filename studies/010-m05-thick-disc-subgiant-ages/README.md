@@ -92,6 +92,19 @@ advance.
   finite-difference Hessian at the optimum (flat priors make this the large-sample posterior; plan
   019 spoke of posterior medians, replaced because the grid likelihood is too slow for MCMC at this
   sample size), checked by 50 bootstrap resamples for σ_sel.
+  *Amendment (2026-11-15, after the smoke test, before the formal run; numerical, no criterion
+  changed):* the R1 **data** fits (K = 1–4 and the K = 5 mode-matching fit) use 40 starts instead
+  of 8 (`PARAMS["nstart_r1_data"]`), each bin with its own seeded random stream. Reason: a
+  start-convergence check (5 seeds × 8 starts and 2 seeds × 40 starts per bin) found that with 8
+  starts 3 of the 10 bins sometimes stopped in a worse local optimum (higher NLL by about 140–580)
+  or missed a mode in the K = 5 fit, changing that bin's d (e.g. 0.454 vs 1.000); with 40 starts
+  all seeds agreed. Disclosure: the smoke test had already shown the R1 data d values of both
+  start settings; the change selects the higher-likelihood fit, as the 2.0 rule already intends,
+  and is not chosen by its effect on d. Mock fits are unchanged (data fit + 2 perturbations).
+  The same 40 starts are used for the other 1-D mixture data fits (R7 and the background slices
+  that generate the sample-B misspecification mocks), and the sample-B f = 0.8 and f_max data fits
+  use the 8 starts of this rule plus the f = 1 optimum (code review, same date). Mock fits draw
+  their start perturbations from their own mock set's random stream.
 - **Error-scale factor f.** If true errors are f × e_Age, two heuristic upper values are computed
   (heuristic because they rest on approximations, not on a full forward model): (i) in the late
   phase (eq. 1), in 0.1 dex [Fe/H] bins from −0.5 to 0.3, using only stars with Age − 2e_Age > 0 and
@@ -198,6 +211,11 @@ advance.
   tolerance" in the results (the rule itself is unchanged). If the e = r·A
   mechanism breaks the tolerance, the S15 verdicts are reported as not robust and the Full fits
   become primary; if the e = r·τ mechanism also breaks it, R3 and R4 are **cannot determine**.
+- *Clarifications (2026-11-15, code review, before the formal run; the rules above did not cover
+  these cases):* (i) if only the e = r·τ mechanism breaks the tolerance, S15 stays primary as
+  stated and the result carries the flag "e = r·τ recovery failed"; (ii) when Full is primary, its
+  robustness set is Full's own variants (a² e_[Fe/H]² added; for R3 also f = 0.8 and f_max refitted
+  on Full), since the S15 verdicts are then declared not robust.
 - **R4 (verdict, on σ_sel = the M0 σ of sample A at f = 1):** **reproduced** if |σ_sel − 0.82| ≤ 0.1 Gyr.
   This is the tentative rule of plan 019, frozen without XR22's supplement, which could not be
   accessed. σ_sel is the scatter of an α-selected sample (the α cut trims the young side at fixed
