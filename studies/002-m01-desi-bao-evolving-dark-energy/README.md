@@ -88,38 +88,56 @@ reference point (sanity check only).
 *Why.* The referee (section 6, point 1) found that the R2 split between readings A and B is of
 the size of the θ* calibration error, and that the cosmology dependence of the calibration
 between the Planck reference point and the R2 fit points was unmeasured. The user consented on
-2026-11-16 to installing CAMB (`camb` 2.0.5 in the project venv; not a data download). Seen before
-this addendum: the 2026-11-14 results in section 5, and CAMB's 100θ* at the Planck reference point
-only (1.04116 with the settings below, against 1.041085 in Planck 2018 Table 1), from a speed test.
+2026-11-16 to installing CAMB (`camb` 2.0.5 in the project venv; not a data download).
+
+*Seen before this addendum.* The 2026-11-14 results (section 5). From a speed test, CAMB with the
+settings below at two points only: the Planck reference point (100θ* = 1.04116, against 1.041085
+in Planck 2018 Table 1, i.e. +7.5×10⁻⁵ or +0.29 prior σ of 100θ*) and the same point with
+w0 = −0.8, wa = −0.5 (100θ* = 1.04711; r_drag 147.06 Mpc at both). Implication known when the
+variants were chosen: absolute CAMB θ* is a constant +0.29σ above the anchored one, and section 5
+shows a higher θ* moves reading A towards −8 (K + 1σ: −6.98), so the raw variant is expected to
+move A by about −0.1 relative to the anchored one. For this reason both variants enter the
+conclusion below.
 
 *Question.* Do the R2 verdicts of readings A and B change when θ* comes from CAMB instead of the
 calibrated fitting formula?
 
-*What changes.* Only θ* in the CMB-prior term of χ²_R2. BAO distances, r_d (Aubourg formula),
-the prior mean and covariance, both readings, bounds, starts (`n_starts`, nested optimum, paper
-point), validity checks and the tolerance stay as pre-registered in this section.
+*What changes.* Only θ* in the CMB-prior term of χ²_R2, in the MAP fits; the R2 secondary
+posterior chains (MCMC) are not rerun. BAO distances, r_d (Aubourg formula), the prior mean and
+covariance, both readings (reading A keeps ων = Σmν/93.14 eV; CAMB's own ων differs by ~10⁻⁶ in
+ωbc, negligible and deliberately not "fixed"), bounds, starts (`n_starts` random starts with
+seed `PARAMS["seed"]` as in R2, the nested ΛCDM optimum, the paper point), validity checks and the
+tolerance stay as pre-registered in this section. The existing feasibility check (Ω_DE ≤ 0 or
+non-finite → χ² = ∞) runs before any CAMB call, so the feasible region is the same as in R2.
 
-- **θ*_CAMB.** CAMB background (`camb.get_background`) with H0, ωb, ωc, Σmν = `mnu` in one massive
-  eigenstate, N_eff = 3.044 (as `astrolab/cosmo.py`), T_CMB 2.7255 K, helium from CAMB's BBN
-  default, w0, wa through CAMB's PPF dark energy; θ* = `thetastar`/100 from
-  `get_derived_params()`.
-- **Primary, R2-CAMB-anchored.** θ* = K_C · θ*_CAMB with the constant K_C fixed so that
-  100θ* = 1.041085 at the same Planck reference point as K (section 4). This keeps the original
-  anchor and replaces only the cosmology dependence of the calibration, which is what the
-  referee asked about.
-- **Secondary, R2-CAMB-raw.** θ* = θ*_CAMB without rescaling (absolute CAMB). Reported; not decisive.
+- **θ*_CAMB.** camb 2.0.5 (version saved with the results), all `CAMBparams` at the package
+  defaults except: `set_cosmology(H0, ombh2, omch2, mnu=PARAMS["mnu"], num_massive_neutrinos=1,
+  nnu=3.044, TCMB=2.7255, YHe=None)` (helium from CAMB's BBN default; degenerate hierarchy;
+  Recfast recombination; default accuracy) and `set_dark_energy(w=w0, wa=wa,
+  dark_energy_model="ppf")`; `camb.get_background`, θ* = `thetastar`/100 from
+  `get_derived_params()`. The recombination class and BBN predictor are saved with the results.
+- **Anchored variant (primary for the referee's question).** θ* = K_C · θ*_CAMB with the constant
+  K_C fixed so that 100θ* = 1.041085 at the Planck reference point of section 4 (ωb = 0.022383,
+  ωc = 0.12011, H0 = 67.32, Σmν = `PARAMS["mnu"]`, w0 = −1, wa = 0), same CAMB settings. It keeps the
+  original anchor and replaces only the cosmology dependence of the calibration.
+- **Raw variant.** θ* = θ*_CAMB unscaled: current-CAMB absolute θ* (as in present-day Cobaya
+  runs), not "Planck's θ*" (Planck 2018 used an older CAMB and N_eff = 3.046).
 - **Rule.** For each variant, the R2 rule of this section unchanged: per reading
   |Δχ²_MAP − (−8.0)| ≤ 1.0, overall from the two readings as above.
-- **Conclusion for T-022.** "R2 robust to the θ* calibration" if R2-CAMB-anchored gives the same
-  per-reading verdicts as the 2026-11-14 run (A not reproduced, B reproduced); otherwise "R2 depends
-  on the θ* calibration", naming which reading flipped. The 2026-11-14 R2 verdict stays the
-  recorded verdict either way (it was pre-registered); this addendum adds a sensitivity result
-  and its interpretation, it does not replace R2.
-- **Diagnostics (reported only).** At the eight optima (2 readings × ΛCDM/w0waCDM × formula/CAMB
-  anchored): 100θ* from the formula (K) minus from CAMB anchored, in prior σ of 100θ*; the ratio
-  of the Aubourg r_d to CAMB's `rdrag`; the shift of Δχ² per reading between formula and CAMB.
-- **Validity.** Each R2-CAMB fit passes the same checks as R2. A CAMB error at a trial point
-  counts as χ² = ∞ (as non-finite values do now) and the number of such points is reported.
+- **Conclusion for T-022.**
+  - "R2 robust to the θ* calibration" only if both variants give the same per-reading verdicts as
+    the 2026-11-14 run (A not reproduced, B reproduced).
+  - "R2 depends on the cosmology dependence of the θ* calibration" if the anchored variant changes
+    a per-reading verdict (naming the reading).
+  - "R2 depends on the absolute θ* calibration (anchor)" if only the raw variant changes one.
+  - "Inconclusive" if any fit of either variant fails the validity checks. Allowed afterwards:
+    documented, dated bug fixes only; no change of CAMB accuracy settings, starts or tolerance.
+  The 2026-11-14 R2 verdict stays the recorded verdict in every case (it was pre-registered);
+  this addendum adds a sensitivity result and its interpretation, it does not replace R2.
+- **Diagnostics (reported only).** At the optima of each reading and model: 100θ* from the formula
+  (K) minus from CAMB anchored, in prior σ of 100θ*; the ratio of the Aubourg r_d to CAMB's
+  `rdrag`; the shift of Δχ² per reading between the formula and each CAMB variant; the number of
+  trial points rejected by the feasibility check and, separately, by CAMB errors (χ² = ∞).
 
 ## 3. Data (with size estimate)
 
@@ -216,8 +234,8 @@ Every fit passed the pre-registered validity checks (converged; at least 3 start
   enough for reading A to pass. Nor is reading B cleanly "the paper's convention": the text defines
   ωbc = ωb + ωc, but Eq. 2 normalises ωbc to 0.1432, which equals Planck's ωm including the
   0.06 eV neutrino. We therefore do not conclude which convention DESI's prior uses; a CAMB check of
-  θ* at the fit points (T-022, needs the user's consent to install CAMB) would show whether R2
-  depends on the convention at all; only a primary source can say which convention DESI used.
+  θ* at the fit points (T-022, needs the user's consent to install CAMB; consent given 2026-11-16,
+  see the R2-CAMB addendum in section 2) would show whether R2 depends on the convention at all; only a primary source can say which convention DESI used.
 
 ## 6. Referee notes (independent subagent, 2026-11-14)
 
@@ -245,7 +263,8 @@ sections 1-4 unchanged since commit 88cdacb, before the data were first used).
 - The ωbc convention of the compressed prior (Eq. 35): which quantity does the paper's code compare
   with it? A primary source (the authors' Cobaya configuration or the definition in the
   compression paper, ref. [111]) would say which convention DESI used; a CAMB check of θ* at the fit points (T-022; installing CAMB
-  needs the user's consent, which README section 4 did not plan) would show whether R2 depends on it.
+  needs the user's consent, which README section 4 did not plan; consent given 2026-11-16, R2-CAMB
+  addendum in section 2) would show whether R2 depends on it.
 - Wilks calibration (wiki `gap_regular`): simulate the Δχ² distribution under the ΛCDM best fit
   for DESI + compressed CMB and compare with χ²(2).
 - Leave-one-tracer-out sensitivity of Δχ² (`drop_z`), and DES-Dovekie as a third SN sample.
