@@ -6,8 +6,6 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-007** 技能：文献核实（literature verification） · 登记 2026-11-14 · 分支 chore/skill-literature-verification
-  - 计划：写 `.claude/skills/literature-verification/SKILL.md`（把 [S]/[U] 提升为 [V] 的流程与检查清单，规则引用 AGENTS.md 与 ROADMAP.md 的标记定义），在 AGENTS.md 第二条的已有技能清单中登记，并在 `new-study`、`paper-study` 两个技能中加指向它的一行；双闸审查后合并。
 
 ## 下一步（Next）
 
