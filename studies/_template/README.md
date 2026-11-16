@@ -1,5 +1,7 @@
 # {{TITLE}}
 
+> 中文：[README.zh.md](README.zh.md)
+
 > Write sections 1–4 BEFORE writing run.py (pre-registration). Edit them later only
 > with a dated note explaining the change.
 

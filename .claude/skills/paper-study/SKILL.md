@@ -100,7 +100,8 @@ first entry. The Chinese half mirrors the English half.
 
 ## 4. Study: pre-register, implement, visualise
 
-- README sections 1-4 BEFORE `run.py`, derived from part 3 (criteria copied, not re-invented).
+- README sections 1-4 BEFORE `run.py`, derived from part 3 (criteria copied, not re-invented); the
+  Chinese companion `README.zh.md` is kept in step in the same PR (AGENTS.md bilingual rule).
 - `run.py`: data via `ctx.tap / ctx.http`; knobs in the `PARAMS` dict, saved with the results and
   read inside `main()` (no module-level constants derived from them); values bound by `NUM`
   premises saved under stable keys.

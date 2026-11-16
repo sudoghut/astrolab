@@ -28,6 +28,9 @@ use `paper-study`: it adds the wiki article and the Lean argument before the pre
 
 ## 1. Pre-register (README sections 1-4, before any `run.py`)
 
+Write `README.md` in English and keep `README.zh.md` (the Chinese companion, from the template) in step:
+same section numbers and tables, updated in the same PR (AGENTS.md bilingual rule).
+
 - **Question**: one precise question; the same sentence as `study.yaml` `question`.
 - **Criteria**: for each result a quantitative rule fixed now (threshold, interval, or a
   calibration that fixes the threshold, e.g. from mocks), and what the study reports when the
