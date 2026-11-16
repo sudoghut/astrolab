@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-11-16T11:41:59+00:00",
   "format": "templated-v1",
-  "how_to_read": "astrolab.provenance.expand(json) restores the plain records",
+  "how_to_read": "astrolab.provenance.expand(json) restores the plain records. By hand: a record's request is templates[request_template] (0-based) with each {} slot filled, in order, by request_params; {{ and }} are literal braces; the fields in defaults belong to every record.",
   "defaults": {
     "source": "tap:gaia"
   },

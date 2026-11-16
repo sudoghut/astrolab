@@ -39,7 +39,8 @@ analysis: name a question the results do not answer as open (README section 7 ho
 - `results/*.json`: every number in the report comes from here, with its uncertainty where the
   results give one, and the file and key it came from (e.g. `r2.json: primary.mu`). Do not round away the uncertainty or
   quote a number that is only in prose.
-- `results/provenance.json` (per input, the fields present: `source`, `request`, `retrieved_at`, and where
+- `results/provenance.json` (read it with `astrolab.provenance.expand`: large logs are stored in a templated
+  format; per input, the fields present: `source`, `request`, `retrieved_at`, and where
   recorded `release`, `label`, `rows`, `bytes`, `sha256`; report a missing field as missing) and `run_info.json` (`finished_at`, `seconds`).
 - Linked claims in `atlas/claims/`: `reproduction.quantities` (paper versus ours), `grade`.
 - `log.md` for dead ends and decisions; the wiki article (part 3) for paper studies. Numbers from
