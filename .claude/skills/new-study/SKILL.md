@@ -23,7 +23,7 @@ use `paper-study`: it adds the wiki article and the Lean argument before the pre
 - Scaffold: `python -m astrolab new <slug> "<title>" --level Lx` (picks the next number). Then:
   - `study.yaml`: `title_zh`, `question_zh` (tests reject `TODO`), `claims:`, `milestone:`;
     leave `papers: []` and `wiki: null`; fill or delete the `footprint` block;
-  - delete `argument/` (only paper studies keep it);
+  - delete `argument/` (only paper studies need it; an unchanged template copy is not checked);
   - the Chinese title in `web/index.html` (both `data-title-zh` and the `<h1>` span).
 
 ## 1. Pre-register (README sections 1-4, before any `run.py`)
@@ -34,9 +34,9 @@ use `paper-study`: it adds the wiki article and the Lean argument before the pre
   rule cannot be applied ("cannot determine"). Name the primary sample and the sensitivity checks
   in advance.
 - **Data**: one row per input with service, selection, estimated rows and size. Count first
-  (`fetch.tap_count`, `server-side-query` skill); compute aggregates and derived columns on the
-  server; prefer compressed products. Stop and ask if anything is over 50 MB per download or
-  200 MB per run (section 1.6).
+  (`ctx.count` in a study, `fetch.tap_count` in the library; `server-side-query` skill); compute aggregates and derived columns on the
+  server; prefer compressed products. If an estimate or a `TooLarge` error exceeds the limits
+  (section 1.1), follow section 1.6 in its order; ask the user only at its last step.
 - **Method**: model, likelihood, priors, systematics to check, random seeds.
 - Commit the pre-registration with its date before writing code. Later edits are dated
   amendments with a reason (state whether results had been seen).
@@ -53,7 +53,8 @@ use `paper-study`: it adds the wiki article and the Lean argument before the pre
   rather than hard-coding the outcome; skip cleanly when `results/` is missing.
 - `web/index.html`: designed for this question, reading `../results/*.json`; must load
   `atlas/web/i18n.js` (English default, en/zh switch). Check it with `python -m astrolab serve`.
-- Review each stage with the `dual-gate-review` skill before moving on.
+- If the plan calls for staged review (section 2 complexity rule), review each stage with the
+  `dual-gate-review` skill before moving on.
 
 ## 3. Make it explorable via chat (README section 8)
 
@@ -64,10 +65,15 @@ three example questions. Exploration never edits `results/`.
 ## 4. Write up and close
 
 - README section 5 (results with numbers and links), section 7 (open questions, including any
-  post-hoc ideas, labelled as such); `log.md` entry in Chinese with English terms in parentheses.
-- Linked claims in `atlas/claims/`: `ours`, `status`, and the Chinese fields; `study.yaml`
-  `status`; `python -m astrolab claims check`; regenerate `atlas/web/data/atlas.json` if the
-  Atlas changed (`python -m astrolab atlas`).
-- `referee` skill; triage every point into README section 6 and `log.md`.
+  post-hoc ideas, labelled as such), languages per the AGENTS.md section 2 bilingual rules; a
+  `log.md` entry in Chinese with English terms in
+  parentheses, newest entry on top.
+- `referee` skill (a subagent that sees only code and results, AGENTS.md section 5) before
+  marking anything reproduced or concluded; triage every point into README section 6 and `log.md`.
+- Then the status: in each linked claim in `atlas/claims/`, `reproduction.study` (this study's
+  id), `reproduction.quantities[].ours` and `reproduction.status` (vocabulary in `astrolab/claims.py`) plus the Chinese fields; the
+  study's own `status` in `study.yaml` (a different vocabulary); `python -m astrolab claims check`;
+  `python -m astrolab atlas` and commit `atlas/web/data/atlas.json` (`serve` also rewrites it).
 - `python -m pytest` passes; `STATUS.md` updated; move the TODO item to `DONE.md` with the PR
-  number; close-out review; mark the PR ready and rebase-merge.
+  number; if the plan uses staged review, a final `dual-gate-review` of the whole diff; mark the
+  PR ready and rebase-merge.
