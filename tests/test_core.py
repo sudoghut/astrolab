@@ -553,3 +553,4 @@ def test_prune_skips_entry_used_since_snapshot(tmp_cache, monkeypatch):
     monkeypatch.setattr(cache, "_entries", snapshot_then_touch)
     cache.prune(limit_bytes=1)
     assert cache.read(keys[0], ".bin", lambda p: p.read_bytes()) is not None
+    assert cache.get(keys[1], ".bin") is None      # the unused entry is still pruned
