@@ -399,7 +399,7 @@ R4 and the host identification reproduce the 2026-11-14 numbers exactly). Number
 | Host step under V(τ̂) | Δ_h' = −0.0618 ± 0.0404 mag, z' = −1.53 (H0 shift −2.0 km/s/Mpc) |
 | Verdict row (R2's table, unchanged) | **no host-selection effect detected in these data (does not support the paper's quantitative claim)** — the headline host-step verdict, with the amended (post-data) host labelling |
 | At the upper end of the τ interval (0.105) | z' = −1.25 |
-| Same offset on the Cepheid rows (sensitivity) | τ̂ and z' identical to 10⁻¹¹ (the two placements differ only in the host distances; see plan 021) |
+| Same offset on the Cepheid rows | τ̂ and z' identical to 10⁻¹¹: an identity, not a sensitivity check (the two indicators add up to the host-distance column, so REML and the H0 estimate cannot tell them apart; referee, below) |
 | R4 under V(τ̂), same 10,000 draws | spread of Δ/σ' = 1.005 (was 1.33 under C); CCHP z' at the 6.9th percentile, shift at the 7.6th |
 | Leave-one-host-out χ² of the 77 calibrator SN rows | 64.9 under C, 52.4 under V (approximate, see note in the results) |
 
@@ -411,6 +411,17 @@ R4 and the host identification reproduce the 2026-11-14 numbers exactly). Number
 - The leave-one-host-out χ² (64.9 for 77 rows under C) does not by itself show excess scatter, so
   the two diagnostics point in different directions; the χ² is approximate (it ignores the
   cross-covariance of a host's SN rows with the kept rows) and is reported only.
+- **How firm the null is (referee, post hoc).** The verdict sits near a knife edge in τ: z is −2.21
+  at τ = 0 and −1.53 at τ̂, and crosses −2 at about τ ≈ 0.03 mag, below the 68% interval (0.048) but
+  only about 1.5σ from τ̂; the evidence for τ > 0 itself is modest (Δ(−2ℓ_R) = 3.48 at τ = 0,
+  boundary likelihood-ratio p ≈ 0.03). τ is identified mostly by non-CCHP hosts (the largest
+  leave-one-out terms are N5584, N2525, N1015), and R4 under V reuses the data τ was fitted on, so
+  its spread of 1.005 is not an independent check. The rule was fixed knowing z = −2.21 and the
+  direction of the effect (disclosed in section 2), so R2-RE is the pre-registered model-based
+  answer, not an independent confirmation. **Read: in R22's data the CCHP host selection lowers H0
+  by about 2 km/s/Mpc, at 1.5σ to 2.2σ depending on how much host-level scatter is allowed; it is not
+  significant once a host-level random effect is modelled.** Whether τ̂ survives leaving out single
+  hosts (N5584 first) and how unusual τ̂ and the 1.33 spread are under the null are registered as T-032.
 
 ## 6. Referee notes
 
@@ -430,13 +441,32 @@ sections 5-8). Triage:
 | 9 | Lean: the `ResidSmall` gloss omitted that the paper's σ excludes the SN term. | **Fixed** in `argument/Argument.lean` (doc comment). All six `[stated]` premises were checked against the paper and are not stronger than their quotes; the GAP label is honest. |
 | 10 | Literature: the 2024 paper's own random-subset test for the 8-SN JAGB sample gives about 5% (Fig. 6), a direct analogue of R4; the paper also says SNe dominate subsample scatter (consistent with the 1.33). | Noted (verified by the referee); Efstathiou arXiv:2007.10716 on calibrator scatter was cited unverified and is not used. |
 
+### Referee, R2-RE (independent subagent, 2026-11-16)
+
+The referee saw README sections 1-4 (with the R2-RE addendum), the code and the results, not sections
+5-8; it ran a synthetic check only. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The Cepheid-row "sensitivity" is mathematically identical to the main model (indicators add to the host column; REML and the H0 estimate are invariant); it says nothing about whether the cause is on the SN or the Cepheid side | yes: saved τ̂ and z' agree to 10⁻¹¹; the referee's synthetic check agrees to 10⁻¹⁴ and breaks only if an anchor row touches a host column | **Accepted**; section 5 calls it an identity. The pre-registration text ("a different covariance direction") was wrong on this point; left as frozen, corrected here. |
+| 2 | The leave-one-host-out χ² under C (64.9 / 77) shows no excess while REML prefers τ > 0; τ̂ may rest on N5584 (χ² 12.5 on 4 rows of 1 SN) and a few other non-CCHP hosts; the LOO statistic ignores the cross-covariance with the kept rows | yes (per-host terms in `r2_re.json`); the cross-covariance caveat was already in the results note | **Accepted**; section 5; leave-one-host-out τ̂ registered as T-032. |
+| 3 | Knife edge: z' crosses −2 at τ ≈ 0.03; the plug-in ignores τ's uncertainty; evidence for τ > 0 is p ≈ 0.03 | yes (grid and z at 0, τ̂, interval end) | **Accepted**; section 5 states the range 1.5σ–2.2σ. |
+| 4 | τ applies to calibrator SNe only; if the cause is SN intrinsic scatter it should apply to Hubble-flow SNe too; whether C already holds a within-SN block | partly (not inspected by us) | **Accepted limitation**; noted in section 7; Wojtak & Hjorth 2022 (arXiv:2206.08160, verified by the referee) give a calibrator-specific candidate. |
+| 5 | Per-host versus per-SN offset for multi-SN hosts (N5643 is a CCHP host) | yes (pre-registration) | **Accepted limitation**; likely small. |
+| 6 | Circularity: R4 under V reuses the data τ was fitted on; the 1.33 spread under C was never calibrated against the null | yes | **Accepted**; section 5; null simulations registered as T-032. |
+| 7 | Code checks pass (REML, nested identity, interval, headline logic); `summary.json`'s `R2_host_shift`/`sigma`/`z` are the C values next to the R2-RE headline | yes | Noted here: those three fields are the C-error values; the R2-RE values are in `r2_re.json` (`host_step`) and `summary.json` `R2_RE.z`. Not changed (would need a rerun). |
+| 8 | Literature: Wojtak & Hjorth 2022/2024/2025 (arXiv:2206.08160, 2403.10388, 2506.22150), Perivolaropoulos & Skara 2022 (arXiv:2208.11169), Gall et al. (arXiv:2411.05642), as found by the referee; Efstathiou 2020 and Mörtsell et al. 2022 unverified | partly | Listed as context; not used in any verdict. |
+
 ## 7. Open questions
 
 - Why the public `lstsq_results.txt` differs from the printed baseline (a later or variant fit).
 - How the 2024 data (SMC anchor, more Cepheids) change the host shift; not public as matrices.
 - Does C understate host-to-host scatter? Answered by R2-RE (2026-11-16): a host-level random
   effect of 0.077 mag (0.048–0.105) brings the random-subset spread of Δ/σ from 1.33 to 1.005; its
-  physical origin (SN-host properties, Cepheid crowding, the SN–Cepheid host mismatch) is open.
+  physical origin is open: it measures the host-level scatter of SN-based minus Cepheid-based
+  distances beyond C and cannot say which side causes it; calibrator-specific SN colour behaviour
+  (Wojtak & Hjorth 2022) is one candidate; whether C's calibrator block already holds a within-SN
+  term is unchecked. Robustness of τ̂ to single hosts and its null distribution: T-032.
 - A Cepheid-only per-host comparison for R3 (μ from fits without each host's SN rows).
 - R4 suggests the CCHP selection is a low but ordinary draw: is there a property of those hosts
   (for example the TRGB-friendly, low-extinction halos) that correlates with their SN magnitudes?

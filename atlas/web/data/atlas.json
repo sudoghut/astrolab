@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-16T10:47:06+00:00",
+ "generated_at": "2026-11-16T11:03:06+00:00",
  "levels": [
   "L0",
   "L1",
@@ -118,7 +118,7 @@
    "open_questions": [
     "Robustness of the onset epoch to the isochrone grid."
    ],
-   "notes": "Milestone M5. Updated catalog: 320,028 subgiants (NADC DOI 10.12149/101467); download only the needed columns. Study 010 (2026-11-16, published 247,104-row table): the 13 Gyr mean is reproduced on the catalogue's own age scale (12.93 Gyr), but the age-scale envelope (0.7-1.1 Gyr, a re-analysis 1.7 Gyr younger) exceeds the 0.8 Gyr margin to the Big Bang; the 8 Gyr split and the old-disc sequence (span, 0.82 Gyr scatter) could not be determined, because the S15 selection term of our deconvolution is misspecified (referee; re-test T-031). Lean: three gaps (bin identification, absolute scale, mean as onset)."
+   "notes": "Milestone M5. Updated catalog: 320,028 subgiants (NADC DOI 10.12149/101467); download only the needed columns. Study 010 (2026-11-16, published 247,104-row table): the 13 Gyr mean is reproduced on the catalogue's own age scale (12.93 Gyr), but the age-scale envelope (0.7-1.1 Gyr in quadrature) is comparable to the 0.87 Gyr margin to the Big Bang and a re-analysis 1.7 Gyr younger exceeds it; the 8 Gyr split and the old-disc sequence (span, 0.82 Gyr scatter) could not be determined, because the S15 selection term of our deconvolution is misspecified (referee, post hoc; re-test T-031). Lean: three gaps (bin identification, absolute scale, mean as onset)."
   },
   {
    "id": "gaia-dormant-black-holes",
@@ -266,6 +266,11 @@
       "ours": "69.70 (same hosts in the R22 GLS)"
      },
      {
+      "name": "Same host shift with a host-level random effect (REML tau 0.077 mag; 5 log H0)",
+      "paper": "-0.0405 (significant)",
+      "ours": "-0.0618 +/- 0.0404 (z = -1.53): no host-selection effect detected (R2-RE, pre-registered 2026-11-16)"
+     },
+     {
       "name": "H0 CCHP TRGB",
       "paper": "70.39 +/- 1.22 (stat) +/- 1.33 (sys)",
       "ours": null,
@@ -276,7 +281,7 @@
    "open_questions": [
     "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003, post-data host labelling: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run. The 2.2 sigma uses C-propagated errors; random 10-host subsets show 1.33 times more scatter, placing the CCHP set at the 4.7th-5.7th percentile, about 1.7 sigma empirically (the subset spread is itself uncertain), where the pre-registered table would read no significant effect.)"
    ],
-   "notes": "Milestone M2."
+   "notes": "Milestone M2. Study 003 R2-RE (2026-11-16): with a host-level random effect estimated by REML (0.077 mag), the CCHP host shift is 1.5 sigma and the pre-registered table gives no host-selection effect detected; the random effect removes the excess random-subset scatter (spread 1.33 -> 1.005)."
   },
   {
    "id": "jwst-z14-galaxies",
