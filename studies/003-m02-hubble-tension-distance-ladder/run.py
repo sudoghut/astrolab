@@ -33,6 +33,8 @@ PARAMS = {
     "anchor_sigma_target": 0.0461, "anchor_sigma_frac": 0.15,
     "host_ref": -0.0405, "host_ref_extra": 0.02,
     "cchp_target_5logh0": 9.2034, "cchp_match_tol": 0.02,
+    # R2-RE (README section 2, addendum 2026-11-16): host-level random effect, REML
+    "re_check": True, "re_tau_max": 0.5, "re_grid_step": 0.01,
 }
 
 DR = "PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/"
@@ -284,8 +286,205 @@ def shift_vector(res_sub, rows_sub, res_full, rows_full, col=C_H0):
     return a
 
 
+# ---------------------------------------------------------------- R2-RE (addendum 2026-11-16)
+def with_re(C, groups, tau):
+    """V = C + tau^2 sum_j h_j h_j^T (h_j: indicator of the row indices in groups[j])."""
+    V = C.copy()
+    if tau > 0:
+        t2 = tau * tau
+        for idx in groups:
+            V[np.ix_(idx, idx)] += t2
+    return V
+
+
+def reml_m2l(L, y, C, rows, groups, tau):
+    """-2 x restricted log-likelihood (up to a constant) of the GLS model on `rows` with
+    V(tau) = C + tau^2 sum_j h_j h_j^T; groups hold row indices into the full system."""
+    idx = np.asarray(rows)
+    pos = {r: k for k, r in enumerate(idx)}
+    V = C[np.ix_(idx, idx)].copy()
+    if tau > 0:
+        for g in groups:
+            k = np.array([pos[r] for r in g if r in pos])
+            if k.size:
+                V[np.ix_(k, k)] += tau * tau
+    X = L[idx]
+    X = X[:, np.any(X != 0.0, axis=0)]
+    cf = linalg.cho_factor(V, lower=True)
+    logdet_v = 2.0 * np.sum(np.log(np.diag(cf[0])))
+    vix = linalg.cho_solve(cf, X)
+    viy = linalg.cho_solve(cf, y[idx])
+    F = X.T @ vix
+    cfF = linalg.cho_factor(F, lower=True)
+    logdet_f = 2.0 * np.sum(np.log(np.diag(cfF[0])))
+    q = linalg.cho_solve(cfF, X.T @ viy)
+    r = y[idx] - X @ q
+    return float(logdet_v + logdet_f + r @ linalg.cho_solve(cf, r))
+
+
+def reml_tau(f, tau_max, step):
+    """Grid then bounded refinement around the grid's global minimum; 68% interval from the
+    crossing of min + 1 nearest to tau_hat on each side (README section 2, R2-RE)."""
+    grid = np.round(np.arange(0.0, tau_max + step / 2, step), 10)
+    vals = np.array([f(t) for t in grid])
+    k = int(np.argmin(vals))
+    local = [float(grid[i]) for i in range(1, len(grid) - 1)
+             if vals[i] < vals[i - 1] and vals[i] < vals[i + 1] and i != k]
+    lo, hi = grid[max(k - 1, 0)], grid[min(k + 1, len(grid) - 1)]
+    tau_hat, f_hat, refined = float(grid[k]), float(vals[k]), False
+    try:
+        r = optimize.minimize_scalar(f, bounds=(lo, hi), method="bounded", options={"xatol": 1e-5})
+        if r.success and r.fun < f_hat:
+            tau_hat, f_hat, refined = float(r.x), float(r.fun), True
+    except Exception:          # refinement failure: keep the grid minimum (pre-registered)
+        pass
+
+    def crossing(direction):
+        g = lambda t: f(t) - f_hat - 1.0
+        j = k
+        while 0 <= j + direction < len(grid):
+            j += direction
+            if vals[j] - f_hat - 1.0 > 0:
+                a, b = sorted((tau_hat, float(grid[j])))
+                try:
+                    return float(optimize.brentq(g, a, b, xtol=1e-6))
+                except Exception:
+                    return "not determined"
+        return 0.0 if direction < 0 else "> %.1f" % tau_max
+
+    return {"tau_hat": tau_hat, "m2l_min": f_hat, "refined": refined,
+            "grid": [float(t) for t in grid], "grid_m2l": [float(v) for v in vals],
+            "other_local_minima": local, "interval_68": [crossing(-1), crossing(+1)],
+            "at_zero": tau_hat < 1e-3, "at_upper_bound": tau_hat > tau_max - 1e-3}
+
+
+def host_step_verdict(z, d_h, s_h, ref, extra):
+    """R2's pre-registered verdict table (README section 2)."""
+    if z <= -2 and abs(d_h - ref) <= 2 * s_h + extra:
+        return "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+    if z <= -2:
+        return "host selection significantly lowers H0, but by a different size"
+    if abs(z) < 2:
+        return "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    return "host selection raises H0 (contradicts the paper)"
+
+
+def host_step_under(L, y, V, rows_a, rows_s):
+    """R2's host step with covariance V; exact shift variance a^T V a and the nested identity."""
+    res_a = fit(L, y, V, rows_a, est=True)
+    res_s = fit(L, y, V, rows_s, est=True)
+    d_h = float(res_s["q"][C_H0] - res_a["q"][C_H0])
+    a = shift_vector(res_s, rows_s, res_a, rows_a)
+    var = float(a @ V @ a)
+    nested = float(res_s["sigma"][C_H0] ** 2 - res_a["sigma"][C_H0] ** 2)
+    if abs(var - nested) > 1e-6 * var:
+        raise RuntimeError(f"nested-variance identity failed under V: {var} vs {nested}")
+    s_h = float(np.sqrt(var))
+    return {"shift": d_h, "shift_sigma": s_h, "z": d_h / s_h, "nested_var_check": nested,
+            "fivelogh0_37": float(res_a["q"][C_H0]), "sigma_37": float(res_a["sigma"][C_H0]),
+            "fivelogh0_cchp": float(res_s["q"][C_H0]), "h0_shift_kms": to_h0(float(res_s["q"][C_H0]))
+            - to_h0(float(res_a["q"][C_H0]))}, res_a
+
+
+def loo_chi2(L, y, W, rows_a, groups):
+    """Host-level chi^2 of the leave-one-host-out calibrator-SN residuals (README R2-RE)."""
+    total, n, per = 0.0, 0, []
+    rows_a = np.asarray(rows_a)
+    for g in groups:
+        g = np.asarray(g)
+        keep = np.setdiff1d(rows_a, g)
+        res = fit(L, y, W, keep)
+        kept = res["kept"]
+        Xg = L[np.ix_(g, kept)]
+        r = y[g] - Xg @ res["q"][kept]
+        S = W[np.ix_(g, g)] + Xg @ res["cov"] @ Xg.T
+        c = float(r @ np.linalg.solve(S, r))
+        per.append(c)
+        total += c
+        n += len(g)
+    return {"chi2": total, "n_rows": n, "per_host": per}
+
+
 def to_h0(q):
     return float(10 ** (q / 5.0))
+
+
+def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks, d_h_c):
+    """R2-RE (README section 2, addendum 2026-11-16)."""
+    t0 = time.perf_counter()
+    calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]
+    ceph_groups = [np.flatnonzero(cls["ceph_host"] & nz[:, j]) for j in range(NH)]
+    out = {"model": "V = C + tau^2 sum_j h_j h_j^T over each host's calibrator SN rows",
+           "n_calib_rows_per_host": [int(len(g)) for g in calib_groups]}
+
+    def estimate(groups):
+        return reml_tau(lambda t: reml_m2l(L, y, C, rows_a, groups, t), P["re_tau_max"], P["re_grid_step"])
+
+    est = estimate(calib_groups)
+    out["reml"] = est
+    ctx.log(f"R2-RE: tau_hat {est['tau_hat']:.4f} mag, 68% {est['interval_68']}, "
+            f"refined {est['refined']}, other local minima {est['other_local_minima']}")
+    if est["at_upper_bound"]:
+        out.update(status="not evaluable (bound)", tau_hat=est["tau_hat"], interval_68=est["interval_68"])
+        return out
+    tau = 0.0 if est["at_zero"] else est["tau_hat"]
+    try:
+        V = with_re(C, calib_groups, tau)
+        hs, res_aV = host_step_under(L, y, V, rows_a, rows_s)
+    except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
+        out.update(status=f"not evaluable (fit: {e})", tau_hat=tau)
+        return out
+    v = host_step_verdict(hs["z"], hs["shift"], hs["shift_sigma"], P["host_ref"], P["host_ref_extra"])
+    out.update(status="evaluated", tau_hat=tau, interval_68=est["interval_68"], host_step=hs,
+               z=hs["z"], verdict=v, reference=P["host_ref"],
+               reference_tol=2 * hs["shift_sigma"] + P["host_ref_extra"],
+               c_errors={"shift": d_h_c})
+    ctx.log(f"R2-RE host step: {hs['shift']:+.4f} +- {hs['shift_sigma']:.4f} (z {hs['z']:.2f}) -> {v}")
+
+    # reported, not decisive
+    hi = est["interval_68"][1]
+    if isinstance(hi, float):
+        hs_hi, _ = host_step_under(L, y, with_re(C, calib_groups, hi), rows_a, rows_s)
+        out["at_interval_upper"] = {"tau": hi, "z": hs_hi["z"], "shift": hs_hi["shift"],
+                                    "shift_sigma": hs_hi["shift_sigma"]}
+    est_c = estimate(ceph_groups)
+    sens = {"reml": {k: est_c[k] for k in ("tau_hat", "interval_68", "refined", "other_local_minima",
+                                            "at_zero", "at_upper_bound")}}
+    if not est_c["at_upper_bound"]:
+        tc = 0.0 if est_c["at_zero"] else est_c["tau_hat"]
+        hs_c, _ = host_step_under(L, y, with_re(C, ceph_groups, tc), rows_a, rows_s)
+        sens.update(host_step=hs_c, verdict_row=host_step_verdict(hs_c["z"], hs_c["shift"], hs_c["shift_sigma"],
+                                                                 P["host_ref"], P["host_ref_extra"]))
+    out["sensitivity_cepheid_rows"] = sens
+
+    # R4 under V: the same draws as R4; full system fitted once under V
+    qa_v, sa_v = hs["fivelogh0_37"], hs["sigma_37"]
+    zs, deltas = [], []
+    for i, pick in enumerate(picks):
+        rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
+        res = fit(L, y, V, rows, est=(i == 0))
+        dl = float(res["q"][C_H0]) - qa_v
+        var = float(res["sigma"][C_H0]) ** 2 - sa_v ** 2
+        if i == 0:
+            a1 = shift_vector(res, rows, res_aV, rows_a)
+            exact = float(a1 @ V @ a1)
+            if abs(exact - var) > 1e-6 * exact:
+                raise RuntimeError(f"nested-variance identity failed under V on draw 0: {exact} vs {var}")
+            out["r4_identity_check"] = {"exact_aVa": exact, "nested": var}
+        deltas.append(dl)
+        zs.append(dl / np.sqrt(max(var, 1e-30)))
+    if zs:
+        zs_a = np.array(zs)
+        out["r4_under_v"] = {"draws": len(zs), "z_std": float(zs_a.std()), "z_mean": float(zs_a.mean()),
+                             "cchp_z": hs["z"], "z_percentile": float(100.0 * np.mean(zs_a <= hs["z"])),
+                             "shift_percentile": float(100.0 * np.mean(np.array(deltas) <= hs["shift"]))}
+    out["loo_chi2"] = {"C": loo_chi2(L, y, C, rows_a, calib_groups),
+                       "V": loo_chi2(L, y, V, rows_a, calib_groups)}
+    out["seconds"] = time.perf_counter() - t0
+    ctx.log(f"R2-RE diagnostics: R4 under V z spread {out.get('r4_under_v', {}).get('z_std')}; "
+            f"LOO chi2 C {out['loo_chi2']['C']['chi2']:.1f}, V {out['loo_chi2']['V']['chi2']:.1f} "
+            f"for {out['loo_chi2']['C']['n_rows']} rows")
+    return out
 
 
 # ---------------------------------------------------------------- main
@@ -561,7 +760,7 @@ def main(ctx):
     base_rows = np.array([i for i in rows_a if not any_host[i]])
     n_sn = {h: len(sn[h]["mb"]) for h in hosts}
     draws = int(P["r4_draws"])
-    deltas, nsns, zs = [], [], []
+    deltas, nsns, zs, picks = [], [], [], []
     r4 = {"status": "evaluated", "draws_requested": draws, "labelling_mode": mode}
     if not ident["host_step_evaluable"]:
         r4["status"] = "not evaluable"
@@ -570,6 +769,7 @@ def main(ctx):
         i = 0
         while i < draws:
             pick = rng.choice(NH, size=len(cchp), replace=False)
+            picks.append(pick)
             rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
             res = fit(L, y, C, rows, est=(i == 0))
             deltas.append(float(res["q"][C_H0]) - qa)
@@ -595,7 +795,7 @@ def main(ctx):
                     new = int(P["r4_max_minutes"] * 60 / per) // 1000 * 1000
                     if new < 2000:
                         r4["status"] = "not evaluated (runtime)"
-                        deltas, nsns, zs = [], [], []
+                        deltas, nsns, zs, picks = [], [], [], []
                         break
                     r4["draws_reduced_from"] = draws
                     draws = new
@@ -628,6 +828,12 @@ def main(ctx):
             ctx.log(f"R4: CCHP shift at percentile {pct:.1f} of {len(dl)} draws -> {rv}")
     ctx.save("r4", r4)
 
+    # ---- R2-RE (README section 2, addendum 2026-11-16): host-level random effect
+    re = {"status": "not run"}
+    if P["re_check"] and ident["host_step_evaluable"]:
+        re = r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks, d_h)
+        ctx.save("r2_re", re)
+
     # One canonical qualified verdict for the host step (gate-2 review): states the labelling mode
     # and, when R4 ran, the empirical (random-subset) scale next to the C-propagated significance.
     qual = []
@@ -644,6 +850,16 @@ def main(ctx):
     # the public verdict is the qualified one; the bare row of the verdict table is kept, labelled
     r2h["criterion_outcome"] = r2h.pop("verdict")
     r2h["verdict"] = r2h["qualified_verdict"]
+    # R2-RE headline rule (addendum 2026-11-16): when R2-RE is evaluable its verdict row is the public
+    # host-step verdict; R2 (C errors) stays recorded; the inflated-sigma text becomes descriptive
+    if re.get("status") == "evaluated":
+        r2h["descriptive_inflated_sigma"] = r2h["qualified_verdict"]
+        r2h["verdict"] = (re["verdict"] + " [R2-RE: host-level random effect, pre-registered 2026-11-16; "
+                          + ("; ".join(["post-data host labelling"] if mode != "pre-registered" else [])
+                             or "pre-registered labelling") + "]")
+        r2h["headline_source"] = "R2-RE"
+    else:
+        r2h["headline_source"] = "R2 (C errors) with qualification; R2-RE " + re.get("status", "not run")
     ctx.save("r2", {"anchor_step": r2a, "host_step": r2h})
 
     # ---- cross-paper comparison (descriptive)
@@ -673,7 +889,8 @@ def main(ctx):
         "validity": validity,
         "R1": r1["verdict"], "R1_h0": r1["h0"],
         "R2_anchor": r2a["verdict"], "R2_anchor_shift": d_a,
-        "R2_host": r2h["qualified_verdict"],
+        "R2_host": r2h["verdict"], "R2_host_headline_source": r2h["headline_source"],
+        "R2_RE": {k: re.get(k) for k in ("status", "verdict", "tau_hat", "interval_68", "z")},
         "R2_host_status": r2h["status"],
         "R2_host_preregistered": r2h["preregistered_verdict"], "host_labelling_mode": mode,
         "R2_host_shift": d_h, "R2_host_sigma": s_h, "R2_host_z": z,
