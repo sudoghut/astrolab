@@ -583,14 +583,23 @@ def test_tap_never_requests_more_than_hard_ceiling(tmp_cache, monkeypatch):
 
 
 def test_prune_keeps_entries_touched_within_mtime_granularity(tmp_cache):
-    """An entry used just before the snapshot is kept even if a coarse mtime equals the snapshot's."""
-    key = cache.key_for("test", {"recent": 1})
-    src = cache.staging_path(".bin")
-    src.write_bytes(b"x" * 100)
-    cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": "r"}})
-    cache.prune(limit_bytes=1)
-    assert cache.get(key, ".bin") is not None       # stored a moment ago: kept
+    """A recently used entry is kept while an old entry can be removed instead."""
+    import os
 
+    def put(i):
+        key = cache.key_for("test", {"recent": i})
+        src = cache.staging_path(".bin")
+        src.write_bytes(b"x" * 100)
+        cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": str(i)}})
+        return key
+
+    old, new = put(0), put(1)
+    e = cache.get(old, ".bin")
+    for f in (e.payload, e.meta_path):
+        os.utime(f, (1, 1))
+    n_new = sum(f.stat().st_size for f in (cache.get(new, ".bin").payload, cache.get(new, ".bin").meta_path))
+    cache.prune(limit_bytes=n_new)                   # removing the old entry is enough
+    assert cache.get(old, ".bin") is None and cache.get(new, ".bin") is not None
 
 def test_replace_retries_then_explains(tmp_path, monkeypatch):
     import os
@@ -623,3 +632,15 @@ def test_clear_removes_recent_entries(tmp_cache):
     src.write_bytes(b"x")
     cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": "r"}})
     assert cache.clear() == 1 and cache.get(key, ".bin") is None
+
+
+def test_prune_second_pass_when_only_recent_entries_exceed(tmp_cache):
+    keys = []
+    for i in range(3):
+        key = cache.key_for("test", {"burst": i})
+        src = cache.staging_path(".bin")
+        src.write_bytes(b"x" * 100)
+        cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": str(i)}})
+        keys.append(key)
+    assert cache.prune(limit_bytes=1) >= 1          # all recent, still over the limit: removed
+    assert cache.info()["size_mb"] * 1024 ** 2 <= 1

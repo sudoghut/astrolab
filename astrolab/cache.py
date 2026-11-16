@@ -10,6 +10,8 @@ Accepted limits (T-035, rare cases):
   per entry, may then remove the other payload mid-read (a miss on POSIX; kept on Windows).
 - The per-key lock map grows with the number of keys a process touches (small for one run).
 - Every HTTP cache hit hashes its payload (at most the 50 MB per-download cap).
+- fetch.http returns a path that the caller reads after the key lock is released; another process
+  refreshing the same URL meanwhile can replace the file (the intended effect of a refresh).
 """
 from __future__ import annotations
 
@@ -204,8 +206,9 @@ def info(root: Path | None = None) -> dict[str, Any]:
 
 def prune(limit_bytes: int | None = None, root: Path | None = None, keep_recent: bool = True) -> int:
     """Delete LRU entries until total size <= limit. Returns number removed. With keep_recent, an
-    entry used within MTIME_GRANULARITY_S before the prune started is kept (so the cache can exceed
-    the limit by what was written in the last ~2 s until the next prune); clear() does not keep it."""
+    entry used within MTIME_GRANULARITY_S before the prune started is kept while older entries can
+    be removed instead; if the cache is still over the limit after that, a second pass removes recent
+    entries too. Files Windows refuses to delete (open in another process) stay for a later prune."""
     root = root or config.cache_dir()
     limit = config.CACHE_LIMIT_BYTES if limit_bytes is None else limit_bytes
     started = time.time()
@@ -240,9 +243,13 @@ def prune(limit_bytes: int | None = None, root: Path | None = None, keep_recent:
             continue
         total -= size
         removed += 1
+    if keep_recent and total > limit:
+        # only recently used entries remain over the limit: a second pass without the grace window,
+        # so a burst of writes cannot leave the cache over its limit when no later prune comes
+        removed += prune(limit_bytes, root, keep_recent=False)
     return removed
 
 
 def clear(root: Path | None = None) -> int:
-    """Remove every entry (explicit: recently used entries are not kept)."""
+    """Remove every entry (recently used ones too); files open in another process on Windows stay."""
     return prune(limit_bytes=0, root=root, keep_recent=False)
