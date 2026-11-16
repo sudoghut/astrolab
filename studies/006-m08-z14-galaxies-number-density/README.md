@@ -357,7 +357,9 @@ Reading. R2 "higher" is robust to the uncertainty of the z ≈ 8 calibration dat
 5th percentile of the ratio is 5.9 in the primary fit, 4.3 with σ_cal = 0.5). R3 is not settled:
 P(consistent with N26) is 0.96 in the primary fit, just short of the pre-registered margin, and
 moves from 0.86 to 1.00 with σ_cal, so the overlap verdict depends on the scatter assumed at
-calibration. Both statements are conditional on the fiducial ingredients (Sheth–Tormen, the "dpl"
+calibration. After the referee (below): the Monte Carlo spread between chains is about 2 SE, so
+"borderline" and "calibration-uncertain" are not distinguishable here, and the unmodelled effects
+the referee found (Gaussian bright bins, the γ ≥ 0 edge) all push towards "consistent". Both statements are conditional on the fiducial ingredients (Sheth–Tormen, the "dpl"
 extrapolation of ε, no dust), which section 4 showed decide R3 and set most of R2's spread; the
 posterior covers the LF calibration uncertainty only. The post-hoc one-at-a-time shifts in the
 referee section (φ* −1σ: ratio 1.9) were more extreme than the joint posterior: the binned data
@@ -399,12 +401,31 @@ reading). It checked the physics line by line and found no code bugs. Triage:
     around the two detections (look-elsewhere effect). The other premises were checked against
     their quotes and are no stronger.
 
+### Referee of R2/R3-POST (2026-11-16)
+
+Independent referee (a subagent given README sections 1-4, the code and the results files, not
+section 5; it ran small offline checks, no MCMC). No code bug that changes a label; every rule was
+applied as written. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | R3 depends more on σ_cal than on the calibration posterior: P(consistent) 0.86 / 0.96 / 1.00 for σ_cal 0.5 / 0.7 / 0.9, a spread much larger than the posterior uncertainty; σ_cal is fixed, not marginalised | yes (`post.json`) | **Accepted**; section 5 states it; R3 must not be described as near-robust. |
+| 2 | The blank-field bright bins (about 2 and 9 sources) enter as Gaussian in φ; a model 3× too high costs Δχ² = 9 where a Poisson likelihood costs about 4–6, which suppresses posterior volume with more bright galaxies, the side that gives "different" | partly (the direction follows from the residual form; the size is the referee's estimate) | **Accepted limitation**; it pushes towards "consistent", so the borderline label is if anything optimistic; follow-up T-036. |
+| 3 | The γ ≥ 0 prior edge holds 25 of 500 primary draws (0.050, the "prior-bounded" label needs more than 5%): one more draw would have attached it; allowing γ < 0 would likely add "different" draws | yes | **Accepted**; disclosed in section 5; follow-up T-036. |
+| 4 | The two chain-length amendments overrode a "no step changes" clause; disclosed, step count only, no threshold moved; R3 P went 0.948 → 0.938 → 0.962 across chains (the first two unconverged), a swing of about 2 SE, so "borderline" and "calibration-uncertain" are not distinguishable here | yes | **Accepted**; stated in section 5. |
+| 5 | The lensing errors include a coherent size–luminosity systematic, treated as independent per bin; the fit is "too good" (data χ² 4.6 for 15 points, bootstrap p 0.955); magnification-map uncertainty is not included | yes (the χ²; the paper's footnote) | **Accepted limitation**. |
+| 6 | The −13.25 z ~ 8 lensing value (0.20 +0.99/−0.16) may belong to the z ~ 6 column (the arXiv HTML row has three values for four columns) | checked against the typeset PDF Table 4 (page 11): the z ~ 8 column has −13.25 → 0.20 (+0.99/−0.16); the HTML extraction dropped the z ~ 6 cell alignment | **Rejected**: the transcription is correct. |
+| 7 | Bins are evaluated at the bin centre, not averaged (a few percent, inside the errors) | partly (referee's computation) | Accepted, negligible. |
+| 8 | The SE rule is degenerate at P = 1 (SE = 0); the Clopper–Pearson lower bound for 500/500 is about 0.993, so R2's "robust" stands; n_eff slightly overstated (about 450, not 500) | yes | Noted; no label change. |
+
 ## 7. Open questions
 
 - The z ≈ 8 LF uncertainty is now propagated (R2/R3-POST, section 5): R2 is robust to it, R3 is
   borderline and depends on σ_cal. The remaining R3 drivers are model ingredients the posterior
   does not cover: the extrapolation of ε below the calibrated range, the halo mass function and
   dust at z ≈ 8.
+- Does R3 survive a fit with σ_cal free, a Poisson likelihood for the bright blank-field bins and
+  γ < 0 allowed (the referee's test, T-036)?
 - How large is cosmic variance for two sources in 388 arcmin² at z ≈ 14 (`gap_poisson`), and what is
   the full effective area (`gap_area`)?
 

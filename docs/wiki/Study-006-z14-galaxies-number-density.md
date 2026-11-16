@@ -292,6 +292,9 @@ model predicts more z = 14–15 galaxies than N26's baseline with probability 1.
 calibration uncertainty**. R3 stays **borderline**: P(consistent with N26) = 0.96, just short of the
 pre-registered margin, and 0.86–1.00 depending on σ_cal. Both are conditional on the fiducial model
 ingredients (halo mass function, ε extrapolation, no dust).
+The independent referee found that R3 depends far more on the fixed σ_cal than on the
+calibration posterior, and that the unmodelled effects (Gaussian bright bins, the γ ≥ 0 prior edge)
+all push towards "consistent", so "borderline" is if anything optimistic; follow-up T-036.
 
 ### Glossary
 
@@ -317,7 +320,7 @@ ingredients (halo mass function, ε extrapolation, no dust).
 
 ### Changelog
 
-- 2026-11-16: R2/R3-POST (T-025): posterior calibration on binned z ≈ 8 data; R2 robust (higher), R3 borderline (P = 0.96).
+- 2026-11-16: R2/R3-POST (T-025): posterior calibration on binned z ≈ 8 data; R2 robust (higher), R3 borderline (P = 0.96); referee: R3 depends mainly on σ_cal (T-036).
 Newest first.
 
 - 2026-11-15: independent referee: the z ≈ 8 LF uncertainty flips R3 (and R2 for φ* −1σ) and dust flips R3 (post-hoc explorations); fourth gap `gap_bin`; follow-up T-025.
@@ -507,6 +510,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 **独立审稿之后（2026-11-15；事后，仅为探索）。** 两个基准判定都不能抵御 z ≈ 8 校准数据的不确定性，而预注册没有传播这一不确定性：把 Bouwens 等 2021 的任一参数按 1σ 移动，比值在 1.9 到 35 之间变化，所需 σ 在 1.70 到 1.10 mag 之间变化：每一种移动都会使 R3 翻转，φ* 减 1σ 还会使 R2 翻转（比值 1.9，"同一量级"）。只要去掉 0.3 mag 的 z ≈ 8 尘埃消光，比值就升到 20（R2 仍为"更高"），σ 变为 1.24 mag（R3"不同"）。稳健的说法更窄：独立的恒定 SFE 模型预言的 z = 14–15 星系多于 N26 的基准（预注册的变体网格上 2.5–37 倍，大多超过 3 倍；含事后探索为 1.9–99 倍），所以 182 倍强烈依赖基准；它所需的 σ_UV 在 1–2 mag 左右，与 N26 的 1.5–2 mag 是否重叠没有稳定的判定。审稿人还发现论证的第四个缺口：箱是围绕两个探测选的（`gap_bin`，旁视效应）。后续：用带误差的分箱数据校准并传播后验（T-025）。
 
 **R2/R3-POST（2026-11-16，预注册，T-025）。** 用带误差的分箱 z ≈ 8 数据校准并传播 500 个后验样本（四条链都收敛，没有拟合失配）：我们的恒定 SFE 模型预言的 z = 14–15 星系多于 N26 基准的概率为 1.00（σ_cal = 0.5 时 0.994），主拟合比值 16–84% 为 7.5–14.2，所以 R2"更高"**对光度函数校准的不确定性稳健**。R3 仍是**临界**：与 N26 一致的概率 0.96，差一点达到预注册的门槛，随 σ_cal 在 0.86–1.00 之间变化。两者都以基准模型成分为条件（晕质量函数、ε 的外推、不改正尘埃）。
+独立审稿发现 R3 对固定的 σ_cal 的依赖远大于对校准后验的依赖，而没有建模的效应（亮端箱按高斯处理、γ ≥ 0 的先验边界）都偏向"一致"，所以"临界"只会偏乐观；后续 T-036。
 
 ### 术语表
 
@@ -531,7 +535,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 ### 研究进展
 
-- 2026-11-16：R2/R3-POST（T-025）：在分箱 z ≈ 8 数据上做后验校准；R2 稳健（更高），R3 临界（P = 0.96）。
+- 2026-11-16：R2/R3-POST（T-025）：在分箱 z ≈ 8 数据上做后验校准；R2 稳健（更高），R3 临界（P = 0.96）；审稿：R3 主要取决于 σ_cal（T-036）。
 按时间倒序。
 
 - 2026-11-15：独立审稿：z ≈ 8 光度函数的不确定性使 R3 翻转（φ* 减 1σ 时 R2 也翻转），尘埃使 R3 翻转（事后探索）；第四个缺口 `gap_bin`；后续 T-025。
