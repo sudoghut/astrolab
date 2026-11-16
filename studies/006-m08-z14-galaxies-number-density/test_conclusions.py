@@ -114,10 +114,14 @@ def test_r23_post_rules():
                 lab = "model misfit (probabilities reported, not a verdict)"
             return lab + ("; prior-bounded" if bounded else "")
         assert fit["r2_label"] == label(p2, True, n), name
+        if not ev3:
+            assert fit["r3_label"] == "not evaluable", name
         if ev3:
             p3 = {k: ev3.count(k) / len(ev3) for k in ("consistent with N26", "different")}
             assert p3 == fit["r3_probabilities"]
             assert fit["r3_label"] == label(p3, len(ev3) >= 0.9 * n, len(ev3)), name
     s = load("summary")
     assert s["R2_post"]["r2_label"] == post["primary"]["r2_label"]
+    assert s["R2_post"]["r2_probabilities"] == post["primary"]["r2_probabilities"]
+    assert s["R3_post"]["r3_probabilities"] == post["primary"]["r3_probabilities"]
     assert s["R3_post"]["r3_label"] == post["primary"]["r3_label"]
