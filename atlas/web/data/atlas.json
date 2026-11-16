@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-15T05:01:56+00:00",
+ "generated_at": "2026-11-16T10:47:06+00:00",
  "levels": [
   "L0",
   "L1",
@@ -83,7 +83,7 @@
     "How much of the preference comes from the w0-wa parametrisation versus binned w(z) or Gaussian-process reconstructions?",
     "Leave-one-tracer-out and leave-one-SN-sample-out sensitivity of the signal."
    ],
-   "notes": "Verified against arXiv abstracts in plan 002 (cosmology agent report, 2026-11-11). Milestone M1. Study 002 (2026-11-14): BAO-only and no-CMB rows reproduced, compressed-CMB row conditionally reproduced; full-CMB and DES-SN5YR rows are out of scope (full Planck/ACT likelihoods; 53.5 MB covariance above the download limit). The compressed prior reproduces when its omega_bc mean is read as omega_b + omega_c (-8.01) but not with omega_nu added (-6.59); the referee pointed out that the split may lie within the (unmeasured) theta_* calibration systematics, so the convention is left open (T-022)."
+   "notes": "Verified against arXiv abstracts in plan 002 (cosmology agent report, 2026-11-11). Milestone M1. Study 002 (2026-11-14): BAO-only and no-CMB rows reproduced, compressed-CMB row conditionally reproduced; full-CMB and DES-SN5YR rows are out of scope (full Planck/ACT likelihoods; 53.5 MB covariance above the download limit). The compressed prior reproduces when its omega_bc mean is read as omega_b + omega_c (-8.01) but not with omega_nu added (-6.59); the referee pointed out that the split may lie within the (unmeasured) theta_* calibration systematics, so the convention is left open (T-022). Study 002 R2-CAMB (2026-11-16): with theta_* from CAMB (anchored and raw) the R2 verdicts are unchanged (Delta chi2 shifts -0.002 to -0.125), so the split is robust to the theta_* calibration and R2 depends on the omega_bc convention itself, which only a primary source can settle. Referee (2026-11-16, post hoc, verified): the prior's source cmbant/PlanckEarlyLCDM gives omega_b + omega_c = 0.14143; DESI's 0.14208 adds omega_nu, so reading A is the faithful source prior and A gives about -6.6, not -8.0; how DESI's code applied the mean is open (T-030)."
   },
   {
    "id": "early-thick-disk-formation",
@@ -100,20 +100,25 @@
     }
    ],
    "reproduction": {
-    "status": "not-started",
-    "study": null,
+    "status": "partial",
+    "study": "010-m05-thick-disc-subgiant-ages",
     "quantities": [
      {
-      "name": "thick disk onset",
-      "paper": "~13 Gyr ago",
-      "ours": null
+      "name": "thick disk onset (mean age of the oldest bin)",
+      "paper": "~13 Gyr ago (13.03)",
+      "ours": "12.93 +- 0.06 Gyr (observed ages; deconvolved 12.19-12.59)"
+     },
+     {
+      "name": "star-formation peak (high-J_phi early stars)",
+      "paper": "~11 Gyr ago",
+      "ours": "observed-age peak 11.1 Gyr (no volume correction)"
      }
     ]
    },
    "open_questions": [
     "Robustness of the onset epoch to the isochrone grid."
    ],
-   "notes": "Milestone M5. Updated catalog: 320,028 subgiants (NADC DOI 10.12149/101467); download only the needed columns."
+   "notes": "Milestone M5. Updated catalog: 320,028 subgiants (NADC DOI 10.12149/101467); download only the needed columns. Study 010 (2026-11-16, published 247,104-row table): the 13 Gyr mean is reproduced on the catalogue's own age scale (12.93 Gyr), but the age-scale envelope (0.7-1.1 Gyr, a re-analysis 1.7 Gyr younger) exceeds the 0.8 Gyr margin to the Big Bang; the 8 Gyr split and the old-disc sequence (span, 0.82 Gyr scatter) could not be determined, because the S15 selection term of our deconvolution is misspecified (referee; re-test T-031). Lean: three gaps (bin identification, absolute scale, mean as onset)."
   },
   {
    "id": "gaia-dormant-black-holes",
@@ -194,13 +199,23 @@
     }
    ],
    "reproduction": {
-    "status": "not-started",
-    "study": null,
+    "status": "partial",
+    "study": "007-m10-gwtc4-bbh-mass-35msun",
     "quantities": [
      {
       "name": "BBH local merger rate",
-      "paper": "13-26 Gpc^-3 yr^-1",
+      "paper": "14-26 Gpc^-3 yr^-1 at z = 0",
       "ours": null
+     },
+     {
+      "name": "BBH sample (FAR < 1/yr, both m 90% lower bounds > 3 Msun)",
+      "paper": "153 = 84 O4a + 69 O1-O3",
+      "ours": "84 O4a exactly; 59 O1-O3 by the registered rule (the GWTC-2.1 rows of the ten O1/O2 BBHs carry no FAR on GWOSC); 69 and 153 post hoc with their GWTC-1 FARs"
+     },
+     {
+      "name": "GW231123 total mass rank in the sample",
+      "paper": "most massive BBH to date",
+      "ours": "236 Msun median, heaviest of 143 (153 post hoc)"
      }
     ]
    },
@@ -286,21 +301,36 @@
     }
    ],
    "reproduction": {
-    "status": "not-started",
-    "study": null,
+    "status": "partial",
+    "study": "006-m08-z14-galaxies-number-density",
     "quantities": [
      {
       "name": "z_spec MoM-z14",
       "paper": "14.44 +/- 0.02",
       "ours": null,
-      "verified": "S"
+      "verified": "V"
+     },
+     {
+      "name": "log phi, z = 14-15, -21 < M_UV < -20 (N26, two sources)",
+      "paper": "-5.36 +0.37/-0.45",
+      "ours": "-5.364 +0.365/-0.451 (Gehrels; volume 460,463 Mpc^3)"
+     },
+     {
+      "name": "observed / pre-JWST baseline",
+      "paper": "182 (+329/-105), N26's S23-type LF",
+      "ours": "constant-SFE model calibrated at z ~ 8 predicts 9.4x N26's baseline (2.5-37x across 72 variants), i.e. observed / ours ~ 19"
+     },
+     {
+      "name": "sigma_UV needed at z = 14-15",
+      "paper": "~1.5-2 mag (N26)",
+      "ours": "1.38 mag (1.15-1.57 Poisson; 1.07-1.60 across variants)"
      }
     ]
    },
    "open_questions": [
     "Minimal UV burstiness / star-formation efficiency needed at z ~ 12-15."
    ],
-   "notes": "Milestone M8. Detection is established; the interpretation of the excess is contested."
+   "notes": "Milestone M8. Detection is established; the interpretation of the excess is contested. Study 006: the size of the excess depends strongly on the pre-JWST baseline (calibration-dependent across 72 model variants); the counts are two sources with Poisson errors only (cosmic variance, the effective area and the bin drawn around the detections are open gaps). The referee showed that 1 sigma in phi*, M* or alpha flips the sigma_UV verdict (phi* -1 sigma also brings the model within 3x of N26's baseline), and that a z ~ 8 dust correction raises the ratio and flips the sigma_UV verdict; follow-up T-025."
   },
   {
    "id": "milky-way-declining-rotation-curve",
@@ -321,13 +351,23 @@
     }
    ],
    "reproduction": {
-    "status": "not-started",
-    "study": null,
+    "status": "partial",
+    "study": "009-m06-mw-outer-rotation-curve-decline",
     "quantities": [
+     {
+      "name": "power-law slope beyond 19 kpc (Jiao 2023)",
+      "paper": "gamma = -0.47 +- 0.15, flat rejected at 3 sigma",
+      "ours": "-0.466, S = 3.15 under J23's flat-A prior; 2.7 sigma from the likelihood alone; errors not independent (chi2 1.3 for 15 dof)"
+     },
+     {
+      "name": "M_dyn, six baryon models (Jiao 2023 Table 4)",
+      "paper": "1.97-1.99 e11 Msun",
+      "ours": "1.969-1.980 e11 Msun (Einasto); an NFW halo, disfavoured (delta chi2 ~ 20) but not excluded, gives 7.1 e11"
+     },
      {
       "name": "M_total (Jiao 2023)",
       "paper": "2.06 +0.24/-0.13 e11 Msun",
-      "ours": null
+      "ours": "set by the Einasto shape: 99.8% of M_vir inside 26.5 kpc; V^2R/G(26.5 kpc) = 1.90 e11"
      }
     ]
    },
@@ -355,12 +395,27 @@
     }
    ],
    "reproduction": {
-    "status": "not-started",
-    "study": null,
+    "status": "partial",
+    "study": "005-m09-nanograv-gwb-power-law",
     "quantities": [
      {
-      "name": "A_GWB (NANOGrav)",
+      "name": "A_GWB at gamma = 13/3 (NANOGrav, KDE refit v2.0.0, fiducial DMX noise model, median and 90%)",
       "paper": "2.4 +0.7/-0.6 e-15",
+      "ours": "2.31 [1.82, 2.92] e-15 (Hellinger 0.099 to L8's interval)"
+     },
+     {
+      "name": "gamma, free power law (fiducial DMX noise model)",
+      "paper": "3.2 +/- 0.6 (5-95%)",
+      "ours": "3.25 [2.65, 3.89]"
+     },
+     {
+      "name": "HPD level of gamma = 13/3 (2-D, fiducial DMX noise model)",
+      "paper": "within the 99% region",
+      "ours": "0.979 (factorised likelihood)"
+     },
+     {
+      "name": "Hellings-Downs significance",
+      "paper": "Bayes factor 200-1000",
       "ours": null,
       "verified": "S"
      }
@@ -369,7 +424,7 @@
    "open_questions": [
     "Is the SMBHB amplitude consistent with galaxy-merger and BH mass-function priors?"
    ],
-   "notes": "Milestone M9. Grade 'hint' here means strong evidence below 5 sigma. Use the NANOGrav KDE free-spectrum release (Zenodo 10344086, v1.1.0)."
+   "notes": "Milestone M9. Grade 'hint' here means strong evidence below 5 sigma. Study 005 refits the NANOGrav KDE free spectrum (Zenodo 21844115 v2.0.0; v1.1.0 = Zenodo 10344086 as a post-hoc comparison). The HD significance is not reproduced (needs the full timing data). The agreement is conditional on L8's fiducial DMX noise model: on the DMGP free spectrum (v1.1.0) the refit gives A = 2.19e-15 (Hellinger 0.31 to L8's interval) and the HPD level of gamma = 13/3 falls to 0.62 (study 005, post hoc)."
   },
   {
    "id": "s8-tension",
@@ -390,19 +445,34 @@
     }
    ],
    "reproduction": {
-    "status": "not-started",
-    "study": null,
+    "status": "reproduced",
+    "study": "008-m03-s8-des-y6-cmb-parameter-difference",
     "quantities": [
      {
-      "name": "S8 DES Y6",
+      "name": "S8 DES Y6 3x2pt (mean, public chain)",
       "paper": "0.789 +/- 0.012",
-      "ours": null
+      "ours": "0.7893 [0.7777, 0.8019]"
+     },
+     {
+      "name": "S8 CMB (Planck+ACT+SPT, D26)",
+      "paper": "0.836 +0.012/-0.013",
+      "ours": "0.8357 [0.8229, 0.8481]"
+     },
+     {
+      "name": "DES Y6 3x2pt - CMB difference in S8",
+      "paper": "2.6 sigma",
+      "ours": "2.67 +/- 0.03 sigma (bootstrap; 2.44-2.55 with D26's projection-effect shifts)"
+     },
+     {
+      "name": "DES Y6 3x2pt - CMB difference in S8-Omega_m",
+      "paper": "2.2 sigma",
+      "ours": "2.18 +/- 0.03 sigma"
      },
      {
       "name": "S8 KiDS-Legacy",
-      "paper": "0.815 +0.016/-0.021",
-      "ours": null,
-      "verified": "S"
+      "paper": "0.815 +0.016/-0.021 (mode); mean 0.813 +/- 0.018",
+      "ours": "1.04 sigma from the CMB chain (summary only)",
+      "verified": "V"
      }
     ]
    },
@@ -606,16 +676,153 @@
    "title": "M9 NANOGrav 15-yr GWB: power-law amplitude and spectral index from the KDE free spectrum",
    "title_zh": "M9 NANOGrav 15 年引力波背景：由 KDE 自由谱拟合幂律振幅与谱指数",
    "level": "X",
-   "status": "planned",
+   "status": "reproduced",
    "question": "Does a laptop refit of the NANOGrav 15-yr KDE free spectrum agree with the power-law amplitude and spectral-index statements of Agazie et al. 2023 (ApJL 951 L8), and how does the amplitude overlap with the SMBHB-population prediction of the companion paper L37?",
    "question_zh": "在本机用 NANOGrav 15 年 KDE 自由谱重拟幂律，振幅与谱指数是否与 Agazie et al. 2023（ApJL 951 L8）的陈述一致？振幅与姊妹论文 L37 的 SMBHB 群体预测重叠多少？",
-   "claims": [],
+   "claims": [
+    "nanohertz-gw-background"
+   ],
    "has_web": true,
    "last_run": true,
    "footprint": {
     "scale": {
      "log10_min": -6.0,
      "log10_max": 10.15,
+     "note": null,
+     "default": true
+    },
+    "sky": {
+     "modes": [],
+     "survey": null,
+     "targets": []
+    }
+   }
+  },
+  {
+   "id": "006-m08-z14-galaxies-number-density",
+   "title": "M8 z ~ 14 galaxies: number density and the UV scatter a constant-efficiency model needs",
+   "title_zh": "M8 z ≈ 14 星系：数密度，以及恒定效率模型所需的紫外弥散",
+   "level": "L1",
+   "status": "reproduced",
+   "question": "Does the z = 14-15 number density that Naidu et al. 2026 infer from two spectroscopically confirmed galaxies follow from their counts and volume, how does it compare with an independent constant star-formation-efficiency halo model, and how much UV scatter would that model need?",
+   "question_zh": "Naidu 等 2026 由两个光谱确认的星系推出的 z = 14–15 数密度能否由计数与体积得到？与独立的恒定恒星形成效率晕模型相比如何？该模型需要多大的紫外弥散？",
+   "claims": [
+    "jwst-z14-galaxies"
+   ],
+   "has_web": true,
+   "last_run": true,
+   "footprint": {
+    "scale": {
+     "log10_min": 7.0,
+     "log10_max": 10.0,
+     "note": null,
+     "default": true
+    },
+    "sky": {
+     "modes": [],
+     "survey": null,
+     "targets": []
+    }
+   }
+  },
+  {
+   "id": "007-m10-gwtc4-bbh-mass-35msun",
+   "title": "M10 GWTC-4.0 BBH mass spectrum: the 35 Msun feature and the event sample",
+   "title_zh": "M10 GWTC-4.0 双黑洞质量谱：35 M☉ 特征与事件样本",
+   "level": "X",
+   "status": "concluded",
+   "question": "Does the 153-event BBH sample of the GWTC-4.0 population paper follow from the public event lists, and does its claim of a feature at 35 Msun establish a steepening only, or an over-density?",
+   "question_zh": "GWTC-4.0 群体论文的 153 个双黑洞样本能否由公开的事件列表重建？它关于 35 M☉ 特征的结论能推出的是变陡，还是过密？",
+   "claims": [
+    "gwtc4-bbh-mass-spectrum"
+   ],
+   "has_web": true,
+   "last_run": true,
+   "footprint": {
+    "scale": {
+     "log10_min": -6.0,
+     "log10_max": 10.15,
+     "note": null,
+     "default": true
+    },
+    "sky": {
+     "modes": [],
+     "survey": null,
+     "targets": []
+    }
+   }
+  },
+  {
+   "id": "008-m03-s8-des-y6-cmb-parameter-difference",
+   "title": "M3 S8 tension: DES Y6 3x2pt vs CMB parameter difference and multi-probe summary",
+   "title_zh": "M3 S8 张力：DES Y6 3x2pt 与 CMB 的参数差异及多探针汇总",
+   "level": "L0",
+   "status": "reproduced",
+   "question": "Do the public DES Y6 chains reproduce the 2.6 sigma (S8) and 2.2 sigma (S8-Omega_m) DES-CMB parameter differences, and does the paper's no-substantial-evidence conclusion follow from them?",
+   "question_zh": "公开的 DES Y6 链文件能否复现 DES 与 CMB 在 S8 上 2.6σ、在 S8–Ωm 平面上 2.2σ 的参数差异？论文\"没有实质证据表明不一致\"的结论能否由此推出？",
+   "claims": [
+    "s8-tension"
+   ],
+   "has_web": true,
+   "last_run": true,
+   "footprint": {
+    "scale": {
+     "log10_min": 8.0,
+     "log10_max": 10.15,
+     "note": null,
+     "default": true
+    },
+    "sky": {
+     "modes": [],
+     "survey": null,
+     "targets": []
+    }
+   }
+  },
+  {
+   "id": "009-m06-mw-outer-rotation-curve-decline",
+   "title": "M6 Milky Way outer rotation curve: Keplerian decline, mass and systematics",
+   "title_zh": "M6 银河系外区旋转曲线：开普勒式下降、质量与系统误差",
+   "level": "L3",
+   "status": "reproduced",
+   "question": "Does the published Gaia DR3 rotation curve of Jiao et al. 2023 reject a flat curve at 3 sigma and imply a Milky Way mass of about 2 x 10^11 Msun, and how robust are both to Jeans-modelling systematics and to the halo extrapolation?",
+   "question_zh": "Jiao 等 2023 发表的 Gaia DR3 旋转曲线能否以 3σ 拒绝平坦曲线、推出约 2 × 10¹¹ 太阳质量的银河系质量？两者对金斯建模的系统误差与晕的外推有多稳健？",
+   "claims": [
+    "milky-way-declining-rotation-curve"
+   ],
+   "has_web": true,
+   "last_run": true,
+   "footprint": {
+    "scale": {
+     "log10_min": 0.0,
+     "log10_max": 5.0,
+     "note": null,
+     "default": true
+    },
+    "sky": {
+     "modes": [],
+     "survey": null,
+     "targets": []
+    }
+   }
+  },
+  {
+   "id": "010-m05-thick-disc-subgiant-ages",
+   "title": "M5 Milky Way thick disc: early formation from subgiant ages",
+   "title_zh": "M5 银河系厚盘：由亚巨星年龄看早期形成",
+   "level": "L3",
+   "status": "concluded",
+   "question": "Does the published LAMOST/Gaia subgiant age catalogue of Xiang & Rix 2022 reproduce its thick-disc onset at about 13 Gyr, the split of the age-metallicity plane at 8 Gyr and the tight old-disc age-metallicity sequence, and how much of each depends on the absolute age scale, the error model and the sample selection?",
+   "question_zh": "Xiang & Rix 2022 发表的 LAMOST/Gaia 亚巨星年龄星表能否复现厚盘约 13 Gyr 前开始形成、年龄–金属丰度平面在 8 Gyr 处分开以及老盘紧致的年龄–金属丰度序列？各项在多大程度上依赖绝对年龄标尺、误差模型与样本选择？",
+   "claims": [
+    "early-thick-disk-formation"
+   ],
+   "has_web": true,
+   "last_run": true,
+   "footprint": {
+    "scale": {
+     "log10_min": 0.0,
+     "log10_max": 5.0,
      "note": null,
      "default": true
     },
