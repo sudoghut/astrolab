@@ -14,8 +14,11 @@ from pathlib import Path
 
 from . import config
 
-PUBLISHED = ("web", "results", "data")          # per study
-SUFFIXES = {".html", ".js", ".css", ".json", ".csv", ".svg", ".png", ".txt"}
+# per study folder: the file types published (an allowlist; anything else is skipped and reported)
+PUBLISHED = {"web": {".html", ".js", ".css", ".json", ".svg", ".png"},
+             "results": {".json"},
+             "data": {".csv", ".json"}}
+ATLAS_SUFFIXES = {".html", ".js", ".css", ".json", ".svg", ".png"}
 MAX_FILE_BYTES = 5 * 1024 ** 2                   # results warning line (AGENTS.md section 1.1)
 
 REDIRECT = """<!doctype html>
@@ -27,25 +30,31 @@ REDIRECT = """<!doctype html>
 
 
 def _files(root: Path):
-    yield from sorted(p for p in (root / "atlas" / "web").rglob("*") if p.is_file())
+    """(file, allowed suffixes): atlas/web and each study's web/, results/ and data/, with subfolders
+    (for example results/dr3/, which study 001's page reads after the DR4 release)."""
+    for p in sorted((root / "atlas" / "web").rglob("*")):
+        yield p, ATLAS_SUFFIXES
     for study in sorted(p for p in (root / "studies").iterdir() if p.is_dir() and not p.name.startswith("_")):
-        for sub in PUBLISHED:
+        for sub, suffixes in PUBLISHED.items():
             d = study / sub
             if d.is_dir():
-                # top level of results/ and data/ only; web/ may have subfolders
-                it = d.rglob("*") if sub == "web" else d.iterdir()
-                yield from sorted(p for p in it if p.is_file())
+                for p in sorted(d.rglob("*")):
+                    yield p, suffixes
 
 
 def build(dest: Path, root: Path | None = None) -> dict:
-    root = Path(root or config.ROOT)
-    dest = Path(dest)
-    if dest.exists() and any(dest.iterdir()):
-        raise SystemExit(f"{dest} is not empty")
+    root = Path(root or config.ROOT).resolve()
+    dest = Path(dest).resolve()
+    if dest == root or root in dest.parents:
+        raise SystemExit(f"{dest} is inside the project folder; build the site elsewhere (AGENTS.md 1.7)")
+    if dest.exists() and (not dest.is_dir() or any(dest.iterdir())):
+        raise SystemExit(f"{dest} exists and is not an empty folder")
     copied, skipped = [], []
-    for src in _files(root):
+    for src, suffixes in _files(root):
+        if src.is_symlink() or not src.is_file():
+            continue
         rel = src.relative_to(root)
-        if src.suffix.lower() not in SUFFIXES or src.stat().st_size > MAX_FILE_BYTES:
+        if src.suffix.lower() not in suffixes or src.stat().st_size > MAX_FILE_BYTES:
             skipped.append(str(rel).replace("\\", "/"))
             continue
         out = dest / rel
@@ -57,18 +66,23 @@ def build(dest: Path, root: Path | None = None) -> dict:
     return {"files": len(copied), "bytes": sum((dest / f).stat().st_size for f in copied), "skipped": skipped}
 
 
-_LINK = re.compile(r"""(?:src|href)\s*=\s*["']([^"'#?]+)["']""")
-_FETCH = re.compile(r"""fetch\(\s*["'`]([^"'`$]+)["'`]\s*\)""")
+_LINK = re.compile(r"""(?:src|href)\s*=\s*["']([^"']+)["']""")
+_FETCH = re.compile(r"""fetch\(\s*["'`]([^"'`]+)["'`]""")
 
 
 def broken_links(site: Path) -> list[str]:
-    """Static relative links (src/href attributes and literal fetch() targets) that do not resolve
-    inside the built site. Template links (with ${...}) and absolute URLs are not checked."""
+    """Literal relative links in the HTML pages (src/href attributes and fetch() targets, query and
+    fragment removed) that do not resolve inside the built site. NOT checked: URLs built at run time
+    (template literals with ${...}, for example `../results/${n}.json`), CSS url(), srcset and
+    standalone .js files; the per-study results/ and data/ folders are published whole instead."""
     site = Path(site)
     bad = []
     for page in site.rglob("*.html"):
         text = page.read_text(encoding="utf-8")
         for target in _LINK.findall(text) + _FETCH.findall(text):
+            target = re.split(r"[?#]", target)[0]
+            if not target:
+                continue
             if re.match(r"^[a-z]+:|^//|^\$\{|^mailto:", target) or "${" in target:
                 continue
             path = (page.parent / target).resolve()
