@@ -40,15 +40,16 @@ work and the checklist.
   reader's paraphrase, including a web-reading subagent's summary, is not a check. The arXiv
   HTML render can garble tables and equations: re-read the PDF page when one looks broken.
 - **Data products**: exact name, version or DOI, file names and stated sizes from the landing
-  page or a server-side `COUNT(*)` (`server-side-query` skill), never by downloading to find out.
+  page; for a query, rows from a server-side `COUNT(*)` (`server-side-query` skill) times the
+  bytes per row of the selected columns gives the size estimate. Never download to find out.
 - **Quotes**: copy verbatim only the short quotes the work needs: `[stated]` premises and the
   `Conclusion` quote of a paper study (format rules in AGENTS.md section 2, Lean annotations).
   Numbers are always recorded exactly; other text is summarised, not copied.
 
 ## 3. Record
 
-- Change the marker to [V] where the item is listed (`ROADMAP.md`, the plan, the study README)
-  and add what confirms it: identifier, version, location, how it was read and the date, e.g.
+- Change the marker to [V] where it is listed (`ROADMAP.md` or the design plan; study READMEs
+  carry no markers, their data table holds the size estimates) and add what confirms it: identifier, version, location, how it was read and the date, e.g.
   `arXiv:NNNN.NNNNN v2, Table N (read HTML full text, 2026-MM-DD) [V]`.
 - Items that disagree with the source: correct them in place and say what changed in the plan's
   execution record or the study's `log.md` (Chinese, English terms in parentheses).
