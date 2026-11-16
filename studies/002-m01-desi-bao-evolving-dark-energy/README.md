@@ -112,9 +112,8 @@ tolerance stay as pre-registered in this section. The existing feasibility check
 non-finite → χ² = ∞) runs before any CAMB call, so the feasible region is the same as in R2.
 
 - **θ*_CAMB.** camb 2.0.5 (version saved with the results), all `CAMBparams` at the package
-  defaults except: `set_cosmology(H0=H0, ombh2=ombh2, omch2=omch2, mnu=PARAMS["mnu"], 
-  num_massive_neutrinos=1,
-  nnu=3.044, TCMB=2.7255, YHe=None)` (helium from CAMB's BBN default; degenerate hierarchy;
+  defaults except: `set_cosmology(H0=H0, ombh2=ombh2, omch2=omch2, mnu=PARAMS["mnu"],
+  num_massive_neutrinos=1, nnu=3.044, TCMB=2.7255, YHe=None)` (helium from CAMB's BBN default; degenerate hierarchy;
   Recfast recombination; default accuracy) and `set_dark_energy(w=w0, wa=wa,
   dark_energy_model="ppf")`; `camb.get_background`, θ* = `thetastar`/100 from
   `get_derived_params()`. The recombination class and BBN predictor are saved with the results.
