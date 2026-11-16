@@ -18,8 +18,8 @@ use `paper-study`: it adds the wiki article and the Lean argument before the pre
   move it to Doing with the branch name. Write a design plan only if the section 2 complexity rule
   says so (several modules, new core-library capability, staged review).
 - Branch, push early, open a draft PR.
-- Verify every number you will compare against (roadmap [S]/[U] items to [V]) by reading the
-  source read-only; record what was verified where.
+- Raise the milestone's or plan's [S]/[U] items to [V] before starting (`literature-verification`
+  skill).
 - Scaffold: `python -m astrolab new <slug> "<title>" --level Lx` (picks the next number). Then:
   - `study.yaml`: `title_zh`, `question_zh` (tests reject `TODO`), `claims:`, `milestone:`;
     leave `papers: []` and `wiki: null`; fill or delete the `footprint` block;

@@ -14,14 +14,16 @@ work and the checklist.
 - Collect every item the task will rely on: references, numbers, data products, dates. Take the
   marker from `ROADMAP.md`, the design plan or the study README; anything without a marker counts
   as [U].
-- Only numbers that the study will compare with, cut on or quote need [V]; say which ones you
-  are leaving at [S]/[U] and why.
+- Every [S]/[U] item of the milestone or plan goes to [V] before the work starts (AGENTS.md
+  section 2). Check first what the study will compare with, cut on or quote; that is an order,
+  not an exemption. What cannot be confirmed is handled in step 3.
 
 ## 2. Check each item against the primary source (read only)
 
 - Use web search to find the source, then read the page itself: arXiv abstract or HTML page,
-  the journal's DOI page, ADS, the data centre's landing or documentation page. A search snippet,
-  a press release, a review or another paper's citation is not a primary source: at best [S].
+  the journal's DOI page, the data centre's landing or documentation page (ADS is an index for
+  finding them, not the source). A search snippet, a press release, a review or another paper's
+  citation is not a primary source: at best [S].
 - Never download the paper or a data file into the project (AGENTS.md section 1); reading a
   PDF page in the browser is fine.
 - **Identity**: the arXiv id resolves to the stated title and first author; year and journal
@@ -31,16 +33,22 @@ work and the checklist.
 - **Numbers**: the value, its uncertainty and what kind it is (1σ, 68 % or 95 % interval,
   posterior median or best fit), units and conventions (h-scaling, magnitude system, epoch,
   fixed versus marginalised parameters), and where it sits (section, table, equation, figure).
-  Note the arXiv version (v1 and the published version can differ) and errata.
+  Note the arXiv version (v1 and the published version can differ) and errata, and whether the
+  number came from the abstract (often rounded) or from the body or a table.
+- Record a number only from a verbatim excerpt with its location (table, row, column); a
+  reader's paraphrase, including a web-reading subagent's summary, is not a check. The arXiv
+  HTML render can garble tables and equations: re-read the PDF page when one looks broken.
 - **Data products**: exact name, version or DOI, file names and stated sizes from the landing
   page or a server-side `COUNT(*)` (`server-side-query` skill), never by downloading to find out.
-- **Quotes**: copy verbatim only the short quotes the work needs (for `[stated]` premises in a
-  paper study); paraphrase the rest.
+- **Quotes**: copy verbatim only the short quotes the work needs: `[stated]` premises and the
+  `Conclusion` quote of a paper study (format rules in AGENTS.md section 2, Lean annotations).
+  Numbers are always recorded exactly; other text is summarised, not copied.
 
 ## 3. Record
 
 - Change the marker to [V] where the item is listed (`ROADMAP.md`, the plan, the study README)
-  and add the identifier or page that confirms it, e.g. `arXiv:2404.03002, Table 3 [V]`.
+  and add what confirms it: identifier, version, location, how it was read and the date, e.g.
+  `arXiv:NNNN.NNNNN v2, Table N (read HTML full text, 2026-MM-DD) [V]`.
 - Items that disagree with the source: correct them in place and say what changed in the plan's
   execution record or the study's `log.md` (Chinese, English terms in parentheses).
 - Items that cannot be confirmed stay [S]/[U] with the reason ("no public table", "only in a

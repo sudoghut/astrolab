@@ -16,7 +16,8 @@ skill is the order of work and the checklists. Design rationale: `design/007-pla
   the study's pre-registration lives in its README (step 4).
 - Verify the paper(s) and read the full text read-only (arXiv HTML version or the PDF page via
   web reading; never save it into the project). Record arXiv IDs, journal reference and every
-  number you will rely on, marked [V] once checked; copy the verbatim quotes you will tag `[stated]`.
+  number you will rely on, marked [V] once checked (`literature-verification` skill); copy the
+  verbatim quotes you will tag `[stated]`.
 - Create the study folder as scaffolding only: `python -m astrolab new <slug> "<title>" --level Lx`.
   The article needs it (its Lean file lives in `argument/`, its page name uses the study number);
   the study itself - pre-registration, `run.py`, web page - still comes after the article (step 4). Fill `study.yaml`
