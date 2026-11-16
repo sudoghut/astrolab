@@ -353,10 +353,42 @@ pre-registered fallback and was applied as written.
   0.24–0.38; only at f_max = 2.81 and for [α/Fe] > 0.18 with [Fe/H] < −0.2 does it reach 0.80 (width
   9.7 Gyr). This is far from Miglio et al.'s 95% within 1.52 Gyr, but the two use different tracers,
   scales and deconvolutions; with the recovery bias above, our latent widths are upper-biased.
+- **Reading after the referee (post hoc, 2026-11-16; the verdicts above stand as pre-registered).**
+  (1) M0's S15 selection term is misspecified under *both* mocked error mechanisms, not only e = r·τ:
+  with r independent of τ the cut e/A < 0.15 does not depend on τ under either mechanism (under
+  e = r·A it is a cut on r alone), so the term pushes latent ages younger and wider; the referee's
+  synthetic check reproduces the +0.3 Gyr σ bias with the term and recovers σ within 0.03 Gyr
+  without it. This, not the data, is what makes R3/R4 and the intrinsic scatter undeterminable, and
+  it is why S15 and Full differ (deconvolved R2 12.19 vs 12.59; τ̄0 8.07 vs 8.70). The README 2.0
+  statement that compression "encodes errors that scale with the observed age" is therefore wrong
+  (correction noted here; the frozen text is left as it was). (2) The R1 power model floors the old
+  weight at 10%, which can never pass the 10% side-mass rule, so bin [−0.1, 0.1) was unresolvable by
+  construction (generating model with young edge 2.0 Gyr, true d = 1). (3) Substantively: no
+  resolvable R1 bin is almost disjoint (d = 0.30–0.58 against 0.25), so with one more resolvable bin
+  R1 would read "not reproduced" rather than "undetermined"; R3's span is 5.7–6.2 Gyr in every
+  variant (inside 4.5–6.5); R4's σ_sel is 2.4–2.7 Gyr in every variant, about three times XR22's 0.82,
+  so the comparison is probably not like for like (XR22's fit likely includes an outlier or
+  background component, as our sample-B mixture does). A re-test with a selection term consistent
+  with the mock mechanisms and a corrected power floor needs a new pre-registration (T-031).
 
 ## 6. Referee notes
 
-Independent critique: selection effects, systematics, alternative explanations.
+Independent referee, 2026-11-16 (a subagent that saw README sections 1-4, the code, the results, the
+Lean argument and its quote / kind / body table, not sections 5-8; it ran offline synthetic checks).
+Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | M0's S15 selection term is wrong under both mocked mechanisms (with r independent of τ the cut does not depend on τ); it drives the σ recovery bias (+0.28/+0.25), the sample-B bias and the S15/Full differences; the README 2.0 rationale for e = r·A is wrong | yes: the algebra of the cut under both mechanisms; our pre-run diagnosis found the same for r·τ; the referee's synthetic check (σ bias +0.31/+0.29 with the term, −0.02/−0.03 without) | **Accepted.** Verdicts stand as pre-registered ("cannot determine"); post-hoc reading in section 5; the 2.0 rationale corrected there; re-test registered as T-031. |
+| 2 | R1 power floor of 10% can never pass the 10% side-mass rule; bin [−0.1, 0.1) unresolvable by construction | yes: `run.py` power model with `m0.valley`'s side-mass test; saved generating model young edge 2.0 Gyr, true d = 1 | **Accepted** (a flaw of the pre-registered specification, implemented as written); verdict stands; noted in section 5; fix in T-031. |
+| 3 | R4's "cannot determine" hides a large discrepancy (σ_sel 2.4–2.7 in all variants vs 0.82); R3's span is stably inside its band | yes (results) | **Accepted**; substantive reading reported in section 5 next to the formal labels. |
+| 4 | R1's undetermined/not-reproduced line sits on Monte Carlo noise (Full bin 0 power 20/30) from the 30-mock fallback | yes | **Accepted**; open question (rerun at 50 per set). |
+| 5 | Mock fits start from the data fit (3 starts) while data fits use 40 | yes | **Accepted limitation**; noted. |
+| 6 | r drawn independently of τ in all mocks while corr(e/A, Age) = +0.16 in the data; f_max = 2.81 is not a usable error scale; latent peaks pile up at the 20 Gyr edge in metal-rich bins | partly (correlation not recomputed by us; the rest from results) | **Accepted limitations**; noted in section 7. |
+| 7 | R2's ML Gaussian on all stars is not exactly XR22's inset fit (σ 2.40 vs 1.81; 33% above 13.8 Gyr) | yes | **Accepted**; the verdict stands; section 5 states the sensitivity. |
+| 8 | Lean: `mod_bin` encoded XR22's hedged "presumably the oldest thick disk stars" as an assertion tagged stated, stronger than its quote; `mod_ages`' quote is a fragment | yes | **Fixed**: relabelled `gap_bin`, GAP [reconstructed]; Lean test passes (now three gaps). `mod_ages`: minor, docstring kept (the Lean body is only an atom). |
+| 9 | Literature on young α-rich stars (Chiappini et al. 2015, Martig et al. 2015; IDs given by the referee, unverified) | no | Noted as context for sample A's young tail; not used. |
+| 10 | Most important additional test: rerun R3/R4 recovery, sample B and R1 bin [−0.3, −0.1) with a selection term consistent with the mocks, and fix the power floor | – | Registered as T-031 (new pre-registration). |
 
 ## 7. Open questions
 
