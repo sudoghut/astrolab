@@ -6,8 +6,6 @@
 
 ## 进行中（Doing）
 
-- [ ] **T-037** 考虑把本项目作为 GitHub Pages 直接部署，使 Atlas 与各研究网页可以在线打开 · 登记 2026-11-16 · 分支 feat/t037-github-pages · 计划 [025](design/025-plan_github-pages-static-site-for-atlas-and-study-pages.md)
-  - 备注：用户提出。需要考虑：页面以相对路径读取 `results/*.json` 与 `atlas/web/data/atlas.json`（静态托管可行）；部署范围（只发布 `atlas/web/` 与各研究的 `web/` 和 `results/`，不发布缓存或数据文件）；`astrolab serve` 之外的路径差异；结果文件大小（研究 004 的来源记录约 0.9 MB）；是否用 GitHub Actions 发布。
 
 ## 下一步（Next）
 
