@@ -307,9 +307,12 @@ def tap(
             raise TooLarge("cached TAP result exceeds the per-download limit in memory; narrow the query.")
         return Fetched(df, prov, True)
 
-    result = _run_tap(url, query, max_rows + 1, mode)
+    # one extra row detects truncation; at the hard ceiling the server's OVERFLOW status does
+    maxrec = min(max_rows + 1, config.TAP_HARD_MAX_ROWS)
+    result = _run_tap(url, query, maxrec, mode)
     table = result.to_table()
-    if len(table) > max_rows or getattr(result, "query_status", None) == "OVERFLOW":
+    if (len(table) > max_rows or len(table) >= maxrec == config.TAP_HARD_MAX_ROWS
+            or getattr(result, "query_status", None) == "OVERFLOW"):
         raise TooLarge(
             f"Query returned more than max_rows={max_rows:,} rows and was refused. "
             "Aggregate server-side or narrow the WHERE clause; raise max_rows only deliberately."
