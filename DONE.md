@@ -12,6 +12,8 @@
 
 ## 2026-11
 
+- [x] **T-008** 技能：出报告（report） · 完成 2026-11-16 · PR #22 — 新增 `.claude/skills/report/SKILL.md`：研究或项目报告的顺序与检查清单（按 git 历史核对结果是否最新、数字溯源到结果键与来源记录、按预注册判据报告、事后项目与探索数字标注、对照第五条列出完成情况），不做新分析；双闸审查（审查子智能体 2 轮、Codex 2 轮）通过。
+
 - [x] **T-007** 技能：文献核实（literature verification） · 完成 2026-11-16 · PR #21 — 新增 `.claude/skills/literature-verification/SKILL.md`：把 [S]/[U] 提升为 [V] 的顺序与检查清单（来源身份、数字的误差类型与约定、逐字摘录与位置、数据产品大小、记录版本与日期），`new-study` 与 `paper-study` 指向它；双闸审查（审查子智能体 2 轮、Codex 2 轮）通过。
 
 - [x] **T-006** 技能：新建研究（new study） · 完成 2026-11-16 · PR #20 — 新增 `.claude/skills/new-study/SKILL.md`：非论文研究的工作顺序与检查清单（登记、建目录、预注册、实现、对话探索、收尾），规则只引用 AGENTS.md；双闸审查（审查子智能体 1 轮、Codex 2 轮）通过。
