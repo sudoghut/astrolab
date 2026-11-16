@@ -129,6 +129,12 @@ def main(argv: list[str] | None = None) -> None:
     sp.add_argument("action", nargs="?", default="info", choices=["info", "prune", "clear"])
     sp.set_defaults(func=cmd_cache)
 
+    sub.add_parser("gaia-login", help="log in to the ESA Gaia archive yourself (credentials are read "
+                   "with getpass and never stored; only the session cookie is kept outside the project)"
+                   ).set_defaults(func=lambda a: __import__("astrolab.gaia_auth", fromlist=["login"]).login())
+    sub.add_parser("gaia-logout", help="end the Gaia archive session and delete the saved cookie"
+                   ).set_defaults(func=lambda a: __import__("astrolab.gaia_auth", fromlist=["logout"]).logout())
+
     sp = sub.add_parser("serve", help="serve project over http for the web pages")
     sp.add_argument("--port", type=int, default=8765)
     sp.set_defaults(func=cmd_serve)

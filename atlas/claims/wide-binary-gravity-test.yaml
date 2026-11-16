@@ -16,12 +16,15 @@ sources:
   - cite: "Cookson, Banik, El-Badry et al. 2026, MNRAS"
     arxiv: "2602.24035"
 reproduction:
-  status: not-started
-  study: null
+  status: partial
+  study: 004-m07-wide-binaries-gravity-test
   quantities:
+    - {name: "C26 main sample size (v~ <= 2.5)", paper: "1421", ours: "639 (different sample)"}
+    - {name: "C26 Newtonian normalisation", paper: "0.489", ours: "0.499"}
+    - {name: "C26 likelihood ratio Newton/MOND", paper: "up to ~1500 (MAD/sqrt(N) errors)", ours: "0.49 with bootstrap errors (cannot distinguish; no power: flat data would give 6.2); 1.7e-5 with MAD/sqrt(N)"}
     - {name: "alpha_grav (Banik 2024)", paper: "-0.021 +0.065/-0.045", ours: null}
     - {name: "g_obs/g_N (Chae 2023)", paper: "1.43 +/- 0.06", ours: null}
 open_questions:
   - "Blind quality-ladder reanalysis reproducing both groups' cuts in one pipeline."
   - "Hidden close binaries flagged with DR4 epoch astrometry."
-notes: "Milestone M7. Do not download the 1.8 GB El-Badry catalog; rebuild the sample server-side."
+notes: "Milestone M7. Do not download the 1.8 GB El-Badry catalog; rebuild the sample server-side. Study 004 (2026-11-16): the server-side rebuild of C26's sample gives 639 pairs (C26 1421); with bootstrap errors the test cannot distinguish Newton from MOND and had no power; with C26's MAD/sqrt(N) errors the same data favour MOND, so the error model decides. Post hoc: C26's lowest x bin needs pairs below 1 kAU; with a 300 AU floor the result swings by orders of magnitude with the HR cut and degrouping (re-test T-034)."

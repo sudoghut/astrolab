@@ -1,0 +1,342 @@
+# Wide binaries: Newton or MOND at low acceleration?
+
+> Sections 1-4 are the pre-registration (derived from part 3 of the wiki article
+> [Study-004](https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-004-wide-binaries-newton-or-mond.md)
+> and design plan 013). Because the Gaia archive is offline 2026-11-25 to 12-02, data are fetched in
+> two steps (section 3): step A (no velocity columns) may run once section 3 is committed; step B
+> (proper motions and radial velocities) runs only after sections 1-4 are committed with a date.
+> No velocity-derived quantity (ṽ, v_sky, any velocity-based selection or median of velocities) is
+> computed before that commit; velocity-free quantities such as the HR constant c are allowed. Later edits need a dated note.
+
+## 1. Question
+
+Cookson, Banik, El-Badry et al. 2026 (C26, arXiv:2602.24035) build a clean Gaia DR3 wide-binary
+sample within 130 pc and find the median scaled relative velocity ṽ = v_sky/√(GM/r_sky) flat with
+r_sky/r_M, concluding that "Newtonian gravity is up to 1500× more likely than MOND". We ask:
+
+1. **R1.** Rebuilt from Gaia DR3 with server-side queries and the same cuts, do we get a sample of
+   comparable size and a median-ṽ profile like C26's Figure 8?
+2. **R2 (the test).** With per-bin errors that are calibrated (a bootstrap over pairs), does the
+   comparison still favour Newton over the MOND step by a relative likelihood of at least 100?
+   This is the `gap_err` premise of the Lean argument.
+3. **R3 (descriptive).** How do C26's choices (projection correction, HR cut, distance, parallax
+   S/N, ipd_frac_multi_peak, degrouping, ṽ cap) move the result?
+4. **R4 (descriptive, optional).** The median profile with Banik et al. 2024's selection
+   (250 pc, G < 17), only if its server-side count fits the budget.
+
+## 2. Hypotheses and decision criteria
+
+**Definitions (fixed here).**
+- a0 = 1.2 × 10⁻¹⁰ m/s²; G = 6.674 × 10⁻¹¹ (SI); 1 AU = 1.495978707 × 10¹¹ m.
+- r_M = √(GM/a0) with M the pair's total mass; x = r_sky/r_M.
+- ṽ = v_sky/√(GM/r_sky) (C26 Eq. 9).
+- MOND prediction (C26 Eqs. 2, 4–8, 10): ν(g_N) = 1/(1 − exp(−√(g_N/a0))) (MLS form);
+  g_N,e = 1.184 a0. C26's x is r/r_M with the 3D r ≈ r_sky√(3/2) (Eq. 10), so with our
+  x = r_sky/r_M the internal field is g_N,i = a0/((3/2)x²) (Eq. 5). g_N,t = √(g_N,i² + g_N,e²);
+  K = ∂ln ν/∂ln g_N (Eq. 8) at g_N,t, in closed form K = −(y/2)e^{−y}/(1 − e^{−y}) with
+  y = √(g_N,t/a0) (between −½ and 0); boost b(x) = √(ν(g_N,t)·(1 + (K/3)·tanh(0.825 g_N,e/g_N,i)^3.7)).
+  An offline unit test checks b → 1 as x → 0 and b → √(ν_e(1 + K_e/3)) at large x.
+  b → 1 as x → 0 (ν → 1, K → 0), so the MOND model for bin j is A·b(x_j) and the Newtonian model
+  is the constant A. As in C26 (Table 3: the χ² values "are optimized with respect to the
+  normalization in the Newtonian regime", for each gravity model; 5 degrees of freedom each), each
+  model has its own free Newtonian-regime normalisation A — this study's fixed convention, the most
+  natural reading of C26; the tied-normalisation calculation is reported as a sensitivity check —
+  fitted by generalised least squares with the bin covariance. (C26's Figure 8 draws both curves at 0.489 only for display.) x_j is the median x of the pairs in bin j (C26 Figure 8 uses the geometric mean;
+  both are reported, the median is used in the fit).
+- Bins (written before any velocity is computed; a value equal to an edge goes to the upper bin): edges in x at the geometric midpoints of C26's
+  Table 2 bin medians: 0.1057, 0.2307, 0.5088, 1.0275, 2.0902; the lowest bin has no lower edge
+  (r_sky ≥ 1 kAU) and the highest no upper edge (r_sky ≤ 30 kAU).
+- Δχ² = χ²_MOND − χ²_Newton, each at its best A; relative likelihood L = exp(Δχ²/2). The two models
+  are not nested; L is a relative likelihood, not a Wilks test or posterior odds.
+
+**Fit validity.** Each bin must hold at least 15 pairs. If the outermost bins fall short, the
+highest bin is merged inward and the lowest bin is merged upward with their neighbours until each
+end holds at least 15 (the merged x_j is the merged median). (Dated amendment, 2026-11-14, before
+any data: the lower end was added after the gate-1 review of the step-B code noted that x < 0.1057
+needs r_sky ≈ 1 kAU and M ≳ 1.8 M☉, so the lowest bin may be sparse; C26's own lowest-bin median,
+x = 0.073 with 368 pairs, implies separations below the stated 1 kAU for typical masses, an
+inconsistency recorded under systematics.) If any interior bin is still under 15, the fit is not
+evaluable. Evaluable means: every final bin holds at least 15 pairs and at least two bins
+remain; otherwise no verdict is given. All degrees of freedom are n_bins − 1 with the final n_bins,
+including the Newtonian p-value. No other merging or edge change is allowed once counts are seen. The 15-pair minimum applies to every bootstrap replicate too: a
+replicate with fewer than 15 pairs in any (merged) bin is redrawn; if more than 5% of draws are
+redrawn, the fit is reported as invalid. The resulting covariance is therefore conditional on the
+fixed final bins and this occupancy rule, not an unconditional bootstrap estimate. The bootstrap covariance must be finite; if its condition
+number exceeds 10⁸, its diagonal is used instead, flagged; if any diagonal entry is not strictly
+positive, the fit is invalid and no verdict is given.
+
+**R1 (reproduction; main sample = C26's "ṽ ≤ 2.5" row).**
+- Main sample: N within ±20% of 1421 → **reproduced sample size**; otherwise **different sample**
+  (R2 is still computed but labelled "different sample; not a reproduction", and a diagnostic chain
+  switching cuts on one at a time is reported).
+- The cleanest variant (ṽ ≤ 1.5 and ipd_frac_multi_peak = 0) is compared with C26's 1216 as a
+  diagnostic only (no pass/fail).
+- Diagnostics only (no pass/fail): per-bin medians against C26 Figure 8 (read from the image),
+  per-bin counts against 368, 228, 144, 99, 33, 28 (and N against their sum, 900, given C26's own
+  1421-versus-900 inconsistency); the fitted Newtonian normalisation against
+  0.489; which error formula (MAD/√N or 1.4826 MAD/√N) reproduces Figure 8's error bars.
+
+**R2 (the test of C26's conclusion and of `gap_err`).** Primary errors: bootstrap over pairs —
+2000 resamples of the whole sample with replacement (seed 0), each re-binned with the same final
+(possibly merged) bins; the covariance of the n_bins bin medians is used in both fits, and every
+degree-of-freedom count uses n_bins − 1. Verdicts on the main sample (ṽ ≤ 2.5), fixed here:
+
+| Condition on L (primary errors) | Verdict |
+|---|---|
+| L ≥ 100 | Newton has the higher relative likelihood (agrees with C26's conclusion) |
+| 1/100 < L < 100 | cannot distinguish (does not support the strength of C26's conclusion) |
+| L ≤ 1/100 | MOND has the higher relative likelihood (contradicts C26) |
+
+Also reported, without verdicts: χ²_MOND with A tied to the Newtonian best fit (an alternative
+reading of C26's convention), L with C26's MAD/√N and with 1.4826 MAD/√N (the reproduction
+column), L for the three other Table 3 rows, the bootstrap/MAD error ratio per bin, and the
+Newtonian χ² and its p-value (n_bins − 1 degrees of freedom; 5 if no bins are merged).
+
+**R3 (descriptive).** Each variant changes one choice from the main sample: no perspective
+correction; no HR cut; HR constant c ± 0.2 mag; d < 150 pc; d < 200 pc (needs its own A/B queries beyond the 150 pc parent cut; dated note 2026-11-14, before any data: not attempted in this study because the authenticated fetch of the 150 pc sky takes about a day before the 11-25 archive outage; reported as not attempted); parallax S/N > 100
+(catalogue C10); ipd = 0 at 130 pc and at 150 pc; no degrouping; degrouping with C25 neighbours only (diagnostic; needs a second set of A2 queries, counted first;
+run only if time before 2026-11-24 allows, otherwise reported as not run); perspective correction
+from the inverse-variance-weighted mean RV of both stars instead of the primary's; ṽ ≤ 1.5 and ≤ 2. All are reported together in one table with
+L (primary errors), compared with C26's quantitative statements (150 pc: MOND 12×; 150 pc with
+ipd = 0: Newton 88×; no projection correction raises the outer-bin median by about 0.15). No
+variant is a headline result and no variant-wise significance is claimed.
+
+**R4 (descriptive, optional).** Only if the server-side count for B24's selection gives inputs
+within the study budget; otherwise reported as not run.
+
+## 3. Data (with size estimate)
+
+All from the Gaia archive (gea.esac.esa.int, `gaiadr3.gaia_source`, plus
+`gaiadr3.astrophysical_parameters` for FLAME masses), through `ctx.tap` (async), never El-Badry's
+catalogue. Parent star: parallax > 6.6667 mas and parallax_over_error > 40 (C25; 824,463 stars,
+counted 2026-11-14; C24's own download stopped at 7 mas, 143 pc, but 150 pc is needed for the R3
+variants). Neighbours for degrouping (dated change, 2026-11-14, before any data): C26 §3.2.2 asks that the
+initial selection be relaxed before degrouping so that faint stars, stars without RVs and stars with
+missing BP/RP can still flag contaminated systems ("It is important to include such stars at the
+degrouping stage"). So the main sample uses relaxed neighbours: any star with
+parallax_over_error > 5 and phot_g_mean_flux_over_error > 5 (C24's download filter, §2.2.1;
+BP/RP unrestricted; no RUWE or RV requirement) and parallax + 3·parallax_error > 6.6667 mas, under the
+projected radius C26 uses for degrouping (§3.2.1: no third star "within 100 kAU"; 100 kAU at the two
+stars' weighted parallax) and the same pairwise 3σ parallax rule, applied between the parent star and
+each candidate neighbour. (Candidate pairs in A1 are searched to 0.5 pc = 103.1 kAU, a superset of
+the 30 kAU sample.) Degrouping with C25 neighbours
+only (parallax_over_error > 40, C24 §2.2.2) is a diagnostic variant.
+
+| Query | Content | Selection (server side) | Est. rows / size |
+|---|---|---|---|
+| A1 candidate pairs (no velocities) | per pair: both stars' source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, rv_method_used (non-null when a radial velocity exists) | both parent stars; projected separation ≤ 0.5 pc (103.1 kAU) at the inverse-variance-weighted parallax; parallaxes consistent within 3σ combined (|ϖ1 − ϖ2| < 3√(σ1² + σ2²), for the pair); no velocity condition (as in C24, which has no velocity cut at pair finding; C26's velocity-related cuts ΔRV < 10 km/s, σ(ṽ) < 0.1 and ṽ ≤ 2.5 are applied after B1, section 4) | each region counted first; the total is known only from those counts (expected tens of thousands of rows; ≤ 50,000 per query, max_rows = 50,000, a region that overflows is split), ~600 B per row by conservative estimate |
+| A2 neighbour counts | per parent star: source_id, number of relaxed neighbours, and the smallest neighbour source_id | neighbours as defined above (no velocity condition); only stars with n ≥ 1 returned | ≤ 50,000 rows per strip (max_rows = 50,000, split if it overflows); at most one row per parent star, so ≤ 824,463 rows and ≤ 33 MB in total at 40 B per row (likely ≤ 200,000 rows, ≤ 8 MB) |
+| A3 FLAME masses (velocity-free) | per parent star in the region with a FLAME mass: source_id, mass_flame | parent stars of the region (same half-open rule as star a) joined on the server to `gaiadr3.astrophysical_parameters` with mass_flame not null | counted first; at most one row per parent star (≤ 824,463 in total, ~19% expected per C26 §4.1.2), 24 B per row, ≤ 20 MB |
+| B1 velocities (after the pre-registration commit) | the A1 pairs with pmra, pmdec, their errors, parallax_pmra_corr, parallax_pmdec_corr, pmra_pmdec_corr, radial_velocity and its error | A1's WHERE plus velocity-free cuts: r_sky ≤ 30 kAU at the weighted parallax and radial_velocity not null for both stars | counted per region with this exact WHERE before each fetch (no total is assumed); ~600 B per row by conservative estimate (20 fields) |
+
+Totals are known only from the per-region counts (A1, A2, A3 before step B; B1 in step B); the
+cumulative estimate is checked before every fetch (expected 25–60 MB), including the relaxed-neighbour
+A2 variant, counted first, under the 200 MB study budget; no single query near 50 MB (each is split
+into strips). Strips (half-open in α and δ, so that every parent star with parallax < 100 mas belongs to exactly one region and gets its A2 count from exactly one query; checked by an offline test): star a in regions of 5° in α × 30° in δ for |δ| ≤ 60° (four declination bands with edges −60°, −30°, 0°, 30°, 60°; 288 regions; smaller than first planned because the archive kills longer joins under load, dated 2026-11-14, before any data), 15° in α for 60° < |δ| ≤ 80° (24 per hemisphere), and one query per polar cap (|δ| > 80°), 338 regions in all; star b restricted to the
+same strip plus a margin of 3.3° in declination at every boundary and, in right ascension, 7.2°
+(|δ| ≤ 60°), 30° (60–80°) and all right ascensions (caps). The search radius is 0.5 pc = 103.1 kAU,
+θ = 3.15° at a weighted parallax of 110 mas (star a < 100 mas); the exact half-width in right
+ascension is asin(sin θ / cos δ) (7.0° at δ = 63.3°, 27.7° at 83.3°), so the margins cover star a with
+parallax < 100 mas (checked by an offline test at 110 mas). Stars with parallax ≥ 100 mas (d < 10 pc,
+a few hundred stars; the 50,000-row cap is verified by the query's own count, since pairs can outnumber stars, and the run stops if it is exceeded) are
+queried once with star b restricted to parallax + 3σ > 80 mas, counted first.
+Each pair is kept once (canonical source_id_a < source_id_b; duplicates from the margins dropped);
+this logic has an offline test. **Units.** Parallaxes are in mas, distances in pc (d = 1000/ϖ), r_sky in AU from d and the angle.
+
+**Count first.** Before each A1, A2, A3 and B1 query (every strip, the near-star query and every R3
+or R4 variant that needs its own query), `run.py` runs the same FROM/WHERE as a server-side
+`COUNT(*)` (through `ctx.count`), converts it to bytes at 600 B per A1 row (20 columns, VOTable), 600 B per B1 row (20 fields), 40 B
+per A2 row and 24 B per A3 row (conservative schema-based estimates; the
+actual guarded downloads are still subject to the hard per-download and study limits in `astrolab`),
+and fetches only if the query fits under 50,000 rows and under `config.HTTP_MAX_BYTES` (the exact
+single-download limit used by `astrolab.fetch`) and the cumulative estimate stays
+under the 200 MB study budget; a strip over 50,000 rows is split in two in right ascension and
+counted again. The budget counts unique fetched inputs (a cached result is not counted again; a
+failed attempt that returns nothing counts nothing). If the cumulative estimate would exceed the budget, the run stops and the user is
+asked. The cache (`%LOCALAPPDATA%`, ~30 MB) must not be cleared until the study is closed: step A's
+rows (A1, A2, A3) live only there, and step B re-issues the same queries, which are then cache hits.
+Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-24).
+
+## 4. Method
+
+1. **Pairs and degrouping (C24 §2.3, C26 §3.2.1).** A pair is kept only if each member's neighbour
+   count (A2) is 1 and that neighbour is the partner; pairs sharing a star are thereby removed. The
+   fraction of A1 pairs surviving degrouping is reported (velocity-free); it does not change the
+   rule.
+2. **Common distance and separation.** ϖ̄ = (σ²_ϖ2 ϖ1 + σ²_ϖ1 ϖ2)/(σ²_ϖ1 + σ²_ϖ2) (C24 Eq. A2), where σ_ϖ1 and σ_ϖ2 are
+   the two stars' parallax_error;
+   d = 1/ϖ̄; r_sky = d·θ (θ the angular separation, exact great-circle formula).
+3. **Masses (C26 §4.1.2).** FLAME mass when available (A3), else, for every star without one, M⋆ = 10^{0.0725(M_G,⊙ − M_G)} with
+   M_G,⊙ = 4.67 (Gaia G, Vega; Willmer 2018, ApJS 236, 47, Table 3 — verified against the table
+   before any mass is computed, recorded in `PARAMS`) and M_G = G + 5 log10(ϖ̄/100) (ϖ̄, the pair's
+   weighted parallax in mas, for both stars; C26 uses d_h); add 0.05 M☉ when M⋆ < 0.7 M☉.
+   M = M⋆,1 + M⋆,2.
+4. **Velocity (C24 Eqs. 2–8, C26 §4.1.6).** The primary's (brighter star's) space velocity is
+   built from its pmra, pmdec, the common parallax ϖ̄ and its radial velocity; its components along
+   the secondary's local east and north unit vectors are the expected proper-motion terms, and
+   v_sky = |(κ/ϖ̄)·(μ_α*,2, μ_δ,2) − (expected terms)| with κ = 4.740470464 (C24 Eqs. 2–6). Using the
+   primary's RV is this study's convention (C26 §4.1.6 says one star's RV suffices and speaks of the
+   "systemic RV"; the mean-RV version is an R3 variant); both stars need an RV anyway because of
+   C26's ΔRV < 10 km/s cut. σ(v_sky), and σ(ṽ) =
+   σ(v_sky)/v_c, by the Jacobian of the full perspective-corrected v_sky (common parallax and
+   perspective term included) with respect to each star's (ϖ, μ_α*, μ_δ), taken by central finite
+   differences, with each star's 3 × 3 covariance from parallax_error, pmra_error, pmdec_error,
+   parallax_pmra_corr, parallax_pmdec_corr and pmra_pmdec_corr (C24 Appendix A extended to the
+   corrected expression); positions and the radial velocity are treated as exact, the two stars are
+   independent, and the mass error is neglected, as in C24 and C26.
+5. **Cuts (main sample, C26).** d < 130 pc; 1 ≤ r_sky ≤ 30 kAU; RUWE < 1.25 (both); both on the HR
+   band: 0.5 < BP−RP < 3.5, 4 < M_G < 14, and 3.3(BP−RP) + c < M_G < 3.3(BP−RP) + c + 0.8 (slope
+   3.3, height 0.8 mag; C26 §3.2.4). The band's position cannot be read from C26, so c is set by a
+   velocity-free rule from the A1 stars: take the deduplicated set of A1 stars (each source_id once,
+   using its own parallax for M_G) with non-null BP−RP, RUWE < 1.25, own parallax > 7.6923 mas
+   (130 pc) and |BP−RP − 1.8| < 0.05; c = median(M_G − 3.3·(BP−RP)) − 0.4, so the band is centred on
+   the K-star locus. If fewer than 30 stars qualify, the window widens once to |BP−RP − 1.8| < 0.15;
+   if still fewer than 30, the main sample is not evaluable and R1–R2 are reported as not run. The numeric c is committed (dated) after A1 and before B1; the R3 variant uses
+   c ± 0.2. *Dated note 2026-11-16 (after step A, before any velocity column was fetched):* c =
+   1.5909 (2081 stars in the 0.05 window; `results/step_a.json`), committed as `PARAMS["hr_c"]`.
+   Velocity-free occupancy check (exploration script `explore/occupancy_step_a.py`, same cuts up to
+   the HR band, masses and x without velocities): per x bin 3, 371, 407, 204, 162, 223 pairs, each an
+   upper bound for step B (A1 ⊇ the merged step-B pairs; the RV, σ(ṽ) and ṽ cuts only remove pairs);
+   the final merge is decided from the step-B counts by the same rule (here it would join the lowest
+   bin to the next). These counts lie at larger x than C26's Fig. 8, a velocity-free sign of the x
+   convention issue listed under systematics; no edge, x definition or merge rule is changed in
+   response (section 2 forbids it). Before step A, only server-side pair counts under the earlier
+   velocity-cap guard were run (plan 013); no velocity value has been fetched (A1's `rv_method_used` is
+   the availability flag listed in the section 3 table, not a velocity, and is not used). *(End of note.)*
+   Both stars with radial velocities and |ΔRV| < 10 km/s; σ(ṽ) < 0.1; ṽ ≤ 2.5.
+6. **Statistics.** Section 2 definitions; bootstrap covariance; GLS fits for A.
+7. **Parameters (`PARAMS` in run.py, saved with the results):** a0, bins, bootstrap count and seed,
+   the cut values above, variant switches for R3. Changing a committed value amends this
+   pre-registration and needs a dated note.
+
+**Blinding fallback.** If the pre-registration commit misses 2026-11-24, B1 is still fetched before
+the archive goes offline, and the study is labelled "unblinded" throughout.
+
+**Systematics and limits.** C26's x convention is ambiguous: its Table 2 lowest-bin median
+x = 0.073 sits below what r_sky ≥ 1 kAU allows for typical masses with r_M = √(GM/a0); our x is
+r_sky/r_M as written in C26, and the per-bin counts against Figure 8 are reported. Our pair finding (projected 0.5 pc with parallax consistency) is our
+reading of C24's "within 0.5 pc of one another", which does not say whether the distance is 2D or
+3D; the HR band's exact position and C26's bin edges are not published; FLAME masses exist for
+only part of the sample; the sample-size discrepancy inside C26 (1421 vs 900) means R1's size
+target is itself uncertain.
+
+## 5. Results (2026-11-16)
+
+Step A (velocity-free, 339 sky regions plus a near-star query) and step B (velocities, after the
+pre-registration commit) ran on 2026-11-14 to 11-16 through the authenticated Gaia archive; the
+cumulative byte estimate was 155.4 MB (budget 200 MB). Page: [`web/index.html`](web/index.html)
+(`python -m astrolab serve`); numbers in `results/summary.json` and `results/variants.json`.
+
+| Criterion | Ours | C26 | Verdict |
+|---|---|---|---|
+| R1 main sample (ṽ ≤ 2.5) | N = 639 | 1421 (±20%) | **different sample** |
+| R1 cleanest (ṽ ≤ 1.5, ipd = 0), diagnostic | N = 497 | 1216 | — |
+| R1 Newtonian normalisation, diagnostic | A = 0.499 | 0.489 | — |
+| R2 Newton vs MOND (bootstrap covariance) | L = 0.49 (Δχ² = −1.44; Newton p = 0.34, 4 dof) | Newton favoured by a large factor | **cannot distinguish** (does not support the strength of C26's conclusion) — labelled "different sample; not a reproduction" |
+
+- **R1.** The diagnostic chain (`summary.json` `R1.diagnostic_chain`): 21,949 candidate pairs with both
+  radial velocities → degrouping 8,425 → d < 130 pc 7,376 → 1 ≤ r_sky ≤ 30 kAU 2,825 → RUWE 1,635 →
+  HR band 712 → |ΔRV| < 10 km/s 662 → σ(ṽ) < 0.1 650 → ṽ ≤ 2.5 639. Per x bin (before merging)
+  3, 215, 232, 109, 56, 24 against C26 Fig. 8's 368, 228, 144, 99, 33, 28: our pairs sit at larger
+  x, the x-convention issue listed under systematics (C26's lowest-bin median x = 0.073 implies
+  separations below its own 1 kAU floor). The lowest bin was merged into the next by the
+  pre-registered rule (five bins). The Newtonian normalisation (0.499) agrees with C26's 0.489.
+- **R2.** With the pre-registered bootstrap covariance, L = 0.49: neither model is preferred. The
+  bootstrap errors are 1.4–3.1 times C26's MAD/√N (per bin 2.3, 2.2, 3.1, 1.4, 2.4). With C26's own
+  MAD/√N errors the same medians give L = 1.7 × 10⁻⁵ (MOND favoured), and with 1.4826 MAD/√N
+  L = 6.7 × 10⁻³ (reproduction column, no verdict): on our sample the error convention, not the
+  data, decides the outcome. This is numerical evidence for the Lean gap `gap_err` (the error
+  model of the chain). Because the sample differs (R1), R2 is not a reproduction of C26's number.
+- **Power of the test (referee, post hoc; verified by us).** With our five bins and bootstrap errors,
+  noise-free Newtonian data (flat at A = 0.499) give L = 6.2 and noise-free MOND data L = 0.16:
+  neither reaches the pre-registered 100 or 1/100. "Cannot distinguish" was therefore almost
+  certain for this sample whatever the truth; it says the sample cannot decide, not that the data
+  disfavour C26's conclusion. The referee's design calculation with C26's own bins and counts gives
+  L ≈ 7 for flat data with correctly sized errors and L ≈ 2000 with errors halved (the size of
+  MAD/√N), i.e. the order of C26's "up to 1500×" (an estimate that assumes C26's per-pair scatter
+  equals ours).
+- **R3 (descriptive).** ṽ ≤ 2: L = 0.40; ṽ ≤ 1.5: 0.92; no perspective correction: 0.13; d < 150 pc:
+  1.16; parallax S/N > 100: 0.49; mean RV: 0.44 — all "cannot distinguish". No degrouping (N = 1465):
+  L = 0.034. Invalid fits (more than 5% of bootstrap replicates redrawn because the outermost bin fell
+  below 15 pairs): ṽ ≤ 1.5 with ipd = 0, ipd = 0, d < 150 pc with ipd = 0, no HR cut, c ± 0.2. Not
+  attempted or not run: d < 200 pc, degrouping with C25 neighbours only (dated notes in sections 3–4).
+  None of C26's quantitative variant statements (150 pc: MOND 12×; 150 pc with ipd = 0: Newton 88×)
+  is reproduced: our 150 pc variant gives L = 1.16 and the ipd = 0 variant is invalid.
+- **R4.** Not run (optional; the B24 server-side count was not attempted before the archive outage).
+- **Exploration after the referee (post hoc, 2026-11-16; output deleted, no verdict).** The same
+  cached data with the r_sky floor lowered to 300 AU (`--set rsky_min_au=300 --set n_boot=500`):
+  main sample N = 1250, per x bin 543, 286, 232, 109, 56, 24 (C26: 368, 228, 144, 99, 33, 28), lowest
+  median x = 0.063 (C26: 0.073). So C26's sample very probably includes pairs below its stated 1 kAU
+  floor. On that sample: main L = 1.9 ("cannot distinguish"), with MAD/√N errors L = 1.9 × 10⁻⁴;
+  d < 150 pc L = 0.67; no HR cut L = 196 (Newton); no degrouping L = 4.5 × 10⁻⁴ (MOND). The outcome
+  swings by orders of magnitude with the sample definition. A pre-registered re-test is T-034.
+
+## 6. Referee notes
+
+Independent referee, 2026-11-16 (a subagent that saw README sections 1-4, the code, the results, the
+Lean argument and its quote / kind / body table, not sections 5-8; it ran offline synthetic checks:
+perspective correction, σ(ṽ) Jacobian, MOND boost, bootstrap against MAD/√N). No bug found.
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The test had almost no power: noise-free Newtonian data give L = 6.2 and MOND data 0.16, so neither threshold can be reached; with C26's design and halved errors flat data give L ≈ 2000, C26's order | yes: L = 6.17 and 0.161 recomputed by us with `wb.compare_models` | **Accepted**; section 5 states it next to the verdict. |
+| 2 | The shortfall is almost entirely C26's lowest x bin (outside it we have 636 pairs against C26's 532); C26's lowest-bin median x = 0.073 is inconsistent with its 1 kAU floor, so C26 probably includes pairs below 1 kAU or uses a different x scale | partly: per-bin counts from `summary.json`; the exploration below | **Accepted as the likely cause**; post-hoc exploration with r_sky ≥ 300 AU (below); follow-up T-034. |
+| 3 | Degrouping with relaxed neighbours (parallax S/N > 5, 3σ parallax consistency) keeps only 38% of 1–30 kAU pairs, much stricter than C26 appears to be | yes (cut traces) | **Accepted limitation**; the C25-neighbour diagnostic was not run (section 3); follow-up T-034. |
+| 4 | The bootstrap errors are noisy (18–29% scatter at these N); a pooled error model σ_j = k/√N_j moves L from 0.49 to 0.17 | partly (referee's computation) | **Accepted**; reported as a sensitivity here; no verdict change (both "cannot distinguish"). |
+| 5 | Contamination that adds a fixed km/s grows in ṽ with x and mimics MOND (no_degroup: L = 0.034); any MOND-ward reading of the MAD/√N result may be contamination | partly | **Accepted** as context; no verdict uses it. |
+| 6 | The ">5% redrawn" rule invalidated 7 of 14 variants (a bin of 15–20 pairs); invalid variants' L (e.g. no HR cut 434) must not be quoted | yes | **Accepted**; section 5 lists them as invalid; recorded as a design lesson (section 7). |
+| 7 | No projection correction raises our outer median by 0.037, against C26's ≈ 0.15 (about 1σ given 24 pairs) | yes | Noted; the code was verified on synthetic pairs. |
+| 8 | The saved R1 chain is cumulative, not one cut at a time as section 2 says | yes | Accepted (only the HR and degrouping one-at-a-time variants exist). |
+| 9 | Lean: `[stated]` premises are no stronger than their quotes; the conclusion should carry "for our cleanest sample"; a missing gap is "x computed on the model's scale" | yes | Docstring of the conclusion qualified; the x-scale gap is recorded in section 7 and the wiki (not added to the Lean argument in this PR). |
+| 10 | Literature: Banik et al. 2024 (arXiv:2311.03436) and Chae 2023 (arXiv:2305.04613) on close-binary contamination; El-Badry, Rix & Heintz 2021 (arXiv:2101.05282) and Pittordis & Sutherland 2023 (arXiv:2205.02846) unverified | partly (the first two are study papers) | Context only. |
+
+## 7. Open questions
+
+- Why our sample is less than half of C26's (639 against 1421) with the same cuts: degrouping
+  (21,949 → 8,425) and the r_sky window (→ 2,825) remove most pairs; whether C26's x or r_sky
+  convention differs (their lowest bin implies r_sky < 1 kAU) could be tested with the per-bin
+  medians of Fig. 8 and a relaxed r_sky floor (an exploration, no verdict).
+- Which error model is right for the bin medians: the bootstrap errors are 1.4–3.1 times MAD/√N,
+  enough to turn "MOND favoured" into "cannot distinguish". A mock with known Newtonian velocities
+  and C26's selection would calibrate both.
+- The outermost bin (x ≈ 2.7) holds only 24 pairs, which made the ipd = 0 and HR variants invalid.
+- d < 200 pc and the C25-neighbour degrouping diagnostic were not run (sections 3–4).
+- The Lean argument lacks a premise that x is computed on the MOND model's scale (referee point 9);
+  C26's lowest bin is inconsistent with its stated 1 kAU floor.
+- Design lesson: a hard 15-pair floor with a 5% redraw limit invalidates variants whose outer bin
+  holds 15–20 pairs.
+
+## 8. Exploring via chat
+
+How a coding agent answers "what if" questions about this study without touching `results/`
+(rules: AGENTS.md section 2).
+
+| Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
+|---|---|---|---|
+| `vt_max` | ṽ cap of the main sample | 1.5–3 | cache only |
+| `d_max_pc` | distance limit (pc) | 100–150 (the parent query stops at 150) | cache only |
+| `rsky_min_au`, `rsky_max_au` | projected separation window | 500–2000; 10,000–30,000 | cache only |
+| `ruwe_max`, `drv_max`, `sig_vt_max` | quality cuts | 1.1–1.4; 5–20 km/s; 0.05–0.2 | cache only |
+| `hr_c` | HR band constant (committed from step A) | ± 0.3 | cache only |
+| `edges`, `min_per_bin` | x-bin interior edges and the minimum count | C26's edges; 10–30 | cache only |
+| `n_boot`, `boot_seed` | bootstrap replicates and seed | 500–5000 | cache only |
+| `a0`, `gne_over_a0` | MOND constant and external field | 1.0–1.3 × 10⁻¹⁰; 0–2 | cache only |
+| `step` | "A" (velocity-free) or "B" | B for explorations | cache only (both steps are cached) |
+
+- Rerun with an override: `python -m astrolab explore 004-m07-wide-binaries-gravity-test --tag <topic> --set KEY=VALUE`
+  (outputs in `explore/<date>-<topic>/`, not committed; about 35 min from the cache: every query is a
+  cache hit, the bootstrap of 14 variants dominates; `--set n_boot=200` is much faster).
+- Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
+  `python -m astrolab explore 004-m07-wide-binaries-gravity-test --tag <topic> --script explore/<name>.py`.
+- Results files and keys: `summary.json` (`R1`: N, the diagnostic chain, counts against Fig. 8; `R2`,
+  `R2_L`; `not_run`), `variants.json` (per variant: `N`, `counts_raw`, `counts`, `medians`, `x_median`,
+  `reproduction` (MAD/√N fits), `primary` (bootstrap fit: `L`, `dchi2`, `p_newton`, `boot_errors`,
+  `boot_over_mad`, `redraw_fraction`, `verdict`), `cut_trace`), `step_a.json` (step-A counts, HR c),
+  `provenance.json` (every query).
+- Example questions: "Does a 500 AU r_sky floor bring the counts closer to C26?" → `--set rsky_min_au=500`.
+  "How does the verdict depend on the bootstrap?" → `--set n_boot=5000 --set boot_seed=1`.
+  "What if a0 = 1.0e-10?" → `--set a0=1.0e-10`. The velocity-free occupancy check:
+  `--script explore/occupancy_step_a.py`.
+- Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
+  on a branch.
+

@@ -1,0 +1,100 @@
+{
+ "params": {
+  "step": "B",
+  "parent": "parallax > 6.6667 AND parallax_over_error > 40",
+  "neighbour": "parallax_over_error > 5 AND phot_g_mean_flux_over_error > 5 AND parallax + 3 * parallax_error > 6.6667",
+  "neighbour_c25": "parallax_over_error > 40 AND phot_g_mean_flux_over_error > 5 AND parallax + 3 * parallax_error > 6.6667",
+  "near_plx": 100.0,
+  "near_b": "parallax + 3 * parallax_error > 80",
+  "vcap_kms": null,
+  "max_rows": 50000,
+  "bytes_a1": 600,
+  "bytes_a2": 40,
+  "bytes_a3": 24,
+  "bytes_b1": 600,
+  "budget_bytes": 209715200,
+  "workers": 4,
+  "region_limit": null,
+  "hr_c": 1.590861779261529,
+  "a0": 1.2e-10,
+  "gne_over_a0": 1.184,
+  "mg_sun": 4.67,
+  "edges": [
+   0.1057,
+   0.2307,
+   0.5088,
+   1.0275,
+   2.0902
+  ],
+  "min_per_bin": 15,
+  "n_boot": 2000,
+  "boot_seed": 0,
+  "L_threshold": 100.0,
+  "d_max_pc": 130.0,
+  "rsky_min_au": 1000.0,
+  "rsky_max_au": 30000.0,
+  "ruwe_max": 1.25,
+  "drv_max": 10.0,
+  "sig_vt_max": 0.1,
+  "vt_max": 2.5
+ },
+ "step": "B",
+ "R1": {
+  "N_main": 639,
+  "target": 1421,
+  "within_20pct": false,
+  "N_cleanest": 497,
+  "target_cleanest": 1216,
+  "fig8_counts": [
+   368,
+   228,
+   144,
+   99,
+   33,
+   28
+  ],
+  "verdict": "different sample",
+  "N_vs_fig8_sum": {
+   "N": 639,
+   "fig8_sum": 900
+  },
+  "counts_vs_fig8": {
+   "ours": [
+    3,
+    215,
+    232,
+    109,
+    56,
+    24
+   ],
+   "fig8": [
+    368,
+    228,
+    144,
+    99,
+    33,
+    28
+   ]
+  },
+  "A_newton_vs_0.489": 0.4988101472165239,
+  "diagnostic_chain": {
+   "merged_pairs": 21949,
+   "degroup": 8425,
+   "distance": 7376,
+   "r_sky": 2825,
+   "ruwe": 1635,
+   "hr": 712,
+   "rv": 662,
+   "sigma_vt": 650,
+   "vt_cap": 639
+  }
+ },
+ "R2": "cannot distinguish (does not support the strength of the C26 conclusion)",
+ "R2_L": 0.48570186692012696,
+ "n_candidate_pairs": 21949,
+ "est_bytes": 155400368,
+ "not_run": {
+  "d200": "not attempted: needs its own A and B queries beyond the 150 pc parent cut (dated note in README)",
+  "c25_neighbour_degrouping": "diagnostic; its extra A2 queries were not run"
+ }
+}

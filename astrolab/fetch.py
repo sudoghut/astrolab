@@ -64,26 +64,138 @@ def _transient(exc: Exception) -> bool:
     return any(code in text for code in ("500", "502", "503", "504", "timed out", "Connection"))
 
 
+class _VOResult:
+    """Minimal stand-in for pyvo's result: to_table() and query_status."""
+
+    def __init__(self, table, status):
+        self._table, self.query_status = table, status
+
+    def to_table(self):
+        return self._table
+
+
+def _download_votable(svc, uri: str):
+    """Stream an async job's VOTable with the per-download byte cap enforced during transfer."""
+    from astropy.io import votable
+
+    session = getattr(svc, "_session", None)
+    if session is None:
+        import requests
+        session = requests.Session()
+    tmp = cache.staging_path(".xml")
+    written = 0
+    try:
+        with session.get(uri, stream=True, timeout=600) as r:
+            r.raise_for_status()
+            with open(tmp, "wb") as fh:
+                for chunk in r.iter_content(1 << 16):
+                    written += len(chunk)
+                    if written > config.HTTP_MAX_BYTES:
+                        raise TooLarge(f"TAP result exceeded {config.HTTP_MAX_BYTES / 1024**2:.0f} MB while "
+                                       "downloading; narrow the query.")
+                    fh.write(chunk)
+        vot = votable.parse(str(tmp))
+        status = None
+        for res in vot.resources:
+            for info in res.infos:
+                if info.name == "QUERY_STATUS":
+                    status = info.value
+        table = (vot.get_first_table().to_table(use_names_over_ids=True)
+                 if vot.resources and vot.resources[0].tables else None)
+        if table is None:
+            from astropy.table import Table
+            table = Table()
+        return _VOResult(table, status)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def _run_async(svc, query: str, maxrec: int):
+    """Async TAP job that reports the server's own error message when the job fails."""
+    job = svc.submit_job(query, maxrec=maxrec)
+    try:
+        import time as _time
+
+        job.run()
+        t0 = _time.time()
+        delay = 2.0
+        while True:
+            phase = job.phase
+            if phase not in ("PENDING", "QUEUED", "EXECUTING", "HELD", "SUSPENDED", "UNKNOWN"):
+                break
+            if _time.time() - t0 > 3600:
+                raise RuntimeError("TAP async job still running after 3600 s")
+            _time.sleep(delay)
+            delay = min(delay * 1.5, 30.0)
+        if phase != "COMPLETED":
+            msg = None
+            try:
+                summary = job.job.errorsummary
+                msg = summary.message.content if summary is not None and summary.message is not None else None
+            except Exception:  # noqa: BLE001 - best effort
+                msg = None
+            raise RuntimeError(f"TAP async job {phase}: {msg or 'no error message'}")
+        return _download_votable(svc, job.result_uri)
+    finally:
+        try:
+            job.delete()
+        except Exception:  # noqa: BLE001
+            pass
+
+
+def _unauthorized(exc: Exception) -> bool:
+    """HTTP 401 from the TAP server (pyvo wraps the requests error; check the chain and message)."""
+    e: BaseException | None = exc
+    while e is not None:
+        resp = getattr(e, "response", None)
+        msg = str(e)
+        if (getattr(resp, "status_code", None) == 401 or getattr(e, "code", None) == 401
+                or "401 Client Error" in msg or "HTTP 401" in msg or "401 Unauthorized" in msg):
+            return True
+        e = e.__cause__ or e.__context__
+    return False
+
+
 def _run_tap(url: str, query: str, maxrec: int, mode: str):
     """Run a TAP query, retrying transient server errors and falling back sync -> async."""
     import time
 
     import pyvo  # imported lazily: slow import
 
-    svc = pyvo.dal.TAPService(url)
+    from . import gaia_auth
+
+    # the user's own Gaia login, if any (longer job limits), with the saved cookie it was built from
+    session, saved = gaia_auth.session_with_cookies(url)
+    svc = pyvo.dal.TAPService(url, session=session) if session is not None else pyvo.dal.TAPService(url)
     modes = [mode] + (["async"] if mode == "sync" else [])
     last: Exception | None = None
+    relogged = False
     for attempt, delay in enumerate((0,) + RETRY_DELAYS):
         if delay:
             print(f"  TAP transient error ({last}); retry {attempt}/{len(RETRY_DELAYS)} in {delay}s")
             time.sleep(delay)
         m = modes[min(attempt, len(modes) - 1)] if attempt < 2 else modes[-1]
-        try:
-            return svc.run_async(query, maxrec=maxrec) if m == "async" else svc.run_sync(query, maxrec=maxrec)
-        except Exception as exc:  # pyvo raises several DAL* types
-            if not _transient(exc):
-                raise
-            last = exc
+        while True:   # runs at most twice: once more after a single re-login on HTTP 401
+            try:
+                if m == "async":
+                    return _run_async(svc, query, maxrec)
+                return svc.run_sync(query, maxrec=maxrec)
+            except Exception as exc:  # pyvo raises several DAL* types
+                if session is not None and not relogged and _unauthorized(exc):
+                    # saved Gaia cookie no longer valid (e.g. after an archive restart): drop it,
+                    # log in again once from configured credentials (else anonymous), retry now
+                    relogged = True
+                    session.close()
+                    session, saved = gaia_auth.refresh_session(url, saved)
+                    svc = (pyvo.dal.TAPService(url, session=session) if session is not None
+                           else pyvo.dal.TAPService(url))
+                    print("  TAP 401 with the saved Gaia session; " +
+                          ("logged in again, retrying" if session is not None else "continuing anonymously"))
+                    continue
+                if not _transient(exc):
+                    raise
+                last = exc
+                break
     raise RuntimeError(f"TAP service {url} kept failing: {last}")
 
 
@@ -110,7 +222,13 @@ def tap(
     if not refresh and (hit := cache.get(key, ".parquet")):
         meta = hit.meta
         prov = Provenance(**meta["provenance"])
-        return Fetched(pd.read_parquet(hit.payload), prov, True)
+        if hit.payload.stat().st_size > config.HTTP_MAX_BYTES:
+            raise TooLarge(f"cached TAP result {hit.payload.stat().st_size / 1024**2:.1f} MB exceeds the "
+                           "per-download limit; narrow the query (or clear this entry deliberately).")
+        df = pd.read_parquet(hit.payload)
+        if int(df.memory_usage(deep=True).sum()) > config.HTTP_MAX_BYTES:
+            raise TooLarge("cached TAP result exceeds the per-download limit in memory; narrow the query.")
+        return Fetched(df, prov, True)
 
     result = _run_tap(url, query, max_rows + 1, mode)
     table = result.to_table()
@@ -123,11 +241,19 @@ def tap(
     df = _to_frame(table)
     tmp = cache.staging_path(".parquet")
     df.to_parquet(tmp, index=False)
+    mem = int(df.memory_usage(deep=True).sum())
+    stored = tmp.stat().st_size
+    if max(stored, mem) > config.HTTP_MAX_BYTES:
+        tmp.unlink(missing_ok=True)
+        raise TooLarge(
+            f"TAP result is {max(stored, mem) / 1024**2:.1f} MB "
+            f"> per-download limit {config.HTTP_MAX_BYTES / 1024**2:.0f} MB; narrow the query."
+        )
     prov = Provenance(
         source=f"tap:{service}", request=query, release=release, rows=len(df),
         bytes=tmp.stat().st_size, sha256=_sha256(tmp), cache_key=key, note=note,
     )
-    cache.put_file(key, ".parquet", tmp, {"provenance": prov.to_dict()})
+    cache.put_file(key, ".parquet", tmp, {"provenance": prov.to_dict()}, replace=refresh)
     return Fetched(df, prov, False)
 
 
@@ -180,5 +306,5 @@ def http(
         source="http", request=url, release=release, bytes=written,
         sha256=_sha256(tmp), cache_key=key, note=note,
     )
-    entry = cache.put_file(key, suffix, tmp, {"provenance": prov.to_dict()})
+    entry = cache.put_file(key, suffix, tmp, {"provenance": prov.to_dict()}, replace=refresh)
     return Fetched(entry.payload, prov, False)

@@ -31,7 +31,7 @@ DR4 的内容：
 | 1 | **M4** | L4 | Gaia 休眠黑洞（dormant black holes）BH1/BH2/BH3，以及中子星（neutron star）候选体 | established | kB 级 | NSS 轨道表查询、质量函数（mass function）计算、协方差（covariance）蒙特卡洛；**为 DR4 发布日准备** |
 | 2 | **M1** | L0 | DESI 重子声学振荡（BAO, Baryon Acoustic Oscillations）测量；演化暗能量（evolving dark energy）迹象 | BAO 为 established；w0wa 为 hint，2026 年趋弱 | kB–MB | `cosmo` 宇宙学背景计算、似然（likelihood）框架、`infer` MCMC |
 | 3 | M2 | L2 | 哈勃张力（Hubble tension）：SH0ES、CCHP 与 H0DN | tension（在校准层面有争议） | MB | 距离阶梯（distance ladder）广义最小二乘（GLS）拟合、跨论文元分析（meta-analysis） |
-| 4 | M7 | L4 | 宽双星（wide binaries）引力检验，即 MOND 之争 | contested，趋向牛顿引力 | 5–20 MB（服务器端自连接） | 服务器端配对查询、前向建模（forward modelling）、污染成分建模 |
+| 4 | M7 | L4 | 宽双星（wide binaries）引力检验，即 MOND 之争 | contested，趋向牛顿引力 | 10–40 MB（服务器端自连接） | 服务器端配对查询、前向建模（forward modelling）、污染成分建模 |
 | 5 | M9 | X | 纳赫兹引力波背景（nanohertz gravitational-wave background） | 强证据（strong evidence），未达 5σ | MB | 自由谱（free spectrum）拟合、模型比较（model comparison） |
 | 6 | M8 | L1 | z ≈ 14 星系的光谱确认，以及亮星系过多（bright-galaxy excess） | 探测为 established，解释为 contested | kB | 紫外光度函数（UV luminosity function）、晕质量函数（halo mass function）模型 |
 | 7 | M10 | X | 双黑洞质量谱（BBH mass spectrum）结构（GWTC-4.0） | 35 M☉ 特征为 established，20 M☉ 特征为 hint | kB–MB（只用小文件） | 群体推断（population inference）、汇总量再分析 |
@@ -156,11 +156,11 @@ TRGB 指红巨星支顶端（Tip of the Red Giant Branch）。
 
 **数据**
 - El-Badry 等人 2021 年的宽双星星表有 **1.8 GB，不下载**。
-- 改为在服务器端用 ADQL 自连接（self-join），重建 130–200 pc 以内的干净样本，约 5–20 MB。
+- 改为在服务器端用 ADQL 自连接（self-join），重建 130–150 pc 以内的干净样本（候选对与逐星的邻居计数），暂估约 10–40 MB（服务器端计数成功前只是暂估；放不下则按计划 013 停下请用户决定）。
 
 **方法**
-- 对缩放后的相对速度分布（scaled relative velocity distribution）做前向建模。
-- 模型中包含三体系统（triples）、近距双星（close binaries）和偶然成对（chance alignments）等污染成分。
+- 计划 013：按 Cookson et al. 2026 的质量清单重建干净样本，比较 r_sky/r_M 各箱中缩放相对速度（scaled relative velocity）ṽ 的中位数是"平的牛顿线"还是"MOND 台阶"。
+- 对 ṽ 分布做含三体系统（triples）、近距双星（close binaries）和偶然成对（chance alignments）等污染成分的前向建模（Banik et al. 2024 的做法）不在计划 013 的范围内，留作后续。
 
 **开放问题**
 - 在同一条管线中复现双方的样本切割，做盲化（blind）的"质量阶梯（quality ladder）"再分析。
