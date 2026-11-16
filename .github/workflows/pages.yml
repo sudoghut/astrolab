@@ -26,7 +26,7 @@ jobs:
       - name: Install the package's import dependencies (no data is fetched)
         run: pip install --quiet numpy pandas requests platformdirs
       - name: Build the site and check its links
-        run: python -c "from pathlib import Path; from astrolab import site; d = Path('../_site'); r = site.build(d); bad = site.broken_links(d); print(r['files'], 'files', r['bytes'], 'bytes'); assert not r['skipped'], r['skipped']; assert not bad, bad"
+        run: python -c "from pathlib import Path; from astrolab import site; d = Path('../_site'); r = site.build(d); bad = site.broken_links(d); print(r['files'], 'files', r['bytes'], 'bytes'); assert not r['skipped'], r['skipped']; assert not bad, bad; s = site.sensitive(d); assert not s, s"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ../_site

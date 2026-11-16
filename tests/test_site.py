@@ -10,6 +10,8 @@ def test_site_builds_with_no_broken_links(tmp_path):
     assert (dest / "atlas" / "web" / "index.html").exists()
     assert not list(dest.rglob("*.py")) and not list(dest.rglob("*.md"))
     assert site.broken_links(dest) == []
+    assert r["skipped"] == []
+    assert site.sensitive(dest) == []
 
 
 def test_results_subfolders_published_and_dest_inside_project_refused(tmp_path):
@@ -34,3 +36,9 @@ def test_broken_link_is_reported(tmp_path):
     (tmp_path / "a" / "index.html").write_text('<script src="../missing.js?v=1"></script>'
                                                '<a href="https://example.invalid/">x</a>', encoding="utf-8")
     assert site.broken_links(tmp_path) == ["a/index.html -> ../missing.js"]
+
+
+def test_sensitive_strings_are_reported(tmp_path):
+    (tmp_path / "r.json").write_text('{"path": "C:\\Users\\someone\\x"}', encoding="utf-8")
+    (tmp_path / "ok.json").write_text('{"n": 1}', encoding="utf-8")
+    assert site.sensitive(tmp_path) and site.sensitive(tmp_path)[0].startswith("r.json")

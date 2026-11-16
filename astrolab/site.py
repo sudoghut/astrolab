@@ -96,3 +96,19 @@ def broken_links(site: Path) -> list[str]:
             if not path.exists():
                 bad.append(f"{page.relative_to(site).as_posix()} -> {target}")
     return sorted(set(bad))
+
+
+# local machine paths and credential-like strings that must never be published
+_SENSITIVE = re.compile(r"""[A-Za-z]:\\Users\\|[A-Za-z]:/Users/|/home/[a-z]|/Users/[A-Za-z]|AppData|Dropbox"""
+                        r"""|(?i:password|passwd|secret|api[_-]?key|bearer\s|jsessionid)""")
+
+
+def sensitive(site: Path) -> list[str]:
+    """Published files that contain a local path or a credential-like string (file: first match)."""
+    bad = []
+    for f in sorted(Path(site).rglob("*")):
+        if f.is_file() and f.suffix.lower() in {".json", ".csv", ".html", ".js"}:
+            m = _SENSITIVE.search(f.read_text(encoding="utf-8", errors="replace"))
+            if m:
+                bad.append(f"{f.relative_to(site).as_posix()}: {m.group(0)}")
+    return bad
