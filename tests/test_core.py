@@ -418,3 +418,33 @@ def test_cache_read_blocks_a_concurrent_refresh(tmp_cache):
     assert meta["gen"] == 0 and text == "0"
     meta, text = cache.read(key, ".txt", lambda p: p.read_text())
     assert meta["gen"] == 1 and text == "1"
+
+
+def test_rejected_gaia_login_not_repeated(monkeypatch, tmp_path):
+    from astrolab import gaia_auth
+
+    calls = []
+    monkeypatch.setattr(gaia_auth, "_LOGIN_FAILED", False)
+    monkeypatch.setattr(gaia_auth, "load_cookies", lambda: None)
+    monkeypatch.setattr(gaia_auth, "credentials", lambda: ("u", "p"))
+
+    def reject(u, p):
+        calls.append(1)
+        raise RuntimeError("Gaia archive login failed (HTTP 401)")
+
+    monkeypatch.setattr(gaia_auth, "_post_login", reject)
+    url = "https://" + gaia_auth.GAIA_HOST + "/tap-server/tap"
+    assert gaia_auth.session_with_cookies(url) == (None, None)
+    assert gaia_auth.session_with_cookies(url) == (None, None)
+    assert calls == [1]
+
+    monkeypatch.setattr(gaia_auth, "_LOGIN_FAILED", False)
+
+    def blip(u, p):
+        calls.append(2)
+        raise OSError("Connection reset")
+
+    monkeypatch.setattr(gaia_auth, "_post_login", blip)
+    gaia_auth.session_with_cookies(url)
+    gaia_auth.session_with_cookies(url)
+    assert calls == [1, 2, 2]

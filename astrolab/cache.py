@@ -50,6 +50,8 @@ def _paths(key: str, suffix: str, root: Path | None = None) -> tuple[Path, Path]
 
 
 def get(key: str, suffix: str, root: Path | None = None) -> Entry | None:
+    """Unlocked lookup (existence only). To read an entry use read(), which pairs meta and payload
+    from one write."""
     payload, meta = _paths(key, suffix, root)
     if payload.exists() and meta.exists():
         entry = Entry(key, payload, meta)
@@ -70,14 +72,20 @@ def _key_lock(path: Path) -> threading.Lock:
 def read(key: str, suffix: str, reader, root: Path | None = None):
     """Read one cache entry consistently: under the same per-key lock as writers, return
     (meta, reader(payload_path)), or None on a miss. A refresh of the same key in another thread
-    cannot then pair one write's metadata with another write's payload while it is read."""
+    cannot then pair one write's metadata with another write's payload while it is read. The locks
+    are per process: separate processes refreshing the same key are not serialised (a failed
+    replace there leaves the entry missing, never mismatched). An entry pruned meanwhile is a miss."""
     payload, meta_path = _paths(key, suffix, root)
     with _key_lock(payload):
         if not (payload.exists() and meta_path.exists()):
             return None
-        meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        value = reader(payload)
-        Entry(key, payload, meta_path).touch()
+        entry = Entry(key, payload, meta_path)
+        try:
+            entry.touch()                     # most recently used before the read: prune skips it
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            value = reader(payload)
+        except FileNotFoundError:
+            return None
         return meta, value
 
 
