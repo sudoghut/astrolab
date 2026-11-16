@@ -242,7 +242,8 @@ not computed before this was written. The estimator above (steps 1, 3–5; the s
 drawn fresh for each seed with `default_rng(1000 + k)`, N = 100,000) is run for seeds 10, 11, 12,
 none of which was used during the design. The gate passes if the mean flow n_σ is within 0.10 of the
 exact value and each of the three within 0.20. If it fails, R6 is "not evaluable" and no flow is
-trained on the chains. Seen during the design (all with seed 0, on simpler synthetic cases, before
+trained on the chains. The gate tests the flow's accuracy on these structures, not the 1.8 level: its
+exact n_σ need not be near 1.8. Seen during the design (all with seed 0, on simpler synthetic cases, before
 any flow on the chains): a single 100-epoch flow gave 0.03σ against an exact 0.003σ (a cusped,
 nearly zero-shift case), 0.93σ against 0.61σ (cusped boxes with a Gaussian pair), the same with 300
 epochs on 200,000 points, 1.38σ against 1.64σ (flat-topped boxes, one flow), and the default ten
@@ -264,7 +265,8 @@ gate exists.
   of "not evaluable".
 
 **Reported, not decisive** (same estimator, seeds 0–2, so that the run stays within a few hours):
-the six-parameter flow with S8 in place of As; the two data-constrained parameters of R4 (As, Ωm);
+the six-parameter flow with S8 in place of As; the two data-constrained parameters of R4 (As, Ωm), next to the binned-KDE n_σ of the same pair
+computed in the same run with the R2 estimator (the only on-chain check of the curved directions);
 the 1-D S8 and 2-D (S8, Ωm) flows next to this study's binned-KDE values (`r2.json` `1d.n_sigma`
 2.6735 and `2d.n_sigma` 2.1777); each repetition's Δ, interval and training time; the R4 Gaussian
 values beside the flow values. Like R2, R6 uses the chains as they are: no prior flow, no truncation.
