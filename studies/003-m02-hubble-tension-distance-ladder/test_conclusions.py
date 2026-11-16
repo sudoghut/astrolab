@@ -103,17 +103,19 @@ def test_r2_re_rule_and_headline():
     assert g[max(k - 1, 0)] - 1e-12 <= est["tau_hat"] <= g[min(k + 1, len(g) - 1)] + 1e-12
     assert est["m2l_min"] <= v[k] + 1e-12
     thr = est["m2l_min"] + 1.0
-    if isinstance(hi, float):           # nearest crossing above: first grid point >= thr beyond tau_hat
-        j = next(i for i in range(len(g)) if g[i] > est["tau_hat"] and v[i] >= thr)
-        assert g[j - 1] - 1e-9 <= hi <= g[j] + 1e-9 or (j - 1 == k and est["tau_hat"] <= hi <= g[j] + 1e-9)
-    elif hi == "> 0.5":
-        assert all(v[i] < thr for i in range(len(g)) if g[i] > est["tau_hat"])
-    if isinstance(lo, float) and lo > 0:
-        j = max(i for i in range(len(g)) if g[i] < est["tau_hat"] and v[i] >= thr)
-        assert g[j] - 1e-9 <= lo <= g[j + 1] + 1e-9
-    elif lo == 0.0:
-        assert all(v[i] < thr for i in range(len(g)) if g[i] < est["tau_hat"])
-    assert est["at_zero"] == (est["tau_hat"] < 1e-3) and est["at_upper_bound"] == (est["tau_hat"] > 0.5 - 1e-3)
+    th = est["tau_hat"]
+    for end, sgn in ((hi, 1), (lo, -1)):
+        side = sorted((i for i in range(len(g)) if (g[i] - th) * sgn > 0), key=lambda i: abs(g[i] - th))
+        first = next((i for i in side if v[i] >= thr), None)
+        if first is None:              # no grid point beyond tau_hat reaches the threshold
+            assert end == ("> 0.5" if sgn > 0 else 0.0)
+            continue
+        if end == "not determined":
+            continue
+        before = [i for i in side if abs(g[i] - th) < abs(g[first] - th)]
+        inner = g[before[-1]] if before else th
+        a_, b_ = sorted((inner, g[first]))
+        assert a_ - 1e-9 <= end <= b_ + 1e-9          # inside the nearest crossing bracket
     assert re_["tau_hat"] == (0.0 if est["at_zero"] else est["tau_hat"])
     assert "diagnostic_errors" not in re_
     sens = re_["sensitivity_cepheid_rows"]

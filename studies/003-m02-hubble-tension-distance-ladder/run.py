@@ -342,21 +342,21 @@ def reml_tau(f, tau_max, step):
         refine_error = f"{type(e).__name__}: {e}"   # anything else is a bug and propagates
 
     def crossing(direction):
+        """Nearest crossing of min + 1 on one side of tau_hat: scan the grid points beyond tau_hat
+        outward to the first one at or above the threshold; brentq between it and the previous
+        point on that side (tau_hat itself when there is none in between)."""
         g = lambda t: f(t) - f_hat - 1.0
-        j = k
-        while 0 <= j + direction < len(grid):
-            j += direction
-            if vals[j] - f_hat - 1.0 >= 0:
-                # within that grid interval (README): between the last grid point below the
-                # threshold (or tau_hat itself, when that is closer) and the first one above it
-                inner = float(grid[j - direction])
-                if (inner - tau_hat) * direction < 0:
-                    inner = tau_hat
-                a, b = sorted((inner, float(grid[j])))
+        side = [i for i in range(len(grid)) if (grid[i] - tau_hat) * direction > 0]
+        side.sort(key=lambda i: abs(grid[i] - tau_hat))
+        inner = tau_hat
+        for i in side:
+            if vals[i] - f_hat - 1.0 >= 0:
+                a, b = sorted((inner, float(grid[i])))
                 try:
                     return float(optimize.brentq(g, a, b, xtol=1e-6))
                 except (ValueError, RuntimeError, np.linalg.LinAlgError):   # no sign change / no convergence
                     return "not determined"
+            inner = float(grid[i])
         return 0.0 if direction < 0 else "> %.1f" % tau_max
 
     ends = [crossing(-1), crossing(+1)]
