@@ -138,7 +138,8 @@ what τ measures.
   the grid are reported. τ̂ < 10⁻³ counts as zero (V = C; R2-RE then equals R2). τ̂ > 0.5 − 10⁻³ is
   "at the upper bound": R2-RE is **not evaluable (bound)**.
 - **Interval.** The 68% interval is where −2ℓ_R exceeds its minimum by 1, found by root finding
-  (`brentq`) on each side of τ̂; the lower end is 0 if −2ℓ_R(0) is within 1 of the minimum; the
+  (`brentq`) on each side of τ̂, at the crossing nearest to τ̂ (scanning the grid outward from τ̂ to
+  the first grid point above the threshold, then `brentq` within that grid interval); the lower end is 0 if −2ℓ_R(0) is within 1 of the minimum; the
   upper end is reported as "> 0.5" if not reached by 0.5, and as "not determined" if the root
   search fails.
 - **Host step under V(τ̂).** As R2's host step with C replaced by V(τ̂) in both fits and in the
