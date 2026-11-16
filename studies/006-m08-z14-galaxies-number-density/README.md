@@ -188,6 +188,11 @@ with the first 20,000 discarded (N = 80,000 × 32). A longer chain only improves
 not move a threshold. If a fit still fails the 50 τ rule it is **not evaluable**, with no further
 change.
 
+*Dated clarification 2026-11-16 (from the code review, before the formal run; the pre-registration
+did not say).* If the least-squares best fit does not converge (`success` false), that fit is **not
+evaluable**. Bootstrap refits that do not converge are excluded from p and counted; if more than 20
+of the 200 fail, the fit-quality test is "not determined" and no "model misfit" label is applied.
+
 *Reported, not decisive.* Posterior medians and 68% intervals of θ and f; the best-fit χ² and the
 number of points; the ratio and R3 central root at the posterior median θ; the same probabilities
 for σ_cal = 0.5 and 0.9 (separate chains; as in section 4 step 7, the z = 14–15 σ used for R2 equals

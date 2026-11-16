@@ -93,7 +93,7 @@ def test_r23_post_rules():
     for name, fit in post.items():
         r2v, r3v = fit["r2_verdicts"], fit["r3_verdicts"]
         n = len(r2v)
-        assert n == 500, name
+        assert n == 500 and len(r3v) == n and len(fit["ratios"]) == n and len(fit["r3_roots"]) == n, name
         for ratio, v in zip(fit["ratios"], r2v):
             exp = "same order as N26's baseline" if 1 / 3 <= ratio <= 3 else ("higher" if ratio > 3 else "lower")
             assert v == exp
@@ -114,11 +114,15 @@ def test_r23_post_rules():
         bounded = any(max(b["lower"], b["upper"]) > 0.05 for b in fit["bound_fractions"].values())
         assert fit["prior_bounded"] == bounded
 
+        fq = fit["lsq"]["n_bootstrap_failed"] <= 20 and fit["lsq"]["n_bootstrap"] > 0
+        assert fit["lsq"]["fit_quality_determined"] == fq
+        assert fit["lsq"]["n_bootstrap"] + fit["lsq"]["n_bootstrap_failed"] == 200
+
         def label(probs, evaluable, n_draws):
-            if not fit["converged"] or not evaluable:
+            if not fit["lsq"]["success"] or not fit["converged"] or not evaluable:
                 return "not evaluable"
             lab = _post_label(probs, min(n_draws, n_eff_chain))
-            if fit["lsq"]["p_bootstrap"] < 0.01:
+            if fq and fit["lsq"]["p_bootstrap"] < 0.01:
                 lab = "model misfit (probabilities reported, not a verdict)"
             return lab + ("; prior-bounded" if bounded else "")
         assert fit["r2_label"] == label(p2, True, n), name

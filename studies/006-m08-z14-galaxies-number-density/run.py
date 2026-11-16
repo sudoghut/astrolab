@@ -436,7 +436,7 @@ def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):
     r0 = resid(lsq.x)
     chi2 = float(r0[:-1] @ r0[:-1])           # data chi2, prior residual excluded
     rng_b = np.random.default_rng(1)
-    boot = []
+    boot, n_boot_failed = [], 0
     for _ in range(200):
         sb, sl, su = zm.simulate_binned(rng_b, lsq.x, S.M, S.lnM, hmf_cal, z_cal, S.c, combo["accretion"],
                                         sigma_cal, inp.BINNED_Z8_BLANK, lens, limits)
@@ -446,9 +446,13 @@ def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):
                                        sb, sl, su)
         rb = optimize.least_squares(resid_b, np.array([0.1, 11.5, 1.0, 0.5, 1.0]), bounds=(zm.POST_LO, zm.POST_HI), loss="linear",
                                     ftol=1e-10, xtol=1e-10, gtol=1e-10, max_nfev=2000)
+        if not rb.success:                    # failed refits are excluded and counted
+            n_boot_failed += 1
+            continue
         fb = resid_b(rb.x)
         boot.append(float(fb[:-1] @ fb[:-1]))
-    p_fit = float(np.mean(np.array(boot) >= chi2))
+    fitq_determined = n_boot_failed <= 0.1 * 200 and len(boot) > 0
+    p_fit = float(np.mean(np.array(boot) >= chi2)) if boot else float("nan")
     rng = np.random.default_rng(P["post_seed"])
     nw = int(P["post_walkers"])
     width = 1e-3 * (zm.POST_HI - zm.POST_LO)
@@ -465,7 +469,9 @@ def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):
     idx = np.linspace(0, len(flat) - 1, int(P["post_draws"])).round().astype(int)
     draws = flat[idx]
     out = {"combo": combo, "faint_rows": faint, "lsq": {"x": lsq.x.tolist(), "chi2_data": chi2,
-                                                         "p_bootstrap": p_fit, "n_bootstrap": len(boot),
+                                                         "p_bootstrap": p_fit if boot else None, "n_bootstrap": len(boot),
+                                                         "n_bootstrap_failed": n_boot_failed,
+                                                         "fit_quality_determined": bool(fitq_determined),
                                                          "boot_chi2_quantiles": [float(q) for q in
                                                                                  np.percentile(boot, [5, 50, 95])],
                                                          "success": bool(lsq.success)},
@@ -502,10 +508,10 @@ def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):
     n_eff_chain = nw * n_post / float(np.max(tau))
 
     def label(probs, evaluable, n_draws):
-        if not converged or not evaluable:
+        if not lsq.success or not converged or not evaluable:
             return "not evaluable"
         lab = post_label(probs, P["post_p_threshold"], min(n_draws, n_eff_chain))
-        if p_fit < P["post_misfit_p"]:
+        if fitq_determined and p_fit < P["post_misfit_p"]:
             lab = "model misfit (probabilities reported, not a verdict)"
         return lab + ("; prior-bounded" if bounded else "")
 
