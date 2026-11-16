@@ -131,7 +131,7 @@ Big Bang.** It is the headline of the paper and of the atlas entry, and unlike t
 
 ```
  YY α-enhanced isochrone ages (mod_ages) ─┐
- bin = oldest thick-disc stars (mod_bin) ─┤
+ bin = oldest thick-disc stars (gap_bin) ─┤
  Gaussian mean = 13 Gyr (stat_mean) ──────┤
  ages consistent with universe age ───────┼─[gap_scale]→ absolute scale accurate
    (obs_scale)                            │
@@ -173,8 +173,9 @@ panel-e sequence reaches [Fe/H] ≲ −1 at about 13 Gyr); Extended Data Fig. 1 
 and it is the one encoded.
 
 *Premises.*
-- `mod_bin` (MOD, stated, "presumably the oldest thick disk stars"; the hedge is encoded as an
-  assertion).
+- `gap_bin` (GAP, reconstructed): the bin holds the oldest thick-disc stars. XR22 write only
+  "presumably the oldest thick disk stars"; asserting it is our step (changed 2026-11-16 after the
+  referee: the earlier MOD/stated encoding was stronger than its quote).
 - `stat_mean` (STAT, stated): the Gaussian mean is 13 Gyr (encoded as 130 tenths of a Gyr).
 - `lit_universe` (LIT, stated, Methods: "CMB measurements of Planck (13.8 Gyr)"; XR22's ref. 19 is
   Planck 2015, arXiv:1502.01589): the universe is 13.8 Gyr old.
@@ -352,7 +353,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 ```
  YY α 增丰等年龄线的年龄 (mod_ages) ─────┐
- 该箱是最老的厚盘星 (mod_bin) ───────────┤
+ 该箱是最老的厚盘星 (gap_bin) ───────────┤
  高斯均值 = 13 Gyr (stat_mean) ──────────┤
  年龄与宇宙年龄相容 (obs_scale) ─────────┼─[gap_scale]→ 绝对标尺准确
  宇宙年龄 13.8 Gyr (lit_universe) ───────┤
@@ -375,7 +376,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 *概述。* 13 Gyr 是对早期中 J_φ > 500、一个很窄的金属丰度箱（−1.05 到 −0.95）的星拟合高斯所得的均值。拟合宽度为 1.81 Gyr，大于这个年龄上典型的年龄误差（约 1 Gyr），所以该箱跨越数 Gyr 的真实年龄，或含有误差更大的星，或两者兼有。正文用图 2 定性地支持这个起点（e 面板的序列在约 13 Gyr 处达到 [Fe/H] ≲ −1）；扩展数据图 1 是定量的途径，编码的是它。
 
 *前提。*
-- `mod_bin`（MOD，论文明说，"presumably the oldest thick disk stars"；保留措辞被编码为断言）。
+- `gap_bin`（GAP，我们补上的）：该箱是最老的厚盘星。XR22 只写了 "presumably the oldest thick disk stars"，把它断言下来是我们的一步（2026-11-16 按独立审稿修改：原来按 MOD、论文明说编码，强于引文）。
 - `stat_mean`（STAT，论文明说）：高斯均值为 13 Gyr（编码为 130 个 0.1 Gyr）。
 - `lit_universe`（LIT，论文明说，方法部分："CMB measurements of Planck (13.8 Gyr)"；XR22 的参考文献 19 是 Planck 2015，arXiv:1502.01589）：宇宙年龄 13.8 Gyr。
 - `gap_onset`（GAP，我们补上的）：该箱中幸存的本地恒星的平均年龄标定了盘开始形成的时间。

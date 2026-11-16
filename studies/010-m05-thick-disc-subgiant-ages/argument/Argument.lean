@@ -60,8 +60,8 @@ structure Vocab where
 inductive Field where
   /-- MOD [stated: "We adopt the YY isochrones, and take the weighted-mean ages from isochrones with"] Extended Data Fig. 4 ([alpha/Fe] = 0, 0.2 and 0.4; Methods: Bayesian age estimation) -/
   | mod_ages
-  /-- MOD [stated: "presumably the oldest thick disk stars"] Extended Data Fig. 1 (early phase, J_phi above 500 kpc km/s, -1.05 to -0.95 in [Fe/H]); a MOD premise is an assumption the paper adopts, which is what presumably signals; the hedge is encoded as an assertion -/
-  | mod_bin
+  /-- GAP [reconstructed] the Extended Data Fig. 1 bin (early phase, J_phi above 500 kpc km/s, -1.05 to -0.95 in [Fe/H]) holds the oldest thick-disc stars. XR22 write only that these are presumably the oldest thick disk stars, a hedged identification; asserting it is our step (referee 2026-11-16: the earlier MOD stated encoding was stronger than its quote) -/
+  | gap_bin
   /-- STAT [stated: "A Gaussian fit to the distribution (red curve) yields a mean age of 13 Gyr"] Extended Data Fig. 1 (inset: mean 13.03, sigma 1.81); encoded as the reported, rounded 130 tenths -/
   | stat_mean
   /-- OBS [stated: "they are consistent with the age of the universe at the old end"] Methods (Ages from the YY isochrones seem to be reasonable; Figure 2) -/
@@ -76,7 +76,7 @@ inductive Field where
 
 def prov : Field → Prov
   | .mod_ages => .stated
-  | .mod_bin => .stated
+  | .gap_bin => .reconstructed
   | .stat_mean => .stated
   | .obs_scale => .stated
   | .lit_universe => .stated
@@ -85,7 +85,7 @@ def prov : Field → Prov
 
 def prem : Field → Vocab → Prop
   | .mod_ages, v => v.AgesYY
-  | .mod_bin, v => v.OldestBin
+  | .gap_bin, v => v.OldestBin
   | .stat_mean, v => v.mean_x10 = 130
   | .obs_scale, v => v.ScaleConsistent
   | .lit_universe, v => v.universe_x10 = 138
@@ -108,7 +108,7 @@ theorem final : ∀ v, Premises v → Conclusion v := by
   have hm : v.mean_x10 = 130 := p .stat_mean                    -- Extended Data Fig. 1
   have hu : v.universe_x10 = 138 := p .lit_universe             -- Planck, Methods
   have hs : v.ScaleAccurate := p .gap_scale (p .obs_scale)       -- GAP: age scale
-  exact p .gap_onset (p .mod_ages) hs (p .mod_bin) hm (by omega)  -- GAP: mean as onset
+  exact p .gap_onset (p .mod_ages) hs (p .gap_bin) hm (by omega)  -- GAP: mean as onset
 
 theorem final_nontrivial : ¬ ∀ v : Vocab, Conclusion v :=
   fun h => h ⟨False, False, 0, False, False, 0, False⟩
@@ -125,7 +125,7 @@ theorem alone_insufficient : ∀ g, ¬ ∀ v, prem g v → Conclusion v := by
 theorem mod_ages_needed : ¬ ∀ v, Without .mod_ages v → Conclusion v := fun h =>
   h ⟨False, True, 130, True, True, 138, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-theorem mod_bin_needed : ¬ ∀ v, Without .mod_bin v → Conclusion v := fun h =>
+theorem gap_bin_needed : ¬ ∀ v, Without .gap_bin v → Conclusion v := fun h =>
   h ⟨True, False, 130, True, True, 138, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
 theorem stat_mean_needed : ¬ ∀ v, Without .stat_mean v → Conclusion v := fun h =>
@@ -143,12 +143,12 @@ theorem gap_scale_needed : ¬ ∀ v, Without .gap_scale v → Conclusion v := fu
 theorem gap_onset_needed : ¬ ∀ v, Without .gap_onset v → Conclusion v := fun h =>
   h ⟨True, True, 130, True, True, 138, False⟩ (by intro f hf; cases f <;> simp_all [prem])
 
-/-- What the paper writes is not enough: the accuracy of the absolute age scale and the step from a
-mean age to an onset are not stated. -/
+/-- What the paper writes is not enough: the identification of the bin as the oldest thick-disc stars,
+the accuracy of the absolute age scale and the step from a mean age to an onset are not stated. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   h ⟨True, True, 130, True, False, 138, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
-/-- No premise is merely implied, so Explicit coincides with Stated: the two gaps remain. -/
+/-- No premise is merely implied, so Explicit coincides with Stated: the three gaps remain. -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
   h ⟨True, True, 130, True, False, 138, False⟩ (by intro f hf; cases f <;> simp_all [prov, prem])
 
