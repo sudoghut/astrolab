@@ -99,6 +99,14 @@ def test_r23_post_rules():
             assert v == exp
         p2 = {k: r2v.count(k) / n for k in ("higher", "same order as N26's baseline", "lower")}
         assert p2 == fit["r2_probabilities"] and abs(sum(p2.values()) - 1) < 1e-12
+        for roots, v in zip(fit["r3_roots"], r3v):     # R3 verdicts re-derived from each draw's roots
+            if roots is None:
+                assert v == "not evaluable"
+                continue
+            lo, hi = roots["lower"], roots["upper"]
+            a = float("-inf") if lo["censored"] == "le" else lo["value"]
+            b = float("inf") if hi["censored"] == "gt" else hi["value"]
+            assert v == ("consistent with N26" if (a <= 2.0 and b >= 1.5) else "different")
         ev3 = [v for v in r3v if v != "not evaluable"]
         n_eff_chain = 32 * fit["n_post_steps"] / max(fit["tau"])
         assert abs(fit["n_eff"] - min(n, n_eff_chain)) < 1e-6
