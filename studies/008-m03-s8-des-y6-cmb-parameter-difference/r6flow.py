@@ -6,6 +6,7 @@ applies the pre-registered verdict rule. It does not import run.py; run.py passe
 """
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -78,16 +79,22 @@ def run_flows(arrays, cfg, log):
                    MPLBACKEND="Agg")
         env.pop("PYTHONPATH", None)
         workdir = config.cache_dir() / "_staging"
-        proc = subprocess.run([str(exe), "-I", str(HERE / "flowshift.py"), str(tmp_in), str(tmp_cfg), str(tmp_out)],
-                              cwd=workdir, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                              text=True, encoding="utf-8", errors="replace")
-        for line in proc.stderr.splitlines():
+        proc = subprocess.Popen([str(exe), "-I", str(HERE / "flowshift.py"), str(tmp_in), str(tmp_cfg), str(tmp_out)],
+                                cwd=workdir, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+                                text=True, encoding="utf-8", errors="replace")
+        tail = []
+        for line in proc.stderr:                    # progress, live
+            line = line.rstrip("\n")
+            tail = (tail + [line])[-5:]
             if line.startswith(("  ", "known-answer", "case ")):
                 log(line)
-        if proc.returncode != 0 or not tmp_out.exists():
-            tail = "\n".join(proc.stderr.splitlines()[-5:])
-            return {"status": f"not evaluable (TF subprocess failed, code {proc.returncode})", "stderr_tail": tail}
-        return json.loads(tmp_out.read_text(encoding="utf-8"))
+        code = proc.wait()
+        partial = json.loads(tmp_out.read_text(encoding="utf-8")) if tmp_out.exists() else {}
+        if code != 0 or not partial.get("complete"):
+            msg = re.sub(r"[A-Za-z]:[\\/][^\s'\"]*|/(?:home|Users)/[^\s'\"]*", "<path>", "\n".join(tail))
+            return {"status": f"not evaluable (TF subprocess failed, code {code})", "stderr_tail": msg[-1000:],
+                    "partial": partial}
+        return partial
     finally:
         for p in (tmp_in, tmp_cfg, tmp_out):
             p.unlink(missing_ok=True)

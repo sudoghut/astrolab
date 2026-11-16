@@ -58,10 +58,17 @@ def one_shift(diff, names, seed, est):
     p, lo, up = float(p), float(lo), float(up)
     s_lo, s_up = _nsigma(lo), _nsigma(up)
     at_floor = p >= 1.0
-    converged = bool(at_floor or (np.isfinite(s_up) and s_up - s_lo <= est["tol"]))
+    # a NaN interval end (for example log p(0) undefined outside the flow's range) is not convergence
+    converged = bool(np.isfinite(lo) and (at_floor or (np.isfinite(s_up) and s_up - s_lo <= est["tol"])))
     return {"seed": seed, "delta": p, "delta_low": lo, "delta_up": up,
             "n_sigma": s_lo if at_floor else _nsigma(p), "lower_bound": bool(at_floor),
             "converged": converged, "train_s": round(t1 - t0, 1), "shift_s": round(time.time() - t1, 1)}
+
+
+def _clean(msg):
+    """An exception message without local paths (README 2.6: only availability and versions saved)."""
+    import re
+    return re.sub(r"[A-Za-z]:[\\/][^\s'\"]*|/(?:home|Users)/[^\s'\"]*", "<path>", msg)[:300]
 
 
 def resampled_difference(xa, wa, xb, wb, n, seed):
@@ -78,7 +85,7 @@ def run_case(xa, wa, xb, wb, names, seeds, n, est, log):
         try:
             r = one_shift(resampled_difference(xa, wa, xb, wb, n, k), names, k, est)
         except Exception as exc:                    # recorded; the verdict rule handles failures
-            r = {"seed": k, "error": f"{type(exc).__name__}: {exc}"[:300]}
+            r = {"seed": k, "error": _clean(f"{type(exc).__name__}: {exc}")}
         reps.append(r)
         log(f"  {names} seed {k}: {r.get('n_sigma', r.get('error'))}")
     good = [r["n_sigma"] for r in reps if "n_sigma" in r and np.isfinite(r["n_sigma"])]
@@ -123,11 +130,12 @@ def calibrate(cfg, log):
             r = one_shift(synthetic(cfg["n"], np.random.default_rng(g["sample_seed_offset"] + k), g), names, k,
                           cfg["estimate"])
         except Exception as exc:
-            r = {"seed": k, "error": f"{type(exc).__name__}: {exc}"[:300]}
+            r = {"seed": k, "error": _clean(f"{type(exc).__name__}: {exc}")}
         reps.append(r)
         log(f"  gate seed {k}: {r.get('n_sigma', r.get('error'))} (exact {exact['n_sigma']:.4f})")
     vals = [r.get("n_sigma") for r in reps]
-    ok = all(v is not None and np.isfinite(v) for v in vals)
+    ok = all(v is not None and np.isfinite(v) and r.get("converged") and not r.get("lower_bound")
+             for v, r in zip(vals, reps))
     mean = float(np.mean(vals)) if ok else None
     passed = bool(ok and abs(mean - exact["n_sigma"]) <= g["tol_mean"]
                   and all(abs(v - exact["n_sigma"]) <= g["tol_each"] for v in vals))
@@ -149,8 +157,15 @@ def main(argv):
                         "getdist": getdist.__version__, "numpy": np.__version__,
                         "legacy_keras": os.environ.get("TF_USE_LEGACY_KERAS")},
            "settings": defaults()}
+    def save():
+        tmp = out_path + ".part"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(out, fh, indent=1, default=float)
+        os.replace(tmp, out_path)
+
     log("known-answer gate")
     out["gate"] = calibrate(cfg, log)
+    save()
     if out["gate"]["passed"]:
         d = np.load(inp, allow_pickle=False)
         cases = cfg["cases"]
@@ -161,8 +176,9 @@ def main(argv):
             log(f"case {name}: {cols}")
             out[name] = run_case(xa, d["des_w"], xb, d["cmb_w"], cols, case["seeds"], cfg["n"],
                                  cfg["estimate"], log)
-    with open(out_path, "w", encoding="utf-8") as fh:
-        json.dump(out, fh, indent=1, default=float)
+            save()
+    out["complete"] = True
+    save()
 
 
 if __name__ == "__main__":
