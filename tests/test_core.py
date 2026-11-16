@@ -643,4 +643,4 @@ def test_prune_second_pass_when_only_recent_entries_exceed(tmp_cache):
         cache.put_file(key, ".bin", src, {"provenance": {"source": "test", "request": str(i)}})
         keys.append(key)
     assert cache.prune(limit_bytes=1) >= 1          # all recent, still over the limit: removed
-    assert cache.info()["size_mb"] * 1024 ** 2 <= 1
+    assert sum(e[1] for e in cache._entries(cache.config.cache_dir())) <= 1
