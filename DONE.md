@@ -12,6 +12,8 @@
 
 ## 2026-11
 
+- [x] **T-022** M1：在 R2 的拟合点用 CAMB 核对 θ* 标定，判断 R2 是否依赖压缩 CMB 先验的 ωbc 约定 · 完成 2026-11-16 · PR #23 · 计划 [020](design/020-plan_m01-camb-theta-star-check-of-desi-compressed-cmb-prior-r2.md) — 预注册附录 R2-CAMB：锚定与原始 CAMB θ* 下两种解读的判定都不变（Δχ² 移动 −0.002 到 −0.125），R2 对 θ* 标定稳健、确实依赖 ωbc 约定；独立审稿发现先验来源与解读 A 一致，后续登记为 T-030。
+
 - [x] **T-008** 技能：出报告（report） · 完成 2026-11-16 · PR #22 — 新增 `.claude/skills/report/SKILL.md`：研究或项目报告的顺序与检查清单（按 git 历史核对结果是否最新、数字溯源到结果键与来源记录、按预注册判据报告、事后项目与探索数字标注、对照第五条列出完成情况），不做新分析；双闸审查（审查子智能体 2 轮、Codex 2 轮）通过。
 
 - [x] **T-007** 技能：文献核实（literature verification） · 完成 2026-11-16 · PR #21 — 新增 `.claude/skills/literature-verification/SKILL.md`：把 [S]/[U] 提升为 [V] 的顺序与检查清单（来源身份、数字的误差类型与约定、逐字摘录与位置、数据产品大小、记录版本与日期），`new-study` 与 `paper-study` 指向它；双闸审查（审查子智能体 2 轮、Codex 2 轮）通过。
