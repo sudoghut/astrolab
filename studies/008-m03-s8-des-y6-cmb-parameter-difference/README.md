@@ -227,7 +227,7 @@ no trainable weights). For repetition k (seed k):
 5. `estimate_shift(flow, tol=0.02, max_iter=1000, step=100000)` returns Δ and its Clopper–Pearson
    68% interval (low, up); n_σ = √2 erf⁻¹(Δ) (eq. 19). The estimate has converged if
    σ(up) − σ(low) ≤ 0.02, computed from the returned interval.
-Five repetitions, seeds 0–4. n̄ = mean of the five n_σ, s = their standard deviation.
+Five repetitions, seeds 0–4. n̄ = mean of the five n_σ, s = their sample standard deviation (ddof = 1).
 
 **Known-answer gate (synthetic, run before the chains).** The calibration step of `flowshift.py`
 (the study's TF-side module, run by `run.py` before any flow on the chains) uses a 6-D synthetic
@@ -235,10 +235,10 @@ difference distribution with the structures expected here, with an analytic dens
 - a curved pair, like the As–Ωm ridge: x₁ ~ N(2.0, 1), x₂ = z + 0.3 (x₁ − 2.0)² with z ~ N(1.0, 1)
   (unit Jacobian, so p(x₁, x₂) = N(x₁; 2.0, 1) N(x₂ − 0.3 (x₁ − 2.0)²; 1.0, 1)); the curvature 0.3 is
   set qualitatively, not from the chains;
-- three flat-topped box directions with 0 inside the plateau (uniform on [−0.6, 1.4] minus a normal of
-  width 0.05), like h, ns and Ωb;
-- one box direction with 0 about one edge width inside its lower edge (uniform on [−0.1, 1.9] minus a
-  normal of width 0.1), like Σmν against the CMB's lower bound at 0.06 eV.
+- three flat-topped box directions with 0 inside the plateau (a uniform variable on [−0.6, 1.4] minus an
+  independent normal variable of width 0.05), like h, ns and Ωb;
+- one box direction with 0 about one edge width inside its lower edge (a uniform variable on [−0.1, 1.9]
+  minus an independent normal variable of width 0.1), like Σmν against the CMB's lower bound at 0.06 eV.
 Its reference n_σ is computed by Monte Carlo from the analytic density with 2,000,000 draws
 (`default_rng(999)`; sampling error about 0.001σ, negligible against the tolerances); it was not
 computed before this was written. "Exact value" below means this reference. The estimator above (steps 1, 3–5; the synthetic samples are
@@ -255,8 +255,8 @@ gate exists.
 
 **Verdict (R6).** The conditions are applied in this order; the first that applies decides:
 (1) the R1 gate fails → "not evaluable"; (2) the known-answer gate fails → "not evaluable";
-(3) a repetition fails, gives a non-finite n_σ or has not converged → "not evaluable"; (4) the
-lower-bound rule below; (5) s > 0.07 → "not evaluable"; (6) prior support fails → "descriptive";
+(3) a repetition fails, gives a non-finite n_σ or has not converged → "not evaluable"; (4) prior
+support fails → "descriptive"; (5) the lower-bound rule below; (6) s > 0.07 → "not evaluable";
 (7) the band rule.
 - "Reproduced" if |n̄ − 1.8| ≤ 0.15 + 2s (the 0.15 allowance as in R2: D26's unquoted flow noise and
   the rounding to 0.1); otherwise "not reproduced".
