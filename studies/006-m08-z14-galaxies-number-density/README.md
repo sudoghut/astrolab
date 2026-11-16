@@ -125,7 +125,8 @@ contributes a two-piece Gaussian in φ: (φ_data − φ_model)/σ with σ the up
 φ_data and the lower error otherwise; lensing-field points compare f·φ_model with the data. This is
 the split-normal density, whose normalisation 2/(√(2π)(σ_hi + σ_lo)) is the same on both sides and does
 not depend on the parameters, so −2 ln L = Σ r² + constant and least squares on these residuals
-optimises the same likelihood. Stated
+optimises the same likelihood. (Convention: a measurement d with errors +σ_hi/−σ_lo constrains the
+true value upwards by σ_hi and downwards by σ_lo, so a model above d is judged with σ_hi.) Stated
 approximations: independent Gaussian errors (the stepwise bins may be correlated and the brightest
 hold few sources); the papers' cosmology (H0 = 70, Ωm = 0.3) is not converted to Planck18 (about 10%
 in φ and 0.07 mag, shared with the section 4 calibration). The blank-field and lensing points are
@@ -143,8 +144,9 @@ post-burn length is at least 50 integrated autocorrelation times, τ from
 `emcee.autocorr.integrated_time` (c = 5, tol = 0) on the post-burn chain, maximum over the five
 parameters; otherwise R2/R3-POST are **not evaluable** (no step changes allowed). Fit quality: the
 data χ² at the optimum (the prior residual excluded) is compared with a parametric bootstrap: 200
-data sets drawn from the best-fit model with split-normal errors (each point's upper and lower error
-on its two sides; f drawn from its prior), each refitted by the same least squares; p = the fraction
+data sets drawn from the best-fit model with split-normal errors consistent with that likelihood
+(a simulated value below the model uses σ_hi, one above it σ_lo, below with probability
+σ_hi/(σ_hi + σ_lo); f drawn from its prior), each refitted by the same least squares; p = the fraction
 of refits whose data χ² is at least the observed one (numpy `default_rng(1)`). If p < 0.01 the result
 is labelled **"model misfit"** and the probabilities are reported but not used as a verdict. The section 4 rms rule does not apply here.
 
@@ -183,6 +185,7 @@ sampling, propagation, fit-quality test and labels.
 |---|---|---|---|
 | N26 counts, area, volume, density, ratio | arXiv:2505.11263 §4.1 (v2) | N = 2, 388 arcmin², 462,648 Mpc³, −5.36 (+0.37/−0.45), 182 (+329/−105) | < 1 KB, in `inputs.py` |
 | Pre-JWST z ≈ 8 and z ≈ 7 UV LFs | Bouwens et al. 2021, AJ 162, 47, arXiv:2102.07775, Table 5 | z ~ 8 (⟨z⟩ = 7.9): M* = −20.93, φ* = 0.09 × 10⁻³ Mpc⁻³ mag⁻¹, α = −2.23; z ~ 7 (⟨z⟩ = 6.8): M* = −21.15, φ* = 0.19 × 10⁻³ Mpc⁻³ mag⁻¹, α = −2.06 | < 1 KB |
+| Binned z ≈ 8 UV LFs (R2/R3-POST, addendum 2026-11-16) | Bouwens et al. 2021, Table 4 (7 rows); Bouwens et al. 2022, arXiv:2205.11526, Table 4 (12 rows) | z ~ 8 columns, typed into `z14inputs.py` | < 1 KB |
 | H25 z ~ 14 point | Harikane et al. 2025, ApJ 980, 138, Table 2 | one row | < 1 KB |
 | Model constants | Planck 2018 (astropy `Planck18`: H0 = 67.66, Ωm = 0.30966, Ωb = 0.04897, σ8 = 0.8102, n_s = 0.9665); Sheth–Tormen (A = 0.3222, a = 0.707, p = 0.3, δ_c = 1.686; as in Reed et al. 2007 eq. 5); Reed et al. 2007 eq. 11–14; Fakhouri et al. 2010 eq. 2; Dekel et al. 2013 eq. 8; Madau & Dickinson 2014 eq. 10 | – | < 1 KB |
 
