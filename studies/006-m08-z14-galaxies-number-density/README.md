@@ -117,11 +117,15 @@ al. 2022's Fig. 4 (lensing points against Bouwens+21); no fit to the binned data
 *Model and likelihood.* Fiducial combination of section 4 (Sheth–Tormen, Fakhouri mean accretion,
 ε extrapolation "dpl", σ_cal = 0.7 mag, z_cal = 7.9). Parameters θ = (ε₀, log10 M₁, β, γ) with flat
 priors on the section 4 bounds ([10⁻⁶, 1], [9, 13], [0, 3], [0, 3]) and f (the lensing-field
-normalisation factor) with a Gaussian prior N(1, 0.2) truncated to f > 0. The model φ(M_UV) is
+normalisation factor) with a Gaussian prior N(1, 0.2) truncated to [0.01, 3] (the sampled box; the
+prior mass outside it is below 10⁻²⁰). The model φ(M_UV) is
 `lf_model` at the bin centre (point evaluation; the bins' widths are 0.5 mag except where the
 printed centres are 0.75-1.0 mag apart, so this is an approximation stated as such). Each point
 contributes a two-piece Gaussian in φ: (φ_data − φ_model)/σ with σ the upper error if φ_model >
-φ_data and the lower error otherwise; lensing-field points compare f·φ_model with the data. Stated
+φ_data and the lower error otherwise; lensing-field points compare f·φ_model with the data. This is
+the split-normal density, whose normalisation 2/(√(2π)(σ_hi + σ_lo)) is the same on both sides and does
+not depend on the parameters, so −2 ln L = Σ r² + constant and least squares on these residuals
+optimises the same likelihood. Stated
 approximations: independent Gaussian errors (the stepwise bins may be correlated and the brightest
 hold few sources); the papers' cosmology (H0 = 70, Ωm = 0.3) is not converted to Planck18 (about 10%
 in φ and 0.07 mag, shared with the section 4 calibration). The blank-field and lensing points are
@@ -147,9 +151,11 @@ reported but not used as a verdict. The section 4 rms rule does not apply here.
 ratio φ_ours/φ_N26 and its section 2 verdict (factor 3), and R3's roots and overlap verdict (section 2
 rules, same σ grid and censoring). A draw whose φ(σ) is not monotonic is "not evaluable" for R3.
 
-*Decision.* For R2: P(higher), P(same order), P(lower) over the 500 draws. **"robust to the
-calibration uncertainty"** if one verdict has P ≥ 0.95 (naming it); otherwise **"calibration-
-uncertain"** with the probabilities. For R3 the same with P(consistent), P(different) over the
+*Decision.* For R2: P(higher), P(same order), P(lower) over the 500 draws, each with a Monte Carlo
+standard error SE = √(P(1 − P)/n_eff), n_eff = min(500, 32 × n_post/τ_max). **"robust to the
+calibration uncertainty"** if one verdict has P − 2·SE ≥ 0.95 (naming it); if its P ≥ 0.95 but
+P − 2·SE < 0.95, **"calibration-uncertain (borderline)"**; otherwise **"calibration-uncertain"**, with
+the probabilities. For R3 the same with P(consistent), P(different) over the
 evaluable draws, which must be at least 90% of the 500 (else **not evaluable**). The section 5
 fiducial verdicts stay recorded unchanged; R2/R3-POST is a sensitivity result, conditional on the
 fiducial ingredients (in particular the "dpl" extrapolation of ε below the calibrated range, which
