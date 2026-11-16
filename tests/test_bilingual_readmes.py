@@ -10,6 +10,22 @@ import pytest
 
 STUDIES = Path(__file__).resolve().parents[1] / "studies"
 
+# the studies that existed without a Chinese README when the rule was adopted (2026-11-16); PENDING may
+# only contain these (a new study gets README.zh.md from the template)
+ORIGINAL = {
+    "000-smoke-test_gaia-dr3-10pc-census",
+    "001-m04-gaia-dormant-black-holes",
+    "002-m01-desi-bao-evolving-dark-energy",
+    "003-m02-hubble-tension-distance-ladder",
+    "004-m07-wide-binaries-gravity-test",
+    "005-m09-nanograv-gwb-power-law",
+    "006-m08-z14-galaxies-number-density",
+    "007-m10-gwtc4-bbh-mass-35msun",
+    "008-m03-s8-des-y6-cmb-parameter-difference",
+    "009-m06-mw-outer-rotation-curve-decline",
+    "010-m05-thick-disc-subgiant-ages",
+}
+
 # studies whose README.zh.md is not written yet (plan 023, stage 2); remove an entry with its translation
 PENDING = {
     "000-smoke-test_gaia-dr3-10pc-census",
@@ -34,13 +50,24 @@ def _sections(text: str) -> list[str]:
 
 
 def _tables(text: str) -> int:
-    """Number of Markdown tables (separator rows like |---|---|)."""
-    return len(re.findall(r"^\|(?:\s*:?-{3,}:?\s*\|)+\s*$", text, flags=re.M))
+    """Number of Markdown tables (separator rows like |---|---|, also indented inside lists)."""
+    return len(re.findall(r"^[ \t]*\|(?:[ \t]*:?-+:?[ \t]*\|)+[ \t]*$", text, flags=re.M))
+
+
+def _table_rows(text: str) -> int:
+    """Number of table lines (header, separator and body rows)."""
+    return len(re.findall(r"^[ \t]*\|.*\|[ \t]*$", text, flags=re.M))
+
+
+def _subsections(text: str) -> int:
+    """Number of level-3 headings (subsections, dated addenda)."""
+    return len(re.findall(r"^### ", text, flags=re.M))
 
 
 def test_pending_list_names_real_studies():
     names = {p.name for p in FOLDERS}
     assert PENDING <= names, sorted(PENDING - names)
+    assert PENDING <= ORIGINAL, f"PENDING may only shrink: {sorted(PENDING - ORIGINAL)}"
 
 
 @pytest.mark.parametrize("folder", FOLDERS, ids=lambda p: p.name)
@@ -55,5 +82,11 @@ def test_chinese_companion(folder):
     assert "README.zh.md" in "\n".join(en_text.splitlines()[:6]), "README.md must link README.zh.md near the top"
     head = "\n".join(zh_text.splitlines()[:6])
     assert "README.md" in head and "以英文" in head, "README.zh.md must link README.md and say English is authoritative"
+    assert _sections(en_text), "README.md has no numbered sections"
     assert _sections(zh_text) == _sections(en_text), "section numbers differ between README.md and README.zh.md"
+    assert _subsections(zh_text) == _subsections(en_text), "### subsection count differs (an addendum missing?)"
     assert _tables(zh_text) == _tables(en_text), "table count differs between README.md and README.zh.md"
+    assert _table_rows(zh_text) == _table_rows(en_text), "table row count differs between README.md and README.zh.md"
+    if folder.name != "_template":
+        title = zh_text.splitlines()[0]
+        assert "TODO" not in title and re.search(r"[\u4e00-\u9fff]", title), "README.zh.md needs its Chinese title"
