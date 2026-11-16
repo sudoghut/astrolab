@@ -444,7 +444,7 @@ def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):
         def resid_b(x, sb=sb, sl=sl, su=su):
             return zm.binned_residuals(x, S.M, S.lnM, hmf_cal, z_cal, S.c, combo["accretion"], sigma_cal,
                                        sb, sl, su)
-        rb = optimize.least_squares(resid_b, lsq.x, bounds=(zm.POST_LO, zm.POST_HI), loss="linear",
+        rb = optimize.least_squares(resid_b, np.array([0.1, 11.5, 1.0, 0.5, 1.0]), bounds=(zm.POST_LO, zm.POST_HI), loss="linear",
                                     ftol=1e-10, xtol=1e-10, gtol=1e-10, max_nfev=2000)
         fb = resid_b(rb.x)
         boot.append(float(fb[:-1] @ fb[:-1]))
@@ -469,7 +469,8 @@ def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):
                                                          "boot_chi2_quantiles": [float(q) for q in
                                                                                  np.percentile(boot, [5, 50, 95])],
                                                          "success": bool(lsq.success)},
-           "tau": tau.tolist(), "n_post_steps": n_post, "converged": converged,
+           "tau": [float(t) if np.isfinite(t) else None for t in tau], "n_post_steps": n_post,
+           "converged": converged, "n_points": int(len(r0) - 1),
            "acceptance": float(np.mean(sampler.acceptance_fraction)),
            "posterior": {n: {"median": float(np.median(flat[:, j])),
                              "p16": float(np.percentile(flat[:, j], 16)),
@@ -507,7 +508,12 @@ def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):
             lab = "model misfit (probabilities reported, not a verdict)"
         return lab + ("; prior-bounded" if bounded else "")
 
-    out.update({"r2_verdicts": r2v, "r3_verdicts": r3v, "ratios": ratios,
+    med_theta = [float(np.median(flat[:, j])) for j in range(4)]
+    fmed = run_model(S, P, combo, phi_obs, fixed={"theta": med_theta, "m_cal_lo": None,
+                                                    "calibration": {"theta": med_theta, "rms": 0.0}})
+    out["at_posterior_median"] = {"theta": med_theta, "ratio": float(fmed["phi_ours"] / phi_n26),
+                                  "sigma_roots": fmed.get("sigma_roots")}
+    out.update({"r2_verdicts": r2v, "r3_verdicts": r3v, "ratios": ratios, "r3_central_roots": centrals,
                 "r2_probabilities": p2, "r3_probabilities": p3,
                 "r3_evaluable_fraction": len(ev3) / n,
                 "n_eff": float(min(n, n_eff_chain)),
