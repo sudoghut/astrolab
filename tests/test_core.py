@@ -448,3 +448,42 @@ def test_rejected_gaia_login_not_repeated(monkeypatch, tmp_path):
     gaia_auth.session_with_cookies(url)
     gaia_auth.session_with_cookies(url)
     assert calls == [1, 2, 2]
+
+
+def _fake_http(monkeypatch, body: bytes, length: int | None = None):
+    import requests
+
+    class _R:
+        headers = {"Content-Length": str(len(body) if length is None else length)}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def raise_for_status(self):
+            pass
+
+        def iter_content(self, n):
+            yield body
+
+    monkeypatch.setattr(requests, "head", lambda *a, **k: _R())
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _R())
+
+
+def test_http_cap_cannot_be_raised_by_caller(tmp_cache, monkeypatch):
+    monkeypatch.setattr(config, "HTTP_MAX_BYTES", 1000)
+    _fake_http(monkeypatch, b"x" * 2000)
+    with pytest.raises(fetch.TooLarge):
+        fetch.http("http://example.invalid/f.txt", max_bytes=10_000_000)
+
+
+def test_http_cached_payload_verified_against_provenance(tmp_cache, monkeypatch):
+    _fake_http(monkeypatch, b"first")
+    a = fetch.http("http://example.invalid/g.txt")
+    b = fetch.http("http://example.invalid/g.txt")
+    assert b.from_cache and b.data.read_bytes() == b"first"
+    a.data.write_bytes(b"tampered")           # bytes no longer match the stored sha256
+    c = fetch.http("http://example.invalid/g.txt")
+    assert not c.from_cache and c.data.read_bytes() == b"first"

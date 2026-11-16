@@ -35,7 +35,7 @@ def test_r2_cannot_distinguish():
     derived = "Newton" if L >= 100 else "MOND" if L <= 1 / 100 else "cannot distinguish"
     assert derived == "cannot distinguish"
     assert s["R2"].startswith(derived)
-    assert abs(L - 0.49) < 0.01
+    assert abs(L - 0.4857) < 5e-4
 
 
 def test_mad_errors_favour_mond():
