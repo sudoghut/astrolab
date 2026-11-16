@@ -60,7 +60,8 @@ def test_tap_cache_hit_needs_no_network(tmp_cache):
     key = cache.key_for("tap", {"url": fetch.tap_url("gaia"), "adql": "SELECT a FROM t"})
     tmp = cache.staging_path(".parquet")
     pd.DataFrame({"a": [1, 2]}).to_parquet(tmp)
-    cache.put_file(key, ".parquet", tmp, {"provenance": {"source": "tap:gaia", "request": "SELECT a FROM t"}})
+    cache.put_file(key, ".parquet", tmp, {"provenance": {"source": "tap:gaia", "request": "SELECT a FROM t",
+                                                         "sha256": fetch._sha256(tmp)}})
     res = fetch.tap(adql, "gaia")
     assert res.from_cache and list(res.data.a) == [1, 2]
 
@@ -206,7 +207,8 @@ def test_cached_tap_result_over_limit_refused(tmp_cache, monkeypatch):
     key = cache.key_for("tap", {"url": fetch.tap_url("gaia"), "adql": "SELECT b FROM t"})
     tmp = cache.staging_path(".parquet")
     pd.DataFrame({"b": np.arange(20000.0)}).to_parquet(tmp)
-    cache.put_file(key, ".parquet", tmp, {"provenance": {"source": "tap:gaia", "request": "SELECT b FROM t"}})
+    cache.put_file(key, ".parquet", tmp, {"provenance": {"source": "tap:gaia", "request": "SELECT b FROM t",
+                                                         "sha256": fetch._sha256(tmp)}})
     monkeypatch.setattr(config, "HTTP_MAX_BYTES", 1000)
     with pytest.raises(fetch.TooLarge):
         fetch.tap("SELECT b FROM t", "gaia")
