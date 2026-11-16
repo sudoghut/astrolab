@@ -242,8 +242,8 @@ cumulative byte estimate was 155.4 MB (budget 200 MB). Page: [`web/index.html`](
   separations below its own 1 kAU floor). The lowest bin was merged into the next by the
   pre-registered rule (five bins). The Newtonian normalisation (0.499) agrees with C26's 0.489.
 - **R2.** With the pre-registered bootstrap covariance, L = 0.49: neither model is preferred. The
-  bootstrap errors are 1.4–3.1 times C26's MAD/√N (per bin 2.3, 2.2, 3.1, 1.4, 2.4). With C26's own
-  MAD/√N errors the same medians give L = 1.7 × 10⁻⁵ (MOND favoured), and with 1.4826 MAD/√N
+  bootstrap errors are 1.4–3.1 times MAD/√N, the formula C26 states (per bin 2.3, 2.2, 3.1, 1.4, 2.4).
+  With MAD/√N errors the same medians give L = 1.7 × 10⁻⁵ (MOND favoured), and with 1.4826 MAD/√N
   L = 6.7 × 10⁻³ (reproduction column, no verdict): on our sample the error convention, not the
   data, decides the outcome. This is numerical evidence for the Lean gap `gap_err` (the error
   model of the chain). Because the sample differs (R1), R2 is not a reproduction of C26's number.
@@ -257,8 +257,8 @@ cumulative byte estimate was 155.4 MB (budget 200 MB). Page: [`web/index.html`](
   equals ours).
 - **R3 (descriptive).** ṽ ≤ 2: L = 0.40; ṽ ≤ 1.5: 0.92; no perspective correction: 0.13; d < 150 pc:
   1.16; parallax S/N > 100: 0.49; mean RV: 0.44 — all "cannot distinguish". No degrouping (N = 1465):
-  L = 0.034. Invalid fits (more than 5% of bootstrap replicates redrawn because the outermost bin fell
-  below 15 pairs): ṽ ≤ 1.5 with ipd = 0, ipd = 0, d < 150 pc with ipd = 0, no HR cut, c ± 0.2. Not
+  L = 0.034. Invalid fits (more than 5% of bootstrap replicates redrawn because a bin fell below 15 pairs:
+  the outermost bin, or for no HR cut the lowest bin with 17 pairs): ṽ ≤ 1.5 with ipd = 0, ipd = 0, d < 150 pc with ipd = 0, no HR cut, c ± 0.2. Not
   attempted or not run: d < 200 pc, degrouping with C25 neighbours only (dated notes in sections 3–4).
   None of C26's quantitative variant statements (150 pc: MOND 12×; 150 pc with ipd = 0: Newton 88×)
   is reproduced: our 150 pc variant gives L = 1.16 and the ipd = 0 variant is invalid.
@@ -284,8 +284,8 @@ perspective correction, σ(ṽ) Jacobian, MOND boost, bootstrap against MAD/√N
 | 3 | Degrouping with relaxed neighbours (parallax S/N > 5, 3σ parallax consistency) keeps only 38% of 1–30 kAU pairs, much stricter than C26 appears to be | yes (cut traces) | **Accepted limitation**; the C25-neighbour diagnostic was not run (section 3); follow-up T-034. |
 | 4 | The bootstrap errors are noisy (18–29% scatter at these N); a pooled error model σ_j = k/√N_j moves L from 0.49 to 0.17 | partly (referee's computation) | **Accepted**; reported as a sensitivity here; no verdict change (both "cannot distinguish"). |
 | 5 | Contamination that adds a fixed km/s grows in ṽ with x and mimics MOND (no_degroup: L = 0.034); any MOND-ward reading of the MAD/√N result may be contamination | partly | **Accepted** as context; no verdict uses it. |
-| 6 | The ">5% redrawn" rule invalidated 7 of 14 variants (a bin of 15–20 pairs); invalid variants' L (e.g. no HR cut 434) must not be quoted | yes | **Accepted**; section 5 lists them as invalid; recorded as a design lesson (section 7). |
-| 7 | No projection correction raises our outer median by 0.037, against C26's ≈ 0.15 (about 1σ given 24 pairs) | yes | Noted; the code was verified on synthetic pairs. |
+| 6 | The ">5% redrawn" rule invalidated 6 of 14 variants (a bin of 15–20 pairs); invalid variants' L (e.g. no HR cut 434) must not be quoted | yes | **Accepted**; section 5 lists them as invalid; recorded as a design lesson (section 7). |
+| 7 | No projection correction raises our outer median by 0.038, against C26's ≈ 0.15 (about 1σ given 24 pairs) | yes | Noted; the code was verified on synthetic pairs. |
 | 8 | The saved R1 chain is cumulative, not one cut at a time as section 2 says | yes | Accepted (only the HR and degrouping one-at-a-time variants exist). |
 | 9 | Lean: `[stated]` premises are no stronger than their quotes; the conclusion should carry "for our cleanest sample"; a missing gap is "x computed on the model's scale" | yes | Docstring of the conclusion qualified; the x-scale gap is recorded in section 7 and the wiki (not added to the Lean argument in this PR). |
 | 10 | Literature: Banik et al. 2024 (arXiv:2311.03436) and Chae 2023 (arXiv:2305.04613) on close-binary contamination; El-Badry, Rix & Heintz 2021 (arXiv:2101.05282) and Pittordis & Sutherland 2023 (arXiv:2205.02846) unverified | partly (the first two are study papers) | Context only. |
@@ -299,11 +299,12 @@ perspective correction, σ(ṽ) Jacobian, MOND boost, bootstrap against MAD/√N
 - Which error model is right for the bin medians: the bootstrap errors are 1.4–3.1 times MAD/√N,
   enough to turn "MOND favoured" into "cannot distinguish". A mock with known Newtonian velocities
   and C26's selection would calibrate both.
-- The outermost bin (x ≈ 2.7) holds only 24 pairs, which made the ipd = 0 and HR variants invalid.
+- The outermost bin (x ≈ 2.7) holds only 24 pairs, which made the ipd = 0 and HR-constant variants
+  invalid; without the HR cut the lowest bin (17 pairs) made that variant invalid.
 - d < 200 pc and the C25-neighbour degrouping diagnostic were not run (sections 3–4).
 - The Lean argument lacks a premise that x is computed on the MOND model's scale (referee point 9);
   C26's lowest bin is inconsistent with its stated 1 kAU floor.
-- Design lesson: a hard 15-pair floor with a 5% redraw limit invalidates variants whose outer bin
+- Design lesson: a hard 15-pair floor with a 5% redraw limit invalidates variants whose sparsest bin
   holds 15–20 pairs.
 
 ## 8. Exploring via chat

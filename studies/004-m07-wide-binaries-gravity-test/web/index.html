@@ -63,7 +63,7 @@ function render() {
   const S = D.summary, V = D.variants, M = V.main, P = M.primary, R1 = S.R1;
   document.getElementById('cards').innerHTML = [
     ['R1 · ' + t('sample size', '样本量'), R1.verdict, `N = ${R1.N_main} ${t('vs C26', '对 C26')} ${R1.target} (±20%); ${t('cleanest', '最干净')} ${R1.N_cleanest} ${t('vs', '对')} ${R1.target_cleanest}`],
-    ['R2 · ' + t('Newton vs MOND', '牛顿对 MOND'), P.verdict, `L = ${fe(P.L)} (${t('thresholds 100 and 1/100', '门槛 100 与 1/100')}); Δχ² = ${f(P.dchi2, 2)}; ${t('Newton p', '牛顿 p')} = ${f(P.p_newton, 2)}`],
+    ['R2 · ' + t('Newton vs MOND', '牛顿对 MOND'), P.verdict, `L = ${fe(P.L)} (${t('thresholds 100 and 1/100', '门槛 100 与 1/100')}); Δχ² = ${f(P.dchi2, 2)}; ${t('Newton p', '牛顿 p')} = ${f(P.p_newton, 2)}. ${t('Referee (post hoc): the test had no power; noise-free Newtonian data would give only L = 6.2.', '审稿（事后）：检验没有功效；无噪声的牛顿数据也只给出 L = 6.2。')}`],
     [t('C26 error convention', 'C26 的误差约定'), null, `L(MAD/√N) = ${fe(M.reproduction.mad.L)}; L(1.4826 MAD/√N) = ${fe(M.reproduction['mad1.4826'].L)}; ${t('bootstrap / MAD error ratio', '自助法与 MAD 误差之比')} ${P.boot_over_mad.map(x => f(x, 1)).join(', ')}`],
   ].map(([h, v, d]) => `<div class="card"><h3>${h}</h3>${v ? `<div class="verdict ${cls(v)}">${vtxt(v)}</div>` : ''}<div>${d}</div></div>`).join('');
 

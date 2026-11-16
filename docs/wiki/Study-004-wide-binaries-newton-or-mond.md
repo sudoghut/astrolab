@@ -253,18 +253,19 @@ MOND; only the size of the preference is at stake. This repo tests it directly w
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
 | R1 · the sample and the median profile (stages B–C) | testable now | rebuild C26's sample with Gaia DR3 server-side self-joins (no 1.8 GB El-Badry catalogue), same cuts, median ṽ in six bins | candidate pairs and per-star neighbour counts, provisionally 10–40 MB (counts first; plan 013) | N within ±20% of 1421 / 1216; per-bin comparison with Fig. 8 diagnostic only (including which error formula reproduces Fig. 8's error bars, about ±0.013 at N = 368); overall median vs 0.489 | **different sample**: N = 639 vs 1421 (per x bin 3, 215, 232, 109, 56, 24 vs 368, 228, 144, 99, 33, 28); A = 0.499 vs 0.489 |
-| R2 · `gap_err` and stage D–E: does Δχ² survive calibrated errors? | testable now | same χ² comparison with a whole-sample bootstrap covariance of the six medians (primary) and C26's MAD/√N (reproduction column) | same | relative likelihood ≥ 100 → Newton preferred (agrees with C26); between 1/100 and 100 → cannot distinguish; ≤ 1/100 → MOND preferred | **cannot distinguish**: L = 0.49 (bootstrap errors); L = 1.7 × 10⁻⁵ with MAD/√N; noise-free Newtonian data would give only L = 6.2 (no power) |
-| R3 · stage B: robustness of "high-purity" | explorable (descriptive) | switch C26's choices off one at a time (projection correction, HR cut, 150/200 pc, parallax S/N > 100, ipd = 0, degrouping) | same | none — exploration only, see README §8 | most variants cannot distinguish (L 0.13–1.2); 7 of 14 invalid (sparse outer bin) |
+| R2 · `gap_err` and stage D–E: does Δχ² survive calibrated errors? | testable now | same χ² comparison with a whole-sample bootstrap covariance of the six medians (primary) and C26's MAD/√N (reproduction column) | same | relative likelihood ≥ 100 → Newton preferred (agrees with C26); between 1/100 and 100 → cannot distinguish; ≤ 1/100 → MOND preferred | **cannot distinguish**: L = 0.49 (bootstrap errors); L = 1.7 × 10⁻⁵ with MAD/√N; noise-free Newtonian data would give only L = 6.2 (no power; referee, post hoc) |
+| R3 · stage B: robustness of "high-purity" | explorable (descriptive) | switch C26's choices off one at a time (projection correction, HR cut, 150/200 pc, parallax S/N > 100, ipd = 0, degrouping) | same | none — exploration only, see README §8 | most variants cannot distinguish (L 0.13–1.2); 6 of 14 invalid (a bin below 15 pairs) |
 | R4 · B24 cuts | explorable (descriptive) | median profile with B24's 250 pc, G < 17 selection | larger query (count first) | none — exploration only | not run |
 
 The Gaia archive is offline 2026-11-25 to 12-02, so data are fetched and cached before then;
 velocity columns are fetched only after the study's pre-registration is committed (plan 013).
 
 **What we found (2026-11-16).** The server-side rebuild gives 639 pairs, less than half of C26's 1421:
-almost all of the shortfall is C26's lowest x bin, which its stated 1 kAU floor cannot populate.
+relative to C26's Fig. 8 counts, almost all of the shortfall is C26's lowest x bin, which its stated
+1 kAU floor cannot populate.
 With the pre-registered bootstrap errors the test cannot distinguish Newton from MOND (L = 0.49), but
-the test also had no power: noise-free Newtonian data would give only L = 6.2. With C26's MAD/√N
-errors the same medians give L = 1.7 × 10⁻⁵ (MOND), so on our sample the error convention decides the
+the independent referee found (post hoc) that the test had no power: noise-free Newtonian data would give only L = 6.2. With C26's MAD/√N
+errors (the formula C26 states) the same medians give L = 1.7 × 10⁻⁵ (MOND), so on our sample the error convention decides the
 outcome, the numerical form of `gap_err`. After the independent referee (post hoc): with the r_sky
 floor at 300 AU the sample (1250 pairs) matches C26's bins much better, and the likelihood ratio swings
 by orders of magnitude with the HR cut and the degrouping (196 Newton to 4.5 × 10⁻⁴ MOND). A
@@ -439,13 +440,13 @@ exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) l
 | 环节 / 论断 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
 | R1 · 样本与中位数曲线（环节 B–C） | 现在可检验 | 用 Gaia DR3 服务器端自连接（self-join）重建 C26 的样本（不下载 1.8 GB 的 El-Badry 星表），同样的切割，六个箱的中位数 ṽ | 候选对与逐星的邻居计数，暂估 10–40 MB（先计数；计划 013） | N 在 1421 / 1216 的 ±20% 以内；逐箱与图 8 的比较只作诊断（包括哪个误差公式能复现图 8 的误差棒，N = 368 时约 ±0.013）；总体中位数对 0.489 | **样本不同**：N = 639，C26 为 1421（各 x 箱 3、215、232、109、56、24 对 368、228、144、99、33、28）；A = 0.499，C26 为 0.489 |
-| R2 · `gap_err` 与环节 D–E：误差标定正确时 Δχ² 是否仍成立 | 现在可检验 | 同样的 χ² 比较，主要误差为对全体双星整体自助法得到的六个中位数的协方差，C26 的 MAD/√N 作复现栏 | 同上 | 相对似然 ≥ 100 → 牛顿受偏好（与 C26 一致）；在 1/100 与 100 之间 → 不能区分；≤ 1/100 → MOND 受偏好 | **无法区分**：L = 0.49（自助法误差）；用 MAD/√N 时 L = 1.7 × 10⁻⁵；无噪声的牛顿数据也只给出 L = 6.2（没有功效） |
-| R3 · 环节 B："纯度高"的稳健性 | 可探索（只作描述） | 逐项关闭 C26 的选择（透视修正、HR 切割、150/200 pc、视差信噪比 > 100、ipd = 0、去群） | 同上 | 无——只作探索，见 README 第 8 节 | 多数变体无法区分（L 0.13–1.2）；14 个中 7 个拟合无效（最外箱太稀） |
+| R2 · `gap_err` 与环节 D–E：误差标定正确时 Δχ² 是否仍成立 | 现在可检验 | 同样的 χ² 比较，主要误差为对全体双星整体自助法得到的六个中位数的协方差，C26 的 MAD/√N 作复现栏 | 同上 | 相对似然 ≥ 100 → 牛顿受偏好（与 C26 一致）；在 1/100 与 100 之间 → 不能区分；≤ 1/100 → MOND 受偏好 | **无法区分**：L = 0.49（自助法误差）；用 MAD/√N 时 L = 1.7 × 10⁻⁵；无噪声的牛顿数据也只给出 L = 6.2（没有功效；审稿发现，事后） |
+| R3 · 环节 B："纯度高"的稳健性 | 可探索（只作描述） | 逐项关闭 C26 的选择（透视修正、HR 切割、150/200 pc、视差信噪比 > 100、ipd = 0、去群） | 同上 | 无——只作探索，见 README 第 8 节 | 多数变体无法区分（L 0.13–1.2）；14 个中 6 个拟合无效（有箱少于 15 对） |
 | R4 · B24 的切割 | 可探索（只作描述） | 用 B24 的 250 pc、G < 17 选择的中位数曲线 | 更大的查询（先计数） | 无——只作探索 | 未运行 |
 
 Gaia 档案 2026-11-25 至 12-02 下线，所以在此之前取数并缓存；速度列只在研究的预注册提交之后才取（计划 013）。
 
-**我们的发现（2026-11-16）。** 服务器端重建得到 639 对，不到 C26 的 1421 的一半；不足几乎全在 C26 最低的 x 箱，而 C26 所说的 1 kAU 下限填不满这个箱。按预注册的自助法（bootstrap）误差，检验无法区分牛顿与 MOND（L = 0.49），但检验本身没有功效（power）：无噪声的牛顿数据也只给出 L = 6.2。用 C26 的 MAD/√N 误差时，同样的中位数给出 L = 1.7 × 10⁻⁵（偏向 MOND），所以在我们的样本上结果取决于误差约定——这正是 `gap_err` 的数值形式。独立审稿之后（事后，post hoc）：把 r_sky 下限降到 300 AU，样本（1250 对）与 C26 各箱更接近，而似然比随赫罗图截断与去群相差几个数量级（从偏向牛顿的 196 到偏向 MOND 的 4.5 × 10⁻⁴）。已登记预注册的重新检验（T-034）。数字与网页见研究 README 第 5 节与 `web/index.html`。
+**我们的发现（2026-11-16）。** 服务器端重建得到 639 对，不到 C26 的 1421 的一半；与 C26 图 8 的计数相比，不足几乎全在 C26 最低的 x 箱，而 C26 所说的 1 kAU 下限填不满这个箱。按预注册的自助法（bootstrap）误差，检验无法区分牛顿与 MOND（L = 0.49），但独立审稿事后发现检验本身没有功效（power）：无噪声的牛顿数据也只给出 L = 6.2。用 C26 的 MAD/√N 误差时，同样的中位数给出 L = 1.7 × 10⁻⁵（偏向 MOND），所以在我们的样本上结果取决于误差约定——这正是 `gap_err` 的数值形式。独立审稿之后（事后，post hoc）：把 r_sky 下限降到 300 AU，样本（1250 对）与 C26 各箱更接近，而似然比随赫罗图截断与去群相差几个数量级（从偏向牛顿的 196 到偏向 MOND 的 4.5 × 10⁻⁴）。已登记预注册的重新检验（T-034）。数字与网页见研究 README 第 5 节与 `web/index.html`。
 
 ### 术语表
 
