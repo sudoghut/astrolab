@@ -131,7 +131,9 @@ disjoint samples (blank fields and HFF parallels against the HFF cluster fields)
 residual (f − 1)/0.2, from (0.1, 11.5, 1.0, 0.5, f = 1), bounds the prior box and f ∈ [0.01, 3],
 loss "linear", ftol = xtol = gtol = 10⁻¹⁰, max_nfev = 2000. emcee (stretch move), 32 walkers started
 at the optimum plus N(0, (10⁻³ × (hi − lo))²) per parameter (for f, hi − lo = 2.99), each coordinate
-reflected into its prior box; 6000 steps; the first 2000 discarded; numpy seed 0. Valid if the
+reflected into its prior box; 6000 steps; the first 2000 discarded; one `np.random.default_rng(0)`
+generator drives the start ball and is passed to emcee (`EnsembleSampler(..., seed=...)` from it) so
+the chain is reproducible. Valid if the
 post-burn length is at least 50 integrated autocorrelation times, τ from
 `emcee.autocorr.integrated_time` (c = 5, tol = 0) on the post-burn chain, maximum over the five
 parameters; otherwise R2/R3-POST are **not evaluable** (no step changes allowed). Fit quality: the
@@ -151,14 +153,19 @@ evaluable draws, which must be at least 90% of the 500 (else **not evaluable**).
 fiducial verdicts stay recorded unchanged; R2/R3-POST is a sensitivity result, conditional on the
 fiducial ingredients (in particular the "dpl" extrapolation of ε below the calibrated range, which
 decided R3 across the section 4 variants); "robust" here means robust to the LF calibration
-uncertainty only. The fraction of draws within 1% (of the box width) of each prior bound is
-reported; if more than 5% of draws sit at any bound the result is labelled **"prior-bounded"**.
+uncertainty only. The fraction of draws within 1% of the box width of each prior bound is reported
+(for ε₀ measured in log10 ε₀ over [−6, 0], i.e. 0.06 dex; the other parameters linearly); if more
+than 5% of draws sit at any bound, the result is labelled **"prior-bounded"**: the verdict stands,
+with the label attached. Precedence: "not evaluable" (convergence, or R3 with fewer than 90%
+evaluable draws) replaces any verdict; otherwise "model misfit" means the probabilities are reported
+but not used as a verdict; "prior-bounded" is attached to whatever remains.
 
 *Reported, not decisive.* Posterior medians and 68% intervals of θ and f; the best-fit χ² and the
 number of points; the ratio and R3 central root at the posterior median θ; the same probabilities
 for σ_cal = 0.5 and 0.9 (separate chains; as in section 4 step 7, the z = 14–15 σ used for R2 equals
 σ_cal) and for a fit that adds the four faint lensing rows (the upper limit as a one-sided Gaussian,
-1σ at 0.068), each with the same sampling, propagation and labels.
+1σ at 0.068), each with the same sampling, propagation and labels (the faint-row fit has 19 points,
+the limit counted as one, plus the prior point, minus 5 parameters: 15 degrees of freedom).
 
 ## 3. Data (with size estimate)
 
