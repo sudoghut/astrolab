@@ -199,7 +199,8 @@ Exploration only (README section 8): DES-Dovekie (`DES-Dovekie_HD.csv` 0.11 MB,
 - **Tests.** Offline unit tests for `cosmo` (limits, Planck reference point, K) and `infer`
   (analytic marginalisation against a brute-force grid, Δχ² → σ conversion: 12.5 → 3.1σ,
   8.0 → 2.4σ).
-- **θ* from CAMB (addendum 2026-11-16).** R2-CAMB in section 2; code in `camb_theta.py`, results
+- **θ* from CAMB (addendum 2026-11-16).** Needs `camb` (not in the base install line; set
+  `camb_check` to false without it). R2-CAMB in section 2; code in `camb_theta.py`, results
   in `results/r2_camb.json`; switched by `PARAMS["camb_check"]` (CAMB must be installed).
 - **Known limitations.** No full CMB likelihood; θ* via a calibrated fitting formula, not CAMB
   in R2 itself (CAMB enters only in the R2-CAMB sensitivity check, addendum 2026-11-16); the Wilks calibration
@@ -294,7 +295,8 @@ the paper):
 | 9 | Lean: `mod_sig` generalises one quoted value by monotonicity of Eq. 22; `Challenged` is named from "not trivially dismissed"; `gap_regular` could mention prior truncation | yes | Docstrings and wiki notes added; no change of verdicts. |
 
 No code bug that changes a verdict was found; criteria were applied as pre-registered (README
-sections 1-4 unchanged since commit 88cdacb, before the data were first used).
+sections 1-4 unchanged since commit 88cdacb, before the data were first used; as of 2026-11-14,
+before the R2-CAMB addendum of 2026-11-16).
 
 ### Referee, R2-CAMB (independent subagent, 2026-11-16)
 
@@ -319,7 +321,7 @@ sections 5-7; it ran small offline checks with camb.
   needs the user's consent, which README section 4 did not plan; consent given 2026-11-16,
   R2-CAMB addendum in section 2) would show whether R2 depends on it. Answered 2026-11-16: the
   split is robust to the θ* calibration (section 5, R2-CAMB), so R2 does depend on the convention.
-  The prior's source chain matches reading A (section 5, referee); what remains is which quantity
+  The prior's source chain matches reading A (section 5, referee; post hoc); what remains is which quantity
   DESI's code compared with the 0.14208 mean, and, if A, where the remaining ~1.4 in Δχ² comes
   from (T-030).
 - Wilks calibration (wiki `gap_regular`): simulate the Δχ² distribution under the ΛCDM best fit
