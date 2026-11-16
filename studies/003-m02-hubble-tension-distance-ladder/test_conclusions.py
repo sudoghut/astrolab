@@ -111,18 +111,21 @@ def test_r2_re_rule_and_headline():
         assert g[j] - 1e-9 <= lo <= g[j + 1] + 1e-9
     elif lo == 0.0:
         assert all(v[i] < thr for i in range(len(g)) if g[i] < est["tau_hat"])
+    assert est["at_zero"] == (est["tau_hat"] < 1e-3) and est["at_upper_bound"] == (est["tau_hat"] > 0.5 - 1e-3)
     assert re_["tau_hat"] == (0.0 if est["at_zero"] else est["tau_hat"])
+    assert "diagnostic_errors" not in re_
+    sens = re_["sensitivity_cepheid_rows"]
+    assert sens["reml"]["at_upper_bound"] or "verdict_row" in sens
     # descriptive diagnostics: internal consistency
     assert re_["r4_under_v"]["draws"] == load("r4")["draws"]          # required when evaluated
     assert "loo_chi2" in re_ and "sensitivity_cepheid_rows" in re_
     for e_, m in zip(re_["interval_68"], est["m2l_at_interval"]):    # each finite end is a +1 crossing
         if isinstance(e_, float) and e_ > 0:
             assert abs(m - thr) < 1e-3
-    if True:
-        for w in ("C", "V"):
-            lc = re_["loo_chi2"][w]
-            assert abs(lc["chi2"] - sum(x["chi2"] for x in lc["per_host"])) < 1e-6
-            assert lc["n_rows"] == sum(x["n_rows"] for x in lc["per_host"]) and len(lc["per_host"]) == 37
+    for w in ("C", "V"):
+        lc = re_["loo_chi2"][w]
+        assert abs(lc["chi2"] - sum(x["chi2"] for x in lc["per_host"])) < 1e-6
+        assert lc["n_rows"] == sum(x["n_rows"] for x in lc["per_host"]) and len(lc["per_host"]) == 37
     # grid points inside a determined interval lie within min + 1 of the REML minimum
     if isinstance(lo, float) and isinstance(hi, float):
         for t, v in zip(est["grid"], est["grid_m2l"]):

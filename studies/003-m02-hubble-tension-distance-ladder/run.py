@@ -455,41 +455,30 @@ def r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks,
                reference_tol=2 * hs["shift_sigma"] + P["host_ref_extra"], c_errors=c_step)
     ctx.log(f"R2-RE host step: {hs['shift']:+.4f} +- {hs['shift_sigma']:.4f} (z {hs['z']:.2f}) -> {v}")
 
-    # reported, not decisive; a failure here is recorded and does not stop the run
-    errs = out.setdefault("diagnostic_errors", {})
+    # reported, not decisive; any failure here is a bug and stops the run (nothing is swallowed)
     hi = est["interval_68"][1]
     if isinstance(hi, float):
-        try:
-            hs_hi, _ = host_step_under(L, y, with_re(C, calib_groups, hi), rows_a, rows_s)
-            out["at_interval_upper"] = {"tau": hi, "z": hs_hi["z"], "shift": hs_hi["shift"],
-                                        "shift_sigma": hs_hi["shift_sigma"]}
-        except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
-            errs["at_interval_upper"] = str(e)
-    try:
-        est_c = estimate(ceph_groups)
-        sens = {"reml": {k: est_c[k] for k in ("tau_hat", "interval_68", "refined", "other_local_minima",
-                                                "at_zero", "at_upper_bound")}}
-        if not est_c["at_upper_bound"]:
-            tc = 0.0 if est_c["at_zero"] else est_c["tau_hat"]
-            hs_c, _ = host_step_under(L, y, with_re(C, ceph_groups, tc), rows_a, rows_s)
-            sens.update(host_step=hs_c, verdict_row=host_step_verdict(
-                hs_c["z"], hs_c["shift"], hs_c["shift_sigma"], P["host_ref"], P["host_ref_extra"]))
-        out["sensitivity_cepheid_rows"] = sens
-    except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
-        errs["sensitivity_cepheid_rows"] = str(e)
-    # R4 under V: an identity or variance failure is a bug and stops the run (not swallowed)
+        hs_hi, _ = host_step_under(L, y, with_re(C, calib_groups, hi), rows_a, rows_s)
+        out["at_interval_upper"] = {"tau": hi, "z": hs_hi["z"], "shift": hs_hi["shift"],
+                                    "shift_sigma": hs_hi["shift_sigma"]}
+    est_c = estimate(ceph_groups)
+    sens = {"reml": {k: est_c[k] for k in ("tau_hat", "interval_68", "refined", "other_local_minima",
+                                            "at_zero", "at_upper_bound")}}
+    if not est_c["at_upper_bound"]:
+        tc = 0.0 if est_c["at_zero"] else est_c["tau_hat"]
+        hs_c, _ = host_step_under(L, y, with_re(C, ceph_groups, tc), rows_a, rows_s)
+        sens.update(host_step=hs_c, verdict_row=host_step_verdict(
+            hs_c["z"], hs_c["shift"], hs_c["shift_sigma"], P["host_ref"], P["host_ref_extra"]))
+    out["sensitivity_cepheid_rows"] = sens
     r2_re_r4(out, L, y, V, res_aV, hs, rows_a, base_rows, host_rows, picks)
-    try:
-        out["loo_chi2"] = {"C": loo_chi2(L, y, C, rows_a, calib_groups, labels),
-                           "V": loo_chi2(L, y, V, rows_a, calib_groups, labels),
-                           "note": "predicted from the fit without the host's SN rows; the cross-covariance "
-                                   "of those rows with the kept rows is ignored (README definition), so the "
-                                   "comparison with chi^2(n) is approximate"}
-    except (np.linalg.LinAlgError, ValueError, RuntimeError) as e:
-        errs["loo_chi2"] = str(e)
+    out["loo_chi2"] = {"C": loo_chi2(L, y, C, rows_a, calib_groups, labels),
+                       "V": loo_chi2(L, y, V, rows_a, calib_groups, labels),
+                       "note": "predicted from the fit without the host's SN rows; the cross-covariance "
+                               "of those rows with the kept rows is ignored (README definition), so the "
+                               "comparison with chi^2(n) is approximate"}
     out["seconds"] = time.perf_counter() - t0
-    ctx.log(f"R2-RE diagnostics: R4 under V z spread {out.get('r4_under_v', {}).get('z_std')}; "
-            f"LOO chi2 {[(k, out['loo_chi2'][k]['chi2']) for k in ('C', 'V')] if 'loo_chi2' in out else errs}")
+    ctx.log(f"R2-RE diagnostics: R4 under V z spread {out['r4_under_v']['z_std']:.3f}; "
+            f"LOO chi2 C {out['loo_chi2']['C']['chi2']:.1f}, V {out['loo_chi2']['V']['chi2']:.1f}")
     return out
 
 
