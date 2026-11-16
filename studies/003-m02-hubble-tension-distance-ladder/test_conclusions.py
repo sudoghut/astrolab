@@ -88,7 +88,9 @@ def test_r2_re_rule_and_headline():
     else:
         exp = "host selection raises H0 (contradicts the paper)"
     assert re_["verdict"] == exp
-    assert h["verdict"].startswith(exp) and s["R2_host"] == h["verdict"]
+    anchor_ok = load("r2")["anchor_step"]["verdict"] == "reproduced"
+    prefix = "" if anchor_ok else "conditional (anchor rule not validated): "
+    assert h["verdict"].startswith(prefix + exp) and s["R2_host"] == h["verdict"]
     assert s["R2_host_headline_source"] == "R2-RE"
     # R2 with C errors stays recorded
     assert h["criterion_outcome"].startswith("host selection significantly lowers H0")
