@@ -220,15 +220,57 @@ reading of C24's "within 0.5 pc of one another", which does not say whether the 
 only part of the sample; the sample-size discrepancy inside C26 (1421 vs 900) means R1's size
 target is itself uncertain.
 
-## 5. Results
+## 5. Results (2026-11-16)
 
-Filled after running. Link to `web/index.html` and key numbers in `results/`.
+Step A (velocity-free, 339 sky regions plus a near-star query) and step B (velocities, after the
+pre-registration commit) ran on 2026-11-14 to 11-16 through the authenticated Gaia archive; the
+cumulative byte estimate was 155.4 MB (budget 200 MB). Page: [`web/index.html`](web/index.html)
+(`python -m astrolab serve`); numbers in `results/summary.json` and `results/variants.json`.
+
+| Criterion | Ours | C26 | Verdict |
+|---|---|---|---|
+| R1 main sample (ṽ ≤ 2.5) | N = 639 | 1421 (±20%) | **different sample** |
+| R1 cleanest (ṽ ≤ 1.5, ipd = 0), diagnostic | N = 497 | 1216 | — |
+| R1 Newtonian normalisation, diagnostic | A = 0.499 | 0.489 | — |
+| R2 Newton vs MOND (bootstrap covariance) | L = 0.49 (Δχ² = −1.44; Newton p = 0.34, 4 dof) | Newton favoured by a large factor | **cannot distinguish** (does not support the strength of C26's conclusion) — labelled "different sample; not a reproduction" |
+
+- **R1.** The diagnostic chain (`summary.json` `R1.diagnostic_chain`): 21,949 candidate pairs with both
+  radial velocities → degrouping 8,425 → d < 130 pc 7,376 → 1 ≤ r_sky ≤ 30 kAU 2,825 → RUWE 1,635 →
+  HR band 712 → |ΔRV| < 10 km/s 662 → σ(ṽ) < 0.1 650 → ṽ ≤ 2.5 639. Per x bin (before merging)
+  3, 215, 232, 109, 56, 24 against C26 Fig. 8's 368, 228, 144, 99, 33, 28: our pairs sit at larger
+  x, the x-convention issue listed under systematics (C26's lowest-bin median x = 0.073 implies
+  separations below its own 1 kAU floor). The lowest bin was merged into the next by the
+  pre-registered rule (five bins). The Newtonian normalisation (0.499) agrees with C26's 0.489.
+- **R2.** With the pre-registered bootstrap covariance, L = 0.49: neither model is preferred. The
+  bootstrap errors are 1.4–3.1 times C26's MAD/√N (per bin 2.3, 2.2, 3.1, 1.4, 2.4). With C26's own
+  MAD/√N errors the same medians give L = 1.7 × 10⁻⁵ (MOND favoured), and with 1.4826 MAD/√N
+  L = 6.7 × 10⁻³ (reproduction column, no verdict): on our sample the error convention, not the
+  data, decides the outcome. This is numerical evidence for the Lean gap `gap_err` (the error
+  model of the chain). Because the sample differs (R1), R2 is not a reproduction of C26's number.
+- **R3 (descriptive).** ṽ ≤ 2: L = 0.40; ṽ ≤ 1.5: 0.92; no perspective correction: 0.13; d < 150 pc:
+  1.16; parallax S/N > 100: 0.49; mean RV: 0.44 — all "cannot distinguish". No degrouping (N = 1465):
+  L = 0.034. Invalid fits (more than 5% of bootstrap replicates redrawn because the outermost bin fell
+  below 15 pairs): ṽ ≤ 1.5 with ipd = 0, ipd = 0, d < 150 pc with ipd = 0, no HR cut, c ± 0.2. Not
+  attempted or not run: d < 200 pc, degrouping with C25 neighbours only (dated notes in sections 3–4).
+  None of C26's quantitative variant statements (150 pc: MOND 12×; 150 pc with ipd = 0: Newton 88×)
+  is reproduced: our 150 pc variant gives L = 1.16 and the ipd = 0 variant is invalid.
+- **R4.** Not run (optional; the B24 server-side count was not attempted before the archive outage).
 
 ## 6. Referee notes
 
 Independent critique: selection effects, systematics, alternative explanations.
 
 ## 7. Open questions
+
+- Why our sample is less than half of C26's (639 against 1421) with the same cuts: degrouping
+  (21,949 → 8,425) and the r_sky window (→ 2,825) remove most pairs; whether C26's x or r_sky
+  convention differs (their lowest bin implies r_sky < 1 kAU) could be tested with the per-bin
+  medians of Fig. 8 and a relaxed r_sky floor (an exploration, no verdict).
+- Which error model is right for the bin medians: the bootstrap errors are 1.4–3.1 times MAD/√N,
+  enough to turn "MOND favoured" into "cannot distinguish". A mock with known Newtonian velocities
+  and C26's selection would calibrate both.
+- The outermost bin (x ≈ 2.7) holds only 24 pairs, which made the ipd = 0 and HR variants invalid.
+- d < 200 pc and the C25-neighbour degrouping diagnostic were not run (sections 3–4).
 
 ## 8. Exploring via chat
 
@@ -237,14 +279,30 @@ How a coding agent answers "what if" questions about this study without touching
 
 | Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
 |---|---|---|---|
-| TODO | | | |
+| `vt_max` | ṽ cap of the main sample | 1.5–3 | cache only |
+| `d_max_pc` | distance limit (pc) | 100–150 (the parent query stops at 150) | cache only |
+| `rsky_min_au`, `rsky_max_au` | projected separation window | 500–2000; 10,000–30,000 | cache only |
+| `ruwe_max`, `drv_max`, `sig_vt_max` | quality cuts | 1.1–1.4; 5–20 km/s; 0.05–0.2 | cache only |
+| `hr_c` | HR band constant (committed from step A) | ± 0.3 | cache only |
+| `edges`, `min_per_bin` | x-bin interior edges and the minimum count | C26's edges; 10–30 | cache only |
+| `n_boot`, `boot_seed` | bootstrap replicates and seed | 500–5000 | cache only |
+| `a0`, `gne_over_a0` | MOND constant and external field | 1.0–1.3 × 10⁻¹⁰; 0–2 | cache only |
+| `step` | "A" (velocity-free) or "B" | B for explorations | cache only (both steps are cached) |
 
 - Rerun with an override: `python -m astrolab explore 004-m07-wide-binaries-gravity-test --tag <topic> --set KEY=VALUE`
-  (outputs in `explore/<date>-<topic>/`, not committed; about N s from cache).
+  (outputs in `explore/<date>-<topic>/`, not committed; about 35 min from the cache: every query is a
+  cache hit, the bootstrap of 14 variants dominates; `--set n_boot=200` is much faster).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 004-m07-wide-binaries-gravity-test --tag <topic> --script explore/<name>.py`.
-- Results files and keys: TODO (`results/<file>.json`: key - meaning).
-- Example questions: TODO (question -> knob or script an agent would use).
+- Results files and keys: `summary.json` (`R1`: N, the diagnostic chain, counts against Fig. 8; `R2`,
+  `R2_L`; `not_run`), `variants.json` (per variant: `N`, `counts_raw`, `counts`, `medians`, `x_median`,
+  `reproduction` (MAD/√N fits), `primary` (bootstrap fit: `L`, `dchi2`, `p_newton`, `boot_errors`,
+  `boot_over_mad`, `redraw_fraction`, `verdict`), `cut_trace`), `step_a.json` (step-A counts, HR c),
+  `provenance.json` (every query).
+- Example questions: "Does a 500 AU r_sky floor bring the counts closer to C26?" → `--set rsky_min_au=500`.
+  "How does the verdict depend on the bootstrap?" → `--set n_boot=5000 --set boot_seed=1`.
+  "What if a0 = 1.0e-10?" → `--set a0=1.0e-10`. The velocity-free occupancy check:
+  `--script explore/occupancy_step_a.py`.
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.
 

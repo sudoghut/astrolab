@@ -4,27 +4,109 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wide binaries: Newton or MOND at low acceleration?</title>
-<!-- Bilingual rule (AGENTS.md): keep this script, write text as <span class="en">…</span><span class="zh">…</span>,
-     use i18n.L(en, zh) for generated HTML and i18n.t(en, zh) + i18n.onLangChange for plain text / charts. -->
 <script src="../../../atlas/web/i18n.js"></script>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
+<style>
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 16px 0; }
+  .card { border: 1px solid var(--border, #ccc); border-radius: 8px; padding: 12px; }
+  .card h3 { margin: 0 0 6px; font-size: 1rem; }
+  .verdict { font-weight: 600; }
+  .warn { color: #a15c00; } .bad { color: #b00020; } .ok { color: #1b6e20; }
+  table { border-collapse: collapse; margin: 8px 0 16px; font-size: 0.92rem; }
+  th, td { border-bottom: 1px solid var(--border, #ddd); padding: 4px 8px; text-align: left; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  svg text { font-size: 11px; fill: currentColor; }
+  .note { font-size: 0.9rem; opacity: 0.85; }
+</style>
 </head>
 <body>
 <main>
   <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 004-m07-wide-binaries-gravity-test</p>
   <h1><span class="en">Wide binaries: Newton or MOND at low acceleration?</span><span class="zh">宽双星：低加速度下是牛顿引力还是 MOND？</span></h1>
-  <p class="muted"><span class="en">Replace this page freely: design whatever this question needs (visualization, interactive analysis, several pages). It does not have to follow the Atlas. Data comes from <code>../results/*.json</code>.</span><span class="zh">可以完全替换本页面：按研究问题的需要来设计（可视化、交互式分析、多个页面），不必遵循 Atlas 的样式。数据来自 <code>../results/*.json</code>。</span></p>
-  <pre id="out"><span class="en">loading…</span><span class="zh">加载中……</span></pre>
+  <p class="muted"><span class="en">A Gaia DR3 wide-binary sample rebuilt server-side to the quality standard of Cookson et al. 2026 (C26), with the median scaled relative velocity ṽ per bin of x = r_sky / r_M compared with Newton (flat) and MOND (C26 Eq. 7). Criteria pre-registered in the study README (sections 1–4).</span><span class="zh">按 Cookson 等 2026（C26）的质量标准在服务器端重建的 Gaia DR3 宽双星样本；按 x = r_sky / r_M 分箱的缩放相对速度中位数 ṽ，与牛顿（平坦）和 MOND（C26 式 7）比较。判据预注册在研究 README 第 1–4 节。</span></p>
+  <div id="err"></div>
+  <div class="cards" id="cards"></div>
+  <h2><span class="en">Median ṽ per bin (main sample, ṽ ≤ 2.5)</span><span class="zh">各箱的 ṽ 中位数（主样本，ṽ ≤ 2.5）</span></h2>
+  <div id="plot"></div>
+  <p class="note"><span class="en">Points: bin medians with bootstrap errors (primary). Grey line: Newton fit (flat). Orange curve: MOND fit A·b(x). The pre-registered verdict uses the bootstrap covariance; C26's MAD/√N errors are shown in the table below.</span><span class="zh">点：各箱中位数及自助法误差（主要误差）。灰线：牛顿拟合（平坦）。橙线：MOND 拟合 A·b(x)。预注册判定用自助法协方差；C26 的 MAD/√N 误差见下表。</span></p>
+  <div id="bins"></div>
+  <h2><span class="en">Sample construction (diagnostic chain)</span><span class="zh">样本构建（逐项截断）</span></h2>
+  <div id="chain"></div>
+  <h2><span class="en">Variants (R3, descriptive)</span><span class="zh">变体（R3，只作描述）</span></h2>
+  <div id="variants"></div>
 </main>
 <script>
-fetch('../results/summary.json')
-  .then(r => { if (!r.ok) throw new Error(`results/summary.json: HTTP ${r.status}`); return r.json(); })
-  .then(d => { document.getElementById('out').textContent = JSON.stringify(d, null, 2); })
+const L = i18n.L, t = i18n.t;
+const f = (x, n = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '—' : Number(x).toFixed(n);
+const fe = x => (x === null || x === undefined) ? '—' : (Math.abs(x) >= 1e3 || Math.abs(x) < 1e-2 ? Number(x).toExponential(2) : Number(x).toFixed(2));
+const cls = v => !v ? '' : (/invalid|different/.test(v) ? 'bad' : (/cannot/.test(v) ? 'warn' : 'ok'));
+// MOND boost, C26 Eq. 7 (same as wb.mond_boost)
+function boost(x, a0 = 1.2e-10, gr = 1.184) {
+  const gne = gr * a0, gni = a0 / (1.5 * x * x), gnt = Math.sqrt(gni * gni + gne * gne);
+  const y = Math.sqrt(gnt / a0), nu = 1 / (1 - Math.exp(-y)), k = -(y / 2) * Math.exp(-y) / (1 - Math.exp(-y));
+  return Math.sqrt(nu * (1 + (k / 3) * Math.pow(Math.tanh(0.825 * gne / gni), 3.7)));
+}
+const vtxt = v => {
+  const m = {
+    'different sample': ['different sample', '样本不同'], 'reproduced sample size': ['reproduced sample size', '样本量复现'],
+    'cannot distinguish (does not support the strength of the C26 conclusion)': ['cannot distinguish (does not support the strength of the C26 conclusion)', '无法区分（不支持 C26 结论的强度）'],
+    'invalid fit (no verdict)': ['invalid fit (no verdict)', '拟合无效（不作判定）'],
+    'Newton has the higher relative likelihood (agrees with the C26 conclusion)': ['Newton has the higher relative likelihood (agrees with the C26 conclusion)', '牛顿的相对似然更高（与 C26 结论一致）'],
+    'MOND has the higher relative likelihood (contradicts C26)': ['MOND has the higher relative likelihood (contradicts C26)', 'MOND 的相对似然更高（与 C26 相反）'],
+  };
+  return m[v] ? L(...m[v]) : (v || '—');
+};
+let D = null;
+
+function render() {
+  if (!D) return;
+  const S = D.summary, V = D.variants, M = V.main, P = M.primary, R1 = S.R1;
+  document.getElementById('cards').innerHTML = [
+    ['R1 · ' + t('sample size', '样本量'), R1.verdict, `N = ${R1.N_main} ${t('vs C26', '对 C26')} ${R1.target} (±20%); ${t('cleanest', '最干净')} ${R1.N_cleanest} ${t('vs', '对')} ${R1.target_cleanest}`],
+    ['R2 · ' + t('Newton vs MOND', '牛顿对 MOND'), P.verdict, `L = ${fe(P.L)} (${t('thresholds 100 and 1/100', '门槛 100 与 1/100')}); Δχ² = ${f(P.dchi2, 2)}; ${t('Newton p', '牛顿 p')} = ${f(P.p_newton, 2)}`],
+    [t('C26 error convention', 'C26 的误差约定'), null, `L(MAD/√N) = ${fe(M.reproduction.mad.L)}; L(1.4826 MAD/√N) = ${fe(M.reproduction['mad1.4826'].L)}; ${t('bootstrap / MAD error ratio', '自助法与 MAD 误差之比')} ${P.boot_over_mad.map(x => f(x, 1)).join(', ')}`],
+  ].map(([h, v, d]) => `<div class="card"><h3>${h}</h3>${v ? `<div class="verdict ${cls(v)}">${vtxt(v)}</div>` : ''}<div>${d}</div></div>`).join('');
+
+  // plot: log x on the horizontal axis
+  const W = 560, H = 300, pad = 46, xs = M.x_median, ys = M.medians, es = P.boot_errors;
+  const lx = x => Math.log10(x), x0 = Math.log10(0.08), x1 = Math.log10(4.0), y0 = 0.3, y1 = 0.8;
+  const X = x => pad + (lx(x) - x0) / (x1 - x0) * (W - pad - 10), Y = y => H - pad - (y - y0) / (y1 - y0) * (H - pad - 10);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px" role="img" aria-label="${t('median scaled velocity per x bin', '各 x 箱的缩放速度中位数')}">`;
+  s += `<line x1="${pad}" y1="${H - pad}" x2="${W - 10}" y2="${H - pad}" stroke="currentColor"/><line x1="${pad}" y1="10" x2="${pad}" y2="${H - pad}" stroke="currentColor"/>`;
+  [0.1, 0.3, 1, 3].forEach(v => { s += `<line x1="${X(v)}" y1="${H - pad}" x2="${X(v)}" y2="${H - pad + 4}" stroke="currentColor"/><text x="${X(v)}" y="${H - pad + 16}" text-anchor="middle">${v}</text>`; });
+  [0.3, 0.4, 0.5, 0.6, 0.7, 0.8].forEach(v => { s += `<text x="${pad - 6}" y="${Y(v) + 4}" text-anchor="end">${v.toFixed(1)}</text>`; });
+  s += `<text x="${(W + pad) / 2}" y="${H - 8}" text-anchor="middle">x = r_sky / r_M</text><text x="12" y="${H / 2}" transform="rotate(-90 12 ${H / 2})" text-anchor="middle">${t('median ṽ', 'ṽ 中位数')}</text>`;
+  s += `<line x1="${X(0.08)}" y1="${Y(P.A_newton)}" x2="${X(4)}" y2="${Y(P.A_newton)}" stroke="#888" stroke-width="2"/>`;
+  let path = '';
+  for (let i = 0; i <= 80; i++) { const x = Math.pow(10, x0 + (x1 - x0) * i / 80); path += (i ? 'L' : 'M') + X(x).toFixed(1) + ',' + Y(P.A_mond * boost(x)).toFixed(1); }
+  s += `<path d="${path}" fill="none" stroke="#d9822b" stroke-width="2"/>`;
+  xs.forEach((x, i) => { s += `<line x1="${X(x)}" y1="${Y(ys[i] - es[i])}" x2="${X(x)}" y2="${Y(ys[i] + es[i])}" stroke="currentColor"/><circle cx="${X(x)}" cy="${Y(ys[i])}" r="4" fill="currentColor"><title>x = ${f(x, 2)}: ${f(ys[i])} ± ${f(es[i])}</title></circle>`; });
+  s += '</svg>';
+  document.getElementById('plot').innerHTML = s;
+
+  const mad = M.reproduction.mad.errors;
+  document.getElementById('bins').innerHTML = `<table><thead><tr><th>${L('bin', '箱')}</th><th class="num">${L('median x', 'x 中位数')}</th><th class="num">${L('pairs', '对数')}</th><th class="num">${L('C26 Fig. 8 pairs', 'C26 图 8 对数')}</th><th class="num">${L('median ṽ', 'ṽ 中位数')}</th><th class="num">${L('bootstrap error', '自助法误差')}</th><th class="num">MAD/√N</th></tr></thead><tbody>` +
+    xs.map((x, i) => `<tr><td>${i + 1}</td><td class="num">${f(x, 3)}</td><td class="num">${M.counts[i]}</td><td class="num">${i === 0 ? '368 + 228' : R1.fig8_counts[i + 1]}</td><td class="num">${f(ys[i])}</td><td class="num">${f(es[i])}</td><td class="num">${f(mad[i])}</td></tr>`).join('') +
+    `</tbody></table><p class="note">${L(`Raw per-bin counts before merging: ${M.counts_raw.join(', ')}; the lowest bin (3 pairs) is merged into the next by the pre-registered rule.`, `合并之前各箱计数：${M.counts_raw.join('、')}；最低箱（3 对）按预注册规则并入相邻箱。`)}</p>`;
+
+  const ch = R1.diagnostic_chain;
+  const names = {merged_pairs: ['candidate pairs with velocities (B1)', '有速度的候选对（B1）'], degroup: ['degrouping (each star\'s only neighbour is its partner)', '去群（每颗星唯一的邻居是其伴星）'], distance: ['d < 130 pc', 'd < 130 pc'], r_sky: ['1 ≤ r_sky ≤ 30 kAU', '1 ≤ r_sky ≤ 30 kAU'], ruwe: ['RUWE < 1.25 (both)', 'RUWE < 1.25（两颗）'], hr: ['HR band (both)', '赫罗图带（两颗）'], rv: ['both RVs, |ΔRV| < 10 km/s', '两颗都有视向速度，|ΔRV| < 10 km/s'], sigma_vt: ['σ(ṽ) < 0.1', 'σ(ṽ) < 0.1'], vt_cap: ['ṽ ≤ 2.5', 'ṽ ≤ 2.5']};
+  document.getElementById('chain').innerHTML = `<table><thead><tr><th>${L('after cut', '截断之后')}</th><th class="num">${L('pairs', '对数')}</th></tr></thead><tbody>` +
+    Object.keys(ch).map(k => `<tr><td>${names[k] ? L(...names[k]) : k}</td><td class="num">${ch[k]}</td></tr>`).join('') + '</tbody></table>';
+
+  const vn = {main: ['main sample', '主样本'], vt_le_2: ['ṽ ≤ 2', 'ṽ ≤ 2'], 'vt_le_1.5': ['ṽ ≤ 1.5', 'ṽ ≤ 1.5'], 'cleanest_vt1.5_ipd0': ['ṽ ≤ 1.5 and ipd = 0', 'ṽ ≤ 1.5 且 ipd = 0'], no_projection: ['no perspective correction', '不作透视改正'], no_hr: ['no HR cut', '不作赫罗图截断'], 'hr_c_plus_0.2': ['HR constant c + 0.2', '赫罗图常数 c + 0.2'], 'hr_c_minus_0.2': ['HR constant c − 0.2', '赫罗图常数 c − 0.2'], d150: ['d < 150 pc', 'd < 150 pc'], d150_ipd0: ['d < 150 pc, ipd = 0', 'd < 150 pc，ipd = 0'], ipd0: ['ipd = 0', 'ipd = 0'], c10_parallax_snr100: ['parallax S/N > 100', '视差信噪比 > 100'], no_degroup: ['no degrouping', '不去群'], mean_rv: ['mean RV for the perspective correction', '透视改正用平均视向速度']};
+  document.getElementById('variants').innerHTML = `<table><thead><tr><th>${L('variant', '变体')}</th><th class="num">N</th><th class="num">${L('L (bootstrap)', 'L（自助法）')}</th><th class="num">${L('L (MAD/√N)', 'L（MAD/√N）')}</th><th class="num">${L('redraw fraction', '重抽比例')}</th><th>${L('reading', '读法')}</th></tr></thead><tbody>` +
+    Object.keys(V).map(k => { const v = V[k], p = v.primary || {}; return `<tr><td>${vn[k] ? L(...vn[k]) : k}</td><td class="num">${v.N}</td><td class="num">${fe(p.L)}</td><td class="num">${v.reproduction ? fe(v.reproduction.mad.L) : '—'}</td><td class="num">${f(p.redraw_fraction, 3)}</td><td class="${cls(p.verdict)}">${vtxt(p.verdict)}</td></tr>`; }).join('') +
+    `</tbody></table><p class="note">${L('Descriptive only (README R3): no variant is a headline result. A fit is invalid when more than 5% of bootstrap replicates had to be redrawn because a bin fell below 15 pairs.', '只作描述（README R3）：没有变体是主要结果。超过 5% 的自助法样本因某箱少于 15 对而需要重抽时，拟合判为无效。')}</p>`;
+}
+
+Promise.all(['summary', 'variants'].map(n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`results/${n}.json: HTTP ${r.status}`); return r.json(); })))
+  .then(([summary, variants]) => { D = {summary, variants}; render(); })
   .catch(e => {
     const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
-    // Both languages in the DOM, so the message follows later language switches.
-    document.getElementById('out').innerHTML = i18n.L('Could not load results (run the study first?) or render them: ', '无法加载或显示结果（是否已运行研究？）：') + msg;
+    document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + msg;
   });
+i18n.onLangChange(render);
 </script>
 </body>
 </html>
