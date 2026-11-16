@@ -9,15 +9,14 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,12 +26,16 @@ jobs:
       - name: Install the package's import dependencies (no data is fetched)
         run: pip install --quiet numpy pandas requests platformdirs
       - name: Build the site and check its links
-        run: python -c "from pathlib import Path; from astrolab import site; d = Path('_site'); r = site.build(d); bad = site.broken_links(d); print(r['files'], 'files'); assert not bad, bad"
+        run: python -c "from pathlib import Path; from astrolab import site; d = Path('../_site'); r = site.build(d); bad = site.broken_links(d); print(r['files'], 'files', r['bytes'], 'bytes'); assert not r['skipped'], r['skipped']; assert not bad, bad"
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: ../_site
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     environment:
       name: github-pages
