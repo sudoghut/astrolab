@@ -72,6 +72,7 @@ def run_flows(arrays, cfg, log):
     tmp_in = cache.staging_path(".npz")
     tmp_cfg = cache.staging_path(".json")
     tmp_out = cache.staging_path(".json")
+    proc = None
     try:
         np.savez(tmp_in, **arrays)
         tmp_cfg.write_text(json.dumps(cfg), encoding="utf-8")
@@ -96,8 +97,14 @@ def run_flows(arrays, cfg, log):
                     "partial": partial}
         return partial
     finally:
-        for p in (tmp_in, tmp_cfg, tmp_out):
-            p.unlink(missing_ok=True)
+        if proc is not None and proc.poll() is None:   # interrupted: do not leave the TF child training
+            proc.kill()
+            proc.wait()
+        for p in (tmp_in, tmp_cfg, tmp_out, tmp_out.with_name(tmp_out.name + ".part")):
+            try:
+                p.unlink(missing_ok=True)
+            except OSError:                             # never mask the original exception
+                pass
 
 
 def verdict(res, support, gate_r1, published, tol, s_max, lb_margin):
