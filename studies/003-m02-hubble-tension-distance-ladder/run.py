@@ -878,9 +878,8 @@ def main(ctx):
         r2h["descriptive_inflated_sigma"] = r2h["qualified_verdict"]
         tags = ["R2-RE: host-level random effect, pre-registered 2026-11-16",
                 "post-data host labelling" if mode != "pre-registered" else "pre-registered labelling"]
-        if not anchor_repro:
-            tags.append("conditional (anchor rule not validated)")
-        r2h["verdict"] = re["verdict"] + " [" + "; ".join(tags) + "]"
+        prefix = "" if anchor_repro else "conditional (anchor rule not validated): "
+        r2h["verdict"] = prefix + re["verdict"] + " [" + "; ".join(tags) + "]"
         r2h["headline_source"] = "R2-RE"
     else:
         r2h["headline_source"] = "R2 (C errors) with qualification; R2-RE " + re.get("status", "not run")
