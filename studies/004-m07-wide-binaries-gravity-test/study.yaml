@@ -1,0 +1,23 @@
+title: "Wide binaries: Newton or MOND at low acceleration?"
+title_zh: "宽双星：低加速度下是牛顿引力还是 MOND？"
+id: "004-m07-wide-binaries-gravity-test"
+level: L4              # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
+status: concluded               # planned | active | reproduced | concluded | paused | abandoned
+created: 2026-11-14
+question: "In a clean Gaia DR3 wide-binary sample rebuilt server-side to the quality standard of Cookson et al. 2026, does the median scaled relative velocity stay flat with r_sky/r_M (Newton) or rise by ~20% beyond the MOND radius?"
+question_zh: "在按 Cookson 等 2026 的质量标准、于服务器端重建的干净 Gaia DR3 宽双星样本中，缩放相对速度的中位数随 r_sky/r_M 保持平坦（牛顿），还是在 MOND 半径以外升高约 20%？"
+claims: ["wide-binary-gravity-test"]                    # claim ids in atlas/claims/ this study reproduces or tests
+milestone: M7                 # roadmap milestone id, e.g. M1
+papers: ["2602.24035", "2311.03436", "2305.04613"]  # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
+wiki: Study-004-wide-binaries-newton-or-mond  # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3
+
+# Where this study sits on the Atlas (optional; schema in design plan 011). Remove or fill.
+# footprint:
+#   scale: {min_pc: 1.0, max_pc: 1000.0, note: "distance range the study probes"}
+#   sky:
+#     mode: all-sky | survey | targets | none    # combine with ' + ', e.g. "survey + targets"
+#     survey: {name: "...", note: "..."}
+#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS; ra/dec may be omitted if
+#                                                  # results/targets.json gives them by name
+#   (write exponents as 4.0e+8: PyYAML reads 4e8 as a string; both are accepted)
+#   data: [...]

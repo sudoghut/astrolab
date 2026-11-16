@@ -16,3 +16,5 @@ CLAUDE.local.md
 .lake/
 # Chat exploration outputs (scripts in explore/ are committed, outputs are not)
 studies/*/explore/*/
+# Local secrets (never committed; see .env.example)
+.env
