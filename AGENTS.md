@@ -145,6 +145,7 @@ python -m astrolab run <id|编号|子串> [--refresh]     # 运行研究，产�
 python -m astrolab claims [list|check]    # 列出或校验结论条目
 python -m astrolab atlas                  # 生成 atlas/web/data/atlas.json
 python -m astrolab serve [--port 8765]    # 本地网页服务：Atlas 与各研究页面
+python -m astrolab site <dest>            # 建 GitHub Pages 静态网站（Atlas 与研究网页，见 design/025-plan_*）
 python -m astrolab cache [info|prune|clear]
 python -m pytest                          # 核心库测试 + 各研究的结论测试
 ```

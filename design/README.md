@@ -49,6 +49,7 @@ NNN-<类型>_<核心内容>.md
 | 021 | plan | [M2：用宿主级随机效应重新检验 CCHP 宿主选择造成的 H0 移动（研究 003）](021-plan_m02-host-level-random-effect-for-the-cchp-host-selection-shift.md) | 已完成 |
 | 022 | plan | [M8：用带误差的 z ≈ 8 分箱光度函数校准恒定 SFE 模型（研究 006）](022-plan_m08-binned-z8-lf-calibration-posterior-for-z14-verdicts.md) | 已完成 |
 | 023 | plan | [研究 README 中英双语（中文对照文件 README.zh.md）](023-plan_bilingual-study-readmes-with-chinese-companion-files.md) | 已完成 |
+| 025 | plan | [把 Atlas 与各研究网页作为 GitHub Pages 静态网站发布](025-plan_github-pages-static-site-for-atlas-and-study-pages.md) | 执行中 |
 
 ## 术语约定
 
