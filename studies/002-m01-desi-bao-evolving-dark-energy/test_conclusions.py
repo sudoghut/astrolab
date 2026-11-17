@@ -126,6 +126,8 @@ def test_r2_camb_rd_rule():
                 base = rc["variants"][var[:-3]][key]
                 if base.get("dchi2") is not None:
                     assert abs(fit["dchi2_shift_vs_r2_camb"] - (fit["dchi2"] - base["dchi2"])) < 1e-12
+                if rd == "A":
+                    assert abs(fit["gap_to_target"] - (fit["dchi2"] + 8.0)) < 1e-12
             assert fit["verdict"] == exp, (var, rd)
             verdicts[var][rd] = exp
     assert rc["verdicts_rd"] == verdicts
