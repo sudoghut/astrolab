@@ -195,10 +195,10 @@ refitting the Einasto model at each point; take the smallest grid value at which
 inside the cell below it (tolerance 10⁻⁴ of the range, refitting at each trial); report the whole
 curve. If χ² < 15 on the whole grid, the covariance is "not calibratable": reported at the top of its
 range but excluded from the labels. If an Einasto refit fails the convergence rule below at a grid
-point, that point is skipped; if it fails inside the bracketing cell, the covariance is "not
-evaluable". Also reported, without labels: the same tests at the smallest grid-and-bisection values
+point, that point is skipped (it cannot be the first crossing); if the grid point just below the
+first crossing failed, or a refit fails during the bisection, the covariance is "not evaluable". Also reported, without labels: the same tests at the smallest grid-and-bisection values
 with χ² ≥ 15 − √30 and ≥ 15 + √30 (the 1σ spread of a χ² with 15 degrees of freedom), where they exist,
-and the χ²/dof of the 8-bin power law (T1) at the calibrated value (f is calibrated on 18 points, the
+and χ²_min/6 of the profiled 8-bin power law (T1; 8 bins minus A and γ) at the calibrated value (f is calibrated on 18 points, the
 power law uses 8). Known biases: calibrating on Einasto makes Einasto fit by construction (T3 is
 relative to it). **High-f flag:** at large f the χ² is dominated by small-eigenvalue (bin-to-bin
 difference) directions, the artefact seen in R3(c); a covariance is flagged "high-f" if its largest
@@ -223,9 +223,11 @@ evaluable" for that covariance.
   kpc, converted by h = r₋₂ (0.17/2)^(1/0.17) and ρ0 = ρ₋₂ e^(2/0.17), M0 = 4π h³ ρ0 (R2's bounds on
   M0 and h do not apply to it: a ΛCDM-like halo has M0 far below 10¹⁰ M☉). Nelder–Mead in those
   coordinates (maxiter 20,000, xatol 10⁻⁸, fatol 10⁻¹⁰; χ² = 10³⁰ outside the bounds) from 20 starts
-  drawn uniformly in the bounds of those coordinates with a fresh `default_rng(0)` for every fit, plus
-  the section 5 best fit of that model (independent errors; for the ΛCDM-like model the referee's
-  1/n = 0.17 fit is not available, so a fixed start ρ₋₂ = 10⁶ M☉/kpc³, r₋₂ = 20 kpc). The best fit is
+  drawn uniformly in the fitted coordinates themselves (log10 M0 ∈ [10, 14], h ∈ [0, 20], 1/n ∈ [0, 5];
+  log10 ρ_s ∈ [4, 10], log10 r_s ∈ [0, 2]; log10 ρ₋₂ ∈ [3, 10], log10 r₋₂ ∈ [0, log10 300]) with a
+  fresh `default_rng(0)` for every fit, plus one fixed extra start: the starts used for R2 and R5
+  (free Einasto M0 = 3.7 × 10¹¹ M☉, h = 12 kpc, 1/n = 2.4; NFW log10 ρ_s = 7.0, log10 r_s = 1.2) and,
+  for the ΛCDM-like model, ρ₋₂ = 10⁶ M☉/kpc³, r₋₂ = 20 kpc. The best fit is
   the minimum over all 21 starts; it counts as converged if at least 3 starts reach within 0.01 of
   that minimum; otherwise the test is "not evaluable" for that covariance. Whether the free Einasto
   optimum lies at a bound is reported.
