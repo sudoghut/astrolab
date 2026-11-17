@@ -203,6 +203,42 @@ for σ_cal = 0.5 and 0.9 (separate chains; as in section 4 step 7, the z = 14–
 f·φ_model/0.068; in the bootstrap it is redrawn as max(0, N(f·φ_model, 0.068))), each with the same
 sampling, propagation, fit-quality test and labels.
 
+### Addendum 2026-11-17: R3-POST2, R3 with σ_cal free, Poisson bright bins and γ < 0 allowed (T-036), pre-registered before any of these fits
+
+*Why.* The R2/R3-POST referee (section 6) found that R3 depends mainly on the fixed σ_cal and that
+three unmodelled features push towards "consistent": the fixed σ_cal, Gaussian errors for the
+brightest blank-field bins (few sources), and the γ ≥ 0 prior edge. *Seen before this addendum:*
+all R2/R3-POST results (P(R3 consistent with N26) = 0.962 primary; 0.856, 0.998 for σ_cal = 0.5,
+0.9; 0.930 with the faint rows; P(R2 higher) ≥ 0.994 everywhere; 25 of 500 primary draws at the γ = 0
+edge). The expected direction (more "different") is the referee's; no fit of this model has been run.
+R3-POST2 is a sensitivity result for R3 (and R2, reported); it changes no earlier verdict.
+
+*Model.* As R2/R3-POST's primary fit (same data rows, f with its prior, emcee settings, draw indexing,
+propagation through the fiducial model with σ_cal of each draw, R2 and R3 rules, Monte Carlo rule
+and labels), with three changes made together:
+1. σ_cal is a sampled parameter with a flat prior on [0.3, 1.2] mag (it enters the calibration, and
+   R2's z = 14–15 σ equals it, as in R2/R3-POST);
+2. the 7 blank-field points use a Poisson likelihood: with N_i = (φ_i/σ_i)² effective sources and
+   μ_i = N_i · φ_model/φ_i, −2 ln L_i = 2 [μ_i − N_i + N_i ln(N_i/μ_i)] (the Poisson deviance, zero at
+   μ_i = N_i); the lensing points keep the split-normal Gaussian;
+3. the γ prior is widened to [−1, 3].
+The least-squares start uses the residuals sign(μ_i − N_i)·√(deviance_i) for the blank points; the
+start is (0.1, 11.5, 1.0, 0.5, f = 1, σ_cal = 0.7). Six parameters, 32 walkers, 100,000 steps, the
+first 20,000 discarded, the same seeds and the same 50 τ rule (else **not evaluable**, no change of
+steps). Fit quality: the same parametric bootstrap (200 sets, `default_rng(1)`) with Poisson draws
+for the blank points (N_sim ~ Poisson(μ_i), φ = N_sim · φ_i/N_i) and the split-normal draws for the
+lensing points.
+
+*Decision.* P(R3 consistent with N26) and P(R2 higher), with the R2/R3-POST Monte Carlo rule and
+labels ("robust", "calibration-uncertain (borderline)", "calibration-uncertain"; "not evaluable",
+"model misfit", "prior-bounded" with the same precedence; σ_cal's bounds count for "prior-bounded").
+Reported: the σ_cal posterior (median, 68%), the fraction of draws with γ < 0, and P(R3 consistent)
+in σ_cal bins of 0.1 mag. Reading, fixed now: if R3-POST2 is "robust (consistent)" the borderline
+R3-POST result is not an artefact of the three choices; otherwise R3's overlap with N26 is stated as
+not established once σ_cal is left to the data.
+
+*Runtime.* One chain of 100,000 steps, about 20–30 minutes; no data downloaded.
+
 ## 3. Data (with size estimate)
 
 | Input | Source | Selection | Est. size |
