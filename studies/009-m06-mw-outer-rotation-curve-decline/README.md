@@ -190,7 +190,7 @@ No kernel is primary.
 
 *Calibration.* For each covariance the free parameter (f, or c) is set so that the best-fit free
 Einasto model (baryons E dJ, the 18 points) has χ² = rᵀC⁻¹r = 15, its degrees of freedom. χ²(f) need
-not be monotonic, so: evaluate χ² on the grid f = 0, 0.01, …, 0.99 (c on 100 equal steps of its range),
+not be monotonic, so: evaluate χ² on the grid f = 0, 0.01, …, 0.99 (c = k · c_max/99, k = 0, …, 99, c_max = 0.99 · min σ/V),
 refitting the Einasto model at each point; take the smallest grid value at which χ² ≥ 15 and bisect
 inside the cell below it (tolerance 10⁻⁴ of the range, refitting at each trial); report the whole
 curve. If χ² < 15 on the whole grid, the covariance is "not calibratable": reported at the top of its
@@ -201,16 +201,22 @@ with χ² ≥ 15 − √30 and ≥ 15 + √30 (the 1σ spread of a χ² with 15 
 and the χ²/dof of the 8-bin power law (T1) at the calibrated value (f is calibrated on 18 points, the
 power law uses 8). Known biases: calibrating on Einasto makes Einasto fit by construction (T3 is
 relative to it). **High-f flag:** at large f the χ² is dominated by small-eigenvalue (bin-to-bin
-difference) directions, the artefact seen in R3(c); a covariance calibrated at f > 0.9 is flagged
-"high-f", and each label is computed both with and without flagged covariances; if the two differ,
-the label is "kernel-dependent (high-f)".
+difference) directions, the artefact seen in R3(c); a covariance is flagged "high-f" if its largest
+per-bin correlated fraction exceeds 0.9 at the calibrated value (f itself for the four kernels;
+max_i c²V_i²/σ_i² for the fractional one). Order: (1) the label from all calibrated, evaluable
+covariances (at least 3 needed, else "not evaluable"); (2) the label from the unflagged ones alone;
+if fewer than 3 are unflagged, the label of (1) is reported with the qualifier "(only with high-f
+covariances)"; otherwise, if (1) and (2) differ, the label is "kernel-dependent (high-f)", and if they
+agree it stands.
 
 *Fits.*
 - T1 and T2 (8 bins beyond 19 kpc, sub-block of C): the power law V = A (R/1 kpc)^γ is linear in A, so
   for each γ the amplitude is the generalised-least-squares (GLS) solution and χ²(γ) is the profile;
   χ²(γ) is evaluated on γ ∈ [−3, 1] in steps of 0.001 and its minimum refined by bounded Brent
   minimisation in the two grid cells around the grid minimum; A must be positive (a γ with A ≤ 0 is
-  excluded). The flat model is γ = 0 of the same profile.
+  excluded). The flat model is γ = 0 of the same profile. If the minimum lies at γ = −3 or 1, it is
+reported as at the edge and used as is; if γ = 0, −0.2 or −0.5 is excluded (A ≤ 0), T1 or T2 is "not
+evaluable" for that covariance.
 - Halo fits (18 points, E dJ baryons): free Einasto in R2's parametrisation and bounds (M0, h, 1/n;
   the fitted coordinates are log10 M0, h, 1/n); NFW in R5's (log10 ρ_s, log10 r_s); the ΛCDM-like
   Einasto with 1/n = 0.17 fixed in (log10 ρ₋₂, log10 r₋₂), ρ₋₂ ∈ [10³, 10¹⁰] M☉/kpc³, r₋₂ ∈ [1, 300]
@@ -219,7 +225,7 @@ the label is "kernel-dependent (high-f)".
   coordinates (maxiter 20,000, xatol 10⁻⁸, fatol 10⁻¹⁰; χ² = 10³⁰ outside the bounds) from 20 starts
   drawn uniformly in the bounds of those coordinates with a fresh `default_rng(0)` for every fit, plus
   the section 5 best fit of that model (independent errors; for the ΛCDM-like model the referee's
-  1/n = 0.17 fit is not available, so a fixed start ρ₋₂ = 10⁷ M☉/kpc³, r₋₂ = 15 kpc). The best fit is
+  1/n = 0.17 fit is not available, so a fixed start ρ₋₂ = 10⁶ M☉/kpc³, r₋₂ = 20 kpc). The best fit is
   the minimum over all 21 starts; it counts as converged if at least 3 starts reach within 0.01 of
   that minimum; otherwise the test is "not evaluable" for that covariance. Whether the free Einasto
   optimum lies at a bound is reported.
@@ -231,7 +237,9 @@ the label is "kernel-dependent (high-f)".
   D_02 − D_K (positive favours Keplerian).
 - **T3, halo shape.** Δχ²_NFW and Δχ²_ΛCDM relative to the free Einasto, and the best-fit M_vir of each
   (primary R_vir definition of section 2.2, plus E dJ's M_bar; reported only). NFW is not nested in
-  Einasto, so the thresholds below are conventional evidence levels, not exact 2σ/3σ.
+  Einasto, so the thresholds below are conventional evidence levels, not exact 2σ/3σ; nor is the
+ΛCDM-like model nested in the bounded free Einasto (R2's bounds exclude 1/n = 0.17 halos), so Δχ²_ΛCDM
+can be negative (it then falls in the lowest band).
 
 *Labels, fixed now (over the calibrated, evaluable covariances; at least 3 of the 5 are needed,
 otherwise "not evaluable"; then the high-f rule above).*
@@ -251,7 +259,7 @@ allowed to be correlated by an amount that makes the Einasto χ² equal its degr
 kernels are assumptions; the true covariance is not established.
 
 *Runtime.* Some thousands of halo fits of 18 points (100 grid points × 5 covariances with 21 starts
-each, plus the bisections), estimated 10–30 minutes; no data downloaded; results in
+each, plus the bisections), estimated 30–90 minutes; no data downloaded; results in
 `results/r6.json`. Switch: `PARAMS["r6_check"]`.
 
 ## 3. Data (with size estimate)
