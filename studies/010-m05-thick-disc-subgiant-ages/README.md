@@ -501,7 +501,8 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
     repeated after every completed set, with projection = elapsed + Σ over remaining sets of (their mocks × the mean time per
     mock of finished sets of the same kind: R1, sample A/B, diagnostic; a kind not yet started uses the
     initial first-mock estimate of its sets); whenever it exceeds 16 h, run.py stops before the remaining mocks and the user is
-    asked (mock counts are never reduced); every finished mock is already checkpointed, so a stop keeps
+    asked (mock counts are never reduced; resuming needs the user's explicit consent, recorded in
+    `log.md`, and the same check, on total elapsed time across sessions, continues after resuming); every finished mock is already checkpointed, so a stop keeps
     all completed mocks, including those of a partly finished set, and a resumed run continues from them;
     no -SEL label is computed until every set has its 50 mocks.
   - *Memory:* the grouped likelihoods hold K and P (cells × 400 latent cells, float64) plus about
