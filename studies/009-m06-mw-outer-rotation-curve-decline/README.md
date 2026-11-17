@@ -234,7 +234,8 @@ evaluable" for that covariance.
   the fitted coordinates are log10 M0, h, 1/n); NFW in R5's (log10 ρ_s, log10 r_s); the ΛCDM-like
   Einasto with 1/n = 0.17 fixed in (log10 ρ₋₂, log10 r₋₂), ρ₋₂ ∈ [10³, 10¹⁰] M☉/kpc³, r₋₂ ∈ [1, 300]
   kpc, converted by h = r₋₂ (0.17/2)^(1/0.17) and ρ0 = ρ₋₂ e^(2/0.17), M0 = 4π h³ ρ0 (R2's bounds on
-  M0 and h do not apply to it: a ΛCDM-like halo has M0 far below 10¹⁰ M☉). Nelder–Mead in those
+  M0 and h do not apply to it: a ΛCDM-like halo has M0 far below 10¹⁰ M☉). Nelder–Mead (`scipy.optimize.minimize`, scipy 1.13.1 in the project
+  environment, its default initial simplex; the version is saved with the results) in those
   coordinates (maxiter 20,000, xatol 10⁻⁸, fatol 10⁻¹⁰; χ² = 10³⁰ outside the bounds) from 20 starts
   drawn uniformly in the fitted coordinates themselves (log10 M0 ∈ [10, 14], h ∈ [0, 20], 1/n ∈ [0, 5];
   log10 ρ_s ∈ [4, 10], log10 r_s ∈ [0, 2]; log10 ρ₋₂ ∈ [3, 10], log10 r₋₂ ∈ [0, log10 300]) with a
