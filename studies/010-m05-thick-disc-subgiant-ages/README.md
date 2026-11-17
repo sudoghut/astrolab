@@ -486,11 +486,12 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
     R1 4,500 mocks ≈ 4.4–5.6 h; floor-sensitivity 900 mocks ≈ 0.9–1.1 h; A/B 800 mocks ≈ 1.9–4.5 h;
     mocks in all ≈ 7.2–11.2 h; data fits
     (R1 15 bin-variants at 40 starts, samples A/B with both terms and their variants, bootstrap)
-    ≈ 1–1.5 h (the original non-mock stage took about 1 h including R7). Total ≈ 8.5–12.5 h, run in the
+    ≈ 1–1.5 h (the original non-mock stage took about 1 h including R7). Total ≈ 8.2–12.7 h, run in the
     background on an otherwise idle machine (no other study's run at the same time; recorded in
     `log.md`). run.py times the first mock of every set and prints the projection; the check is
-    repeated after every completed set, with projection = elapsed + remaining mocks × mean time per
-    mock so far; whenever it exceeds 16 h, run.py stops before the remaining mocks and the user is
+    repeated after every completed set, with projection = elapsed + Σ over remaining sets of (their mocks × the mean time per
+    mock of finished sets of the same kind: R1, sample A/B, diagnostic; a kind not yet started uses the
+    initial first-mock estimate of its sets); whenever it exceeds 16 h, run.py stops before the remaining mocks and the user is
     asked (mock counts are never reduced).
   - *Memory:* the grouped likelihoods hold K and P (cells × 400 latent cells, float64) plus about
     four temporaries of the same size in `_ll_q`; sample B (≈ 79,000 S15 stars, tens of thousands of
