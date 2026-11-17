@@ -183,7 +183,9 @@ against the null of no host-level scatter. *Seen before this addendum:* all of s
 R2-RE results (τ̂ = 0.077 mag, interval 0.048–0.105, Δ(−2ℓ_R) = 3.50 at τ = 0, z' = −1.53, the
 per-host leave-one-out χ² terms, the 1.33 spread under C and 1.005 under V). From Δ(−2ℓ_R) = 3.50 the
 asymptotic boundary likelihood-ratio p-value is 0.5 · P(χ²₁ > 3.5) ≈ 0.031, so B's τ part is expected
-to land near 0.03; the three-way label below exists because of that. No fit without a host and no
+to land near 0.03; the three-way label below exists because of that. At a true p of 0.031 the τ label
+comes out "undetermined" with probability about 0.6 and "unusual" about 0.4; "undetermined" is
+therefore the expected outcome, and more simulations after the run would need a new pre-registration. No fit without a host and no
 simulation has been run. These checks attach descriptive labels to R2-RE; they do not change the
 R2-RE headline row.
 
@@ -196,7 +198,7 @@ host labelling (`col_host`), as in R2-RE; τ̂ is found by R2-RE's REML procedur
 and calibrator SN rows) are removed from the NGC 4258-only system, and τ̂_j is estimated with the
 other 36 hosts' groups. Then:
 - **τ route (the label).** R2-RE's original host step (all 37 hosts against the 10 CCHP hosts, all
-  data) under V(τ̂_j), and its verdict row (R2's table, unchanged). Label: **"τ̂ robust to single
+  data) under V = C + τ̂_j² Σ h h ᵀ over all 37 hosts' calibrator groups on the full NGC 4258-only system, and its verdict row (R2's table, unchanged). Label: **"τ̂ robust to single
   hosts"** if this row equals R2-RE's row for every j; otherwise **"τ̂ sensitive to single hosts"**,
   naming the hosts. A τ̂_j at the upper bound or a failed fit counts as "sensitive" for that j.
 - **Data route (reported).** On the reduced system: the host step at τ = 0 (C) and under V(τ̂_j),
@@ -211,7 +213,7 @@ C restricted to `rows_a` and ε_s = `numpy.random.default_rng(10_000 + s).standa
 contrasts, and each Δ_k/σ_k is exactly N(0, 1).)
 - **τ part.** s = 0, …, 399: τ̂_s by the procedure above. n_τ = simulations whose fit succeeded;
   k_τ = those with τ̂_s ≥ τ̂_obs (R2-RE's τ̂); p_τ = (1 + k_τ) / (1 + n_τ), with a 95% Clopper–Pearson
-  interval for k_τ / n_τ. Labels: interval entirely below 0.05 → **"τ̂ unusual under C (excess
+  interval for k_τ / n_τ (two-sided, equal-tailed: 2.5% in each tail). Labels: interval entirely below 0.05 → **"τ̂ unusual under C (excess
   calibrator scatter)"**; entirely above 0.05 → **"τ̂ not unusual under C"**; containing 0.05 →
   **"undetermined (Monte Carlo)"**. More than 20 failed fits → not evaluable.
 - **Spread part.** The first 1,000 of R4's random 10-host subsets (R4's own draws: same seed, in
@@ -219,8 +221,9 @@ contrasts, and each Δ_k/σ_k is exactly N(0, 1).)
   a fixed σ_k (σ_k² = σ²_subset − σ²_37 under C, as in R4); the rows a_k are computed once. spread =
   the standard deviation of Δ_k/σ_k over the subsets (`numpy.std`, ddof = 0, as in R4); spread_obs on
   the real data with the same subsets. s = 0, …, 1,999: spread_s; p_spread = (1 + k_s) / 2,001 with
-  k_s = #{spread_s ≥ spread_obs}. Labels: p_spread < 0.05 → **"the R4 excess spread is unusual under
-  C"**, else **"the R4 spread is consistent with C"** (Monte Carlo error about 0.005 at p = 0.05).
+  k_s = #{spread_s ≥ spread_obs}. Labels, with the same 95% Clopper–Pearson interval for k_s / 2,000: entirely below 0.05 → **"the R4
+  excess spread is unusual under C"**; entirely above → **"the R4 spread is consistent with C"**;
+  containing 0.05 → **"undetermined (Monte Carlo)"**.
 - If R2-RE is not evaluable, the τ part is not evaluable; if R4 has no draws, the spread part is not
   evaluable.
 
@@ -233,8 +236,9 @@ whether R4's 1.33 is itself evidence of excess scatter under C. "Unusual under C
 among calibrator SN rows than C allows (for example a host-level effect, an under-scaled SN block or
 one outlying host); it does not identify the cause.
 
-*Runtime (upper bounds).* A: 37 REML fits plus 74 host-step fits, about 25 minutes. B: 400 REML fits
-(about 30 s each, about 3.5 hours) and 1,000 subset fits once (about 2 minutes). `PARAMS["rob_check"]`
+*Runtime (estimates).* A: 37 REML fits plus about 222 host-step fits, about 25 minutes. B: 400 REML
+fits (about 20–35 s each, about 3.5 hours; up to about 6 hours if another long run shares the CPU)
+and 1,000 subset fits once (about 2 minutes). `PARAMS["rob_check"]`
 turns both off.
 
 ## 3. Data (with size estimate)
