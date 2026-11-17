@@ -214,13 +214,15 @@ errors for the two brightest blank-field bins, which hold about 2 and 9 sources 
 N26) = 0.962 in the primary fit and 0.856, 0.998 for σ_cal = 0.5, 0.9 (a monotonic rise with σ_cal,
 known when the σ_cal prior below was chosen); 0.930 with the faint rows; P(R2 higher) ≥ 0.994
 everywhere; the posterior γ = 0.49 (0.12–1.64) with 25 of 500 primary draws at the γ = 0 edge; and
-the section 4 variants (σ_cal 0.5, 0.7, 0.9). No fit of this model has been run.
+the section 4 variants (σ_cal 0.5, 0.7, 0.9). No fit of this model has been run. R3-POST2 is a
+sensitivity result for R3 (R2 reported); the section 5 fiducial verdicts and the R2/R3-POST results
+stay recorded unchanged.
 
 *Model.* As R2/R3-POST's primary fit (same data rows, f with its prior, emcee settings, draw indexing,
 propagation through the fiducial model, R2 and R3 rules, Monte Carlo rule and labels), with three
 changes made together:
 1. σ_cal is a sampled parameter with a flat prior on [0.3, 1.2] mag, the range given for σ_cal in
-   section 8 on 2026-11-15, before the R2/R3-POST results (the section 4 variant results were known);
+   section 8 on 2026-11-15 (an exploration range, not a literature prior), before the R2/R3-POST results (the section 4 variant results were known);
    it enters the calibration, and for R2 the z = 14–15 σ of each draw equals that draw's σ_cal, as in
    R2/R3-POST.
 2. The two brightest blank-field points (M_UV = −21.85 and −21.35, with N_i = (φ_i/σ_i)² = 2.25 and
@@ -243,10 +245,12 @@ sets, `default_rng(1)`, simulated at the best fit including its σ_cal, all six 
 a Poisson point is redrawn as a count N_sim ~ Poisson(μ_i) and refitted with N_sim in place of N_i and
 the fixed conversion φ_i/N_i in μ (the observed statistic uses the non-integer N_i; stated, accepted).
 
-*Identifiability of σ_cal.* If the σ_cal posterior's 68% interval is wider than 60% of the prior
+*Identifiability of σ_cal.* If the σ_cal posterior's 68% interval (16th–84th percentiles of the
+flattened post-burn chain, as the existing `posterior` p16/p84) is wider than 60% of the prior
 width (0.54 mag), the result is labelled **"σ_cal prior-dominated"**: P(R3) is then mostly a
 prior-weighted average over [0.3, 1.2] and is read as a statement about that prior, not about the
-data.
+data. Known blind spot: a posterior rising towards a bound without piling up at it escapes both this
+label and "prior-bounded"; the reported σ_cal posterior and the per-bin P(R3) show it.
 
 *Decision and reading, fixed now.* P(R3 consistent with N26) and P(R2 higher) with the R2/R3-POST
 Monte Carlo rule, labels and precedence (σ_cal's bounds count for "prior-bounded"). Only the joint
