@@ -23,7 +23,8 @@ PARAMS = {
     "mnu": 0.06,
     "tol_dchi2": 1.0, "tol_r1_sigma": 0.3, "tol_r1_err": 0.2,   # pre-registered (README section 2)
     "drop_z": [],                    # exploration: BAO effective redshifts to leave out
-    "camb_check": True,              # R2-CAMB sensitivity check (addendum 2026-11-16; needs camb)
+    "camb_check": True,
+    "camb_rd_check": True,           # R2-CAMB-RD: theta* and r_d from CAMB (addendum 2026-11-17; needs camb_check)              # R2-CAMB sensitivity check (addendum 2026-11-16; needs camb)
 }
 
 RAW = "https://raw.githubusercontent.com/CobayaSampler/"
@@ -101,12 +102,13 @@ def bao_pred_late(bao, Om, hrd, w0=-1.0, wa=0.0):
     return np.array([pick[k][i] for i, k in enumerate(bao["kind"])])
 
 
-def bao_pred_full(bao, b):
+def bao_pred_full(bao, b, rd=None):
+    """rd: optional sound horizon [Mpc] replacing the Aubourg formula (R2-CAMB-RD)."""
     zu, inv = np.unique(bao["z"], return_inverse=True)
     dm = b.DM(zu)[inv]
     dh = b.DH(zu)[inv]
     dv = (bao["z"] * dm ** 2 * dh) ** (1.0 / 3.0)
-    rd = b.rd()
+    rd = b.rd() if rd is None else rd
     pick = {"DM_over_rs": dm, "DH_over_rs": dh, "DV_over_rs": dv}
     return np.array([pick[k][i] for i, k in enumerate(bao["kind"])]) / rd
 
@@ -123,10 +125,12 @@ def chi2_sn(sn, Om, w0, wa):
     return infer.chi2_marg_offset(sn["mag"] - mu, sn["cinv"])
 
 
-def chi2_r2(bao, x, reading, mnu, K, w=True, theta=None, counts=None):
+def chi2_r2(bao, x, reading, mnu, K, w=True, theta=None, counts=None, camb_rd=False):
     """theta: optional callable (H0, ob, oc, w0, wa) -> theta_* replacing the calibrated formula
     (R2-CAMB, README section 2 addendum); a CAMB error rejects the point (chi2 = inf) and is
-    tallied in counts, as are points rejected by the feasibility check before any CAMB call."""
+    tallied in counts, as are points rejected by the feasibility check before any CAMB call.
+    camb_rd: theta returns (theta_*, r_drag) and r_drag replaces the Aubourg r_d in the BAO term
+    (R2-CAMB-RD, addendum 2026-11-17)."""
     H0, ob, oc = x[0], x[1], x[2]
     w0, wa = (x[3], x[4]) if w else (-1.0, 0.0)
     b = cosmo.Background(H0, ob, oc, w0=w0, wa=wa, mnu=mnu)
@@ -134,22 +138,25 @@ def chi2_r2(bao, x, reading, mnu, K, w=True, theta=None, counts=None):
         if counts is not None:
             counts["infeasible"] += 1
         return np.inf
-    c = infer.gaussian_chi2(bao_pred_full(bao, b) - bao["val"], bao["cinv"])
     obc = b.ombc + (cosmo.omega_nu_today(mnu) if reading == "A" else 0.0)
+    rd = None
     if theta is None:
         th = b.theta_star(K)
     else:
         try:
             th = theta(H0, ob, oc, w0, wa)
+            if camb_rd:
+                th, rd = th
         except camb_errors() as e:      # CAMB's own evaluation errors: counted, point rejected
             counts["camb_error"] += 1
             counts["error_types"].add(type(e).__name__)
             return np.inf
         except Exception as e:          # anything else is a bug: stop the run (RuntimeError is
             raise RuntimeError(f"R2-CAMB theta failed at {list(x)}") from e   # not swallowed by infer)
-        if not np.isfinite(th):
+        if not np.isfinite(th) or (camb_rd and not np.isfinite(rd)):
             counts["nonfinite_theta"] += 1
             return np.inf
+    c = infer.gaussian_chi2(bao_pred_full(bao, b, rd) - bao["val"], bao["cinv"])
     cm = np.array([th, ob, obc])
     return c + infer.gaussian_chi2(cm - CMB_MEAN, np.linalg.inv(CMB_COV))
 
@@ -210,6 +217,23 @@ def r2_camb_conclusion(verdicts):
         out.append("R2 depends on the absolute theta* calibration (anchor) (reading %s)"
                    % ", ".join(changed["raw"]))
     for k in ("anchored", "raw"):
+        if not valid[k]:
+            out.append(f"inconclusive ({k} variant: failed fit)")
+    return out
+
+
+def r2_camb_rd_conclusion(verdicts):
+    """verdicts {"anchored_rd": {"A": v, "B": v}, "raw_rd": {...}} -> pre-registered labels (README
+    section 2, R2-CAMB-RD addendum 2026-11-17)."""
+    valid = {k: "failed fit" not in v.values() for k, v in verdicts.items()}
+    changed = {k: [r for r in ("A", "B") if v[r] != R2_RECORDED[r]] for k, v in verdicts.items()}
+    if all(valid.values()) and not any(changed.values()):
+        return ["R2 robust to the r_d formula"]
+    out = []
+    flips = sorted({r for k in verdicts if valid[k] for r in changed[k]})
+    if flips:
+        out.append("R2 depends on the r_d formula (reading %s)" % ", ".join(flips))
+    for k in verdicts:
         if not valid[k]:
             out.append(f"inconclusive ({k} variant: failed fit)")
     return out
@@ -359,6 +383,9 @@ def main(ctx):
         rc = r2_camb(ctx, bao, b_r2, paper_r2, r2, K0, P)
         out["R2_camb"] = {"conclusion": rc["conclusion"], "verdicts": rc["verdicts"]}
         ret["R2_camb"] = "; ".join(rc["conclusion"])
+        if "conclusion_rd" in rc:
+            out["R2_camb_rd"] = {"conclusion": rc["conclusion_rd"], "verdicts": rc["verdicts_rd"]}
+            ret["R2_camb_rd"] = "; ".join(rc["conclusion_rd"])
     ctx.save("summary", out)
     return ret
 
@@ -378,9 +405,13 @@ def r2_camb(ctx, bao, b_r2, paper_r2, r2, K0, P):
            "recorded": R2_RECORDED, "variants": {}}
     keys = {"A": "reading_A_with_nu", "B": "reading_B_without_nu"}
     verdicts = {}
-    for var, scale in (("anchored", KC), ("raw", 1.0)):
-        def th(H0, ob, oc, w0, wa, s=scale):
-            return s * camb_theta.theta_rdrag(H0, ob, oc, w0, wa, mnu)[0]
+    variants = [("anchored", KC, False), ("raw", 1.0, False)]
+    if P["camb_rd_check"]:
+        variants += [("anchored_rd", KC, True), ("raw_rd", 1.0, True)]
+    for var, scale, use_rd in variants:
+        def th(H0, ob, oc, w0, wa, s=scale, use_rd=use_rd):
+            t, rdrag = camb_theta.theta_rdrag(H0, ob, oc, w0, wa, mnu)
+            return (s * t, rdrag) if use_rd else s * t
 
         vres = {}
         for rd, key in keys.items():
@@ -388,8 +419,10 @@ def r2_camb(ctx, bao, b_r2, paper_r2, r2, K0, P):
             # depend only on seed and bounds (so they repeat across readings and variants)
             counts = {m: {"infeasible": 0, "camb_error": 0, "nonfinite_theta": 0,
                           "error_types": set()} for m in ("lcdm", "w0wa")}
-            fl = lambda x, rd=rd, c=counts["lcdm"]: chi2_r2(bao, x, rd, mnu, K0, w=False, theta=th, counts=c)
-            fw = lambda x, rd=rd, c=counts["w0wa"]: chi2_r2(bao, x, rd, mnu, K0, w=True, theta=th, counts=c)
+            fl = lambda x, rd=rd, c=counts["lcdm"], th=th, u=use_rd: chi2_r2(
+                bao, x, rd, mnu, K0, w=False, theta=th, counts=c, camb_rd=u)
+            fw = lambda x, rd=rd, c=counts["w0wa"], th=th, u=use_rd: chi2_r2(
+                bao, x, rd, mnu, K0, w=True, theta=th, counts=c, camb_rd=u)
             fit = fit_pair(fl, fw, b_r2, paper_r2, P["n_starts"], P["seed"])
             fit["target"] = TARGET["R2"]
             fit["verdict"] = verdict_dchi2(fit, TARGET["R2"], P["tol_dchi2"])
@@ -397,6 +430,11 @@ def r2_camb(ctx, bao, b_r2, paper_r2, r2, K0, P):
                                for m, c in counts.items()}
             if fit.get("dchi2") is not None and r2[key].get("dchi2") is not None:
                 fit["dchi2_shift_vs_formula"] = float(fit["dchi2"] - r2[key]["dchi2"])
+            base = res["variants"].get(var[:-3]) if use_rd else None
+            if base is not None and fit.get("dchi2") is not None and base[key].get("dchi2") is not None:
+                fit["dchi2_shift_vs_r2_camb"] = float(fit["dchi2"] - base[key]["dchi2"])
+                if rd == "A":
+                    fit["gap_to_target"] = float(fit["dchi2"] - TARGET["R2"])
             vres[key] = fit
             ctx.log(f"R2-CAMB {var} {key}: {fit.get('dchi2')} -> {fit['verdict']}")
         vres["overall"] = r2_overall(vres[keys["A"]]["verdict"], vres[keys["B"]]["verdict"])
@@ -421,8 +459,13 @@ def r2_camb(ctx, bao, b_r2, paper_r2, r2, K0, P):
                              "in_prior_sigma": float(d100 / sig100),
                              "rd_aubourg_over_camb_rdrag": float(b.rd() / rdrag)})
     res["diagnostics"] = diag
+    rd_verdicts = {k: verdicts.pop(k) for k in ("anchored_rd", "raw_rd") if k in verdicts}
     res["verdicts"] = verdicts
     res["conclusion"] = r2_camb_conclusion(verdicts)
+    if rd_verdicts:
+        res["verdicts_rd"] = rd_verdicts
+        res["conclusion_rd"] = r2_camb_rd_conclusion(rd_verdicts)
+        ctx.log(f"R2-CAMB-RD conclusion: {res['conclusion_rd']}")
     ctx.log(f"R2-CAMB conclusion: {res['conclusion']}")
     ctx.save("r2_camb", res)
     return res
