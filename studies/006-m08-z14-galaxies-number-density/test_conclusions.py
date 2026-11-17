@@ -172,6 +172,9 @@ def test_r3_post2_rules():
     assert len(draws) == n and [d[5] for d in draws] == sig and [d[3] for d in draws] == fit["gamma_draws"]
     box = {"eps0": (-6.0, 0.0), "log_m1": (9.0, 13.0), "beta": (0.0, 3.0), "gamma": (-1.0, 3.0),
            "f": (0.01, 3.0), "sigma_cal": (0.3, 1.2)}
+    lo_box = [1e-6, 9.0, 0.0, -1.0, 0.01, 0.3]
+    hi_box = [1.0, 13.0, 3.0, 3.0, 3.0, 1.2]
+    assert all(lo_box[j] <= d[j] <= hi_box[j] for d in draws for j in range(6))
     for j, (name, (lo, hi)) in enumerate(box.items()):    # bound fractions re-derived from the draws
         x = [math.log10(d[j]) if name == "eps0" else d[j] for d in draws]
         w = 0.01 * (hi - lo)
