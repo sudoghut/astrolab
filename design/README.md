@@ -51,6 +51,7 @@ NNN-<类型>_<核心内容>.md
 | 023 | plan | [研究 README 中英双语（中文对照文件 README.zh.md）](023-plan_bilingual-study-readmes-with-chinese-companion-files.md) | 已完成 |
 | 024 | plan | [M3：用归一化流复现 DES Y6 与 CMB 的全参数空间差异（研究 008）](024-plan_m03-normalizing-flow-full-space-shift-des-y6-cmb.md) | 已完成 |
 | 025 | plan | [把 Atlas 与各研究网页作为 GitHub Pages 静态网站发布](025-plan_github-pages-static-site-for-atlas-and-study-pages.md) | 已完成 |
+| 026 | plan | [研究 010 在与误差机制一致的 S15 选择项下的重检（T-031）](026-plan_study-010-retest-with-consistent-selection-term.md) | 进行中 |
 
 ## 术语约定
 
