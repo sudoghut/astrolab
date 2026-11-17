@@ -175,46 +175,67 @@ what τ measures.
 
 ### Addendum 2026-11-17: R2-RE-ROB, robustness of R2-RE to single hosts and under the null (T-032), pre-registered before any of these fits
 
+Revised the same day after the gate-1 review, still before any of these fits.
+
 *Why.* The R2-RE referee (section 6) found that τ̂ may rest on a few non-CCHP hosts (largest
 leave-one-out χ² terms N5584, N2525, N1015) and that neither τ̂ nor R4's 1.33 spread was calibrated
 against the null of no host-level scatter. *Seen before this addendum:* all of section 5 and the
 R2-RE results (τ̂ = 0.077 mag, interval 0.048–0.105, Δ(−2ℓ_R) = 3.50 at τ = 0, z' = −1.53, the
-per-host leave-one-out χ² terms, the 1.33 spread under C and 1.005 under V). No fit without a host
-and no simulation has been run. These checks are descriptive labels attached to R2-RE; they do not
-change the R2-RE headline row.
+per-host leave-one-out χ² terms, the 1.33 spread under C and 1.005 under V). From Δ(−2ℓ_R) = 3.50 the
+asymptotic boundary likelihood-ratio p-value is 0.5 · P(χ²₁ > 3.5) ≈ 0.031, so B's τ part is expected
+to land near 0.03; the three-way label below exists because of that. No fit without a host and no
+simulation has been run. These checks attach descriptive labels to R2-RE; they do not change the
+R2-RE headline row.
 
-*A. Leave one host out.* For each of the 37 calibrator hosts j: remove every row with a non-zero in
-host j's column (its Cepheid and calibrator SN rows) from the NGC 4258-only system (and from the
-CCHP subset if j is a CCHP host); estimate τ̂_j by R2-RE's REML procedure (same grid, refinement and
-bound rule) with the remaining 36 hosts' groups; recompute R2-RE's host step under V(τ̂_j) and its
-verdict row (R2's table, unchanged). A fit that fails or a τ̂_j at the upper bound is recorded as
-such. Label: **"robust to single hosts"** if every evaluable j gives the same verdict row as R2-RE
-and no j fails; otherwise **"sensitive to single hosts"**, naming the hosts whose removal changes
-the row (and those that fail). Reported: τ̂_j, z'_j and the row for each host, and their ranges.
+Common settings: hosts are the 37 calibrator hosts with the column labels of the amended (post-data)
+host labelling (`col_host`), as in R2-RE; τ̂ is found by R2-RE's REML procedure (grid 0, 0.01, …,
+0.50 mag, then the bounded refinement; no interval), τ̂ < 10⁻³ counts as zero (V = C) and
+τ̂ > 0.5 − 10⁻³ is "at the upper bound".
 
-*B. Null simulations.* Under C, fit the NGC 4258-only system (R2's anchor-step rows) and take its
-fitted values ŷ = L q̂. For s = 0, …, 99: y_s = ŷ + K ε_s on those rows, with K the lower Cholesky
-factor of C restricted to those rows and ε_s ~ N(0, I) from numpy `default_rng(10_000 + s)`; other
-rows are not used. For each y_s:
-- τ̂_s by the same REML procedure (grid, refinement; the interval is not needed);
-- the spread of Δ/σ over the first 100 of R4's random 10-host subsets (R4's own draws, same seed,
-  in order), each under C exactly as in R4: Δ = 5 log H0(subset) − 5 log H0(37 hosts) and
-  σ² = σ²_subset − σ²_37; spread = their standard deviation.
-The observed values are recomputed the same way on the real data (τ̂_obs from R2-RE; spread_obs over
-the same 100 subsets, which differs from R4's 10,000-draw 1.33 only by draw noise).
-p_τ = (1 + #{s: τ̂_s ≥ τ̂_obs}) / 101 and p_spread = (1 + #{s: spread_s ≥ spread_obs}) / 101. Labels:
-p_τ < 0.05 → **"host-level scatter supported (τ > 0)"**, else **"consistent with no host-level
-scatter"**; p_spread < 0.05 → **"the R4 excess spread is unusual under the null"**, else
-**"the R4 spread is consistent with the null"**. A simulation whose fit fails is recorded and
-excluded from both counts; if more than 5 of 100 fail, B is **not evaluable**.
+*A. Leave one host out.* For each host j, the rows with a non-zero in host j's column (its Cepheid
+and calibrator SN rows) are removed from the NGC 4258-only system, and τ̂_j is estimated with the
+other 36 hosts' groups. Then:
+- **τ route (the label).** R2-RE's original host step (all 37 hosts against the 10 CCHP hosts, all
+  data) under V(τ̂_j), and its verdict row (R2's table, unchanged). Label: **"τ̂ robust to single
+  hosts"** if this row equals R2-RE's row for every j; otherwise **"τ̂ sensitive to single hosts"**,
+  naming the hosts. A τ̂_j at the upper bound or a failed fit counts as "sensitive" for that j.
+- **Data route (reported).** On the reduced system: the host step at τ = 0 (C) and under V(τ̂_j),
+  each with z and the verdict row; when j is a CCHP host the CCHP subset has 9 hosts and the entry is
+  marked "changes the tested selection".
+Reported: τ̂_j, the three z values and rows for every host, and their ranges.
+
+*B. Null simulations.* Under C, fit the NGC 4258-only system (R2's anchor-step rows, `rows_a`) and
+take ŷ = L q̂ on those rows. Simulation s draws y_s = ŷ + K ε_s, with K the lower Cholesky factor of
+C restricted to `rows_a` and ε_s = `numpy.random.default_rng(10_000 + s).standard_normal(len(rows_a))`.
+(Under C both statistics below have the same null distribution for any q̂: REML uses only residual
+contrasts, and each Δ_k/σ_k is exactly N(0, 1).)
+- **τ part.** s = 0, …, 399: τ̂_s by the procedure above. n_τ = simulations whose fit succeeded;
+  k_τ = those with τ̂_s ≥ τ̂_obs (R2-RE's τ̂); p_τ = (1 + k_τ) / (1 + n_τ), with a 95% Clopper–Pearson
+  interval for k_τ / n_τ. Labels: interval entirely below 0.05 → **"τ̂ unusual under C (excess
+  calibrator scatter)"**; entirely above 0.05 → **"τ̂ not unusual under C"**; containing 0.05 →
+  **"undetermined (Monte Carlo)"**. More than 20 failed fits → not evaluable.
+- **Spread part.** The first 1,000 of R4's random 10-host subsets (R4's own draws: same seed, in
+  order; all of them if R4 ended with fewer). For subset k the shift Δ_k = a_kᵀ y is linear in y with
+  a fixed σ_k (σ_k² = σ²_subset − σ²_37 under C, as in R4); the rows a_k are computed once. spread =
+  the standard deviation of Δ_k/σ_k over the subsets (`numpy.std`, ddof = 0, as in R4); spread_obs on
+  the real data with the same subsets. s = 0, …, 1,999: spread_s; p_spread = (1 + k_s) / 2,001 with
+  k_s = #{spread_s ≥ spread_obs}. Labels: p_spread < 0.05 → **"the R4 excess spread is unusual under
+  C"**, else **"the R4 spread is consistent with C"** (Monte Carlo error about 0.005 at p = 0.05).
+- If R2-RE is not evaluable, the τ part is not evaluable; if R4 has no draws, the spread part is not
+  evaluable.
 
 *Reading, fixed now.* The R2-RE headline row stands as pre-registered. The labels are reported next
-to it in section 5 and the claim: "robust" with "τ > 0 supported" strengthens it; "sensitive" or
-"consistent with no host-level scatter" means the null result depends on single hosts or on a τ the
-data do not require, and is said so.
+to it in section 5 and the claim, read as follows: "τ̂ robust" with "τ̂ unusual under C" → the null
+result rests on excess calibrator scatter that the data show and that no single host carries;
+"τ̂ robust" with "not unusual" or "undetermined" → the null result rests on a τ the data do not
+clearly require; "τ̂ sensitive" → the null result depends on the named hosts. The spread label says
+whether R4's 1.33 is itself evidence of excess scatter under C. "Unusual under C" means more scatter
+among calibrator SN rows than C allows (for example a host-level effect, an under-scaled SN block or
+one outlying host); it does not identify the cause.
 
-*Runtime.* A: 37 REML fits, about 40 minutes. B: 100 REML fits and 100 × 100 subset fits, about
-2 hours. `PARAMS["rob_check"]` turns both off.
+*Runtime (upper bounds).* A: 37 REML fits plus 74 host-step fits, about 25 minutes. B: 400 REML fits
+(about 30 s each, about 3.5 hours) and 1,000 subset fits once (about 2 minutes). `PARAMS["rob_check"]`
+turns both off.
 
 ## 3. Data (with size estimate)
 
