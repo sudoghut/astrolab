@@ -177,7 +177,8 @@ T-028 note (amplitudes from J23 and Koop et al. 2024 added to a statistical part
 followed: adding any positive-semidefinite variance on top of σ_i (at fixed residuals) only lowers
 χ² further (already 1.30 for 15), so reaching
 χ² ≈ degrees of freedom needs correlation within the existing variance. We keep σ_i as the total
-error of each bin and only add correlations.
+error of each bin (our reading of the Sec. 2.2.5 text and the Fig. 5 caption; Table 3's caption is
+silent) and only add correlations.
 
 *Covariance family.* Five covariances, each with Table 3's σ_i² on the diagonal:
 - four of the form C_ij = σ_i σ_j [(1 − f) δ_ij + f K_ij], f ∈ [0, 0.99], with K the squared-exponential
@@ -189,7 +190,8 @@ error of each bin and only add correlations.
   kernels less so;
 - the fractional kernel, a truly coherent fractional offset: C = diag(σ_i² − c² V_i²) + c² V Vᵀ with
   c ∈ [0, 0.99 · min_i(σ_i/V_i)] (min σ/V = 1.35%, at 10.5 kpc).
-No kernel is primary.
+No kernel is primary; the family (bin scale, intermediate, range scale, global, and a strictly
+fractional offset) was chosen to span the plausible correlation lengths, not tuned to any fit.
 
 *Calibration.* For each covariance the free parameter (f, or c) is set so that the best-fit free
 Einasto model (baryons E dJ, the 18 points) has χ² = rᵀC⁻¹r = 15, its degrees of freedom. χ²(f) need
@@ -224,7 +226,7 @@ agree it stands.
   χ²(γ) is evaluated on γ ∈ [−3, 1] in steps of 0.001 and its minimum refined by bounded Brent
   minimisation on [γ_(k−1), γ_(k+1)] around the grid minimum γ_k (at an edge, [γ_k, γ_(k±1)]), where
   γ values with A ≤ 0 count as χ² = +∞; the reported minimum is the smaller of the grid and Brent
-  values; A must be positive (a γ with A ≤ 0 is excluded). The flat model is γ = 0 of the same profile. If the minimum lies at γ = −3 or 1, it is
+  values; Brent uses xatol 10⁻⁷ in γ (scipy `minimize_scalar`, method "bounded"); A must be positive (a γ with A ≤ 0 is excluded). The flat model is γ = 0 of the same profile. If the minimum lies at γ = −3 or 1, it is
 reported as at the edge and used as is; if γ = 0, −0.2 or −0.5 is excluded (A ≤ 0), T1 or T2 is "not
 evaluable" for that covariance.
 - Halo fits (18 points, E dJ baryons): free Einasto in R2's parametrisation and bounds (M0, h, 1/n;
@@ -239,8 +241,8 @@ evaluable" for that covariance.
   (free Einasto M0 = 3.7 × 10¹¹ M☉, h = 12 kpc, 1/n = 2.4; NFW log10 ρ_s = 7.0, log10 r_s = 1.2) and,
   for the ΛCDM-like model, ρ₋₂ = 10⁶ M☉/kpc³, r₋₂ = 20 kpc. The best fit is
   the minimum over all 21 starts; it counts as converged if at least 3 starts that terminate successfully (the optimiser's own success
-flag; a run stopped by maxiter does not count) reach within 0.01 of
-  that minimum; otherwise the test is "not evaluable" for that covariance. Whether the free Einasto
+flag; a run stopped by maxiter does not count) reach within 0.01 in χ² (absolute) of
+  that minimum (an optimum on a bound is allowed and reported); otherwise the test is "not evaluable" for that covariance. Whether the free Einasto
   optimum lies at a bound is reported.
 
 *Tests at each calibrated covariance.*
@@ -254,8 +256,10 @@ flag; a run stopped by maxiter does not count) reach within 0.01 of
 ΛCDM-like model nested in the bounded free Einasto (R2's bounds exclude 1/n = 0.17 halos), so Δχ²_ΛCDM
 can be negative (it then falls in the lowest band).
 
-*Labels, fixed now (over the calibrated, evaluable covariances; at least 3 of the 5 are needed,
-otherwise "not evaluable"; then the high-f rule above).*
+*Labels, fixed now. Each of T1, T2, T3-NFW and T3-ΛCDM has its own set of usable covariances
+(calibrated, and that test evaluable there: T1/T2 need their profile points, T3 needs both its halo
+fits converged); at least 3 of the 5 are needed for that test, otherwise "not evaluable"; then the
+high-f rule above, applied per test.*
 - T1: every covariance √Δχ²_flat ≥ 3 → **"flat rejected at ≥ 3σ"**; every one ≥ 2 and not all ≥ 3 →
   **"flat rejected at ≥ 2σ"**; every one < 2 → **"flat not rejected at 2σ"**; otherwise
   **"kernel-dependent"**.
