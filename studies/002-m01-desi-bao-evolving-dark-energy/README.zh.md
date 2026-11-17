@@ -146,7 +146,7 @@ w0 = −0.8、wa = −0.5（100θ* = 1.04711；两处 r_drag 均为 147.06 Mpc�
 
 *问题。* θ* 与 r_d 都来自 CAMB 时，R2 各解读的判定是否改变？
 
-*改动。* 相对于 R2-CAMB，只改 BAO 项中的声视界：r_d 取 CAMB 的 `rdrag`，与给出 θ* 的同一次 `camb.get_background` 调用（同样的设置，`camb_theta.py`）。BAO 距离 D_M、D_H 仍由 `astrolab.cosmo.Background` 计算（与 R2、R2-CAMB 相同）。与 R2-CAMB 一样有两个变体：**锚定-RD（anchored-RD）**（θ* = K_C · θ*_CAMB，用 R2-CAMB 的 K_C）与**原始-RD（raw-RD）**（θ* = θ*_CAMB）。两个变体中 r_d 都不缩放（K_C 只乘 θ*）；θ* 或 `rdrag` 非有限时拒绝该点并计数，与 R2-CAMB 中非有限 θ* 的处理相同。CAMB 调用现在在 BAO 项之前，所以拒绝计数与 R2-CAMB 的不可比较，而可行域相同。"相对于 R2-CAMB 同一变体"的移动用同一次运行中重跑的 R2-CAMB。其他一切（解读 A 与 B，ων = Σmν/93.14 eV，先验均值与协方差，边界，起点，种子，在任何 CAMB 调用之前的可行性检查，CAMB 错误的拒绝，有效性检查，容差）与 R2-CAMB 相同。不做 MCMC。
+*改动。* 相对于 R2-CAMB，只改 BAO 项中的声视界：r_d 取 CAMB 的 `rdrag`，与给出 θ* 的同一次 `camb.get_background` 调用（同样的设置，`camb_theta.py`）。BAO 距离 D_M、D_H 仍由 `astrolab.cosmo.Background` 计算（与 R2、R2-CAMB 相同）。与 R2-CAMB 一样有两个变体：**锚定-RD（anchored-RD）**（θ* = K_C · θ*_CAMB，用 R2-CAMB 的 K_C）与**原始-RD（raw-RD）**（θ* = θ*_CAMB）。两个变体中 r_d 都不缩放（K_C 只乘 θ*）；θ* 或 `rdrag` 非有限时拒绝该点并计数，与 R2-CAMB 中非有限 θ* 的处理相同。CAMB 调用现在在 BAO 项之前，所以拒绝计数与 R2-CAMB 的不可比较；调用 CAMB 之前的可行性检查与边界不变（CAMB 错误仍可能拒绝点，与 R2-CAMB 相同）。"相对于 R2-CAMB 同一变体"的移动用同一次运行中重跑的 R2-CAMB。其他一切（解读 A 与 B，ων = Σmν/93.14 eV，先验均值与协方差，边界，起点，种子，在任何 CAMB 调用之前的可行性检查，CAMB 错误的拒绝，有效性检查，容差）与 R2-CAMB 相同。不做 MCMC。
 
 *规则，现在固定。* 每个变体用不变的 R2 规则（每种解读 |Δχ²_MAP − (−8.0)| ≤ 1.0）。
 - 只有两个变体都有效、且都保持记录在案的各解读判定（A 未复现，B 复现）时，才写"R2 对 r_d 公式稳健"。

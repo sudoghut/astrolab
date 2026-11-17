@@ -172,7 +172,8 @@ distances D_M, D_H stay from `astrolab.cosmo.Background` (as in R2 and R2-CAMB).
 R2-CAMB: **anchored-RD** (θ* = K_C · θ*_CAMB, the R2-CAMB K_C) and **raw-RD** (θ* = θ*_CAMB). Everything
 r_d is not scaled in either variant (K_C multiplies θ* only); a non-finite θ* or `rdrag` rejects the
 point and is counted, as a non-finite θ* in R2-CAMB. The CAMB call now precedes the BAO term, so the
-rejection tallies are not comparable with R2-CAMB's, while the feasible set is the same. The shift
+rejection tallies are not comparable with R2-CAMB's; the pre-CAMB feasibility check and the bounds are
+unchanged (CAMB errors can still reject points, as in R2-CAMB). The shift
 "against R2-CAMB's same variant" uses R2-CAMB rerun in the same run. Everything
 else (readings A and B with ων = Σmν/93.14 eV, prior mean and covariance, bounds, starts, seed,
 feasibility check before any CAMB call, CAMB-error rejection, validity checks, tolerance) as in
