@@ -31,6 +31,8 @@ PARAMS = {
     "positional_ok": ["des_3x2pt", "des_xipm", "des_xipm_nla"],
     # one-off cap for the 32pt chain only: user consent in chat, 2026-11-15 (log.md, README section 3)
     "max_bytes_32pt": 150 * 1024 ** 2,
+    "cap_consent_32pt": "user approved 2026-11-15, recorded in this study's log.md and README section 3: "
+                        "one-off 150 MiB cap for the DES Y6 3x2pt chain only",
     "mcmc_burn": 0.30,
     "max_saved_comments": 5000,
     "ess_flag": 2000,
@@ -127,7 +129,8 @@ def _support_names(names):
 
 def _fetch(ctx, P, key):
     name = P["chains"][key]
-    kw = {"max_bytes": P["max_bytes_32pt"]} if name == P["chains"]["des_3x2pt"] else {}
+    kw = ({"max_bytes": P["max_bytes_32pt"], "cap_consent": P["cap_consent_32pt"]}
+          if name == P["chains"]["des_3x2pt"] else {})
     return ctx.http(BASE + name, label=f"DES Y6 chain {name}", **kw)
 
 

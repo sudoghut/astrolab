@@ -12,6 +12,7 @@ Both cache results in the system cache directory and return provenance.
 """
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import io
 from dataclasses import dataclass
@@ -356,9 +357,20 @@ def http(
     suffix: str | None = None,
     refresh: bool = False,
     note: str | None = None,
+    cap_consent: str | None = None,
 ) -> Fetched:
-    # a caller may lower the per-download cap, never raise it (AGENTS.md section 1)
-    max_bytes = min(max_bytes or config.HTTP_MAX_BYTES, config.HTTP_MAX_BYTES)
+    # A caller may lower the per-download cap. Raising it needs the user's explicit consent for that
+    # file (AGENTS.md section 1.6), passed as `cap_consent` (where the consent is recorded, at least
+    # 20 characters); the consent is written into the provenance note (T-038).
+    if max_bytes is not None and max_bytes > config.HTTP_MAX_BYTES:
+        if not cap_consent or len(cap_consent.strip()) < 20:
+            raise ValueError(f"max_bytes {max_bytes} exceeds the {config.HTTP_MAX_BYTES}-byte cap: pass "
+                             "cap_consent='<where the user's approval for this file is recorded>' "
+                             "(AGENTS.md 1.6), or lower max_bytes")
+        exception = f"cap exception {max_bytes} bytes: {cap_consent.strip()}"
+        note = f"{note}; {exception}" if note else exception
+    else:
+        max_bytes = min(max_bytes or config.HTTP_MAX_BYTES, config.HTTP_MAX_BYTES)
     suffix = suffix or (Path(url.split("?")[0]).suffix or ".bin")
     key = cache.key_for("http", {"url": url})
 
@@ -379,7 +391,10 @@ def http(
         return (path, Provenance(**meta["provenance"])) if digest == meta["provenance"].get("sha256") else None
 
     if not refresh and (ok := _consistent(cache.read(key, suffix, _verified))):
-        return Fetched(ok[0], ok[1], True)
+        prov = ok[1]
+        if note and "cap exception" in note and "cap exception" not in (prov.note or ""):
+            prov = dataclasses.replace(prov, note=f"{prov.note}; {note}" if prov.note else note)
+        return Fetched(ok[0], prov, True)
     if not refresh and cache.get(key, suffix) is not None:
         refresh = True                       # stored bytes do not match their provenance
 
