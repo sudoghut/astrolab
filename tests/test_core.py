@@ -481,11 +481,13 @@ def _fake_http(monkeypatch, body: bytes, length: int | None = None):
 def test_http_cap_cannot_be_raised_by_caller(tmp_cache, monkeypatch):
     monkeypatch.setattr(config, "HTTP_MAX_BYTES", 1000)
     _fake_http(monkeypatch, b"x" * 2000)
-    with pytest.raises(fetch.TooLarge):
+    with pytest.raises(ValueError, match="cap_consent"):     # no consent: refused before any request
         fetch.http("http://example.invalid/f.txt", max_bytes=10_000_000)
+    with pytest.raises(fetch.TooLarge):
+        fetch.http("http://example.invalid/f.txt")
     _fake_http(monkeypatch, b"x" * 2000, length=0)     # no Content-Length: the streaming check
     with pytest.raises(fetch.TooLarge):
-        fetch.http("http://example.invalid/f.txt", max_bytes=10_000_000)
+        fetch.http("http://example.invalid/f.txt")
 
 
 def test_http_cached_payload_verified_against_provenance(tmp_cache, monkeypatch):
@@ -644,3 +646,20 @@ def test_prune_second_pass_when_only_recent_entries_exceed(tmp_cache):
         keys.append(key)
     assert cache.prune(limit_bytes=1) >= 1          # all recent, still over the limit: removed
     assert sum(e[1] for e in cache._entries(cache.config.cache_dir())) <= 1
+
+
+
+def test_http_cap_needs_consent_and_records_it(tmp_cache, monkeypatch):
+    monkeypatch.setattr(config, "HTTP_MAX_BYTES", 1000)
+    _fake_http(monkeypatch, b"x" * 2000)
+    with pytest.raises(ValueError, match="cap_consent"):
+        fetch.http("http://example.invalid/big.txt", max_bytes=5000)
+    with pytest.raises(ValueError, match="cap_consent"):
+        fetch.http("http://example.invalid/big.txt", max_bytes=5000, cap_consent="ok")
+    why = "user approved 2026-11-15 in the study log"
+    r = fetch.http("http://example.invalid/big.txt", max_bytes=5000, cap_consent=why)
+    assert r.data.stat().st_size == 2000 and why in r.provenance.note
+    again = fetch.http("http://example.invalid/big.txt", max_bytes=5000, cap_consent=why)
+    assert again.from_cache and why in again.provenance.note
+    with pytest.raises(fetch.TooLarge):             # without the exception the cap still applies
+        fetch.http("http://example.invalid/big.txt")
