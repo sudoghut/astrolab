@@ -120,7 +120,11 @@ def null_sims(L, y, C, rows_a, calib_groups, re_out, picks, base_rows, host_rows
         ys[rows_a] = yhat + K @ eps
         return ys
 
-    out = {"null": "y_s = L q_hat + K eps on the NGC 4258-only rows, under C"}
+    out = {"null": "y_s = L q_hat + K eps on the NGC 4258-only rows, under C",
+           "settings": {"eps": "numpy.random.default_rng(rob_seed_base + s).standard_normal(len(rows_a))",
+                        "rob_seed_base": P["rob_seed_base"], "n_tau": P["rob_n_tau"],
+                        "n_spread": P["rob_n_spread"], "n_subsets": P["rob_n_subsets"],
+                        "subsets": "the first n_subsets of R4's draws, in order"}}
 
     # spread part: linear estimator rows for the first rob_n_subsets R4 subsets
     M = None

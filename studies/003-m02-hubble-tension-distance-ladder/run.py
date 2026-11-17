@@ -884,7 +884,12 @@ def main(ctx):
     ctx.save("r2_re", re)                 # always written, so no stale file survives
 
     # ---- R2-RE-ROB (README section 2, addendum 2026-11-17, T-032): descriptive labels for R2-RE
-    rob_out = {"status": "not run"}
+    rob_out = {"status": "not run (PARAMS)"}
+    if P["rob_check"] and not (P["re_check"] and ident["host_step_evaluable"]):
+        rob_out = {"A": {"status": "not evaluable (R2-RE not evaluable)"},
+                   "B": {"tau": {"status": "not evaluable (R2-RE not evaluable)"},
+                         "spread": {"status": "not evaluable (R4 has no draws)" if not picks
+                                    else "not evaluable (host step not evaluable)"}}}
     if P["rob_check"] and P["re_check"] and ident["host_step_evaluable"]:
         calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]
         fns = {"reml_tau": reml_tau, "reml_m2l": reml_m2l, "host_step_under": host_step_under,
