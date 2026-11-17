@@ -238,12 +238,13 @@ evaluable" for that covariance.
   coordinates (maxiter 20,000, xatol 10⁻⁸, fatol 10⁻¹⁰; χ² = 10³⁰ outside the bounds) from 20 starts
   drawn uniformly in the fitted coordinates themselves (log10 M0 ∈ [10, 14], h ∈ [0, 20], 1/n ∈ [0, 5];
   log10 ρ_s ∈ [4, 10], log10 r_s ∈ [0, 2]; log10 ρ₋₂ ∈ [3, 10], log10 r₋₂ ∈ [0, log10 300]) with a
-  fresh `default_rng(0)` for every fit, plus one fixed extra start: the starts used for R2 and R5
+  fresh `default_rng(0)` for every fit (start by start, each coordinate in the order listed drawn with
+  `rng.uniform(lo, hi)`), plus one fixed extra start: the starts used for R2 and R5
   (free Einasto M0 = 3.7 × 10¹¹ M☉, h = 12 kpc, 1/n = 2.4; NFW log10 ρ_s = 7.0, log10 r_s = 1.2) and,
   for the ΛCDM-like model, ρ₋₂ = 10⁶ M☉/kpc³, r₋₂ = 20 kpc. The best fit is
   the minimum over all 21 starts; it counts as converged if at least 3 starts that terminate successfully (the optimiser's own success
 flag; a run stopped by maxiter does not count) reach within 0.01 in χ² (absolute) of
-  that minimum (the minimum is taken over all 21 runs, successful or not) (an optimum on a bound is allowed and reported); otherwise the test is "not evaluable" for that covariance. Whether the free Einasto
+  that minimum (the minimum is taken over the successful runs with χ² < 10³⁰; none → "not evaluable") (an optimum on a bound is allowed and reported); otherwise the test is "not evaluable" for that covariance. Whether the free Einasto
   optimum lies at a bound is reported.
 
 *Tests at each calibrated covariance.*
