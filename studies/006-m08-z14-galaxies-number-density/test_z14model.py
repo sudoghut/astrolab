@@ -208,3 +208,45 @@ def test_robustness_rule(monkeypatch):
     mixed = rows48[:47] + [{"r2": "lower"}]
     assert run.robustness(mixed, "r2", "higher", 48) == "calibration-dependent"
     assert run.robustness(rows48, "r2", "not evaluable", 48) == "not assessable"
+
+
+def test_post2_poisson_rows_and_deviance():
+    """R3-POST2 (README section 2, addendum 2026-11-17): integer counts 2 and 9, deviance and residual."""
+    blank = [(-21.85, 3e-6, 2e-6, 2e-6), (-21.35, 12e-6, 4e-6, 4e-6), (-20.85, 41e-6, 11e-6, 11e-6)]
+    pois, rest = zm.poisson_rows(list(reversed(blank)), 2)
+    assert [(r[0], r[1]) for r in pois] == [(-21.85, 2), (-21.35, 9)]
+    assert pois[0][2] == pytest.approx(1.5e-6) and pois[1][2] == pytest.approx(12e-6 / 9)
+    assert [r[0] for r in rest] == [-20.85]
+    with pytest.raises(ValueError):
+        zm.poisson_rows([(-22.0, 3e-6, 2e-6, 1e-6)], 1)
+    assert zm.poisson_deviance(9, 9.0) == pytest.approx(0.0, abs=1e-12)
+    assert zm.poisson_deviance(0, 1.7) == pytest.approx(3.4)
+    assert zm.poisson_deviance(2, 4.0) == pytest.approx(2 * (4 - 2 + 2 * np.log(0.5)))
+    assert zm.poisson_deviance(2, 1.0) > 0 and zm.poisson_deviance(2, 4.0) > 0
+
+
+def test_post2_residuals_and_simulation(setup):
+    c, pk, lnM, sig0 = setup
+    z, M = 8.0, np.exp(lnM)
+    hmf = zm.dndlnm(lnM, sig0, zm.growth(z, c)[0], pk.rho_m(), "st")
+    blank = [(-21.85, 3e-6, 2e-6, 2e-6), (-21.35, 12e-6, 4e-6, 4e-6), (-20.85, 41e-6, 11e-6, 11e-6)]
+    pois, rest = zm.poisson_rows(blank, 2)
+    lens = [(-18.75, 0.0018, 0.0006, 0.0006)]
+    x = np.array([0.1, 11.5, 1.0, -0.5, 1.2, 0.8])
+    assert zm.in_box2(x) and not zm.in_box2(np.array([0.1, 11.5, 1.0, -1.5, 1.2, 0.8]))
+    assert not zm.in_box2(np.array([0.1, 11.5, 1.0, 0.5, 1.2, 0.2]))
+    r = zm.binned_residuals2(x, M, lnM, hmf, z, c, "fakhouri_mean", pois, rest, lens)
+    assert len(r) == 2 + 1 + 1 + 1 and r[-1] == pytest.approx((1.2 - 1.0) / 0.2)
+    med = zm.muv_median(M, z, c, x[:4], "fakhouri_mean")
+    phi = zm.lf_model(np.array([-21.85, -21.35, -20.85, -18.75]), lnM, hmf, med, x[5])
+    for k, (_, n, conv) in enumerate(pois):
+        mu = phi[k] / conv
+        assert r[k] ** 2 == pytest.approx(zm.poisson_deviance(n, mu)) and np.sign(r[k]) == np.sign(mu - n)
+    rng = np.random.default_rng(3)
+    sp, sb, sl = zm.simulate_binned2(rng, x, M, lnM, hmf, z, c, "fakhouri_mean", pois, rest, lens)
+    assert all(isinstance(row[1], int) and row[1] >= 0 for row in sp)
+    assert [row[2] for row in sp] == [row[2] for row in pois] and len(sb) == 1 and len(sl) == 1
+    draws = np.tile(x, (4, 1))
+    draws[0, 5], draws[1, 3] = 1.2, -1.0
+    b = zm.bound_fractions2(draws)
+    assert set(b) == set(zm.POST2_NAMES) and b["sigma_cal"]["upper"] == 0.25 and b["gamma"]["lower"] == 0.25

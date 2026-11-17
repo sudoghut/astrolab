@@ -52,7 +52,7 @@ PARAMS = {
     },
     "run_variants": True,
     # R2/R3-POST (README section 2, addendum 2026-11-16)
-    "post_check": True, "post_walkers": 32, "post_steps": 100000, "post_burn": 20000, "post_draws": 500,
+    "post_check": True, "post2_check": True, "post2_n_poisson": 2, "post2_identify_frac": 0.6, "post_walkers": 32, "post_steps": 100000, "post_burn": 20000, "post_draws": 500,
     "post_seed": 0, "post_tau_factor": 50, "post_p_threshold": 0.95, "post_r3_min_frac": 0.9,
     "post_misfit_p": 0.01, "post_bound_frac": 0.05, "post_sensitivity": True,
     # exploration-only knobs (README section 8); defaults leave the pre-registered analysis unchanged
@@ -393,6 +393,11 @@ def main(ctx):
         ctx.save("post", post)
         summary["R2_post"] = {k: post["primary"].get(k) for k in ("r2_label", "r2_probabilities")}
         summary["R3_post"] = {k: post["primary"].get(k) for k in ("r3_label", "r3_probabilities")}
+    if P["post2_check"]:
+        post2 = r3_post2(ctx, S, P, phi_obs, phi_n26)
+        ctx.save("post2", post2)
+        summary["R3_post2"] = {k: post2.get(k) for k in ("r2_label", "r2_probabilities", "r3_label",
+                                                         "r3_probabilities", "sigma_cal_prior_dominated")}
     ctx.save("summary", summary)
     return summary
 
@@ -408,6 +413,132 @@ def post_label(probs, threshold, n_eff):
     if p >= threshold:
         return "calibration-uncertain (borderline)"
     return "calibration-uncertain"
+
+
+def r3_post2(ctx, S, P, phi_obs, phi_n26):
+    """R3-POST2 (README section 2, addendum 2026-11-17, T-036): sigma_cal sampled, Poisson counts for
+    the two brightest blank bins, gamma in [-1, 3]; otherwise as R2/R3-POST's primary fit."""
+    import emcee
+
+    combo = {"hmf": P["hmf"], "accretion": P["accretion"], "cal": "z8", "sigma_cal": None, "eps_extrap": "dpl"}
+    z_cal = inp.BOUWENS21["z8"]["z"]
+    hmf_cal = S.hmf(z_cal, combo["hmf"])
+    pois, blank = zm.poisson_rows(inp.BINNED_Z8_BLANK, P["post2_n_poisson"])
+    lens = inp.BINNED_Z8_LENS
+    lo, hi = zm.POST2_LO, zm.POST2_HI
+    x0 = np.array([0.1, 11.5, 1.0, 0.5, 1.0, 0.7])
+
+    def resid_for(pr, br, lr):
+        return lambda x: zm.binned_residuals2(x, S.M, S.lnM, hmf_cal, z_cal, S.c, combo["accretion"], pr, br, lr)
+
+    resid = resid_for(pois, blank, lens)
+
+    def logp(x):
+        if not zm.in_box2(x):
+            return -np.inf
+        r = resid(x)
+        return -0.5 * float(r @ r)
+
+    lsq_kw = dict(bounds=(lo, hi), loss="linear", ftol=1e-10, xtol=1e-10, gtol=1e-10, max_nfev=2000)
+    lsq = optimize.least_squares(resid, x0, **lsq_kw)
+    r0 = resid(lsq.x)
+    stat = float(r0[:-1] @ r0[:-1])           # data statistic, prior residual excluded
+    rng_b = np.random.default_rng(1)
+    boot, n_boot_failed = [], 0
+    for _ in range(200):
+        sp, sb, sl = zm.simulate_binned2(rng_b, lsq.x, S.M, S.lnM, hmf_cal, z_cal, S.c, combo["accretion"],
+                                         pois, blank, lens)
+        rb_f = resid_for(sp, sb, sl)
+        rb = optimize.least_squares(rb_f, x0, **lsq_kw)
+        if not rb.success:
+            n_boot_failed += 1
+            continue
+        fb = rb_f(rb.x)
+        boot.append(float(fb[:-1] @ fb[:-1]))
+    fitq_determined = n_boot_failed <= 0.1 * 200 and len(boot) > 0
+    p_fit = float(np.mean(np.array(boot) >= stat)) if boot else float("nan")
+
+    rng = np.random.default_rng(P["post_seed"])
+    nw, nd = int(P["post_walkers"]), 6
+    width = 1e-3 * (hi - lo)
+    start = np.array([zm.reflect_into_box(lsq.x + rng.normal(0.0, width), lo, hi) for _ in range(nw)])
+    np.random.seed(int(rng.integers(2 ** 32)))   # emcee 3 copies the global numpy state
+    sampler = emcee.EnsembleSampler(nw, nd, logp)
+    sampler.run_mcmc(start, int(P["post_steps"]), progress=False)
+    burn = int(P["post_burn"])
+    chain = sampler.get_chain(discard=burn)
+    tau = emcee.autocorr.integrated_time(chain, c=5, tol=0)
+    n_post = chain.shape[0]
+    converged = bool(n_post >= P["post_tau_factor"] * float(np.max(tau)))
+    flat = sampler.get_chain(discard=burn, flat=True)
+    idx = np.linspace(0, len(flat) - 1, int(P["post_draws"])).round().astype(int)
+    draws = flat[idx]
+    post = {n: {"median": float(np.median(flat[:, j])), "p16": float(np.percentile(flat[:, j], 16)),
+                "p84": float(np.percentile(flat[:, j], 84))} for j, n in enumerate(zm.POST2_NAMES)}
+    sig_w = post["sigma_cal"]["p84"] - post["sigma_cal"]["p16"]
+    prior_dominated = bool(sig_w > P["post2_identify_frac"] * (hi[5] - lo[5]))
+    bounds = zm.bound_fractions2(draws)
+    bounded = any(max(b["lower"], b["upper"]) > P["post_bound_frac"] for b in bounds.values())
+
+    r2v, r3v, ratios, sig_draw, roots_list, eps_gt1 = [], [], [], [], [], 0
+    for x in draws:
+        theta = [float(v) for v in x[:4]]
+        cmb = dict(combo, sigma_cal=float(x[5]))
+        fres = run_model(S, P, cmb, phi_obs, fixed={"theta": theta, "m_cal_lo": None,
+                                                     "calibration": {"theta": theta, "rms": 0.0}})
+        ratio = fres["phi_ours"] / phi_n26
+        ratios.append(float(ratio))
+        r2v.append(r2_verdict(ratio, P["r2_factor"]))
+        r3v.append(r3_verdict(fres["sigma_roots"], P["r3_target"]) if fres.get("r3_evaluable") else "not evaluable")
+        roots_list.append(fres.get("sigma_roots") if fres.get("r3_evaluable") else None)
+        sig_draw.append(float(x[5]))
+        eps_gt1 += int(np.any(zm.eps_dpl(S.M, theta) > 1.0))
+    n = len(draws)
+    p2 = {k: r2v.count(k) / n for k in ("higher", "same order as N26's baseline", "lower")}
+    ev3 = [v for v in r3v if v != "not evaluable"]
+    p3 = {k: (ev3.count(k) / len(ev3) if ev3 else None) for k in ("consistent with N26", "different")}
+    if abs(sum(p2.values()) - 1.0) > 1e-9 or (ev3 and abs(sum(p3.values()) - 1.0) > 1e-9):
+        raise RuntimeError(f"verdict labels not all counted: {set(r2v)} {set(r3v)}")
+    n_eff_chain = nw * n_post / float(np.max(tau))
+
+    def label(probs, evaluable, n_draws):
+        tag = "; sigma_cal prior-dominated" if prior_dominated else ""   # stated next to any label
+        if not lsq.success or not converged or not evaluable:
+            return "not evaluable" + tag
+        lab = post_label(probs, P["post_p_threshold"], min(n_draws, n_eff_chain))
+        if fitq_determined and p_fit < P["post_misfit_p"]:
+            lab = "model misfit (probabilities reported, not a verdict)"
+        lab += "; prior-bounded" if bounded else ""
+        return lab + tag
+
+    edges = np.round(np.arange(lo[5], hi[5] + 1e-9, 0.1), 10)
+    per_bin = []
+    for a, b in zip(edges[:-1], edges[1:]):
+        sel = [v for v, sg in zip(r3v, sig_draw) if a <= sg < b or (b == edges[-1] and sg == b)]
+        ev = [v for v in sel if v != "not evaluable"]
+        per_bin.append({"sigma_cal": [float(a), float(b)], "n_draws": len(sel),
+                        "p_r3_consistent": (ev.count("consistent with N26") / len(ev)) if ev else None})
+    out = {"combo": dict(combo, sigma_cal="sampled"), "poisson_rows": [list(r) for r in pois],
+           "lsq": {"x": lsq.x.tolist(), "stat_data": stat, "p_bootstrap": p_fit if boot else None,
+                   "n_bootstrap": len(boot), "n_bootstrap_failed": n_boot_failed,
+                   "fit_quality_determined": bool(fitq_determined), "success": bool(lsq.success)},
+           "tau": [float(t) if np.isfinite(t) else None for t in tau], "n_post_steps": n_post,
+           "converged": converged, "acceptance": float(np.mean(sampler.acceptance_fraction)),
+           "posterior": post, "bound_fractions": bounds, "prior_bounded": bounded,
+           "sigma_cal_68_width": sig_w, "sigma_cal_prior_dominated": prior_dominated,
+           "fraction_gamma_negative": float(np.mean(draws[:, 3] < 0)), "fraction_eps_gt_1": eps_gt1 / n,
+           "r2_verdicts": r2v, "r3_verdicts": r3v, "r3_roots": roots_list, "ratios": ratios,
+           "sigma_cal_draws": sig_draw, "gamma_draws": [float(g) for g in draws[:, 3]],
+           "r2_probabilities": p2, "r3_probabilities": p3, "r3_evaluable_fraction": len(ev3) / n,
+           "n_eff": float(min(n, n_eff_chain)),
+           "r2_label": label(p2, True, n),
+           "r3_label": label(p3, len(ev3) >= P["post_r3_min_frac"] * n, len(ev3)),
+           "r3_by_sigma_cal_bin": per_bin,
+           "ratio_quantiles": [float(q) for q in np.percentile(ratios, [5, 16, 50, 84, 95])]}
+    ctx.log(f"R3-POST2: stat {stat:.1f} (bootstrap p {p_fit:.3f}), converged {converged} "
+            f"(max tau {np.max(tau):.0f}), sigma_cal {post['sigma_cal']}, R2 {p2} -> {out['r2_label']}; "
+            f"R3 {p3} -> {out['r3_label']}")
+    return out
 
 
 def r23_post(ctx, S, P, phi_obs, phi_n26, sigma_cal, faint):

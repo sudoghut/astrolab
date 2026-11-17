@@ -401,3 +401,86 @@ def simulate_binned(rng, best, M, lnM, hmf_cal, z_cal, c, accretion, sigma, blan
     sl = [(r[0], split_normal_draw(rng, f * phi[nb + k], r[2], r[3]), r[2], r[3]) for k, r in enumerate(lens)]
     su = [(r[0], max(0.0, rng.normal(f * phi[nb + nl + k], r[1])), r[1]) for k, r in enumerate(limits)]
     return sb, sl, su
+
+
+# ---------------------------------------------------------------- R3-POST2 (addendum 2026-11-17, T-036)
+# (eps0, log10 M1, beta, gamma, f, sigma_cal): gamma widened to [-1, 3]; sigma_cal sampled on [0.3, 1.2]
+POST2_LO = np.array([1e-6, 9.0, 0.0, -1.0, 0.01, 0.3])
+POST2_HI = np.array([1.0, 13.0, 3.0, 3.0, 3.0, 1.2])
+POST2_NAMES = ["eps0", "log_m1", "beta", "gamma", "f", "sigma_cal"]
+
+
+def poisson_rows(blank, n_poisson=2):
+    """Split the blank-field rows (brightest first) into the Poisson rows and the Gaussian rest. A
+    Poisson row is (mag, count, conv) with the integer count N = round((phi/sigma)^2) and the fixed
+    conversion conv = phi/N (so mu = phi_model/conv); errors must be symmetric."""
+    rows = sorted(blank, key=lambda r: r[0])
+    pois = []
+    for mag, d, eh, el in rows[:n_poisson]:
+        if abs(eh - el) > 1e-12 * max(eh, el):
+            raise ValueError(f"asymmetric errors at {mag}: Poisson rows need symmetric errors")
+        n = int(round((d / eh) ** 2))
+        pois.append((mag, n, d / n))
+    return pois, rows[n_poisson:]
+
+
+def poisson_deviance(n, mu):
+    """2 [mu - n + n ln(n/mu)], with the n = 0 limit 2 mu."""
+    mu = max(mu, 1e-300)
+    return 2.0 * (mu - n + (n * np.log(n / mu) if n > 0 else 0.0))
+
+
+def binned_residuals2(params, M, lnM, hmf_cal, z_cal, c, accretion, pois, blank, lens):
+    """R3-POST2 residuals: Poisson rows as sign(mu - N) sqrt(deviance); the other blank rows and the
+    lensing rows as R2/R3-POST's split-normal residuals; the prior residual (f - 1)/0.2 last."""
+    theta, f, sigma = params[:4], params[4], params[5]
+    med = muv_median(M, z_cal, c, theta, accretion)
+    mags = np.array([r[0] for r in pois] + [r[0] for r in blank] + [r[0] for r in lens])
+    phi = np.maximum(lf_model(mags, lnM, hmf_cal, med, sigma), 1e-300)
+    out, k = [], 0
+    for _, n, conv in pois:
+        mu = phi[k] / conv
+        out.append(np.sign(mu - n) * np.sqrt(poisson_deviance(n, mu)))
+        k += 1
+    for scale, rows in ((1.0, blank), (f, lens)):
+        for _, d, eh, el in rows:
+            m = scale * phi[k]
+            out.append((d - m) / (eh if m > d else el))
+            k += 1
+    out.append((f - 1.0) / 0.2)
+    return np.array(out)
+
+
+def in_box2(params):
+    return bool(np.all(params >= POST2_LO) and np.all(params <= POST2_HI))
+
+
+def bound_fractions2(draws, tol=0.01):
+    out = {}
+    for j, n in enumerate(POST2_NAMES):
+        x = draws[:, j]
+        lo, hi = POST2_LO[j], POST2_HI[j]
+        if n == "eps0":
+            x, lo, hi = np.log10(x), -6.0, 0.0
+        w = tol * (hi - lo)
+        out[n] = {"lower": float(np.mean(x <= lo + w)), "upper": float(np.mean(x >= hi - w))}
+    return out
+
+
+def simulate_binned2(rng, best, M, lnM, hmf_cal, z_cal, c, accretion, pois, blank, lens):
+    """R3-POST2 bootstrap set at the best fit (its sigma_cal): Poisson counts for the Poisson rows
+    (the conversion kept), split-normal draws for the others, f from its truncated prior."""
+    theta, sigma = best[:4], best[5]
+    while True:
+        f = rng.normal(1.0, 0.2)
+        if POST2_LO[4] <= f <= POST2_HI[4]:
+            break
+    med = muv_median(M, z_cal, c, theta, accretion)
+    mags = np.array([r[0] for r in pois] + [r[0] for r in blank] + [r[0] for r in lens])
+    phi = lf_model(mags, lnM, hmf_cal, med, sigma)
+    np_, nb = len(pois), len(blank)
+    sp = [(r[0], int(rng.poisson(phi[k] / r[2])), r[2]) for k, r in enumerate(pois)]
+    sb = [(r[0], split_normal_draw(rng, phi[np_ + k], r[2], r[3]), r[2], r[3]) for k, r in enumerate(blank)]
+    sl = [(r[0], split_normal_draw(rng, f * phi[np_ + nb + k], r[2], r[3]), r[2], r[3])
+          for k, r in enumerate(lens)]
+    return sp, sb, sl
