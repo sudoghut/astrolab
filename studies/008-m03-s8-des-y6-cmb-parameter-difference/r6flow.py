@@ -98,7 +98,8 @@ def run_flows(arrays, cfg, log):
     root.mkdir(parents=True, exist_ok=True)
     for old in root.iterdir():           # abandoned folders (old data, config or code) after 7 days
         try:
-            if old.is_dir() and time.time() - old.stat().st_mtime > 7 * 86400:
+            if (old.is_dir() and not (old / "lock").exists()
+                    and time.time() - old.stat().st_mtime > 7 * 86400):
                 shutil.rmtree(old, ignore_errors=True)
         except OSError:
             pass
@@ -125,9 +126,12 @@ def run_flows(arrays, cfg, log):
         out = jobdir / ("_".join(str(p) for p in parts) + ".json")
         if out.exists():                 # finished in an earlier, stopped run
             try:
-                return json.loads(out.read_text(encoding="utf-8"))
+                cached = json.loads(out.read_text(encoding="utf-8"))
+                if isinstance(cached, dict) and "error" not in cached:
+                    return cached
             except ValueError:           # unreadable (for example a lost write): recompute
-                out.unlink(missing_ok=True)
+                pass
+            out.unlink(missing_ok=True)  # a failed or damaged job is computed again
         proc = subprocess.Popen([str(exe), "-I", str(HERE / "flowshift.py"), str(inp), str(cfgp), str(out),
                                  *[str(p) for p in parts]], cwd=jobdir, env=env,
                                 stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
