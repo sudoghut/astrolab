@@ -1,7 +1,8 @@
 """R6-FLOW (README section 2.6), project-environment side: prior support, export, subprocess, verdict.
 
-The flows run in the separate TF environment (flowshift.py). This module writes the needed columns
-into one temporary .npz in the cache staging area, starts that environment, reads its JSON result and
+The flows run in the separate TF environment (flowshift.py), one job per process. This module writes
+the needed columns into a job folder in the cache (keyed by the data, the configuration, flowshift.py
+and the TF environment, so a stopped run resumes), runs the jobs, assembles their JSON results and
 applies the pre-registered verdict rule. It does not import run.py; run.py passes PARAMS values in.
 """
 import json
@@ -75,7 +76,7 @@ def run_flows(arrays, cfg, log):
     the folder is removed once all jobs are done. Returns the assembled results (README 2.6)."""
     import hashlib
     import shutil
-    import sys
+    import time
 
     exe = tf_python()
     if exe is None:
@@ -90,8 +91,26 @@ def run_flows(arrays, cfg, log):
         h.update(np.ascontiguousarray(arrays[k]).tobytes())
     h.update(json.dumps(cfg, sort_keys=True).encode())
     h.update((HERE / "flowshift.py").read_bytes())
-    jobdir = config.cache_dir() / "r6flow_jobs" / h.hexdigest()[:24]
+    # the TF environment: its installed packages (a library upgrade starts a new folder)
+    site = exe.parent.parent / ("Lib/site-packages" if os.name == "nt" else "lib")
+    h.update("\n".join(sorted(p.name for p in site.rglob("*.dist-info"))).encode())
+    root = config.cache_dir() / "r6flow_jobs"
+    root.mkdir(parents=True, exist_ok=True)
+    for old in root.iterdir():           # abandoned folders (old data, config or code) after 7 days
+        try:
+            if old.is_dir() and time.time() - old.stat().st_mtime > 7 * 86400:
+                shutil.rmtree(old, ignore_errors=True)
+        except OSError:
+            pass
+    jobdir = root / h.hexdigest()[:24]
     jobdir.mkdir(parents=True, exist_ok=True)
+    lock = jobdir / "lock"
+    try:                                 # one run per job folder
+        fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.close(fd)
+    except FileExistsError:
+        return {"status": "not evaluable (another run is using the same R6 job folder; "
+                          "if no other run is active, delete its lock file and rerun)"}
     inp, cfgp = jobdir / "input.npz", jobdir / "config.json"
     if not inp.exists():
         tmp_in = cache.staging_path(".npz")
@@ -105,7 +124,10 @@ def run_flows(arrays, cfg, log):
     def job(*parts):
         out = jobdir / ("_".join(str(p) for p in parts) + ".json")
         if out.exists():                 # finished in an earlier, stopped run
-            return json.loads(out.read_text(encoding="utf-8"))
+            try:
+                return json.loads(out.read_text(encoding="utf-8"))
+            except ValueError:           # unreadable (for example a lost write): recompute
+                out.unlink(missing_ok=True)
         proc = subprocess.Popen([str(exe), "-I", str(HERE / "flowshift.py"), str(inp), str(cfgp), str(out),
                                  *[str(p) for p in parts]], cwd=jobdir, env=env,
                                 stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
@@ -117,9 +139,12 @@ def run_flows(arrays, cfg, log):
             if proc.poll() is None:      # interrupted: do not leave the TF child training
                 proc.kill()
                 proc.wait()
-        if code != 0 or not out.exists():
+        if not out.exists():             # a complete .json exists only after an atomic rename,
             raise RuntimeError(f"job {parts} failed (code {code}): {_clean(err)[-800:]}")
-        return json.loads(out.read_text(encoding="utf-8"))
+        res = json.loads(out.read_text(encoding="utf-8"))   # so a crash at exit does not matter
+        if "error" in res:               # not kept: a resumed run retries a failed repetition
+            out.unlink(missing_ok=True)
+        return res
 
     try:
         res = job("meta")
@@ -140,8 +165,12 @@ def run_flows(arrays, cfg, log):
                     log(f"  {name} seed {k}: {r.get('n_sigma', r.get('error'))}")
                 res[name] = flowshift.case_summary(creps, case["columns"])
     except RuntimeError as exc:
+        lock.unlink(missing_ok=True)
         return {"status": "not evaluable (TF subprocess failed)", "error": str(exc)[-1000:],
                 "resume": "rerun: finished jobs are kept in the cache and reused"}
+    except BaseException:
+        lock.unlink(missing_ok=True)
+        raise
     shutil.rmtree(jobdir, ignore_errors=True)
     res["complete"] = True
     return flowshift.finite(res)

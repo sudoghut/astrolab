@@ -1,13 +1,15 @@
 """R6-FLOW (README section 2.6): normalizing-flow parameter difference, run in the TF environment.
 
 This module runs only in the separate environment of T-027 (TensorFlow with the legacy Keras 2 API,
-tensiometer, getdist), started by run.py as a subprocess:
+tensiometer, getdist), one job per process, started by r6flow.py:
 
-    TF_USE_LEGACY_KERAS=1 PYTHONNOUSERSITE=1 <venv-tf python> -I flowshift.py <input.npz> <config.json> <output.json>
+    TF_USE_LEGACY_KERAS=1 PYTHONNOUSERSITE=1 <venv-tf python> -I flowshift.py <input.npz> <config.json> <output.json> <job>
 
-It never touches the network or the project folder: it reads one temporary .npz (the chains'
-columns and weights, written by run.py into the cache staging area) and writes one JSON file.
-Order (README 2.6): the known-answer gate on synthetic data first; only if it passes, the chains.
+where <job> is "meta", "exact", "gate <seed>" or "case <name> <seed>". It never touches the network
+or the project folder: it reads the job folder's input.npz (the chains' columns and weights) and
+writes one JSON file atomically. The pure helpers (gate_summary, case_summary, finite) are also
+used by r6flow.py in the project environment. Order (README 2.6): the known-answer gate first; only
+if it passes, the chains.
 """
 import inspect
 import json
