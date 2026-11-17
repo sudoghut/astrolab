@@ -144,7 +144,7 @@ non-finite → χ² = ∞) runs before any CAMB call, so the feasible region is 
   `rdrag`; the shift of Δχ² per reading between the formula and each CAMB variant; the number of
   trial points rejected by the feasibility check and, separately, by CAMB errors (χ² = ∞).
 
-### Addendum 2026-11-17: R2-CAMB-RD (T-030), pre-registered before any fit with CAMB's r_drag
+### Addendum 2026-11-17: R2-CAMB-RD (T-030), pre-registered before any fit by us with CAMB's r_drag
 
 *Why.* The R2-CAMB referee (section 6, point 2) noted that R2-CAMB kept the Aubourg et al. 2015
 r_d formula, so the check was not fully CAMB-consistent. T-030 also asked which quantity DESI's code
@@ -152,11 +152,15 @@ compared with the Eq. 35 ωbc mean. *Primary-source search, 2026-11-17 (pages re
 arXiv HTML of the paper (Appendix A was not reachable in the fetched text), the prior's source
 `cmbant/PlanckEarlyLCDM` (README and both Cobaya yaml files: the Gaussian input parameters are
 `thetastar`, `ombh2`, `omch2`, with `mnu` fixed at 0.06 in the chains) and `CobayaSampler/bao_data`
-(BAO mean and covariance files only). None of them contains DESI's configuration for the compressed
-prior, so which quantity DESI's code compared with 0.14208 cannot be settled from public sources;
-only the authors can say. A Cobaya run with the source's `gaussian_mixture` would constrain
-ωb + ωc against 0.14143, i.e. reading A. *Seen before this addendum:* all R2 and R2-CAMB results
-(section 5), the diagnostic Aubourg r_d / CAMB r_drag = 0.99971–0.99972 at every optimum, and the
+(BAO mean and covariance files only). DESI's configuration for the compressed prior was not found in
+these sources; not yet checked: the full text of Appendix A (PDF), the compression reference [111]
+and any DESI chain release with its input files. So the question stays open here. A Cobaya run with
+the source's `gaussian_mixture` would constrain ωb + ωc against 0.14143, which for Σmν = 0.06 eV
+equals reading A (0.14208 − 0.06/93.14 = 0.141436), with Cobaya's `thetastar`, CAMB's absolute θ*:
+so of the variants below, raw-RD with reading A is closest to the source's own configuration.
+*Seen before this addendum:* all R2 and R2-CAMB results and both referee tables (sections 5 and 6;
+among them: BAO distances from `Background` agree with CAMB to better than 8×10⁻⁶ at the optima, and
+the raw/anchored offset comes mainly from N_eff 3.044 vs 3.046), the diagnostic Aubourg r_d / CAMB r_drag = 0.99971–0.99972 at every optimum, and the
 referee's own refit with CAMB's r_drag and the formula θ* (Δχ² −6.48 for A, −7.90 for B, about +0.10;
 not rerun by us). So the expected outcome is no change of verdict.
 
@@ -166,6 +170,10 @@ not rerun by us). So the expected outcome is no change of verdict.
 from the same `camb.get_background` call that gives θ* (same settings, `camb_theta.py`). The BAO
 distances D_M, D_H stay from `astrolab.cosmo.Background` (as in R2 and R2-CAMB). Two variants, as in
 R2-CAMB: **anchored-RD** (θ* = K_C · θ*_CAMB, the R2-CAMB K_C) and **raw-RD** (θ* = θ*_CAMB). Everything
+r_d is not scaled in either variant (K_C multiplies θ* only); a non-finite θ* or `rdrag` rejects the
+point and is counted, as a non-finite θ* in R2-CAMB. The CAMB call now precedes the BAO term, so the
+rejection tallies are not comparable with R2-CAMB's, while the feasible set is the same. The shift
+"against R2-CAMB's same variant" uses R2-CAMB rerun in the same run. Everything
 else (readings A and B with ων = Σmν/93.14 eV, prior mean and covariance, bounds, starts, seed,
 feasibility check before any CAMB call, CAMB-error rejection, validity checks, tolerance) as in
 R2-CAMB. No MCMC.
@@ -173,15 +181,16 @@ R2-CAMB. No MCMC.
 *Rule, fixed now.* For each variant the R2 rule unchanged (per reading |Δχ²_MAP − (−8.0)| ≤ 1.0).
 - "R2 robust to the r_d formula" only if both variants are valid and keep the recorded per-reading
   verdicts (A not reproduced, B reproduced).
-- "R2 depends on the r_d formula (reading X)" if a valid variant changes a per-reading verdict.
+- "R2 depends on the r_d formula (reading X)" if a valid variant changes a per-reading verdict
+  (attributable to r_d, since both R2-CAMB variants kept the recorded verdicts).
 - "Inconclusive (variant: failed fit)" for a variant with a failed fit; a valid variant is still
   evaluated by its own rule, and "robust" needs both valid.
 The 2026-11-14 R2 verdict stays the recorded verdict in every case; this is a sensitivity result.
 Reported: Δχ²_MAP per reading and variant, its shift against R2-CAMB's same variant, and the gap of
 reading A to −8.0. Allowed afterwards: documented, dated bug fixes only.
 
-*Runtime.* About as long as R2-CAMB's fits (both variants, both readings), i.e. roughly an hour; no
-data downloaded. Switch: `PARAMS["camb_rd_check"]` (needs `camb_check`).
+*Runtime.* The full run reruns R1–R3, R2-CAMB and adds these fits: about 2 hours in total (the last
+full run took 5,259 s); no data downloaded. Switch: `PARAMS["camb_rd_check"]` (needs `camb_check`).
 
 ## 3. Data (with size estimate)
 
