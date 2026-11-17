@@ -9,6 +9,7 @@ R2  Einasto + baryon fits for seven baryon models, compared with J23 Table 4 (de
 R3  bias stress tests (exploration).
 R4  comparison with Ou et al. 2024 and Eilers et al. 2019 (descriptive).
 R5  measured versus extrapolated mass; NFW halo (descriptive).
+R6  R6-COV: the tests under correlated covariances calibrated to chi^2 = dof (addendum 2026-11-17).
 """
 import csv
 from pathlib import Path
@@ -16,6 +17,7 @@ from pathlib import Path
 import numpy as np
 from scipy import optimize
 
+import r6cov
 import rc
 
 HERE = Path(__file__).parent
@@ -39,6 +41,8 @@ PARAMS = {
     "mass_radii": [26.5, 32.4, 100.0],
     "streams": {"Koposov+2023 M(<32.4 kpc)": [32.4, 2.85e11, 0.10e11],
                 "Vasiliev+2021 M(<100 kpc)": [100.0, 5.6e11, 0.4e11]},
+    "r6_check": True,                        # R6-COV (README 2.6, addendum 2026-11-17)
+    "r6_target": 15.0, "r6_high_f": 0.9, "r6_bisect_tol": 1e-4,
     "models": ["E dJ", "E J", "E CM", "G dJ", "G J", "G CM", "B2"],
 }
 
@@ -210,6 +214,97 @@ def einasto_r2(R, V, sig, model, m_bar, P, radii=(), kind="einasto", m_bar_spher
     return d
 
 
+# ---------------------------------------------------------------- R6-COV ----
+
+R6_COVS = {"se_2": ("se", 2.0), "se_4": ("se", 4.0), "se_8": ("se", 8.0), "global": ("global", None),
+           "fractional": ("fractional", None)}
+
+
+def r6_tests(R, V, sig, vb2, kind, value, m_bar, P, sel):
+    """T1-T3 of README 2.6 at one covariance value."""
+    C = r6cov.make_cov(kind, value, R, V, sig)
+    cho = r6cov.linalg.cho_factor(C)
+    pl = r6cov.powerlaw_tests(R[sel], V[sel], C[np.ix_(sel, sel)])
+    halos = {}
+    for h in ("einasto", "nfw", "lcdm"):
+        fit = r6cov.fit_halo(h, R, V, vb2, cho)
+        fit.update(r6cov.m_vir(h, fit["x"], m_bar, P["rho_cr"]))
+        halos[h] = fit
+    t3 = {}
+    for h in ("nfw", "lcdm"):
+        ok = halos["einasto"]["converged"] and halos[h]["converged"]
+        t3[h] = float(halos[h]["chi2"] - halos["einasto"]["chi2"]) if ok else None
+    return {"value": float(value), "max_corr_fraction": r6cov.max_corr_fraction(kind, value, V, sig),
+            "powerlaw": pl, "halos": halos, "dchi2_nfw": t3["nfw"], "dchi2_lcdm": t3["lcdm"]}
+
+
+def r6_cov(ctx, j23, model, m_bar, P):
+    """README 2.6 (R6-COV): calibrate each covariance on the free Einasto fit, then T1-T3 and labels."""
+    R, V, sig = j23["R"], j23["V"], j23["sig"]
+    vb2 = np.array([rc.baryon_v2(r, model) for r in R])
+    sel = R > P["r_min_powerlaw"]
+    target = P["r6_target"]
+    spread = float(np.sqrt(2 * target))
+    import scipy
+    out = {"covariances": {}, "target": target, "spread": spread, "scipy_version": scipy.__version__}
+    for name, kind in R6_COVS.items():
+        if kind[0] == "fractional":
+            c_max = 0.99 * float(np.min(sig / V))
+            grid = np.array([k * c_max / 99 for k in range(100)])
+        else:
+            grid = np.round(np.arange(100) * 0.01, 2)
+        memo = {}
+
+        def chi2_at(v, kind=kind, memo=memo):
+            if v not in memo:
+                cho = r6cov.linalg.cho_factor(r6cov.make_cov(kind, v, R, V, sig))
+                fit = r6cov.fit_halo("einasto", R, V, vb2, cho)
+                memo[v] = fit["chi2"] if fit["converged"] else None
+            return memo[v]
+
+        cal = r6cov.calibrate(chi2_at, grid, target, P["r6_bisect_tol"])
+        res = {"kind": list(kind), "status": cal["status"], "value": cal["value"], "curve": cal["curve"]}
+        if cal["value"] is not None:
+            res["tests"] = r6_tests(R, V, sig, vb2, kind, cal["value"], m_bar, P, sel)
+            res["high_f"] = bool(res["tests"]["max_corr_fraction"] > P["r6_high_f"])
+        side = {}
+        for tag, t in (("minus", target - spread), ("plus", target + spread)):
+            c2 = r6cov.calibrate(chi2_at, grid, t, P["r6_bisect_tol"])
+            side[tag] = {"target": t, "status": c2["status"], "value": c2["value"]}
+            if c2["status"] == "calibrated":
+                side[tag]["tests"] = r6_tests(R, V, sig, vb2, kind, c2["value"], m_bar, P, sel)
+        res["spread_points"] = side
+        out["covariances"][name] = res
+        ctx.log(f"R6-COV {name}: {cal['status']} at {cal['value']}")
+
+    def vals(getter):
+        v = {}
+        for name, res in out["covariances"].items():
+            if res["status"] != "calibrated":
+                v[name] = None
+                continue
+            v[name] = getter(res["tests"])
+        return v
+
+    # contrast (README 2.6 reading; no label): independent errors rescaled so that the Einasto chi^2 = target
+    chi2_0 = out["covariances"]["se_2"]["curve"][0][1]          # f = 0: independent errors (any kernel)
+    if chi2_0 is not None:
+        scale = float(np.sqrt(chi2_0 / target))
+        Cs = np.diag((sig * scale) ** 2)
+        out["rescaled_independent"] = {"chi2_f0": chi2_0, "scale": scale,
+                                       "powerlaw": r6cov.powerlaw_tests(R[sel], V[sel], Cs[np.ix_(sel, sel)])}
+    flags = {n: r.get("high_f", False) for n, r in out["covariances"].items() if r["status"] == "calibrated"}
+    pl = lambda key, ok: (lambda t: t["powerlaw"][key] if t["powerlaw"][ok] else None)
+    values = {"t1": vals(pl("sigma_flat", "t1_evaluable")), "t2": vals(pl("pref_kepler", "t2_evaluable")),
+              "t3_nfw": vals(lambda t: t["dchi2_nfw"]), "t3_lcdm": vals(lambda t: t["dchi2_lcdm"])}
+    rule = {"t1": "t1", "t2": "t2", "t3_nfw": "t3", "t3_lcdm": "t3"}
+    out["values"] = values
+    out["high_f"] = flags
+    out["labels"] = {k: r6cov.label(rule[k], v, flags) for k, v in values.items()}
+    ctx.log(f"R6-COV labels: {out['labels']}")
+    return out
+
+
 # ---------------------------------------------------------------- main ----
 
 def main(ctx):
@@ -351,5 +446,10 @@ def main(ctx):
           "note": "enclosed masses use the baryon mass inside each sphere (numerical); stream masses are cross-model, order of magnitude"}
     ctx.log(f"R5: V^2R/G(26.5) {vr:.3e}; Einasto Mvir {ein['mdyn_dm']['median']:.3e}; NFW Mvir {nfw['mdyn_dm']['median']:.3e}")
     ctx.save("r5", r5)
-    return {"r1": r1["verdict"], "gamma": base["median_gamma"], "S": base["S"],
+    out = {}
+    if P["r6_check"]:
+        r6 = r6_cov(ctx, j23, models["E dJ"], mbar["E dJ"], P)
+        ctx.save("r6", r6)
+        out["r6"] = r6["labels"]
+    return {**out, "r1": r1["verdict"], "gamma": base["median_gamma"], "S": base["S"],
             "six_mean": r2["six_mean"], "ramp_crossing": crossing}
