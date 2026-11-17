@@ -331,7 +331,8 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
     previous closed group (if there is none, the slice is one group). The merged groups are the
     *pass bins* of that slice.
   - *Pass fraction:* π_s,b = (number of parent stars of slice s in pass bin b with e_Age/Age < 0.15) /
-    (number of parent stars of slice s in pass bin b). No smoothing: P_pass,s(A) = π_s,b for A in
+    (number of parent stars of slice s in pass bin b); parent rows have Age > 0 (Full requires finite
+    Age and e_Age > 0; a row with Age ≤ 0 has no relative error and is excluded from Π). No smoothing: P_pass,s(A) = π_s,b for A in
     pass bin b, piecewise constant in observed age. (A bin that contains an S15 star has π > 0
     because S15 ⊂ Π.) The tables are written to the results with their counts.
 
@@ -340,7 +341,8 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
   changes; on Full the denominator stays 1.
   - *Primary, term E (empirical, age-dependent):* for cell i in slice s,
     P_i(c) = Σ_b π_s,b · [Φ((u_b − m_c)/e_i) − Φ((l_b − m_c)/e_i)] / Z_i(c), where c is a latent cell
-    with midpoint m_c, (l_b, u_b) are the pass-bin edges, e_i = f·e of the cell, and Z_i(c) is the
+    with midpoint m_c, (l_b, u_b) are the pass-bin edges (in the truncated model the first bin starts at 0 and the last
+    ends at 20, the range of g_i), e_i = f·e of the cell, and Z_i(c) is the
     same truncation normaliser over [0, 20] as in `m0.kernels` (midpoint convention, as the old
     term). The likelihood of cell i is ∫ p(τ|θ) g_i(Age_i|τ) dτ / Σ_c p_c(θ) P_i(c), i.e. the
     denominator ∫ p(τ|θ) ∫ g_i(A|τ) P_pass(A) dA dτ. In the untruncated variant Z = 1 and the first
@@ -379,7 +381,8 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
     rule.
   - *Mock parent and mock term:* the generator keeps every drawn star with an observed age in
     (0, 20) in draw order; the mock parent is that sequence up to and including the star that
-    completes the target S15 count (for S15 mock sets). The mock's term E is built from the mock
+    completes the target S15 count, i.e. the number of S15 stars of the data sample being mocked (for
+    S15 mock sets); later draws of the same batch are discarded. The mock's term E is built from the mock
     parent by the SEL-0 procedure (merging recomputed on the mock parent counts), so the mocks test
     the whole procedure, including the estimation of π. Full mock sets (R1 on Full) need no parent.
   - *Generating models:* the data fits of the term under test (term E mocks from the term-E data fits,
