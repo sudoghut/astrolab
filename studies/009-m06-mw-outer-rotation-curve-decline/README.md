@@ -195,10 +195,14 @@ No kernel is primary.
 Einasto model (baryons E dJ, the 18 points) has χ² = rᵀC⁻¹r = 15, its degrees of freedom. χ²(f) need
 not be monotonic, so: evaluate χ² on the grid f = 0, 0.01, …, 0.99 (c = k · c_max/99, k = 0, …, 99, c_max = 0.99 · min σ/V),
 refitting the Einasto model at each point; take the smallest grid value at which χ² ≥ 15 and bisect
-inside the cell below it (tolerance 10⁻⁴ of the range, refitting at each trial); report the whole
+inside the cell below it (tolerance 10⁻⁴ of the range, refitting at each trial): starting from
+lo = the grid point below (χ² < 15) and hi = the first crossing (χ² ≥ 15), each midpoint replaces hi if
+its χ² ≥ 15 and lo otherwise, and the result is the final (lo + hi)/2 (if χ² crosses 15 more than once
+inside one 0.01 cell, this picks one of those crossings; accepted); report the whole
 curve. If χ² < 15 on the whole grid, the covariance is "not calibratable": reported at the top of its
 range but excluded from the labels. If an Einasto refit fails the convergence rule below at a grid
-point, that point is skipped (it cannot be the first crossing); if the grid point just below the
+point, that point is skipped (the first crossing is the first successful grid point with χ² ≥ 15; a skipped
+point could hide an earlier crossing, a blind spot reported through the curve); if the grid point just below the
 first crossing failed, or a refit fails during the bisection, the covariance is "not evaluable". Also reported, without labels: the same tests at the smallest grid-and-bisection values
 with χ² ≥ 15 − √30 and ≥ 15 + √30 (√30 = √(2 · 15) is the standard deviation of a χ² with 15 degrees of freedom; each threshold
 found by the same first-upward-crossing procedure as the target), where they exist,
