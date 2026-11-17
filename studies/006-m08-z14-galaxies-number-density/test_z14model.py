@@ -223,6 +223,9 @@ def test_post2_poisson_rows_and_deviance():
     assert zm.poisson_deviance(0, 1.7) == pytest.approx(3.4)
     assert zm.poisson_deviance(2, 4.0) == pytest.approx(2 * (4 - 2 + 2 * np.log(0.5)))
     assert zm.poisson_deviance(2, 1.0) > 0 and zm.poisson_deviance(2, 4.0) > 0
+    for n in (2, 9):                              # rounding near mu = n never gives a negative value
+        for e in np.linspace(-1e-6, 1e-6, 2001):
+            assert zm.poisson_deviance(n, n * (1 + e)) >= 0.0
 
 
 def test_post2_residuals_and_simulation(setup):

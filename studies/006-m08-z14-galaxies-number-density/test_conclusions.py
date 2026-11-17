@@ -4,6 +4,7 @@ Run the study first: python -m astrolab run 006-m08-z14-galaxies-number-density
 These check that each pre-registered criterion (README section 2) was evaluated as written.
 """
 import json
+import math
 from pathlib import Path
 
 import pytest
@@ -164,8 +165,18 @@ def test_r3_post2_rules():
     p2 = {k: r2v.count(k) / n for k in ("higher", "same order as N26's baseline", "lower")}
     assert p2 == fit["r2_probabilities"]
     ev3 = [v for v in r3v if v != "not evaluable"]
+    assert all(t is not None for t in fit["tau"])
     n_eff_chain = 32 * fit["n_post_steps"] / max(fit["tau"])
     assert fit["converged"] == (fit["n_post_steps"] >= 50 * max(fit["tau"]))
+    draws = fit["draws"]
+    assert len(draws) == n and [d[5] for d in draws] == sig and [d[3] for d in draws] == fit["gamma_draws"]
+    box = {"eps0": (-6.0, 0.0), "log_m1": (9.0, 13.0), "beta": (0.0, 3.0), "gamma": (-1.0, 3.0),
+           "f": (0.01, 3.0), "sigma_cal": (0.3, 1.2)}
+    for j, (name, (lo, hi)) in enumerate(box.items()):    # bound fractions re-derived from the draws
+        x = [math.log10(d[j]) if name == "eps0" else d[j] for d in draws]
+        w = 0.01 * (hi - lo)
+        assert fit["bound_fractions"][name]["lower"] == pytest.approx(sum(v <= lo + w for v in x) / n)
+        assert fit["bound_fractions"][name]["upper"] == pytest.approx(sum(v >= hi - w for v in x) / n)
     bounded = any(max(b["lower"], b["upper"]) > 0.05 for b in fit["bound_fractions"].values())
     assert fit["prior_bounded"] == bounded
     q = fit["posterior"]["sigma_cal"]
