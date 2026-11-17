@@ -52,7 +52,10 @@ PARAMS = {
     },
     "run_variants": True,
     # R2/R3-POST (README section 2, addendum 2026-11-16)
-    "post_check": True, "post2_check": True, "post2_n_poisson": 2, "post2_identify_frac": 0.6, "post_walkers": 32, "post_steps": 100000, "post_burn": 20000, "post_draws": 500,
+    "post_check": True, "post2_check": True,
+    # R3-POST2 constants (addendum 2026-11-17); override only to explore
+    "post2_n_poisson": 2, "post2_identify_frac": 0.6,
+    "post_walkers": 32, "post_steps": 100000, "post_burn": 20000, "post_draws": 500,
     "post_seed": 0, "post_tau_factor": 50, "post_p_threshold": 0.95, "post_r3_min_frac": 0.9,
     "post_misfit_p": 0.01, "post_bound_frac": 0.05, "post_sensitivity": True,
     # exploration-only knobs (README section 8); defaults leave the pre-registered analysis unchanged
@@ -521,7 +524,9 @@ def r3_post2(ctx, S, P, phi_obs, phi_n26):
     out = {"combo": dict(combo, sigma_cal="sampled"), "poisson_rows": [list(r) for r in pois],
            "lsq": {"x": lsq.x.tolist(), "stat_data": stat, "p_bootstrap": p_fit if boot else None,
                    "n_bootstrap": len(boot), "n_bootstrap_failed": n_boot_failed,
+                   "boot_stat_quantiles": [float(q) for q in np.percentile(boot, [5, 50, 95])] if boot else None,
                    "fit_quality_determined": bool(fitq_determined), "success": bool(lsq.success)},
+           "n_points": int(len(r0) - 1), "draws": [[float(v) for v in x] for x in draws],
            "tau": [float(t) if np.isfinite(t) else None for t in tau], "n_post_steps": n_post,
            "converged": converged, "acceptance": float(np.mean(sampler.acceptance_fraction)),
            "posterior": post, "bound_fractions": bounds, "prior_bounded": bounded,

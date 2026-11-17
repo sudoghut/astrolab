@@ -427,7 +427,8 @@ def poisson_rows(blank, n_poisson=2):
 def poisson_deviance(n, mu):
     """2 [mu - n + n ln(n/mu)], with the n = 0 limit 2 mu."""
     mu = max(mu, 1e-300)
-    return 2.0 * (mu - n + (n * np.log(n / mu) if n > 0 else 0.0))
+    dev = 2.0 * (mu - n + (n * np.log(n / mu) if n > 0 else 0.0))
+    return max(dev, 0.0)     # rounding near mu = n can give -1e-15; the deviance is >= 0
 
 
 def binned_residuals2(params, M, lnM, hmf_cal, z_cal, c, accretion, pois, blank, lens):
