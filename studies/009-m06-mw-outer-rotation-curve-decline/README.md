@@ -149,6 +149,72 @@ scales the errors too).
   10¹¹ M☉ inside 32.4 kpc; Vasiliev et al. 2021, (5.6 ± 0.4) × 10¹¹ M☉ inside 100 kpc (a model with a
   possibly non-spherical halo and the LMC; not the same mass definition).
 
+### 2.6 R6-COV (addendum 2026-11-17, T-028), pre-registered before any fit with a correlated covariance
+
+*Why.* The referee and the post-hoc check (sections 5 and 6) found that Table 3's errors cannot be
+independent (best-fit Einasto χ² = 1.30 for 15 degrees of freedom), so every significance computed
+with independent errors is mis-scaled. *Seen before this addendum:* all R1–R5 results, the post-hoc
+χ² values (Einasto 1.30, NFW 21.1, power law beyond 19 kpc 0.47 for 6), and the referee's
+numbers with ad-hoc correlated kernels (likelihood-only flat rejection 2.3–3.7σ; Einasto over NFW
+Δχ² 11–29; χ² 23.2, 21.0, 15.3, 7.65 for 1/n fixed at 0.17, 0.25, 0.5, 1 with independent errors).
+No fit with the covariances below has been run. *Source facts (J23, arXiv HTML read 2026-11-17):*
+Table 3's σ is described as including the systematics (Sec. 2.2.5, Eq. 4: cross-term, scale length,
+density profile and sample split added in quadrature; "at the 2% level up to R = 22.5 kpc", rising
+beyond, the cross-term up to ~8% at 25.5 kpc). Table 3's σ/V is 1.35–1.57% at 9.5–13.5 kpc, below
+that 2%, so the published budget cannot be split into statistical and systematic parts bin by bin;
+J23 give no per-bin statistical errors. We therefore do not build the covariance from J23's
+components; we keep Table 3's σ_i as the total error of each bin and only add correlations.
+
+*Covariance family.* C_ij = σ_i σ_j [(1 − f) δ_ij + f K_ij], σ_i from Table 3 (so the diagonal is
+unchanged), f ∈ [0, 0.99] the correlated fraction of each bin's variance, and four correlation
+kernels K (unit diagonal): squared-exponential K_ij = exp[−(R_i − R_j)²/(2ℓ²)] with ℓ = 2, 4 and
+8 kpc, and global (K_ij = 1, a coherent fractional offset). ℓ = 2 kpc is about two bins, 8 kpc is
+the length of the R1 range; no kernel is chosen as primary.
+
+*Calibration.* For each kernel, f is set so that the best-fit Einasto model (baryons E dJ, the 18
+points of Table 3, the R2 halo parameters and bounds) has χ² = r^T C⁻¹ r = 15, its number of degrees
+of freedom, found by bisection on f (tolerance 10⁻⁴ in f; the Einasto fit is redone at each trial f).
+If χ² < 15 even at f = 0.99, the kernel is labelled "not calibratable" and is evaluated at f = 0.99
+(reported, and it cannot make a "robust" label true by itself; see below). Also reported, without
+labels: the same tests at the f values giving χ² = 15 ± √30 (the 1σ spread of a χ² with 15 degrees of
+freedom), where they exist. Known bias: calibrating on the Einasto fit makes Einasto fit by
+construction; the NFW and ΛCDM-like tests below are relative to it.
+
+*Fits.* Maximum likelihood (no priors besides the R2/R5 parameter bounds), Gaussian likelihood
+with C (or its sub-block for the 8 bins beyond 19 kpc), minimised by Nelder–Mead from 20 starts drawn
+uniformly in the bounds (log space for masses and densities; `default_rng(0)`) plus the R2/R5 best
+fits of section 5 as an extra start. A fit counts as converged if at least 3 starts reach within 0.01
+of the minimum χ²; otherwise that test is "not evaluable" for that kernel.
+
+*Tests at each calibrated kernel.*
+- **T1, flat rejection.** On the 8 bins beyond 19 kpc: Δχ²_flat = min χ²(V = const) − min χ²(power
+  law A (R/1 kpc)^γ), significance √Δχ²_flat (one degree of freedom, likelihood only; no prior on A).
+- **T2, Keplerian versus γ = −0.2.** Profile χ²(γ) of the same power law: D_K = χ²(γ = −0.5) − min χ²
+  and D_02 = χ²(γ = −0.2) − min χ²; the preference is D_02 − D_K (positive favours Keplerian).
+- **T3, halo shape.** On the 18 points with E dJ baryons: Einasto with free 1/n, NFW, and a ΛCDM-like
+  Einasto with 1/n fixed at 0.17; Δχ²_NFW and Δχ²_ΛCDM relative to the free Einasto; for each the
+  best-fit M_vir (primary R_vir definition of section 2.2, M_bar of E dJ added; reported only).
+
+*Labels, fixed now (over the calibrated kernels; a "not calibratable" or "not evaluable" kernel is
+listed but excluded; a label needs at least 3 of the 4 kernels).*
+- T1: **"flat rejected at ≥ 3σ"** if √Δχ²_flat ≥ 3 for every kernel; **"flat rejected at ≥ 2σ"** if
+  ≥ 2 for every kernel (and not all ≥ 3); **"flat not rejected at 2σ"** if < 2 for every kernel;
+  otherwise **"kernel-dependent"**.
+- T2: **"Keplerian favoured over γ = −0.2"** if D_02 − D_K ≥ 4 for every kernel; **"γ = −0.2
+  favoured over Keplerian"** if ≤ −4 for every kernel; **"not distinguished"** if |D_02 − D_K| < 4 for
+  every kernel; otherwise **"kernel-dependent"**.
+- T3 (each of NFW and ΛCDM-like): **"disfavoured"** if Δχ² ≥ 9 for every kernel; **"not
+  disfavoured"** if Δχ² < 4 for every kernel; otherwise **"kernel-dependent"**.
+- Fewer than 3 usable kernels: **"not evaluable"** for that test.
+
+*Reading.* R6-COV replaces none of the R1–R5 results; it states which of the readings in section 5
+(the decline's significance, "Keplerian", the preference for a truncated halo) survive once the
+errors are allowed to be correlated by an amount that makes the Einasto χ² equal its degrees of
+freedom. It does not establish the true covariance; the kernels are assumptions.
+
+*Runtime.* Some thousand χ² minimisations of 18 points, a few minutes; no data downloaded; results
+in `results/r6.json`. Switch: `PARAMS["r6_check"]`.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
