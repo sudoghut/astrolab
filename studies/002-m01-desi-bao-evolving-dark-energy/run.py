@@ -23,8 +23,8 @@ PARAMS = {
     "mnu": 0.06,
     "tol_dchi2": 1.0, "tol_r1_sigma": 0.3, "tol_r1_err": 0.2,   # pre-registered (README section 2)
     "drop_z": [],                    # exploration: BAO effective redshifts to leave out
-    "camb_check": True,
-    "camb_rd_check": True,           # R2-CAMB-RD: theta* and r_d from CAMB (addendum 2026-11-17; needs camb_check)              # R2-CAMB sensitivity check (addendum 2026-11-16; needs camb)
+    "camb_check": True,              # R2-CAMB sensitivity check (addendum 2026-11-16; needs camb)
+    "camb_rd_check": True,           # R2-CAMB-RD: theta* and r_d from CAMB (addendum 2026-11-17; needs camb_check)
 }
 
 RAW = "https://raw.githubusercontent.com/CobayaSampler/"
@@ -152,9 +152,9 @@ def chi2_r2(bao, x, reading, mnu, K, w=True, theta=None, counts=None, camb_rd=Fa
             counts["error_types"].add(type(e).__name__)
             return np.inf
         except Exception as e:          # anything else is a bug: stop the run (RuntimeError is
-            raise RuntimeError(f"R2-CAMB theta failed at {list(x)}") from e   # not swallowed by infer)
+            raise RuntimeError(f"R2-CAMB(-RD) CAMB call failed at {list(x)}") from e   # not swallowed by infer)
         if not np.isfinite(th) or (camb_rd and not np.isfinite(rd)):
-            counts["nonfinite_theta"] += 1
+            counts["nonfinite_theta"] += 1      # in R2-CAMB-RD also a non-finite r_drag (README addendum)
             return np.inf
     c = infer.gaussian_chi2(bao_pred_full(bao, b, rd) - bao["val"], bao["cinv"])
     cm = np.array([th, ob, obc])
@@ -431,8 +431,9 @@ def r2_camb(ctx, bao, b_r2, paper_r2, r2, K0, P):
             if fit.get("dchi2") is not None and r2[key].get("dchi2") is not None:
                 fit["dchi2_shift_vs_formula"] = float(fit["dchi2"] - r2[key]["dchi2"])
             base = res["variants"].get(var[:-3]) if use_rd else None
-            if base is not None and fit.get("dchi2") is not None and base[key].get("dchi2") is not None:
-                fit["dchi2_shift_vs_r2_camb"] = float(fit["dchi2"] - base[key]["dchi2"])
+            if base is not None and fit.get("dchi2") is not None:
+                if base[key].get("dchi2") is not None:
+                    fit["dchi2_shift_vs_r2_camb"] = float(fit["dchi2"] - base[key]["dchi2"])
                 if rd == "A":
                     fit["gap_to_target"] = float(fit["dchi2"] - TARGET["R2"])
             vres[key] = fit
