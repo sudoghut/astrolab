@@ -62,20 +62,10 @@ def leave_one_out(L, y, C, nz, rows_a, rows_s, cchp_cols, calib_groups, re_out, 
         tau = 0.0 if est["at_zero"] else est["tau_hat"]
         rec["tau_used"] = tau
         try:
-            # tau route: R2-RE's original host step under V(tau_j) over all 37 hosts' groups
+            # tau route (the label): R2-RE's original host step under V(tau_j), all 37 hosts' groups
             hs, _ = fns["host_step_under"](L, y, fns["with_re"](C, calib_groups, tau), rows_a, rows_s)
             rec["tau_route"] = {"z": hs["z"], "shift": hs["shift"], "shift_sigma": hs["shift_sigma"],
                                 "row": fns["verdict"](hs["z"], hs["shift"], hs["shift_sigma"])}
-            # data route (reported): the reduced system at C and under V(tau_j)
-            keep_s = rows_s[~nz[rows_s, j]]
-            dr = {}
-            for name, W in (("C", C), ("V", fns["with_re"](C, groups_j, tau))):
-                h, _ = fns["host_step_under"](L, y, W, keep_a, keep_s)
-                dr[name] = {"z": h["z"], "shift": h["shift"], "shift_sigma": h["shift_sigma"],
-                            "row": fns["verdict"](h["z"], h["shift"], h["shift_sigma"])}
-            if rec["cchp"]:
-                dr["note"] = "changes the tested selection (9 CCHP hosts)"
-            rec["data_route"] = dr
         except (np.linalg.LinAlgError, ValueError) as e:
             if not fns["is_fit_failure"](e):
                 raise
@@ -83,6 +73,21 @@ def leave_one_out(L, y, C, nz, rows_a, rows_s, cchp_cols, calib_groups, re_out, 
             hosts.append(rec)
             sensitive.append(labels[j])
             continue
+        # data route (reported only; a failure here is recorded and does not change the label)
+        keep_s = rows_s[~nz[rows_s, j]]
+        dr = {}
+        for name, W in (("C", C), ("V", fns["with_re"](C, groups_j, tau))):
+            try:
+                h, _ = fns["host_step_under"](L, y, W, keep_a, keep_s)
+                dr[name] = {"z": h["z"], "shift": h["shift"], "shift_sigma": h["shift_sigma"],
+                            "row": fns["verdict"](h["z"], h["shift"], h["shift_sigma"])}
+            except (np.linalg.LinAlgError, ValueError) as e:
+                if not fns["is_fit_failure"](e):
+                    raise
+                dr[name] = {"status": f"fit failed: {e}"}
+        if rec["cchp"]:
+            dr["note"] = "changes the tested selection (9 CCHP hosts)"
+        rec["data_route"] = dr
         rec["status"] = "evaluated"
         if rec["tau_route"]["row"] != row0:
             sensitive.append(labels[j])
@@ -90,11 +95,15 @@ def leave_one_out(L, y, C, nz, rows_a, rows_s, cchp_cols, calib_groups, re_out, 
         log(f"  R2-RE-ROB A {labels[j]}: tau {tau:.4f}, z {rec['tau_route']['z']:.2f}")
     taus = [h["tau_hat"] for h in hosts if "tau_hat" in h]
     zs = [h["tau_route"]["z"] for h in hosts if "tau_route" in h]
+    zc = [h["data_route"]["C"]["z"] for h in hosts if "z" in h.get("data_route", {}).get("C", {})]
+    zv = [h["data_route"]["V"]["z"] for h in hosts if "z" in h.get("data_route", {}).get("V", {})]
     label = ("verdict robust to single hosts' influence on tau" if not sensitive
              else "verdict sensitive to single hosts' influence on tau")
     return {"status": "evaluated", "label": label, "sensitive_hosts": sensitive, "r2_re_row": row0,
             "tau_range": [min(taus), max(taus)] if taus else None,
-            "tau_route_z_range": [min(zs), max(zs)] if zs else None, "hosts": hosts}
+            "tau_route_z_range": [min(zs), max(zs)] if zs else None,
+            "data_route_z_range": {"C": [min(zc), max(zc)] if zc else None,
+                                   "V": [min(zv), max(zv)] if zv else None}, "hosts": hosts}
 
 
 def null_sims(L, y, C, rows_a, calib_groups, re_out, picks, base_rows, host_rows, P, fns, log):
@@ -112,6 +121,31 @@ def null_sims(L, y, C, rows_a, calib_groups, re_out, picks, base_rows, host_rows
         return ys
 
     out = {"null": "y_s = L q_hat + K eps on the NGC 4258-only rows, under C"}
+
+    # spread part: linear estimator rows for the first rob_n_subsets R4 subsets
+    M = None
+    if not picks:
+        out["spread"] = {"status": "not evaluable (R4 has no draws)"}
+    else:
+        use = picks[:P["rob_n_subsets"]]
+        rows_full = rows_a
+        sa2 = float(res_full["sigma"][fns["C_H0"]]) ** 2
+        M = np.zeros((len(use), len(rows_full)))
+        sig = np.zeros(len(use))
+        pos = {r: i for i, r in enumerate(rows_full)}
+        for i, pick in enumerate(use):
+            rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
+            res = fns["fit"](L, y, C, rows, est=True)
+            a = fns["shift_vector"](res, rows, res_full, rows_full)
+            M[i] = a[rows_full]
+            var = float(res["sigma"][fns["C_H0"]]) ** 2 - sa2
+            if not var > 0:      # the nested identity guarantees var > 0 (as in R4 under V)
+                raise RuntimeError(f"non-positive nested variance on subset {i}: {var}")
+            sig[i] = np.sqrt(var)
+            if i == 0:   # the shift vector covers only rows_a (subset rows are a subset of rows_a)
+                outside = np.setdiff1d(np.flatnonzero(a), rows_full)
+                if outside.size:
+                    raise RuntimeError("subset shift vector has weight outside rows_a")
 
     # tau part
     if re_out.get("status") != "evaluated":
@@ -143,27 +177,11 @@ def null_sims(L, y, C, rows_a, calib_groups, re_out, picks, base_rows, host_rows
             tau_rec.update(status="evaluated", p=(1 + k) / (1 + n), ci95=list(ci), label=label)
         out["tau"] = tau_rec
 
-    # spread part: linear estimator rows for the first rob_n_subsets R4 subsets
-    if not picks:
-        out["spread"] = {"status": "not evaluable (R4 has no draws)"}
+    if M is None:
         return out
-    use = picks[:P["rob_n_subsets"]]
-    rows_full = rows_a
-    sa2 = float(res_full["sigma"][fns["C_H0"]]) ** 2
-    M = np.zeros((len(use), len(rows_full)))
-    sig = np.zeros(len(use))
-    pos = {r: i for i, r in enumerate(rows_full)}
-    for i, pick in enumerate(use):
-        rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
-        res = fns["fit"](L, y, C, rows, est=True)
-        a = fns["shift_vector"](res, rows, res_full, rows_full)
-        M[i] = a[rows_full]
-        sig[i] = np.sqrt(float(res["sigma"][fns["C_H0"]]) ** 2 - sa2)
-        if i == 0:   # the shift vector covers only rows_a (subset rows are a subset of rows_a)
-            outside = np.setdiff1d(np.flatnonzero(a), rows_full)
-            if outside.size:
-                raise RuntimeError("subset shift vector has weight outside rows_a")
     spread_obs = float(np.std((M @ y[rows_full]) / sig))
+    if not np.isfinite(spread_obs):
+        raise RuntimeError("observed spread is not finite")
     sp = []
     for s in range(P["rob_n_spread"]):
         eps = np.random.default_rng(P["rob_seed_base"] + s).standard_normal(len(rows_full))

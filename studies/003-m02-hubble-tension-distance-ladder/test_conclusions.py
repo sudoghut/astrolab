@@ -229,8 +229,27 @@ def test_r2_re_rob_labels():
         lo, hi = cp(k, n)
         return unusual if hi < 0.05 else usual if lo > 0.05 else "undetermined (Monte Carlo)"
 
+    if a["status"] == "evaluated":                      # rows re-derived from R2's table
+        ref = load("r2_re")
+        for h in a["hosts"]:
+            if "tau_route" in h:
+                tr = h["tau_route"]
+                z, d, sg = tr["z"], tr["shift"], tr["shift_sigma"]
+                if z <= -2 and abs(d - ref["reference"]) <= 2 * sg + 0.02:
+                    exp = "supports the paper"
+                elif z <= -2:
+                    exp = "different size"
+                elif abs(z) < 2:
+                    exp = "no host-selection effect detected"
+                else:
+                    exp = "raises H0"
+                assert exp in tr["row"], (h["host"], tr["row"])
     t = rob["B"]["tau"]
+    if t.get("status", "").startswith("not evaluable (too many"):
+        assert t["n_failed"] > 20
     if t.get("status") == "evaluated":
+        assert t["n_ok"] + t["n_failed"] == t["n_sims"]
+        assert abs(t["p"] - (1 + t["k"]) / (1 + t["n_ok"])) < 1e-12
         k = sum(1 for x in t["taus"] if x >= t["tau_obs"] - 5e-6)   # taus saved rounded to 1e-5
         assert abs(k - t["k"]) <= sum(1 for x in t["taus"] if abs(x - t["tau_obs"]) <= 5e-6)
         assert t["n_failed"] <= 20 and t["n_ok"] == len(t["taus"])
@@ -238,6 +257,8 @@ def test_r2_re_rob_labels():
                                    "tau_hat not unusual under C")
     s = rob["B"]["spread"]
     if s.get("status") == "evaluated":
+        import math
+        assert math.isfinite(s["spread_obs"])
         assert s["label"] == label(s["k"], s["n_sims"], "the R4 excess spread is unusual under C",
                                    "the R4 spread is consistent with C")
         assert abs(s["p"] - (1 + s["k"]) / (1 + s["n_sims"])) < 1e-12
