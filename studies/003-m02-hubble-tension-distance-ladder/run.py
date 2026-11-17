@@ -18,6 +18,8 @@ from scipy import linalg, optimize
 
 from astrolab import infer
 
+import rob
+
 # Tunable knobs (AGENTS.md section 2). Read inside main() and passed on as arguments.
 PARAMS = {
     "cchp_hosts": ["M101", "N1365", "N2442", "N3972", "N4038", "N4424", "N4536", "N4639",
@@ -35,6 +37,9 @@ PARAMS = {
     "cchp_target_5logh0": 9.2034, "cchp_match_tol": 0.02,
     # R2-RE (README section 2, addendum 2026-11-16): host-level random effect, REML
     "re_check": True, "re_tau_max": 0.5, "re_grid_step": 0.01,
+    # R2-RE-ROB (README section 2, addendum 2026-11-17, T-032)
+    "rob_check": True, "rob_n_tau": 400, "rob_n_spread": 2000, "rob_n_subsets": 1000,
+    "rob_seed_base": 10_000, "rob_max_failed": 20,
 }
 
 DR = "PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/"
@@ -333,7 +338,7 @@ def reml_m2l(L, y, C, rows, groups, tau):
     return float(logdet_v + logdet_f + r @ linalg.cho_solve(cf, r))
 
 
-def reml_tau(f, tau_max, step):
+def reml_tau(f, tau_max, step, interval=True):
     """Grid then bounded refinement around the grid's global minimum; 68% interval from the
     crossing of min + 1 nearest to tau_hat on each side (README section 2, R2-RE)."""
     grid = np.round(np.arange(0.0, tau_max + step / 2, step), 10)
@@ -373,6 +378,10 @@ def reml_tau(f, tau_max, step):
             inner = float(grid[i])
         return 0.0 if direction < 0 else "> %.1f" % tau_max
 
+    if not interval:                     # R2-RE-ROB: tau_hat only (README addendum 2026-11-17)
+        return {"tau_hat": tau_hat, "m2l_min": f_hat, "refined": refined, "refine_error": refine_error,
+                "other_local_minima": local, "at_zero": tau_hat < 1e-3,
+                "at_upper_bound": tau_hat > tau_max - 1e-3}
     ends = [crossing(-1), crossing(+1)]
     return {"tau_hat": tau_hat, "m2l_min": f_hat, "refined": refined, "refine_error": refine_error,
             "m2l_at_interval": [float(f(e)) if isinstance(e, float) else None for e in ends],
@@ -873,6 +882,25 @@ def main(ctx):
         re = r2_re(ctx, P, C, L, y, nz, cls, rows_a, rows_s, base_rows, host_rows, picks,
                    {"shift": d_h, "shift_sigma": s_h, "z": z}, status, col_host[:NH])
     ctx.save("r2_re", re)                 # always written, so no stale file survives
+
+    # ---- R2-RE-ROB (README section 2, addendum 2026-11-17, T-032): descriptive labels for R2-RE
+    rob_out = {"status": "not run"}
+    if P["rob_check"] and P["re_check"] and ident["host_step_evaluable"]:
+        calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]
+        fns = {"reml_tau": reml_tau, "reml_m2l": reml_m2l, "host_step_under": host_step_under,
+               "with_re": with_re, "fit": fit, "shift_vector": shift_vector, "is_fit_failure": is_fit_failure,
+               "C_H0": C_H0,
+               "verdict": lambda z_, d_, s_: host_step_verdict(z_, d_, s_, P["host_ref"], P["host_ref_extra"])}
+        t_rob = time.perf_counter()
+        rob_out = {"A": rob.leave_one_out(L, y, C, nz, rows_a, rows_s, set(cset), calib_groups, re,
+                                          col_host[:NH], P, fns, ctx.log),
+                   "B": rob.null_sims(L, y, C, rows_a, calib_groups, re, picks, base_rows, host_rows,
+                                      P, fns, ctx.log)}
+        rob_out["seconds"] = time.perf_counter() - t_rob
+        ctx.log(f"R2-RE-ROB: A {rob_out['A'].get('label', rob_out['A']['status'])}; "
+                f"B tau {rob_out['B'].get('tau', {}).get('label')}; "
+                f"B spread {rob_out['B'].get('spread', {}).get('label')}")
+    ctx.save("r2_re_rob", rob_out)
 
     # One canonical qualified verdict for the host step (gate-2 review): states the labelling mode
     # and, when R4 ran, the empirical (random-subset) scale next to the C-propagated significance.

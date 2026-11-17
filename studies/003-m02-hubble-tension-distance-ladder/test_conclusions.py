@@ -139,6 +139,10 @@ def test_r2_re_rule_and_headline():
 
 def _run_module():
     import importlib.util
+    import sys
+    here = str(Path(__file__).parent)
+    if here not in sys.path:             # run.py imports its helper module rob.py
+        sys.path.insert(0, here)
     spec = importlib.util.spec_from_file_location("run003", Path(__file__).parent / "run.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -199,3 +203,54 @@ def test_fit_failure_classification():
     assert run.is_fit_failure(ValueError("L^T C^-1 L is rank deficient (min/max eigenvalue 1e-20)"))
     assert not run.is_fit_failure(ValueError("y has shape (3,), expected (4,)"))
     assert not run.is_fit_failure(RuntimeError("nested-variance identity failed"))
+
+
+def test_r2_re_rob_labels():
+    """README section 2, addendum 2026-11-17 (R2-RE-ROB): re-derive the labels from the saved numbers."""
+    from scipy import stats
+
+    rob = load("r2_re_rob")
+    if "A" not in rob:
+        pytest.skip(rob.get("status", "R2-RE-ROB not run"))
+    a = rob["A"]
+    if a["status"] == "evaluated":
+        bad = [h["host"] for h in a["hosts"]
+               if h.get("status") != "evaluated" or h["tau_route"]["row"] != a["r2_re_row"]]
+        assert sorted(bad) == sorted(a["sensitive_hosts"])
+        assert a["label"] == ("verdict robust to single hosts' influence on tau" if not bad
+                              else "verdict sensitive to single hosts' influence on tau")
+
+    def cp(k, n):
+        lo = 0.0 if k == 0 else stats.beta.ppf(0.025, k, n - k + 1)
+        hi = 1.0 if k == n else stats.beta.ppf(0.975, k + 1, n - k)
+        return lo, hi
+
+    def label(k, n, unusual, usual):
+        lo, hi = cp(k, n)
+        return unusual if hi < 0.05 else usual if lo > 0.05 else "undetermined (Monte Carlo)"
+
+    t = rob["B"]["tau"]
+    if t.get("status") == "evaluated":
+        k = sum(1 for x in t["taus"] if x >= t["tau_obs"] - 5e-6)   # taus saved rounded to 1e-5
+        assert abs(k - t["k"]) <= sum(1 for x in t["taus"] if abs(x - t["tau_obs"]) <= 5e-6)
+        assert t["n_failed"] <= 20 and t["n_ok"] == len(t["taus"])
+        assert t["label"] == label(t["k"], t["n_ok"], "tau_hat unusual under C (excess calibrator scatter)",
+                                   "tau_hat not unusual under C")
+    s = rob["B"]["spread"]
+    if s.get("status") == "evaluated":
+        assert s["label"] == label(s["k"], s["n_sims"], "the R4 excess spread is unusual under C",
+                                   "the R4 spread is consistent with C")
+        assert abs(s["p"] - (1 + s["k"]) / (1 + s["n_sims"])) < 1e-12
+
+
+def test_rob_three_way_label():
+    """Offline: the Clopper-Pearson three-way rule of R2-RE-ROB."""
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent))
+    import rob
+
+    assert rob.three_way(2, 400, "u", "n")[0] == "u"                 # clearly below 0.05
+    assert rob.three_way(60, 400, "u", "n")[0] == "n"                # clearly above
+    assert rob.three_way(14, 400, "u", "n")[0] == "undetermined (Monte Carlo)"
+    lo, hi = rob._cp(0, 10)
+    assert lo == 0.0 and 0 < hi < 1
