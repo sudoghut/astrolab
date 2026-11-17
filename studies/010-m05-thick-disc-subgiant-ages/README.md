@@ -356,9 +356,11 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
     population-averaged one) keeps the code structure of 2.0; it is a first-order approximation (the
     selected stars' errors are smaller than their parents'), also measured by the mocks, and it
     reduces to term N when π is flat.
-  - *Secondary, term N (none):* denominator 1 on S15. This is the exact limit for r independent of
-    τ under both mocked mechanisms (the pass probability is then a constant and drops out, up to the
-    small change of the numerator's shape under e = r·τ, which is ignored).
+  - *Secondary, term N (none):* denominator 1 on S15. This is the limit for r independent of τ under
+    both mocked mechanisms away from the age range's ends (the pass probability is then a constant and
+    drops out); it is not exact under e = r·τ, where the numerator's shape changes slightly and, near
+    0 and 20 Gyr, truncating observed ages to (0, 20) makes the pass probability depend on τ; the mocks
+    measure both effects.
   - The old term of 2.0 is not fitted again in the re-test (its results are in section 5).
   - Verdicts use term E. Term N is a sensitivity: each -SEL label is also computed with term N, by the
     same rules and with its own mocks, and the label is reported as "selection-term robust" if the
@@ -371,7 +373,10 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
     relevant, as in 2.3: resampled from the parent Π of the sample, or from the background slice for
     misspecification background stars); its r is then drawn uniformly with replacement from the
     parent stars of the same slice whose observed Age lies in the pass bin (data edges, SEL-0) that
-    contains τ. The observed age and catalogue error follow under each mechanism as in `mocks.observe`
+    contains τ (the pools are the data parent's pass bins, each with at least 200 stars by the merge
+    rule, so no pool is empty; catalogue ages lie in [0, 20], and mock stars are kept only with observed
+    ages in (0, 20), so every observed age has a pass bin in every variant). The observed age and
+    catalogue error follow under each mechanism as in `mocks.observe`
     (e = r·τ or e = r·A). Keying by τ, not by the star's observed age, avoids a circular draw; under
     e = r·A the true pass probability of a star of latent age τ is then exactly π_s,b(τ), while under
     e = r·τ it differs (the cut depends on z), so the two mechanisms test term E under two
@@ -416,7 +421,8 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
     the valley and d of each generating model are evaluated on the 0.05 Gyr latent grid) only while the generating model **has a valley** with true d > 0.1. If at 7.0 Gyr the
     generating model has no valley (d = 1, e.g. by the side-mass rule), the edge is not moved. If a
     valley exists at 7.0 Gyr with d > 0.1 but disappears at a lower edge, the last edge that had a
-    valley is kept. If the loop ends without a valley with d ≤ 0.1 (either case above, or 2.0 Gyr
+    valley is kept (and reported). The loop stops at the first edge with a valley and d ≤ 0.1, which
+    is then the power model. If the loop ends without a valley with d ≤ 0.1 (either case above, or 2.0 Gyr
     reached), the bin's power model is flagged "power model invalid" and the bin is "cannot resolve"
     by construction (reported separately from low-power bins). (The original loop treated "no
     valley" as "d too large" and walked [−0.1, 0.1) down to 2.0 Gyr.) Checked offline on the
