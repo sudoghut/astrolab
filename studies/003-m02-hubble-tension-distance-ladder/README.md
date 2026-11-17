@@ -198,9 +198,11 @@ host labelling (`col_host`), as in R2-RE; τ̂ is found by R2-RE's REML procedur
 and calibrator SN rows) are removed from the NGC 4258-only system, and τ̂_j is estimated with the
 other 36 hosts' groups. Then:
 - **τ route (the label).** R2-RE's original host step (all 37 hosts against the 10 CCHP hosts, all
-  data) under V = C + τ̂_j² Σ h h ᵀ over all 37 hosts' calibrator groups on the full NGC 4258-only system, and its verdict row (R2's table, unchanged). Label: **"τ̂ robust to single
-  hosts"** if this row equals R2-RE's row for every j; otherwise **"τ̂ sensitive to single hosts"**,
-  naming the hosts. A τ̂_j at the upper bound or a failed fit counts as "sensitive" for that j.
+  data) under V = C + τ̂_j² Σ h h ᵀ over all 37 hosts' calibrator groups on the full NGC 4258-only system, and its verdict row (R2's table, unchanged). Label: **"verdict robust to single
+  hosts' influence on τ̂"** if this row equals R2-RE's row for every j; otherwise **"verdict
+  sensitive to single hosts' influence on τ̂"**, naming the hosts. The label is about the verdict
+  row, not about τ̂ itself: τ̂_j and its range are reported, and a host whose removal moves τ̂ a lot
+  while the row holds is named in section 5. A τ̂_j at the upper bound or a failed fit counts as "sensitive" for that j.
 - **Data route (reported).** On the reduced system: the host step at τ = 0 (C) and under V(τ̂_j),
   each with z and the verdict row; when j is a CCHP host the CCHP subset has 9 hosts and the entry is
   marked "changes the tested selection".
@@ -215,7 +217,8 @@ contrasts, and each Δ_k/σ_k is exactly N(0, 1).)
   k_τ = those with τ̂_s ≥ τ̂_obs (R2-RE's τ̂); p_τ = (1 + k_τ) / (1 + n_τ), with a 95% Clopper–Pearson
   interval for k_τ / n_τ (two-sided, equal-tailed: 2.5% in each tail). Labels: interval entirely below 0.05 → **"τ̂ unusual under C (excess
   calibrator scatter)"**; entirely above 0.05 → **"τ̂ not unusual under C"**; containing 0.05 →
-  **"undetermined (Monte Carlo)"**. More than 20 failed fits → not evaluable.
+  **"undetermined (Monte Carlo)"**. More than 20 failed fits → not evaluable; with 20
+  or fewer, p_τ and the interval use the n_τ successful fits.
 - **Spread part.** The first 1,000 of R4's random 10-host subsets (R4's own draws: same seed, in
   order; all of them if R4 ended with fewer). For subset k the shift Δ_k = a_kᵀ y is linear in y with
   a fixed σ_k (σ_k² = σ²_subset − σ²_37 under C, as in R4); the rows a_k are computed once. spread =
@@ -228,10 +231,11 @@ contrasts, and each Δ_k/σ_k is exactly N(0, 1).)
   evaluable.
 
 *Reading, fixed now.* The R2-RE headline row stands as pre-registered. The labels are reported next
-to it in section 5 and the claim, read as follows: "τ̂ robust" with "τ̂ unusual under C" → the null
-result rests on excess calibrator scatter that the data show and that no single host carries;
-"τ̂ robust" with "not unusual" or "undetermined" → the null result rests on a τ the data do not
-clearly require; "τ̂ sensitive" → the null result depends on the named hosts. The spread label says
+to it in section 5 and the claim, read as follows: "verdict robust" with "τ̂ unusual under C" →
+the null result rests on excess calibrator scatter that the data show, and no single host's effect
+on τ̂ changes the verdict; "verdict robust" with "not unusual" or "undetermined" → the null result
+rests on a τ the data do not clearly require; "verdict sensitive" → the null result depends on the
+named hosts' effect on τ̂. The spread label says
 whether R4's 1.33 is itself evidence of excess scatter under C. "Unusual under C" means more scatter
 among calibrator SN rows than C allows (for example a host-level effect, an under-scaled SN block or
 one outlying host); it does not identify the cause.
