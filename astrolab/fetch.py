@@ -370,6 +370,7 @@ def http(
         exception = f"cap exception {max_bytes} bytes: {cap_consent.strip()}"
         note = f"{note}; {exception}" if note else exception
     else:
+        exception = None
         max_bytes = min(max_bytes or config.HTTP_MAX_BYTES, config.HTTP_MAX_BYTES)
     suffix = suffix or (Path(url.split("?")[0]).suffix or ".bin")
     key = cache.key_for("http", {"url": url})
@@ -390,11 +391,14 @@ def http(
         meta, (path, digest) = hit
         return (path, Provenance(**meta["provenance"])) if digest == meta["provenance"].get("sha256") else None
 
+    def _with_exception(prov):
+        """The consent of this call in the returned provenance (also for a stored entry)."""
+        if exception and exception not in (prov.note or ""):
+            prov = dataclasses.replace(prov, note=f"{prov.note}; {exception}" if prov.note else exception)
+        return prov
+
     if not refresh and (ok := _consistent(cache.read(key, suffix, _verified))):
-        prov = ok[1]
-        if note and "cap exception" in note and "cap exception" not in (prov.note or ""):
-            prov = dataclasses.replace(prov, note=f"{prov.note}; {note}" if prov.note else note)
-        return Fetched(ok[0], prov, True)
+        return Fetched(ok[0], _with_exception(ok[1]), True)
     if not refresh and cache.get(key, suffix) is not None:
         refresh = True                       # stored bytes do not match their provenance
 
@@ -425,6 +429,6 @@ def http(
     # return what is stored now (another thread's complete entry may have been kept), with its
     # own provenance, so the path and the provenance always describe the same bytes
     if ok := _consistent(cache.read(key, suffix, _verified)):
-        return Fetched(ok[0], ok[1], False)
+        return Fetched(ok[0], _with_exception(ok[1]), False)
     raise RuntimeError(f"cache entry for {url} changed or vanished right after it was stored "
                        "(another process refreshing or clearing the cache?); fetch again.")
