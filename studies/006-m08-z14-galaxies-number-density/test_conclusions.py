@@ -137,3 +137,68 @@ def test_r23_post_rules():
     assert s["R2_post"]["r2_probabilities"] == post["primary"]["r2_probabilities"]
     assert s["R3_post"]["r3_probabilities"] == post["primary"]["r3_probabilities"]
     assert s["R3_post"]["r3_label"] == post["primary"]["r3_label"]
+
+
+def test_r3_post2_rules():
+    """R3-POST2 (README section 2, addendum 2026-11-17): six-parameter fit with sigma_cal sampled;
+    probabilities, labels, the sigma_cal identifiability label and the per-bin counts recomputed."""
+    fit = load("post2")
+    r2v, r3v, sig = fit["r2_verdicts"], fit["r3_verdicts"], fit["sigma_cal_draws"]
+    n = len(r2v)
+    assert n == 500 and len(r3v) == n and len(sig) == n and len(fit["r3_roots"]) == n
+    assert [r[1] for r in fit["poisson_rows"]] == [2, 9]
+    assert len(fit["tau"]) == 6 and set(fit["bound_fractions"]) == {"eps0", "log_m1", "beta", "gamma", "f",
+                                                                     "sigma_cal"}
+    assert all(0.3 <= s <= 1.2 for s in sig) and all(-1.0 <= g <= 3.0 for g in fit["gamma_draws"])
+    for ratio, v in zip(fit["ratios"], r2v):
+        exp = "same order as N26's baseline" if 1 / 3 <= ratio <= 3 else ("higher" if ratio > 3 else "lower")
+        assert v == exp
+    for roots, v in zip(fit["r3_roots"], r3v):
+        if roots is None:
+            assert v == "not evaluable"
+            continue
+        lo, hi = roots["lower"], roots["upper"]
+        a = float("-inf") if lo["censored"] == "le" else lo["value"]
+        b = float("inf") if hi["censored"] == "gt" else hi["value"]
+        assert v == ("consistent with N26" if (a <= 2.0 and b >= 1.5) else "different")
+    p2 = {k: r2v.count(k) / n for k in ("higher", "same order as N26's baseline", "lower")}
+    assert p2 == fit["r2_probabilities"]
+    ev3 = [v for v in r3v if v != "not evaluable"]
+    n_eff_chain = 32 * fit["n_post_steps"] / max(fit["tau"])
+    assert fit["converged"] == (fit["n_post_steps"] >= 50 * max(fit["tau"]))
+    bounded = any(max(b["lower"], b["upper"]) > 0.05 for b in fit["bound_fractions"].values())
+    assert fit["prior_bounded"] == bounded
+    q = fit["posterior"]["sigma_cal"]
+    width = q["p84"] - q["p16"]
+    assert abs(fit["sigma_cal_68_width"] - width) < 1e-12
+    assert fit["sigma_cal_prior_dominated"] == (width > 0.6 * 0.9)
+    tag = "; sigma_cal prior-dominated" if fit["sigma_cal_prior_dominated"] else ""
+    fq = fit["lsq"]["n_bootstrap_failed"] <= 20 and fit["lsq"]["n_bootstrap"] > 0
+    assert fit["lsq"]["fit_quality_determined"] == fq
+    assert fit["lsq"]["n_bootstrap"] + fit["lsq"]["n_bootstrap_failed"] == 200
+
+    def label(probs, evaluable, n_draws):
+        if not fit["lsq"]["success"] or not fit["converged"] or not evaluable:
+            return "not evaluable" + tag
+        lab = _post_label(probs, min(n_draws, n_eff_chain))
+        if fq and fit["lsq"]["p_bootstrap"] < 0.01:
+            lab = "model misfit (probabilities reported, not a verdict)"
+        return lab + ("; prior-bounded" if bounded else "") + tag
+    assert fit["r2_label"] == label(p2, True, n)
+    if ev3:
+        p3 = {k: ev3.count(k) / len(ev3) for k in ("consistent with N26", "different")}
+        assert p3 == fit["r3_probabilities"]
+        assert fit["r3_label"] == label(p3, len(ev3) >= 0.9 * n, len(ev3))
+    else:
+        assert fit["r3_label"] == "not evaluable" + tag
+    assert fit["fraction_gamma_negative"] == sum(g < 0 for g in fit["gamma_draws"]) / n
+    bins = fit["r3_by_sigma_cal_bin"]
+    assert len(bins) == 9 and sum(b["n_draws"] for b in bins) == n
+    for b in bins:
+        lo, hi = b["sigma_cal"]
+        sel = [v for v, s in zip(r3v, sig) if lo <= s < hi or (hi == bins[-1]["sigma_cal"][1] and s == hi)]
+        ev = [v for v in sel if v != "not evaluable"]
+        assert b["n_draws"] == len(sel)
+        assert b["p_r3_consistent"] == ((ev.count("consistent with N26") / len(ev)) if ev else None)
+    s = load("summary")
+    assert s["R3_post2"]["r3_label"] == fit["r3_label"] and s["R3_post2"]["r2_label"] == fit["r2_label"]
