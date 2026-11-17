@@ -247,6 +247,8 @@ def r6_cov(ctx, j23, model, m_bar, P):
     spread = float(np.sqrt(2 * target))
     import scipy
     out = {"covariances": {}, "target": target, "spread": spread, "scipy_version": scipy.__version__}
+    if scipy.__version__ != "1.13.1":
+        ctx.log(f"WARNING R6-COV: scipy {scipy.__version__}, pre-registered 1.13.1 (README 2.6)")
     for name, kind in R6_COVS.items():
         if kind[0] == "fractional":
             c_max = 0.99 * float(np.min(sig / V))

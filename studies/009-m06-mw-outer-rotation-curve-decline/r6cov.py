@@ -47,6 +47,7 @@ def chi2(resid, cho):
 
 # ------------------------------------------------------------------ halo models ----
 
+# Fixed by the pre-registration (README 2.6), deliberately not PARAMS knobs: changing them changes R6-COV.
 HALO_BOUNDS = {
     # coordinates: free Einasto (log10 M0, h, 1/n) with R2's bounds; NFW (log10 rho_s, log10 r_s) with R5's;
     # LCDM-like Einasto (log10 rho_-2, log10 r_-2) with 1/n = 0.17
@@ -189,7 +190,7 @@ def calibrate(chi2_at, grid, target, tol):
     k = next((i for i, (v, c) in enumerate(curve) if c is not None and c >= target), None)
     if k is None:
         return {"status": "not calibratable", "value": float(grid[-1]), "curve": curve}
-    if k == 0:
+    if k == 0:      # chi2 >= target already at the bottom of the range (not covered by README 2.6; unreachable here)
         return {"status": "calibrated", "value": float(grid[0]), "curve": curve}
     lo, hi = float(grid[k - 1]), float(grid[k])
     if curve[k - 1][1] is None:

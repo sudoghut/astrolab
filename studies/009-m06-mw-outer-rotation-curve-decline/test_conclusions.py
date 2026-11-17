@@ -48,17 +48,26 @@ def test_r6_cov_rules():
     t = r6["target"]
     assert t == 15.0 and abs(r6["spread"] - math.sqrt(30)) < 1e-12
     assert set(r6["covariances"]) == {"se_2", "se_4", "se_8", "global", "fractional"}
+    assert r6["scipy_version"] == "1.13.1"          # pre-registered optimiser version
+    import csv
+    rows = list(csv.DictReader(open(Path(__file__).parent / "data" / "j23_table3.csv", encoding="utf-8")))
+    V = [float(x["Vc_kms"]) for x in rows]
+    S = [float(x["sigma_Vc_kms"]) for x in rows]
+    c_max = 0.99 * min(s / v for s, v in zip(S, V))
     vals = {"t1": {}, "t2": {}, "t3_nfw": {}, "t3_lcdm": {}}
     flags = {}
     for name, res in r6["covariances"].items():
         curve = res["curve"]
         assert len(curve) == 100
+        grid = [k * c_max / 99 for k in range(100)] if name == "fractional" else [round(0.01 * k, 2) for k in range(100)]
+        assert all(abs(c[0] - g) < 1e-12 for c, g in zip(curve, grid))
         first = next((i for i, (v, c) in enumerate(curve) if c is not None and c >= t), None)
         if first is None:
-            assert res["status"] == "not calibratable"
+            assert res["status"] == "not calibratable" and res["value"] == grid[-1]
         elif first > 0 and curve[first - 1][1] is None:
             assert res["status"] == "not evaluable"
         else:
+            assert res["status"] in ("calibrated", "not evaluable")
             if res["status"] == "calibrated" and first > 0:
                 assert curve[first - 1][0] <= res["value"] <= curve[first][0]
         if res["status"] != "calibrated":
@@ -69,6 +78,8 @@ def test_r6_cov_rules():
         frac = tt["max_corr_fraction"]
         if name != "fractional":
             assert frac == res["value"]
+        else:
+            assert abs(frac - max(res["value"] ** 2 * v ** 2 / s ** 2 for v, s in zip(V, S))) < 1e-12
         flags[name] = frac > 0.9
         assert res["high_f"] == flags[name]
         pl = tt["powerlaw"]
