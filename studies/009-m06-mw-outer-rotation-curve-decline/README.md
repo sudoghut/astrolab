@@ -197,7 +197,8 @@ curve. If χ² < 15 on the whole grid, the covariance is "not calibratable": rep
 range but excluded from the labels. If an Einasto refit fails the convergence rule below at a grid
 point, that point is skipped (it cannot be the first crossing); if the grid point just below the
 first crossing failed, or a refit fails during the bisection, the covariance is "not evaluable". Also reported, without labels: the same tests at the smallest grid-and-bisection values
-with χ² ≥ 15 − √30 and ≥ 15 + √30 (the 1σ spread of a χ² with 15 degrees of freedom), where they exist,
+with χ² ≥ 15 − √30 and ≥ 15 + √30 (√30 = √(2 · 15) is the standard deviation of a χ² with 15 degrees of freedom; each threshold
+found by the same first-upward-crossing procedure as the target), where they exist,
 and χ²_min/6 of the profiled 8-bin power law (T1; 8 bins minus A and γ) at the calibrated value (f is calibrated on 18 points, the
 power law uses 8). Known biases: calibrating on Einasto makes Einasto fit by construction (T3 is
 relative to it). **High-f flag:** at large f the χ² is dominated by small-eigenvalue (bin-to-bin
@@ -228,7 +229,8 @@ evaluable" for that covariance.
   fresh `default_rng(0)` for every fit, plus one fixed extra start: the starts used for R2 and R5
   (free Einasto M0 = 3.7 × 10¹¹ M☉, h = 12 kpc, 1/n = 2.4; NFW log10 ρ_s = 7.0, log10 r_s = 1.2) and,
   for the ΛCDM-like model, ρ₋₂ = 10⁶ M☉/kpc³, r₋₂ = 20 kpc. The best fit is
-  the minimum over all 21 starts; it counts as converged if at least 3 starts reach within 0.01 of
+  the minimum over all 21 starts; it counts as converged if at least 3 starts that terminate successfully (the optimiser's own success
+flag; a run stopped by maxiter does not count) reach within 0.01 of
   that minimum; otherwise the test is "not evaluable" for that covariance. Whether the free Einasto
   optimum lies at a bound is reported.
 
@@ -251,7 +253,7 @@ otherwise "not evaluable"; then the high-f rule above).*
 - T2: every D_02 − D_K ≥ 4 → **"Keplerian favoured over γ = −0.2"**; every one ≤ −4 → **"γ = −0.2
   favoured over Keplerian"**; every |D_02 − D_K| < 4 → **"not distinguished"**; otherwise
   **"kernel-dependent"**.
-- T3, separately for NFW and ΛCDM-like: Δχ² in the bands < 4, 4–9, ≥ 9; all covariances in one band →
+- T3, separately for NFW and ΛCDM-like: Δχ² in the bands Δχ² < 4, 4 ≤ Δχ² < 9, Δχ² ≥ 9; all covariances in one band →
   **"not disfavoured"**, **"mildly disfavoured"**, **"disfavoured"** respectively; otherwise
   **"kernel-dependent"**.
 
