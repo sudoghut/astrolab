@@ -79,21 +79,6 @@ def resampled_difference(xa, wa, xb, wb, n, seed):
     return xa[ia] - xb[ib]
 
 
-def run_case(xa, wa, xb, wb, names, seeds, n, est, log):
-    reps = []
-    for k in seeds:
-        try:
-            r = one_shift(resampled_difference(xa, wa, xb, wb, n, k), names, k, est)
-        except Exception as exc:                    # recorded; the verdict rule handles failures
-            r = {"seed": k, "error": _clean(f"{type(exc).__name__}: {exc}")}
-        reps.append(r)
-        log(f"  {names} seed {k}: {r.get('n_sigma', r.get('error'))}")
-    good = [r["n_sigma"] for r in reps if "n_sigma" in r and np.isfinite(r["n_sigma"])]
-    return {"parameters": list(names), "repetitions": reps,
-            "n_bar": float(np.mean(good)) if good else None,
-            "s": float(np.std(good, ddof=1)) if len(good) > 1 else None}
-
-
 # ------------------------------------------------------------------ known-answer gate ----
 def synthetic(n, rng, g):
     """README 2.6 gate: a curved pair (x2 = z + curv (x1 - mu1)^2) and four box directions."""
@@ -120,19 +105,8 @@ def synthetic_exact(g):
     return {"delta": p, "n_sigma": _nsigma(p)}
 
 
-def calibrate(cfg, log):
-    g = cfg["gate"]
-    exact = synthetic_exact(g)
-    names = [f"x{i}" for i in range(6)]
-    reps = []
-    for k in g["seeds"]:
-        try:
-            r = one_shift(synthetic(cfg["n"], np.random.default_rng(g["sample_seed_offset"] + k), g), names, k,
-                          cfg["estimate"])
-        except Exception as exc:
-            r = {"seed": k, "error": _clean(f"{type(exc).__name__}: {exc}")}
-        reps.append(r)
-        log(f"  gate seed {k}: {r.get('n_sigma', r.get('error'))} (exact {exact['n_sigma']:.4f})")
+def gate_summary(exact, reps, g):
+    """README 2.6 gate rule from the exact value and the three repetitions (no TensorFlow needed)."""
     vals = [r.get("n_sigma") for r in reps]
     ok = all(v is not None and np.isfinite(v) and r.get("converged") and not r.get("lower_bound")
              for v, r in zip(vals, reps))
@@ -143,53 +117,66 @@ def calibrate(cfg, log):
             "rule": f"mean within {g['tol_mean']} and each within {g['tol_each']} of the exact n_sigma"}
 
 
-def main(argv):
-    inp, cfg_path, out_path = argv[1:4]
-    cfg = json.loads(open(cfg_path, encoding="utf-8").read())
+def case_summary(reps, cols):
+    good = [r["n_sigma"] for r in reps if r.get("n_sigma") is not None and np.isfinite(r["n_sigma"])]
+    return {"parameters": list(cols), "repetitions": reps,
+            "n_bar": float(np.mean(good)) if good else None,
+            "s": float(np.std(good, ddof=1)) if len(good) > 1 else None}
 
-    def log(msg):
-        print(msg, file=sys.stderr, flush=True)
 
-    import getdist
-    import tensiometer
-    tf = _setup()
-    out = {"versions": {"tensorflow": tf.__version__, "tensiometer": tensiometer.__version__,
-                        "getdist": getdist.__version__, "numpy": np.__version__,
-                        "legacy_keras": os.environ.get("TF_USE_LEGACY_KERAS")},
-           "settings": defaults()}
-    def finite(o):                     # strict JSON: NaN and infinities become null
-        if isinstance(o, dict):
-            return {k: finite(v) for k, v in o.items()}
-        if isinstance(o, (list, tuple)):
-            return [finite(v) for v in o]
-        if isinstance(o, (float, np.floating)):
-            return float(o) if np.isfinite(o) else None
-        if isinstance(o, np.integer):
-            return int(o)
-        return o
+def finite(o):
+    """Strict JSON: NaN and infinities become null."""
+    if isinstance(o, dict):
+        return {k: finite(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [finite(v) for v in o]
+    if isinstance(o, (float, np.floating)):
+        return float(o) if np.isfinite(o) else None
+    if isinstance(o, np.integer):
+        return int(o)
+    return o
 
-    def save():
-        tmp = out_path + ".part"
-        with open(tmp, "w", encoding="utf-8") as fh:
-            json.dump(finite(out), fh, indent=1, allow_nan=False)
-        os.replace(tmp, out_path)
 
-    log("known-answer gate")
-    out["gate"] = calibrate(cfg, log)
-    save()
-    if out["gate"]["passed"]:
+def run_job(job, inp, cfg):
+    """One unit of work in its own process (so TensorFlow memory is freed when it exits):
+    'meta', 'exact', ('gate', seed) or ('case', name, seed)."""
+    if job[0] == "meta":
+        import getdist
+        import tensiometer
+        tf = _setup()
+        return {"versions": {"tensorflow": tf.__version__, "tensiometer": tensiometer.__version__,
+                             "getdist": getdist.__version__, "numpy": np.__version__,
+                             "legacy_keras": os.environ.get("TF_USE_LEGACY_KERAS")},
+                "settings": defaults()}
+    if job[0] == "exact":
+        return synthetic_exact(cfg["gate"])
+    names6 = [f"x{i}" for i in range(6)]
+    try:
+        if job[0] == "gate":
+            g, k = cfg["gate"], int(job[1])
+            x = synthetic(cfg["n"], np.random.default_rng(g["sample_seed_offset"] + k), g)
+            return one_shift(x, names6, k, cfg["estimate"])
+        name, k = job[1], int(job[2])
+        cols = cfg["cases"][name]["columns"]
         d = np.load(inp, allow_pickle=False)
-        cases = cfg["cases"]
-        for name, case in cases.items():
-            cols = case["columns"]
-            xa = np.column_stack([d["des_" + c] for c in cols])
-            xb = np.column_stack([d["cmb_" + c] for c in cols])
-            log(f"case {name}: {cols}")
-            out[name] = run_case(xa, d["des_w"], xb, d["cmb_w"], cols, case["seeds"], cfg["n"],
-                                 cfg["estimate"], log)
-            save()
-    out["complete"] = True
-    save()
+        xa = np.column_stack([d["des_" + c] for c in cols])
+        xb = np.column_stack([d["cmb_" + c] for c in cols])
+        return one_shift(resampled_difference(xa, d["des_w"], xb, d["cmb_w"], cfg["n"], k), cols, k,
+                         cfg["estimate"])
+    except Exception as exc:             # recorded; the verdict rule handles failures
+        return {"seed": int(job[-1]), "error": _clean(f"{type(exc).__name__}: {exc}")}
+
+
+def main(argv):
+    """flowshift.py <input.npz> <config.json> <output.json> <job...>; writes one job's JSON."""
+    inp, cfg_path, out_path = argv[1:4]
+    job = argv[4:]
+    cfg = json.loads(open(cfg_path, encoding="utf-8").read())
+    res = run_job(job, inp, cfg)
+    tmp = out_path + ".part"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(finite(res), fh, indent=1, allow_nan=False)
+    os.replace(tmp, out_path)
 
 
 if __name__ == "__main__":
