@@ -251,7 +251,8 @@ flag; a run stopped by maxiter does not count) reach within 0.01 in χ² (absolu
   freedom, likelihood only).
 - **T2, Keplerian versus γ = −0.2.** D_K = χ²(−0.5) − min χ², D_02 = χ²(−0.2) − min χ²; preference
   D_02 − D_K (positive favours Keplerian).
-- **T3, halo shape.** Δχ²_NFW and Δχ²_ΛCDM relative to the free Einasto, and the best-fit M_vir of each
+- **T3, halo shape.** Δχ²_NFW = χ²_NFW − χ²_Einasto and Δχ²_ΛCDM = χ²_ΛCDM − χ²_Einasto (positive: worse than the free
+Einasto), and the best-fit M_vir of each
   (primary R_vir definition of section 2.2, plus E dJ's M_bar; reported only). NFW is not nested in
   Einasto, so the thresholds below are conventional evidence levels, not exact 2σ/3σ; nor is the
 ΛCDM-like model nested in the bounded free Einasto (R2's bounds exclude 1/n = 0.17 halos), so Δχ²_ΛCDM
