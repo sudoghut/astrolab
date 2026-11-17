@@ -409,8 +409,8 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
     shared; new power sets are run only where the generating model changes: bins [−0.3, −0.1),
     [−0.1, 0.1) and [0.1, 0.3) in each of the three variants × two mechanisms = 18 sets of 50
     (900 mocks), numbered after the 106 main sets (SEL-8).
-  - *Edge loop:* the young edge starts at 7.0 Gyr and is lowered in 0.5 Gyr steps (lowest edge
-    2.0 Gyr) only while the generating model **has a valley** with true d > 0.1. If at 7.0 Gyr the
+  - *Edge loop:* the young edge starts at 7.0 Gyr and is lowered in 0.5 Gyr steps (candidate edges 7.0, 6.5, …, 2.0 Gyr;
+    the valley and d of each generating model are evaluated on the 0.05 Gyr latent grid) only while the generating model **has a valley** with true d > 0.1. If at 7.0 Gyr the
     generating model has no valley (d = 1, e.g. by the side-mass rule), the edge is not moved. If a
     valley exists at 7.0 Gyr with d > 0.1 but disappears at a lower edge, the last edge that had a
     valley is kept. If the loop ends without a valley with d ≤ 0.1 (either case above, or 2.0 Gyr
@@ -492,7 +492,9 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
     repeated after every completed set, with projection = elapsed + Σ over remaining sets of (their mocks × the mean time per
     mock of finished sets of the same kind: R1, sample A/B, diagnostic; a kind not yet started uses the
     initial first-mock estimate of its sets); whenever it exceeds 16 h, run.py stops before the remaining mocks and the user is
-    asked (mock counts are never reduced).
+    asked (mock counts are never reduced); every finished mock is already checkpointed, so a stop keeps
+    all completed mocks, including those of a partly finished set, and a resumed run continues from them;
+    no -SEL label is computed until every set has its 50 mocks.
   - *Memory:* the grouped likelihoods hold K and P (cells × 400 latent cells, float64) plus about
     four temporaries of the same size in `_ll_q`; sample B (≈ 79,000 S15 stars, tens of thousands of
     cells) needs about 1 GB at peak, the no-compression checks about 1.5 GB. Term E does not add a
