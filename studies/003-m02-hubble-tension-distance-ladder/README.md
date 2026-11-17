@@ -186,7 +186,8 @@ asymptotic boundary likelihood-ratio p-value is 0.5 · P(χ²₁ > 3.5) ≈ 0.03
 to land near 0.03; the three-way label below exists because of that. At a true p of 0.031 the τ label
 comes out "undetermined" with probability about 0.6 and "unusual" about 0.4; "undetermined" is
 therefore the expected outcome, and more simulations after the run would need a new pre-registration. No fit without a host and no
-simulation has been run. These checks attach descriptive labels to R2-RE; they do not change the
+simulation has been run (dated note 2026-11-17: a code smoke run later showed part of A before the
+formal run; disclosed in log.md, the rules unchanged). These checks attach descriptive labels to R2-RE; they do not change the
 R2-RE headline row.
 
 Common settings: hosts are the 37 calibrator hosts with the column labels of the amended (post-data)
