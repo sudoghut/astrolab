@@ -202,7 +202,8 @@ other 36 hosts' groups. Then:
   hosts' influence on τ̂"** if this row equals R2-RE's row for every j; otherwise **"verdict
   sensitive to single hosts' influence on τ̂"**, naming the hosts. The label is about the verdict
   row, not about τ̂ itself: τ̂_j and its range are reported, and a host whose removal moves τ̂ a lot
-  while the row holds is named in section 5. A τ̂_j at the upper bound or a failed fit counts as "sensitive" for that j.
+  while the row holds is named in section 5. A τ̂_j at the upper bound, a failed REML fit or a failed host-step fit counts as "sensitive" for
+  that j. If R2-RE itself is not evaluable (no verdict row to compare), A is not evaluable.
 - **Data route (reported).** On the reduced system: the host step at τ = 0 (C) and under V(τ̂_j),
   each with z and the verdict row; when j is a CCHP host the CCHP subset has 9 hosts and the entry is
   marked "changes the tested selection".
