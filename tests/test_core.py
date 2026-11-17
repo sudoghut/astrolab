@@ -648,7 +648,6 @@ def test_prune_second_pass_when_only_recent_entries_exceed(tmp_cache):
     assert sum(e[1] for e in cache._entries(cache.config.cache_dir())) <= 1
 
 
-
 def test_http_cap_needs_consent_and_records_it(tmp_cache, monkeypatch):
     monkeypatch.setattr(config, "HTTP_MAX_BYTES", 1000)
     _fake_http(monkeypatch, b"x" * 2000)
@@ -663,3 +662,14 @@ def test_http_cap_needs_consent_and_records_it(tmp_cache, monkeypatch):
     assert again.from_cache and why in again.provenance.note
     with pytest.raises(fetch.TooLarge):             # without the exception the cap still applies
         fetch.http("http://example.invalid/big.txt")
+
+
+def test_http_raised_cap_is_still_enforced(tmp_cache, monkeypatch):
+    monkeypatch.setattr(config, "HTTP_MAX_BYTES", 1000)
+    why = "user approved 2026-11-15 in the study log"
+    _fake_http(monkeypatch, b"x" * 6000)                       # HEAD reports 6000 > 5000
+    with pytest.raises(fetch.TooLarge):
+        fetch.http("http://example.invalid/c.txt", max_bytes=5000, cap_consent=why)
+    _fake_http(monkeypatch, b"x" * 6000, length=0)             # streaming check
+    with pytest.raises(fetch.TooLarge):
+        fetch.http("http://example.invalid/c.txt", max_bytes=5000, cap_consent=why)

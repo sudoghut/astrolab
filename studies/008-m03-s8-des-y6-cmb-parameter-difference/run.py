@@ -31,8 +31,6 @@ PARAMS = {
     "positional_ok": ["des_3x2pt", "des_xipm", "des_xipm_nla"],
     # one-off cap for the 32pt chain only: user consent in chat, 2026-11-15 (log.md, README section 3)
     "max_bytes_32pt": 150 * 1024 ** 2,
-    "cap_consent_32pt": "user approved 2026-11-15, recorded in this study's log.md and README section 3: "
-                        "one-off 150 MiB cap for the DES Y6 3x2pt chain only",
     "mcmc_burn": 0.30,
     "max_saved_comments": 5000,
     "ess_flag": 2000,
@@ -61,6 +59,15 @@ PARAMS = {
         "HSC Y3 3x2pt (Sugiyama+ 2023)": [0.775, 0.043, 0.038, "arXiv:2304.00705"],
     },
     "n_probe": 1_000_000,
+}
+
+# The user's one-off exception to the 50 MB per-download cap (2026-11-15; log.md, README section 3),
+# for this file only; T-038 requires it to be stated with each call.
+APPROVED_CAP_EXCEPTION = {
+    "file": "32pt_wolensbin2_lin_lcdm_DV0723_R0723.txt",
+    "max_bytes": 150 * 1024 ** 2,
+    "consent": "user approved 2026-11-15, recorded in this study's log.md and README section 3: "
+               "one-off 150 MiB cap for the DES Y6 3x2pt chain only",
 }
 
 DERIVED = {"sigma_8", "sigma8", "s_8", "s8", "omega_lambda", "omega_nu", "omega_c", "omch2", "ommh2",
@@ -129,8 +136,12 @@ def _support_names(names):
 
 def _fetch(ctx, P, key):
     name = P["chains"][key]
-    kw = ({"max_bytes": P["max_bytes_32pt"], "cap_consent": P["cap_consent_32pt"]}
-          if name == P["chains"]["des_3x2pt"] else {})
+    kw = {}
+    if name == APPROVED_CAP_EXCEPTION["file"]:
+        # the user's one-off exception, pinned to this file and size (not to PARAMS overrides)
+        if P["max_bytes_32pt"] > APPROVED_CAP_EXCEPTION["max_bytes"]:
+            raise ValueError("max_bytes_32pt exceeds the approved 150 MiB exception")
+        kw = {"max_bytes": P["max_bytes_32pt"], "cap_consent": APPROVED_CAP_EXCEPTION["consent"]}
     return ctx.http(BASE + name, label=f"DES Y6 chain {name}", **kw)
 
 
