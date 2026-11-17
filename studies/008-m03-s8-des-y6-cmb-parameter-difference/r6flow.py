@@ -64,47 +64,87 @@ def columns(chains, formats, names):
     return arrays
 
 
+def _clean(text):
+    return re.sub(r"[A-Za-z]:[\\/][^\s'\"]*|/(?:home|Users)/[^\s'\"]*", "<path>", text)
+
+
 def run_flows(arrays, cfg, log):
-    """Write the temporary input, run flowshift.py in the TF environment, return its JSON."""
+    """Run flowshift.py in the TF environment, one job per process (TensorFlow memory is freed when
+    each process exits). Each finished job is kept in a folder in the cache keyed by the input, the
+    configuration and flowshift.py, so a stopped run resumes and repeats at most the unfinished job;
+    the folder is removed once all jobs are done. Returns the assembled results (README 2.6)."""
+    import hashlib
+    import shutil
+    import sys
+
     exe = tf_python()
     if exe is None:
         return {"status": "not evaluable (no TF environment)"}
-    tmp_in = cache.staging_path(".npz")
-    tmp_cfg = cache.staging_path(".json")
-    tmp_out = cache.staging_path(".json")
-    proc = None
-    try:
+    if str(HERE) not in sys.path:
+        sys.path.insert(0, str(HERE))
+    import flowshift                     # pure helpers only; no TensorFlow import at module level
+
+    h = hashlib.sha256()                 # content key (np.savez files carry timestamps)
+    for k in sorted(arrays):
+        h.update(k.encode())
+        h.update(np.ascontiguousarray(arrays[k]).tobytes())
+    h.update(json.dumps(cfg, sort_keys=True).encode())
+    h.update((HERE / "flowshift.py").read_bytes())
+    jobdir = config.cache_dir() / "r6flow_jobs" / h.hexdigest()[:24]
+    jobdir.mkdir(parents=True, exist_ok=True)
+    inp, cfgp = jobdir / "input.npz", jobdir / "config.json"
+    if not inp.exists():
+        tmp_in = cache.staging_path(".npz")
         np.savez(tmp_in, **arrays)
-        tmp_cfg.write_text(json.dumps(cfg), encoding="utf-8")
-        env = dict(os.environ, TF_USE_LEGACY_KERAS="1", PYTHONNOUSERSITE="1", TF_CPP_MIN_LOG_LEVEL="3",
-                   MPLBACKEND="Agg")
-        env.pop("PYTHONPATH", None)
-        workdir = config.cache_dir() / "_staging"
-        proc = subprocess.Popen([str(exe), "-I", str(HERE / "flowshift.py"), str(tmp_in), str(tmp_cfg), str(tmp_out)],
-                                cwd=workdir, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+        os.replace(tmp_in, inp)
+    cfgp.write_text(json.dumps(cfg), encoding="utf-8")
+    env = dict(os.environ, TF_USE_LEGACY_KERAS="1", PYTHONNOUSERSITE="1", TF_CPP_MIN_LOG_LEVEL="3",
+               MPLBACKEND="Agg")
+    env.pop("PYTHONPATH", None)
+
+    def job(*parts):
+        out = jobdir / ("_".join(str(p) for p in parts) + ".json")
+        if out.exists():                 # finished in an earlier, stopped run
+            return json.loads(out.read_text(encoding="utf-8"))
+        proc = subprocess.Popen([str(exe), "-I", str(HERE / "flowshift.py"), str(inp), str(cfgp), str(out),
+                                 *[str(p) for p in parts]], cwd=jobdir, env=env,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
                                 text=True, encoding="utf-8", errors="replace")
-        tail = []
-        for line in proc.stderr:                    # progress, live
-            line = line.rstrip("\n")
-            tail = (tail + [line])[-5:]
-            if line.startswith(("  ", "known-answer", "case ")):
-                log(line)
-        code = proc.wait()
-        partial = json.loads(tmp_out.read_text(encoding="utf-8")) if tmp_out.exists() else {}
-        if code != 0 or not partial.get("complete"):
-            msg = re.sub(r"[A-Za-z]:[\\/][^\s'\"]*|/(?:home|Users)/[^\s'\"]*", "<path>", "\n".join(tail))
-            return {"status": f"not evaluable (TF subprocess failed, code {code})", "stderr_tail": msg[-1000:],
-                    "partial": partial}
-        return partial
-    finally:
-        if proc is not None and proc.poll() is None:   # interrupted: do not leave the TF child training
-            proc.kill()
-            proc.wait()
-        for p in (tmp_in, tmp_cfg, tmp_out, tmp_out.with_name(tmp_out.name + ".part")):
-            try:
-                p.unlink(missing_ok=True)
-            except OSError:                             # never mask the original exception
-                pass
+        try:
+            err = proc.stderr.read()
+            code = proc.wait()
+        finally:
+            if proc.poll() is None:      # interrupted: do not leave the TF child training
+                proc.kill()
+                proc.wait()
+        if code != 0 or not out.exists():
+            raise RuntimeError(f"job {parts} failed (code {code}): {_clean(err)[-800:]}")
+        return json.loads(out.read_text(encoding="utf-8"))
+
+    try:
+        res = job("meta")
+        exact = job("exact")
+        reps = []
+        for k in cfg["gate"]["seeds"]:
+            r = job("gate", k)
+            reps.append(r)
+            log(f"  gate seed {k}: {r.get('n_sigma', r.get('error'))} (exact {exact['n_sigma']:.4f})")
+        res["gate"] = flowshift.gate_summary(exact, reps, cfg["gate"])
+        if res["gate"]["passed"]:
+            for name, case in cfg["cases"].items():
+                log(f"case {name}: {case['columns']}")
+                creps = []
+                for k in case["seeds"]:
+                    r = job("case", name, k)
+                    creps.append(r)
+                    log(f"  {name} seed {k}: {r.get('n_sigma', r.get('error'))}")
+                res[name] = flowshift.case_summary(creps, case["columns"])
+    except RuntimeError as exc:
+        return {"status": "not evaluable (TF subprocess failed)", "error": str(exc)[-1000:],
+                "resume": "rerun: finished jobs are kept in the cache and reused"}
+    shutil.rmtree(jobdir, ignore_errors=True)
+    res["complete"] = True
+    return flowshift.finite(res)
 
 
 def verdict(res, support, gate_r1, published, tol, s_max, lb_margin):
