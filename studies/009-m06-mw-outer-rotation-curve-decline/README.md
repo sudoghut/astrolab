@@ -153,9 +153,11 @@ scales the errors too).
 
 Revised the same day after the gate-1 review, still before any such fit.
 
-*Why.* The referee and the post-hoc check (sections 5 and 6) found that Table 3's errors cannot be
-independent (best-fit Einasto χ² = 1.30 for 15 degrees of freedom), so every significance computed
-with independent errors is mis-scaled. *Seen before this addendum:* all R1–R5 results, including the
+*Why.* The referee and the post-hoc check (sections 5 and 6) found that Table 3's errors are unlikely
+to be independent (best-fit Einasto χ² = 1.30 for 15 degrees of freedom); a χ² this low can also
+come from an overestimated error scale, so the χ² alone does not establish correlation. Either way the
+independent-error significances are mis-scaled. R6-COV is a sensitivity analysis conditioned on the
+chosen χ² target, not a determination of the covariance. *Seen before this addendum:* all R1–R5 results, including the
 R3(c) case ρ = 0.99 (S = 6.07, an artefact of a near-singular covariance); the post-hoc χ² values
 (Einasto 1.30, NFW 21.1, power law beyond 19 kpc 0.47 for 6); and the referee's numbers in section 6
 (with ad-hoc correlated kernels whose forms and amplitudes were not recorded: likelihood-only flat
@@ -172,7 +174,8 @@ bars include systematics). Table 3's σ/V is 1.35–1.57% at 9.5–13.5 kpc, com
 systematic level, so the split of σ into statistical and systematic parts cannot be determined, and
 the inner σ is probably mostly systematic. J23 give no per-bin statistical errors. The original
 T-028 note (amplitudes from J23 and Koop et al. 2024 added to a statistical part) is therefore not
-followed: adding any variance on top of σ_i only lowers χ² further (already 1.30 for 15), so reaching
+followed: adding any positive-semidefinite variance on top of σ_i (at fixed residuals) only lowers
+χ² further (already 1.30 for 15), so reaching
 χ² ≈ degrees of freedom needs correlation within the existing variance. We keep σ_i as the total
 error of each bin and only add correlations.
 
@@ -205,7 +208,8 @@ relative to it). **High-f flag:** at large f the χ² is dominated by small-eige
 difference) directions, the artefact seen in R3(c); a covariance is flagged "high-f" if its largest
 per-bin correlated fraction exceeds 0.9 at the calibrated value (f itself for the four kernels;
 max_i c²V_i²/σ_i² for the fractional one). Order: (1) the label from all calibrated, evaluable
-covariances (at least 3 needed, else "not evaluable"); (2) the label from the unflagged ones alone;
+covariances (at least 3 needed, else "not evaluable"); (2) the label from the unflagged ones among those usable covariances alone (with at least 3 of them it
+always exists);
 if fewer than 3 are unflagged, the label of (1) is reported with the qualifier "(only with high-f
 covariances)"; otherwise, if (1) and (2) differ, the label is "kernel-dependent (high-f)", and if they
 agree it stands.
@@ -214,8 +218,9 @@ agree it stands.
 - T1 and T2 (8 bins beyond 19 kpc, sub-block of C): the power law V = A (R/1 kpc)^γ is linear in A, so
   for each γ the amplitude is the generalised-least-squares (GLS) solution and χ²(γ) is the profile;
   χ²(γ) is evaluated on γ ∈ [−3, 1] in steps of 0.001 and its minimum refined by bounded Brent
-  minimisation in the two grid cells around the grid minimum; A must be positive (a γ with A ≤ 0 is
-  excluded). The flat model is γ = 0 of the same profile. If the minimum lies at γ = −3 or 1, it is
+  minimisation on [γ_(k−1), γ_(k+1)] around the grid minimum γ_k (at an edge, [γ_k, γ_(k±1)]), where
+  γ values with A ≤ 0 count as χ² = +∞; the reported minimum is the smaller of the grid and Brent
+  values; A must be positive (a γ with A ≤ 0 is excluded). The flat model is γ = 0 of the same profile. If the minimum lies at γ = −3 or 1, it is
 reported as at the edge and used as is; if γ = 0, −0.2 or −0.5 is excluded (A ≤ 0), T1 or T2 is "not
 evaluable" for that covariance.
 - Halo fits (18 points, E dJ baryons): free Einasto in R2's parametrisation and bounds (M0, h, 1/n;
@@ -260,7 +265,9 @@ otherwise "not evaluable"; then the high-f rule above).*
 *Reading.* R6-COV replaces none of the R1–R5 results; it states which readings of section 5 (the
 decline's significance, "Keplerian", the preference for a truncated halo) survive once the errors are
 allowed to be correlated by an amount that makes the Einasto χ² equal its degrees of freedom. The
-kernels are assumptions; the true covariance is not established.
+kernels are assumptions; the true covariance is not established. For contrast (reported, no label):
+T1 and T2 with independent errors rescaled by the factor that makes the Einasto χ² = 15
+(σ_i → σ_i · √(1.30/15) with the exact f = 0 χ²), the overestimated-scale reading.
 
 *Runtime.* Some thousands of halo fits of 18 points (100 grid points × 5 covariances with 21 starts
 each, plus the bisections), estimated 30–90 minutes; no data downloaded; results in
