@@ -225,13 +225,14 @@ changes made together:
    section 8 on 2026-11-15 (an exploration range, not a literature prior), before the R2/R3-POST results (the section 4 variant results were known);
    it enters the calibration, and for R2 the z = 14–15 σ of each draw equals that draw's σ_cal, as in
    R2/R3-POST.
-2. The two brightest blank-field points (M_UV = −21.85 and −21.35, with N_i = (φ_i/σ_i)² = 2.25 and
-   9.0 effective sources; the Bouwens et al. 2021 errors are symmetric) use a Poisson likelihood:
-   μ_i = N_i · φ_model/φ_i and −2 ln L_i = 2 [μ_i − N_i + N_i ln(N_i/μ_i)] (the Poisson deviance,
+2. The two brightest blank-field points (M_UV = −21.85 and −21.35; the Bouwens et al. 2021 errors are
+   symmetric, (φ_i/σ_i)² = 2.25 and 9.0) are treated as integer counts N_i = 2 and 9 (rounded), so
+   that the likelihood and the bootstrap use the same discrete distribution; they use a Poisson
+   likelihood: μ_i = N_i · φ_model/φ_i and −2 ln L_i = 2 [μ_i − N_i + N_i ln(N_i/μ_i)] (the Poisson deviance,
    zero at μ_i = N_i; for a count of 0 it is 2μ_i). The other five blank points and all lensing points
    keep the split-normal Gaussian. φ_model is floored at 10⁻³⁰⁰ as in the existing code.
-3. The γ prior is widened to [−1, 3]. With γ < 0 the efficiency rises at high mass without limit
-   (ε = 2ε₀/(x^−β + x^γ)); ε is not capped, and the fraction of draws with ε > 1 anywhere on the
+3. The γ prior is widened to [−1, 3]. With γ < 0 and β > 0 the efficiency rises at high mass without
+   limit (ε = 2ε₀/(x^−β + x^γ)); with β = 0 it tends to 2ε₀; ε is not capped, and the fraction of draws with ε > 1 anywhere on the
    10⁸–10¹⁴ M☉ grid is reported.
 Implementation: the parameter vector is (ε₀, log10 M₁, β, γ, f, σ_cal) with box [10⁻⁶, 1], [9, 13],
 [0, 3], [−1, 3], [0.01, 3], [0.3, 1.2]; the least-squares residual of a Poisson point is
@@ -243,13 +244,12 @@ exceeds 1,600 steps the result is **not evaluable** with no change of steps (a r
 sixth, partly degenerate parameter can slow mixing). Fit quality: the same parametric bootstrap (200
 sets, `default_rng(1)`, simulated at the best fit including its σ_cal, all six parameters refitted);
 a Poisson point is redrawn as a count N_sim ~ Poisson(μ_i) and refitted with N_sim in place of N_i and
-the fixed conversion φ_i/N_i in μ (the observed statistic uses the non-integer N_i; stated, accepted).
+the fixed conversion φ_i/N_i in μ (observed and simulated counts are both integers).
 
 *Identifiability of σ_cal.* If the σ_cal posterior's 68% interval (16th–84th percentiles of the
 flattened post-burn chain, as the existing `posterior` p16/p84) is wider than 60% of the prior
-width (0.54 mag), the result is labelled **"σ_cal prior-dominated"**: P(R3) is then mostly a
-prior-weighted average over [0.3, 1.2] and is read as a statement about that prior, not about the
-data. Known blind spot: a posterior rising towards a bound without piling up at it escapes both this
+width (0.54 mag), the result is labelled **"σ_cal prior-dominated"**: the data constrain σ_cal only
+weakly, so P(R3) depends substantially on the prior range and is reported as conditional on it. Known blind spot: a posterior rising towards a bound without piling up at it escapes both this
 label and "prior-bounded"; the reported σ_cal posterior and the per-bin P(R3) show it.
 
 *Decision and reading, fixed now.* P(R3 consistent with N26) and P(R2 higher) with the R2/R3-POST
