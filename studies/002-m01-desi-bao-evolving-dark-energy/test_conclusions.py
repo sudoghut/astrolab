@@ -99,3 +99,43 @@ def test_r2_camb_rule():
     concl = rc["conclusion"]
     assert concl == expected
     assert load("summary")["R2_camb"]["conclusion"] == concl
+
+
+def test_r2_camb_rd_rule():
+    """R2-CAMB-RD (README section 2, addendum 2026-11-17): theta* and r_d from CAMB; per-reading
+    verdicts, shifts and the conclusion recomputed from the saved numbers."""
+    rc = load("r2_camb")
+    if "conclusion_rd" not in rc:
+        pytest.skip("R2-CAMB-RD not run (camb_rd_check off)")
+    rec = {"A": "not reproduced", "B": "reproduced"}
+    keys = {"A": "reading_A_with_nu", "B": "reading_B_without_nu"}
+    verdicts = {}
+    for var in ("anchored_rd", "raw_rd"):
+        verdicts[var] = {}
+        for rd, key in keys.items():
+            fit = rc["variants"][var][key]
+            lc, wc = fit["lcdm"], fit.get("w0wa")
+            ok = (lc["converged"] and wc is not None and wc["converged"] and lc["n_agree"] >= 3
+                  and wc["n_agree"] >= 3 and wc["chi2"] <= lc["chi2"] + 1e-3)
+            assert bool(fit["valid"]) == bool(ok), (var, rd)
+            if not ok:
+                exp = "failed fit"
+            else:
+                assert abs(fit["dchi2"] - (wc["chi2"] - lc["chi2"])) < 1e-9
+                exp = "reproduced" if abs(fit["dchi2"] - (-8.0)) <= 1.0 else "not reproduced"
+                base = rc["variants"][var[:-3]][key]
+                if base.get("dchi2") is not None:
+                    assert abs(fit["dchi2_shift_vs_r2_camb"] - (fit["dchi2"] - base["dchi2"])) < 1e-12
+            assert fit["verdict"] == exp, (var, rd)
+            verdicts[var][rd] = exp
+    assert rc["verdicts_rd"] == verdicts
+    valid = {k: "failed fit" not in v.values() for k, v in verdicts.items()}
+    changed = {k: [r for r in rec if v[r] != rec[r]] for k, v in verdicts.items()}
+    if all(valid.values()) and not any(changed.values()):
+        expected = ["R2 robust to the r_d formula"]
+    else:
+        flips = sorted({r for k in verdicts if valid[k] for r in changed[k]})
+        expected = ["R2 depends on the r_d formula (reading %s)" % ", ".join(flips)] if flips else []
+        expected += [f"inconclusive ({k} variant: failed fit)" for k in verdicts if not valid[k]]
+    assert rc["conclusion_rd"] == expected
+    assert load("summary")["R2_camb_rd"]["conclusion"] == expected
