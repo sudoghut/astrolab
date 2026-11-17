@@ -197,7 +197,8 @@ fractional offset) was chosen to span the plausible correlation lengths, not tun
 Einasto model (baryons E dJ, the 18 points) has χ² = rᵀC⁻¹r = 15, its degrees of freedom. χ²(f) need
 not be monotonic, so: evaluate χ² on the grid f = 0, 0.01, …, 0.99 (c = k · c_max/99, k = 0, …, 99, c_max = 0.99 · min σ/V),
 refitting the Einasto model at each point; take the smallest grid value at which χ² ≥ 15 and bisect
-inside the cell below it (tolerance 10⁻⁴ of the range, refitting at each trial): starting from
+inside the cell below it (stop when hi − lo ≤ 10⁻⁴ × the full parameter range, i.e. 0.99 for f or c_max for c;
+refitting at each trial): starting from
 lo = the grid point below (χ² < 15) and hi = the first crossing (χ² ≥ 15), each midpoint replaces hi if
 its χ² ≥ 15 and lo otherwise, and the result is the final (lo + hi)/2 (if χ² crosses 15 more than once
 inside one 0.01 cell, this picks one of those crossings; accepted); report the whole
@@ -242,7 +243,7 @@ evaluable" for that covariance.
   for the ΛCDM-like model, ρ₋₂ = 10⁶ M☉/kpc³, r₋₂ = 20 kpc. The best fit is
   the minimum over all 21 starts; it counts as converged if at least 3 starts that terminate successfully (the optimiser's own success
 flag; a run stopped by maxiter does not count) reach within 0.01 in χ² (absolute) of
-  that minimum (an optimum on a bound is allowed and reported); otherwise the test is "not evaluable" for that covariance. Whether the free Einasto
+  that minimum (the minimum is taken over all 21 runs, successful or not) (an optimum on a bound is allowed and reported); otherwise the test is "not evaluable" for that covariance. Whether the free Einasto
   optimum lies at a bound is reported.
 
 *Tests at each calibrated covariance.*
