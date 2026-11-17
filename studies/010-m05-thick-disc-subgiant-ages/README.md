@@ -296,7 +296,8 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
 - **Seen before this addendum (disclosure).** Everything in sections 5–7 and in `log.md`, in
   particular: all recorded verdicts; the R1 data d values, K, edges and powers of every bin under
   the old term (S15 d = 0.295, 0.454, 0.492, 1, 1; Full d = 0.386, 0.579, 0.479, 1, 1) and the
-  power-model raw old weights (0.415, 0.296, 0.153, 0.094, 0.121 on S15); the sample-A fits under
+  power-model raw old weights (S15 0.415, 0.296, 0.153, 0.094, 0.121; Full 0.427, 0.308, 0.160,
+  0.097, 0.122); the sample-A fits under
   the old term (S15: τ̄0 = 8.07, a = −4.00, σ = 2.67, span 6.00; Full: 8.70, −4.01, 2.58, 6.01) and
   every sample-A variant (span 5.7–6.2, σ_sel 2.4–2.7); the recovery biases; sample B's
   σ_int = 0.79 ± 0.02 Gyr with f_bg = 0.53 and its mock biases; the deconvolved R2 means (12.19 S15,
@@ -307,7 +308,13 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
   data, and any fit, mock or likelihood value with either new term. Because the old-term results are
   known, the re-test is not blind to the data: a term that removes the upward σ bias is expected to
   lower σ_sel and σ_int (σ_int = 0.79 is already below 0.82), so an "intrinsic-SEL confirmed" label
-  is foreseeable in direction; the rules below were chosen from the mechanism argument and the
+  is foreseeable in direction. Further foreseeable directions: (i) Full's R1 data fits are
+  unchanged by the re-test (denominator 1, same random streams), with d = 0.386, 0.579, 0.479, 1, 1,
+  all above the cap 0.25, so R1-SEL cannot be "reproduced, robust", and more resolvable bins push
+  R1-SEL towards "not reproduced"; (ii) the Full sample-A fit is unchanged (span 6.01, inside the R3
+  band; σ = 2.58, failing R4), so R4-SEL cannot be "reproduced, robust", and "R4-SEL not
+  reproduced" is foreseeable from σ_sel ≈ 2.67 minus a bias of about 0.25 Gyr; (iii) R3-SEL's Full
+  span is inside its band. The rules below were chosen from the mechanism argument and the
   referee's points, not from their expected effect on any label.
 
 - **SEL-0 Parent sets and the pass table.**
@@ -338,18 +345,23 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
     term). The likelihood of cell i is ∫ p(τ|θ) g_i(Age_i|τ) dτ / Σ_c p_c(θ) P_i(c), i.e. the
     denominator ∫ p(τ|θ) ∫ g_i(A|τ) P_pass(A) dA dτ. In the untruncated variant Z = 1 and the first
     and last pass bins extend to −∞ and +∞. The floor rules of `m0.floored_terms` apply unchanged.
-    Rationale: if P_pass is the probability that a star of observed age A passes S15, then
+    Rationale and assumption: term E assumes P(pass | A, τ) = P_pass(A), i.e. given the observed
+    age, passing S15 does not depend further on the latent age. Then
     p(A, pass | θ) = p(A|θ)·P_pass(A); the factor P_pass(Age_i) in the numerator does not depend on θ
-    and drops, leaving this denominator. Using the star's own kernel g_i (rather than a
-    population-averaged one) keeps the code structure of 2.0; it is an approximation (the selected
-    stars' errors are smaller than their parents'), tested by the mocks of SEL-2.
+    and drops, leaving this denominator. In the mocks (r keyed by τ, SEL-2) this assumption is
+    violated to second order (the pass probability depends on τ through r and, under e = r·τ, on z),
+    and the mocks measure the effect. Using the star's own kernel g_i (rather than a
+    population-averaged one) keeps the code structure of 2.0; it is a first-order approximation (the
+    selected stars' errors are smaller than their parents'), also measured by the mocks, and it
+    reduces to term N when π is flat.
   - *Secondary, term N (none):* denominator 1 on S15. This is the exact limit for r independent of
     τ under both mocked mechanisms (the pass probability is then a constant and drops out, up to the
     small change of the numerator's shape under e = r·τ, which is ignored).
   - The old term of 2.0 is not fitted again in the re-test (its results are in section 5).
   - Verdicts use term E. Term N is a sensitivity: each -SEL label is also computed with term N, by the
     same rules and with its own mocks, and the label is reported as "selection-term robust" if the
-    two agree and "selection-term sensitive" otherwise. Term N never replaces term E for a label.
+    two bare labels agree (the verdict without its robustness qualifiers) and "selection-term
+    sensitive" otherwise. Term N never replaces term E for a label.
 
 - **SEL-2 Mock generator (all re-test mock sets).** As 2.1/2.3 except how r is drawn and how the
   mock's own term is built.
@@ -360,7 +372,8 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
     contains τ. The observed age and catalogue error follow under each mechanism as in `mocks.observe`
     (e = r·τ or e = r·A). Keying by τ, not by the star's observed age, avoids a circular draw; under
     e = r·A the true pass probability of a star of latent age τ is then exactly π_s,b(τ), while under
-    e = r·τ it differs (the cut depends on z), so the two mechanisms bracket the term's accuracy.
+    e = r·τ it differs (the cut depends on z), so the two mechanisms test term E under two
+    misspecifications (a conservative test).
     This replaces the joint resampling of ([Fe/H], r) rows (sample A and identifiability mocks) and
     the slice pools of the misspecification mocks; old-sequence and background stars use the same
     rule.
@@ -383,26 +396,35 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
   d < d*, power ≥ 80% under both mechanisms, verdict rule), with three variants: S15 with term E
   (primary), S15 with term N, and Full (denominator 1; changes only through SEL-2 mocks, the power
   floor and the mock count). Changes:
-  - *Power floor:* the old weight is max(raw fraction, **0.20**) instead of max(raw, 0.10). Reason:
-    the floor exists "so that the valley rule can apply" (2.1); with weight w the generating model's
-    old-side mass is w·(1 − ε) with ε the old component's tail below the valley, so any w ≤ 0.10 fails
-    the 10% side-mass rule. 0.20 = 2 × side_mass leaves the generating model at least about 0.19 on
-    the old side (ε ≤ 3% for the young edges 6.5–7 Gyr and old means 8.6–11.7 Gyr of the power
-    models), and a factor-two margin for leakage of old mass across the valley in the deconvolved
-    fits. It is derived from the rule's arithmetic, not from any fit; for the record, it raises the
-    old weight of the two metal-rich bins from the seen raw fractions 0.094 and 0.121 to 0.20, so
-    their power refers to a model with about twice the α-selected old fraction (stated as a
-    limitation).
-  - *Edge loop:* the young edge is lowered in 0.5 Gyr steps only while the generating model **has a
-    valley** with true d > 0.1. If at edge 7.0 Gyr the generating model has no valley (d = 1, e.g.
-    by the side-mass rule), the edge is not moved, the bin's power model is flagged "invalid" and the
-    bin is "cannot resolve" by construction (reported separately from low-power bins). (The original
-    loop treated "no valley" as "d too large" and walked [−0.1, 0.1) down to 2.0 Gyr.) With the
-    0.20 floor the arithmetic above predicts a valley at 7.0 Gyr in every bin, and true d ≤ 0.1
-    after at most one step ([0.1, 0.3) to 6.5 Gyr, as before); the true d values are printed.
+  - *Power floor:* the old weight is max(raw fraction, **0.12**) instead of max(raw, 0.10). Reason,
+    from the rule's arithmetic only: the floor exists "so that the valley rule can apply" (2.1); with
+    weight w the generating model's old-side mass is w·(1 − ε), with ε the old component's tail below
+    the valley, and the 10% side-mass rule needs w·(1 − ε) ≥ 0.10. For the power models' young edges
+    (6.5–7 Gyr) and old means (8.6–11.7 Gyr), ε ≤ 3%, so w ≥ 0.103 is needed; 0.12 is the next round
+    value with a small margin. With 0.12 only the bin [−0.1, 0.1) is raised (seen raw fractions:
+    S15 0.094, Full 0.097); all other bins keep their raw fractions.
+  - *Floor sensitivity (fixed in advance, no label change):* R1-SEL's per-bin power and the verdict
+    are also computed with a floor of 0.20 (which also raises [−0.3, −0.1) and [0.1, 0.3)) and
+    reported next to the primary; the R1-SEL label is the one at 0.12. The null sets and d* are
+    shared; new power sets are run only where the generating model changes: bins [−0.3, −0.1),
+    [−0.1, 0.1) and [0.1, 0.3) in each of the three variants × two mechanisms = 18 sets of 50
+    (900 mocks), numbered after the 106 main sets (SEL-8).
+  - *Edge loop:* the young edge starts at 7.0 Gyr and is lowered in 0.5 Gyr steps (lowest edge
+    2.0 Gyr) only while the generating model **has a valley** with true d > 0.1. If at 7.0 Gyr the
+    generating model has no valley (d = 1, e.g. by the side-mass rule), the edge is not moved. If a
+    valley exists at 7.0 Gyr with d > 0.1 but disappears at a lower edge, the last edge that had a
+    valley is kept. If the loop ends without a valley with d ≤ 0.1 (either case above, or 2.0 Gyr
+    reached), the bin's power model is flagged "power model invalid" and the bin is "cannot resolve"
+    by construction (reported separately from low-power bins). (The original loop treated "no
+    valley" as "d too large" and walked [−0.1, 0.1) down to 2.0 Gyr.) Checked offline on the
+    generating models only (m0.tn_cells and m0.valley on the 0.05 Gyr grid, no data, using the seen
+    raw fractions): with the 0.12 floor every bin of S15 and Full has a valley at 7.025 Gyr with
+    true d ≤ 0.02 at edge 7.0 (old-side mass ≥ 0.118), except [0.1, 0.3), whose d = 0.151 at
+    7.0 Gyr becomes 0.038 at 6.5 Gyr (as in the original run); the same holds at the 0.20 floor.
+    The true d values are printed by run.py.
   - *Mocks:* 50 per set, SEL-2 generator, S15 term-E and term-N mocks fitted with the term under test.
   - *Labels:* R1-SEL = the 2.1 verdict on S15 term E. "Robust" as in 2.1 if Full gives the same
-    verdict; "selection-term robust" if S15 term N gives the same verdict.
+    verdict; "selection-term robust" if S15 term N gives the same bare verdict.
 
 - **SEL-4 R3-SEL / R4-SEL.** Sample A fitted with term E (primary) and term N, same model, starts and
   Hessian errors as 2.3. f_max is recomputed by the 2.0 definition with σ_sel from the term-E fit
@@ -415,18 +437,21 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
   Verdict rules unchanged (R3: |a| × 1.5 in 4.5–6.5 Gyr; R4: |σ_sel − 0.82| ≤ 0.1 Gyr at f = 1).
   Robustness sets as 2.3, with every S15 fit using term E (Full; a² e_[Fe/H]² added; for R3 also
   f = 0.8 and the recomputed f_max). The same procedure with term N gives the term-N labels for the
-  selection-term qualifier. The span truncated at [Fe/H] < −0.2 and < 0, the edge-drop, untruncated,
+  selection-term qualifier; for term N's own robustness set, f_max is recomputed from term N's
+  σ_sel, and the f-refits use term N. The qualifier compares the bare labels. The span truncated at [Fe/H] < −0.2 and < 0, the edge-drop, untruncated,
   0.02 Gyr grid, 40-class and no-compression fits are repeated with term E and reported without
   verdict; the 50 bootstrap resamples of σ_sel are run for term E only.
 
 - **SEL-5 intrinsic-SEL.** Sample B's mixture (2.3) fitted with term E (primary) and term N (8 starts
-  around the same term's sample-A fit, plus that fit's f = 1 optimum for the f-variants, as in 2.0).
+  around the same term's sample-A fit; the f-variants add, as in 2.0, sample B's own f = 1 optimum
+  under the same term).
   Identifiability and misspecification mocks: 50 per mechanism per term (8 sets), SEL-2 generator.
   Rules unchanged: cannot determine if |bias| > 0.1 Gyr in any of the term's four sets; otherwise SE
   = max(Hessian SE, s.d. of recovered σ_int over the term's identifiability mocks of both mechanisms)
   and confirmed if σ_int + 1.645 SE < 0.82, not confirmed if σ_int − 1.645 SE ≥ 0.82, cannot
   determine otherwise; "robust" if f = 0.8 and the recomputed f_max give the same label (both refits
-  with term E); "selection-term robust" if term N gives the same label.
+  with term E); "selection-term robust" if term N gives the same bare label (term N's own f-refits
+  use term N and f_max recomputed from term N's sample-A σ_sel).
 
 - **SEL-6 Reported without verdict.** The pass tables (counts, π per slice and bin); the R2
   deconvolved latent Gaussian (S15 term E and term N, next to 12.19 and 12.59); the Fig. 2e fit with
@@ -441,24 +466,32 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
   - *Mock count:* 50 per set, with **no reduced fallback** (the 4 h / 30-mock rule of 2.1 does not
     apply to the re-test). R1 q_s is the 3rd smallest of 50.
   - *Sets:* R1: 3 variants × 5 bins × 6 sets = 90; sample A recovery: 2 terms × 2 mechanisms = 4;
-    sample B: 2 kinds × 2 mechanisms × 2 terms = 8; SEL-2 diagnostic: 4. In all 106 sets, 5,300 mocks.
-  - *Seeds:* mock j of set k (sets enumerated in the order above, bins in order, sample variants in
-    the order S15-E, S15-N, Full, kinds null_sn, null_sp, power, mechanisms rtau, rA) uses its own
+    sample B: 2 kinds × 2 mechanisms × 2 terms = 8; SEL-2 diagnostic: 4. In all 106 main sets,
+    5,300 mocks, plus the 18 floor-sensitivity power sets (900 mocks).
+  - *Seeds:* sets are numbered k = 0, 1, … in this loop nest (outermost first): R1 sets: variant
+    (S15-E, S15-N, Full) > bin (in order) > kind (null_sn, null_sp, power) > mechanism (rtau, rA),
+    k = 0–89; then sample-A recovery: term (E, N) > mechanism, k = 90–93; then sample B: term (E, N) >
+    kind (identifiability, misspecification) > mechanism, k = 94–101; then the SEL-2 diagnostic:
+    term (E, N) > mechanism, k = 102–105 (106 sets); then the floor-0.20 power sets of SEL-3:
+    variant > bin (the three listed there, in order) > mechanism, k = 106–123. Mock j (j = 0…49) of set k uses its own
     stream `default_rng([seed, 31, k, j])`; data fits keep the 2.0 streams, with R1 sample codes
     0 = S15 term E, 1 = Full, 2 = S15 term N. Per-mock streams make an interrupted run resumable with
     identical results.
   - *Runtime estimate:* the original 66 sets averaged about 4.7 s per mock (projection 4.29 h for
-    3,300 mocks; 2.55 h for 1,914). Splitting that average between R1 (60 sets) and samples A/B
+    3,300 mocks; 2.55 h for the 1,914 mocks after the 66 timing mocks, which are not included).
+    Splitting that average between R1 (60 sets) and samples A/B
     (6 sets) is not recorded; a consistent range is 3.5–4.5 s per R1 mock and 7–17 s per A/B mock.
     Term E adds one pass table and one P matrix per mock: about 21 Gaussian-CDF evaluations per
     (cell, latent cell) pair, < 0.1 s for 1-D R1 cells and about 1–3 s for the grouped samples. Hence:
-    R1 4,500 mocks ≈ 4.4–5.6 h; A/B 800 mocks ≈ 1.9–4.5 h; mocks in all ≈ 6.3–10 h; data fits
+    R1 4,500 mocks ≈ 4.4–5.6 h; floor-sensitivity 900 mocks ≈ 0.9–1.1 h; A/B 800 mocks ≈ 1.9–4.5 h;
+    mocks in all ≈ 7.2–11.2 h; data fits
     (R1 15 bin-variants at 40 starts, samples A/B with both terms and their variants, bootstrap)
-    ≈ 1–1.5 h (the original non-mock stage took about 1 h including R7). Total ≈ 7.5–11.5 h, run in the
+    ≈ 1–1.5 h (the original non-mock stage took about 1 h including R7). Total ≈ 8.5–12.5 h, run in the
     background on an otherwise idle machine (no other study's run at the same time; recorded in
-    `log.md`). run.py times the first mock of every set and prints the projection; if
-    projection + elapsed exceeds 16 h, it stops before the remaining mocks and the user is asked
-    (mock counts are never reduced).
+    `log.md`). run.py times the first mock of every set and prints the projection; the check is
+    repeated after every completed set, with projection = elapsed + remaining mocks × mean time per
+    mock so far; whenever it exceeds 16 h, run.py stops before the remaining mocks and the user is
+    asked (mock counts are never reduced).
   - *Memory:* the grouped likelihoods hold K and P (cells × 400 latent cells, float64) plus about
     four temporaries of the same size in `_ll_q`; sample B (≈ 79,000 S15 stars, tens of thousands of
     cells) needs about 1 GB at peak, the no-compression checks about 1.5 GB. Term E does not add a
@@ -484,8 +517,8 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
   error mechanism itself (under e = r·τ with r independent of τ, stars scattered to older A pass more
   often, so π can rise with A without a true τ dependence): the e = r·τ mocks test exactly this.
   Keying r by τ in the mocks approximates the data's dependence on observed age. The star's own
-  kernel is used in the denominator. The R1 power floor makes the metal-rich bins' power models
-  richer in old stars than the α-selected fraction. Mock fits still start from the data fit with
+  kernel is used in the denominator. The R1 power floor makes the power model of bin [−0.1, 0.1)
+  slightly richer in old stars (0.12) than its α-selected fraction (0.094 S15, 0.097 Full). Mock fits still start from the data fit with
   3 starts (section 6, point 5).
 
 ## 3. Data (with size estimate)
