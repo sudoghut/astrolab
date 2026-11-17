@@ -238,7 +238,8 @@ evaluable" for that covariance.
   coordinates (maxiter 20,000, xatol 10⁻⁸, fatol 10⁻¹⁰; χ² = 10³⁰ outside the bounds) from 20 starts
   drawn uniformly in the fitted coordinates themselves (log10 M0 ∈ [10, 14], h ∈ [0, 20], 1/n ∈ [0, 5];
   log10 ρ_s ∈ [4, 10], log10 r_s ∈ [0, 2]; log10 ρ₋₂ ∈ [3, 10], log10 r₋₂ ∈ [0, log10 300]) with a
-  fresh `default_rng(0)` for every fit (start by start, each coordinate in the order listed drawn with
+  fresh `default_rng(0)` created once per fit (one model at one covariance value) and then used for
+  its 20 starts in turn (start by start, each coordinate in the order listed drawn with
   `rng.uniform(lo, hi)`), plus one fixed extra start: the starts used for R2 and R5
   (free Einasto M0 = 3.7 × 10¹¹ M☉, h = 12 kpc, 1/n = 2.4; NFW log10 ρ_s = 7.0, log10 r_s = 1.2) and,
   for the ΛCDM-like model, ρ₋₂ = 10⁶ M☉/kpc³, r₋₂ = 20 kpc. The best fit is
