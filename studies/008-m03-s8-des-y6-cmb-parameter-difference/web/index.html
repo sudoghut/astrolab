@@ -25,7 +25,7 @@
 <main>
   <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 008-m03-s8-des-y6-cmb-parameter-difference</p>
   <h1><span class="en">Has the S8 tension eased? DES Y6 against the CMB</span><span class="zh">S8 张力减弱了吗？DES Y6 与 CMB 的比较</span></h1>
-  <p class="muted"><span class="en">Paper: DES Y6 3x2pt (arXiv:2601.14559). Pre-registration in the study <code>README.md</code> sections 1–4. R1 and R2 carry verdicts; R3–R5 are descriptive or exploratory. S8 = σ8 (Ωm/0.3)^0.5.</span><span class="zh">论文：DES Y6 3x2pt（arXiv:2601.14559）。预注册见研究 <code>README.md</code> 第 1–4 节。只有 R1 与 R2 给出判决；R3–R5 是描述性或探索性的。S8 = σ8 (Ωm/0.3)^0.5。</span></p>
+  <p class="muted"><span class="en">Paper: DES Y6 3x2pt (arXiv:2601.14559). Pre-registration in the study <code>README.md</code> sections 1–4. R1, R2 and R6 (added 2026-11-16) carry verdicts; R3–R5 are descriptive or exploratory. S8 = σ8 (Ωm/0.3)^0.5.</span><span class="zh">论文：DES Y6 3x2pt（arXiv:2601.14559）。预注册见研究 <code>README.md</code> 第 1–4 节。R1、R2 与 R6（2026-11-16 补充）给出判决；R3–R5 是描述性或探索性的。S8 = σ8 (Ωm/0.3)^0.5。</span></p>
 
   <div class="grid" id="cards"></div>
 
@@ -40,6 +40,10 @@
   <h2><span class="en">R4 · Sensitivity (exploration)</span><span class="zh">R4 · 敏感度（探索）</span></h2>
   <div class="scroll"><table id="r4"></table></div>
   <p class="muted" id="r4note"></p>
+
+  <h2><span class="en">R6 · Full-space difference with normalizing flows (addendum 2026-11-16)</span><span class="zh">R6 · 用归一化流估计完整空间的差异（补充 2026-11-16）</span></h2>
+  <div class="scroll"><table id="r6"></table></div>
+  <p class="muted" id="r6note"></p>
   <p class="muted" id="err"></p>
 </main>
 <script>
@@ -48,10 +52,10 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', 
 const f = (x, d = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '–' : Number(x).toFixed(d);
 const get = n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`${n}.json: HTTP ${r.status}`); return r.json(); });
 const card = (t, v, cls, note) => `<div class="card"><div class="muted">${t}</div><div class="big ${cls || ''}">${v}</div><div class="muted">${note || ''}</div></div>`;
-const vz = v => ({'reproduced': '复现', 'not reproduced': '未复现'})[v] || v;
+const vz = v => ({'reproduced': '复现', 'not reproduced': '未复现', 'not evaluable': '无法评估'})[v] || v;
 
 function render(d) {
-  const {r1, r2, r3, r4, r5} = d;
+  const {r1, r2, r3, r4, r5, r6} = d;
   const okc = v => v === 'reproduced' ? 'good' : 'bad';
   document.getElementById('cards').innerHTML =
     card(L('R1 · chain means', 'R1 · 链的均值'), ['cmb', 'des_3x2pt', 'des_xipm'].every(k => r1[k].verdict === 'reproduced') ? L('3 / 3 reproduced', '3 / 3 复现') : L('see table', '见表'), ['cmb', 'des_3x2pt', 'des_xipm'].every(k => r1[k].verdict === 'reproduced') ? 'good' : 'bad',
@@ -107,14 +111,41 @@ function render(d) {
   if (fs.all && fs.all.status === 'ok') g += `<tr><td>${L(`Full space, Gaussian (${fs.all.k} parameters)`, `全空间，高斯近似（${fs.all.k} 个参数）`)}</td><td>${f(fs.all.n_sigma)}</td></tr>`;
   if (fs.constrained && fs.constrained.status === 'ok') g += `<tr><td>${L('Full space, Gaussian (data-constrained: A_s, Ωm)', '全空间，高斯近似（数据约束的 A_s、Ωm）')}</td><td>${f(fs.constrained.n_sigma)}</td></tr>`;
   document.getElementById('r4').innerHTML = g;
+  renderR6(r6);
   document.getElementById('r4note').innerHTML = L(
     'The Gaussian full-space numbers depend on the parametrization (post hoc, after the referee): 0.32σ in (A_s, Ωm) but 2.21σ in (S8, Ωm), and 1.48σ for the six parameters with S8 in place of A_s. None of them is a test of D26\'s flow-based 1.8σ.',
     '全空间的高斯近似数字依赖参数化（审稿后事后补做）：(A_s, Ωm) 上 0.32σ，(S8, Ωm) 上 2.21σ，以 S8 代替 A_s 的六参数为 1.48σ。它们都不是对 D26 基于归一化流的 1.8σ 的检验。');
 }
 
+function renderR6(r6) {
+  const t = document.getElementById('r6'), note = document.getElementById('r6note');
+  if (!r6 || !r6.flows) { t.innerHTML = ''; note.innerHTML = L('R6 has not been run.', 'R6 尚未运行。'); return; }
+  const fl = r6.flows, ref = {main: L(`D26 1.8; Gaussian ${f(r6.gaussian_reference.all, 2)}`, `D26 1.8；高斯 ${f(r6.gaussian_reference.all, 2)}`),
+    s8_for_as: L('Gaussian 1.48 (R4, post hoc)', '高斯 1.48（R4，事后）'),
+    constrained: L(`binned KDE ${f(r6.kde_reference.constrained)}; Gaussian ${f(r6.gaussian_reference.constrained)}`, `分箱核密度估计 ${f(r6.kde_reference.constrained)}；高斯 ${f(r6.gaussian_reference.constrained)}`),
+    flow_2d: L(`binned KDE (R2) ${f(r6.kde_reference['2d'])}`, `分箱核密度估计（R2）${f(r6.kde_reference['2d'])}`)};
+  const names = {gate: L('Known-answer gate (synthetic 6-D)', '已知答案闸门（合成 6 维）'),
+    main: L('<b>Main: (A_s, h, Σmν, n_s, Ωb, Ωm)</b>', '<b>主情形：(A_s, h, Σmν, n_s, Ωb, Ωm)</b>'),
+    s8_for_as: L('S8 in place of A_s', '以 S8 代替 A_s'), constrained: '(A_s, Ωm)', flow_2d: '(S8, Ωm)'};
+  let h = `<tr><th>${L('Case', '情形')}</th><th>${L('n_σ per seed', '各种子的 n_σ')}</th><th>n̄</th><th>s</th><th>${L('reference', '参照')}</th></tr>`;
+  for (const c of ['gate', 'main', 's8_for_as', 'constrained', 'flow_2d']) {
+    const v = fl[c]; if (!v) continue;
+    const vals = v.repetitions.map(r => f(r.n_sigma)).join(', ');
+    const nb = c === 'gate' ? fl.gate.mean : v.n_bar;
+    const rf = c === 'gate' ? L(`exact ${f(fl.gate.exact.n_sigma)}; ${fl.gate.passed ? 'passed' : 'failed'}`, `精确值 ${f(fl.gate.exact.n_sigma)}；${fl.gate.passed ? '通过' : '未通过'}`) : ref[c];
+    h += `<tr><td>${names[c]}</td><td>${vals}</td><td>${f(nb)}</td><td>${c === 'gate' ? '–' : f(v.s)}</td><td>${rf}</td></tr>`;
+  }
+  h += `<tr><td>${L('S8 alone (1-D)', '只用 S8（1 维）')}</td><td>${L('not run', '未运行')}</td><td>–</td><td>–</td><td>${L(`binned KDE (R2) ${f(r6.kde_reference['1d'])}`, `分箱核密度估计（R2）${f(r6.kde_reference['1d'])}`)}</td></tr>`;
+  t.innerHTML = h;
+  note.innerHTML = L(
+    `Verdict: <b>${esc(r6.verdict)}</b> (${r6.reason.startsWith('s = ') ? `s = ${f(fl.main.s)} > 0.07` : esc(r6.reason)}; the registered stability limit is s ≤ 0.07). Descriptive: the five trainings give 1.6–1.9σ around D26's 1.8σ; one flow training moves n_σ by about 0.1σ. Unlike the Gaussian approximation, the flow gives nearly the same value with A_s or S8. The 1-D flow was not run: tensiometer 1.1.0 loops forever in one dimension (amendment 2026-11-18).`,
+    `判决：<b>${vz(r6.verdict)}</b>（${r6.reason.startsWith('s = ') ? `s = ${f(fl.main.s)} > 0.07` : esc(r6.reason)}；预注册的稳定性上限为 s ≤ 0.07）。描述：五次训练给出 1.6–1.9σ，围绕 D26 的 1.8σ；一次流训练使 n_σ 变动约 0.1σ。与高斯近似不同，用 A_s 或 S8 时流给出几乎相同的值。1 维流未运行：tensiometer 1.1.0 在一维时陷入死循环（2026-11-18 的修订）。`);
+}
+
 let data = null;
-Promise.all(['r1', 'r2', 'r3', 'r4', 'r5'].map(get))
-  .then(([r1, r2, r3, r4, r5]) => { data = {r1, r2, r3, r4, r5}; render(data); i18n.onLangChange(() => render(data)); })
+const getOpt = n => get(n).catch(() => null);
+Promise.all([...['r1', 'r2', 'r3', 'r4', 'r5'].map(get), getOpt('r6')])
+  .then(([r1, r2, r3, r4, r5, r6]) => { data = {r1, r2, r3, r4, r5, r6}; render(data); i18n.onLangChange(() => render(data)); })
   .catch(e => { document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + esc(e); });
 </script>
 </body>

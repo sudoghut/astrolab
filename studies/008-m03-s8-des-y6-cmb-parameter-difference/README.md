@@ -450,12 +450,52 @@ KiDS-1000, HSC Y3 2023) at 1.4–3.1σ from this CMB; the other current probes (
 moved a lot (2.9–3.1σ to 1.0σ), DES a little (2.83σ to 2.67σ), HSC hardly at all (1.4–1.9σ to
 1.74σ). eROSITA lies above the CMB, the lensing probes below it.
 
+**R6-FLOW (verdict, addendum 2026-11-16, section 2.6): not evaluable.** Run of 2026-11-18
+(`python -m astrolab run 008`, 10,583 s; tensiometer 1.1.0, TensorFlow 2.21.0, legacy Keras; all
+earlier results reproduce exactly, only timing and provenance fields changed). Numbers from
+`results/r6.json`; every repetition converged, none was a lower bound; each training took
+about 12.5 minutes (6-D) or 5 minutes (2-D).
+
+| Case | n_σ per seed | n̄ | s | reference |
+|---|---|---|---|---|
+| Known-answer gate (synthetic 6-D; seeds 10–12) | 2.374, 2.273, 2.541 | 2.396 | – | exact 2.371: mean within 0.10, each within 0.20, **passed** |
+| **Main: (A_s, h, Σmν, n_s, Ωb, Ωm), seeds 0–4** | 1.857, 1.643, 1.719, 1.605, 1.669 | **1.699** | **0.098** | D26 1.8; Gaussian 0.887 |
+| S8 in place of A_s (seeds 0–2) | 1.749, 1.670, 1.722 | 1.714 | 0.041 | Gaussian 1.48 |
+| (A_s, Ωm) (seeds 0–2) | 0.396, 0.405, 0.401 | 0.401 | 0.004 | binned KDE, same run, 0.381; Gaussian 0.323 |
+| (S8, Ωm) (seeds 0–2) | 2.158, 2.126, 2.144 | 2.143 | 0.016 | binned KDE (R2) 2.178 |
+| S8 alone (1-D) | not run (amendment 2026-11-18) | – | – | binned KDE (R2) 2.674 |
+
+- **Verdict.** Conditions (1)–(5) of section 2.6 do not apply: the R1 gate and the known-answer gate
+  passed, all five repetitions converged with finite n_σ, prior support passed (no weight of either
+  chain outside the other's prior range for any of the six parameters), and no repetition is a lower
+  bound. Condition (6) applies: s = 0.098 > 0.07, so R6 is **not evaluable**, and the band rule is not
+  applied. No rerun with other settings, as registered.
+- **Descriptive (not a verdict).** The five main-case values span 1.61–1.86σ around D26's single
+  1.8σ; their mean, 1.70, lies 0.10 below it. Training noise is the limiting factor: one flow
+  training moves n_σ by about 0.1σ (s = 0.098 on the chains; the three gate values scatter by 0.13
+  on the synthetic case), so a single flow number such as D26's 1.8σ carries a training uncertainty
+  of about this size, which D26 does not quote.
+- **Parametrization (descriptive).** Unlike the Gaussian approximation of R4 (0.89σ with A_s,
+  1.48σ with S8), the flow gives nearly the same value in both parametrizations (seeds 0–2: 1.740
+  with A_s, 1.714 with S8). On the two planes where both estimators exist, flow and binned KDE agree
+  within 0.04σ ((A_s, Ωm) 0.401 against 0.381; (S8, Ωm) 2.143 against 2.178).
+- *Post hoc remark (2026-11-18, not a change of rule):* section 2.6 accepted a 10% chance of "not
+  evaluable" if the true spread were 0.05; the observed spreads (0.098 on the chains, 0.13 in the
+  gate) suggest a true spread of about 0.1, for which s > 0.07 is the likely outcome. The 0.07
+  threshold was set from the design runs without a measured spread; this is recorded, the label
+  stands.
+
 **Reading.** The public chains reproduce D26's inputs and its 1-D and 2-D differences: the numbers
 behind the conclusion are reproduced. Whether 2.6–2.7σ is "no substantial evidence" is the interpretation
 step `gap_conv` of the wiki's Lean analysis (a 3σ-as-evidence usage, not stated by D26); the numbers
 show how close it is to that line (2.67σ, and 2.44–2.55σ under D26's own projection-effect estimates).
 For DES the "easing" is small: the earlier DES Y3 result was 2.83σ from this CMB, the Y6 3x2pt
 result 2.67σ. Most of the easing in R5 comes from KiDS.
+
+- **Full space (R6, added 2026-11-18).** The flow estimate of the six-parameter difference is
+  1.6–1.9σ over five trainings (mean 1.70), around D26's 1.8σ, but its training scatter (0.1σ)
+  exceeds the registered stability limit, so R6 gives no verdict. The full-space number is not
+  reproduced or refuted; it is bracketed.
 
 ## 6. Referee notes
 
@@ -492,8 +532,9 @@ the cached chains with the study's own functions and downloaded nothing). Triage
 
 ## 7. Open questions
 
-1. The full-space 1.8σ needs a non-Gaussian density estimate (normalizing flows, as D26); installing
-   tensiometer and TensorFlow needs the user's consent.
+1. The full-space 1.8σ: R6 (2026-11-18) brackets it at 1.6–1.9σ but is not evaluable because one flow
+   training scatters by about 0.1σ. A verdict would need a new, pre-registered estimator whose
+   scatter is measured first (for example the mean of more trainings, or a flow ensemble).
 2. How much does the S8 difference change with a lensing-inclusive or Planck-PR4-based CMB
    (D26 reports 1.0σ in full space against Planck 2018 alone)?
 3. Do KiDS-1000 and HSC Y3 (2023) quote means or modes? R5 shows a 0.1–0.2σ dependence.
