@@ -276,12 +276,21 @@ C25 degrouping at 150 pc (374, 0.0066) changes C26's rule and also fails at −2
      - the error-only proxy σ̃ < 0.1, where σ̃ = 4.740470464/ϖ̄ · √((σ²_μα*,1 + σ²_μδ,1 + σ²_μα*,2 +
        σ²_μδ,2)/2) / v_c. It uses the N1 error columns pmra_error and pmdec_error only.
   2. Count the pairs per bin, multiply by the fixed factors 0.969, 0.937, 0.953, 0.899, 0.809,
-     0.521, and round each product to the nearest integer (halves up). The factors are T_j ×
-     (no-degrouping / relaxed-degrouping velocity-free counts at 130 pc), so they carry the remaining
-     ΔRV, ṽ-cap and σ(ṽ) attrition. This is an approximation: it assumes that the σ̃ attrition and
-     the FLAME/M_G mass difference do not depend on degrouping.
-  3. Apply the 15-pair merge rule of this section to the scaled-and-rounded counts. x_j is the
-     observed velocity-free median x of each final bin.
+     0.521, and round each product to the nearest integer (halves up).
+     - The factors are T_j × (no-degrouping / relaxed-degrouping velocity-free counts at 130 pc).
+       They are applied to the counts only, never to the pairs or their x.
+     - They stand for the steps that cannot be applied before velocities: the |ΔRV| cut, the ṽ cap,
+       and the residual between the σ̃ proxy and the true σ(ṽ) cut.
+     - They are not split by step, because the 130 pc results record that attrition per step only
+       as totals, not per bin.
+     - This is an approximation. It assumes that the σ̃ attrition and the FLAME/M_G mass difference
+       do not depend on degrouping.
+  3. Apply the 15-pair merge rule of this section to the scaled-and-rounded counts.
+     - x_j is the median x of the pairs in each final bin, taken over exactly the pairs that pass
+       step 1. That means every cut N1–N3 allow before velocities, including degrouping from N2,
+       masses from N3 and the σ̃ proxy; it is the same set whose counts are scaled in step 2.
+     - Approximation: the remaining velocity steps are assumed independent of x within a bin. G2 is
+       the post-hoc guard.
   4. Compute L_N* and L_M* with `g1b()` in `explore/t034_power_mock.py`:
      - the pool from `default_rng(20261117)` with f_cal fixed at 1.227;
      - one fresh `default_rng(20261118)`;
@@ -443,7 +452,9 @@ asin(sin θ / cos δ). Every region is counted first and split if it reaches 50,
 - Each download is at most 50,000 rows × 720 B = 36 MB, under the 50 MB cap.
 
 *Restricted-join risk.* The archive may refuse or time out the restricted N2/N3 joins. In that case:
-- N2 and N3 fall back to the unrestricted queries, counted first.
+- N2 and N3 fall back to the unrestricted queries, counted first. Like all R5 queries they are
+  partitioned into the regions above, so each download stays ≤ 50,000 rows and ≤ 50 MB
+  (≤ 2 MB per region at 40 B per row).
 - If neither form completes before 2026-11-24, R5 is reported as "R5: not run (data not obtained)".
 
 *Schedule.* The Gaia archive is offline from 2026-11-25 to 12-02.
