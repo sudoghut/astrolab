@@ -14,7 +14,8 @@
   "tol_r1_sigma": 0.3,
   "tol_r1_err": 0.2,
   "drop_z": [],
-  "camb_check": true
+  "camb_check": true,
+  "camb_rd_check": true
  },
  "targets": {
   "R1": {
@@ -348,6 +349,21 @@
     "B": "reproduced"
    },
    "raw": {
+    "A": "not reproduced",
+    "B": "reproduced"
+   }
+  }
+ },
+ "R2_camb_rd": {
+  "conclusion": [
+   "R2 robust to the r_d formula"
+  ],
+  "verdicts": {
+   "anchored_rd": {
+    "A": "not reproduced",
+    "B": "reproduced"
+   },
+   "raw_rd": {
     "A": "not reproduced",
     "B": "reproduced"
    }
