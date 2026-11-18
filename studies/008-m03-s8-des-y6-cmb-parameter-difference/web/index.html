@@ -130,9 +130,9 @@ function renderR6(r6) {
   let h = `<tr><th>${L('Case', '情形')}</th><th>${L('n_σ per seed', '各种子的 n_σ')}</th><th>n̄</th><th>s</th><th>${L('reference', '参照')}</th></tr>`;
   for (const c of ['gate', 'main', 's8_for_as', 'constrained', 'flow_2d']) {
     const v = fl[c]; if (!v) continue;
-    const vals = v.repetitions.map(r => f(r.n_sigma)).join(', ');
+    const vals = (v.repetitions || []).map(r => f(r.n_sigma)).join(', ');
     const nb = c === 'gate' ? fl.gate.mean : v.n_bar;
-    const rf = c === 'gate' ? L(`exact ${f(fl.gate.exact.n_sigma)}; ${fl.gate.passed ? 'passed' : 'failed'}`, `精确值 ${f(fl.gate.exact.n_sigma)}；${fl.gate.passed ? '通过' : '未通过'}`) : ref[c];
+    const rf = c === 'gate' ? L(`exact ${f((fl.gate.exact || {}).n_sigma)}; ${fl.gate.passed ? 'passed' : 'failed'}`, `精确值 ${f((fl.gate.exact || {}).n_sigma)}；${fl.gate.passed ? '通过' : '未通过'}`) : ref[c];
     h += `<tr><td>${names[c]}</td><td>${vals}</td><td>${f(nb)}</td><td>${c === 'gate' ? '–' : f(v.s)}</td><td>${rf}</td></tr>`;
   }
   h += `<tr><td>${L('S8 alone (1-D)', '只用 S8（1 维）')}</td><td>${L('not run', '未运行')}</td><td>–</td><td>–</td><td>${L(`binned KDE (R2) ${f(r6.kde_reference['1d'])}`, `分箱核密度估计（R2）${f(r6.kde_reference['1d'])}`)}</td></tr>`;

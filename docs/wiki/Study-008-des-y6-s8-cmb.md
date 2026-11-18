@@ -7,7 +7,7 @@
 Status: reproduced. Last updated: 2026-11-18 (see the changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：S8 张力减弱了吗？DES Y6 与 CMB 的比较。状态：已复现。论文：DES Collaboration（T. M. C. Abbott 等）2026，arXiv:2601.14559（v2）。研究：[`studies/008-m03-s8-des-y6-cmb-parameter-difference`](https://github.com/sudoghut/astrolab/tree/main/studies/008-m03-s8-des-y6-cmb-parameter-difference)。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：S8 张力减弱了吗？DES Y6 与 CMB 的比较。状态：已复现。论文：DES Collaboration（T. M. C. Abbott 等）2026，arXiv:2601.14559（v2）。研究：[`studies/008-m03-s8-des-y6-cmb-parameter-difference`](https://github.com/sudoghut/astrolab/tree/main/studies/008-m03-s8-des-y6-cmb-parameter-difference)。最后更新：2026-11-18（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -337,7 +337,7 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
   a stalled run; amendment of 2026-11-18).
 - **Post hoc (referee): the full-space number may be mostly Σmν.** The CMB chain's neutrino mass
   sits against the prior edge at 0.06 eV, while DES barely constrains it; Σmν alone gives a 1-D
-  difference of 1.74σ, each other parameter 0.27–0.88σ. If the six-parameter 1.8σ is carried by
+  difference of 1.74σ, each other parameter 0.21–0.89σ. If the six-parameter 1.8σ is carried by
   this prior-edge direction, it says little about the data-constrained directions (where the flow
   gives 0.40σ for (A_s, Ωm)). A 1-D number does not decide the 6-D one; a 5-D flow without Σmν is
   registered as T-040.
@@ -582,8 +582,8 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 - **D26 结论所依据的数字由公开链复现。** S8 均值：CMB 0.8357，DES 3x2pt 0.7893，DES 宇宙剪切 0.7834，与发表值之差都在 0.001 以内。直接按 D26 的式 17–19、用校准过的分箱密度估计（binned density estimate）计算参数差异：**S8 上 2.67σ ± 0.03**（D26：2.6σ），**S8–Ωm 上 2.18σ ± 0.03**（D26：2.2σ），都在预注册容差内（不确定度来自审稿后补做的、对链的行的自助法（bootstrap）重抽样）。先验支撑（Ωm、A_s）检验通过。比 2.6 略高的 0.07σ 约为一个自助法标准差。
 - **离 3σ 多近取决于投影效应。** 按 D26 自己的模拟偏差（+0.17σ）平移 DES 得 2.55σ；以 MAP 为中心得 2.44σ。所以 S8 的数字在约 2.4σ 到 2.7σ 之间：每种变体都低于非正式的 3σ 线，但只差 0.3–0.6σ。这算不算"没有实质证据"，正是第二部分的缺口 `gap_conv`。
 - **全空间需要归一化流。** 在采样参数中作高斯近似得到 0.89σ，而且它依赖坐标：(A_s, Ωm) 上 0.32σ，(S8, Ωm) 上 2.21σ，以 S8 代替 A_s 时 1.48σ（审稿后事后补做）。S8 是 A_s 与 Ωm 的非线性组合，DES 中好几个参数主要由先验决定，所以在采样坐标中作高斯近似会冲淡差别。这就是 D26 用归一化流的原因；没有哪个高斯数字能检验 1.8σ。
-- **用归一化流估计完整空间（R6，2026-11-16 的补充，2026-11-18 运行）：无法评估，但被框定。** 用 tensiometer 的默认流（在 tensiometer 1.1.0 中，它的十轮"种群"是从一次初始化接着训练，而不是重新开始，由审稿人发现），六参数差异的五个独立估计为 1.86、1.64、1.72、1.61 与 1.67σ（均值 1.70），D26 给出单个 1.8σ。一个已知答案的合成检验通过（均值 2.40，精确值 2.37）。预注册的稳定性上限（离散 s ≤ 0.07）未满足，s = 0.098，所以 R6 不给判决。这次运行说明：一次流训练使结果变动约 0.1σ，D26 的单个数字同样带有这一不确定度，但没有给出。与高斯近似不同，流几乎不依赖坐标（相同种子下用 A_s 为 1.74σ，用 S8 为 1.71σ），在两种估计都有的两个平面上与分箱密度估计相差不超过 0.04σ。1 维的流无法运行：tensiometer 1.1.0 在一维时陷入死循环（在一次停滞的运行之后发现；2026-11-18 的修订）。
-- **事后（审稿）：完整空间的数字可能主要来自 Σmν。** CMB 链的中微子质量紧贴先验边界 0.06 eV，而 DES 几乎没有约束它；只用 Σmν 的 1 维差异为 1.74σ，其他每个参数为 0.27–0.88σ。如果六参数的 1.8σ 由这个先验边界方向承载，它对数据约束的方向说明不了多少（在 (A_s, Ωm) 上流给出 0.40σ）。1 维的数字不能决定 6 维的数字；不含 Σmν 的 5 维流登记为 T-040。
+- **用归一化流估计完整空间（R6，2026-11-16 的补充，2026-11-18 运行）：无法评估，但被框定。** 用 tensiometer 的默认流（在 tensiometer 1.1.0 中，它的十轮"种群"（population）是从一次初始化接着训练（热启动，warm restart），而不是重新开始，由审稿人发现），六参数差异的五个独立估计为 1.86、1.64、1.72、1.61 与 1.67σ（均值 1.70），D26 给出单个 1.8σ。一个已知答案的合成检验通过（均值 2.40，精确值 2.37）。预注册的稳定性上限（离散 s ≤ 0.07）未满足，s = 0.098，所以 R6 不给判决。这次运行说明：一次流训练使结果变动约 0.1σ，D26 的单个数字同样带有这一不确定度，但没有给出。与高斯近似不同，流几乎不依赖坐标（相同种子下用 A_s 为 1.74σ，用 S8 为 1.71σ），在两种估计都有的两个平面上与分箱密度估计相差不超过 0.04σ。1 维的流无法运行：tensiometer 1.1.0 在一维时陷入死循环（infinite loop）（在一次停滞的运行之后发现；2026-11-18 的修订）。
+- **事后（审稿）：完整空间的数字可能主要来自 Σmν。** CMB 链的中微子质量紧贴先验边界 0.06 eV，而 DES 几乎没有约束它；只用 Σmν 的 1 维差异为 1.74σ，其他每个参数为 0.21–0.89σ。如果六参数的 1.8σ 由这个先验边界方向承载，它对数据约束的方向说明不了多少（在 (A_s, Ωm) 上流给出 0.40σ）。1 维的数字不能决定 6 维的数字；不含 Σmν 的 5 维流登记为 T-040。
 - **用同一把尺子量"减弱"。** 对同一条 CMB 链，上一代为 1.4–3.1σ（DES Y3 2.83σ，KiDS-1000 2.92–3.14σ，HSC Y3 2023 1.44–1.93σ），当前其他探针为 0.2–1.7σ（KiDS-Legacy 1.04σ，HSC Y3 2025 1.74σ，ACT 透镜 0.18σ，eROSITA 在 CMB 之上 1.51σ）；DES Y6 3x2pt 为 2.67σ。逐个巡天看：KiDS 移动很大（2.9–3.1σ 到 1.0σ），DES 移动很小（2.83σ 到 2.67σ），HSC 几乎没动（1.4–1.9σ 到 1.74σ）。所以"减弱"主要是 KiDS 的结果，而不是所有巡天的普遍变化。（若较早的论文给出的是众数（mode，最可能值）而不是均值，KiDS-1000 3x2pt 为 2.93σ 而不是 3.14σ。）
 
 ### 术语表
@@ -610,7 +610,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 
 按时间倒序。
 
-- 2026-11-18：R6 的审稿：只用 Σmν 的差异为 1.74σ（CMB 链紧贴先验边界），完整空间的数字可能主要来自这个方向（T-040）；tensiometer 的十轮种群是同一次初始化的接续训练。
+- 2026-11-18：R6 的审稿：只用 Σmν 的差异为 1.74σ（CMB 链紧贴先验边界），完整空间的数字可能主要来自这个方向（T-040）；tensiometer 的十轮种群（population）是同一次初始化的接续训练（热启动，warm restart）。
 - 2026-11-18：R6（归一化流，T-027）：无法评估（训练离散 0.098 > 0.07）；五个估计 1.61–1.86σ，围绕 D26 的 1.8σ；流几乎不依赖参数化；1 维流未运行（tensiometer 在一维时陷入死循环）。
 - 2026-11-15：审稿：自助法不确定度（±0.03），全空间高斯数字依赖参数化，第 A 步修订标注为程序性说明，R5 的众数读法。
 - 2026-11-15：结果：R1 与 R2 复现（S8 上 2.67σ，S8–Ωm 上 2.18σ）；投影效应变体 2.44–2.55σ；全空间高斯近似依赖参数化；对同一 CMB，KiDS 由 2.9–3.1σ 变为 1.0σ，DES 由 2.83σ 变为 2.67σ，HSC 几乎没动。
