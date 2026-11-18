@@ -253,23 +253,29 @@ turns both off.
 rows and about 165 Cepheid rows), carries all three robustness signals. This addendum fixes two
 treatments in advance: (a) remove N5584 completely; (b) give all 37 hosts a heavy-tailed host effect,
 so that an outlier is down-weighted by the model rather than excluded. Literature (arXiv abstract
-pages read 2026-11-18): N5584's Cepheid distance agrees between JWST and HST (Riess et al. 2023,
-arXiv:2307.15806) and with TRGB distances (Jang & Lee 2015, arXiv:1506.03089; Anand et al. 2024,
-arXiv:2401.04776; Li et al. 2024, arXiv:2408.00065); Murakami et al. 2025 (arXiv:2503.09702) measure
-an MW-like dust law in N5584 from background galaxies. At abstract level this makes the SN side
-(2007af) the likelier source of the offset, but it is not established; the referee's descriptions of
-2401.04776 ("tip ambiguity") and 2503.09702 ("SN 2007af reddening") are not supported by the
-abstracts.
+pages read 2026-11-18): the JWST and HST Cepheid period–luminosity intercepts agree in N5584 (Riess
+et al. 2023, arXiv:2307.15806); Jang & Lee 2015 (arXiv:1506.03089) give a TRGB (tip of the red giant
+branch) modulus of 31.76 ± 0.04 ± 0.12 without a Cepheid comparison in the abstract; Anand et al.
+2024 (arXiv:2401.04776) report a mean TRGB–Cepheid difference over N1559 and N5584 together, and Li
+et al. 2024 (arXiv:2408.00065) a sample-mean agreement with N5584 among the hosts; Murakami et al.
+2025 (arXiv:2503.09702) measure an MW-like dust law in N5584 from background galaxies (SN 2007af is
+not mentioned). This is compatible with the SN side (2007af) being the source of the offset, but does
+not establish it; the referee's descriptions of 2401.04776 ("tip ambiguity") and 2503.09702 ("SN
+2007af reddening") are not supported by the abstracts.
 
 *Seen before this addendum.* Everything in sections 5–6, in particular: R2 z = −2.21 under C;
 R2-RE τ̂ = 0.077 (0.048–0.105), z' = −1.53; R2-RE-ROB part A without N5584: τ̂ = 0.0314, τ route
 z' = −2.04 ("supports"), data route z = −1.63 under C and −1.50 under V(0.031) (both "no effect
 detected"); part B p_τ = 0.072, p_spread = 0.021; the referee's approximate spread over subsets
 excluding N5584 1.027 (p = 0.33; excluding any other single host 1.21–1.34); N5584 has the largest
-leave-one-out χ² term (12.5 on 4 rows). So in (a) the reduced-system τ̂ and both host steps are
+leave-one-out χ² term (12.5 on 4 rows); the 37-host null τ̂ values of part B (`r2_re_rob.json`:
+230 of 400 at zero, 137 of 400 ≥ 0.0314). The reduced-system shifts are known: −0.0532 ± 0.0327
+under C and −0.0512 ± 0.0341 under V(0.031). So in (a) the reduced-system τ̂ and both host steps are
 already known (the removal is exactly part A's data route for N5584; the formal run only confirms
 them), and in (b) the direction is predictable: N5584 will get the smallest weight, and ν was chosen
-knowing that. Not yet run: any heavy-tailed fit, R4 on 36 hosts, the τ interval without N5584, and
+knowing that; the heavy-tailed model itself was chosen after the outlier was seen, with ν = 4, the
+conventional default of Lange, Little & Taylor (1989, JASA 84, 881). From the 37-host null τ̂ values and
+the referee's spread check, the expected (a) reading is "attributable to N5584". Not yet run: any heavy-tailed fit, R4 on 36 hosts, the τ interval without N5584, and
 null simulations on the reduced system.
 
 *Question.* (a) Without N5584, is the scatter of the calibrator SN rows consistent with C (τ and
@@ -285,7 +291,8 @@ effect, which row of R2's table does the host step give?
 - R2-RE on the reduced system: R2-RE's REML (restricted maximum likelihood) procedure with 36 groups,
   including the 68% interval; the host step under V(τ̂_N) and its row; R2-RE's bound and fit-failure
   rules.
-- R4-N: 10,000 draws from `default_rng(0)` with `rng.choice(36, 10, replace=False)` indexing the 36
+- R4-N: the ranked quantity is the CCHP shift of the 36-host system under C (Δ_h,N, relative to the
+  36-host reference fit); 10,000 draws from `default_rng(0)` (R4's index stream, mapped to different hosts) with `rng.choice(36, 10, replace=False)` indexing the 36
   remaining host columns in column order (fresh draws, not a reuse of the R4 subsets that happen to
   exclude N5584); R4's runtime guard; reported: the percentile of Δ_h with R4's 5/95 rule, the z
   percentile and the spread of Δ/σ; the same draws refitted under V(τ̂_N).
@@ -305,26 +312,34 @@ effect, which row of R2's table does the host step give?
   `infer.gls`'s kept columns. Iterate: P = [[A, B], [Bᵀ, D + diag(ω)/τ²]], m = P⁻¹b, S = P⁻¹;
   s_j = m_{u,j}² + S_{uu,jj}; ω_j ← (ν + 1)/(ν + s_j/τ²); τ² ← Σ_j ω_j s_j / 37. Two starts
   (τ = 0.077, ω = 1) and (τ = 0.20, ω = 1); stop when the largest relative change in τ² and in every
-  ω_j is below 10⁻⁸; at most 10,000 iterations.
-- Plug-in: V_T = C + Σ_j (τ̂²/ω̂_j) h_j h_jᵀ; the host step under V_T (`host_step_under`) gives Δ_T,
+  ω_j is below 10⁻⁸; at most 10,000 iterations. Each τ² update uses the ω just updated in the same
+  iteration (coordinate ascent on the evidence lower bound, ELBO); the fixed point maximises this
+  variational bound, not the Student-t restricted likelihood, and ω̂_j = E_q[w_j].
+- Plug-in (a definition: τ̂²/E_q[w_j], not E_q[τ²/w_j]): V_T = C + Σ_j (τ̂²/ω̂_j) h_j h_jᵀ; the host step under V_T (`host_step_under`) gives Δ_T,
   σ_T, z_T and R2's table gives the row.
-- Validity, each failure giving "not evaluable" with the reason: (1) with ω held at 1 the iteration
-  is EM for REML and must reproduce R2-RE's τ̂ within 10⁻³ and z' within 0.005; (2) both starts
-  converge and agree on τ̂ within 10⁻⁴, otherwise both fixed points are reported ("not evaluable
-  (multiple fixed points)"); (3) τ̂_T < 10⁻³ counts as zero (V_T = C, R2's row); τ̂_T > 0.5 − 10⁻³ is
-  "not evaluable (bound)"; (4) the Cholesky factor of V_T and both GLS fits succeed.
+- Validity, each failure giving "not evaluable" with the reason: (1) with ω held at 1 and started at
+  τ = 0.20 the iteration is EM for REML and must reproduce R2-RE's τ̂ within 10⁻⁴ and z' within 0.005;
+  (2) both starts converge within 10,000 iterations, otherwise "not evaluable (not converged)" with
+  the iteration count; (3) both converged starts agree on τ̂ within 10⁻⁴, otherwise both fixed points
+  are reported ("not evaluable (multiple fixed points)"); (4) τ̂_T < 10⁻³ counts as zero (V_T = C, R2's row); τ̂_T > 0.5 − 10⁻³ is
+  "not evaluable (bound)"; (5) the Cholesky factor of V_T and both GLS fits succeed. The same checks
+  apply to ν = 2 and 10, which are marked "reported, not evaluable" where they fail.
 
 *Decision rules and labels, fixed now.* R2-RE's row ("no host-selection effect detected") stays the
 headline; the R2 (2026-11-14), R2-RE and R2-RE-ROB verdicts and labels stay as recorded.
 - (a) The reduced system's R2 and R2-RE rows are reported, marked "known before this addendum". R4-N
   gets R4's label; B-N gets ROB's three-way labels. Reading: spread "consistent with C" and τ not
   "unusual" → "the excess calibrator scatter of R2-RE-ROB is attributable to N5584"; spread
-  "unusual" → "excess scatter remains without N5584"; otherwise "undetermined".
+  "unusual" → "excess scatter remains without N5584"; spread "consistent with C" and τ "unusual" →
+  "τ excess remains without N5584"; any B-N part "not evaluable" → "not evaluable"; otherwise
+  "undetermined".
 - (b) z_T's row equals R2-RE's row → **"R2-RE verdict robust to a heavy-tailed host effect"**;
   otherwise **"R2-RE verdict depends on the host-effect distribution (heavy-tailed: <row>)"**.
 - Joint reading: if (b) is robust, "the null result holds under both removal and down-weighting of
-  N5584; only the hybrid τ route of R2-RE-ROB A flips"; if not, "the verdict depends on how one host
-  is modelled; the host step stays between 1.5σ and 2.2σ, undecided".
+  N5584; only the hybrid τ route of R2-RE-ROB A flips"; if (b) is not robust, "the verdict depends on
+  how one host is modelled", quoting z under C, V(τ̂) and V_T (the host step lies between the smallest
+  and the largest |z| of the three); if (b) is not evaluable, there is no joint reading and (a)'s
+  labels stand alone.
 
 *Reported.* (a): rows removed, τ̂_N with its interval, z under C and V, the R4-N percentiles and
 spread, R4-N under V, B-N's p values, intervals and quantiles. (b): τ̂_T, every ω̂_j ranked with its
@@ -334,7 +349,8 @@ effective scatter τ̂/√ω̂_j, iteration counts, the implementation check, an
 *Runtime.* From measured times (R4 0.117 s per draw; R2-RE-ROB 10,034 s): REML with interval about
 1 min; R4-N and R4-N under V about 20 min each; B-N about 2.5 h (τ part, 400 REML fits) plus about
 3 min (spread); (b) seconds. Added about 3.3 h; a full run about 7 h; no data downloaded. Switch:
-`PARAMS["n5584_check"]`, with `"n5584_host": "N5584"`, `"t_nu": 4`, `"t_nu_sens": [2, 10]`.
+`PARAMS["n5584_check"]`, with `"n5584_host": "N5584"`, `"t_nu": 4`, `"t_nu_sens": [2, 10]`, `"t_maxiter": 10000`, `"t_tol": 1e-8`,
+`"t_starts": [0.077, 0.20]`.
 
 ## 3. Data (with size estimate)
 
