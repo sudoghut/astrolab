@@ -1,0 +1,1522 @@
+{
+ "A": {
+  "status": "evaluated",
+  "label": "verdict sensitive to single hosts' influence on tau",
+  "sensitive_hosts": [
+   "N5584"
+  ],
+  "r2_re_row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)",
+  "tau_range": [
+   0.03137144323410943,
+   0.07995413943099891
+  ],
+  "tau_route_z_range": [
+   -2.039236472945448,
+   -1.4957789076658212
+  ],
+  "data_route_z_range": {
+   "C": [
+    -2.6082144296185095,
+    -1.3840836872902216
+   ],
+   "V": [
+    -1.8929021247300615,
+    -0.9492294255471131
+   ]
+  },
+  "hosts": [
+   {
+    "column": 0,
+    "host": "M101",
+    "cchp": true,
+    "tau_hat": 0.07785957950012498,
+    "tau_used": 0.07785957950012498,
+    "tau_route": {
+     "z": -1.5182985510100864,
+     "shift": -0.06159092975969216,
+     "shift_sigma": 0.04056575679316643,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -1.8530570042926366,
+      "shift": -0.06673708491911157,
+      "shift_sigma": 0.036014588199129345,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "V": {
+      "z": -1.2002918557163487,
+      "shift": -0.0531424943901726,
+      "shift_sigma": 0.04427464381857071,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "note": "changes the tested selection (9 CCHP hosts)"
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 1,
+    "host": "M1337",
+    "cchp": false,
+    "tau_hat": 0.07845146838186853,
+    "tau_used": 0.07845146838186853,
+    "tau_route": {
+     "z": -1.5119042209616682,
+     "shift": -0.061478656637898865,
+     "shift_sigma": 0.04066306303371155,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.2279349828578376,
+      "shift": -0.07336290146274393,
+      "shift_sigma": 0.0329286545735007,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.5261602002930776,
+      "shift": -0.06176448239515864,
+      "shift_sigma": 0.04047051048985397,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 2,
+    "host": "N0691",
+    "cchp": false,
+    "tau_hat": 0.07831924317902285,
+    "tau_used": 0.07831924317902285,
+    "tau_route": {
+     "z": -1.513330614484736,
+     "shift": -0.06150371106814134,
+     "shift_sigma": 0.0406412917834761,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.21114625750968,
+      "shift": -0.07298777598357731,
+      "shift_sigma": 0.03300902223708183,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.5162919307145528,
+      "shift": -0.06146547408015124,
+      "shift_sigma": 0.0405367019602786,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 3,
+    "host": "N1015",
+    "cchp": false,
+    "tau_hat": 0.07568782404453295,
+    "tau_used": 0.07568782404453295,
+    "tau_route": {
+     "z": -1.5419608423817168,
+     "shift": -0.062005443763830215,
+     "shift_sigma": 0.040212074171777565,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.0696662434595035,
+      "shift": -0.0680134744835783,
+      "shift_sigma": 0.032862049472233715,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.4219238291825775,
+      "shift": -0.05680532139179917,
+      "shift_sigma": 0.039949623338442035,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 4,
+    "host": "N0105",
+    "cchp": false,
+    "tau_hat": 0.0774286342197316,
+    "tau_used": 0.0774286342197316,
+    "tau_route": {
+     "z": -1.5229690764592883,
+     "shift": -0.0616728667049351,
+     "shift_sigma": 0.04049515361685266,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.2063178922655156,
+      "shift": -0.0728696082222342,
+      "shift_sigma": 0.03302770125632686,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.5240862021749348,
+      "shift": -0.061617775622533344,
+      "shift_sigma": 0.04042932449267121,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 5,
+    "host": "N1309",
+    "cchp": false,
+    "tau_hat": 0.07743811375601184,
+    "tau_used": 0.07743811375601184,
+    "tau_route": {
+     "z": -1.5228662044013526,
+     "shift": -0.06167106260707911,
+     "shift_sigma": 0.040496704456923945,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.369033407091802,
+      "shift": -0.07768636360414405,
+      "shift_sigma": 0.032792430605489406,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.6436630125842693,
+      "shift": -0.06603519695849869,
+      "shift_sigma": 0.04017562995146678,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 6,
+    "host": "N1365",
+    "cchp": true,
+    "tau_hat": 0.06591049892806349,
+    "tau_used": 0.06591049892806349,
+    "tau_route": {
+     "z": -1.651908577174554,
+     "shift": -0.0639115822895242,
+     "shift_sigma": 0.03868953958628837,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -1.3840836872902216,
+      "shift": -0.05117938307843417,
+      "shift_sigma": 0.03697708711431596,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "V": {
+      "z": -0.9492294255471131,
+      "shift": -0.04079868390722652,
+      "shift_sigma": 0.0429808461570933,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "note": "changes the tested selection (9 CCHP hosts)"
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 7,
+    "host": "N1448",
+    "cchp": false,
+    "tau_hat": 0.07950918626907968,
+    "tau_used": 0.07950918626907968,
+    "tau_route": {
+     "z": -1.5005373462674994,
+     "shift": -0.06127880448907774,
+     "shift_sigma": 0.04083790692814494,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.1348390425122834,
+      "shift": -0.07018741945496743,
+      "shift_sigma": 0.032877148139641814,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.4318794141296114,
+      "shift": -0.058126004409189136,
+      "shift_sigma": 0.04059420355904891,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 8,
+    "host": "N1559",
+    "cchp": false,
+    "tau_hat": 0.07850097985255917,
+    "tau_used": 0.07850097985255917,
+    "tau_route": {
+     "z": -1.511370418532539,
+     "shift": -0.0614692790627096,
+     "shift_sigma": 0.040671220178037516,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.3212622926934707,
+      "shift": -0.07626375617427072,
+      "shift_sigma": 0.03285443287228789,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.5977183492947038,
+      "shift": -0.06455712326316032,
+      "shift_sigma": 0.04040582202217205,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 9,
+    "host": "N2442",
+    "cchp": true,
+    "tau_hat": 0.07995413943099891,
+    "tau_used": 0.07995413943099891,
+    "tau_route": {
+     "z": -1.4957789076658212,
+     "shift": -0.061195039305079746,
+     "shift_sigma": 0.04091182125343327,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.45577835268564,
+      "shift": -0.08730427383159167,
+      "shift_sigma": 0.035550551105768845,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.6858456569924183,
+      "shift": -0.07480761180413253,
+      "shift_sigma": 0.04437393867810579,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "note": "changes the tested selection (9 CCHP hosts)"
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 10,
+    "host": "N2525",
+    "cchp": false,
+    "tau_hat": 0.07725571802363013,
+    "tau_used": 0.07725571802363013,
+    "tau_route": {
+     "z": -1.5248466182418607,
+     "shift": -0.06170578870812804,
+     "shift_sigma": 0.04046688235389501,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.3032453419129655,
+      "shift": -0.07579965712433534,
+      "shift_sigma": 0.03290993614313782,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.6032272098912186,
+      "shift": -0.06452583820730595,
+      "shift_sigma": 0.040247469484805044,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 11,
+    "host": "N2608",
+    "cchp": false,
+    "tau_hat": 0.07783133234368562,
+    "tau_used": 0.07783133234368562,
+    "tau_route": {
+     "z": -1.5186043067735397,
+     "shift": -0.06159629554638357,
+     "shift_sigma": 0.040561122651661924,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.1927643511745933,
+      "shift": -0.0724116978213516,
+      "shift_sigma": 0.03302301853938978,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.5039053676944565,
+      "shift": -0.06088173198454072,
+      "shift_sigma": 0.04048242216056101,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 12,
+    "host": "N3021",
+    "cchp": false,
+    "tau_hat": 0.07774909721861589,
+    "tau_used": 0.07774909721861589,
+    "tau_route": {
+     "z": -1.5194947513646426,
+     "shift": -0.06161192076254807,
+     "shift_sigma": 0.040547636447717264,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.2477640551486378,
+      "shift": -0.07417390893796494,
+      "shift_sigma": 0.03299897458902111,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.5608356930478382,
+      "shift": -0.06311525116652561,
+      "shift_sigma": 0.040436832299292624,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 13,
+    "host": "N3147",
+    "cchp": false,
+    "tau_hat": 0.07755198113815458,
+    "tau_used": 0.07755198113815458,
+    "tau_route": {
+     "z": -1.5216309848559417,
+     "shift": -0.06164939799080926,
+     "shift_sigma": 0.040515340844380764,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.187190609875649,
+      "shift": -0.07222307816398654,
+      "shift_sigma": 0.033020934635455815,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.4957683471068246,
+      "shift": -0.060472971074464255,
+      "shift_sigma": 0.04042936942169789,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 14,
+    "host": "N3254",
+    "cchp": false,
+    "tau_hat": 0.07597631274652822,
+    "tau_used": 0.07597631274652822,
+    "tau_route": {
+     "z": -1.5387998644393932,
+     "shift": -0.06195015712402707,
+     "shift_sigma": 0.04025874875326715,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.0494549645416296,
+      "shift": -0.06706169892747482,
+      "shift_sigma": 0.03272172362297968,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.4111120855217973,
+      "shift": -0.05628500107557599,
+      "shift_sigma": 0.03988698109318727,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 15,
+    "host": "N3370",
+    "cchp": false,
+    "tau_hat": 0.07918470306852327,
+    "tau_used": 0.07918470306852327,
+    "tau_route": {
+     "z": -1.5040161910134393,
+     "shift": -0.06134000611484325,
+     "shift_sigma": 0.04078413948024788,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.1145937850830454,
+      "shift": -0.06907983263629092,
+      "shift_sigma": 0.0326681337681024,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.4337192402483874,
+      "shift": -0.05788565871199225,
+      "shift_sigma": 0.040374472970010324,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 16,
+    "host": "N3447",
+    "cchp": false,
+    "tau_hat": 0.07939377247394848,
+    "tau_used": 0.07939377247394848,
+    "tau_route": {
+     "z": -1.5017738772357734,
+     "shift": -0.061300561877310145,
+     "shift_sigma": 0.04081876959408994,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.16877952736393,
+      "shift": -0.07092229323545496,
+      "shift_sigma": 0.032701476724864856,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.4764913830694404,
+      "shift": -0.05970096560056248,
+      "shift_sigma": 0.040434347457180324,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 17,
+    "host": "N3583",
+    "cchp": false,
+    "tau_hat": 0.07947479063485109,
+    "tau_used": 0.07947479063485109,
+    "tau_route": {
+     "z": -1.500905760002849,
+     "shift": -0.06128528734227601,
+     "shift_sigma": 0.04083220211118363,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.232331806518728,
+      "shift": -0.07328653733559065,
+      "shift_sigma": 0.0328295897238858,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.5117058965026933,
+      "shift": -0.061290273889998304,
+      "shift_sigma": 0.04054378171825111,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 18,
+    "host": "N3972",
+    "cchp": true,
+    "tau_hat": 0.07630779789200887,
+    "tau_used": 0.07630779789200887,
+    "tau_route": {
+     "z": -1.5351744001858114,
+     "shift": -0.06188671333882567,
+     "shift_sigma": 0.04031249695887005,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.6082144296185095,
+      "shift": -0.09146888937394237,
+      "shift_sigma": 0.03506954349122326,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.8929021247300615,
+      "shift": -0.08148437332994263,
+      "shift_sigma": 0.04304732519731455,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "note": "changes the tested selection (9 CCHP hosts)"
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 19,
+    "host": "N3982",
+    "cchp": false,
+    "tau_hat": 0.07004457990983205,
+    "tau_used": 0.07004457990983205,
+    "tau_route": {
+     "z": -1.6048053051484072,
+     "shift": -0.06309900372232846,
+     "shift_sigma": 0.03931879058468919,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.4547214582014414,
+      "shift": -0.08053104012537915,
+      "shift_sigma": 0.032806589870438385,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.8007717970286858,
+      "shift": -0.07025671419818025,
+      "shift_sigma": 0.03901477928191979,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 20,
+    "host": "N4038",
+    "cchp": true,
+    "tau_hat": 0.07878949253455678,
+    "tau_used": 0.07878949253455678,
+    "tau_route": {
+     "z": -1.5082631990771265,
+     "shift": -0.061414677851363564,
+     "shift_sigma": 0.040718806829565204,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.3329763930075593,
+      "shift": -0.08010794906876129,
+      "shift_sigma": 0.03433723089048922,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.6213190275711444,
+      "shift": -0.0692433309904601,
+      "shift_sigma": 0.042708023413622495,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "note": "changes the tested selection (9 CCHP hosts)"
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 21,
+    "host": "N4424",
+    "cchp": true,
+    "tau_hat": 0.07696598700999133,
+    "tau_used": 0.07696598700999133,
+    "tau_route": {
+     "z": -1.5279970083391596,
+     "shift": -0.061761008385129657,
+     "shift_sigma": 0.04041958724268717,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.1741904247117927,
+      "shift": -0.07318503938191157,
+      "shift_sigma": 0.03366082315058161,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.495476900830668,
+      "shift": -0.06189609542984442,
+      "shift_sigma": 0.04138886758830177,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "note": "changes the tested selection (9 CCHP hosts)"
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 22,
+    "host": "N4536",
+    "cchp": true,
+    "tau_hat": 0.0788262051593072,
+    "tau_used": 0.0788262051593072,
+    "tau_route": {
+     "z": -1.5078682230137013,
+     "shift": -0.061407735336963754,
+     "shift_sigma": 0.04072486865876858,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.2678959895958295,
+      "shift": -0.07931653470752309,
+      "shift_sigma": 0.03497362095589683,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.56784851944631,
+      "shift": -0.06786073035194562,
+      "shift_sigma": 0.04328270844425124,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "note": "changes the tested selection (9 CCHP hosts)"
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 23,
+    "host": "N4639",
+    "cchp": true,
+    "tau_hat": 0.07769183111717634,
+    "tau_used": 0.07769183111717634,
+    "tau_route": {
+     "z": -1.5201150998662345,
+     "shift": -0.061622805169690764,
+     "shift_sigma": 0.04053824948855082,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.109370338372452,
+      "shift": -0.07322460485646332,
+      "shift_sigma": 0.034713963463126135,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.4467096448425372,
+      "shift": -0.06193926650080073,
+      "shift_sigma": 0.04281388924281508,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "note": "changes the tested selection (9 CCHP hosts)"
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 24,
+    "host": "N4680",
+    "cchp": false,
+    "tau_hat": 0.07730070864518403,
+    "tau_used": 0.07730070864518403,
+    "tau_route": {
+     "z": -1.5243579133675913,
+     "shift": -0.06169722035797065,
+     "shift_sigma": 0.040474234966032335,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.2273188531731773,
+      "shift": -0.07356386312254415,
+      "shift_sigma": 0.03302798924264502,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.5448939873317549,
+      "shift": -0.062427619487763764,
+      "shift_sigma": 0.04040899893434428,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 25,
+    "host": "N5468",
+    "cchp": false,
+    "tau_hat": 0.07894235147931744,
+    "tau_used": 0.07894235147931744,
+    "tau_route": {
+     "z": -1.5066192653556205,
+     "shift": -0.06138577959957203,
+     "shift_sigma": 0.04074405592117701,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.1053014271973116,
+      "shift": -0.06877407958812398,
+      "shift_sigma": 0.03266709398457952,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.444396769315477,
+      "shift": -0.05826288690525061,
+      "shift_sigma": 0.04033717614368685,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 26,
+    "host": "N5584",
+    "cchp": false,
+    "tau_hat": 0.03137144323410943,
+    "tau_used": 0.03137144323410943,
+    "tau_route": {
+     "z": -2.039236472945448,
+     "shift": -0.07035369145281578,
+     "shift_sigma": 0.03450001624931599,
+     "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+    },
+    "data_route": {
+     "C": {
+      "z": -1.6295632687331356,
+      "shift": -0.05323101703861255,
+      "shift_sigma": 0.03266581792801191,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "V": {
+      "z": -1.5021642581397945,
+      "shift": -0.05122165052633676,
+      "shift_sigma": 0.034098568281585334,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 27,
+    "host": "N5643",
+    "cchp": true,
+    "tau_hat": 0.07649251354076501,
+    "tau_used": 0.07649251354076501,
+    "tau_route": {
+     "z": -1.5331572558318292,
+     "shift": -0.06185139902836312,
+     "shift_sigma": 0.040342501588204696,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -1.6253580353188408,
+      "shift": -0.06301410382799588,
+      "shift_sigma": 0.0387693680153583,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "V": {
+      "z": -1.1754865837870663,
+      "shift": -0.05348707892613902,
+      "shift_sigma": 0.045502075194954285,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "note": "changes the tested selection (9 CCHP hosts)"
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 28,
+    "host": "N5728",
+    "cchp": false,
+    "tau_hat": 0.07737480994700677,
+    "tau_used": 0.07737480994700677,
+    "tau_route": {
+     "z": -1.5235532918819936,
+     "shift": -0.06168311172015706,
+     "shift_sigma": 0.04048634993526351,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.2354134883420795,
+      "shift": -0.07383372731466409,
+      "shift_sigma": 0.03302911416599876,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.5631079349328534,
+      "shift": -0.0631772944917941,
+      "shift_sigma": 0.04041774280578264,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 29,
+    "host": "N5861",
+    "cchp": false,
+    "tau_hat": 0.0786725449215062,
+    "tau_used": 0.0786725449215062,
+    "tau_route": {
+     "z": -1.5095220097893804,
+     "shift": -0.06143680124991491,
+     "shift_sigma": 0.040699506765381324,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.236578603632297,
+      "shift": -0.07366687529447802,
+      "shift_sigma": 0.03293730664097382,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.5328609168988467,
+      "shift": -0.06210411567225904,
+      "shift_sigma": 0.04051516676275026,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 30,
+    "host": "N5917",
+    "cchp": false,
+    "tau_hat": 0.0784662366378804,
+    "tau_used": 0.0784662366378804,
+    "tau_route": {
+     "z": -1.5117449810862247,
+     "shift": -0.061475859271155286,
+     "shift_sigma": 0.04066549586093775,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.261611108451487,
+      "shift": -0.07440240611985871,
+      "shift_sigma": 0.03289796633993438,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.5548197557510974,
+      "shift": -0.06287717925383163,
+      "shift_sigma": 0.0404401725802983,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 31,
+    "host": "N7250",
+    "cchp": true,
+    "tau_hat": 0.0775040057960933,
+    "tau_used": 0.0775040057960933,
+    "tau_route": {
+     "z": -1.5221513096268062,
+     "shift": -0.061658524508096946,
+     "shift_sigma": 0.04050748707972671,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.159891244150752,
+      "shift": -0.07318882475371424,
+      "shift_sigma": 0.03388542129235371,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.4745305996561955,
+      "shift": -0.06156920786203557,
+      "shift_sigma": 0.04175512388579197,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     },
+     "note": "changes the tested selection (9 CCHP hosts)"
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 32,
+    "host": "N7329",
+    "cchp": false,
+    "tau_hat": 0.07961045311818693,
+    "tau_used": 0.07961045311818693,
+    "tau_route": {
+     "z": -1.4994531517386736,
+     "shift": -0.061259724180349195,
+     "shift_sigma": 0.04085471033844318,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.1488772543838057,
+      "shift": -0.07087975671585411,
+      "shift_sigma": 0.0329845534784531,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.447209573519782,
+      "shift": -0.05891459707028801,
+      "shift_sigma": 0.04070909849428432,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 33,
+    "host": "N7541",
+    "cchp": false,
+    "tau_hat": 0.07756449315035932,
+    "tau_used": 0.07756449315035932,
+    "tau_route": {
+     "z": -1.5214953090846397,
+     "shift": -0.061647018113315966,
+     "shift_sigma": 0.04051738953464403,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.126216648400856,
+      "shift": -0.07004666610613697,
+      "shift_sigma": 0.03294427506191319,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.440130833665836,
+      "shift": -0.05809962501464483,
+      "shift_sigma": 0.040343296356451806,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 34,
+    "host": "N7678",
+    "cchp": false,
+    "tau_hat": 0.07790222303971611,
+    "tau_used": 0.07790222303971611,
+    "tau_route": {
+     "z": -1.5178370665395893,
+     "shift": -0.06158283057418501,
+     "shift_sigma": 0.04057275443574679,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.16375417263757,
+      "shift": -0.07136361322211826,
+      "shift_sigma": 0.032981386760367305,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.4712718803988252,
+      "shift": -0.05949856452689417,
+      "shift_sigma": 0.04044022408065435,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 35,
+    "host": "N0976",
+    "cchp": false,
+    "tau_hat": 0.07580236134862886,
+    "tau_used": 0.07580236134862886,
+    "tau_route": {
+     "z": -1.5407052147784535,
+     "shift": -0.06198348560704048,
+     "shift_sigma": 0.04023059376478675,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.2978532077622824,
+      "shift": -0.07579416832051322,
+      "shift_sigma": 0.03298477381604538,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.6309061283069453,
+      "shift": -0.06540288015491669,
+      "shift_sigma": 0.040102173276405466,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   },
+   {
+    "column": 36,
+    "host": "U9391",
+    "cchp": false,
+    "tau_hat": 0.07814889401608109,
+    "tau_used": 0.07814889401608109,
+    "tau_route": {
+     "z": -1.515170033371448,
+     "shift": -0.061536012201454326,
+     "shift_sigma": 0.040613271676531774,
+     "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    },
+    "data_route": {
+     "C": {
+      "z": -2.3651331570387124,
+      "shift": -0.0775320120032319,
+      "shift_sigma": 0.032781246067475796,
+      "row": "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+     },
+     "V": {
+      "z": -1.6355953103669671,
+      "shift": -0.06587945983440235,
+      "shift_sigma": 0.04027858200426207,
+      "row": "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+     }
+    },
+    "status": "evaluated"
+   }
+  ]
+ },
+ "B": {
+  "null": "y_s = L q_hat + K eps on the NGC 4258-only rows, under C",
+  "settings": {
+   "eps": "numpy.random.default_rng(rob_seed_base + s).standard_normal(len(rows_a))",
+   "rob_seed_base": 10000,
+   "n_tau": 400,
+   "n_spread": 2000,
+   "n_subsets": 1000,
+   "subsets": "the first n_subsets of R4's draws, in order"
+  },
+  "tau": {
+   "tau_obs": 0.07669875579792439,
+   "n_sims": 400,
+   "n_ok": 400,
+   "n_failed": 0,
+   "k": 28,
+   "taus": [
+    0.07688,
+    0.0,
+    0.07794,
+    0.0,
+    0.04315,
+    0.0,
+    0.0,
+    0.03876,
+    0.03758,
+    0.0,
+    0.0,
+    0.04104,
+    0.0,
+    0.0,
+    0.03224,
+    0.07063,
+    0.0,
+    0.0,
+    0.07992,
+    0.04837,
+    0.03912,
+    0.0,
+    0.0,
+    0.02326,
+    0.09142,
+    0.04359,
+    0.0,
+    0.0254,
+    0.0,
+    0.0,
+    0.04035,
+    0.0,
+    0.00632,
+    0.0509,
+    0.0,
+    0.0445,
+    0.04805,
+    0.0,
+    0.0,
+    0.0323,
+    0.02135,
+    0.0,
+    0.0,
+    0.05964,
+    0.0,
+    0.0,
+    0.0,
+    0.03194,
+    0.05515,
+    0.0,
+    0.04023,
+    0.06386,
+    0.05005,
+    0.03221,
+    0.0,
+    0.0,
+    0.02711,
+    0.02742,
+    0.0,
+    0.0,
+    0.01312,
+    0.0,
+    0.0,
+    0.0496,
+    0.05378,
+    0.0,
+    0.0,
+    0.07918,
+    0.0,
+    0.03428,
+    0.0,
+    0.01891,
+    0.0,
+    0.0,
+    0.04697,
+    0.0,
+    0.03439,
+    0.0,
+    0.0,
+    0.0,
+    0.07731,
+    0.05809,
+    0.0,
+    0.04079,
+    0.0,
+    0.0,
+    0.0,
+    0.04019,
+    0.0,
+    0.0689,
+    0.0,
+    0.05397,
+    0.0,
+    0.0,
+    0.0,
+    0.03308,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.09406,
+    0.05088,
+    0.04433,
+    0.02298,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.08838,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.03429,
+    0.0,
+    0.0129,
+    0.0,
+    0.0,
+    0.07249,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.03438,
+    0.0,
+    0.0,
+    0.0,
+    0.07469,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.02513,
+    0.08524,
+    0.05808,
+    0.0,
+    0.06042,
+    0.0743,
+    0.04001,
+    0.07269,
+    0.0865,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.06072,
+    0.05946,
+    0.03487,
+    0.05791,
+    0.086,
+    0.03936,
+    0.07703,
+    0.0,
+    0.0,
+    0.0,
+    0.04578,
+    0.08502,
+    0.05585,
+    0.0,
+    0.0,
+    0.0,
+    0.02663,
+    0.05553,
+    0.10311,
+    0.0,
+    0.03876,
+    0.0,
+    0.06312,
+    0.01523,
+    0.0,
+    0.05434,
+    0.02181,
+    0.0,
+    0.0,
+    0.04462,
+    0.0,
+    0.0,
+    0.04656,
+    0.0,
+    0.03421,
+    0.08145,
+    0.0,
+    0.0,
+    0.0,
+    0.04529,
+    0.08177,
+    0.0,
+    0.02826,
+    0.0,
+    0.0,
+    0.02786,
+    0.0,
+    0.0,
+    0.04383,
+    0.0,
+    0.0,
+    0.07029,
+    0.02305,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.03381,
+    0.05892,
+    0.0,
+    0.0,
+    0.0,
+    0.06281,
+    0.07791,
+    0.05552,
+    0.05167,
+    0.0,
+    0.0,
+    0.06922,
+    0.06075,
+    0.11557,
+    0.01621,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.05701,
+    0.0,
+    0.04794,
+    0.02666,
+    0.03165,
+    0.07243,
+    0.0,
+    0.0,
+    0.0,
+    0.06956,
+    0.0,
+    0.09364,
+    0.0,
+    0.02219,
+    0.0,
+    0.03865,
+    0.0,
+    0.07816,
+    0.0,
+    0.01503,
+    0.02851,
+    0.0322,
+    0.0,
+    0.07405,
+    0.06205,
+    0.0,
+    0.0289,
+    0.0,
+    0.06475,
+    0.0,
+    0.0,
+    0.0,
+    0.04496,
+    0.04103,
+    0.0,
+    0.0671,
+    0.0,
+    0.09548,
+    0.0,
+    0.0,
+    0.06174,
+    0.0,
+    0.0,
+    0.02824,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.07905,
+    0.05877,
+    0.0,
+    0.0,
+    0.07075,
+    0.0,
+    0.0,
+    0.01987,
+    0.02938,
+    0.0,
+    0.0,
+    0.0,
+    0.03811,
+    0.02879,
+    0.0,
+    0.03641,
+    0.0,
+    0.0,
+    0.0,
+    0.03528,
+    0.0,
+    0.0,
+    0.0,
+    0.03263,
+    0.0,
+    0.02827,
+    0.0,
+    0.0,
+    0.0,
+    0.07297,
+    0.0,
+    0.0,
+    0.0,
+    0.02898,
+    0.02408,
+    0.0,
+    0.0,
+    0.00888,
+    0.06769,
+    0.0,
+    0.0,
+    0.0,
+    0.05482,
+    0.08469,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.08235,
+    0.01819,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.02958,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.07246,
+    0.0,
+    0.0,
+    0.0,
+    0.04288,
+    0.0,
+    0.0,
+    0.0,
+    0.04371,
+    0.0,
+    0.03387,
+    0.0,
+    0.05109,
+    0.03824,
+    0.05425,
+    0.04788,
+    0.0,
+    0.0,
+    0.06347,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.06695,
+    0.0,
+    0.05962,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.04635,
+    0.0,
+    0.0,
+    0.08015,
+    0.04683,
+    0.0408,
+    0.03517,
+    0.0,
+    0.0,
+    0.07754,
+    0.0,
+    0.0,
+    0.0,
+    0.06475,
+    0.0,
+    0.0387,
+    0.0,
+    0.13164,
+    0.0,
+    0.06229,
+    0.0775,
+    0.0,
+    0.0,
+    0.0,
+    0.07521
+   ],
+   "status": "evaluated",
+   "p": 0.07231920199501247,
+   "ci95": [
+    0.047015328400178934,
+    0.0995825157700608
+   ],
+   "label": "undetermined (Monte Carlo)"
+  },
+  "spread": {
+   "status": "evaluated",
+   "n_subsets": 1000,
+   "spread_obs": 1.3070929081086322,
+   "n_sims": 2000,
+   "k": 42,
+   "p": 0.02148925537231384,
+   "ci95": [
+    0.01517584956120656,
+    0.028280800750618208
+   ],
+   "label": "the R4 excess spread is unusual under C",
+   "sim_quantiles": [
+    0.7715620237278074,
+    0.9755293413175217,
+    1.2318260244740824
+   ]
+  }
+ },
+ "seconds": 10033.522143499998
+}

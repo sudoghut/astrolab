@@ -501,6 +501,37 @@ R4 and the host identification reproduce the 2026-11-14 numbers exactly). Number
   significant once a host-level random effect is modelled.** Whether τ̂ survives leaving out single
   hosts (N5584 first) and how unusual τ̂ and the 1.33 spread are under the null are registered as T-032.
 
+### R2-RE-ROB (addendum 2026-11-17, T-032)
+
+Run of 2026-11-18 (`python -m astrolab run 003`, 12,825 s; all earlier results reproduce exactly, only
+timing fields changed). Numbers: `results/r2_re_rob.json`.
+
+| Part | Result | Label (pre-registered rule) |
+|---|---|---|
+| A, leave one host out (τ route) | τ̂_j from 0.031 to 0.080 mag; z' from −2.04 to −1.50; the row changes only without N5584 (τ̂ = 0.031, z' = −2.04: "host selection significantly lowers H0, by the size the paper reports") | **verdict sensitive to single hosts' influence on τ̂ (N5584)** |
+| A, data route (reported) | without host j, at τ = 0: z from −2.61 to −1.38; under V(τ̂_j): −1.89 to −0.95. Without N5584: −1.63 (C), −1.50 (V) | – |
+| B, τ̂ under C (400 simulations, none failed) | 28 of 400 with τ̂_s ≥ 0.077; p = 0.072, 95% interval 0.047–0.100 (230 of 400 at τ̂ = 0) | **undetermined (Monte Carlo)** |
+| B, R4 spread under C (2,000 simulations, 1,000 subsets) | spread_obs 1.307 (simulated median 0.976, 95th percentile 1.232); 42 of 2,000 ≥ 1.307; p = 0.021, interval 0.015–0.028 | **the R4 excess spread is unusual under C** |
+
+- **Reading (pre-registered).** "Verdict sensitive": the null result of R2-RE depends on N5584's
+  effect on τ̂. Without N5584, REML puts the host-level scatter at 0.031 mag, and the full-data host
+  step under that τ gives z' = −2.04, which the pre-registered table reads as supporting the paper.
+  The τ part is undetermined, as section 2 expected (p near the 0.03 boundary estimate). The spread
+  part says R4's 1.33 is itself unusual under C: there is more scatter among calibrator SN rows than C
+  allows, without identifying the cause.
+- **What the two routes say together (descriptive).** N5584 matters in two opposite ways. Dropping
+  it lowers τ̂ (so the τ route moves towards "supports"), but dropping its rows from the data also
+  removes part of the shift: on the reduced data the host step gives z = −1.63 even at τ = 0. So the
+  verdict does not flip to "supports" once N5584 is really left out; it flips only when N5584's rows
+  stay in the shift while its influence on τ̂ is removed. Across all 37 removals the data route at
+  τ = 0 ranges from −2.61 to −1.38, and under V(τ̂_j) from −1.89 to −0.95.
+- **Status of R2.** The R2-RE headline row stands as pre-registered ("no host-selection effect
+  detected"), now reported with the label "sensitive to single hosts (N5584)", and with the finding
+  that excess calibrator scatter under C is present (spread) but τ̂ alone is not clearly unusual.
+  The host-selection question remains between 1.5σ and 2.2σ, as before.
+- A smoke run before the formal run showed part of A (the N5584 removal: τ̂ ≈ 0.031, z ≈ −2.04);
+  disclosed in `log.md` on 2026-11-17, rules unchanged.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-14 (a subagent that saw the pre-registration, code and results, not
