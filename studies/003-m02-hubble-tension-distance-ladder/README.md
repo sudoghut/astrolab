@@ -531,7 +531,7 @@ timing fields changed). Numbers: `results/r2_re_rob.json`.
   The host-selection question remains between 1.5σ and 2.2σ, as before.
 - **Post hoc (referee, 2026-11-18; section 6): one host carries every signal.** Over the R4
   subsets that exclude N5584 the spread is 1.027 (p = 0.33 under the same null; we reproduced the
-  referee's cache-only check), while excluding any other single host leaves 1.21–1.34 (p ≤ 0.056). So
+  referee's cache-only check, which is approximate because N5584 stays in the 37-host reference fit), while excluding any other single host leaves 1.21–1.34 (p ≤ 0.056). So
   the "unusual spread" label, the size of τ̂ and the A flip are all the effect of one outlying host,
   N5584 (one SN, 2007af); whether its SN or its Cepheid distance is off is not identified. Without
   N5584's rows the host step gives z = −1.63 under C and −1.50 under V, i.e. "no host-selection effect
