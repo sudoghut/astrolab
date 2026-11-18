@@ -24,4 +24,5 @@ reproduction:
     - {name: "S8 KiDS-Legacy", paper: "0.815 +0.016/-0.021 (mode); mean 0.813 +/- 0.018", ours: "1.04 sigma from the CMB chain (summary only)", verified: V}
 open_questions:
   - "Same-prior, same-S8-definition meta-comparison across probes."
+  - "Is the full-space 1.8 sigma mostly the neutrino-mass direction (CMB Sigma m_nu at its prior edge; 1-D difference 1.74 sigma)? T-040."
 notes: "Milestone M3."
