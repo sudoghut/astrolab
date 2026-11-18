@@ -367,7 +367,7 @@ run "DESI BAO + CMB-compressed-theta-ombh2-ombch2" for ΛCDM (`base`) and w0waCD
 ([`chain.updated.yaml`](https://data.desi.lbl.gov/public/papers/y3/bao-cosmo-params/cobaya/base_w_wa/desi-bao-all_CMB-compressed-theta-ombh2-ombch2/chain.updated.yaml); the ΛCDM file has the same lines):
 - the likelihood `CMB_standard_compression_PR4` has observables `thetastar, ombh2, ombch2`, means
   0.01041027, 0.02223208, 0.14207901 and a covariance given to 9 significant figures (1.48841714 ×
-  10⁻⁶ for ωbc), and its `input_params` are only `ombh2` and `omch2`, so the likelihood itself forms
+  10⁻⁶ for ωbc), and its `input_params` are only `ombh2` and `omch2`, so the likelihood presumably forms
   the observable `ombch2` from them;
 - `omch2` is a derived parameter defined as `omm*(H0/100)**2 - mnu / 93.14 - ombh2`, i.e. without the
   neutrino density; `mnu` is fixed at 0.06; CAMB 1.5.4 with one massive neutrino and N_eff = 3.044.
@@ -452,7 +452,7 @@ label; the json supports the conclusion. Triage:
   The prior's source chain matches reading A (section 5, referee; post hoc); what remains is which quantity
   DESI's code compared with the 0.14208 mean, and, if A, where the remaining ~1.4 in Δχ² comes
   from (T-030). R2-CAMB-RD (2026-11-18) ruled out the r_d formula as the source: with θ* and r_d
-  from CAMB, reading A gives −6.49 to −6.60. Answered 2026-11-18 (T-041, post hoc, section 5): DESI's
+  from CAMB, reading A gives −6.49 to −6.60. Partly answered 2026-11-18 (T-041, post hoc, section 5): DESI's
   public chain configuration indicates reading B (the likelihood receives ωb and ωc without ων; its
   source is not public). Open: why DESI's mean is 0.00065 above the source chain's ωb + ωc
   (Appendix A text and ref. [111] not read: the PDF is too large for the page-reading tool).
