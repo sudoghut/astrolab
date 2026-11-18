@@ -5,8 +5,11 @@ imports run.py; every setting is an argument.
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import math
 import os
+import re
 import shutil
 import time
 from pathlib import Path
@@ -144,11 +147,44 @@ class StopRun(RuntimeError):
     """Raised when the runtime projection exceeds the stop limit (SEL-8)."""
 
 
+NO_KEY_PARAMS = ("parts", "sel_stop_h")     # change no mock, so they do not enter the checkpoint key
+_PARAMS_RE = re.compile(r"^PARAMS = \{\n.*?^\}\n", re.S | re.M)
+
+
+def strip_params(source):
+    """run.py source without its PARAMS dict literal (the values enter the key separately, without
+    NO_KEY_PARAMS), so editing the stop limit there does not change the checkpoint key."""
+    out, n = _PARAMS_RE.subn("PARAMS = <values hashed separately>\n", source.replace("\r\n", "\n"), count=1)
+    if n != 1:
+        raise ValueError("PARAMS literal not found in run.py")
+    return out
+
+
+def checkpoint_key(P, sources, data_bytes):
+    """Key of the checkpoint folder: PARAMS values without NO_KEY_PARAMS, the code (run.py already
+    passed through strip_params; newlines normalised) and the catalogue."""
+    h = hashlib.sha256()
+    h.update(json.dumps({k: v for k, v in P.items() if k not in NO_KEY_PARAMS}, sort_keys=True,
+                        default=str).encode())
+    for name in sorted(sources):
+        h.update(name.encode())
+        h.update(sources[name].replace("\r\n", "\n").encode("utf-8"))
+    h.update(data_bytes)
+    return h.hexdigest()[:24]
+
+
+def nonfinite(result):
+    """True if any numeric value of a mock result is not finite (None, e.g. a Full mock's pass rate,
+    is not a number and does not count)."""
+    return any(isinstance(v, float) and not math.isfinite(v) for v in result.values())
+
+
 class MockStore:
     """One folder per key (PARAMS, code, catalogue) under root. Each finished mock is a JSON file
     written atomically; a session ledger accumulates elapsed time across sessions. A folder left by
     a 16 h stop (stopped.json) is resumed only when resume_consent.txt exists (the user's consent,
-    recorded in log.md); the consent is used once."""
+    recorded in log.md); the consent is used once. A line "limit_h = <hours>" in the consent file
+    sets a new stop limit for the rest of the run (kept in limit.json, recorded in resumes.json)."""
 
     def __init__(self, root, key, *, stale_days=7.0):
         self.root = Path(root)
@@ -178,8 +214,13 @@ class MockStore:
                 raise StopRun(f"the R-SEL run was stopped by the runtime rule ({stopped}). Resuming needs "
                               "the user's explicit consent (README 2.5 SEL-8): record it in log.md, then "
                               f"create {consent} and rerun.")
+            text = consent.read_text(encoding="utf-8")
+            m = re.search(r"^\s*limit_h\s*=\s*([0-9]+(?:\.[0-9]*)?)\s*$", text, re.M)
+            new_limit = float(m.group(1)) if m else None
             info = {"stopped": json.loads(stopped.read_text(encoding="utf-8")),
-                    "consent": consent.read_text(encoding="utf-8").strip(), "resumed_at": time.time()}
+                    "consent": text.strip(), "limit_h": new_limit, "resumed_at": time.time()}
+            if new_limit is not None:
+                self._write(self.dir / "limit.json", {"limit_h": new_limit})
             hist = self.dir / "resumes.json"
             prev = json.loads(hist.read_text(encoding="utf-8")) if hist.exists() else []
             self._write(hist, prev + [info])
@@ -191,6 +232,18 @@ class MockStore:
         self.session = self.sessions / f"{time.time_ns()}_{os.getpid()}.json"
         self.t0 = time.time()
         self.tick()
+
+    @property
+    def limit_h(self):
+        """Stop limit set by a consent file, or None (PARAMS["sel_stop_h"] applies)."""
+        p = self.dir / "limit.json"
+        if not p.exists():
+            return None
+        return float(json.loads(p.read_text(encoding="utf-8"))["limit_h"])
+
+    def resumes(self):
+        p = self.dir / "resumes.json"
+        return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
 
     @staticmethod
     def _write(path, obj):
@@ -247,9 +300,77 @@ class MockStore:
         shutil.rmtree(self.dir, ignore_errors=True)
 
 
+def _jsonable_result(res):
+    out = {}
+    for k, v in res.items():
+        if v is None:
+            out[k] = None
+        elif isinstance(v, (bool, np.bool_)):
+            out[k] = bool(v)
+        elif isinstance(v, (int, np.integer)):
+            out[k] = int(v)
+        else:
+            out[k] = float(v)
+    return out
+
+
+def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print):
+    """SEL-8 mock loop: the first mock of every set (timing), then each set in k order. Finished mocks
+    come from the checkpoints; new ones are computed with make_rng(k, j) and checkpointed. After the
+    first-mock pass and after every set, the projection is checked against the stop limit (a limit
+    from a consent file replaces stop_h); above it, with mocks left, the run stops (StopRun).
+    Returns results (k -> list of dicts in mock order), state (times) and the projection log."""
+    results = {s["k"]: [] for s in sets}
+    state = {s["k"]: {"group": s["group"], "times": []} for s in sets}
+    proj_log = []
+
+    def do(s, j):
+        rec = store.get(s["k"], j)
+        if rec is None:
+            t = time.time()
+            res = _jsonable_result(run_one(s, make_rng(s["k"], j)))
+            dt = time.time() - t
+            store.put(s["k"], j, res, dt)
+            rec = {"result": res, "seconds": dt}
+        results[s["k"]].append(rec["result"])
+        state[s["k"]]["times"].append(float(rec["seconds"]))
+
+    def check(where):
+        limit = store.limit_h if store.limit_h is not None else float(stop_h)
+        el = store.elapsed_s()
+        proj = projection_h(el, state, nmock)
+        done = sum(len(v) for v in results.values())
+        left = len(sets) * nmock - done
+        proj_log.append({"after": where, "elapsed_h": el / 3600, "projection_h": proj, "mocks_done": done,
+                         "mocks_left": left, "limit_h": limit})
+        log(f"R-SEL projection after {where}: {proj:.2f} h total (elapsed {el / 3600:.2f} h, {done} mocks done, "
+            f"limit {limit} h)")
+        if left > 0 and proj > limit:
+            store.stop({"projection_h": proj, "elapsed_h": el / 3600, "mocks_done": done, "after": where,
+                        "limit_h": limit, "stopped_at": time.time()})
+            raise StopRun(
+                f"R-SEL runtime projection {proj:.2f} h exceeds {limit} h (README 2.5 SEL-8): stopped before the "
+                f"remaining mocks; {done} finished mocks are checkpointed in {store.dir}. Ask the user; mock "
+                f"counts are never reduced. Resuming needs the user's explicit consent, recorded in log.md; then "
+                f"create {store.dir / 'resume_consent.txt'} (optionally with a line limit_h = <hours> for a new "
+                f"limit) and rerun.")
+
+    for s in sets:
+        do(s, 0)
+    check("first mock of every set")
+    for s in sets:
+        for j in range(1, nmock):
+            do(s, j)
+        check(f"set k={s['k']}")
+    return results, state, proj_log
+
+
 # --------------------------------------------------------------------------------------------
 # labels (README 2.1, 2.3, 2.5)
 # --------------------------------------------------------------------------------------------
+NONFINITE = "cannot determine (non-finite mock results)"
+
+
 def r1_verdict(bins, min_bins=3, edge_range=(6.5, 9.5)):
     """2.1 verdict from per-bin dicts with resolvable, almost_disjoint, edge."""
     res = [b for b in bins if b["resolvable"]]
