@@ -406,6 +406,63 @@ covariance is unknown (T-028), NFW is disfavoured, not excluded.
    truncated shape (Δχ² ≈ 20 over NFW), but an NFW (Navarro–Frenk–White) halo, disfavoured (11–29 under the referee's correlated-error kernels) but not excluded, gives 7 × 10¹¹ M☉ and
    agrees with the stream masses; which shape is right is what T-028 tests.
 
+### R6-COV (addendum 2026-11-17, section 2.6, T-028)
+
+Run 2026-11-18 (`python -m astrolab run 009`, 1116 s; no downloads; R1–R5 reproduce exactly;
+scipy 1.13.1). Numbers: `results/r6.json`. Each covariance keeps Table 3's σ_i² on the diagonal and
+is calibrated so that the free Einasto fit (E dJ, 18 points) has χ² = 15.
+
+| Covariance | Calibrated f | High-f | T1: best γ; √Δχ²_flat | T2: D_K, D_02; D_02 − D_K | T3: Δχ²_NFW; Δχ²_ΛCDM | M_vir NFW (10¹¹ M☉) |
+|---|---|---|---|---|---|---|
+| SE, ℓ = 2 kpc | 0.957 | yes | −0.392; 2.99 | 0.72, 2.19; +1.47 | 14.0; 15.6 | 6.3 |
+| SE, ℓ = 4 kpc | 0.934 | yes | −0.350; 3.34 | 2.16, 2.11; −0.05 | 20.8; 23.4 | 7.1 |
+| SE, ℓ = 8 kpc | 0.921 | yes | −0.345; 4.94 | 5.21, 4.39; −0.82 | 60.9; 67.1 | 8.3 |
+| global | 0.919 | yes | −0.355; 7.48 | 8.89, 10.40; +1.51 | 232.6; 259.0 | 7.7 |
+| fractional | not calibratable (Einasto χ² ≤ 4.54 at c_max = 1.34%) | – | – | – | – | – |
+| *contrast: independent errors × 0.295* | – | – | −0.397; 9.10 | 5.53, 20.28; +14.75 | – | – |
+
+All halo fits converged (19–21 starts agree), none at a bound; the free Einasto M_vir stays
+2.0–2.05 × 10¹¹ M☉, the ΛCDM-like one is 6.8–11 × 10¹¹. At the χ² targets 15 ∓ √30 (no labels):
+T1 2.69–6.01σ / 3.25–8.71σ, D_02 − D_K −1.12 to +2.21, Δχ²_NFW 11.6–317.8.
+
+**Labels (pre-registered rule).** Four covariances are usable for every test and all four are
+high-f (calibrated f > 0.9), so each label is the all-covariance label with the qualifier:
+- T1: **flat rejected at ≥ 2σ (only with high-f covariances)**: three kernels give ≥ 3σ and SE
+  ℓ = 2 kpc gives 2.99.
+- T2: **not distinguished (only with high-f covariances)**.
+- T3: NFW **disfavoured (only with high-f covariances)**; ΛCDM-like **disfavoured (only with
+  high-f covariances)**.
+
+**Reading, after the independent referee (post hoc, verified; section 6).**
+1. *What the calibration means.* χ² = 15 is reached only by making 92–96% of each bin's variance a
+   smooth correlated part, leaving white noise of about √(1 − f) ≈ 0.2–0.3 σ_i; 13.8–14.9 of the
+   Einasto χ² of 15 then comes from eigen-directions with eigenvalue < 0.5 (bin-to-bin wiggles). So
+   R6-COV tests the hypothesis "Table 3's errors are mostly a smooth systematic with little
+   independent noise", not correlation in general; the addendum's high-f warning applies to all four.
+   The global kernel at f = 0.919 has 17 equal eigenvalues 0.081, which is the rescaled-independent
+   contrast (scale² 0.087) with one common mode removed; its T1 = 7.5σ and Δχ²_NFW = 233 belong to
+   that reading, and the squared-exponential kernels give the correlated range: T1 3.0–4.9σ,
+   Δχ²_NFW 14–61.
+2. *The decline.* Every kernel rejects a flat curve at about 3σ or more (2.99 for the shortest
+   correlation length), and for ℓ = 4 and 8 kpc most of Δχ²_flat comes from the larger eigen-
+   directions, so the decline is not only a small-eigenvalue effect. Compared with the rescaled
+   independent errors (9.1σ), correlation roughly halves the rejection.
+3. *"Keplerian".* Correlation removes the Keplerian preference that rescaled independent errors give
+   (+14.8): under every kernel γ = −0.5 and γ = −0.2 differ by less than 2 in χ², and the best γ is
+   −0.35 to −0.39. "Not distinguished" is not "Keplerian allowed": for ℓ = 8 kpc and global, γ = −0.5
+   itself is Δχ² 5.2 and 8.9 from the best fit.
+4. *Halo shape.* Every kernel disfavours NFW and the ΛCDM-like Einasto relative to the free Einasto
+   (Δχ² 14–61 for the squared-exponential kernels), with the known bias that f is calibrated on the
+   Einasto residuals; NFW's own χ² is 29–76 for 16 degrees of freedom here. The truncated halo, and
+   so the total mass of about 2 × 10¹¹ M☉, are preferred under these covariances; the NFW mass
+   (6.3–8.3 × 10¹¹ M☉) is not excluded by anything beyond these assumed kernels.
+5. *Fractional offset.* A coherent fractional offset cannot reach χ² = 15: its amplitude is capped
+   by the smallest σ/V (1.35% at 10.5 kpc), so it covers only 1–10% of the variance of the four bins
+   beyond 23.5 kpc, and a common offset is largely absorbed by the halo normalisation.
+6. Post hoc robustness: at the lower target (15 − √30) three kernels fall below the high-f flag
+   (f = 0.873–0.890) and give the same three labels (T1 2.7–6.0σ, |D_02 − D_K| < 1.3, Δχ²_NFW
+   11.6–148). This partly offsets the "only with high-f" qualifier; it is not a pre-registered label.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-15 (subagent with the pre-registration, code, data and results only; it
@@ -446,11 +503,33 @@ ran checks with the study's own modules; no downloads). Triage:
    and R_vir, the reparametrised posterior's Jacobians, seeding, B2 mass sum.
 
 
+### Referee, R6-COV (independent subagent, 2026-11-18)
+
+A subagent given sections 1–4, the section 6 notes, the code and the results (not section 5); offline
+eigen-decompositions of the calibrated covariances, no fits rerun. No code bug that changes a label;
+the four labels follow the rules. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | Code matches section 2.6 (forms, grid and bisection, high-f flag with strict >, GLS profile with Brent, starts and convergence, ΛCDM-like conversion); every χ²(f) curve is monotonic | yes (curves monotonic) | None. |
+| 2 | All four calibrations are the small-eigenvalue artefact: 13.8–14.9 of the Einasto χ² = 15 from eigenvalues < 0.5; white noise √(1 − f) ≈ 0.21–0.28 σ | yes (rerun of the referee's script) | **Accepted**; section 5 reading 1. |
+| 3 | The global kernel is the rescaled-independent reading with one mode removed (17 eigenvalues 0.081 against scale² 0.087); quote T3 from the SE kernels (14–61), not 233 | yes | **Accepted**; section 5 reading 1. |
+| 4 | Correlation halves T1 (3.0–4.9σ against 9.1σ) and removes the Keplerian preference (+14.8 → −0.8 to +1.5); for ℓ = 4, 8 kpc most of Δχ²_flat is in larger eigen-directions; white-noise-only covariances give 9.5–12.9σ | yes | **Accepted**; section 5 readings 2–3. |
+| 5 | The T1 "≥ 2σ" label rests on SE ℓ = 2 kpc at 2.99 | yes | Stated in section 5. |
+| 6 | "Not distinguished" hides that γ = −0.5 is itself Δχ² 5.2 (ℓ = 8 kpc) and 8.9 (global) from the best fit | yes | Stated in section 5 reading 3. |
+| 7 | At 15 − √30 three kernels are unflagged and give the same labels | yes (`r6.json`) | Section 5 reading 6, post hoc. |
+| 8 | The fractional kernel's cap is set by the 10.5 kpc bin (per-bin correlated fraction 0.98 there, 0.009–0.10 beyond 23.5 kpc), so its high-f flag is driven by one bin | yes | Section 5 reading 5; no label effect (excluded). |
+| 9 | T3 is measured against white noise tuned to Einasto's residuals; NFW χ² 29–76 for 16 dof | yes | Section 5 reading 4 keeps the known-bias sentence. |
+| 10 | Section 2.6 says "minimum over all 21 starts" and "over the successful runs"; the code uses the successful runs (stricter) | yes | Noted; wording only. |
+
 ## 7. Open questions
 
 1. Under a physically motivated full covariance for Table 3 (statistical plus smooth systematic
    components), what are the likelihood-only flat rejection, the Keplerian-versus-γ = −0.2
-   distinction, and the Einasto-versus-NFW-versus-ΛCDM-like preference? (T-028)
+   distinction, and the Einasto-versus-NFW-versus-ΛCDM-like preference? R6-COV (T-028, section 5)
+   answered this for assumed kernels: about 3–5σ, not distinguished, NFW disfavoured, but only if
+   92–96% of each error is a smooth systematic. Per-bin statistical errors from J23 would decide
+   whether that is so.
 2. How large are departures from equilibrium at 20–27 kpc (warp, flare, Sagittarius, LMC)? Beyond
    this repository.
 3. Can any halo shape fit the rotation curve and the stream masses together?

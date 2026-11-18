@@ -22,4 +22,4 @@ reproduction:
     - {name: "M_total (Jiao 2023)", paper: "2.06 +0.24/-0.13 e11 Msun", ours: "set by the Einasto shape: 99.8% of M_vir inside 26.5 kpc; V^2R/G(26.5 kpc) = 1.90 e11"}
 open_questions:
   - "Joint propagation of Jeans-modelling systematics (cross-term, disequilibrium, disk scale length)."
-notes: "Milestone M6."
+notes: "Milestone M6. R6-COV (2026-11-18, T-028, pre-registered sensitivity analysis): with Table 3 errors correlated inside their variance (five assumed covariances calibrated to Einasto chi2 = dof), all calibrated kernels need 92-96% correlated variance (high-f); flat rejected at >= 2 sigma (2.99-4.94 for squared-exponential kernels), Keplerian not distinguished from gamma = -0.2, NFW disfavoured (delta chi2 14-61), all only with high-f covariances; referee (post hoc): correlation halves the flat rejection and removes the Keplerian preference of rescaled independent errors."
