@@ -4,10 +4,10 @@
 
 *Paper: Jiao, Hammer, Wang et al. 2023, "Detection of the Keplerian decline in the Milky Way rotation curve", A&A 678, A208, arXiv:2309.00048. Study:
 [`studies/009-m06-mw-outer-rotation-curve-decline`](https://github.com/sudoghut/astrolab/tree/main/studies/009-m06-mw-outer-rotation-curve-decline).
-Status: reproduced. Last updated: 2026-11-15 (see the changelog at the end). The source of this page lives in the main repository at
+Status: reproduced. Last updated: 2026-11-18 (see the changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：银河系很轻吗？其旋转曲线的开普勒式下降。状态：已复现。论文：Jiao, Hammer, Wang 等 2023，A&A 678, A208，arXiv:2309.00048。研究：[`studies/009-m06-mw-outer-rotation-curve-decline`](https://github.com/sudoghut/astrolab/tree/main/studies/009-m06-mw-outer-rotation-curve-decline)。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：银河系很轻吗？其旋转曲线的开普勒式下降。状态：已复现。论文：Jiao, Hammer, Wang 等 2023，A&A 678, A208，arXiv:2309.00048。研究：[`studies/009-m06-mw-outer-rotation-curve-decline`](https://github.com/sudoghut/astrolab/tree/main/studies/009-m06-mw-outer-rotation-curve-decline)。最后更新：2026-11-18（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -263,8 +263,16 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
   under the referee's correlated-error kernels), though not excluded; it gives 7.1 × 10¹¹ M☉,
   consistent with the stellar-stream masses (Koposov et al. 2023, Vasiliev et al. 2021). ΛCDM-like
   Einasto shapes (1/n = 0.17–0.25) give 5.7–8.1 × 10¹¹ M☉ but fit worse (χ² 21–23; referee).
-- **Next test (T-028):** refit with a physically motivated full covariance for Table 3, which decides
-  how significant the decline is and how strongly the data prefer a truncated halo.
+- **R6-COV (2026-11-18, pre-registered, T-028):** we added correlations inside Table 3's errors with
+  five assumed covariances, each scaled until the Einasto fit has χ² equal to its degrees of freedom.
+  Four reach it, all only by making 92–96% of each error a smooth correlated part ("high-f"), so every
+  label carries "only with high-f covariances": a flat curve is rejected at ≥ 2σ (2.99–4.94σ for the
+  squared-exponential kernels), Keplerian and γ = −0.2 are not distinguished, and NFW and ΛCDM-like
+  halos are disfavoured (Δχ² 14–61). The independent referee (post hoc, verified) showed that this
+  tests the hypothesis "the errors are mostly a smooth systematic" rather than correlation in general,
+  and that correlation halves the flat rejection and removes the Keplerian preference that rescaled
+  independent errors would give (9.1σ, Δχ² +14.8). Per-bin statistical errors from J23 would decide
+  which reading holds.
 
 ### Glossary
 
@@ -289,6 +297,7 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
 
 Newest first.
 
+- 2026-11-18: R6-COV (T-028): correlated-error sensitivity analysis; all calibrated covariances are high-f; flat rejected at ≥ 2σ, Keplerian not distinguished from γ = −0.2, NFW disfavoured, all "only with high-f covariances".
 - 2026-11-15: final review: part 1 now states that J23's 121 kpc corresponds to the total-density R_vir.
 - 2026-11-15: results: R1 reproduced under J23's prior (2.7σ from the likelihood); errors not independent; Table 4 masses reproduced, but 99.8% of the Einasto mass lies inside the data and an acceptable NFW fit gives 7 × 10¹¹ M☉; referee notes; T-028 registered.
 - 2026-11-15: gate-1 round 2: the Keplerian shape now rests on its own stated premise (`stat_kepler`, Sec. 5.3) and on the gap.
@@ -447,7 +456,7 @@ J23 的质量并不来自下降检验。它来自用球对称爱纳斯托晕（�
 - **误差棒不可能是独立的。** 最佳拟合好得离谱（爱纳斯托模型 χ² = 1.3，15 个自由度；幂律 0.47，6 个自由度）。表 3 的误差含平滑、相关的系统误差，所以凡是把它们当作独立误差的显著性（包括 J23 的 3σ）都标度不对。外区箱上升到 6%（小于误差棒）的偏差就能使统计量降到 2 以下。
 - **"开普勒式"取决于拟合从哪里开始。** 审稿发现从 14 kpc 开始拟合得 γ = −0.30 ± 0.04 并拒绝 γ = −0.5（16 kpc：−0.34 ± 0.07）；从 19 kpc 开始，区间变宽到足以包含 −0.5。在独立误差下，下降对起点是稳健的；开普勒式的形状没有确立。
 - **总质量是对晕的假设，而不是测量。** 我们以 0.7% 的精度复现了表 4（六个模型 1.969–1.980 × 10¹¹ M☉），J23 的 R_vir = 121 kpc 对应总密度定义，而不是它文中写明的暗物质定义。但拟合的爱纳斯托晕下降得如此之陡，以致 99.8% 的质量在 26.5 kpc 以内，那里 V²R/G 已给出 1.90 × 10¹¹ M☉。数据偏好这种截断的形状：NFW（Navarro–Frenk–White）晕差 Δχ² ≈ 20（在审稿的相关误差核下为 11–29），但未被排除；它给出 7.1 × 10¹¹ M☉，与恒星星流的质量（Koposov 等 2023，Vasiliev 等 2021）相容。类 ΛCDM 的爱纳斯托形状（1/n = 0.17–0.25）给出 5.7–8.1 × 10¹¹ M☉，但拟合更差（χ² 21–23；审稿）。
-- **下一步检验（T-028）：** 用物理上合理的表 3 全协方差重新拟合，决定下降有多显著、数据多强烈地偏好截断的晕。
+- **R6-COV（2026-11-18，预注册，T-028）：** 我们用五个假设的协方差在表 3 的误差内部加入相关，每个都放大到使爱纳斯托拟合的 χ² 等于其自由度。四个能做到，但都要让每个误差的 92–96% 成为平滑的相关部分（"高 f"），所以每个标签都带"只在高 f 协方差下"：平坦曲线在 ≥ 2σ 被拒绝（平方指数核下 2.99–4.94σ），开普勒式与 γ = −0.2 无法区分，NFW 与类 ΛCDM 暗晕不被看好（Δχ² 14–61）。独立审稿（事后，已复核）表明，这检验的是"误差大部分是平滑系统误差"这一假设，而不是一般意义上的相关；与缩放后的独立误差相比（9.1σ，开普勒式偏好 Δχ² +14.8），相关使平坦曲线的拒绝减半，并消除开普勒式偏好。J23 的逐箱统计误差能决定哪种解读成立。
 
 ### 术语表
 
@@ -470,6 +479,7 @@ J23 的质量并不来自下降检验。它来自用球对称爱纳斯托晕（�
 
 按时间倒序。
 
+- 2026-11-18：R6-COV（T-028）：相关误差的敏感度分析；所有能校准的协方差都是高 f；平坦曲线在 ≥ 2σ 被拒绝，开普勒式与 γ = −0.2 无法区分，NFW 不被看好，都"只在高 f 协方差下"。
 - 2026-11-15：收尾审查：第一部分写明 J23 的 121 kpc 对应总密度定义的 R_vir。
 - 2026-11-15：结果：R1 在 J23 的先验下复现（似然本身 2.7σ）；误差不独立；表 4 的质量复现，但爱纳斯托质量 99.8% 在数据范围以内，可接受的 NFW 拟合给出 7 × 10¹¹ M☉；审稿意见；登记 T-028。
 - 2026-11-15：闸门 1 第 2 轮：开普勒式的形状现在依靠单独的、论文明说的前提（`stat_kepler`，第 5.3 节）与缺口。
