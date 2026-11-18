@@ -328,17 +328,16 @@ effect, which row of R2's table does the host step give?
 *Decision rules and labels, fixed now.* R2-RE's row ("no host-selection effect detected") stays the
 headline; the R2 (2026-11-14), R2-RE and R2-RE-ROB verdicts and labels stay as recorded.
 - (a) The reduced system's R2 and R2-RE rows are reported, marked "known before this addendum". R4-N
-  gets R4's label; B-N gets ROB's three-way labels. Reading: spread "consistent with C" and τ not
+  gets R4's label; B-N gets ROB's three-way labels. Reading, rules checked in this order: any B-N part "not evaluable" → "not evaluable"; spread "consistent with C" and τ not
   "unusual" → "the excess calibrator scatter of R2-RE-ROB is attributable to N5584"; spread
   "unusual" → "excess scatter remains without N5584"; spread "consistent with C" and τ "unusual" →
-  "τ excess remains without N5584"; any B-N part "not evaluable" → "not evaluable"; otherwise
-  "undetermined".
+  "τ excess remains without N5584"; otherwise "undetermined".
 - (b) z_T's row equals R2-RE's row → **"R2-RE verdict robust to a heavy-tailed host effect"**;
   otherwise **"R2-RE verdict depends on the host-effect distribution (heavy-tailed: <row>)"**.
 - Joint reading: if (b) is robust, "the null result holds under both removal and down-weighting of
   N5584; only the hybrid τ route of R2-RE-ROB A flips"; if (b) is not robust, "the verdict depends on
-  how one host is modelled", quoting z under C, V(τ̂) and V_T (the host step lies between the smallest
-  and the largest |z| of the three); if (b) is not evaluable, there is no joint reading and (a)'s
+  how one host is modelled", quoting R2's z under C, R2-RE's z' under V(τ̂ = 0.077) and z_T under V_T, all on the
+  full 37-host system (the host step lies between the smallest and the largest |z| of the three); if (b) is not evaluable, there is no joint reading and (a)'s
   labels stand alone.
 
 *Reported.* (a): rows removed, τ̂_N with its interval, z under C and V, the R4-N percentiles and
