@@ -673,3 +673,24 @@ def test_http_raised_cap_is_still_enforced(tmp_cache, monkeypatch):
     _fake_http(monkeypatch, b"x" * 6000, length=0)             # streaming check
     with pytest.raises(fetch.TooLarge):
         fetch.http("http://example.invalid/c.txt", max_bytes=5000, cap_consent=why)
+
+
+def test_run_record_suffix_keeps_other_mode_records(tmp_path, monkeypatch):
+    """A run mode that sets ctx.record_suffix writes provenance/run_info under the suffixed names and
+    leaves the default records untouched (study 004 R5 mode)."""
+    studies = tmp_path / "studies"
+    monkeypatch.setattr(config, "STUDIES", studies)
+    monkeypatch.setattr(config, "TEMPLATE", Path(__file__).parent.parent / "studies" / "_template")
+    s = study.new("suffix", "Suffix test", "L3")
+    (s.path / "run.py").write_text(
+        "def main(ctx):\n    ctx.record_suffix = '_r5'\n    ctx.save('r5', {'ok': 1})\n    return {}\n",
+        encoding="utf-8")
+    s.results_dir.mkdir(parents=True, exist_ok=True)
+    (s.results_dir / "provenance.json").write_text('{"keep": true}', encoding="utf-8")
+    study.run(s)
+    assert json.loads((s.results_dir / "provenance.json").read_text(encoding="utf-8")) == {"keep": True}
+    assert (s.results_dir / "provenance_r5.json").exists() and (s.results_dir / "run_info_r5.json").exists()
+    (s.path / "run.py").write_text("def main(ctx):\n    ctx.record_suffix = '../x'\n    return {}\n",
+                                   encoding="utf-8")
+    with pytest.raises(ValueError):
+        study.run(s)

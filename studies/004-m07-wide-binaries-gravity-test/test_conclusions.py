@@ -56,3 +56,43 @@ def test_r3_variants():
         if k not in invalid:
             assert m["primary"]["verdict"].startswith("cannot distinguish"), k
             assert 1 / 100 < m["primary"]["L"] < 100, k
+
+
+# ---------------------------------------------------------------- R5 (README 2.1, T-034)
+def test_r5_label_rederived_from_saved_results():
+    """Re-derive the R5 label from results/r5.json with the pre-registered table (skip if R5 has
+    not been run)."""
+    s = load("r5")
+    label = s["label"]
+    unbl = bool(s.get("blinding", {}).get("n4_read_before_merge"))
+    prefix = "R5 (unblinded, descriptive): " if unbl else "R5: "
+    if "g1b" in s and not s["g1b"]["passes"]:
+        assert label == "R5: not run (insufficient predicted power)"
+        return
+    if "main" not in s:
+        assert label in ("R5: not run (data not obtained)", "R5: not run (insufficient predicted power)") \
+            or s.get("stopped_after_g1b")
+        return
+    m = s["main"]
+    if not m.get("valid"):
+        assert label == prefix + "invalid fit (no label)"
+        return
+    L, g2 = m["fit"]["L"], m["fit"]["g2"]["passes"]
+    if g2:
+        body = ("Newton has the higher relative likelihood (agrees with C26's conclusion)" if L >= 100 else
+                "MOND has the higher relative likelihood (contradicts C26)" if L <= 0.01 else "cannot distinguish")
+    else:
+        grade = ("Newton weakly preferred" if L >= 10 else "MOND weakly preferred" if L <= 0.1 else "no preference")
+        body = f"no verdict at C26's strength (insufficient power, data-conditional); {grade} (descriptive)"
+    assert label == prefix + body
+    # G2 is the symmetric rule: both noise-free values recorded
+    assert {"L_N_data", "L_M_data", "passes"} <= set(m["fit"]["g2"])
+
+
+def test_r5_variant_grades_consistent():
+    s = load("r5")
+    for name, v in s.get("variants", {}).items():
+        if v.get("valid"):
+            L = v["fit"]["L"]
+            want = "Newton" if L >= 10 else "MOND" if L <= 0.1 else "no preference"
+            assert v["fit"]["grade"].startswith(want), name

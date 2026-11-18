@@ -113,6 +113,7 @@ class Context:
         self.refresh = refresh
         self.provenance = ProvenanceLog()
         self.saved: list[str] = []
+        self.record_suffix = ""  # run(): provenance{suffix}.json, run_info{suffix}.json
         self.bytes_in = 0
         self.max_save_bytes: int | None = None  # set by explore(): outputs must stay small
 
@@ -176,8 +177,12 @@ def run(study: Study, refresh: bool = False) -> dict[str, Any]:
     t0 = time.time()
     summary = module.main(ctx) or {}
     elapsed = round(time.time() - t0, 2)
-    ctx.provenance.write(study.results_dir / "provenance.json")
-    write_json(study.results_dir / "run_info.json",
+    # a run mode that must not overwrite another mode's records sets ctx.record_suffix (e.g. "_r5")
+    suffix = getattr(ctx, "record_suffix", "")
+    if not re.fullmatch(r"(_[a-z0-9]+)?", suffix):
+        raise ValueError(f"record_suffix {suffix!r} must be empty or '_' plus lowercase letters/digits")
+    ctx.provenance.write(study.results_dir / f"provenance{suffix}.json")
+    write_json(study.results_dir / f"run_info{suffix}.json",
                {"study": study.id, "finished_at": now_iso(), "seconds": elapsed, "outputs": ctx.saved})
     print(f"[{study.id}] done in {elapsed}s; outputs: {', '.join(ctx.saved) or '-'}")
     if summary:

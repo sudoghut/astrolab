@@ -41,6 +41,13 @@ PARAMS = {
     "min_per_bin": 15, "n_boot": 2000, "boot_seed": 0, "L_threshold": 100.0,
     "d_max_pc": 130.0, "rsky_min_au": 1000.0, "rsky_max_au": 30000.0, "ruwe_max": 1.25,
     "drv_max": 10.0, "sig_vt_max": 0.1, "vt_max": 2.5,
+    # run mode: "r2" (the 2026-11-16 study, unchanged) or "r5" (README 2.1, T-034). The "mode" and
+    # "r5_*" keys are not part of the R2 parameters and are not saved with the R2 results.
+    "mode": "r2",
+    "r5_d_max_pc": 250.0, "r5_rsky_min_au": 300.0, "r5_n_boot": 10000, "r5_seed": 0,
+    "r5_bytes_n1": 720, "r5_bytes_n2": 40, "r5_bytes_n3": 24, "r5_bytes_n4": 600,
+    "r5_run_c25": True,                # variant V9 (N2-C25, restricted form only)
+    "r5_stop_after_g1b": False,        # True: fetch N1-N3, evaluate G1b, save, and stop before N4
 }
 
 
@@ -69,6 +76,10 @@ def _regions(P):
     return regs
 
 
+class BudgetStop(RuntimeError):
+    """The cumulative estimate would exceed the study budget (stop and ask the user)."""
+
+
 class Budget:
     """Cumulative byte estimate shared by the worker threads; checked BEFORE each fetch."""
 
@@ -78,7 +89,7 @@ class Budget:
     def reserve(self, nbytes, what):
         with self.lock:
             if self.used + nbytes > self.limit:
-                raise RuntimeError(f"{what}: cumulative estimate {(self.used + nbytes) / 1e6:.1f} MB exceeds "
+                raise BudgetStop(f"{what}: cumulative estimate {(self.used + nbytes) / 1e6:.1f} MB exceeds "
                                    "the study budget; stop and ask the user (README section 3)")
             self.used += nbytes
 
@@ -288,11 +299,15 @@ def build_sample(pairs, a2, a3, P, variant, trace=None):
                                       df["parallax_b"].to_numpy(), df["parallax_error_b"].to_numpy())
     df = df.assign(pbar=pbar)
     df = df[df["pbar"] > 1000.0 / v.get("d_max_pc", P["d_max_pc"])]
+    if v.get("pbar_max") is not None:     # R5 V14: the 150-250 pc shell only
+        df = df[df["pbar"] <= v["pbar_max"]]
     note("distance")
     rsky = wb.sky_separation_au(df["ra_a"].to_numpy(), df["dec_a"].to_numpy(), df["ra_b"].to_numpy(),
                                 df["dec_b"].to_numpy(), df["pbar"].to_numpy())
     df = df.assign(rsky=np.asarray(rsky))
     df = df[(df["rsky"] >= P["rsky_min_au"]) & (df["rsky"] <= P["rsky_max_au"])]
+    if v.get("theta_min_arcsec") is not None:     # R5 V3: angular floor (theta = r_sky * pbar / 1000)
+        df = df[df["rsky"] * df["pbar"] / 1000.0 >= v["theta_min_arcsec"]]
     note("r_sky")
     if v.get("parallax_snr_min"):
         df = df[(df["parallax_a"] / df["parallax_error_a"] > v["parallax_snr_min"])
@@ -345,6 +360,8 @@ def build_sample(pairs, a2, a3, P, variant, trace=None):
     vc = wb.vc_kms(df["M"].to_numpy(), df["rsky"].to_numpy())
     df = df.assign(vsky=vsky, vt=vsky / vc, sig_vt=sig / vc,
                    x=df["rsky"].to_numpy() / wb.r_mond_au(df["M"].to_numpy(), P["a0"]))
+    if v.get("x_min") is not None:        # R5 V5
+        df = df[df["x"] >= v["x_min"]]
     df = df[df["sig_vt"] < P["sig_vt_max"]]
     note("sigma_vt")
     df = df[df["vt"] <= v.get("vt_max", P["vt_max"])]
@@ -464,8 +481,242 @@ def step_b(ctx, P):
                         "c25_neighbour_degrouping": "diagnostic; its extra A2 queries were not run"}})
 
 
+# ---------------------------------------------------------------- R5 (README 2.1, T-034)
+class DataNotObtained(RuntimeError):
+    """A required R5 query could not be completed."""
+
+
+def _too_large():
+    from astrolab.fetch import TooLarge
+    return TooLarge
+
+
+def _r5_region(ctx, P, label, name, r, near, budget, build, bpr):
+    """Count first; split a region over the row or byte cap in RA (as section 3); then fetch.
+    build(region, near, select) returns the ADQL; select is 'count' or 'rows'."""
+    n = _count(ctx, build(r, near, "count"), f"{label} {name}")
+    if n >= P["max_rows"] or n * bpr > _max_bytes():
+        if near:
+            raise RuntimeError(f"{label} {name}: the near-star query exceeded the row cap; stop")
+        if r["ra1"] - r["ra0"] < 0.1:
+            raise RuntimeError(f"{label} {name}: still over the row cap at 0.1 deg; stop and ask the user")
+        ns, dfs = 0, []
+        for i, sub in enumerate(wb.split_region(r)):
+            k, d = _r5_region(ctx, P, label, f"{name}.{i}", sub, near, budget, build, bpr)
+            ns += k
+            dfs.append(d)
+        return ns, pd.concat(dfs, ignore_index=True)
+    if n == 0:
+        return 0, pd.DataFrame()
+    budget.reserve(n * bpr, f"{label} {name}")
+    df = ctx.tap(build(r, near, "rows"), "gaia", label=f"{label} {name}", max_rows=P["max_rows"],
+                 mode="async", release="Gaia DR3")
+    _same(n, df, f"{label} {name}")
+    return n, df
+
+
+def _r5_with_fallback(ctx, P, label, name, r, near, budget, build_restricted, build_full, bpr):
+    """Restricted query; if the archive refuses or times out, the unrestricted region-partitioned
+    query (section 3, restricted-join risk). Budget stops are never retried."""
+    try:
+        n, d = _r5_region(ctx, P, label, name, r, near, budget, build_restricted, bpr)
+        return n, d, False
+    except (BudgetStop, _too_large()):
+        raise
+    except Exception as e:  # noqa: BLE001 - archive refusal or timeout of the restricted join
+        ctx.log(f"{label} {name}: restricted query failed ({type(e).__name__}: {str(e)[:120]}); fallback")
+    try:
+        n, d = _r5_region(ctx, P, f"{label}-fallback", name, r, near, budget, build_full, bpr)
+        return n, d, True
+    except (BudgetStop, _too_large()):
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise DataNotObtained(f"{label} {name}: {type(e).__name__}: {e}") from e
+
+
+def r5_gather_a(ctx, P, R, budget):
+    """Step A' (velocity-free): N1, N2 (restricted, fallback), N3 (restricted, fallback) and
+    N2-C25 (restricted only; V9), per region."""
+    import r5
+    nb = P["near_b"]
+
+    def one(item):
+        name, r, near = item
+        try:
+            _, d1 = _r5_region(ctx, P, "N1", name, r, near, budget,
+                               lambda rr, nn, sel: r5.n1_query(rr, nn, nb, sel), R["r5_bytes_n1"])
+        except (BudgetStop, _too_large()):
+            raise
+        except Exception as e:  # noqa: BLE001
+            raise DataNotObtained(f"N1 {name}: {type(e).__name__}: {e}") from e
+        _, d2, f2 = _r5_with_fallback(
+            ctx, P, "N2", name, r, near, budget,
+            lambda rr, nn, sel: r5.neighbour_query(rr, nn, nb, r5.NEIGHBOUR, sel, True),
+            lambda rr, nn, sel: r5.neighbour_query(rr, nn, nb, r5.NEIGHBOUR, sel, False), R["r5_bytes_n2"])
+        _, d3, f3 = _r5_with_fallback(
+            ctx, P, "N3", name, r, near, budget,
+            lambda rr, nn, sel: r5.flame_query(rr, nn, nb, sel, True),
+            lambda rr, nn, sel: r5.flame_query(rr, nn, nb, sel, False), R["r5_bytes_n3"])
+        dc, c25_error = None, None
+        if R["r5_run_c25"]:
+            try:
+                _, dc = _r5_region(ctx, P, "N2-C25", name, r, near, budget,
+                                   lambda rr, nn, sel: r5.neighbour_query(rr, nn, nb, r5.NEIGHBOUR_C25, sel, True),
+                                   R["r5_bytes_n2"])
+            except (BudgetStop, _too_large()):
+                raise
+            except Exception as e:  # noqa: BLE001 - V9 runs only in restricted form
+                c25_error = f"{type(e).__name__}: {str(e)[:200]}"
+        return name, d1, d2, d3, dc, f2, f3, c25_error
+
+    parts = {"n1": [], "n2": [], "n3": [], "c25": []}
+    fallback, c25_errors = {"N2": [], "N3": []}, {}
+    with ThreadPoolExecutor(max_workers=int(P["workers"])) as ex:
+        for name, d1, d2, d3, dc, f2, f3, ce in ex.map(one, _regions(P)):
+            parts["n1"].append(d1)
+            parts["n2"].append(d2)
+            parts["n3"].append(d3)
+            if f2:
+                fallback["N2"].append(name)
+            if f3:
+                fallback["N3"].append(name)
+            if ce:
+                c25_errors[name] = ce
+            elif dc is not None:
+                parts["c25"].append(dc)
+    cat = {k: (pd.concat(v, ignore_index=True) if v else pd.DataFrame()) for k, v in parts.items()}
+    if not R["r5_run_c25"] or c25_errors:
+        cat["c25"] = None
+    for k in ("n2", "c25"):
+        if cat[k] is not None and len(cat[k]) == 0:
+            cat[k] = pd.DataFrame({"source_id": [], "n": [], "first_neighbour": []})
+    if len(cat["n3"]) == 0:
+        cat["n3"] = pd.DataFrame({"source_id": [], "mass_flame": []})
+    return cat, fallback, c25_errors
+
+
+def r5_fetch_n4(ctx, P, R, budget):
+    """Step B': N4 per region (only after G1b passes and the blinding check)."""
+    import r5
+    nb = P["near_b"]
+
+    def one(item):
+        name, r, near = item
+        try:
+            return _r5_region(ctx, P, "N4", name, r, near, budget,
+                              lambda rr, nn, sel: r5.n4_query(rr, nn, nb, sel), R["r5_bytes_n4"])[1]
+        except (BudgetStop, _too_large()):
+            raise
+        except Exception as e:  # noqa: BLE001
+            raise DataNotObtained(f"N4 {name}: {type(e).__name__}: {e}") from e
+    with ThreadPoolExecutor(max_workers=int(P["workers"])) as ex:
+        dfs = list(ex.map(one, _regions(P)))
+    return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
+
+
+def r5_analyse_all(pairs, cat, P, R, pm, unblinded):
+    """Statistic, G2 and label for R5; V1-V14 and E1-E5 (descriptive); per-shell medians."""
+    import r5
+    P5 = dict(P, d_max_pc=R["r5_d_max_pc"], rsky_min_au=R["r5_rsky_min_au"])
+    res = {}
+    for name, (vflags, pover) in r5.VARIANTS.items():
+        if name == "V9_c25_degroup" and cat["c25"] is None:
+            res[name] = {"not_run": "N2-C25 not obtained in restricted form" if R["r5_run_c25"] else "switched off"}
+            continue
+        tr = {}
+        a2 = cat["c25"] if name == "V9_c25_degroup" else cat["n2"]
+        df = build_sample(pairs, a2, cat["n3"], dict(P5, **pover), vflags, trace=tr)
+        rr = r5.analyse(df, P["edges"], P["min_per_bin"], R["r5_n_boot"], R["r5_seed"], P["a0"],
+                        P["gne_over_a0"], pm, error_models=(name == "R5"))
+        rr["cut_trace"] = tr
+        if name == "R5" and rr.get("valid"):
+            rr["shells"] = r5.shell_descriptives(df, P["edges"], rr["mapping"])
+        res[name] = rr
+    main_r = res.pop("R5")
+    if not main_r.get("valid"):
+        label = r5.relabel(r5.LABELS["invalid"], unblinded)
+    else:
+        label = r5.verdict_label(True, main_r["fit"]["g2"]["passes"], main_r["fit"]["L"], unblinded)
+    return main_r, res, label
+
+
+def step_r5(ctx, P, R):
+    """README 2.1 R5 (T-034): N1-N3 (+N2-C25), G1b, blinding check, N4, statistic, variants."""
+    import r5
+    ctx.record_suffix = "_r5"          # keep R2's provenance.json and run_info.json untouched
+    pm = r5.power_mock()
+    P5 = dict(P, d_max_pc=R["r5_d_max_pc"], rsky_min_au=R["r5_rsky_min_au"])
+    out = {"mode": "r5", "not_reproduction": "enlarged sample; not a reproduction",
+           "params": {**R, "parent": r5.PARENT_RV, "neighbour": r5.NEIGHBOUR, "neighbour_c25": r5.NEIGHBOUR_C25,
+                      "merge_time_utc": r5.MERGE_TIME_UTC, "edges": P["edges"], "min_per_bin": P["min_per_bin"],
+                      "hr_c": P["hr_c"], "g1b_factors": [float(f) for f in pm.G1B_FACTORS]}}
+    budget = Budget(P["budget_bytes"])
+
+    def finish(label):
+        out["label"] = label
+        out["est_bytes"] = int(budget.used)
+        ctx.save("r5", _clean(out))
+        ctx.log(f"R5: {label}")
+        return out
+
+    try:
+        cat, fallback, c25_errors = r5_gather_a(ctx, P, R, budget)
+    except DataNotObtained as e:
+        out["error"] = str(e)
+        return finish(r5.LABELS["no_data"])
+    out["queries_a"] = {"n1_rows": int(len(cat["n1"])), "n2_rows": int(len(cat["n2"])),
+                        "n3_rows": int(len(cat["n3"])),
+                        "n2_c25_rows": None if cat["c25"] is None else int(len(cat["c25"])),
+                        "fallback_regions": fallback, "n2_c25_errors": c25_errors}
+    if len(cat["n1"]) == 0:
+        out["error"] = "N1 returned no pairs"
+        return finish(r5.LABELS["no_data"])
+    x, trace = r5.g1b_step1(cat["n1"], cat["n2"], cat["n3"], P5)
+    g = pm.g1b_pipeline(x, P["edges"], P["min_per_bin"])
+    out["g1b"] = {"step1_trace": trace, **g}
+    ctx.log(f"G1b: {g}")
+    if not g["passes"]:
+        return finish(r5.LABELS["g1b_fail"])
+    if R["r5_stop_after_g1b"]:
+        out["stopped_after_g1b"] = True
+        return finish("R5: G1b passed; stopped before N4 (r5_stop_after_g1b)")
+    # blinding check (README 2.1 unblinded rule; section 3 schedule)
+    t_read = r5.now_utc()
+    if t_read < r5.parse_utc(r5.MERGE_TIME_UTC):
+        raise RuntimeError("refusing to read N4 before the merge of README 2.1 to main")
+    n_prov = len(ctx.provenance.records)
+    try:
+        n4 = r5_fetch_n4(ctx, P, R, budget)
+    except DataNotObtained as e:
+        out["error"] = str(e)
+        return finish(r5.LABELS["no_data"])
+    recs = [rec for rec in ctx.provenance.records[n_prov:]
+            if str(rec.get("label", "")).startswith("N4 ") and (rec.get("rows") or 0) > 0]
+    stamps = [rec["retrieved_at"] for rec in recs if rec.get("retrieved_at")]
+    unblinded = r5.read_before_merge(stamps)
+    out["blinding"] = {"n4_read_started_utc": t_read.replace(microsecond=0).isoformat(),
+                       "n4_earliest_retrieved_at": min(stamps) if stamps else None,
+                       "merge_time_utc": r5.MERGE_TIME_UTC, "n4_read_before_merge": bool(unblinded)}
+    n1 = cat["n1"].iloc[wb.canonical_pairs(cat["n1"]["source_id_a"].to_numpy(),
+                                           cat["n1"]["source_id_b"].to_numpy())].reset_index(drop=True)
+    n1 = n1.drop(columns=[f"{c}_{s}" for c in r5.N1_EXTRA_COLS for s in ("a", "b")])
+    n4 = n4.iloc[wb.canonical_pairs(n4["source_id_a"].to_numpy(), n4["source_id_b"].to_numpy())].reset_index(drop=True)
+    pairs = n1.merge(n4, on=["source_id_a", "source_id_b"], how="inner")
+    if len(pairs) != len(n4):
+        raise RuntimeError(f"{len(n4) - len(pairs)} N4 pairs are missing from N1; stop")
+    out["queries_b"] = {"n4_rows": int(len(n4)), "merged": int(len(pairs))}
+    out["main"], out["variants"], label = r5_analyse_all(pairs, cat, P, R, pm, unblinded)
+    return finish(label)
+
+
 def main(ctx):
     P = dict(PARAMS)
+    mode = P.pop("mode", "r2")
+    R = {k: P.pop(k) for k in list(P) if k.startswith("r5_")}
+    if mode == "r5":
+        return step_r5(ctx, P, R)
+    if mode != "r2":
+        raise RuntimeError(f"unknown mode {mode!r}")
     if P["step"] == "B":
         out = step_b(ctx, P)
         ctx.save("summary", {"params": P, **out})
