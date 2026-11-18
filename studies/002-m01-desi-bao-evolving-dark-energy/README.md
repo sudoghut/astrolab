@@ -357,7 +357,8 @@ R2-CAMB reproduce the earlier numbers exactly). Both θ* and r_d from CAMB (`rdr
   formula-vs-CAMB difference in r_d is too small to matter): with θ* and r_d both from CAMB, reading A still
   gives about −6.5 to −6.6, and only reading B matches −8.0. The question of which quantity DESI's
   code compared with the Eq. 35 mean stays open (the primary-source search of 2026-11-17 did not
-  find DESI's configuration; section 2), and so does, under A, the remaining ~1.4 in Δχ².
+  find DESI's configuration; section 2), and so does, under A, the remaining ~1.4 in Δχ² (state at the
+  R2-CAMB-RD run; T-041 below then found DESI's configuration).
 
 ### DESI's configuration of the compressed prior (T-041, post hoc, 2026-11-18)
 
