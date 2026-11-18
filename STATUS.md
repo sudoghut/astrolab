@@ -64,7 +64,7 @@
 | `006-m08-z14-galaxies-number-density` | L1 | reproduced | 数密度复现；恒定 SFE 模型预言 N26 基准的 2.5–37 倍（预注册变体网格），所需 σ_UV ≈ 1–2 mag；R2/R3-POST（T-025）：R2 对 z ≈ 8 光度函数校准的不确定性稳健，R3 临界且主要取决于 σ_cal；R3-POST2（T-036）：σ_cal 自由时 R2 仍稳健，R3 依赖校准（P = 0.92），σ_cal 由先验主导 |
 | `007-m10-gwtc4-bbh-mass-35msun` | X | concluded | O4a 样本 84/84 复现；O1–O3 按规则 59/69（GWOSC 的 GWTC-2.1 行无 FAR，事后 69）；35 M☉ 局部峰依赖选择函数模型（探索） |
 | `008-m03-s8-des-y6-cmb-parameter-difference` | L0 | reproduced | DES Y6 与 CMB 的参数差异复现（S8 2.67σ，S8–Ωm 2.18σ）；结论取决于"低于 3σ 即没有证据"的用法；全空间待流方法（T-027） |
-| `009-m06-mw-outer-rotation-curve-decline` | L3 | reproduced | J23 的幂律与质量在其假设下复现；3σ 部分来自先验、误差不独立，总质量由晕的形状决定；R6-COV（T-028）：在相关误差下（只在高 f 协方差下）下降约 3–5σ、开普勒式无法区分、NFW 不被看好 |
+| `009-m06-mw-outer-rotation-curve-decline` | L3 | reproduced | J23 的幂律与质量在其假设下复现；3σ 部分来自先验、误差不独立，总质量由晕的形状决定；R6-COV（T-028）：在相关误差下（只在高 f 协方差下；平方指数核）下降约 3–5σ、开普勒式无法区分、NFW 不被看好 |
 | `001-m04-gaia-dormant-black-holes` | L4 | reproduced（DR3） | BH1、BH2 只用 DR3 复现成立；服务器端筛选与否决规则已在正样本上验证；按数据发布参数化，DR4 判据已预注册（计划 008），发布日按技能 `gaia-dr4-release-day` 运行 |
 
 ## 时间点
