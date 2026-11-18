@@ -4,7 +4,8 @@ Keplerian mock of the scaled relative velocity v~ (thermal eccentricities, rando
 orientation, 0.03 Gaussian noise per sky component), calibrated by f_cal (the geometric-mean ratio
 of the 2026-11-16 bootstrap errors to the mock errors at the same counts). For each design, it gives
 the noise-free ("Asimov") L under Newtonian and MOND truth and, with N_MC > 0, Monte Carlo rates
-using the stratified bootstrap.
+using the stratified bootstrap. `g1b()` is the pre-registered G1b evaluation (fixed f_cal, fresh
+generator); `g2_rates()` simulates the symmetric G2 rule and the verdict rates (N_G2 > 0).
 
 Run: python -m astrolab explore 004 --tag t034-power --script explore/t034_power_mock.py
 """
@@ -22,7 +23,10 @@ DESIGNS = {                                           # predicted final counts p
     "200pc_relaxed": [1112, 672, 542, 251, 154, 56],
     "250pc_relaxed_R5": [1408, 988, 789, 375, 220, 72],
     "150pc_c25": [1180, 678, 483, 245, 143, 61],
+    "shell_150_250pc": [771, 651, 517, 248, 154, 44],      # R5 minus the predicted d < 150 pc counts
 }
+F_CAL_FIXED = 1.227                                   # f_cal fixed by README 2.1 for G1b
+N_G2, B_G2, SEED_G2 = 0, 1000, 20261121               # set N_G2 = 1000 to repeat the G2 table
 N_SE, N_MC, B_MC, SEED_MC = 20000, 0, 1000, 20261118  # set N_MC = 1000 to repeat the MC table
 
 
@@ -74,6 +78,50 @@ def mc(pool, counts, xm, truth, rng, R, B):
             **{f"P(L<={t})": float(np.mean(Ls <= t)) for t in (0.1, 0.01)}}
 
 
+def calibrated_pool():
+    raw = kepler_vt(N_POOL, np.random.default_rng(SEED_POOL))
+    A = float(np.median(raw))
+    return A + F_CAL_FIXED * (raw - A), A
+
+
+def g1b(counts, x_medians):
+    """README 2.1 G1b: (L_N*, L_M*, passes) for the predicted counts and the observed velocity-free
+    x medians; pool from SEED_POOL with f_cal = 1.227, one fresh generator SEED_MC, bins in order."""
+    pool, A = calibrated_pool()
+    LN, LM = asimov(pool, A, counts, x_medians, np.random.default_rng(SEED_MC))
+    return LN, LM, bool(LN >= 100 and LM <= 0.01)
+
+
+def g2_symmetric(med, s, x):
+    """README 2.1 G2: relative errors r = s/m; Newton truth A_N with errors A_N r; MOND truth
+    A_M b(x) with errors A_M b(x) r; A_N, A_M the GLS fits to the observed medians."""
+    x = np.asarray(x, float)
+    b = wb.mond_boost(x)
+    f = wb.compare_models(med, x, np.diag(s ** 2))
+    An, Am, r = f["A_newton"], f["A_mond"], s / med
+    LN = wb.compare_models(An * np.ones(len(x)), x, np.diag((An * r) ** 2))["L"]
+    LM = wb.compare_models(Am * b, x, np.diag((Am * b * r) ** 2))["L"]
+    return f["L"], float(LN), float(LM), bool(LN >= 100 and LM <= 0.01)
+
+
+def g2_rates(pool, counts, x, truth, R, B, seed):
+    rng = np.random.default_rng(seed)
+    x = np.asarray(x, float)
+    bb = wb.mond_boost(x) if truth == "mond" else np.ones(len(x))
+    L, ok = [], []
+    for _ in range(R):
+        vs = [pool[rng.integers(0, len(pool), n)] * bj for n, bj in zip(counts, bb)]
+        med = np.array([np.median(v) for v in vs])
+        s = np.array([np.std(np.median(v[rng.integers(0, len(v), (B, len(v)))], axis=1), ddof=1) for v in vs])
+        l, _, _, g = g2_symmetric(med, s, x)
+        L.append(l)
+        ok.append(g)
+    L, ok = np.array(L), np.array(ok)
+    return {"P_G2_pass": float(ok.mean()), "P_pass_L>=100": float(np.mean(ok & (L >= 100))),
+            "P_pass_L<=0.01": float(np.mean(ok & (L <= 0.01))),
+            "P_pass_between": float(np.mean(ok & (L > 0.01) & (L < 100)))}
+
+
 def main(ctx):
     rng = np.random.default_rng(SEED_POOL)
     raw = kepler_vt(N_POOL, rng)
@@ -89,6 +137,9 @@ def main(ctx):
     for name, c in DESIGNS.items():
         d = {"counts": c, "asimov": asimov(pool, A, c, X_R5, r2),
              "asimov_minus25pct": asimov(pool, A, [int(round(0.75 * n)) for n in c], X_R5, r2)}
+        if N_G2:
+            pool2, _ = calibrated_pool()
+            d["g2"] = {t: g2_rates(pool2, c, X_R5, t, N_G2, B_G2, SEED_G2) for t in ("newton", "mond")}
         if N_MC:
             d["mc"] = {t: mc(pool, c, X_R5, t, r2, N_MC, B_MC) for t in ("newton", "mond")}
         out["designs"][name] = d
