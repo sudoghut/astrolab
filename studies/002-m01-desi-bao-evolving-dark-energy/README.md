@@ -336,18 +336,20 @@ R2-CAMB reproduce the earlier numbers exactly). Both θ* and r_d from CAMB (`rdr
 | Variant | Reading A: Δχ²_MAP (shift vs R2-CAMB; vs formula) | Reading B: Δχ²_MAP (shift vs R2-CAMB; vs formula) | Verdicts |
 |---|---|---|---|
 | CAMB anchored-RD | −6.49 (+0.103; +0.096) | −7.90 (+0.107; +0.105) | A not reproduced, B reproduced |
-| CAMB raw-RD | −6.60 (+0.102; −0.017) | −8.03 (+0.106; −0.019) | A not reproduced, B reproduced |
+| CAMB raw-RD | −6.60 (+0.102; −0.016) | −8.03 (+0.106; −0.019) | A not reproduced, B reproduced |
 
 - **Conclusion (pre-registered rule): R2 robust to the r_d formula.** Both variants are valid (every
   fit converged, 16–20 starts agree, nesting holds) and keep the per-reading verdicts. Rejected trial
   points per fit: 33 infeasible and one CAMB error in each ΛCDM fit, 48–49 infeasible in each
   w0waCDM fit, none non-finite.
 - CAMB's r_drag moves Δχ² by about +0.10 in every reading and variant, as the R2-CAMB referee
-  estimated (−6.48 for A, −7.90 for B with the formula θ*, against our anchored-RD −6.49, −7.90).
+  estimated (−6.48 for A, −7.90 for B with the formula θ*, against our anchored-RD −6.49, −7.90 with
+  the anchored θ*; the two θ* differ by less than 0.01 in Δχ²).
   After the referee (section 6): this is a constant rescale, the Aubourg r_d being 0.99971–0.99972
-  of CAMB's r_drag at every optimum (about −0.020% the formula's own error, −0.007% N_eff 3.044 vs
-  3.046), and it moves both readings alike, so it cannot explain the A/B split. For raw-RD the shift
-  against the formula (−0.017, −0.019) is θ* (about −0.12) and r_d (about +0.10) cancelling.
+  of CAMB's r_drag at every optimum (referee's offline script; at the Planck reference point about
+  −0.020% is the formula's own error and −0.007% is N_eff 3.044 vs 3.046, the rest varies with
+  cosmology), and it moves both readings alike, so it cannot explain the A/B split. For raw-RD the shift
+  against the formula (−0.016, −0.019) is θ* (about −0.12) and r_d (about +0.10) cancelling.
 - Gap of reading A to the paper's −8.0: 1.51 (anchored-RD) and 1.40 (raw-RD). Raw-RD with reading A
   is the variant closest to how a current Cobaya + CAMB run would evaluate the prior (section 2; it
   uses N_eff = 3.044, while the prior's chains probably used 3.046): **−6.60**.
@@ -403,11 +405,11 @@ label; the json supports the conclusion. Triage:
 | # | Point | Verified | Action |
 |---|---|---|---|
 | 1 | The code matches the addendum (r_d = `rdrag` from the same `get_background` call, K_C scales θ* only, rejections counted, the shift against R2-CAMB from the same run, the labels); χ² recomputed at all 8 saved RD optima matches the json exactly | yes (rerun of the referee's script: difference 0 at every optimum) | None. |
-| 2 | The +0.10 shift is a constant r_d rescale: Aubourg / CAMB = 0.999712–0.999720 at every optimum; swapping r_d at fixed parameters gives Δχ² +0.103 (anchored-RD, A) before any refit, +0.103 after | yes | Stated in section 5. |
+| 2 | The +0.10 shift is a constant r_d rescale (numbers from the referee's offline script, not saved in `results/`): Aubourg / CAMB = 0.999712–0.999720 at every optimum; swapping r_d at fixed parameters gives Δχ² +0.103 (anchored-RD, A) before any refit, +0.103 after | yes | Stated in section 5. |
 | 3 | Where the 0.029% comes from: at the Planck reference point CAMB `rdrag` is 147.059 Mpc with N_eff = 3.044 and 147.049 with 3.046 (Planck's published 147.049), the formula 147.020; so about −0.020% is the formula's own error and −0.007% is N_eff. "Anchored-RD" is a hybrid: θ* is anchored to the Planck reference, r_d is not (as pre-registered) | yes | Stated in section 5. |
 | 4 | Neutrinos: CAMB's ων at Σmν = 0.06 eV is 6.449 × 10⁻⁴ against 6.442 × 10⁻⁴ from Σmν/93.14 (0.018 prior σ of ωbc); Σmν is fixed, so no Σmν–r_d degeneracy propagates | yes | None. |
 | 5 | r_d enters both readings alike (+0.103 / +0.107 anchored-RD), so it cannot explain the A/B split; the check had low power (flipping A needed about −0.4, B about ±0.9) and tests only the formula-vs-CAMB rescale, not r_d systematics in general | yes (the shifts) | **Accepted**; section 5 reads "robust" in this narrow sense. |
-| 6 | For the RD variants `dchi2_shift_vs_formula` mixes two changes: raw-RD's −0.017 is θ* (−0.12) plus r_d (+0.10) cancelling | yes | Section 5 leads with the shift against R2-CAMB and states the decomposition. |
+| 6 | For the RD variants `dchi2_shift_vs_formula` mixes two changes: raw-RD's −0.016 is θ* (−0.12) plus r_d (+0.10) cancelling | yes | Section 5 leads with the shift against R2-CAMB and states the decomposition. |
 | 7 | No r_d diagnostics are saved at the RD optima (not required by the addendum) | yes | None; the ratios in item 2 are recorded here. |
 | 8 | Rejection tallies as expected (one CAMB error per ΛCDM fit, none non-finite) | yes | None. |
 | 9 | "Raw-RD with reading A is closest to the source's configuration" is only partly true: raw-RD uses N_eff = 3.044 and CAMB 2.0.5, while the prior's chains probably used 3.046 (the R2-CAMB raw offset) | partly (the N_eff difference yes; the chains' setting is the referee's inference) | **Accepted**; section 5 says "closest to how a current Cobaya + CAMB run would evaluate the prior". |
