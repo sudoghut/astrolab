@@ -1,12 +1,13 @@
 {
  "study": "009-m06-mw-outer-rotation-curve-decline",
- "finished_at": "2026-11-15T11:23:47+00:00",
- "seconds": 399.45,
+ "finished_at": "2026-11-18T19:46:36+00:00",
+ "seconds": 1116.03,
  "outputs": [
   "r1.json",
   "r2.json",
   "r3.json",
   "r4.json",
-  "r5.json"
+  "r5.json",
+  "r6.json"
  ]
 }
