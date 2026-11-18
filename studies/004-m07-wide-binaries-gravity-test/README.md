@@ -270,17 +270,20 @@ C25 degrouping at 150 pc (365, 0.0068) changes C26's rule and also fails at −2
      - masses (FLAME, else M_G) and x;
      - the error-only proxy σ̃ < 0.1, where σ̃ = 4.740470464/ϖ̄ · √((σ²_μα*,1 + σ²_μδ,1 + σ²_μα*,2 +
        σ²_μδ,2)/2) / v_c. It uses the N1 error columns pmra_error and pmdec_error only.
-  2. Count the pairs per bin and multiply by the fixed factors 0.969, 0.937, 0.953, 0.899, 0.809,
-     0.521. These are T_j × (no-degrouping / relaxed-degrouping velocity-free counts at 130 pc), so
-     they carry the remaining ΔRV, ṽ-cap and σ(ṽ) attrition.
-  3. Merge bins by the rule of this section. x_j is each bin's observed velocity-free median x.
+  2. Count the pairs per bin, multiply by the fixed factors 0.969, 0.937, 0.953, 0.899, 0.809,
+     0.521, and round each product to the nearest integer (halves up). The factors are T_j ×
+     (no-degrouping / relaxed-degrouping velocity-free counts at 130 pc), so they carry the remaining
+     ΔRV, ṽ-cap and σ(ṽ) attrition. This is an approximation: it assumes that the σ̃ attrition and
+     the FLAME/M_G mass difference do not depend on degrouping.
+  3. Apply the 15-pair merge rule of this section to the scaled-and-rounded counts. x_j is the
+     observed velocity-free median x of each final bin.
   4. Compute L_N* and L_M* with `g1b()` in `explore/t034_power_mock.py`:
      - the pool from `default_rng(20261117)` with f_cal fixed at 1.227;
      - one fresh `default_rng(20261118)`;
      - for each bin in increasing x, 20,000 replicate medians, each drawing N_j indices.
   5. G1b passes if L_N* ≥ 100 and L_M* ≤ 1/100, with no margin.
-  6. If G1b fails, N4 is not fetched, and R5 is reported as "not run: insufficient predicted power",
-     with the counts.
+  6. If G1b fails, N4 is not fetched, and R5 is reported as "R5: not run (insufficient predicted
+     power)", with the counts.
 - **G2 (data-conditional, after the run; symmetric).**
   - Let r_j = σ_j/m_j be the relative errors of the data.
   - Newtonian truth: medians A_N, errors A_N·r_j.
@@ -292,7 +295,8 @@ C25 degrouping at 150 pc (365, 0.0068) changes C26's rule and also fails at −2
 | Condition | Label |
 |---|---|
 | Fit invalid or not evaluable (rules of this section; σ_j not finite or not > 0) | "R5: invalid fit (no label)" |
-| G1b fails, or a required query (N1–N4) cannot be completed before 2026-11-24 | "R5: not run (insufficient predicted power / data not obtained)" |
+| G1b fails | "R5: not run (insufficient predicted power)" |
+| A required query (N1–N4) cannot be completed before 2026-11-24 | "R5: not run (data not obtained)" |
 | G2 fails, L ≥ 10 | "R5: no verdict at C26's strength (insufficient power, data-conditional); Newton weakly preferred (descriptive)" |
 | G2 fails, 1/10 < L < 10 | "R5: no verdict at C26's strength (insufficient power, data-conditional); no preference (descriptive)" |
 | G2 fails, L ≤ 1/10 | "R5: no verdict at C26's strength (insufficient power, data-conditional); MOND weakly preferred (descriptive)" |
@@ -429,7 +433,7 @@ asin(sin θ / cos δ). Every region is counted first and split if it reaches 50,
 
 *Restricted-join risk.* The archive may refuse or time out the restricted N2/N3 joins. In that case:
 - N2 and N3 fall back to the unrestricted queries, counted first.
-- If neither form completes before 2026-11-24, R5 is reported as "not run (data not obtained)".
+- If neither form completes before 2026-11-24, R5 is reported as "R5: not run (data not obtained)".
 
 *Schedule.* The Gaia archive is offline from 2026-11-25 to 12-02.
 1. Merge section 2.1 and this block to main, after the dual-gate review, before 2026-11-21.
@@ -438,7 +442,7 @@ asin(sin θ / cos δ). Every region is counted first and split if it reaches 50,
 4. Fetch N4.
 
 If N4 is fetched before that merge, R5 is labelled "unblinded". Everything must be fetched by
-2026-11-24. If N4 cannot be completed, R5 is reported as not run.
+2026-11-24. If N4 cannot be completed, R5 is reported as "R5: not run (data not obtained)".
 
 ## 4. Method
 
