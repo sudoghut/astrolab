@@ -428,6 +428,37 @@ posterior covers the LF calibration uncertainty only. The post-hoc one-at-a-time
 referee section (φ* −1σ: ratio 1.9) were more extreme than the joint posterior: the binned data
 constrain the combination that matters, and the 5th–95th percentile range of the ratio is 5.9–17.6.
 
+**R3-POST2 (2026-11-18; pre-registered in the section 2 addendum of 2026-11-17, T-036).** The
+R2/R3-POST primary fit with σ_cal sampled (flat on [0.3, 1.2] mag), Poisson likelihoods for the two
+brightest blank-field bins (counts 2 and 9) and γ allowed down to −1, all three changed together
+(`results/post2.json`; run time 61 min for the whole study, no data downloaded).
+
+| Quantity | Result |
+|---|---|
+| Convergence | τ_max = 1106 (≤ 1,600; 50 τ ≤ 80,000): converged; acceptance 0.22 |
+| Fit quality | statistic 4.8 (15 points), bootstrap p = 0.950, 0 of 200 refits failed: no misfit |
+| Bound fractions | largest 0.018 (β at its lower bound): not prior-bounded |
+| σ_cal posterior | median 0.72 mag, 68% interval 0.43–1.05 (width 0.62 > 0.54): **σ_cal prior-dominated** |
+| γ < 0 / ε > 1 | 0.18 of draws / 0.00 of draws |
+| R2 | P(higher) = 0.990 (P − 2SE = 0.981): **robust to the calibration uncertainty (higher); σ_cal prior-dominated** |
+| R3 | P(consistent with N26) = 0.916 (P + 2SE = 0.941): **calibration-uncertain; σ_cal prior-dominated** |
+| Ratio to N26's baseline | 5–16–50–84–95%: 4.2–5.5–11.0–21.7–29.4 |
+| Central σ_UV root over draws | 1.49 mag (16–84%: 1.34–1.75) |
+
+P(R3 consistent) by σ_cal bin (descriptive; draws per bin in brackets): 0.3–0.4: 0.77 (56); 0.4–0.5:
+0.83 (75); 0.5–0.6: 0.82 (49); 0.6–0.7: 0.89 (46); 0.7–0.8: 1.00 (66); 0.8–0.9: 1.00 (54); 0.9–1.0:
+0.98 (56); 1.0–1.1: 1.00 (47); 1.1–1.2: 0.98 (51). The draws spread almost evenly over the prior, and
+all "different" draws but two have σ_cal < 0.7. The least-squares start of the bootstrap sits at
+box edges (β ≈ 0, γ = −1, σ_cal = 0.3); the posterior does not pile up there.
+
+Reading (pre-registered): "calibration-uncertain" → R3's overlap with N26's 1.5–2 mag **stays
+undetermined**; σ_cal is prior-dominated, so P(R3) = 0.92 is conditional on the [0.3, 1.2] mag range.
+The three changes moved P(R3 consistent) from 0.962 (R2/R3-POST primary) to 0.916, the direction the
+referee expected, but the joint fit does not say which change did it, and the binned z ≈ 8 data
+cannot tell σ_cal = 0.3 from 1.2. R2 "higher" stays robust with the freer model, and its spread
+widened (5th–95th percentile ratio 4.2–29.4 against 5.9–17.6). Both statements remain conditional on
+the fiducial ingredients (Sheth–Tormen, "dpl" extrapolation, no dust).
+
 ## 6. Referee notes
 
 Independent referee (2026-11-15; a subagent given the code, pre-registration and results, not our
@@ -487,8 +518,10 @@ applied as written. Triage:
   borderline and depends on σ_cal. The remaining R3 drivers are model ingredients the posterior
   does not cover: the extrapolation of ε below the calibrated range, the halo mass function and
   dust at z ≈ 8.
-- Does R3 survive a fit with σ_cal free, a Poisson likelihood for the bright blank-field bins and
-  γ < 0 allowed (the referee's test, T-036)?
+- R3-POST2 (T-036, section 5) left σ_cal free, used a Poisson likelihood for the bright blank-field
+  bins and allowed γ < 0: R3 stays undetermined (P = 0.92, calibration-uncertain), and the binned
+  z ≈ 8 data do not constrain σ_cal. What independent constraint on the z ≈ 8 scatter (for example
+  from clustering or abundance matching) would decide it?
 - How large is cosmic variance for two sources in 388 arcmin² at z ≈ 14 (`gap_poisson`), and what is
   the full effective area (`gap_area`)?
 

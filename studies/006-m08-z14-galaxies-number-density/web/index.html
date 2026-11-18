@@ -32,7 +32,7 @@
 
   <h2><span class="en">Posterior propagation of the z ≈ 8 calibration (R2/R3-POST)</span><span class="zh">z ≈ 8 校准的后验传播（R2/R3-POST）</span></h2>
   <div class="table-wrap" id="post"><span class="en">loading…</span><span class="zh">加载中……</span></div>
-  <p class="note"><span class="en">Pre-registered sensitivity check (README section 2 addendum): the model is calibrated on the binned z ~ 8 LF with errors, 500 posterior draws are propagated, and a verdict is "robust" only if its probability minus two Monte Carlo standard errors is at least 0.95. Conditional on the fiducial model ingredients (Sheth–Tormen, "dpl" extrapolation, no dust).</span><span class="zh">预注册的敏感度检验（README 第 2 节补充）：用带误差的分箱 z ~ 8 光度函数校准模型，传播 500 个后验样本；只有当判定的概率减去两倍蒙特卡洛标准误差不小于 0.95 时才算"稳健"。以基准模型成分为条件（Sheth–Tormen、"dpl" 外推、不改正尘埃）。</span></p>
+  <p class="note"><span class="en">Pre-registered sensitivity check (README section 2 addendum): the model is calibrated on the binned z ~ 8 LF with errors, 500 posterior draws are propagated, and a verdict is "robust" only if its probability minus two Monte Carlo standard errors is at least 0.95. Conditional on the fiducial model ingredients (Sheth–Tormen, "dpl" extrapolation, no dust). The last row (R3-POST2, a second addendum) samples σ_cal on [0.3, 1.2] mag, uses Poisson likelihoods for the two brightest blank-field bins and allows γ &lt; 0; the data barely constrain σ_cal, so its probabilities are conditional on that prior range.</span><span class="zh">预注册的敏感度检验（README 第 2 节补充）：用带误差的分箱 z ~ 8 光度函数校准模型，传播 500 个后验样本；只有当判定的概率减去两倍蒙特卡洛标准误差不小于 0.95 时才算"稳健"。以基准模型成分为条件（Sheth–Tormen、"dpl" 外推、不改正尘埃）。最后一行（R3-POST2，第二次补充）在 [0.3, 1.2] mag 上对 σ_cal 采样，最亮两个空白天区分箱用泊松似然，并允许 γ &lt; 0；数据几乎约束不了 σ_cal，所以这一行的概率以该先验范围为条件。</span></p>
 
   <div class="grid2">
     <div>
@@ -68,7 +68,7 @@ const ZH = {
   'robust to the calibration uncertainty (consistent with N26)': '对校准不确定性稳健（与 N26 一致）',
   'calibration-uncertain (borderline)': '依赖校准（临界）', 'calibration-uncertain': '依赖校准',
   'model misfit (probabilities reported, not a verdict)': '拟合失配（只报告概率，不作判定）',
-  'robust': '稳健', 'holds': '成立', 'fails': '不成立', 'calibration-dependent': '依赖校准', 'not assessable': '无法评估', 'not evaluable': '不可评估',
+  'sigma_cal prior-dominated': 'σ_cal 由先验主导', 'robust': '稳健', 'holds': '成立', 'fails': '不成立', 'calibration-dependent': '依赖校准', 'not assessable': '无法评估', 'not evaluable': '不可评估',
 };
 const tr = s => {
   const parts = String(s).split('; ');
@@ -98,10 +98,11 @@ function render() {
     document.getElementById('post').innerHTML = i18n.L('results/post.json not found: run the study to produce the posterior check.', '找不到 results/post.json：运行研究以生成后验检验。');
   } else try {
     const names = {primary: ['primary (σ_cal = 0.7)', '主拟合（σ_cal = 0.7）'], 'sigma_cal_0.5': ['σ_cal = 0.5', 'σ_cal = 0.5'],
-                   'sigma_cal_0.9': ['σ_cal = 0.9', 'σ_cal = 0.9'], faint_rows: ['+ 4 faint lensing rows', '加入 4 个暗端透镜行']};
+                   'sigma_cal_0.9': ['σ_cal = 0.9', 'σ_cal = 0.9'], faint_rows: ['+ 4 faint lensing rows', '加入 4 个暗端透镜行'],
+                   post2: ['R3-POST2: σ_cal free, Poisson bright bins, γ ≥ −1', 'R3-POST2：σ_cal 自由、亮端泊松、γ ≥ −1']};
     const pcls = s => String(s).startsWith('robust') ? 'ok' : 'warn';
     document.getElementById('post').innerHTML = `<table><thead><tr><th>${i18n.L('Fit', '拟合')}</th><th>τ_max</th><th>${i18n.L('bootstrap p', '自助法 p')}</th><th>P(${i18n.L('R2 higher', 'R2 更高')})</th><th>${i18n.L('R2', 'R2')}</th><th>P(${i18n.L('R3 consistent', 'R3 一致')})</th><th>${i18n.L('R3', 'R3')}</th><th>${i18n.L('ratio 16–50–84%', '比值 16–50–84%')}</th></tr></thead><tbody>` +
-      Object.entries(D.post).map(([k, v]) => {
+      Object.entries(D.post).concat(D.post2 ? [['post2', D.post2]] : []).map(([k, v]) => {
         const q = v.ratio_quantiles || [];
         return `<tr><td>${names[k] ? i18n.L(...names[k]) : esc(k)}</td><td>${(v.tau ? Math.round(Math.max(...v.tau)) : '–')}${v.converged ? '' : ' ' + i18n.L('(not converged)', '（未收敛）')}</td><td>${fmt(v.lsq.p_bootstrap)}</td>` +
           `<td>${fmt(v.r2_probabilities.higher)}</td><td><span class="${pcls(v.r2_label)}">${tr(v.r2_label)}</span></td>` +
@@ -144,8 +145,8 @@ function render() {
       ]}), {responsive: true, displayModeBar: false});
 }
 
-Promise.all(['r1', 'r2', 'r3', 'variants', 'curves'].map(load).concat([load('post').catch(() => null)]))
-  .then(([r1, r2, r3, variants, curves, post]) => { D = {r1, r2, r3, variants, curves, post}; render(); })
+Promise.all(['r1', 'r2', 'r3', 'variants', 'curves'].map(load).concat([load('post').catch(() => null), load('post2').catch(() => null)]))
+  .then(([r1, r2, r3, variants, curves, post, post2]) => { D = {r1, r2, r3, variants, curves, post, post2}; render(); })
   .catch(e => { document.getElementById('criteria').innerHTML = i18n.L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + esc(e); });
 i18n.onLangChange(render);
 </script>
