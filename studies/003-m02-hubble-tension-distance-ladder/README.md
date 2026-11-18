@@ -328,8 +328,8 @@ effect, which row of R2's table does the host step give?
 *Decision rules and labels, fixed now.* R2-RE's row ("no host-selection effect detected") stays the
 headline; the R2 (2026-11-14), R2-RE and R2-RE-ROB verdicts and labels stay as recorded.
 - (a) The reduced system's R2 and R2-RE rows are reported, marked "known before this addendum". R4-N
-  gets R4's label; B-N gets ROB's three-way labels. Reading, rules checked in this order: any B-N part "not evaluable" → "not evaluable"; spread "consistent with C" and τ not
-  "unusual" → "the excess calibrator scatter of R2-RE-ROB is attributable to N5584"; spread
+  gets R4's label; B-N gets ROB's three-way labels. Reading, rules checked in this order: any B-N part "not evaluable" → "not evaluable"; spread "consistent with C" and τ "consistent
+  with C" or "undetermined (Monte Carlo)" (i.e. not "unusual") → "the excess calibrator scatter of R2-RE-ROB is attributable to N5584"; spread
   "unusual" → "excess scatter remains without N5584"; spread "consistent with C" and τ "unusual" →
   "τ excess remains without N5584"; otherwise "undetermined".
 - (b) z_T's row equals R2-RE's row → **"R2-RE verdict robust to a heavy-tailed host effect"**;
@@ -337,7 +337,7 @@ headline; the R2 (2026-11-14), R2-RE and R2-RE-ROB verdicts and labels stay as r
 - Joint reading: if (b) is robust, "the null result holds under both removal and down-weighting of
   N5584; only the hybrid τ route of R2-RE-ROB A flips"; if (b) is not robust, "the verdict depends on
   how one host is modelled", quoting R2's z under C, R2-RE's z' under V(τ̂ = 0.077) and z_T under V_T, all on the
-  full 37-host system (the host step lies between the smallest and the largest |z| of the three); if (b) is not evaluable, there is no joint reading and (a)'s
+  full 37-host system (reported as observed values, not a decision rule); if (b) is not evaluable, there is no joint reading and (a)'s
   labels stand alone.
 
 *Reported.* (a): rows removed, τ̂_N with its interval, z under C and V, the R4-N percentiles and
@@ -349,7 +349,9 @@ effective scatter τ̂/√ω̂_j, iteration counts, the implementation check, an
 1 min; R4-N and R4-N under V about 20 min each; B-N about 2.5 h (τ part, 400 REML fits) plus about
 3 min (spread); (b) seconds. Added about 3.3 h; a full run about 7 h; no data downloaded. Switch:
 `PARAMS["n5584_check"]`, with `"n5584_host": "N5584"`, `"t_nu": 4`, `"t_nu_sens": [2, 10]`, `"t_maxiter": 10000`, `"t_tol": 1e-8`,
-`"t_starts": [0.077, 0.20]`.
+`"t_starts": [0.077, 0.20]`. `n5584_check` runs after, and in addition to, the R2-RE-ROB
+block (`rob_check`) and under the same condition (R2-RE run and the host step evaluable); R4-N and
+B-N call R4 and `rob.null_sims`-style code with the reduced rows, groups and subsets passed in.
 
 ## 3. Data (with size estimate)
 
