@@ -229,6 +229,7 @@ def test_r5_stop_after_g1b_and_data_not_obtained(monkeypatch):
     ctx = FakeCtx({"N1": n1, "N2": a2, "N3": a3, "N2-C25": a2, "N4": n4})
     run.step_r5(ctx, P, R)
     assert ctx.saved["r5"]["stopped_after_g1b"]
+    assert "label" not in ctx.saved["r5"]          # operational stop: no R5 label
     assert not any(str(rec["label"]).startswith("N4") for rec in ctx.provenance.records)
 
     class Broken(FakeCtx):
@@ -402,3 +403,12 @@ def test_map_regions_cancels_pending_on_first_failure():
     with pytest.raises(TimeoutError):
         run._map_regions(P, fn)
     assert len(seen) < 20
+
+
+def test_archive_error_classification(monkeypatch):
+    run, P, R = _setup(monkeypatch)
+    from astrolab import fetch as F
+    assert run._archive_error(TimeoutError("x")) and run._archive_error(F._TapQueryError("x"))
+    assert run._archive_error(RuntimeError("TAP service kept failing"))
+    assert not run._archive_error(ValueError("bug")) and not run._archive_error(KeyError("k"))
+    assert not run._archive_error(RuntimeError("count mismatch"))

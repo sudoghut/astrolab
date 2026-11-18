@@ -542,6 +542,13 @@ def _r5_region(ctx, P, label, name, r, near, budget, build, bpr):
     return n, df
 
 
+def _archive_error(e):
+    """Archive refusal, timeout or transport failure (the only reasons for the fallback)."""
+    from astrolab import fetch as F
+    return (isinstance(e, (F._TapHTTPError, F._TapQueryError, TimeoutError, OSError))
+            or (isinstance(e, RuntimeError) and str(e).startswith("TAP ")))
+
+
 def _r5_with_fallback(ctx, P, label, name, r, near, budget, build_restricted, build_full, bpr):
     """Restricted query; if the archive refuses or times out, the unrestricted region-partitioned
     query (section 3, restricted-join risk). Stops (_stops) are never caught."""
@@ -551,6 +558,8 @@ def _r5_with_fallback(ctx, P, label, name, r, near, budget, build_restricted, bu
     except _stops():
         raise
     except Exception as e:  # noqa: BLE001 - archive refusal or timeout of the restricted join
+        if not _archive_error(e):
+            raise                         # a code defect or count mismatch is not a reason to fall back
         ctx.log(f"{label} {name}: restricted query failed ({type(e).__name__}: {str(e)[:120]}); fallback")
     try:
         n, d = _r5_region(ctx, P, f"{label}-fallback", name, r, near, budget, build_full, bpr)
@@ -747,7 +756,11 @@ def _step_r5(ctx, P, R):
         return finish(r5.LABELS["g1b_fail"])
     if R["r5_stop_after_g1b"]:
         out["stopped_after_g1b"] = True
-        return finish("R5: G1b passed; stopped before N4 (r5_stop_after_g1b)")
+        out["status"] = "G1b passed; stopped before N4 (operational switch, not an R5 label)"
+        out["est_bytes"] = int(budget.used)
+        ctx.save("r5", _clean(out))
+        ctx.log("R5: G1b passed; stopped before N4 (no label)")
+        return out
     # blinding check (README 2.1 unblinded rule; section 3 schedule)
     t_read = r5.now_utc()
     if t_read < r5.parse_utc(r5.MERGE_TIME_UTC):
