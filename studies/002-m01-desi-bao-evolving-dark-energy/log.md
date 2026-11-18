@@ -5,6 +5,11 @@
 
 ## 2026-11-18
 
+### DESI 对压缩先验的配置（T-041，事后）
+
+- 只读页面：DESI 公开的 DR2 宇宙学发布中，"DESI BAO + CMB-compressed-theta-ombh2-ombch2"的 Cobaya 配置（`chain.updated.yaml`，ΛCDM 与 w0waCDM）显示压缩 CMB 似然只接收 `ombh2` 与 `omch2`，而 `omch2 = omm·h² − mnu/93.14 − ombh2` 不含中微子；均值 0.14207901。所以 DESI 拿均值与 ωb + ωc 比较，解读 B 就是 DESI 的配置（似然源码不公开，构造 `ombch2` 的那一行没看到）。
+- 记录的判定"有条件复现（解读 B）"不变，其条件现在由一手来源确认。仍未解决：DESI 的均值比来源链 `cmbant/PlanckEarlyLCDM` 的 ωb + ωc（0.14143）高 0.00065，恰为 0.06 eV 的 ων；论文附录 A 正文与文献 [111] 未能读到（arXiv HTML 在参考文献前中断，PDF 超过读取工具的大小上限）。
+
 ### R2-CAMB-RD：θ* 与 r_d 都取自 CAMB（T-030）
 
 - 2026-11-17 先在论文 HTML、`cmbant/PlanckEarlyLCDM`、`CobayaSampler/bao_data` 中查找 DESI 压缩先验的配置（只读页面），没有找到；于是预注册 R2-CAMB-RD（README 第 2 节补充），预注册与代码各过双闸审查。
