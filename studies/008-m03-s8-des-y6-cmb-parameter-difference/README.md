@@ -316,9 +316,10 @@ reported cases at 100 iterations; that was withdrawn before any run.)
 Written after R6 and its referee review, before any flow without Σmν or with `pop_size = 1` was
 trained on the chains. It changes nothing above; R6's recorded verdict, "not evaluable", stays as
 recorded, and R6 itself is not retrained: with the new key `"r6_retrain": False`, run.py loads the
-recorded `results/r6.json`, checks that it is complete and that `main.n_bar` = 1.69853 (to 5 decimals),
-saves it back unchanged, and passes n̄₆ and the per-seed n₆,k to R6-NOMNU; a mismatch or a missing file
-makes R6-NOMNU "not evaluable" (R6 is then left as recorded).
+recorded `results/r6.json`, checks that it is complete (`flows.complete` true, `flows.gate.passed`
+true, five repetitions in `flows.main`) and that `flows.main.n_bar` = 1.69853 (to 5 decimals), saves it
+back byte-identical, and passes n̄₆ and the per-seed n₆,k to R6-NOMNU; if the file is missing or does not
+pass these checks, run.py does not write `r6.json` and R6-NOMNU is "not evaluable".
 
 *Why.* R6 gave 1.61–1.86σ for the six-parameter difference; the referee found, post hoc, that Σmν alone
 gives 1.74σ (section 6). Removing Σmν tests whether the full-space number is carried by that prior-edge
