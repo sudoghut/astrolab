@@ -43,11 +43,11 @@ PARAMS = {
     "drv_max": 10.0, "sig_vt_max": 0.1, "vt_max": 2.5,
     # run mode: "r2" (the 2026-11-16 study, unchanged) or "r5" (README 2.1, T-034). The "mode" and
     # "r5_*" keys are not part of the R2 parameters and are not saved with the R2 results.
-    "mode": "r2",
+    "mode": "r5",                      # 2026-11-18: formal R5 run (T-034); "r2" reproduces the original analysis
     "r5_d_max_pc": 250.0, "r5_rsky_min_au": 300.0, "r5_n_boot": 10000, "r5_seed": 0,
     "r5_bytes_n1": 720, "r5_bytes_n2": 40, "r5_bytes_n3": 24, "r5_bytes_n4": 600,
     "r5_run_c25": True,                # variant V9 (N2-C25, restricted form only)
-    "r5_stop_after_g1b": False,        # True: fetch N1-N3, evaluate G1b, save, and stop before N4
+    "r5_stop_after_g1b": True,         # True: fetch N1-N3, evaluate G1b, save, and stop before N4
 }
 
 
