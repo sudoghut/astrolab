@@ -366,24 +366,25 @@ Pages read only (no chains downloaded). DESI's public DR2 cosmology release
 run "DESI BAO + CMB-compressed-theta-ombh2-ombch2" for ΛCDM (`base`) and w0waCDM (`base_w_wa`)
 ([`chain.updated.yaml`](https://data.desi.lbl.gov/public/papers/y3/bao-cosmo-params/cobaya/base_w_wa/desi-bao-all_CMB-compressed-theta-ombh2-ombch2/chain.updated.yaml); the ΛCDM file has the same lines):
 - the likelihood `CMB_standard_compression_PR4` has observables `thetastar, ombh2, ombch2`, means
-  0.01041027, 0.02223208, 0.14207901 and a full-precision covariance, and its `input_params` are only
-  `ombh2` and `omch2`;
+  0.01041027, 0.02223208, 0.14207901 and a covariance given to 9 significant figures (1.48841714 ×
+  10⁻⁶ for ωbc), and its `input_params` are only `ombh2` and `omch2`, so the likelihood itself forms
+  the observable `ombch2` from them;
 - `omch2` is a derived parameter defined as `omm*(H0/100)**2 - mnu / 93.14 - ombh2`, i.e. without the
   neutrino density; `mnu` is fixed at 0.06; CAMB 1.5.4 with one massive neutrino and N_eff = 3.044.
 
-So DESI compared the 0.14208 mean with ωb + ωc, without ων: **reading B is DESI's configuration**,
-consistent with the paper's main-text definition ωbc ≡ (Ωb + Ωc)h², with Ων h² = Σmν/93.14 eV kept
-separate. The likelihood's Python source is not public (the line that forms `ombch2` was not seen),
-but it receives no ων. This resolves the convention question of T-030 post hoc: the recorded verdict
-"conditionally reproduced (reading B)" stays as recorded, and its condition is the one DESI used;
-our reading B gives −8.01 (formula), −7.90 to −8.13 across the CAMB variants, against −8.0.
+So the likelihood receives ωb and ωc but no ων: **by the evidence of the configuration, reading B is
+DESI's convention**. The likelihood's Python source is not public, so the line that forms `ombch2`
+was not seen, and a constant ων (0.000644 for the fixed 0.06 eV) added inside it cannot be excluded;
+that would be reading A. Our reading B reproducing −8.0 (−8.01 with the formula, −7.90 to −8.13
+across the CAMB variants) makes B the likely reading. Post hoc; the recorded verdict "conditionally
+reproduced (reading B)" stays as recorded.
 
 What stays open: the prior's mean itself. The source chain `cmbant/PlanckEarlyLCDM` gives
 ωb + ωc = 0.14143, while DESI's likelihood (named "PR4") uses 0.14208, 0.00065 (0.53σ) higher, the
-size of ων for 0.06 eV. Whether DESI's mean comes from a different input (the paper cites ref. [111]
-for the compression, not identified here: the arXiv HTML stops before the bibliography and Appendix
-A) or adds ων in the compression step cannot be told from these files. Not checked: Appendix A
-text, ref. [111].
+size of ων for 0.06 eV. Whether DESI's mean comes from a different input or adds ων in the
+compression step cannot be told from these files. The paper cites ref. [111] for the compression;
+it was not identified here, because the arXiv HTML stops before the bibliography and Appendix A, and
+the PDF is too large for the page-reading tool. Not checked: Appendix A text, ref. [111].
 
 ## 6. Referee notes (independent subagent, 2026-11-14)
 
@@ -452,8 +453,9 @@ label; the json supports the conclusion. Triage:
   DESI's code compared with the 0.14208 mean, and, if A, where the remaining ~1.4 in Δχ² comes
   from (T-030). R2-CAMB-RD (2026-11-18) ruled out the r_d formula as the source: with θ* and r_d
   from CAMB, reading A gives −6.49 to −6.60. Answered 2026-11-18 (T-041, post hoc, section 5): DESI's
-  public chain configuration compares the mean with ωb + ωc (reading B). Open: why DESI's mean is
-  0.00065 above the source chain's ωb + ωc (Appendix A text and ref. [111] not yet read).
+  public chain configuration indicates reading B (the likelihood receives ωb and ωc without ων; its
+  source is not public). Open: why DESI's mean is 0.00065 above the source chain's ωb + ωc
+  (Appendix A text and ref. [111] not read: the PDF is too large for the page-reading tool).
 - Wilks calibration (wiki `gap_regular`): simulate the Δχ² distribution under the ΛCDM best fit
   for DESI + compressed CMB and compare with χ²(2).
 - Leave-one-tracer-out sensitivity of Δχ² (`drop_z`), and DES-Dovekie as a third SN sample.
