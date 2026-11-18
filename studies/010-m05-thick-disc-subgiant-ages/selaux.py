@@ -184,7 +184,8 @@ class MockStore:
     written atomically; a session ledger accumulates elapsed time across sessions. A folder left by
     a 16 h stop (stopped.json) is resumed only when resume_consent.txt exists (the user's consent,
     recorded in log.md); the consent is used once. A line "limit_h = <hours>" in the consent file
-    sets a new stop limit for the rest of the run (kept in limit.json, recorded in resumes.json)."""
+    sets a new stop limit for the rest of the run (kept in limit.json, recorded in resumes.json); it
+    takes precedence over PARAMS["sel_stop_h"] for this checkpoint folder."""
 
     def __init__(self, root, key, *, stale_days=7.0):
         self.root = Path(root)
@@ -235,7 +236,8 @@ class MockStore:
 
     @property
     def limit_h(self):
-        """Stop limit set by a consent file, or None (PARAMS["sel_stop_h"] applies)."""
+        """Stop limit set by a consent file (limit.json), or None. When set, it takes precedence over
+        PARAMS["sel_stop_h"] for every later session of this checkpoint folder."""
         p = self.dir / "limit.json"
         if not p.exists():
             return None
@@ -383,14 +385,27 @@ def r1_verdict(bins, min_bins=3, edge_range=(6.5, 9.5)):
     return ("reproduced" if ok else "not reproduced"), med
 
 
+def category(label):
+    """The bare category of a label for comparisons: any trailing parenthetical (e.g. "(non-finite
+    standard error)") is dropped, so "cannot determine" and "cannot determine (...)" agree. The full
+    label is kept for display."""
+    s = str(label).strip()
+    i = s.find(" (")
+    return s[:i] if i >= 0 and s.endswith(")") else s
+
+
+def same_category(*labels):
+    return len({category(x) for x in labels}) == 1
+
+
 def selterm(bare_e, bare_n):
-    return "selection-term robust" if bare_e == bare_n else "selection-term sensitive"
+    return "selection-term robust" if same_category(bare_e, bare_n) else "selection-term sensitive"
 
 
 def r1_label(v_e, v_n, v_full):
     """R1-SEL: the S15 term-E verdict; robust if Full gives the same verdict; selection-term
     qualifier from S15 term N."""
-    rob = v_e == v_full
+    rob = same_category(v_e, v_full)
     return {"bare": v_e, "robust": bool(rob), "selection_term": selterm(v_e, v_n),
             "label": f"{v_e} ({'robust' if rob else 'not robust'}; {selterm(v_e, v_n)})"}
 
