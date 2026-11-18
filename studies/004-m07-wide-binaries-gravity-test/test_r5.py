@@ -174,7 +174,7 @@ def _setup(monkeypatch, passes=True):
     P.pop("mode")
     R = {k: P.pop(k) for k in list(P) if k.startswith("r5_")}
     P.update(hr_c=1.0, region_limit=1, workers=1)
-    R.update(r5_n_boot=300)
+    R.update(r5_n_boot=300, r5_stop_after_g1b=False)   # tests choose the stop explicitly
     return run, P, R
 
 
@@ -279,6 +279,7 @@ def test_new_variant_keys_cut_as_specified():
 def test_r2_mode_parameters_unchanged(monkeypatch):
     """The R2 path receives exactly the pre-T-034 PARAMS (no mode, no r5_* keys)."""
     run = _run_module()
+    monkeypatch.setitem(run.PARAMS, "mode", "r2")          # the R2 path, whatever the formal mode is
     seen = {}
     monkeypatch.setattr(run, "step_b", lambda ctx, P: seen.setdefault("P", P) and {} or {})
 
