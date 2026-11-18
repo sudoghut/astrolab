@@ -1,4 +1,5 @@
-"""Exploration (post hoc, R6 referee item 1; 2026-11-18). Uses the cached chains only.
+"""Exploration (post hoc, R6 referee item 1; 2026-11-18). Reads the two chains through the study's guarded
+fetch (from the cache, where they already are).
 
 Per-parameter view of the six-parameter difference that R6 estimates with flows: weighted mean and
 standard deviation of each sampled parameter in each chain, and the binned-KDE n_sigma (the R2

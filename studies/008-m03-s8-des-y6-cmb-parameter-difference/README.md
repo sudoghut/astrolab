@@ -466,7 +466,7 @@ about 12.5 minutes (6-D) or 5 minutes (2-D).
 | S8 in place of A_s (seeds 0–2) | 1.749, 1.670, 1.722 | 1.714 | 0.041 | Gaussian 1.48 |
 | (A_s, Ωm) (seeds 0–2) | 0.396, 0.405, 0.401 | 0.401 | 0.004 | binned KDE, same run, 0.381; Gaussian 0.323 |
 | (S8, Ωm) (seeds 0–2) | 2.158, 2.126, 2.144 | 2.143 | 0.016 | binned KDE (R2) 2.178 |
-| S8 alone (1-D) | not run (amendment 2026-11-18) | – | – | binned KDE (R2) 2.674 |
+| 1-D flow in S8 | not run (amendment 2026-11-18) | – | – | binned KDE (R2) 2.674 |
 
 - **Verdict.** Conditions (1)–(5) of section 2.6 do not apply: the R1 gate and the known-answer gate
   passed, all five repetitions converged with finite n_σ, prior support passed (no weight of either
