@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-15T09:55:33+00:00",
+  "generated_at": "2026-11-18T16:12:28+00:00",
   "inputs": [
     {
       "source": "http",
@@ -8,6 +8,7 @@
       "sha256": "ee2728c487e4295ff49981cb6ee1765fdb2a7a601bb788b8bbb48597207bb606",
       "bytes": 144252036,
       "cache_key": "7caf47c457d5746e81abaf2b",
+      "note": "cap exception 157286400 bytes: user approved 2026-11-15, recorded in this study's log.md and README section 3: one-off 150 MiB cap for the DES Y6 3x2pt chain only",
       "label": "DES Y6 chain 32pt_wolensbin2_lin_lcdm_DV0723_R0723.txt"
     },
     {

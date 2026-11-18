@@ -1,0 +1,322 @@
+{
+ "parameters": [
+  "cosmological_parameters--a_s_1e9",
+  "cosmological_parameters--h0",
+  "cosmological_parameters--mnu",
+  "cosmological_parameters--n_s",
+  "cosmological_parameters--omega_b",
+  "cosmological_parameters--omega_m"
+ ],
+ "support": {
+  "parameters": {
+   "cosmological_parameters--a_s_1e9": {
+    "des_3x2pt_outside_cmb": 0.0,
+    "cmb_outside_des_3x2pt": 0.0
+   },
+   "cosmological_parameters--h0": {
+    "des_3x2pt_outside_cmb": 0.0,
+    "cmb_outside_des_3x2pt": 0.0
+   },
+   "cosmological_parameters--mnu": {
+    "des_3x2pt_outside_cmb": 0.0,
+    "cmb_outside_des_3x2pt": 0.0
+   },
+   "cosmological_parameters--n_s": {
+    "des_3x2pt_outside_cmb": 0.0,
+    "cmb_outside_des_3x2pt": 0.0
+   },
+   "cosmological_parameters--omega_b": {
+    "des_3x2pt_outside_cmb": 0.0,
+    "cmb_outside_des_3x2pt": 0.0
+   },
+   "cosmological_parameters--omega_m": {
+    "des_3x2pt_outside_cmb": 0.0,
+    "cmb_outside_des_3x2pt": 0.0
+   }
+  },
+  "fails": false,
+  "not_checkable": [],
+  "rule": "weight of each chain outside the other chain's prior range > 0.01 -> descriptive"
+ },
+ "flows": {
+  "versions": {
+   "tensorflow": "2.21.0",
+   "tensiometer": "1.1.0",
+   "getdist": "1.7.7",
+   "numpy": "2.5.5",
+   "legacy_keras": "1"
+  },
+  "settings": {
+   "prior_bijector": "ranges",
+   "apply_rescaling": true,
+   "trainable_bijector": "AutoregressiveFlow",
+   "validation_split": 0.1,
+   "pop_size": 10,
+   "epochs": 100,
+   "feedback": 0,
+   "plot_every": 0
+  },
+  "gate": {
+   "exact": {
+    "delta": 0.9822595,
+    "n_sigma": 2.3709902305286406
+   },
+   "repetitions": [
+    {
+     "seed": 10,
+     "delta": 0.98242,
+     "delta_low": 0.9819968571984348,
+     "delta_up": 0.982833450046053,
+     "n_sigma": 2.3743474279621712,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 806.7,
+     "shift_s": 3.8
+    },
+    {
+     "seed": 11,
+     "delta": 0.97699,
+     "delta_low": 0.9765086930195388,
+     "delta_up": 0.9774617374373558,
+     "n_sigma": 2.27326857582215,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 777.4,
+     "shift_s": 3.9
+    },
+    {
+     "seed": 12,
+     "delta": 0.988955,
+     "delta_low": 0.988717635945296,
+     "delta_up": 0.9891874585037581,
+     "n_sigma": 2.541271864347829,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 769.1,
+     "shift_s": 4.4
+    }
+   ],
+   "mean": 2.39629595604405,
+   "passed": true,
+   "rule": "mean within 0.1 and each within 0.2 of the exact n_sigma"
+  },
+  "main": {
+   "parameters": [
+    "a_s_1e9",
+    "h0",
+    "mnu",
+    "n_s",
+    "omega_b",
+    "omega_m"
+   ],
+   "repetitions": [
+    {
+     "seed": 0,
+     "delta": 0.93667,
+     "delta_low": 0.9358947111635522,
+     "delta_up": 0.9374365634466116,
+     "n_sigma": 1.8568675521248896,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 745.8,
+     "shift_s": 3.8
+    },
+    {
+     "seed": 1,
+     "delta": 0.89954,
+     "delta_low": 0.8985856610770299,
+     "delta_up": 0.9004863652501297,
+     "n_sigma": 1.6426276323212916,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 744.8,
+     "shift_s": 3.7
+    },
+    {
+     "seed": 2,
+     "delta": 0.91441,
+     "delta_low": 0.913521092712448,
+     "delta_up": 0.9152906336184146,
+     "n_sigma": 1.719133863254435,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 748.5,
+     "shift_s": 3.7
+    },
+    {
+     "seed": 3,
+     "delta": 0.89158,
+     "delta_low": 0.8905933578226288,
+     "delta_up": 0.8925588287208929,
+     "n_sigma": 1.605335457441476,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 751.5,
+     "shift_s": 3.5
+    },
+    {
+     "seed": 4,
+     "delta": 0.90482,
+     "delta_low": 0.9038880891659509,
+     "delta_up": 0.9057438307552704,
+     "n_sigma": 1.6686841093950204,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 759.2,
+     "shift_s": 3.9
+    }
+   ],
+   "n_bar": 1.6985297229074228,
+   "s": 0.09771946358621213
+  },
+  "s8_for_as": {
+   "parameters": [
+    "s8",
+    "h0",
+    "mnu",
+    "n_s",
+    "omega_b",
+    "omega_m"
+   ],
+   "repetitions": [
+    {
+     "seed": 0,
+     "delta": 0.91978,
+     "delta_low": 0.9189165864364629,
+     "delta_up": 0.9206350312704538,
+     "n_sigma": 1.7494110046390003,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 755.9,
+     "shift_s": 3.8
+    },
+    {
+     "seed": 1,
+     "delta": 0.90503,
+     "delta_low": 0.904098998709149,
+     "delta_up": 0.9059529169775932,
+     "n_sigma": 1.6697441226399972,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 756.2,
+     "shift_s": 3.6
+    },
+    {
+     "seed": 2,
+     "delta": 0.91499,
+     "delta_low": 0.914103794716098,
+     "delta_up": 0.9158679198909796,
+     "n_sigma": 1.7223286533084654,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 758.4,
+     "shift_s": 3.7
+    }
+   ],
+   "n_bar": 1.7138279268624876,
+   "s": 0.040508021235834066
+  },
+  "constrained": {
+   "parameters": [
+    "a_s_1e9",
+    "omega_m"
+   ],
+   "repetitions": [
+    {
+     "seed": 0,
+     "delta": 0.30818,
+     "delta_low": 0.3067248549680735,
+     "delta_up": 0.30963896620319853,
+     "n_sigma": 0.3963863965154319,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 313.2,
+     "shift_s": 1.5
+    },
+    {
+     "seed": 1,
+     "delta": 0.31432,
+     "delta_low": 0.3128569221944951,
+     "delta_up": 0.3157867765960241,
+     "n_sigma": 0.40472454234385297,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 315.3,
+     "shift_s": 1.6
+    },
+    {
+     "seed": 2,
+     "delta": 0.31169,
+     "delta_low": 0.3102302835626103,
+     "delta_up": 0.3131534676473643,
+     "n_sigma": 0.40114957950121766,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 313.6,
+     "shift_s": 1.5
+    }
+   ],
+   "n_bar": 0.40075350612016747,
+   "s": 0.004183159637927569
+  },
+  "flow_2d": {
+   "parameters": [
+    "s8",
+    "omega_m"
+   ],
+   "repetitions": [
+    {
+     "seed": 0,
+     "delta": 0.96906,
+     "delta_low": 0.9685057607778779,
+     "delta_up": 0.9696048419808199,
+     "n_sigma": 2.157843519618035,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 309.7,
+     "shift_s": 1.4
+    },
+    {
+     "seed": 1,
+     "delta": 0.96648,
+     "delta_low": 0.9659042950866918,
+     "delta_up": 0.9670463625805685,
+     "n_sigma": 2.125798992032462,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 308.1,
+     "shift_s": 1.5
+    },
+    {
+     "seed": 2,
+     "delta": 0.96797,
+     "delta_low": 0.9674065756762387,
+     "delta_up": 0.9685240503328013,
+     "n_sigma": 2.1440360296183543,
+     "lower_bound": false,
+     "converged": true,
+     "train_s": 310.6,
+     "shift_s": 1.5
+    }
+   ],
+   "n_bar": 2.1425595137562836,
+   "s": 0.016073207874094272
+  },
+  "complete": true
+ },
+ "verdict": "not evaluable",
+ "reason": "s = 0.09771946358621213 > 0.07",
+ "flow_1d": {
+  "status": "not run (tensiometer 1.1.0 does not support a 1-D flow with its default settings; README 2.6 amendment 2026-11-18)"
+ },
+ "kde_reference": {
+  "1d": 2.673520330573508,
+  "2d": 2.1776961690496206,
+  "constrained": 0.38053339527089625,
+  "constrained_s": 0.0027224459154641103
+ },
+ "gaussian_reference": {
+  "all": 0.8870401642247885,
+  "constrained": 0.32267097698132063
+ }
+}
