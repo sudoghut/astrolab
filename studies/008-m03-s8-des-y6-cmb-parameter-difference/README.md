@@ -311,6 +311,88 @@ with fixed seeds the gate and main results are expected to be identical. (A firs
 amendment, the same day, wrongly blamed the iteration cap of the constrained case and capped the
 reported cases at 100 iterations; that was withdrawn before any run.)
 
+### 2.7 Addendum 2026-11-18: R6-NOMNU, the full-space difference without Σmν (T-040)
+
+Written after R6 and its referee review, before any flow without Σmν or with `pop_size = 1` was
+trained on the chains. It changes nothing above; R6's recorded verdict, "not evaluable", stays as
+recorded, and R6 itself is not retrained (its numbers are read from the recorded `results/r6.json`).
+
+*Why.* R6 gave 1.61–1.86σ for the six-parameter difference; the referee found, post hoc, that Σmν alone
+gives 1.74σ (section 6). Removing Σmν tests whether the full-space number is carried by that prior-edge
+direction. Separately, tensiometer's ten "populations" turned out to be warm restarts of one
+initialisation (section 2.6 step 4), so whether they help is open. In tensiometer 1.1.0
+(`synthetic_probability.py`), `flow_from_chain(chain, **kwargs)` passes its keyword arguments to both
+the callback and `global_train`, whose loop `while ind <= pop_size` skips already-built layers, recompiles
+a fresh Adam optimiser, trains up to 100 epochs per round with the default early-stopping scheduler and
+keeps the weights with the lowest final validation loss: `pop_size = 1` is one initialisation trained
+once, without warm restarts or selection.
+
+*Seen before this addendum.*
+- R6 main case, seeds 0–4 (A_s, h, Σmν, n_s, Ωb, Ωm): 1.857, 1.643, 1.719, 1.605, 1.669; n̄₆ = 1.699,
+  s = 0.098; R6 gate s = 0.135 over seeds 10–12, exact value 2.371; S8-for-A_s case 1.714; (A_s, Ωm)
+  flow 0.401 (binned KDE 0.381); (S8, Ωm) flow 2.143; Gaussian full space 0.89σ (six parameters) and
+  0.32σ for (A_s, Ωm).
+- 1-D binned-KDE differences (`explore/referee_r6_marginals.py`, one seed): Σmν 1.737σ, the other five
+  0.21–0.89σ each; pairs (Σmν, A_s) 1.27σ, (Σmν, Ωm) 0.99σ. Σmν means: CMB 0.122 ± 0.056 (against the
+  0.06 eV edge), DES 0.384 ± 0.147. Prior support passed for all six parameters. Each R6 training took
+  about 12.5 min (6-D) or 5 min (2-D).
+- *Predictability, both ways.* The marginals and the (A_s, Ωm) flow point to a low 5-D value ("mainly
+  Σmν"). A Gaussian χ² bookkeeping on recorded numbers only (done while drafting this addendum) points
+  higher: 1.699σ in 6-D corresponds to an effective χ² ≈ 11.0; Σmν's own 1.737² ≈ 3.0 is 28% of it; if
+  Σmν carried exactly that share, the 5-D value would be about 1.41σ, and about 1.94σ if it carried
+  nothing. The band edges below come from this bookkeeping.
+
+*Question.* Is the DES − CMB difference in (A_s, h, Ωb, n_s, Ωm) clearly smaller than in the six
+parameters? Separately, does `pop_size = 1` change n̄ or s relative to the default?
+
+*Method.*
+- Data and estimator as R6: same chains, rows, weights, burn-in and R1 gate; section 2.6 steps 1–5
+  (N = 100,000, `estimate_shift(tol=0.02, max_iter=1000, step=100000)`); the only change is dropping the
+  `mnu` column. Seeds 0–4; with the same seed the 5-D resampled rows are R6's 6-D rows, so the
+  comparison is paired.
+- Flow settings: R6's defaults, only the dimension changes; for the comparison
+  `flow_from_chain(..., pop_size=1)` with everything else unchanged. The `pop_size` actually passed is
+  recorded (not the signature default).
+- Known-answer gate (5-D): R6's synthetic distribution without the edge box (the curved pair plus the
+  three flat boxes); its exact n_σ by the same Monte Carlo (2,000,000 draws, `default_rng(999)`), not
+  computed before this was written; seeds 10–12, R6's tolerances (mean within 0.10, each within 0.20);
+  run before the chains with default settings; if it fails, the default 5-D case is "not evaluable". The
+  R6 6-D gate is kept as recorded.
+- Runs: (a) 5-D gate, default; (b) 5-D chains, default, seeds 0–4; (c) 5-D and 6-D gates with
+  `pop_size = 1`, seeds 10–12; (d) 5-D and 6-D chains with `pop_size = 1`, seeds 0–4. Baseline n̄₆ is
+  R6's recorded 1.699 (seeds 0–4).
+
+*Label for R6-NOMNU, fixed now* (a reading of the full-space number, not a verdict on D26; rules in
+order, the first that applies decides):
+1. R1 gate or 5-D gate fails → "not evaluable".
+2. A default 5-D repetition fails, is non-finite or has not converged → "not evaluable".
+3. If any repetition is a lower bound, n̄₅ is not used: "not mainly Σmν" if the smallest lower bound is
+   ≥ 1.40, otherwise "not evaluable".
+4. s₅ > 0.15 → "not evaluable".
+5. Otherwise the interval I = n̄₅ ± 2 s₅/√5 decides: I entirely ≤ 1.00 → **"the full-space shift is
+   mainly the Σmν direction"** (at least 0.70 below n̄₆, about half of the effective χ² lost); I entirely
+   ≥ 1.40 → **"not mainly Σmν: the other directions carry most of the shift"** (1.41σ is the value
+   expected if Σmν carried only its own 1-D share); I entirely within (1.00, 1.40) → "partly the Σmν
+   direction"; I straddles 1.00 or 1.40 → "between the two adjacent labels (not decided)".
+6. s₅ ≤ 0.07 (R6's stability threshold) is reported as a flag and does not decide the label. Reason:
+   these bands are 0.4σ wide, whereas R6 needed ±0.15 around 1.8, and R6's measured spreads (0.098;
+   gate 0.135) show that 0.07 as a decisive rule would make "not evaluable" the likely outcome.
+
+*`pop_size` comparison (descriptive, no label),* per dimension: "spreads differ" only if the variance
+ratio exceeds F₀.₉₅(4, 4) = 6.39 (s ratio > 2.53), otherwise "no detectable difference in spread with
+five repetitions"; "means differ" if |n̄₁ − n̄₁₀| > 2√(s₁²/5 + s₁₀²/5). The `pop_size = 1` gate results are
+reported but do not gate (d); a failed `pop_size = 1` repetition is reported as failed.
+
+*Reported.* Per seed: Δ, interval, n_σ, training time and the `pop_size` used; paired differences
+n₆,k − n₅,k for both settings; both 5-D gate exact values; the R6 numbers beside the new ones.
+
+*Runtime.* From R6 (10,583 s; chain trainings 746–759 s in 6-D, 308–315 s in 2-D; gate trainings 769–807 s):
+5-D default about 650 s × 8 ≈ 1.5 h; `pop_size = 1` about a tenth per training, ≤ 0.4 h for 16
+trainings; about 2 h in venv-tf (`TF_USE_LEGACY_KERAS=1`), scheduled apart from other CPU runs; no data
+downloaded (chains from the cache). PARAMS: `"r6_nomnu": True`, `"r6_nomnu_seeds": [0, 1, 2, 3, 4]`,
+`"r6_nomnu_s_max": 0.15`, `"r6_nomnu_bands": [1.00, 1.40]`, `"r6_pop1": True`; output
+`results/r6_nomnu.json`.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
