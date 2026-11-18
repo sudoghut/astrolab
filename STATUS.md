@@ -55,7 +55,7 @@
 | `003-m02-hubble-tension-distance-ladder` | L2 | concluded | GLS 复现 R22 基线；宿主选择使 H0 降低约 2 km/s/Mpc，加入宿主级随机效应后不显著（R2-RE，z = −1.53；稳健性 T-032）；同宿主造父变星与 TRGB 一致 |
 | `004-m07-wide-binaries-gravity-test` | L4 | concluded | 服务器端重建 C26 样本得 639 对（C26 1421，样本不同）；自助法误差下无法区分牛顿与 MOND，且检验没有功效（审稿发现，事后）；用 C26 所写的误差公式时偏向 MOND；事后探索指向 C26 包含 1 kAU 以下的星对（T-034） |
 | `005-m09-nanograv-gwb-power-law` | X | reproduced | 振幅与 L8 的区间一致，谱指数张力同一量级（描述；DMX 噪声模型）；表 A1 重叠 8/24；DMGP 噪声模型下差别明显（事后，无盲检验可能） |
-| `006-m08-z14-galaxies-number-density` | L1 | reproduced | 数密度复现；恒定 SFE 模型预言 N26 基准的 2.5–37 倍（预注册变体网格），所需 σ_UV ≈ 1–2 mag；R2/R3-POST（T-025）：R2 对 z ≈ 8 光度函数校准的不确定性稳健，R3 临界且主要取决于 σ_cal（T-036） |
+| `006-m08-z14-galaxies-number-density` | L1 | reproduced | 数密度复现；恒定 SFE 模型预言 N26 基准的 2.5–37 倍（预注册变体网格），所需 σ_UV ≈ 1–2 mag；R2/R3-POST（T-025）：R2 对 z ≈ 8 光度函数校准的不确定性稳健，R3 临界且主要取决于 σ_cal；R3-POST2（T-036）：σ_cal 自由时 R2 仍稳健，R3 依赖校准（P = 0.92），σ_cal 由先验主导 |
 | `007-m10-gwtc4-bbh-mass-35msun` | X | concluded | O4a 样本 84/84 复现；O1–O3 按规则 59/69（GWOSC 的 GWTC-2.1 行无 FAR，事后 69）；35 M☉ 局部峰依赖选择函数模型（探索） |
 | `008-m03-s8-des-y6-cmb-parameter-difference` | L0 | reproduced | DES Y6 与 CMB 的参数差异复现（S8 2.67σ，S8–Ωm 2.18σ）；结论取决于"低于 3σ 即没有证据"的用法；全空间待流方法（T-027） |
 | `009-m06-mw-outer-rotation-curve-decline` | L3 | reproduced | J23 的幂律与质量在其假设下复现；3σ 部分来自先验、误差不独立，总质量由晕的形状决定（T-028） |

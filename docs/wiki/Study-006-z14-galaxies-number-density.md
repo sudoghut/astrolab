@@ -4,11 +4,11 @@
 
 *Paper(s): Naidu et al. 2026, OJAp 9, arXiv:2505.11263 (main paper, "N26"); Carniani et al. 2024, Nature 633, 318, arXiv:2405.18485 ("C24"); Harikane et al. 2025, ApJ 980, 138, arXiv:2406.18352 ("H25"); Shen et al. 2023, MNRAS 525, 3254, arXiv:2305.05679 ("S23"). Study:
 [`studies/006-m08-z14-galaxies-number-density`](https://github.com/sudoghut/astrolab/tree/main/studies/006-m08-z14-galaxies-number-density).
-Status: reproduced. Last updated: 2026-11-15 (see the
+Status: reproduced. Last updated: 2026-11-18 (see the
 changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：z ≈ 14 的星系：太多、太亮、太早？状态：已复现。论文：Naidu 等 2026, OJAp 9, arXiv:2505.11263（主论文，"N26"）；Carniani 等 2024, Nature 633, 318, arXiv:2405.18485（"C24"）；Harikane 等 2025, ApJ 980, 138, arXiv:2406.18352（"H25"）；Shen 等 2023, MNRAS 525, 3254, arXiv:2305.05679（"S23"）。研究：[`studies/006-m08-z14-galaxies-number-density`](https://github.com/sudoghut/astrolab/tree/main/studies/006-m08-z14-galaxies-number-density)。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：z ≈ 14 的星系：太多、太亮、太早？状态：已复现。论文：Naidu 等 2026, OJAp 9, arXiv:2505.11263（主论文，"N26"）；Carniani 等 2024, Nature 633, 318, arXiv:2405.18485（"C24"）；Harikane 等 2025, ApJ 980, 138, arXiv:2406.18352（"H25"）；Shen 等 2023, MNRAS 525, 3254, arXiv:2305.05679（"S23"）。研究：[`studies/006-m08-z14-galaxies-number-density`](https://github.com/sudoghut/astrolab/tree/main/studies/006-m08-z14-galaxies-number-density)。最后更新：2026-11-18（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -296,6 +296,15 @@ The independent referee found that R3 depends far more on the fixed σ_cal than 
 calibration posterior, and that the unmodelled effects (Gaussian bright bins, the γ ≥ 0 prior edge)
 likely push towards "consistent", so "borderline" is if anything optimistic; follow-up T-036.
 
+**R3-POST2 (2026-11-18, pre-registered, T-036).** The referee's test: σ_cal sampled on [0.3, 1.2] mag,
+Poisson likelihoods for the two brightest blank-field bins (2 and 9 sources) and γ allowed below 0,
+all at once. The chain converged and the fit is good. R2 "higher" stays **robust** (P = 0.99, ratio
+5.5–21.7, 16–84%). R3 is **calibration-uncertain**: P(consistent with N26) = 0.92, down from 0.96,
+the direction the referee expected. The binned z ≈ 8 data hardly constrain σ_cal (posterior
+0.43–1.05 mag, labelled "σ_cal prior-dominated"), and the "different" draws come almost all from
+σ_cal < 0.7, so whether our model's σ_UV overlaps N26's 1.5–2 mag stays undetermined: it hinges on
+the scatter at z ≈ 8, which these data cannot fix.
+
 ### Glossary
 
 | Term | Meaning |
@@ -317,11 +326,13 @@ likely push towards "consistent", so "borderline" is if anything optimistic; fol
 - What is the full effective area searched for z = 14–15 sources at this depth with spectroscopic
   follow-up (for example the rest of JADES GOODS-S, CEERS, NGDEEP)?
 - How strongly does the factor 182 depend on which pre-JWST model represents the consensus?
+- What independent constraint on the UV scatter at z ≈ 8 would decide R3 (R3-POST2 shows the binned LF cannot)?
 
 ### Changelog
 
 Newest first.
 
+- 2026-11-18: R3-POST2 (T-036): σ_cal free, Poisson bright bins, γ < 0 allowed; R2 robust (higher, P = 0.99), R3 calibration-uncertain (P = 0.92), σ_cal prior-dominated.
 - 2026-11-16: R2/R3-POST (T-025): posterior calibration on binned z ≈ 8 data; R2 robust (higher), R3 borderline (P = 0.96); referee: R3 depends mainly on σ_cal (T-036).
 - 2026-11-15: independent referee: the z ≈ 8 LF uncertainty flips R3 (and R2 for φ* −1σ) and dust flips R3 (post-hoc explorations); fourth gap `gap_bin`; follow-up T-025.
 - 2026-11-15: results: Part 3 result column and "What we found" (R1 reproduced; R2 higher, calibration-dependent; R3 consistent, calibration-dependent).
@@ -512,6 +523,8 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 **R2/R3-POST（2026-11-16，预注册，T-025）。** 用带误差的分箱 z ≈ 8 数据校准并传播 500 个后验样本（四条链都收敛，没有拟合失配）：我们的恒定 SFE 模型预言的 z = 14–15 星系多于 N26 基准的概率为 1.00（σ_cal = 0.5 时 0.994），主拟合比值 16–84% 为 7.5–14.2，所以 R2"更高"**对光度函数校准的不确定性稳健**。R3 仍是**临界**：与 N26 一致的概率 0.96，差一点达到预注册的门槛，随 σ_cal 在 0.86–1.00 之间变化。两者都以基准模型成分为条件（晕质量函数、ε 的外推、不改正尘埃）。
 独立审稿发现 R3 对固定的 σ_cal 的依赖远大于对校准后验的依赖，而没有建模的效应（亮端箱按高斯处理、γ ≥ 0 的先验边界）很可能都偏向"一致"，所以"临界"只会偏乐观；后续 T-036。
 
+**R3-POST2（2026-11-18，预注册，T-036）。** 审稿人提出的检验：σ_cal 在 [0.3, 1.2] mag 上采样，最亮两个空白天区分箱（2 个和 9 个源）用泊松似然，允许 γ 小于 0，三处同时改动。链收敛，拟合良好。R2"更高"仍然**稳健**（P = 0.99，比值 16–84% 为 5.5–21.7）。R3 为**依赖校准**：与 N26 一致的概率 0.92，比此前的 0.96 低，方向与审稿人预期一致。分箱的 z ≈ 8 数据几乎约束不了 σ_cal（后验 0.43–1.05 mag，标为"σ_cal 由先验主导"），而"不同"的抽样几乎都来自 σ_cal < 0.7，所以我们模型所需的 σ_UV 是否与 N26 的 1.5–2 mag 重叠仍未确定：它取决于 z ≈ 8 的弥散，而这些数据定不下来。
+
 ### 术语表
 
 | 术语 | 含义 |
@@ -532,11 +545,13 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 - 对 388 arcmin² 中的两个稀有天体，宇宙方差在多大程度上削弱"高置信度"？
 - 在这一深度、做过光谱跟进的 z = 14–15 源的完整有效搜索面积是多少（例如 JADES GOODS-S 的其余部分、CEERS、NGDEEP）？
 - 182 倍在多大程度上取决于用哪个 JWST 之前的模型代表共识？
+- 什么独立的约束能确定 z ≈ 8 的紫外弥散并对 R3 作出判定（R3-POST2 表明分箱光度函数做不到）？
 
 ### 研究进展
 
 按时间倒序。
 
+- 2026-11-18：R3-POST2（T-036）：σ_cal 自由、亮端分箱用泊松似然、允许 γ < 0；R2 稳健（更高，P = 0.99），R3 依赖校准（P = 0.92），σ_cal 由先验主导。
 - 2026-11-16：R2/R3-POST（T-025）：在分箱 z ≈ 8 数据上做后验校准；R2 稳健（更高），R3 临界（P = 0.96）；审稿：R3 主要取决于 σ_cal（T-036）。
 - 2026-11-15：独立审稿：z ≈ 8 光度函数的不确定性使 R3 翻转（φ* 减 1σ 时 R2 也翻转），尘埃使 R3 翻转（事后探索）；第四个缺口 `gap_bin`；后续 T-025。
 - 2026-11-15：结果：第三部分"结果"一列与"我们的发现"（R1 复现；R2 更高、依赖校准；R3 一致、依赖校准）。
