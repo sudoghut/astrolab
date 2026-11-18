@@ -201,27 +201,28 @@ def _set_tuple(s):
 def _r1_bins_check(bins, null_from=None, sens=False):
     nf = 0
     for i, b in enumerate(bins):
+        nfb = 0                                  # non-finite mocks of this bin only
         src = null_from[i] if null_from is not None else b
         q = []
         for key in ("null_sn_rtau", "null_sn_rA", "null_sp_rtau", "null_sp_rA"):
             m = src["mocks"][key]
             assert len(m["d"]) == NMOCK and len(m["valley"]) == NMOCK
             assert m["k"] < 90
-            nf += sum(d is None for d in m["d"])
+            nfb += sum(d is None for d in m["d"])
             ds = sorted(d for d, v in zip(m["d"], m["valley"]) if v and d is not None)
             q.append(ds[2] if len(ds) >= 3 else 0.25)
         dstar = min([0.25] + q)
-        if not nf:
+        if not nfb:
             assert abs(b["d_star"] - dstar) < 1e-12
         pm = b["power_model"]
         for mech in ("rtau", "rA"):
             m = b["mocks"]["power_" + mech]
             assert len(m["d"]) == NMOCK
-            nf += sum(d is None for d in m["d"])
+            nfb += sum(d is None for d in m["d"])
             in_sens = sens and i in (2, 3, 4)
             assert (m["k"] >= 106) == in_sens
             pw = sum(1 for d, v in zip(m["d"], m["valley"]) if v and d is not None and d < dstar) / NMOCK
-            if not nf:
+            if not nfb:
                 assert abs(b["power"][mech] - pw) < 1e-12
         floor = 0.20 if (sens and i in (2, 3, 4)) else 0.12
         assert pm["floor"] == floor and pm["w_old"] == max(pm["w_old_raw"], floor)
@@ -231,6 +232,7 @@ def _r1_bins_check(bins, null_from=None, sens=False):
         res = all(v >= 0.80 for v in b["power"].values()) and valid
         assert b["resolvable"] == res
         assert b["almost_disjoint"] == bool(b["valley"] and b["d"] < b["d_star"] and b["edge"] is not None)
+        nf += nfb
     return nf
 
 
