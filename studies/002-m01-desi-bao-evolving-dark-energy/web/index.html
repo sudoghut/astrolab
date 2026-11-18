@@ -120,7 +120,7 @@ function render() {
       `<th class="num">${L('B: Δχ² (shift)', 'B：Δχ²（移动）')}</th><th>${L('B verdict', 'B 判定')}</th></tr></thead><tbody>${rowsC.join('')}</tbody></table>` +
       `<p>${L('Conclusion (pre-registered rule)', '结论（预注册规则）')}: <b>${C.conclusion.map(c => c === 'R2 robust to the theta* calibration' ? L('R2 robust to the θ* calibration', 'R2 对 θ* 标定稳健') : c).join('; ')}</b>. ` +
       `${L('Largest formula − CAMB difference of 100θ* at the optima', '最优点上公式与 CAMB 的 100θ* 最大差')}: ${f(dmax, 3)} ${L('prior σ', '个先验 σ')}. ` +
-      `${L('Post hoc (referee, verified): the prior\'s source chain (cmbant/PlanckEarlyLCDM) matches reading A, but DESI\'s public chain configuration compares the ωbc mean with ωb + ωc, i.e. reading B (T-041); see README section 5.', '事后（post hoc，独立审稿，已核实）：先验的来源链（cmbant/PlanckEarlyLCDM）与解读 A 一致，但 DESI 公开的链配置拿 ωbc 均值与 ωb + ωc 比较，即解读 B（T-041）；见 README 第 5 节。')}</p>`);
+      `${L('Post hoc (referee, verified): the prior\'s source chain (cmbant/PlanckEarlyLCDM) matches reading A, but DESI\'s public chain configuration indicates that the ωbc mean is compared with ωb + ωc, i.e. reading B (T-041; the likelihood source is not public); see README section 5.', '事后（post hoc，独立审稿，已核实）：先验的来源链（cmbant/PlanckEarlyLCDM）与解读 A 一致，但 DESI 公开的链配置表明 ωbc 均值是与 ωb + ωc 比较的，即解读 B（T-041；似然源码不公开）；见 README 第 5 节。')}</p>`);
     if (C.variants.anchored_rd && C.variants.raw_rd && C.conclusion_rd) {   // R2-CAMB-RD (addendum 2026-11-17)
       const rowsRD = ['anchored_rd', 'raw_rd'].map(v => {
         const x = C.variants[v], a = x.reading_A_with_nu, b = x.reading_B_without_nu;
