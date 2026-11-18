@@ -289,7 +289,8 @@ def _row(z, d, sg, ref=-0.0405, extra=0.02):
 
 
 def test_r2_re_n5584_labels():
-    """README section 2, addendum 2026-11-18 (R2-RE-N5584): re-derive every label from the saved numbers."""
+    """README section 2, addendum 2026-11-18 (R2-RE-N5584): re-derive every label from the saved numbers
+    (the R4-N percentile is taken as saved; per-draw values are not stored)."""
     from scipy import stats
 
     path = RESULTS / "r2_re_n5584.json"
@@ -366,6 +367,9 @@ def test_r2_re_n5584_labels():
         assert len(st) == 2 and all(x["converged"] and x["iterations"] <= 10000 for x in st)
         assert abs(st[0]["tau_hat"] - st[1]["tau_hat"]) <= 1e-4
         assert 1e-3 <= m["tau_hat"] < 0.5 - 1e-3 or m["at_zero"]
+        r2h = load("r2")["host_step"]
+        if m["at_zero"]:
+            assert m["row"] == _row(r2h["z"], r2h["shift"], r2h["shift_sigma"])
         h = m["host_step"]
         assert abs(h["z"] - h["shift"] / h["shift_sigma"]) < 1e-9
         assert m["row"] == _row(h["z"], h["shift"], h["shift_sigma"])
@@ -380,6 +384,7 @@ def test_r2_re_n5584_labels():
         else:
             assert out["joint_reading"].startswith("the verdict depends on how one host is modelled")
             assert f"{m['z']:.2f}" in out["joint_reading"] and f"{re_['z']:.2f}" in out["joint_reading"]
+            assert f"{r2h['z']:.2f}" in out["joint_reading"]
     else:
         assert out["joint_reading"].startswith("no joint reading")
     for r in b.get("nu_sensitivity", []):

@@ -252,9 +252,10 @@ def drop_host(L, y, C, nz, cls, rows_a, rows_s, col, cchp_cols, groups, labels, 
            "rows_reduced": int(len(rows_n)), "rows_s": int(len(rows_s)), "n_hosts": nh - 1}
     groups_n = [g for k, g in enumerate(groups) if k != col]
     host_cols_n = [j for j in range(nh) if j != col]
+    # host rows cut to the reduced system; "trimmed" lists hosts whose rows within rows_a changed
     host_rows_n = [np.intersect1d(host_rows[j], rows_n) for j in range(len(host_rows))]
     out["host_rows_trimmed"] = [labels[j] for j in host_cols_n
-                                if len(host_rows_n[j]) != len(host_rows[j])]
+                                if len(host_rows_n[j]) != len(np.intersect1d(host_rows[j], rows_a))]
     any_host = nz[:, :nh].any(axis=1)
     base_n = np.array([i for i in rows_n if not any_host[i]])
     verdict = fns["verdict"]
@@ -305,12 +306,13 @@ def drop_host(L, y, C, nz, cls, rows_a, rows_s, col, cchp_cols, groups, labels, 
 
     # R4-N under C
     r4n = {"status": "evaluated", "draws_requested": int(P["r4_draws"]),
-           "draws": "rng.choice(36, 10, replace=False) from default_rng(r4_seed), indexing the 36 "
-                    "remaining host columns in column order"}
+           "draw_rule": "rng.choice(36, 10, replace=False) from default_rng(r4_seed), indexing the 36 "
+                        "remaining host columns in column order"}
     deltas, nsns, zs, picks = fns["r4_draws"](
         L, y, C, rows_n, res_c, hs_c["fivelogh0_37"], hs_c["sigma_37"], base_n, host_rows_n,
         np.array(host_cols_n), len(cchp_cols), int(P["r4_draws"]), P["r4_seed"], P["r4_max_minutes"],
         n_sn_col, r4n, log, "R4-N")
+    r4n["first_picks"] = [[int(j) for j in p] for p in picks[:5]]   # host columns, for the stream check
     if deltas:
         r4n.update(fns["r4_summary"](deltas, zs, nsns, hs_c["shift"], hs_c["z"]))
         log(f"R2-RE-N5584 (a): R4-N {r4n['draws']} draws")

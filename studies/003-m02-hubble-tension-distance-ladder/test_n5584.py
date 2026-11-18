@@ -164,8 +164,8 @@ def test_block_end_to_end_synthetic(synth, tmp_path, monkeypatch):
     # R4-N draws are R4's index stream mapped onto the 36 remaining columns
     rng = np.random.default_rng(P["r4_seed"])
     cols = np.array([j for j in range(run.NH) if j != 26])
-    first = cols[rng.choice(36, size=10, replace=False)]
-    assert 26 not in first
+    exp = [[int(j) for j in cols[rng.choice(36, size=10, replace=False)]] for _ in range(len(a["r4n"]["first_picks"]))]
+    assert a["r4n"]["first_picks"] == exp and all(26 not in p for p in exp)
     assert b["implementation_check"]["passed"], b["implementation_check"]
     assert b["status"] == "evaluated"
     assert b["nu_main"]["omega_ranked"][0]["host"] == "N5584"
