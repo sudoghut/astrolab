@@ -119,9 +119,13 @@ def g1b(final_counts, x_medians):
 
 
 def g1b_pipeline(x_pairs, edges=EDGES, min_count=15):
-    """README 2.1 G1b steps 2-5, given the velocity-free x of every pair that survives step 1:
-    raw counts per bin, scaling and rounding, the 15-pair merge, the observed median x of each final
-    bin, then g1b(). Returns a dict with the counts, mapping, medians, L_N*, L_M* and the result."""
+    """README 2.1 G1b steps 2-5. `x_pairs` is the x of exactly the pairs that pass G1b step 1 (every
+    cut N1-N3 allow before velocities: degrouping, distance, r_sky, RUWE, HR band, masses and the
+    sigma~ proxy). Raw counts per bin are scaled by G1B_FACTORS (the steps that need velocities;
+    counts only) and rounded, the 15-pair merge is applied to the rounded counts, and the median x of
+    each final bin is taken over the same unscaled post-cut pairs (assumed: the velocity steps are
+    independent of x within a bin). Then g1b(). Returns counts, mapping, medians, L_N*, L_M* and the
+    result."""
     x_pairs = np.asarray(x_pairs, float)
     b = wb.bin_index(x_pairs, edges)
     raw = [int(np.sum(b == k)) for k in range(len(edges) + 1)]
