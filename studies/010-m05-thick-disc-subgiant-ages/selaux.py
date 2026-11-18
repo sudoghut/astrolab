@@ -262,7 +262,8 @@ class MockStore:
             return None
         try:
             rec = json.loads(p.read_text(encoding="utf-8"))
-            if isinstance(rec, dict) and "result" in rec and "seconds" in rec:
+            if (isinstance(rec, dict) and isinstance(rec.get("result"), dict)
+                    and isinstance(rec.get("seconds"), (int, float))):
                 return rec
         except ValueError:
             pass
