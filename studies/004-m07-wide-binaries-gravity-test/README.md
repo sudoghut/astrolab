@@ -285,7 +285,10 @@ C25 degrouping at 150 pc (374, 0.0066) changes C26's rule and also fails at −2
        as totals, not per bin.
      - This is an approximation. It assumes that the σ̃ attrition and the FLAME/M_G mass difference
        do not depend on degrouping.
-  3. Apply the 15-pair merge rule of this section to the scaled-and-rounded counts.
+  3. Apply the 15-pair merge rule of this section to the scaled-and-rounded counts, exactly as
+     `wb.merge_outer(counts, 15)`: the highest bin is merged inward and the lowest upward until each
+     end holds 15; no other merge. If any final bin still holds fewer than 15 or fewer than two bins
+     remain, G1b fails ("R5: not run (insufficient predicted power)").
      - x_j is the median x of the pairs in each final bin, taken over exactly the pairs that pass
        step 1. That means every cut N1–N3 allow before velocities, including degrouping from N2,
        masses from N3 and the σ̃ proxy; it is the same set whose counts are scaled in step 2.
@@ -307,7 +310,7 @@ C25 degrouping at 150 pc (374, 0.0066) changes C26's rule and also fails at −2
   - MOND truth: medians A_M·b(x_j), errors A_M·b(x_j)·r_j.
   - Fit each with `wb.compare_models` to get L_N^data and L_M^data.
   - G2 passes if L_N^data ≥ 100 and L_M^data ≤ 1/100.
-- **Unblinded rule.** If N4 is fetched before section 2.1 is merged to main (section 3), R5 is
+- **Unblinded rule.** If N4 rows are accessed (downloaded or read from the cache) before section 2.1 is merged to main (section 3), R5 is
   permanently unblinded. Every R5 label is then prefixed "R5 (unblinded, descriptive):", and no
   confirmatory verdict is given, even after the merge.
 - **R5 verdict.** A value equal to a threshold takes the outer label.
@@ -418,7 +421,10 @@ Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-
 
 **R5 data (addendum 2026-11-18, T-034; section 2.1).**
 
-*Run mode.* R5 runs in its own mode (`PARAMS["mode"] = "r5"`) with its own per-run budget.
+*Run mode.* R5 runs in its own mode (`PARAMS["mode"] = "r5"`) with its own per-run budget,
+charged by the study framework as for any run: every input the run reads, cached or downloaded, at its
+full size, N2-C25 included when it runs; a download that would take the run past 200 MB stops the
+run (`TooLarge`) and the user is asked (AGENTS.md 1.6).
 - It loads only the R5 inputs (N1–N4, N2-C25), plus the committed HR constant from `PARAMS`.
 - It does not rerun R2 or read the 130 pc step A and B queries.
 - The 130 pc cache must not be cleared, because R2's inputs live there.
@@ -463,7 +469,7 @@ asin(sin θ / cos δ). Every region is counted first and split if it reaches 50,
 3. Apply G1b. It is always applied before N4.
 4. Fetch N4.
 
-If N4 is fetched before that merge, R5 is permanently unblinded (section 2.1): every label is prefixed
+If N4 rows are accessed (downloaded or read from the cache) before that merge, R5 is permanently unblinded (section 2.1): every label is prefixed
 "R5 (unblinded, descriptive):", and no confirmatory verdict is given. Everything must be fetched by
 2026-11-24. If N4 cannot be completed, R5 is reported as "R5: not run (data not obtained)".
 
