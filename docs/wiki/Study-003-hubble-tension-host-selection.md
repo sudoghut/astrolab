@@ -242,7 +242,17 @@ section were added after the run (study README section 5; [web page](https://git
   does not survive. The independent referee (post hoc) found no bug but stressed how soft this null is:
   z crosses −2 already at τ ≈ 0.03 mag (the referee's estimate), the evidence for τ > 0 is modest (p ≈ 0.03), τ̂ may rest on a
   few non-CCHP hosts, and the rule was fixed knowing the first result; so the honest summary is a
-  shift of about −2 km/s/Mpc at 1.5σ–2.2σ. A leave-one-host-out check is registered (T-032). Numbers: [`results/r2_re.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re.json).
+  shift of about −2 km/s/Mpc at 1.5σ–2.2σ. A leave-one-host-out check is registered (T-032).
+- **Update 2026-11-18, R2-RE-ROB (T-032, pre-registered addendum): the null rests on one host.**
+  Leaving out single hosts, the verdict changes only without N5584 (τ̂ falls to 0.031 and the
+  full-data host step gives z' = −2.04, "supports the paper"); the pre-registered label is
+  "verdict sensitive to single hosts' influence on τ̂ (N5584)". Under the null of no host-level
+  scatter, τ̂ = 0.077 is not clearly unusual (p = 0.07, "undetermined"), but R4's 1.33 spread is
+  (p = 0.02). The independent referee (post hoc, verified by us) showed that N5584, one supernova
+  (2007af), carries all three signals: over random subsets without it the spread is 1.03 (p = 0.33),
+  and without its rows the host step is "no effect" under either covariance (z = −1.63, −1.50). The
+  headline stays "no host-selection effect detected"; an explicit, pre-registered treatment of N5584
+  is registered (T-039). Numbers: [`results/r2_re_rob.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re_rob.json). Numbers: [`results/r2_re.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re.json).
 - **Same hosts, two indicators (stages C and E).** Putting CCHP's JWST TRGB distances in place
   of the Cepheids on the same 10 hosts gives 69.70, close to CCHP's own 69.29; the SH0ES and CCHP
   ladders on those hosts differ by +0.010 ± 0.048 mag (0.3 km/s/Mpc), and no host deviates by
@@ -265,6 +275,8 @@ section were added after the run (study README section 5; [web page](https://git
 
 ### Changelog
 
+- 2026-11-18: R2-RE-ROB (T-032): leave-one-host-out and null simulations; the null is sensitive to
+  N5584, which (referee, post hoc) carries every signal; T-039 registered (part 3 update).
 - 2026-11-16: R2-RE (T-023, plan 021): host-level random effect (REML 0.077 mag); the host step
   becomes "no host-selection effect detected" (z = −1.53), now the headline (part 3 update).
 - 2026-11-14: independent referee: the host step's significance depends on the error scale (about 1.7σ with the random-subset scatter, where the pre-registered table would read no effect); R3's per-host distances include each host's own SNe; Lean gloss of `ResidSmall` clarified; follow-up test T-023 registered.
@@ -405,6 +417,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 - **同样的宿主、两种指示器（环节 C 与 E）。** 在同样 10 个宿主上用 CCHP 的 JWST TRGB 距离代替造父变星，得到 69.70，与 CCHP 自己的 69.29 接近；这些宿主上 SH0ES 与 CCHP 两个阶梯相差 +0.010 ± 0.048 mag（0.3 km/s/Mpc），没有宿主偏离超过 1.2σ。
 - **对论证的意义。** 本项目能重算的 `gap_rule` 输入在 R22 的数据中成立：选出的宿主给出比全样本低的 H0，而在这些宿主上造父变星与 TRGB 一致。规则本身（因此差异"完全"是选择造成的）没有被检验，而选择效应至多约 2σ，加入宿主级随机效应后不显著（R2-RE，下一条）。
 - **2026-11-16 更新，R2-RE（T-023，预注册附录）：未检出宿主选择效应。** 用限制最大似然（REML, restricted maximum likelihood）估计的宿主级随机效应（random effect）为 0.077 mag（68% 区间 0.048–0.105），它消除了随机子样本多出来的离散（Δ/σ 的离散 1.33 → 1.005）。计入它之后，CCHP 宿主一步为 −0.062 ± 0.040 mag（z = −1.53），不变的预注册判定表给出"未检出宿主选择效应"，现在是宿主一步的标题判定（2026-11-14 的判定保留记录）。移动的方向与大小（约 −2 km/s/Mpc）不变，不成立的是显著性。独立审稿（事后）没有发现错误，但强调这个"未检出"很软：τ ≈ 0.03 mag 时 z 就越过 −2（审稿的估计），τ > 0 的证据不强（p ≈ 0.03），τ̂ 可能由少数非 CCHP 宿主决定，而且规则是在已知第一次结果后定的；所以如实的概括是约 −2 km/s/Mpc 的移动，显著性 1.5σ–2.2σ。逐一剔除宿主的检验已登记（T-032）。数字见 [`results/r2_re.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re.json)。
+- **2026-11-18 更新，R2-RE-ROB（T-032，预注册附录）：零结果依赖一个宿主。** 逐一剔除宿主时，只有去掉 N5584 时判定改变（τ̂ 降到 0.031，用全部数据的宿主一步给出 z' = −2.04，"支持论文"）；预注册标签为"判定对单个宿主对 τ̂ 的影响敏感（N5584）"。在没有宿主层面离散的零假设下，τ̂ = 0.077 并不明显不寻常（p = 0.07，"无法判定"），但 R4 的 1.33 离散不寻常（p = 0.02）。独立审稿（事后，我们已复核）表明一颗超新星（N5584 中的 2007af）承载了全部三个信号：在不含它的随机子样本上离散为 1.03（p = 0.33），去掉它的行后宿主一步在两种协方差下都是"无效应"（z = −1.63、−1.50）。标题判定仍为"未检出宿主选择效应"；对 N5584 的明确、预注册处理已登记（T-039）。数字见 [`results/r2_re_rob.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re_rob.json)。
 
 ### 术语表
 
@@ -418,6 +431,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 ### 研究进展
 
+- 2026-11-18：R2-RE-ROB（T-032）：逐一剔除宿主与零假设模拟；零结果对 N5584 敏感，而（审稿，事后）它承载了全部信号；登记 T-039（第三部分更新）。
 - 2026-11-16：R2-RE（T-023，计划 021）：宿主级随机效应（REML，0.077 mag）；宿主一步变为"未检出宿主选择效应"（z = −1.53），成为标题判定（第三部分更新）。
 - 2026-11-14：独立审稿：宿主一步的显著性取决于误差尺度（按随机子样本的离散约 1.7σ，此时预注册判定表会给出没有效应）；R3 的逐宿主距离含本宿主的超新星；澄清 `ResidSmall` 的 Lean 说明；登记后续检验 T-023。
 - 2026-11-14：实现之后加入结果（第三部分"结果"一栏与 3.1 节）：复现 R22 印出的拟合；在数据之后的宿主标注下宿主移动为 −0.073 ± 0.033 mag（预注册判定：不可评估）；同宿主上造父变星与 TRGB 一致；CCHP 的选择偏低但不异常。
