@@ -317,9 +317,12 @@ Written after R6 and its referee review, before any flow without Σmν or with `
 trained on the chains. It changes nothing above; R6's recorded verdict, "not evaluable", stays as
 recorded, and R6 itself is not retrained: with the new key `"r6_retrain": False`, run.py loads the
 recorded `results/r6.json`, checks that it is complete (`flows.complete` true, `flows.gate.passed`
-true, five repetitions in `flows.main`) and that `flows.main.n_bar` = 1.69853 (to 5 decimals), saves it
-back byte-identical, and passes n̄₆ and the per-seed n₆,k to R6-NOMNU; if the file is missing or does not
-pass these checks, run.py does not write `r6.json` and R6-NOMNU is "not evaluable".
+true, five repetitions in `flows.main` for seeds 0–4, each finite, `flows.main.n_bar` = 1.69853 and
+`flows.main.s` = 0.0977, both to 4 decimals), does not call R6's training and does not rewrite `r6.json`,
+and passes n̄₆ and the per-seed n₆,k to R6-NOMNU; if the file is missing or does not pass these checks,
+R6-NOMNU is "not evaluable". This reuse path, the `pop_size` argument and a gate whose dimension follows
+its box count (the current `flowshift` gate helpers assume six dimensions) are code to be written at the
+code stage; none exists yet.
 
 *Why.* R6 gave 1.61–1.86σ for the six-parameter difference; the referee found, post hoc, that Σmν alone
 gives 1.74σ (section 6). Removing Σmν tests whether the full-space number is carried by that prior-edge
@@ -342,7 +345,9 @@ once, without warm restarts or selection.
   about 12.5 min (6-D) or 5 min (2-D).
 - *Predictability, both ways.* The marginals and the (A_s, Ωm) flow point to a low 5-D value ("mainly
   Σmν"). A Gaussian χ² bookkeeping on recorded numbers only (done while drafting this addendum) points
-  higher: 1.699σ in 6-D corresponds to an effective χ² ≈ 11.0; Σmν's own 1.737² ≈ 3.0 is 27.5% of it; if
+  higher. Mapping: n_σ ↔ χ² by equal tail probability, two-sided Gaussian n_σ against χ² with k degrees
+  of freedom (k = 6 for six parameters, 5 for five, 1 for one). Then 1.699σ in 6-D corresponds to an
+  effective χ² ≈ 11.0; Σmν's own 1.737² ≈ 3.0 is 27.5% of it; if
   Σmν carried exactly that share, the 5-D value would be about 1.41σ, and about 1.94σ if it carried
   nothing. The bookkeeping assumes independent Gaussian directions, while (Σmν, A_s) is 1.27σ. The
   band edges below come from it. Also seen: all other entries of `results/r6.json` and section 6 (among
@@ -383,7 +388,8 @@ order, the first that applies decides):
    ≈ 0.29 if it is 0.135.
 5. Otherwise the interval I = n̄₅ ± 2 s₅/√5 (unrounded values, s with ddof = 1; about 88% coverage with
    4 degrees of freedom) decides: I ⊂ (−∞, 1.00] → **"the full-space shift is mainly the Σmν
-   direction"** (at least 0.70 below n̄₆; at least 46% of the effective χ² lost); I ⊂ [1.40, ∞) → **"not mainly Σmν: the other directions carry most of the shift"** (1.41σ is the value
+   direction"** (at least 0.70 below n̄₆; with the mapping above, 1.00σ in 5-D is χ² = 5.89 against 10.97,
+   at least 46% of the effective χ² lost); I ⊂ [1.40, ∞) → **"not mainly Σmν: the other directions carry most of the shift"** (1.41σ is the value
    expected if Σmν carried only its own 1-D share); I ⊂ (1.00, 1.40) → "partly the Σmν
    direction"; otherwise (I straddles 1.00 or 1.40) → "between the two adjacent
    labels (not decided)".
@@ -393,7 +399,8 @@ order, the first that applies decides):
 
 *`pop_size` comparison (descriptive, no label),* per dimension: "spreads differ" only if the variance
 ratio (larger over smaller) exceeds F₀.₉₅(4, 4) = 6.39 (s ratio > 2.53; a two-sided 10% test), otherwise "no detectable difference in spread with
-five repetitions"; "means differ" if |n̄₁ − n̄₁₀| > 2√(s₁²/5 + s₁₀²/5). The `pop_size = 1` gate results are
+five repetitions"; "means differ" if |n̄₁ − n̄₁₀| > 2√(s₁²/5 + s₁₀²/5) (a descriptive heuristic, not a calibrated
+test; the paired per-seed differences are also reported). The `pop_size = 1` gate results are
 reported but do not gate (d); a failed `pop_size = 1` repetition is reported as failed.
 
 *Reported.* Per seed: Δ, interval, n_σ, training time and the `pop_size` used; paired differences
