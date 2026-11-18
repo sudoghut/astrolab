@@ -106,6 +106,191 @@ variant is a headline result and no variant-wise significance is claimed.
 **R4 (descriptive, optional).** Only if the server-side count for B24's selection gives inputs
 within the study budget; otherwise reported as not run.
 
+### 2.1 R5: power-gated re-test on an enlarged sample (d < 250 pc) (addendum 2026-11-18, T-034), pre-registered before any R5 query
+
+*Why.* The 2026-11-16 R2 result ("cannot distinguish", L = 0.49) came from a test that had almost no
+power (section 6, points 1–2). With our bins, noise-free Newtonian data give only L = 6.2. Even with
+C26's x coverage restored (r_sky ≥ 300 AU), the 130 pc sample is expected to reach only L ≈ 13 under
+Newton and L ≈ 0.11 under MOND. R5 therefore enlarges the volume to d < 250 pc and keeps every other
+C26 selection rule. Its power is computed in advance on simulated data. A verdict at C26's strength
+(L = 100) is allowed only if both gates pass: the design gate G1 (fixed here) and the data gate G2
+(computed after the run). R5 does not replace R2; the 2026-11-16 R2 verdict stays recorded.
+
+*Seen before this addendum (R5 is partly blind).*
+- Sections 5–6 and every number in `results/` (summary, variants, step A: c and the occupancy counts).
+- The referee's numbers. Noise-free L = 6.2 (Newton) and 0.16 (MOND). C26's design gives L ≈ 7, or
+  ≈ 2000 with halved errors. The pooled error model gives L = 0.17. Relaxed degrouping keeps 38% of
+  the 1–30 kAU pairs. Bootstrap errors scatter by 18–29%.
+- The post-hoc exploration at r_sky ≥ 300 AU and 130 pc (section 5): N = 1250; per-bin counts 543,
+  286, 232, 109, 56, 24; lowest-bin median x = 0.063. L values: main 1.9; MAD/√N 1.9 × 10⁻⁴;
+  d < 150 pc 0.67; no HR cut 196; no degrouping 4.5 × 10⁻⁴. The rest of that run was produced and is
+  treated as seen.
+- The velocity-free design counts of 2026-11-17/18 (T-034; `explore/t034_design_counts.py`):
+  - server proxy counts per x bin at 130, 200 and 250 pc;
+  - cached counts per bin at 130 and 150 pc with no degrouping, relaxed degrouping and approximate
+    C25 degrouping (`explore/t034_degroup_counts.py`);
+  - server counts of parent stars, RV stars, FLAME masses and candidate pairs (section 3).
+- The simulated power numbers below (`explore/t034_power_mock.py`).
+- No velocity-derived quantity of any new pair has been computed.
+
+About 40% of the predicted R5 sample lies at d < 130 pc. Those pairs are the explored sample, so R5
+is not blind for them. The pairs at 130–250 pc have never been analysed with velocities.
+
+*R5 sample (exact).* Sections 2–4 apply unchanged except for the following.
+- **Parent stars.** parallax > 3.4783 mas (287.5 pc) and parallax_over_error > 40. The margin is the
+  same 1.15 that 150 pc gives for 130 pc.
+- **Pairs.**
+  - Both stars are parent stars, and both have radial_velocity not null.
+  - The two parallaxes agree within 3σ combined.
+  - r_sky ≤ 30 kAU at ϖ̄. This is the server-side search radius, and it replaces the 0.5 pc A1
+    search: the sample stops at 30 kAU, and degrouping has its own query.
+  - Each pair is kept once, in the canonical order source_id_a < source_id_b.
+- **Distance.** ϖ̄ > 4.0 mas, i.e. d < 250 pc.
+- **r_sky window.** 300 AU ≤ r_sky ≤ 30,000 AU, at ϖ̄.
+  - The floor comes from C26's x coverage, not from our results. C26's lowest bin has median x =
+    0.073 and upper edge 0.1057. If pairs are spread uniformly in log x within that bin, the bin's
+    lower end is x_floor = 0.073²/0.1057 = 0.0504.
+  - For pairs with M ≥ 0.72 M☉, x_floor · r_M ≥ 300 AU, so the 300 AU floor keeps C26's implied
+    coverage.
+  - At d > 130 pc, 300 AU is less than 2.31″. Variant V3 adds the angular floor θ ≥ 2.31″.
+- **Degrouping.** C26's relaxed rule, scaled to the new volume.
+  - A neighbour is any star with parallax_over_error > 5, phot_g_mean_flux_over_error > 5 and
+    parallax + 3·parallax_error > 3.4783.
+  - It must lie within 100 kAU projected, at the two stars' weighted parallax, and satisfy the same
+    3σ rule.
+  - A pair is kept only if each member has exactly one neighbour and that neighbour is its partner.
+- **Masses, v_sky, σ(ṽ) and x.** As in section 4, including the primary-star RV convention.
+- **Cuts unchanged.**
+  - RUWE < 1.25 for both stars.
+  - The HR band with c = 1.590861779261529 for both stars, with M_G at ϖ̄ and no extinction
+    correction.
+  - Both RVs present, and |ΔRV| < 10 km/s.
+  - σ(ṽ) < 0.1 and ṽ ≤ 2.5.
+- **Bins and merge rule unchanged.** Edges 0.1057, 0.2307, 0.5088, 1.0275, 2.0902; at least 15 pairs
+  per bin; x_j is the bin median.
+
+*Error model (R5 primary): stratified bootstrap, diagonal covariance.*
+1. Sort the pairs by (source_id_a, source_id_b).
+2. Create one generator, `numpy.random.default_rng(0)`.
+3. For each final bin j, in increasing x, draw `rng.integers(0, N_j, size=(10000, N_j))`. Each row
+   indexes the bin's pairs in the sorted order.
+4. Take the median of each row. σ_j is the standard deviation (ddof = 1) of these replicate medians.
+5. The covariance is diag(σ_j²). The bins hold disjoint pairs, so their medians are independent once
+   N_j is fixed.
+6. No replicate can fall below 15 pairs, so the redraw rule of this section does not apply to R5.
+7. Every σ_j must be finite and > 0.
+
+The fits and L are as in this section: each model has its own A, Δχ² = χ²_MOND − χ²_Newton, and L =
+exp(Δχ²/2). The Newtonian p-value has n_bins − 1 degrees of freedom.
+
+*Power, pre-computed on simulated data (fixed here).* The procedure is implemented in
+`explore/t034_power_mock.py`.
+
+**Mock population.**
+- Keplerian orbits with GM = a = 1, f(e) = 2e, uniform mean anomaly and isotropic orientation.
+- ṽ = |v_sky + noise| · √r_sky, with Gaussian noise of 0.03 per sky component.
+- A pool of 2 × 10⁶ pairs drawn from `default_rng(20261117)`.
+- Calibration: the scatter about the pool median is multiplied by f_cal = 1.227. This factor is the
+  geometric-mean ratio of the 2026-11-16 bootstrap errors to the mock's errors at the same counts.
+  With it, the old design gives L = 5.0, against the referee's 6.2.
+
+**Design.**
+- Predicted final counts 1408, 988, 789, 375, 220, 72 per bin.
+  - These are the server proxy counts at 250 pc (3067, 2409, 1771, 1047, 745, 439).
+  - Each is multiplied by a transfer factor T_j = 0.459, 0.410, 0.445, 0.359, 0.295, 0.163. T_j is
+    the 130 pc ratio of the seen final counts to the proxy counts.
+  - The proxy counts omit degrouping, the |ΔRV| cut, the ṽ cap and FLAME masses, and use an
+    error-only stand-in for σ(ṽ).
+- x_j = 0.063, 0.155, 0.328, 0.707, 1.31, 2.7.
+- Under the MOND truth the medians are A·b(x_j), and the errors scale with b(x_j).
+
+**Noise-free ("Asimov") values.**
+- Per-bin errors come from 20,000 mock medians.
+- L_N* is L when Newton is true; L_M* is L when MOND is true.
+
+**Monte Carlo values.**
+- 1000 mocks per truth; each uses the stratified bootstrap with B = 1000.
+
+| Quantity (R5 design, calibrated mock) | Value |
+|---|---|
+| Noise-free L, Newtonian truth: L_N* | **4.6 × 10³** |
+| Noise-free L, MOND truth: L_M* | **7.0 × 10⁻⁴** |
+| The same with every count reduced by 25% (margin check) | 549; 4.5 × 10⁻³ |
+| Monte Carlo, Newtonian truth: median L; P(L ≥ 100); P(L ≥ 10); P(L ≤ 1/10); P(L ≤ 1/100) | 3.3 × 10³; 79.6%; 91.2%; 0.7%; 0.0% |
+| Monte Carlo, MOND truth: median L; P(L ≤ 1/100); P(L ≤ 1/10); P(L ≥ 10); P(L ≥ 100) | 7 × 10⁻⁴; 72.6%; 89.9%; 0.4%; 0.2% |
+
+*Why 250 pc.* The distance was chosen by a rule: take the smallest counted design that keeps C26's
+relaxed degrouping and still passes G1 when every predicted count is reduced by 25%. The 25% is a
+margin for the transfer factors. The counted designs, in calibrated noise-free L (Newton, MOND):
+
+| Design | Result |
+|---|---|
+| 130 pc, relaxed | 13 and 0.11 |
+| 150 pc, relaxed | 19 and 0.084 |
+| 200 pc, relaxed | 402 and 0.0060; fails at −25% (94 and 0.021) |
+| 250 pc, relaxed | passes, including at −25% |
+
+C25 degrouping at 150 pc (365 and 0.0068) was not chosen. It changes C26's rule and also fails at
+−25%.
+
+*Decision rule (labels fixed here).*
+- **G1 (design, fixed now): passes.** L_N* = 4.6 × 10³ ≥ 100 and L_M* = 7.0 × 10⁻⁴ ≤ 1/100. It also
+  passes with counts reduced by 25%.
+- **G1b (velocity-free go/no-go, before the velocity query N4).**
+  - After the velocity-free step A' and degrouping, take the per-bin counts and multiply them by the
+    fixed velocity-attrition factors 0.966, 0.941, 0.955, 0.908, 0.789, 0.462. These factors are
+    the seen 130 pc ratio of final counts to relaxed-degrouped velocity-free counts.
+  - Recompute L_N* and L_M* with the same mock.
+  - If G1b fails, N4 is not fetched, and R5 is reported as "not run: insufficient predicted power",
+    with the counts.
+- **G2 (data-conditional, after the run).**
+  - Take the R5 σ_j, the x_j and the fitted A_Newton.
+  - Set the medians to A_Newton (Newtonian truth) or A_Newton·b(x_j) (MOND truth). For the MOND
+    truth, scale σ_j by b(x_j), as in the mock.
+  - Fit both with `wb.compare_models`. G2 passes if L_N^data ≥ 100 and L_M^data ≤ 1/100.
+- **R5 verdict.** A value equal to a threshold takes the outer label.
+
+| Condition | Label |
+|---|---|
+| Fit invalid or not evaluable (rules of this section; σ_j not finite or not > 0) | "R5: invalid fit (no label)" |
+| G1b fails | "R5: not run (insufficient predicted power)" |
+| G2 fails, L ≥ 10 | "R5: no verdict at C26's strength (insufficient power, data-conditional); Newton weakly preferred (descriptive)" |
+| G2 fails, 1/10 < L < 10 | "R5: no verdict at C26's strength (insufficient power, data-conditional); no preference (descriptive)" |
+| G2 fails, L ≤ 1/10 | "R5: no verdict at C26's strength (insufficient power, data-conditional); MOND weakly preferred (descriptive)" |
+| G2 passes, L ≥ 100 | "R5: Newton has the higher relative likelihood (agrees with C26's conclusion)" |
+| G2 passes, 1/100 < L < 100 | "R5: cannot distinguish" |
+| G2 passes, L ≤ 1/100 | "R5: MOND has the higher relative likelihood (contradicts C26)" |
+
+- **Not a reproduction.** R5 is labelled "enlarged sample; not a reproduction". C26 used d < 130 pc;
+  R5 makes the same model comparison on a C26-quality sample out to 250 pc.
+- **Allowed afterwards.** Documented, dated bug fixes only. No change of D, the floor, the edges, the
+  merge rule, degrouping, the error model, B, the seed, the mock settings, the attrition factors or
+  the thresholds.
+
+*Sensitivity variants (fixed here; descriptive, no verdicts).* Each variant changes one choice from
+R5 and keeps the R5 error model. For each, report N, the counts, L, the descriptive grade (L ≥ 10, or
+1/10 < L < 10, or L ≤ 1/10) and its own G2 numbers. A variant that is invalid by the rules of this
+section is listed without L.
+
+| Id | Change from R5 | Note |
+|---|---|---|
+| V1 | d < 130 pc (the C26 volume) | [seen: L ≈ 1.9 under the original error model] |
+| V2 | d < 200 pc | |
+| V3 | additionally θ ≥ 2.31″ (angular floor) | |
+| V4 | r_sky ≥ 1000 AU | |
+| V5 | additionally x ≥ 0.0504 | |
+| V6 | no HR cut | [at 130 pc: seen 196] |
+| V7a, V7b | c + 0.2, c − 0.2 | also probes reddening at 130–250 pc |
+| V8 | no degrouping | [at 130 pc: seen 4.5 × 10⁻⁴] |
+| V9 | C25-neighbour degrouping (neighbours with parallax_over_error > 40, same rules) | needs the N2-C25 query, counted first; if it cannot run before 2026-11-24 or only unrestricted, reported as not run |
+| V10, V11 | ṽ ≤ 2, ṽ ≤ 1.5 | |
+| V12 | ipd_frac_multi_peak = 0 for both stars | |
+| V13 | parallax_over_error > 100 (catalogue C10) | |
+| E1 | whole-sample bootstrap, 2000 resamples, seed 0, full covariance, 5% redraw rule (the R2 primary) | |
+| E2 | pooled scale: σ_j = m_j·k/√N_j with k² = Σ_j N_j·(N_j σ_j²/m_j²) / Σ_j N_j (σ_j from the stratified bootstrap, m_j the bin median) | |
+| E3, E4 | MAD/√N; 1.4826 MAD/√N | |
+| E5 | MOND with A tied to the Newtonian fit | |
+
 ## 3. Data (with size estimate)
 
 All from the Gaia archive (gea.esac.esa.int, `gaiadr3.gaia_source`, plus
@@ -158,6 +343,43 @@ failed attempt that returns nothing counts nothing). If the cumulative estimate 
 asked. The cache (`%LOCALAPPDATA%`, ~30 MB) must not be cleared until the study is closed: step A's
 rows (A1, A2, A3) live only there, and step B re-issues the same queries, which are then cache hits.
 Fallback mirror: VizieR I/355 (checked only if the Gaia archive fails before 11-24).
+
+**R5 data (addendum 2026-11-18, T-034; section 2.1).** R5 uses new queries only. It does not read
+the 130 pc cache, but that cache must not be cleared, because R2's inputs live there. All new
+queries use the 339 regions above, with a star-b margin of 1°: 30 kAU at ϖ < 100 mas is at most
+0.93°. The near-star query is kept. Every region is counted first and split if it reaches 50,000
+rows.
+
+The counts below were run on the server on 2026-11-18. They are COUNT queries only; the ADQL is in
+`explore/t034_design_counts.py`. At 250 pc there are 3,312,626 parent stars (parallax > 3.4783 and
+parallax_over_error > 40). Of these, 1,565,112 have an RV, and 788,730 of those also have a FLAME
+mass.
+
+| Query | Content | Selection (server side) | Est. rows / size |
+|---|---|---|---|
+| N1 R5 pairs, velocity-free (step A') | per pair: both stars' A1 columns (source_id, ra, dec, parallax, parallax_error, phot_g_mean_mag, bp_rp, ruwe, ipd_frac_multi_peak, rv_method_used) | both stars parent at 250 pc, both radial_velocity not null, 3σ parallax rule, r_sky ≤ 30 kAU at ϖ̄ | 60,259 rows (counted; at most 7,289 per 15° declination band); 36.2 MB at 600 B per row; ≤ 4.4 MB per band before region splitting |
+| N2 relaxed-neighbour counts for N1 stars (step A') | per N1 star: source_id, number of neighbours, smallest neighbour source_id | neighbours as in section 2.1; star a restricted on the server to members of an N1 pair (the same pair subquery) | ≤ 120,518 rows, ≤ 4.8 MB; fallback if the archive refuses the restricted join: star a = all parent RV stars, ≤ 1,565,112 rows, ≤ 62.6 MB |
+| N3 FLAME masses for N1 stars (step A') | source_id, mass_flame | the same restriction, joined to `gaiadr3.astrophysical_parameters` | ≤ 120,518 rows, ≤ 2.9 MB; fallback 788,730 rows, 18.9 MB |
+| N4 R5 velocities (step B', only after this addendum is committed and G1b passes) | B1 columns for the N1 pairs | N1's WHERE | 60,259 rows, 36.2 MB |
+| N2-C25 (variant V9 only) | as N2, with C25 neighbours | as N2 | ≤ 120,518 rows, ≤ 4.8 MB (unrestricted ≤ 62.6 MB) |
+
+*Budget.*
+- With the restricted queries the inputs are N1 36.2 + N2 4.8 + N3 2.9 + N4 36.2 + N2-C25 4.8 ≈
+  85 MB, within the 200 MB budget.
+- With the unrestricted N2 and N3 fallback, the inputs are 36.2 + 62.6 + 18.9 + 36.2 = 154 MB
+  without V9. An unrestricted N2-C25 would exceed the budget, so V9 then runs only in restricted
+  form or is reported as not run.
+- Each download is at most 50,000 rows × 600 B = 30 MB, under the 50 MB cap.
+
+*Schedule.* The Gaia archive is offline from 2026-11-25 to 12-02.
+1. Commit the addendum (sections 2.1 and 3, dated).
+2. Fetch N1–N3 (velocity-free), counting first.
+3. Run G1b.
+4. Fetch N4.
+
+All fetches must finish by 2026-11-24. If the commit misses 2026-11-21, N1–N4 are still fetched
+before the outage, and R5 is labelled "unblinded". If N4 cannot be completed, R5 is reported as not
+run.
 
 ## 4. Method
 
