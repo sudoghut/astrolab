@@ -376,7 +376,7 @@ recomputed every number it could from about 34 MB of public files, with its own 
   public DR2 chain configuration ([`chain.updated.yaml`](https://data.desi.lbl.gov/public/papers/y3/bao-cosmo-params/cobaya/base_w_wa/desi-bao-all_CMB-compressed-theta-ombh2-ombch2/chain.updated.yaml))
   feeds the compressed CMB likelihood only `ombh2` and `omch2`, with `omch2` defined without the
   neutrino density (`omm*(H0/100)**2 - mnu / 93.14 - ombh2`). So the 0.14208 mean is compared with
-  ωb + ωc, unless the likelihood (whose source is not public) adds a constant ων internally; our
+  ωb + ωc, unless the likelihood (whose source is not public) adds a constant ων internally (which would be reading A); our
   reading B (−8.01) reproducing DESI's −8.0 makes B the likely convention. What stays
   open is the mean itself: it is 0.00065 (the ων of 0.06 eV) above the ωb + ωc of the prior's
   source chain, which the paper's compression reference [111] may explain (not read here).
