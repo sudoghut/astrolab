@@ -117,11 +117,11 @@ function renderR6(r6) {
   if (!r6 || !r6.covariances) { t.innerHTML = ''; n.innerHTML = L('results/r6.json not found: run the study with r6_check on.', '找不到 results/r6.json：在 r6_check 打开时运行研究。'); return; }
   const names = {se_2: ['SE, ℓ = 2 kpc', 'SE，ℓ = 2 kpc'], se_4: ['SE, ℓ = 4 kpc', 'SE，ℓ = 4 kpc'], se_8: ['SE, ℓ = 8 kpc', 'SE，ℓ = 8 kpc'], global: ['global', '全局'], fractional: ['fractional', '比例']};
   const st = {calibrated: ['calibrated', '已校准'], 'not calibratable': ['not calibratable', '无法校准'], 'not evaluable': ['not evaluable', '不可评估']};
-  let h = `<tr><th>${L('Covariance', '协方差')}</th><th>${L('status; f', '状态；f')}</th><th>${L('high-f', '高 f')}</th><th>T1 √Δχ²_flat</th><th>T2 D_02 − D_K</th><th>T3 Δχ²_NFW</th><th>T3 Δχ²_ΛCDM</th></tr>`;
+  let h = `<tr><th>${L('Covariance', '协方差')}</th><th>${L('status; f or c', '状态；f 或 c')}</th><th>${L('high-f', '高 f')}</th><th>T1 √Δχ²_flat</th><th>T2 D_02 − D_K</th><th>T3 Δχ²_NFW</th><th>T3 Δχ²_ΛCDM</th></tr>`;
   for (const [k, v] of Object.entries(r6.covariances)) {
     const ok = v.status === 'calibrated' && v.tests;
     const p = ok ? (v.tests.powerlaw || {}) : {};
-    h += `<tr><td>${names[k] ? L(...names[k]) : esc(k)}</td><td>${st[v.status] ? L(...st[v.status]) : esc(v.status)}; ${f(v.value, 3)}</td><td>${v.high_f ? L('yes', '是') : L('no', '否')}</td>` +
+    h += `<tr><td>${names[k] ? L(...names[k]) : esc(k)}</td><td>${st[v.status] ? L(...st[v.status]) : esc(v.status)}; ${f(v.value, 3)}</td><td>${ok ? (v.high_f ? L('yes', '是') : L('no', '否')) : '–'}</td>` +
       `<td>${ok ? f(p.sigma_flat) : '–'}</td><td>${ok ? f(p.pref_kepler) : '–'}</td><td>${ok ? f(v.tests.dchi2_nfw, 1) : '–'}</td><td>${ok ? f(v.tests.dchi2_lcdm, 1) : '–'}</td></tr>`;
   }
   const ri = (r6.rescaled_independent || {}).powerlaw;
@@ -129,7 +129,7 @@ function renderR6(r6) {
   t.innerHTML = h;
   const lz = {'flat rejected at >= 3 sigma': '平坦曲线在 ≥ 3σ 被拒绝', 'flat rejected at >= 2 sigma': '平坦曲线在 ≥ 2σ 被拒绝', 'flat not rejected at 2 sigma': '平坦曲线未在 2σ 被拒绝',
     'Keplerian favoured over gamma = -0.2': '开普勒式优于 γ = −0.2', 'gamma = -0.2 favoured over Keplerian': 'γ = −0.2 优于开普勒式', 'not distinguished': '无法区分',
-    'not disfavoured': '不被排斥', 'mildly disfavoured': '轻微不被看好', 'disfavoured': '不被看好', 'kernel-dependent': '依赖核', 'kernel-dependent (high-f)': '依赖核（高 f）', 'not evaluable': '不可评估'};
+    'not disfavoured': '未被看低', 'mildly disfavoured': '轻微不被看好', 'disfavoured': '不被看好', 'kernel-dependent': '依赖核', 'kernel-dependent (high-f)': '依赖核（高 f）', 'not evaluable': '不可评估'};
   const zh = s => { const m = String(s).match(/^(.*?)( \(only with high-f covariances\))?$/); return (lz[m[1]] || esc(m[1])) + (m[2] ? '（只在高 f 协方差下）' : ''); };
   const lab = r6.labels || {};
   const rows = [['T1', lab.t1], ['T2', lab.t2], ['T3 NFW', lab.t3_nfw], ['T3 ΛCDM', lab.t3_lcdm]].filter(r => r[1]);

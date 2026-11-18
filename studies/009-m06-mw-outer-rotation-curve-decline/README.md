@@ -418,7 +418,7 @@ is calibrated so that the free Einasto fit (E dJ, 18 points) has χ² = 15.
 | SE, ℓ = 4 kpc | 0.934 | yes | −0.350; 3.34 | 2.16, 2.11; −0.05 | 20.8; 23.4 | 7.1 |
 | SE, ℓ = 8 kpc | 0.921 | yes | −0.345; 4.94 | 5.21, 4.39; −0.82 | 60.9; 67.1 | 8.3 |
 | global | 0.919 | yes | −0.355; 7.48 | 8.89, 10.40; +1.51 | 232.6; 259.0 | 7.7 |
-| fractional | not calibratable (Einasto χ² ≤ 4.54 at c_max = 1.34%) | – | – | – | – | – |
+| fractional | not calibratable (Einasto χ² ≤ 4.54 at c_max = 0.99 × min σ/V = 1.34%) | – | – | – | – | – |
 | *contrast: independent errors × 0.295* | – | – | −0.397; 9.10 | 5.53, 20.28; +14.75 | – | – |
 
 All halo fits converged (19–21 starts agree), none at a bound; the free Einasto M_vir stays
@@ -453,15 +453,18 @@ high-f (calibrated f > 0.9), so each label is the all-covariance label with the 
    itself is Δχ² 5.2 and 8.9 from the best fit.
 4. *Halo shape.* Every kernel disfavours NFW and the ΛCDM-like Einasto relative to the free Einasto
    (Δχ² 14–61 for the squared-exponential kernels), with the known bias that f is calibrated on the
-   Einasto residuals; NFW's own χ² is 29–76 for 16 degrees of freedom here. The truncated halo, and
+   Einasto residuals; NFW's own χ² is 29–76 for 16 degrees of freedom here (SE kernels; 248 for global). The truncated halo, and
    so the total mass of about 2 × 10¹¹ M☉, are preferred under these covariances; the NFW mass
    (6.3–8.3 × 10¹¹ M☉) is not excluded by anything beyond these assumed kernels.
 5. *Fractional offset.* A coherent fractional offset cannot reach χ² = 15: its amplitude is capped
    by the smallest σ/V (1.35% at 10.5 kpc), so it covers only 1–10% of the variance of the four bins
    beyond 23.5 kpc, and a common offset is largely absorbed by the halo normalisation.
-6. Post hoc robustness: at the lower target (15 − √30) three kernels fall below the high-f flag
-   (f = 0.873–0.890) and give the same three labels (T1 2.7–6.0σ, |D_02 − D_K| < 1.3, Δχ²_NFW
-   11.6–148). This partly offsets the "only with high-f" qualifier; it is not a pre-registered label.
+6. Post hoc: at the lower target (15 − √30) three kernels fall below the high-f flag (SE ℓ = 4, 8 kpc
+   and global, f = 0.873–0.890; SE ℓ = 2 kpc stays flagged at 0.924). On those three, T1 is 3.1–6.0σ
+   (≥ 3σ), |D_02 − D_K| ≤ 1.22, Δχ²_NFW 17–148 and Δχ²_ΛCDM 20–164. Applying the pre-registered order
+   at that target would give T2 "not distinguished" and T3 "disfavoured" without the qualifier, and T1
+   "kernel-dependent (high-f)", because SE ℓ = 2 kpc (flagged) gives 2.69σ. This is not a
+   pre-registered label.
 
 ## 6. Referee notes
 
@@ -517,9 +520,9 @@ the four labels follow the rules. Triage:
 | 4 | Correlation halves T1 (3.0–4.9σ against 9.1σ) and removes the Keplerian preference (+14.8 → −0.8 to +1.5); for ℓ = 4, 8 kpc most of Δχ²_flat is in larger eigen-directions; white-noise-only covariances give 9.5–12.9σ | yes | **Accepted**; section 5 readings 2–3. |
 | 5 | The T1 "≥ 2σ" label rests on SE ℓ = 2 kpc at 2.99 | yes | Stated in section 5. |
 | 6 | "Not distinguished" hides that γ = −0.5 is itself Δχ² 5.2 (ℓ = 8 kpc) and 8.9 (global) from the best fit | yes | Stated in section 5 reading 3. |
-| 7 | At 15 − √30 three kernels are unflagged and give the same labels | yes (`r6.json`) | Section 5 reading 6, post hoc. |
+| 7 | At 15 − √30 three kernels are unflagged and give the same labels | partly (`r6.json`): the same T2 and T3 labels, but T1 would be "kernel-dependent (high-f)" (the three unflagged ≥ 3σ, SE ℓ = 2 kpc flagged at 2.69σ) | Section 5 reading 6, post hoc, corrected. |
 | 8 | The fractional kernel's cap is set by the 10.5 kpc bin (per-bin correlated fraction 0.98 there, 0.009–0.10 beyond 23.5 kpc), so its high-f flag is driven by one bin | yes | Section 5 reading 5; no label effect (excluded). |
-| 9 | T3 is measured against white noise tuned to Einasto's residuals; NFW χ² 29–76 for 16 dof | yes | Section 5 reading 4 keeps the known-bias sentence. |
+| 9 | T3 is measured against white noise tuned to Einasto's residuals; NFW χ² 29–76 for 16 dof (SE kernels; 248 for global) | yes | Section 5 reading 4 keeps the known-bias sentence. |
 | 10 | Section 2.6 says "minimum over all 21 starts" and "over the successful runs"; the code uses the successful runs (stricter) | yes | Noted; wording only. |
 
 ## 7. Open questions
