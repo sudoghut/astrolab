@@ -69,11 +69,39 @@ def _clean(text):
     return re.sub(r"[A-Za-z]:[\\/][^\s'\"]*|/(?:home|Users)/[^\s'\"]*", "<path>", text)
 
 
+def _r6_plan(job, cfg, log, flowshift):
+    """README 2.6 order: metadata, the known-answer gate, and the chains only if the gate passes."""
+    res = job("meta")
+    exact = job("exact")
+    reps = []
+    for k in cfg["gate"]["seeds"]:
+        r = job("gate", k)
+        reps.append(r)
+        log(f"  gate seed {k}: {r.get('n_sigma', r.get('error'))} (exact {exact['n_sigma']:.4f})")
+    res["gate"] = flowshift.gate_summary(exact, reps, cfg["gate"])
+    if res["gate"]["passed"]:
+        for name, case in cfg["cases"].items():
+            log(f"case {name}: {case['columns']}")
+            creps = []
+            for k in case["seeds"]:
+                r = job("case", name, k)
+                creps.append(r)
+                log(f"  {name} seed {k}: {r.get('n_sigma', r.get('error'))}")
+            res[name] = flowshift.case_summary(creps, case["columns"])
+    return res
+
+
 def run_flows(arrays, cfg, log):
+    """R6 (README 2.6): run_jobs with R6's order of jobs."""
+    return run_jobs(arrays, cfg, log, _r6_plan)
+
+
+def run_jobs(arrays, cfg, log, plan):
     """Run flowshift.py in the TF environment, one job per process (TensorFlow memory is freed when
     each process exits). Each finished job is kept in a folder in the cache keyed by the input, the
     configuration and flowshift.py, so a stopped run resumes and repeats at most the unfinished job;
-    the folder is removed once all jobs are done. Returns the assembled results (README 2.6)."""
+    the folder is removed once all jobs are done. plan(job, cfg, log, flowshift) decides which jobs
+    run and assembles their results (R6: _r6_plan; R6-NOMNU: r6nomnu.plan)."""
     import hashlib
     import shutil
     import time
@@ -151,23 +179,7 @@ def run_flows(arrays, cfg, log):
         return res
 
     try:
-        res = job("meta")
-        exact = job("exact")
-        reps = []
-        for k in cfg["gate"]["seeds"]:
-            r = job("gate", k)
-            reps.append(r)
-            log(f"  gate seed {k}: {r.get('n_sigma', r.get('error'))} (exact {exact['n_sigma']:.4f})")
-        res["gate"] = flowshift.gate_summary(exact, reps, cfg["gate"])
-        if res["gate"]["passed"]:
-            for name, case in cfg["cases"].items():
-                log(f"case {name}: {case['columns']}")
-                creps = []
-                for k in case["seeds"]:
-                    r = job("case", name, k)
-                    creps.append(r)
-                    log(f"  {name} seed {k}: {r.get('n_sigma', r.get('error'))}")
-                res[name] = flowshift.case_summary(creps, case["columns"])
+        res = plan(job, cfg, log, flowshift)
     except RuntimeError as exc:
         lock.unlink(missing_ok=True)
         return {"status": "not evaluable (TF subprocess failed)", "error": str(exc)[-1000:],

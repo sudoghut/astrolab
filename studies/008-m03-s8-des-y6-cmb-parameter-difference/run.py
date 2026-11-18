@@ -11,13 +11,16 @@ R3  DES xi+- - CMB parameter difference (descriptive).
 R4  sensitivity: projection shift, MAP shift, algorithms, threshold, full-space Gaussian.
 R5  published S8 summaries of other probes against the CMB chain (descriptive).
 R6  full-space difference with normalizing flows (README 2.6, added 2026-11-16; runs in the separate TF
-    environment through r6flow.py / flowshift.py; several hours).
+    environment through r6flow.py / flowshift.py; several hours). With r6_retrain False (README 2.7)
+    R6 is not retrained: the recorded results/r6.json is checked and reused, never rewritten.
+R6-NOMNU  the same without Sigma m_nu, and pop_size = 1 (README 2.7, T-040; r6nomnu.py; about 2.5 h).
 """
 import re
 
 import numpy as np
 
 import r6flow
+import r6nomnu
 import s8diff
 
 BASE = "https://desdr-server.ncsa.illinois.edu/despublic/y6a2_files/y6_key/chains_release/"
@@ -71,6 +74,11 @@ PARAMS = {
                 "boxes": [[-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.1, 1.9, 0.1]],
                 "n_exact": 2_000_000, "exact_seed": 999, "seeds": [10, 11, 12], "sample_seed_offset": 1000,
                 "tol_mean": 0.10, "tol_each": 0.20},
+    # R6-NOMNU (README 2.7, T-040). r6_retrain False: R6 is not rerun; results/r6.json is reused.
+    "r6_retrain": False,
+    "r6_nomnu": True, "r6_nomnu_seeds": [0, 1, 2, 3, 4], "r6_nomnu_s_max": 0.15,
+    "r6_nomnu_bands": [1.00, 1.40], "r6_pop1": True,
+    "r6_nomnu_f_crit": 6.39,          # F_0.95(4, 4): two-sided 10% test on the variance ratio
 }
 
 # The user's one-off exception to the 50 MB per-download cap (2026-11-15; log.md, README section 3),
@@ -417,40 +425,79 @@ def main(ctx):
     ctx.save("r5", r5)
 
     # ---------------------------------------------------------------- R6 ----
-    r6 = {"status": "not run (PARAMS r6 false)"}
-    if P["r6"] and des is not None and cmb is not None and isinstance(r4.get("full_space"), dict)             and "parameters" in r4["full_space"]:
-        six = r4["full_space"]["parameters"]
-        support6 = r6flow.support_all(six, chains, formats, ranges, P["support_frac_max"])
-        arrays = r6flow.columns(chains, formats, six)
+    fs_ok = (des is not None and cmb is not None and isinstance(r4.get("full_space"), dict)
+             and "parameters" in r4["full_space"])
+    if P["r6_retrain"]:                  # README 2.6, unchanged
+        r6 = {"status": "not run (PARAMS r6 false)"}
+        if P["r6"] and fs_ok:
+            six = r4["full_space"]["parameters"]
+            support6 = r6flow.support_all(six, chains, formats, ranges, P["support_frac_max"])
+            arrays = r6flow.columns(chains, formats, six)
+            short = [n.split("--")[-1] for n in six]
+            amp = [c for c in short if c in AMPLITUDE]
+            con_short = [n.split("--")[-1] for n in r4["full_space"].get("constrained_parameters", [])]
+            cases = {"main": {"columns": short, "seeds": P["r6_seeds_main"]},
+                     "s8_for_as": {"columns": [("s8" if c in amp else c) for c in short], "seeds": P["r6_seeds_reported"]},
+                     "constrained": {"columns": con_short or amp + ["omega_m"], "seeds": P["r6_seeds_reported"]},
+                     "flow_2d": {"columns": ["s8", "omega_m"], "seeds": P["r6_seeds_reported"]}}
+            cfg = {"n": P["r6_n"], "estimate": P["r6_estimate"], "gate": P["r6_gate"], "cases": cases}
+            ctx.log("R6: known-answer gate, then the chains (several hours)")
+            # README 2.6 order (1): a failed R1 gate decides; the flows are then not run
+            res = r6flow.run_flows(arrays, cfg, ctx.log) if gate else {"status": "not run (R1 gate failed)"}
+            v, why = r6flow.verdict(res, support6, bool(gate), P["r6_published"], P["r6_tol"], P["r6_s_max"],
+                                    P["r6_lb_margin"])
+            # README 2.6: the binned-KDE n_sigma of (As, Omega_m) with the R2 estimator, next to its flow
+            ka = np.column_stack([arrays["des_" + c] for c in cases["constrained"]["columns"]])
+            kb = np.column_stack([arrays["cmb_" + c] for c in cases["constrained"]["columns"]])
+            kde_con = s8diff.parameter_difference(ka, arrays["des_w"], kb, arrays["cmb_w"], P["n_pairs"], P["seeds"])
+            r6 = {"parameters": six, "support": support6, "flows": res, "verdict": v, "reason": why,
+                  "flow_1d": {"status": "not run (tensiometer 1.1.0 does not support a 1-D flow with its "
+                                        "default settings; README 2.6 amendment 2026-11-18)"},
+                  "kde_reference": {"1d": r2.get("1d", {}).get("n_sigma"), "2d": r2.get("2d", {}).get("n_sigma"),
+                                    "constrained": kde_con.get("n_sigma"), "constrained_s": kde_con.get("s")},
+                  "gaussian_reference": {"all": r4["full_space"].get("all", {}).get("n_sigma"),
+                                         "constrained": r4["full_space"].get("constrained", {}).get("n_sigma")}}
+            ctx.log(f"R6: {v} ({why})")
+        ctx.save("r6", r6)
+        r6_path = ctx.results / "r6.json"
+    else:                                # README 2.7: reuse the recorded R6; no training, no write
+        r6_path = ctx.path / "results" / "r6.json"
+    r6_rec = r6nomnu.check_r6(r6_path) if (P["r6_nomnu"] or not P["r6_retrain"]) else {"ok": False}
+    r6_summary = (r6.get("verdict", r6.get("status")) if P["r6_retrain"]
+                  else (r6_rec.get("verdict") if r6_rec["ok"] else f"not reused ({r6_rec.get('reason')})"))
+
+    # ---------------------------------------------------------- R6-NOMNU ----
+    nomnu = None
+    if P["r6_nomnu"]:
+        settings = {k: P[k] for k in ("r6_retrain", "r6_nomnu_seeds", "r6_nomnu_s_max", "r6_nomnu_bands",
+                                      "r6_pop1", "r6_nomnu_f_crit", "r6_n", "r6_estimate", "r6_s_max")}
+        args = dict(bands=P["r6_nomnu_bands"], s_max=P["r6_nomnu_s_max"], s_flag=P["r6_s_max"],
+                    f_crit=P["r6_nomnu_f_crit"], settings=settings)
+        six = r4["full_space"]["parameters"] if fs_ok else []
         short = [n.split("--")[-1] for n in six]
-        amp = [c for c in short if c in AMPLITUDE]
-        con_short = [n.split("--")[-1] for n in r4["full_space"].get("constrained_parameters", [])]
-        cases = {"main": {"columns": short, "seeds": P["r6_seeds_main"]},
-                 "s8_for_as": {"columns": [("s8" if c in amp else c) for c in short], "seeds": P["r6_seeds_reported"]},
-                 "constrained": {"columns": con_short or amp + ["omega_m"], "seeds": P["r6_seeds_reported"]},
-                 "flow_2d": {"columns": ["s8", "omega_m"], "seeds": P["r6_seeds_reported"]}}
-        cfg = {"n": P["r6_n"], "estimate": P["r6_estimate"], "gate": P["r6_gate"], "cases": cases}
-        ctx.log("R6: known-answer gate, then the chains (several hours)")
-        # README 2.6 order (1): a failed R1 gate decides; the flows are then not run
-        res = r6flow.run_flows(arrays, cfg, ctx.log) if gate else {"status": "not run (R1 gate failed)"}
-        v, why = r6flow.verdict(res, support6, bool(gate), P["r6_published"], P["r6_tol"], P["r6_s_max"],
-                                P["r6_lb_margin"])
-        # README 2.6: the binned-KDE n_sigma of (As, Omega_m) with the R2 estimator, next to its flow
-        ka = np.column_stack([arrays["des_" + c] for c in cases["constrained"]["columns"]])
-        kb = np.column_stack([arrays["cmb_" + c] for c in cases["constrained"]["columns"]])
-        kde_con = s8diff.parameter_difference(ka, arrays["des_w"], kb, arrays["cmb_w"], P["n_pairs"], P["seeds"])
-        r6 = {"parameters": six, "support": support6, "flows": res, "verdict": v, "reason": why,
-              "flow_1d": {"status": "not run (tensiometer 1.1.0 does not support a 1-D flow with its "
-                                    "default settings; README 2.6 amendment 2026-11-18)"},
-              "kde_reference": {"1d": r2.get("1d", {}).get("n_sigma"), "2d": r2.get("2d", {}).get("n_sigma"),
-                                "constrained": kde_con.get("n_sigma"), "constrained_s": kde_con.get("s")},
-              "gaussian_reference": {"all": r4["full_space"].get("all", {}).get("n_sigma"),
-                                     "constrained": r4["full_space"].get("constrained", {}).get("n_sigma")}}
-        ctx.log(f"R6: {v} ({why})")
-    ctx.save("r6", r6)
+        if not r6_rec["ok"]:
+            nomnu = r6nomnu.assemble({}, r6_rec, bool(gate), **args)
+        elif not fs_ok or r6nomnu.DROPPED not in short:
+            nomnu = r6nomnu.assemble({"status": "not run (no full-space parameter set with mnu)"}, r6_rec,
+                                     bool(gate), **args)
+        elif not gate:                   # README 2.7 rule 1 (as R6: the flows are then not run)
+            nomnu = r6nomnu.assemble({"status": "not run (R1 gate failed)"}, r6_rec, False, **args)
+        else:
+            # 5-D arrays from the 6-D column set (same finite-row mask); mnu is dropped per case
+            arrays = r6flow.columns(chains, formats, six)
+            cfg = r6nomnu.config(short, P["r6_nomnu_seeds"], P["r6_n"], P["r6_estimate"], P["r6_gate"],
+                                 P["r6_pop1"])
+            ctx.log("R6-NOMNU: 5-D gate, 5-D chains, then pop_size = 1 (about 2.5 hours)")
+            res = r6flow.run_jobs(arrays, cfg, ctx.log, r6nomnu.plan)
+            nomnu = r6nomnu.assemble(res, r6_rec, True, **args)
+        nomnu["parameters"] = short
+        nomnu["parameters_match_r6"] = bool(r6_rec.get("parameters") == short)
+        ctx.log(f"R6-NOMNU: {nomnu['label']} ({nomnu['reason']})")
+        ctx.save("r6_nomnu", nomnu)
 
     return {"r1": {k: v.get("verdict") for k, v in r1.items() if isinstance(v, dict)},
             "r2": {t: r2[t]["verdict"] for t in ("1d", "2d") if t in r2},
             "r2_nsigma": {t: r2[t]["n_sigma"] for t in ("1d", "2d") if t in r2},
             "r3_nsigma": {t: r3[t]["n_sigma"] for t in ("1d", "2d") if t in r3},
-            "r6": r6.get("verdict", r6.get("status"))}
+            "r6": r6_summary,
+            **({"r6_nomnu": nomnu["summary"]} if nomnu else {})}

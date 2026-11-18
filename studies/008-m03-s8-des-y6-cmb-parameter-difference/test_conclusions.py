@@ -99,3 +99,109 @@ def test_r6_verdict_rule():
     else:
         expected = "reproduced" if abs(n_bar - 1.8) <= 0.15 + 2 * s else "not reproduced"
     assert r6["verdict"] == expected
+
+
+def _r6_reusable(r6):
+    """README 2.7 reuse checks, re-implemented here independently of r6nomnu.check_r6."""
+    import math
+
+    f = r6.get("flows") or {}
+    main = f.get("main") or {}
+    reps = main.get("repetitions") or []
+    return (f.get("complete") is True and (f.get("gate") or {}).get("passed") is True
+            and [r.get("seed") for r in reps] == [0, 1, 2, 3, 4]
+            and all(isinstance(r.get("n_sigma"), float) and math.isfinite(r["n_sigma"]) for r in reps)
+            and isinstance(main.get("n_bar"), float) and round(main["n_bar"], 4) == 1.6985
+            and isinstance(main.get("s"), float) and round(main["s"], 4) == 0.0977)
+
+
+def _sd(v):
+    import math
+    m = sum(v) / len(v)
+    return math.sqrt(sum((x - m) ** 2 for x in v) / (len(v) - 1))
+
+
+def test_r6_nomnu_label_rule():
+    """README 2.7: re-derive the R6-NOMNU label and the pop_size statements from the saved numbers."""
+    import math
+
+    out = load("r6_nomnu")
+    r6 = load("r6")
+    flows = out["flows"]
+    if not _r6_reusable(r6):
+        assert out["label"] == "not evaluable" and "not run" in flows["status"]
+        return
+    six = r6["flows"]["main"]["parameters"]
+    assert out["parameters"] == six and out["parameters_match_r6"] is True
+    if not load("r2")["gate_r1_means"] or "status" in flows:         # rule 1 (R1) or no flows
+        assert out["label"] == "not evaluable"
+        return
+    # rule 1: the 5-D gate (curved pair + three flat boxes), R6's tolerances
+    g5 = flows["gate5"]
+    gv = [r.get("n_sigma") for r in g5["repetitions"]]
+    assert [r["seed"] for r in g5["repetitions"]] == [10, 11, 12]
+    passed = all(v is not None and math.isfinite(v) and r.get("converged") and not r.get("lower_bound")
+                 for v, r in zip(gv, g5["repetitions"])) and \
+        abs(sum(gv) / 3 - g5["exact"]["n_sigma"]) <= 0.10 and all(abs(v - g5["exact"]["n_sigma"]) <= 0.20 for v in gv)
+    assert g5["passed"] == passed
+    if not passed:
+        assert out["label"] == "not evaluable" and "not run" in flows["nomnu"]["status"]
+        expected = "not evaluable"
+    else:
+        case = flows["nomnu"]
+        assert case["parameters"] == [c for c in six if c != "mnu"] and len(six) == 6
+        assert "mnu" not in case["parameters"]
+        reps = case["repetitions"]
+        assert [r["seed"] for r in reps] == [0, 1, 2, 3, 4]
+        assert all(r.get("pop_size_passed") is False for r in reps)
+        ns = [r.get("n_sigma") for r in reps]
+        if any(v is None or not math.isfinite(v) for v in ns) or not all(r.get("converged") for r in reps):
+            expected = "not evaluable"                                   # rule 2
+        elif any(r.get("lower_bound") for r in reps):                    # rule 3
+            expected = ("not mainly Σmν: the other directions carry most of the shift" if min(ns) >= 1.40
+                        else "not evaluable")
+        else:
+            n_bar, s = sum(ns) / 5, _sd(ns)
+            assert abs(n_bar - case["n_bar"]) < 1e-9 and abs(s - case["s"]) < 1e-9
+            if s > 0.15:                                                 # rule 4
+                expected = "not evaluable"
+            else:                                                        # rule 5
+                lo, hi = n_bar - 2 * s / math.sqrt(5), n_bar + 2 * s / math.sqrt(5)
+                if hi <= 1.00:
+                    expected = "the full-space shift is mainly the Σmν direction"
+                elif lo >= 1.40:
+                    expected = "not mainly Σmν: the other directions carry most of the shift"
+                elif lo > 1.00 and hi < 1.40:
+                    expected = "partly the Σmν direction"
+                else:
+                    expected = "between the two adjacent labels (not decided)"
+                assert out["s5_within_r6_s_max"]["value"] == (s <= 0.07)  # rule 6: a flag only
+    assert out["label"] == expected
+    assert out["summary"]["label"] == expected
+
+    # pop_size comparison (descriptive): 6-D against R6's recorded repetitions, 5-D against (b)
+    if "main_pop1" not in flows:
+        return
+    assert flows["gate6_pop1"]["exact"]["n_sigma"] == r6["flows"]["gate"]["exact"]["n_sigma"]
+    pairs = {"6d": (r6["flows"]["main"]["repetitions"], flows["main_pop1"]["repetitions"])}
+    if passed:
+        pairs["5d"] = (flows["nomnu"]["repetitions"], flows["nomnu_pop1"]["repetitions"])
+    for dim, (r10, r1) in pairs.items():
+        cmp = out["pop_size_comparison"][dim]
+        assert all(r.get("pop_size") == 1 and r.get("pop_size_passed") is True for r in r1 if "error" not in r)
+        ok = all("error" not in r and r.get("n_sigma") is not None and math.isfinite(r["n_sigma"])
+                 and not r.get("lower_bound") for r in r10 + r1)
+        if not ok:
+            assert cmp["status"].startswith("not computed")
+            continue
+        v10, v1 = [r["n_sigma"] for r in r10], [r["n_sigma"] for r in r1]
+        a, b = _sd(v10) ** 2, _sd(v1) ** 2
+        big, small = max(a, b), min(a, b)
+        differ = small == 0 and big > 0 or (small > 0 and big / small > 6.39)
+        assert cmp["spread"] == ("spreads differ" if differ else "no detectable difference in spread with five repetitions")
+        m10, m1 = sum(v10) / 5, sum(v1) / 5
+        thr = 2 * math.sqrt(b / 5 + a / 5)
+        assert cmp["means"] == ("means differ" if abs(m1 - m10) > thr else "means do not differ by the heuristic")
+        for r_10, r_1 in zip(r10, r1):
+            assert abs(cmp["paired_pop1_minus_default"]["per_seed"][str(r_1["seed"])]
+                       - (r_1["n_sigma"] - r_10["n_sigma"])) < 1e-12
