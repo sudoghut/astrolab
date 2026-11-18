@@ -63,7 +63,15 @@ def test_r5_label_rederived_from_saved_results():
     """Re-derive the R5 label from results/r5.json with the pre-registered table (skip if R5 has
     not been run)."""
     s = load("r5")
+    if "label" not in s:
+        pytest.skip("r5.json holds a retry record, not a final outcome")
     label = s["label"]
+    if "g1b" in s:
+        g = s["g1b"]
+        if g.get("evaluable", True) and "L_N" in g:
+            assert g["passes"] == (g["L_N"] >= 100 and g["L_M"] <= 0.01)
+        if g["passes"]:
+            assert "insufficient predicted power" not in label
     unbl = bool(s.get("blinding", {}).get("n4_read_before_merge"))
     prefix = "R5 (unblinded, descriptive): " if unbl else "R5: "
     if "g1b" in s and not s["g1b"]["passes"]:
@@ -78,6 +86,8 @@ def test_r5_label_rederived_from_saved_results():
         assert label == prefix + "invalid fit (no label)"
         return
     L, g2 = m["fit"]["L"], m["fit"]["g2"]["passes"]
+    gg = m["fit"]["g2"]
+    assert g2 == (gg["L_N_data"] >= 100 and gg["L_M_data"] <= 0.01)
     if g2:
         body = ("Newton has the higher relative likelihood (agrees with C26's conclusion)" if L >= 100 else
                 "MOND has the higher relative likelihood (contradicts C26)" if L <= 0.01 else "cannot distinguish")
@@ -91,6 +101,8 @@ def test_r5_label_rederived_from_saved_results():
 
 def test_r5_variant_grades_consistent():
     s = load("r5")
+    if "label" not in s:
+        pytest.skip("r5.json holds a retry record, not a final outcome")
     for name, v in s.get("variants", {}).items():
         if v.get("valid"):
             L = v["fit"]["L"]

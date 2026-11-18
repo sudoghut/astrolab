@@ -113,9 +113,20 @@ class Context:
         self.refresh = refresh
         self.provenance = ProvenanceLog()
         self.saved: list[str] = []
-        self.record_suffix = ""  # run(): provenance{suffix}.json, run_info{suffix}.json
+        self._record_suffix = ""  # run(): provenance{suffix}.json, run_info{suffix}.json
         self.bytes_in = 0
         self.max_save_bytes: int | None = None  # set by explore(): outputs must stay small
+
+    @property
+    def record_suffix(self) -> str:
+        return self._record_suffix
+
+    @record_suffix.setter
+    def record_suffix(self, value: str) -> None:
+        """A run mode that must not overwrite another mode's records (e.g. "_r5"); validated here."""
+        if not isinstance(value, str) or not re.fullmatch(r"(_[a-z0-9]+)?", value):
+            raise ValueError(f"record_suffix {value!r} must be empty or '_' plus lowercase letters/digits")
+        self._record_suffix = value
 
     def _charge(self, nbytes: int | None, what: str) -> None:
         """Enforce the per-run input budget (AGENTS.md section 1)."""
@@ -178,9 +189,7 @@ def run(study: Study, refresh: bool = False) -> dict[str, Any]:
     summary = module.main(ctx) or {}
     elapsed = round(time.time() - t0, 2)
     # a run mode that must not overwrite another mode's records sets ctx.record_suffix (e.g. "_r5")
-    suffix = getattr(ctx, "record_suffix", "")
-    if not re.fullmatch(r"(_[a-z0-9]+)?", suffix):
-        raise ValueError(f"record_suffix {suffix!r} must be empty or '_' plus lowercase letters/digits")
+    suffix = ctx.record_suffix                     # validated by the Context setter
     ctx.provenance.write(study.results_dir / f"provenance{suffix}.json")
     write_json(study.results_dir / f"run_info{suffix}.json",
                {"study": study.id, "finished_at": now_iso(), "seconds": elapsed, "outputs": ctx.saved})

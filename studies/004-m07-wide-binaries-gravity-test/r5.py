@@ -203,6 +203,10 @@ def stratified_sigma(vt_sorted, b_sorted, nbins, n_boot=10000, seed=0, chunk=500
     rng.integers(0, N_j, size=(n_boot, N_j)) (drawn in row chunks, which consumes the generator
     identically); sigma_j = std(ddof=1) of the replicate medians. Inputs sorted by
     (source_id_a, source_id_b)."""
+    # Chunking is equivalent to one call: Generator.integers with a scalar bound fills its output in
+    # C order from one stream, drawing values one after another (Lemire's method, with rejections
+    # consumed in place), so rows 0..m-1 then m..2m-1 are the same numbers as rows 0..2m-1 of a
+    # single call. test_r5 checks this against single calls.
     rng = np.random.default_rng(seed)
     out = []
     for k in range(nbins):
