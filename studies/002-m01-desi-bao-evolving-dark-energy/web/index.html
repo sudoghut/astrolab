@@ -132,7 +132,7 @@ function render() {
         `<table><thead><tr><th>${L('Variant', '变体')}</th><th class="num">${L('A: Δχ² (shift vs R2-CAMB)', 'A：Δχ²（相对 R2-CAMB 的移动）')}</th><th>${L('A verdict', 'A 判定')}</th>` +
         `<th class="num">${L('B: Δχ² (shift vs R2-CAMB)', 'B：Δχ²（相对 R2-CAMB 的移动）')}</th><th>${L('B verdict', 'B 判定')}</th></tr></thead><tbody>${rowsRD.join('')}</tbody></table>` +
         `<p>${L('Conclusion (pre-registered rule)', '结论（预注册规则）')}: <b>${C.conclusion_rd.map(c => c === 'R2 robust to the r_d formula' ? L('R2 robust to the r_d formula', 'R2 对 r_d 公式稳健') : c).join('; ')}</b>. ` +
-        `${L('A 0.03% rescale of r_d (Aubourg et al. 2015 formula vs CAMB) moves Δχ² by about +0.10 in both readings, so it cannot explain the A/B split.', 'r_d 0.03% 的缩放（Aubourg 等 2015 公式对 CAMB）使两种解读的 Δχ² 都变化约 +0.10，所以不能解释 A/B 的分歧。')}</p>`);
+        `${L('Post hoc (referee, verified): a 0.03% rescale of r_d (Aubourg et al. 2015 formula vs CAMB) moves Δχ² by about +0.10 in both readings, so it cannot explain the A/B split.', '事后（post hoc，独立审稿，已核实）：r_d 0.03% 的缩放（Aubourg 等 2015 公式对 CAMB）使两种解读的 Δχ² 都变化约 +0.10，所以不能解释 A/B 的分歧。')}</p>`);
     }
   }
   const fits = [r2a, r2b, R3.desi, R3.desi_pantheonplus, R3.desi_union3];

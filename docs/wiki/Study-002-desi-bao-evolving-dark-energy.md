@@ -371,7 +371,7 @@ recomputed every number it could from about 34 MB of public files, with its own 
   case (a constant 0.03% rescale of r_d that moves both readings alike; referee, post hoc, verified);
   the verdicts stay A not reproduced, B reproduced. So under reading A, the faithful version of
   the prior's source, our Δχ² is about −6.6 against the paper's −8.0, and the remaining ~1.4 is not
-  explained by θ* or r_d. Which quantity DESI's code compared with the Eq. 35 mean is still open:
+  explained by the θ* calibration or the r_d formula. Which quantity DESI's code compared with the Eq. 35 mean is still open:
   DESI's configuration was not found in the paper's HTML or the public prior and BAO repositories.
   Numbers: [`results/r2_camb.json`](https://github.com/sudoghut/astrolab/blob/main/studies/002-m01-desi-bao-evolving-dark-energy/results/r2_camb.json).
 - Not tested: the full-CMB Δχ² = −12.5 behind the headline 3.1σ (needs the full Planck and ACT
@@ -623,7 +623,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 - **R2，压缩 CMB 先验：有条件复现。** 把先验的 ωbc 均值按 ωb + ωc 解读（式 2 旁正文写明的定义；但见下文：式 2 的归一指向 A）时，Δχ²_MAP = −8.01（2.4σ），后验均值 w0 = −0.44 ± 0.23、wa = −1.69 ± 0.66，与式 24 一致。按计划阶段起初倾向的解读（均值含 ων，只有间接数值证据；与 B 并列预注册）时，Δχ²_MAP = −6.59（2.1σ）。独立审稿指出这一分歧并不稳健：θ* 标定每改变一个先验 σ，Δχ² 移动约 0.4，而标定在拟合点处随宇宙学参数的变化没有测过，可能达到约 1σ，足以让解读 A 通过；论文式 2 把 ωbc 归一到包含中微子的 Planck ωm，也指向解读 A。所以我们不下结论 DESI 的先验用的是哪种约定：压缩先验的结果为有条件复现（解读 B），它是否依赖这一约定仍未确定（用 CAMB 核对 θ* 可以说明这一点）。
 - **2026-11-16 更新，R2-CAMB（T-022，预注册附录）：这一分歧对 θ* 标定稳健。** 用 CAMB（宇宙学线性理论代码，Code for Anisotropies in the Microwave Background）在 Planck 参考点锚定（anchored）的 θ* 时，Δχ²_MAP 移动 −0.007（A）与 −0.002（B）；用不缩放（raw）的 CAMB θ* 时移动 −0.12 与 −0.13；判定仍是 A 未复现、B 复现。在拟合点上，标定公式与 CAMB 相差不超过 0.05 个先验 σ，比独立审稿认为可能的约 1σ 小约 20 倍。所以 R2 确实依赖 ωbc 的约定本身；DESI 用的是哪种约定仍未确定（只有一手来源（primary source）能回答）。数字见 [`results/r2_camb.json`](https://github.com/sudoghut/astrolab/blob/main/studies/002-m01-desi-bao-evolving-dark-energy/results/r2_camb.json)。
 - **独立审稿的发现，2026-11-16（事后（post hoc），已核实）：** 先验的来源 [`cmbant/PlanckEarlyLCDM`](https://github.com/cmbant/PlanckEarlyLCDM) 给出 (θ*, ωb, ωc) 的高斯分布；变换到 (θ*, ωb, ωb + ωc) 后与式 36 完全相同，但 ωb + ωc 的均值是 0.14143，而式 35 印的是 0.14208，差值正是 0.06 eV 中微子的 ων。所以解读 A 才是来源先验的忠实形式，按 A 我们得到约 −6.6 而不是 −8.0。记录的判定仍是"有条件复现（解读 B）"；B 的吻合是巧合还是反映 DESI 代码如何使用这个均值，需要 DESI 的似然配置才能判断（T-030）。
-- **2026-11-18 更新，R2-CAMB-RD（T-030，预注册附录）：这一分歧对 r_d 公式也稳健。** θ* 与声视界（sound horizon）r_d 都取自 CAMB 时，解读 A 的 Δχ²_MAP 为 −6.49 / −6.60（锚定 / 不缩放 θ*），解读 B 为 −7.90 / −8.03，每种情形都比 R2-CAMB 变化约 +0.10（r_d 0.03% 的常数缩放，对两种解读作用相同；独立审稿，事后，已复核）；判定仍为 A 未复现、B 复现。所以在解读 A（先验来源的忠实版本）下，我们的 Δχ² 约为 −6.6，对比论文的 −8.0，剩下的约 1.4 不能用 θ* 或 r_d 解释。DESI 代码拿哪个量与式 35 的均值比较仍未解决：在论文 HTML 和公开的先验与 BAO 仓库中都没有找到 DESI 的配置。
+- **2026-11-18 更新，R2-CAMB-RD（T-030，预注册附录）：这一分歧对 r_d 公式也稳健。** θ* 与声视界（sound horizon）r_d 都取自 CAMB 时，解读 A 的 Δχ²_MAP 为 −6.49 / −6.60（锚定 / 不缩放 θ*），解读 B 为 −7.90 / −8.03，每种情形都比 R2-CAMB 变化约 +0.10（r_d 0.03% 的常数缩放，对两种解读作用相同；独立审稿，事后，已复核）；判定仍为 A 未复现、B 复现。所以在解读 A（先验来源的忠实版本）下，我们的 Δχ² 约为 −6.6，对比论文的 −8.0，剩下的约 1.4 不能用 θ* 标定或 r_d 公式解释。DESI 代码拿哪个量与式 35 的均值比较仍未解决：在论文 HTML 和公开的先验与 BAO 仓库中都没有找到 DESI 的配置。
 - 未检验：标题数字 3.1σ 背后的完整 CMB 的 Δχ² = −12.5（需要完整的 Planck 与 ACT 似然）、DES-SN5YR 的组合，以及威尔克斯校准（`gap_regular`），后者仍是探索项（README 第 8 节）。
 
 ### 术语表
