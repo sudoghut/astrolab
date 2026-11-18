@@ -135,7 +135,7 @@ function renderR6(r6) {
     const rf = c === 'gate' ? L(`exact ${f((fl.gate.exact || {}).n_sigma)}; ${fl.gate.passed ? 'passed' : 'failed'}`, `精确值 ${f((fl.gate.exact || {}).n_sigma)}；${fl.gate.passed ? '通过' : '未通过'}`) : ref[c];
     h += `<tr><td>${names[c]}</td><td>${vals}</td><td>${f(nb)}</td><td>${c === 'gate' ? '–' : f(v.s)}</td><td>${rf}</td></tr>`;
   }
-  h += `<tr><td>${L('S8 alone (1-D)', '只用 S8（1 维）')}</td><td>${L('not run', '未运行')}</td><td>–</td><td>–</td><td>${L(`binned KDE (R2) ${f(r6.kde_reference['1d'])}`, `分箱核密度估计（R2）${f(r6.kde_reference['1d'])}`)}</td></tr>`;
+  h += `<tr><td>${L('1-D flow in S8', 'S8 的 1 维流')}</td><td>${L('not run', '未运行')}</td><td>–</td><td>–</td><td>${L(`binned KDE (R2) ${f(r6.kde_reference['1d'])}`, `分箱核密度估计（R2）${f(r6.kde_reference['1d'])}`)}</td></tr>`;
   t.innerHTML = h;
   note.innerHTML = L(
     `Verdict: <b>${esc(r6.verdict)}</b> (${r6.reason.startsWith('s = ') ? `s = ${f(fl.main.s)} > 0.07` : esc(r6.reason)}; the registered stability limit is s ≤ 0.07). Descriptive: the five trainings give 1.6–1.9σ around D26's 1.8σ; one flow training moves n_σ by about 0.1σ. Unlike the Gaussian approximation, the flow gives nearly the same value with A_s or S8. The 1-D flow was not run: tensiometer 1.1.0 loops forever in one dimension (amendment 2026-11-18).`,
