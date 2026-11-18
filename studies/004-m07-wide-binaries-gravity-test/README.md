@@ -154,8 +154,9 @@ Variant V14 tests that shell alone.
   the same 1.15 that 150 pc gives for 130 pc.
 - **Pairs.**
   - Both stars are parent stars, and both have radial_velocity not null.
-  - Their parallaxes agree within 3σ combined.
-  - r_sky ≤ 30 kAU at ϖ̄. This is the server-side search radius, and it replaces the 0.5 pc A1
+  - Their parallaxes agree within 3σ combined, with the strict operator of the study code
+    (`queries.pair_conditions`): |ϖ1 − ϖ2| < 3√(σ1² + σ2²).
+  - r_sky ≤ 30 kAU at ϖ̄ (`<=`, as in `queries.b1_extra`). This is the server-side search radius, and it replaces the 0.5 pc A1
     search: the sample stops at 30 kAU, and degrouping has its own query.
   - Each pair is kept once, with source_id_a < source_id_b.
 - **Distance.** ϖ̄ > 4.0 mas (d < 250 pc).
@@ -170,8 +171,9 @@ Variant V14 tests that shell alone.
 - **Degrouping.** C26's relaxed rule, scaled to the new volume.
   - A neighbour is any star with parallax_over_error > 5, phot_g_mean_flux_over_error > 5 and
     parallax + 3·parallax_error > 3.4783.
-  - It must lie within 100 kAU projected, at the two stars' weighted parallax, and pass the same 3σ
-    rule.
+  - It must satisfy the operators of the original degrouping (`queries.pair_conditions` with
+    `DEGROUP_PC` = 100000/206264.806 pc). The projected separation at the two stars' weighted
+    parallax must be ≤ 100 kAU (`<=`), and |ϖ_star − ϖ_neighbour| < 3√(σ_star² + σ_neighbour²) (`<`).
   - A pair is kept only if each member has exactly one neighbour and that neighbour is its partner.
 - **Masses, v_sky, σ(ṽ) and x.** As in section 4, including the primary-star RV convention.
 - **Cuts unchanged.**
@@ -199,15 +201,18 @@ with diag(σ_j²). A_M is the GLS fit of A·b(x_j) with the same covariance (`wb
 `A_newton`, `A_mond`). Then Δχ² = χ²_MOND − χ²_Newton and L = exp(Δχ²/2). The Newtonian p-value has
 n_bins − 1 degrees of freedom.
 
-*Power, pre-computed on simulated data (fixed here).* The procedure is implemented in
-`explore/t034_power_mock.py`.
+*Power, pre-computed on simulated data (fixed here).* Every number in this subsection is regenerated
+by `python -m astrolab explore 004 --tag t034-power --script explore/t034_power_mock.py` with its
+default settings (about 1 h). f_cal is fixed at 1.227 throughout, and each computation uses a fresh
+generator with a fixed seed.
 
 **Mock population.**
 - Keplerian orbits with GM = a = 1, f(e) = 2e, uniform mean anomaly and isotropic orientation.
 - ṽ = |v_sky + noise| · √r_sky, with Gaussian noise of 0.03 per sky component.
 - A pool of 2 × 10⁶ pairs from `default_rng(20261117)`.
-- The scatter about the pool median is multiplied by f_cal = 1.227. This is the geometric-mean ratio
-  of the 2026-11-16 bootstrap errors to the mock's errors at the same counts. With it, the old design
+- The scatter about the pool median is multiplied by the fixed f_cal = 1.227. It was derived once as
+  the geometric-mean ratio of the 2026-11-16 bootstrap errors to the mock's errors at the same
+  counts; the script recomputes this only as a check. With it, the old design
   gives L = 5.0, against the referee's 6.2.
 - The mock assumes that the ṽ distribution at 130–250 pc has the same shape and relative width as at
   130 pc. Larger σ(ṽ) and more contamination at larger distance would widen it and lower the power.
@@ -231,11 +236,11 @@ n_bins − 1 degrees of freedom.
 
 | Quantity (R5 design, calibrated mock) | Value |
 |---|---|
-| Noise-free L, Newtonian truth: L_N* | **4.6 × 10³** |
-| Noise-free L, MOND truth: L_M* | **7.0 × 10⁻⁴** |
-| The same with every count reduced by 25% (margin check) | 549; 4.5 × 10⁻³ |
-| Monte Carlo, Newtonian truth: median L; P(L ≥ 100); P(L ≥ 10); P(L ≤ 1/10); P(L ≤ 1/100) | 3.3 × 10³; 79.6%; 91.2%; 0.7%; 0.0% |
-| Monte Carlo, MOND truth: median L; P(L ≤ 1/100); P(L ≤ 1/10); P(L ≥ 10); P(L ≥ 100) | 7 × 10⁻⁴; 72.6%; 89.9%; 0.4%; 0.2% |
+| Noise-free L, Newtonian truth: L_N* | **4.7 × 10³** |
+| Noise-free L, MOND truth: L_M* | **7.2 × 10⁻⁴** |
+| The same with every count reduced by 25% (margin check) | 568; 4.4 × 10⁻³ |
+| Monte Carlo, Newtonian truth: median L; P(L ≥ 100); P(L ≥ 10); P(L ≤ 1/10); P(L ≤ 1/100) | 4.9 × 10³; 80.4%; 92.7%; 0.7%; 0.3% |
+| Monte Carlo, MOND truth: median L; P(L ≤ 1/100); P(L ≤ 1/10); P(L ≥ 10); P(L ≥ 100) | 6 × 10⁻⁴; 75.3%; 89.0%; 0.5%; 0.0% |
 | G2 (symmetric rule below) and verdict, Newtonian truth: P(G2 passes); P(G2 passes and L ≥ 100); P(G2 passes and L ≤ 1/100) | 99.4%; 80.8%; 0.1% |
 | The same, MOND truth: P(G2 passes); P(G2 passes and L ≤ 1/100); P(G2 passes and L ≥ 100) | 99.4%; 73.7%; 0.1% |
 | The same with every count reduced by 25%, Newtonian truth; MOND truth | 84.4%, 58.1%, 0.3%; 84.4%, 53.0%, 0.1% |
@@ -250,14 +255,14 @@ transfer factors. Calibrated noise-free L (Newton, MOND) of the counted designs:
 | Design | L (Newton, MOND) |
 |---|---|
 | 130 pc, relaxed | 13, 0.11 |
-| 150 pc, relaxed | 19, 0.084 |
-| 200 pc, relaxed | 402, 0.0060; fails at −25% (94, 0.021) |
+| 150 pc, relaxed | 20, 0.080 |
+| 200 pc, relaxed | 417, 0.0059; fails at −25% (94, 0.021) |
 | 250 pc, relaxed | passes, including at −25% |
 
-C25 degrouping at 150 pc (365, 0.0068) changes C26's rule and also fails at −25%.
+C25 degrouping at 150 pc (374, 0.0066) changes C26's rule and also fails at −25%.
 
 *Decision rule (labels fixed here).*
-- **G1 (design, fixed now): passes.** L_N* = 4.6 × 10³ ≥ 100 and L_M* = 7.0 × 10⁻⁴ ≤ 1/100. It also
+- **G1 (design, fixed now): passes.** L_N* = 4.7 × 10³ ≥ 100 and L_M* = 7.2 × 10⁻⁴ ≤ 1/100. It also
   passes with counts reduced by 25%.
 - **G1b (velocity-free go/no-go; always applied before the velocity query N4).**
   1. Apply these cuts, in order, to the N1–N3 rows:
@@ -284,12 +289,18 @@ C25 degrouping at 150 pc (365, 0.0068) changes C26's rule and also fails at −2
   5. G1b passes if L_N* ≥ 100 and L_M* ≤ 1/100, with no margin.
   6. If G1b fails, N4 is not fetched, and R5 is reported as "R5: not run (insufficient predicted
      power)", with the counts.
+  7. Step 1 is implemented in `run.py` in stage 2 exactly as written. Steps 2–5 are
+     `g1b_pipeline()` in `explore/t034_power_mock.py`, which takes the x values of the pairs that
+     survive step 1 and calls `g1b_counts()` and `g1b()`. run.py calls these same functions.
 - **G2 (data-conditional, after the run; symmetric).**
   - Let r_j = σ_j/m_j be the relative errors of the data.
   - Newtonian truth: medians A_N, errors A_N·r_j.
   - MOND truth: medians A_M·b(x_j), errors A_M·b(x_j)·r_j.
   - Fit each with `wb.compare_models` to get L_N^data and L_M^data.
   - G2 passes if L_N^data ≥ 100 and L_M^data ≤ 1/100.
+- **Unblinded rule.** If N4 is fetched before section 2.1 is merged to main (section 3), R5 is
+  permanently unblinded. Every R5 label is then prefixed "R5 (unblinded, descriptive):", and no
+  confirmatory verdict is given, even after the merge.
 - **R5 verdict.** A value equal to a threshold takes the outer label.
 
 | Condition | Label |
@@ -441,7 +452,8 @@ asin(sin θ / cos δ). Every region is counted first and split if it reaches 50,
 3. Apply G1b. It is always applied before N4.
 4. Fetch N4.
 
-If N4 is fetched before that merge, R5 is labelled "unblinded". Everything must be fetched by
+If N4 is fetched before that merge, R5 is permanently unblinded (section 2.1): every label is prefixed
+"R5 (unblinded, descriptive):", and no confirmatory verdict is given. Everything must be fetched by
 2026-11-24. If N4 cannot be completed, R5 is reported as "R5: not run (data not obtained)".
 
 ## 4. Method
