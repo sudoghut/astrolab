@@ -12,16 +12,25 @@ R2  13 Gyr mean of Extended Data Fig. 1 (verdict) and sensitivities.
 R3  5-6 Gyr span of the old-disc sequence (verdict); R4 its scatter (verdict); intrinsic scatter
     with a background component (verdict).
 R7  total age spread of the high-alpha disc (descriptive); R5, R6 plots and percentiles.
+R-SEL  re-test of R1, R3/R4 and the intrinsic scatter with the empirical selection term E and
+    term N (README 2.5, T-031; PARAMS["parts"] = ["sel"], results r1_sel.json, r34_sel.json, sel.json;
+    the original pipeline above is parts = ["orig"] and writes r1/r2/r34/r56/r7/summary.json).
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import time
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 import m0
 import mocks
+import selaux
+
+HERE = Path(__file__).parent
 
 # Tunable knobs (AGENTS.md section 2). Read inside main() and passed on as arguments.
 PARAMS = {
@@ -57,6 +66,14 @@ PARAMS = {
     "hist_age": [0.0, 20.0, 0.25], "hist_feh": [-2.5, 0.6, 0.1],
     # age-scale envelope (literature magnitudes, not recomputed)
     "env_mist": 0.5, "env_alpha": [0.5, 1.0], "env_chen_frac": -0.129,
+    # which pipeline runs: "orig" (README 2.0-2.4; r1/r2/r34/r56/r7/summary.json) and/or "sel"
+    # (README 2.5 R-SEL re-test, T-031; r1_sel/r34_sel/sel.json, never overwrites the original files)
+    "parts": ["sel"],
+    # R-SEL (README 2.5): pass tables (SEL-0), power floor and edge loop (SEL-3), mocks and stop (SEL-8)
+    "sel_slices": [[-1.2, -0.6], [-0.6, 0.0], [0.0, 0.5]], "sel_pass_width": 1.0,
+    "sel_pass_width_alt": 0.5, "sel_n_min": 200,
+    "sel_power_floor": 0.12, "sel_power_floor_sens": 0.20, "sel_floor_sens_bins": [2, 3, 4],
+    "sel_edge_min": 2.0, "sel_n_mock": 50, "sel_q_rank": 3, "sel_seed_tag": 31, "sel_stop_h": 16.0,
 }
 
 
@@ -108,10 +125,11 @@ class Ctx:
         self.rng = np.random.default_rng(P["seed"])
 
 
-def onedim(C, age, eage, s15, *, f=1.0, nclass=None, none=False, truncate=True, grid=None):
+def onedim(C, age, eage, s15, *, f=1.0, nclass=None, none=False, truncate=True, grid=None, sel="cut",
+           ptab=None):
     cells = m0.compress(age, eage, s15=s15, step_a=C.P["grid_step"], nclass=nclass or C.P["nclass"],
                         cut=C.P["cut"], none=none)
-    return m0.OneD(grid or C.grid, cells, f=f, truncate=truncate)
+    return m0.OneD(grid or C.grid, cells, f=f, truncate=truncate, sel=sel, ptab=ptab)
 
 
 def fit_mixtures(C, model, ages, weights, kmax, starts_from=None, nstart=None, rng=None):
@@ -266,9 +284,11 @@ def r1_mock(C, D, kind, mech, rng):
     return {"d": v["d"], "valley": v["valley"], "k": v["k"]}
 
 
-def r1_decide(P, D, res, nmock):
-    """Threshold d* and per-bin result from the mock sets of one bin/sample."""
-    qrank = 3 if nmock >= 50 else 2
+def r1_decide(P, D, res, nmock, qrank=None):
+    """Threshold d* and per-bin result from the mock sets of one bin/sample. qrank: rank of q_s
+    (default: the 2.1 rule, 3rd smallest of 50 or 2nd smallest of the reduced 30)."""
+    if qrank is None:
+        qrank = 3 if nmock >= 50 else 2
     q = {}
     fpr = {}
     for kind in ("null_sn", "null_sp"):
@@ -306,13 +326,27 @@ def r1_verdict(P, bins):
 # =============================================================================================
 # R3/R4 models
 # =============================================================================================
-def grouped(C, sub, s15, *, f=1.0, feh_err=False, nclass=None, none=False, truncate=True, grid=None):
+def grouped(C, sub, s15, *, f=1.0, feh_err=False, nclass=None, none=False, truncate=True, grid=None,
+            sel="cut", ptab=None, slices=None):
+    """slices (term E only): [Fe/H] slice bounds; the slice index becomes a cell key (m0.compress)."""
     P = C.P
+    sl = None if slices is None else slice_index(sub["feh"].to_numpy(), slices)
     cells = m0.compress(sub["age"].to_numpy(), sub["eage"].to_numpy(), s15=s15, step_a=P["grid_step"],
                         nclass=nclass or P["nclass"], feh=sub["feh"].to_numpy(),
                         efeh=sub["efeh"].to_numpy() if feh_err else None, feh_step=P["feh_step"],
-                        nefe=P["nefe"], cut=P["cut"], none=none)
-    return m0.Grouped(grid or C.grid, cells, f=f, truncate=truncate, feh_err=feh_err)
+                        nefe=P["nefe"], cut=P["cut"], none=none, sl=sl)
+    return m0.Grouped(grid or C.grid, cells, f=f, truncate=truncate, feh_err=feh_err, sel=sel, ptab=ptab)
+
+
+def slice_index(feh, slices):
+    """[Fe/H] slice of each star (lo <= [Fe/H] < hi); a star outside every slice is an error."""
+    feh = np.asarray(feh, float)
+    out = np.full(len(feh), -1, np.int64)
+    for s, (lo, hi) in enumerate(slices):
+        out[(feh >= lo) & (feh < hi)] = s
+    if (out < 0).any():
+        raise ValueError(f"{int((out < 0).sum())} stars outside the [Fe/H] slices")
+    return out
 
 
 def seq_starts(C, th=None, rng=None):
@@ -372,6 +406,20 @@ def fit_mixB(C, model, seq=None, th=None, rng=None):
 # =============================================================================================
 def main(ctx):
     P = dict(PARAMS)
+    parts = list(P["parts"])
+    if not parts or any(x not in ("orig", "sel") for x in parts):
+        raise ValueError(f"PARAMS['parts'] must be a non-empty subset of ['orig', 'sel'], got {parts}")
+    out = {}
+    if "orig" in parts:
+        out = main_orig(ctx, P)
+    if "sel" in parts:
+        sel = main_sel(ctx, P)
+        out = sel if not out else {"orig": out, "sel": sel}
+    return out
+
+
+def main_orig(ctx, P):
+    """The pre-registered pipeline of README 2.0-2.4 (unchanged)."""
     t_start = time.time()
     C = Ctx(P)
     df = load(ctx, P)
@@ -772,3 +820,623 @@ def _seq_latent(fe, t0, a, s, rng, tmax):
     mu = t0 + a * np.asarray(fe, float)
     lo, hi = (0.0 - mu) / s, (tmax - mu) / s
     return truncnorm.rvs(lo, hi, loc=mu, scale=s, size=len(mu), random_state=rng)
+
+
+# =============================================================================================
+# R-SEL re-test (README 2.5, T-031)
+# =============================================================================================
+TERM_MODE = {"E": "emp", "N": "none"}
+R1_SEL_MODE = {"S15E": "emp", "S15N": "none", "Full": "none"}
+
+
+def r1_power_model_sel(C, fc, raw, floor):
+    """SEL-3 power model: old weight max(raw, floor); young edge from the edge loop."""
+    P = C.P
+    t0, a, so = P["power_old"]
+    wold = max(float(raw), float(floor))
+    q, _, _ = m0.tn_cells(C.grid, t0 + a * fc, so)
+
+    def gen(edge):
+        young = ((C.grid.mid >= P["power_young"][0]) & (C.grid.mid < edge)).astype(float)
+        return wold * q[0] + (1 - wold) * young / young.sum()
+
+    def evaluate(edge):
+        v = m0.valley(C.grid, gen(edge), lo=P["valley_lo"], hi=P["valley_hi"], side_mass=P["side_mass"],
+                      prom=P["prom"])
+        return v["valley"], v["d"]
+    loop = selaux.edge_loop(evaluate, start=P["power_young"][1], step=P["power_edge_step"],
+                            stop=P["sel_edge_min"], dmax=P["power_true_d_max"])
+    return {"mu_old": t0 + a * fc, "s_old": so, "w_old": wold, "w_old_raw": float(raw), "floor": float(floor),
+            "young": [P["power_young"][0], loop["edge"]], "true_d": loop["true_d"], "valid": loop["valid"],
+            "invalid_reason": loop["reason"], "edge_trace": loop["trace"]}
+
+
+def r1_data_sel(C, df, F, b, variant, coef):
+    """R1-SEL data fit of one bin and variant (S15E, S15N, Full): the 2.1 fits (40 starts, K = 5
+    rule, the two null families) with the variant's denominator, and the power models at the
+    primary and the sensitivity floor (SEL-3). Random stream as 2.0 with sample codes
+    0 = S15 term E, 1 = Full, 2 = S15 term N."""
+    P = C.P
+    lo, hi = P["r1_bins"][b]
+    feh = df["feh"].to_numpy()
+    s15 = variant != "Full"
+    base = F["s15"] if s15 else F["valid"]
+    m = base & (feh >= lo) & (feh < hi)
+    age, eage = df["age"].to_numpy()[m], df["eage"].to_numpy()[m]
+    model = onedim(C, age, eage, s15, sel=R1_SEL_MODE[variant], ptab=coef if variant == "S15E" else None)
+    w = model.cells.w
+    rng = np.random.default_rng([P["seed"], 1000 + b, selaux.R1_CODES[variant], int(round(C.grid.step * 1000))])
+    fits = fit_mixtures(C, model, model.cells.A, w, P["kmax"], nstart=P["nstart_r1_data"], rng=rng)
+    kbest, bics = choose_k(fits, model.cells.nstar)
+    v, p, k5 = shape_from_fits(C, model, fits, kbest, model.cells.A, w, rng=rng, nstart=P["nstart_r1_data"])
+    starts = {K: th for K, (th, _) in fits.items()}
+    if k5 is not None:
+        starts[P["kmax"] + 1] = k5
+    a0 = model.cells.A
+    mu0 = float(np.average(a0, weights=w))
+    sd0 = float(np.sqrt(np.average((a0 - mu0) ** 2, weights=w)))
+
+    def null_starts(det):
+        extra = m0.perturb(det[0], P["nstart"] - len(det), rng, 0.3)[1:]
+        return det + extra
+    sn = model.fit_param(m0.skewnorm_cells, null_starts([np.array([mu0, np.log(sd0), 0.0]), np.array([mu0 + sd0, np.log(sd0 * 1.3), -3.0]),
+                                                         np.array([mu0 - sd0, np.log(sd0 * 1.3), 3.0])]),
+                         [(-5, 25), (np.log(0.1), np.log(20)), (-30, 30)])
+    sp = model.fit_param(m0.splitnorm_cells, null_starts([np.array([mu0, np.log(sd0), np.log(sd0)]),
+                                                          np.array([mu0 + sd0, np.log(sd0 * 1.5), np.log(sd0 * 0.5)]),
+                                                          np.array([mu0 - sd0, np.log(sd0 * 0.5), np.log(sd0 * 1.5)])]),
+                         [(-5, 25), (np.log(0.05), np.log(20)), (np.log(0.05), np.log(20))])
+    conv = {str(k): v_ for k, v_ in model.converged.items()}
+    del model
+    fc = 0.5 * (lo + hi)
+    raw = float((F["early"] & (df["jphi"].to_numpy() > 500) & F["above"])[m].mean())
+    pms = {"primary": r1_power_model_sel(C, fc, raw, P["sel_power_floor"]),
+           "sens": r1_power_model_sel(C, fc, raw, P["sel_power_floor_sens"])}
+    return {
+        "variant": variant, "bin": [lo, hi], "n": int(m.sum()), "ncells": int(len(w)),
+        "bic": {str(k): float(v_) for k, v_ in bics.items()}, "shape": v,
+        "fits": {str(K): [float(x) for x in th] for K, (th, _) in fits.items()},
+        "skewnorm": [float(x) for x in sn.x], "splitnorm": [float(x) for x in sp.x],
+        "null_converged": {"skewnorm": bool(sn.success), "splitnorm": bool(sp.success)},
+        "mix_converged": conv, "power_models": pms,
+        "_starts": starts, "_n": int(m.sum()), "_p": p,
+    }
+
+
+def r1_mock_sel(C, D, kind, mech, floor, rng, pools):
+    """One R1-SEL mock (SEL-2 generator; the S15 term-E mock builds its term E from its parent)."""
+    P = C.P
+    variant = D["variant"]
+    s15 = variant != "Full"
+    if kind == "null_sn":
+        loc, lsc, al = D["skewnorm"]
+        lat = lambda k: mocks.latent_skewnorm(loc, np.exp(lsc), al, k, rng, P["tmax"])
+    elif kind == "null_sp":
+        mm, l1, l2 = D["splitnorm"]
+        lat = lambda k: mocks.latent_split(mm, np.exp(l1), np.exp(l2), k, rng, P["tmax"])
+    else:
+        pm = D["power_models"][floor]
+        lat = lambda k: mocks.latent_power(pm["mu_old"], pm["s_old"], pm["w_old"], pm["young"][1], k, rng,
+                                           lo=pm["young"][0], tmax=P["tmax"])
+    edges, rpools = pools
+
+    def draw(k):
+        tau = lat(k)
+        sl = np.zeros(k, np.int64)
+        return {"tau": tau, "r": mocks.draw_r_keyed(tau, sl, edges, rpools, rng), "sl": sl}
+    cat, par = mocks.catalogue_sel(draw, D["_n"], mech, rng, s15=s15, cut=P["cut"], tmax=P["tmax"])
+    coef = None
+    if variant == "S15E":
+        coef = m0.pass_coefs(_pass_table(P, par["A"], par["e"] / par["A"], None, 1))
+    model = onedim(C, cat["A"], cat["e"], s15, sel=R1_SEL_MODE[variant], ptab=coef)
+    fits = fit_mixtures(C, model, model.cells.A, model.cells.w, P["kmax"], starts_from=D["_starts"], rng=rng)
+    kbest, _ = choose_k(fits, model.cells.nstar)
+    v, _, _ = shape_from_fits(C, model, fits, kbest, model.cells.A, model.cells.w, starts_from=D["_starts"], rng=rng)
+    return {"d": float(v["d"]), "valley": bool(v["valley"]), "k": int(v["k"]),
+            "pass_rate": (D["_n"] / len(par["A"])) if par is not None else None}
+
+
+def _pass_table(P, age, rel, sl, nslice, width=None):
+    return m0.pass_table(age, rel, sl, nslice=nslice, width=width or P["sel_pass_width"], tmax=P["tmax"],
+                         n_min=P["sel_n_min"], cut=P["cut"])
+
+
+def _pools(tab, rel):
+    """(edges per slice, r pools per slice and pass bin) of a data pass table."""
+    return [t["edges"] for t in tab], [[rel[ix] for ix in t["pools"]] for t in tab]
+
+
+def _frac(tab):
+    n = sum(sum(t["n"]) for t in tab)
+    return sum(sum(t["n_pass"]) for t in tab) / n if n else None
+
+
+def _clean(d):
+    return {k: v for k, v in d.items() if not k.startswith("_")}
+
+
+def _sel_key(P, df):
+    """Checkpoint key: PARAMS (without 'parts' and the stop limit, which do not change any mock), the
+    code of this study and the catalogue."""
+    h = hashlib.sha256()
+    h.update(json.dumps({k: v for k, v in P.items() if k not in ("parts", "sel_stop_h")}, sort_keys=True,
+                        default=str).encode())
+    for name in ("run.py", "m0.py", "mocks.py", "selaux.py"):
+        h.update((HERE / name).read_bytes())
+    h.update(np.ascontiguousarray(pd.util.hash_pandas_object(df, index=True).to_numpy()).tobytes())
+    return h.hexdigest()[:24]
+
+
+def main_sel(ctx, P, store_root=None):
+    """The R-SEL re-test (README 2.5). Writes r1_sel.json, r34_sel.json and sel.json."""
+    from astrolab import config
+
+    t_start = time.time()
+    C = Ctx(P)
+    df = load(ctx, P)
+    F = flags(df, P)
+    A_all, E_all = df["age"].to_numpy(), df["eage"].to_numpy()
+    feh, jphi = df["feh"].to_numpy(), df["jphi"].to_numpy()
+    assert len(df) == P["n_rows"], f"row count {len(df)} != {P['n_rows']}"
+    assert df["id"].is_unique, "Id not unique"
+    jmed = float(np.nanmedian(jphi))
+    assert P["jphi_median_range"][0] <= jmed <= P["jphi_median_range"][1], f"median JPHI {jmed}"
+    with np.errstate(divide="ignore", invalid="ignore"):
+        rel_all = E_all / A_all
+    s15 = F["s15"]
+    nbins = len(P["r1_bins"])
+    mechs = P["mechs"]
+    sens_bins = list(P["sel_floor_sens_bins"])
+    nmock = int(P["sel_n_mock"])
+    slices = P["sel_slices"]
+    sets = selaux.sel_sets(nbins, mechs, sens_bins)
+    root = Path(store_root) if store_root else config.cache_dir() / "s010_sel_mocks"
+    store = selaux.MockStore(root, _sel_key(P, df))   # refuses a stopped run without consent
+    ctx.log(f"R-SEL checkpoints: {store.dir} ({'resumed with consent' if store.resumed else 'new or continued'})")
+    memory = {}
+
+    def mark(stage):
+        memory[stage] = selaux.peak_memory_mb()
+        ctx.log(f"R-SEL stage '{stage}' done; peak memory {memory[stage]} MB; elapsed {(time.time() - t_start) / 3600:.2f} h")
+
+    try:
+        out = _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, mechs, sens_bins,
+                        nmock, slices, sets, store, mark, t_start)
+    except selaux.StopRun:
+        raise
+    except BaseException:
+        store.release()                    # checkpoints are kept for a rerun
+        raise
+    out["sel"]["memory_peak_mb"] = memory
+    ctx.save("r1_sel", out["r1"])
+    ctx.save("r34_sel", out["r34"])
+    ctx.save("sel", out["sel"])
+    store.finish()
+    return out["summary"]
+
+
+def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, mechs, sens_bins, nmock,
+              slices, sets, store, mark, t_start):
+    cut, tmax = P["cut"], P["tmax"]
+
+    # ---------------- parents and pass tables (SEL-0)
+    win = (feh > P["seq_feh"][0]) & (feh < P["seq_feh"][1])
+    selA_full = F["valid"] & F["above"] & (jphi > P["seq_jphi"]) & win
+    selA = selA_full & s15
+    selB_full = F["valid"] & F["early"] & (jphi > P["seq_jphi"]) & win
+    selB = selB_full & s15
+    sel2e_full = F["valid"] & F["early"] & win
+    sel2e = sel2e_full & s15
+
+    def r2_sel(base):
+        return base & (jphi > P["r2_jphi"]) & (feh > P["r2_feh"][0]) & (feh < P["r2_feh"][1]) & F["early"]
+
+    def table(mask, sliced, width=None):
+        sl = slice_index(feh[mask], slices) if sliced else None
+        return _pass_table(P, A_all[mask], rel_all[mask], sl, len(slices) if sliced else 1, width)
+
+    tabs = {"sampleA": (selA_full, True), "sampleB": (selB_full, True), "fig2e": (sel2e_full, True),
+            "R2": (r2_sel(F["valid"]), False)}
+    for b, (lo, hi) in enumerate(P["r1_bins"]):
+        tabs[f"R1_{b}"] = (F["valid"] & (feh >= lo) & (feh < hi), False)
+    T = {name: table(mask, sliced) for name, (mask, sliced) in tabs.items()}
+    T_alt = {"sampleA_w0p5": table(selA_full, True, P["sel_pass_width_alt"]),
+             "sampleB_w0p5": table(selB_full, True, P["sel_pass_width_alt"]),
+             "sampleA_1slice": table(selA_full, False), "sampleB_1slice": table(selB_full, False)}
+    coefs = {k: m0.pass_coefs(v) for k, v in {**T, **T_alt}.items()}
+    pools = {name: _pools(T[name], rel_all[mask]) for name, (mask, _) in tabs.items()}
+    data_frac = {name: _frac(T[name]) for name in T}
+    pass_tables = {k: m0.table_json(v) for k, v in {**T, **T_alt}.items()}
+    mark("pass tables")
+
+    # ---------------- R2 deconvolved latent Gaussian, terms E and N (SEL-6)
+    r2s = {}
+    m2 = r2_sel(s15)
+    for term in ("E", "N"):
+        mod = onedim(C, A_all[m2], E_all[m2], True, sel=TERM_MODE[term], ptab=coefs["R2"] if term == "E" else None)
+        th = fit_mixtures(C, mod, mod.cells.A, mod.cells.w, 1)[1][0]
+        r2s[term] = {"mu": float(th[0]), "sigma": float(np.exp(th[1])), "n": int(m2.sum())}
+        del mod
+    mark("R2 deconvolved")
+
+    # ---------------- sample A (SEL-4)
+    subA, subAf, subB, sub2e = (df[m] for m in (selA, selA_full, selB, sel2e))
+
+    def gsel(sub, term, coef, **kw):
+        if term == "E":
+            return grouped(C, sub, True, sel="emp", ptab=coef,
+                           slices=slices if coef["c"].shape[0] > 1 else None, **kw)
+        return grouped(C, sub, True, sel="none", **kw)
+
+    seq = {t: fit_seq(C, gsel(subA, t, coefs["sampleA"])) for t in ("E", "N")}
+    lb = P["late_bins"]
+    ratios = []
+    for lo in np.arange(lb[0], lb[1] - 1e-9, lb[2]):
+        mm = F["valid"] & F["late"] & (feh >= lo) & (feh < lo + lb[2]) & (A_all - 2 * E_all > 0) & (A_all + 2 * E_all < tmax)
+        if mm.sum() > 50:
+            ratios.append({"bin": [float(lo), float(lo + lb[2])], "ratio": float(A_all[mm].std() / np.sqrt(np.mean(E_all[mm] ** 2))), "n": int(mm.sum())})
+    f_i = min(r["ratio"] for r in ratios)
+    e2A = float(np.mean(subA["eage"].to_numpy() ** 2))
+    fscale = {}
+    for t in ("E", "N"):
+        f_ii = float(np.sqrt(1 + seq[t]["sigma"] ** 2 / e2A))
+        fscale[t] = {"f_i": f_i, "f_ii": f_ii, "f_max": float(min(f_i, f_ii)), "f_min": P["f_min"]}
+    # robustness fits (2.3 / SEL-4); Full fits have denominator 1 and are shared by both terms
+    shared = {"full": fit_seq(C, grouped(C, subAf, False)),
+              "feh_err_full": fit_seq(C, grouped(C, subAf, False, feh_err=True)),
+              "full_f_min": fit_seq(C, grouped(C, subAf, False, f=P["f_min"]))}
+    rob = {}
+    for t in ("E", "N"):
+        fm = fscale[t]["f_max"]
+        rob[t] = {"feh_err": fit_seq(C, gsel(subA, t, coefs["sampleA"], feh_err=True)),
+                  "f_min": fit_seq(C, gsel(subA, t, coefs["sampleA"], f=P["f_min"])),
+                  "f_max": fit_seq(C, gsel(subA, t, coefs["sampleA"], f=fm)),
+                  "full_f_max": fit_seq(C, grouped(C, subAf, False, f=fm))}
+    mark("sample A fits")
+    # term-E extra fits without verdict (SEL-4)
+    extra = {}
+    for tcut in P["span_trunc"]:
+        extra[f"feh_lt_{tcut}"] = fit_seq(C, gsel(subA[subA["feh"] < tcut], "E", coefs["sampleA"]))
+    extra["edge_drop"] = fit_seq(C, gsel(subA[subA["age"] + 2 * subA["eage"] < tmax], "E", coefs["sampleA"]))
+    extra["untruncated"] = fit_seq(C, gsel(subA, "E", coefs["sampleA"], truncate=False))
+    Cg = Ctx(P, P["grid_check_step"])
+    extra["grid_0p02"] = fit_seq(Cg, grouped(Cg, subA, True, grid=Cg.grid, sel="emp", ptab=coefs["sampleA"], slices=slices))
+    extra["nclass_40"] = fit_seq(C, gsel(subA, "E", coefs["sampleA"], nclass=P["nclass_check"]))
+    extra["no_compression"] = fit_seq(C, gsel(subA, "E", coefs["sampleA"], none=True))
+    fig2e = fit_seq(C, gsel(sub2e, "E", coefs["fig2e"]))
+    rngb = np.random.default_rng(P["seed"] + 34)
+    boots = []
+    for _ in range(P["n_boot"]):
+        bs = subA.iloc[rngb.integers(0, len(subA), len(subA))]
+        boots.append(fit_seq(C, gsel(bs, "E", coefs["sampleA"]), th=seq["E"]["_x"])["sigma"])
+    mark("sample A extra fits")
+
+    # ---------------- sample B (SEL-5)
+    mixB, mixB_f = {}, {}
+    for t in ("E", "N"):
+        mixB[t] = fit_mixB(C, gsel(subB, t, coefs["sampleB"]), seq=seq[t])
+        mixB_f[t] = {"f_min": fit_mixB(C, gsel(subB, t, coefs["sampleB"], f=P["f_min"]), seq=seq[t], th=mixB[t]["_x"]),
+                     "f_max": fit_mixB(C, gsel(subB, t, coefs["sampleB"], f=fscale[t]["f_max"]), seq=seq[t], th=mixB[t]["_x"])}
+    mark("sample B fits")
+    # SEL-7: term E with 0.5 Gyr pass bins and with one slice (data fits only)
+    sel7 = {}
+    for name, ca, cb in (("pass_bins_0p5", "sampleA_w0p5", "sampleB_w0p5"), ("one_slice", "sampleA_1slice", "sampleB_1slice")):
+        fa = fit_seq(C, gsel(subA, "E", coefs[ca]))
+        fb = fit_mixB(C, gsel(subB, "E", coefs[cb]), seq=fa, th=mixB["E"]["_x"])
+        sel7[name] = {"sampleA": {"sigma_sel": fa["sigma"], "span": fa["span"], "tau0": fa["tau0"], "a": fa["a"]},
+                      "sampleB": {"sigma_int": fb["sigma"], "sigma_err": fb["sigma_err"], "f_bg": fb["f_bg"]}}
+    mark("SEL-7 fits")
+
+    # ---------------- R1 data fits (SEL-3)
+    r1d = {}
+    for v in selaux.R1_VARIANTS:
+        for b in range(nbins):
+            D = r1_data_sel(C, df, F, b, v, coefs[f"R1_{b}"])
+            r1d[(v, b)] = D
+            pm, ps = D["power_models"]["primary"], D["power_models"]["sens"]
+            ctx.log(f"R1-SEL data {v} bin {b}: K={D['shape']['k']} d={D['shape']['d']:.3f}; power model "
+                    f"w_old={pm['w_old']:.3f} edge={pm['young'][1]} true d={pm['true_d']:.3f} valid={pm['valid']}; "
+                    f"floor {P['sel_power_floor_sens']}: edge={ps['young'][1]} true d={ps['true_d']:.3f} valid={ps['valid']}")
+    Cc = Ctx(P, P["grid_check_step"])
+    r1_check = r1_data_sel(Cc, df, F, P["r1_check_bin"], "S15E", coefs[f"R1_{P['r1_check_bin']}"])["shape"]
+    mark("R1 data fits")
+
+    # ---------------- background fits for the misspecification mocks (2.3, 40 starts)
+    bgsel = F["valid"] & F["early"] & (jphi > P["seq_jphi"]) & ~F["above"] & F["has_a"]
+    bgfits = []
+    for lo, hi in P["bg_slices"]:
+        mm = bgsel & (feh >= lo) & (feh < hi)
+        mod = onedim(C, A_all[mm], E_all[mm], False)
+        fits = fit_mixtures(C, mod, mod.cells.A, mod.cells.w, P["kmax"], nstart=P["nstart_r1_data"])
+        kb, _ = choose_k(fits, mod.cells.nstar)
+        mu_, s_, w_ = m0.mix_unpack(fits[kb][0], kb)
+        bgfits.append({"slice": [lo, hi], "mu": mu_, "s": s_, "w": w_, "feh": feh[mm], "k": int(kb)})
+        del mod
+    mark("background fits")
+
+    # ---------------- mocks (SEL-2, SEL-8)
+    nA, nB = len(subA), len(subB)
+    parA_feh = feh[selA_full & (A_all > 0)]
+    parB_feh = feh[selB_full & (A_all > 0)]
+    parA_rows = subAf[["feh"]].assign(r=subAf["eage"] / subAf["age"]).to_numpy()   # SEL-2 diagnostic only
+    allf_bg = np.concatenate([g["feh"] for g in bgfits])
+
+    def seq_cat(term, mech, fe_draw, rng, keyed=True):
+        t0, a, ls = seq[term]["_x"]
+
+        def draw(k):
+            if keyed:
+                fe = fe_draw(k)
+                tau = _seq_latent(fe, t0, a, np.exp(ls), rng, tmax)
+                sl = slice_index(fe, slices)
+                return {"tau": tau, "r": mocks.draw_r_keyed(tau, sl, *pools["sampleA"], rng), "feh": fe, "sl": sl}
+            rows = parA_rows[rng.integers(0, len(parA_rows), k)]
+            tau = _seq_latent(rows[:, 0], t0, a, np.exp(ls), rng, tmax)
+            return {"tau": tau, "r": rows[:, 1], "feh": rows[:, 0], "sl": slice_index(rows[:, 0], slices)}
+        return mocks.catalogue_sel(draw, nA, mech, rng, s15=True, cut=cut, tmax=tmax)
+
+    def fit_mock_seq(term, cat, par, rng):
+        sub = pd.DataFrame({"age": cat["A"], "eage": cat["e"], "feh": cat["feh"], "efeh": 0.0})
+        coef = None
+        if term == "E":
+            coef = m0.pass_coefs(_pass_table(P, par["A"], par["e"] / par["A"], par["sl"], len(slices)))
+        return fit_seq(C, gsel(sub, term, coef), th=seq[term]["_x"], rng=rng)
+
+    def run_one(s, rng):
+        if s["tag"] == "R1":
+            D = r1d[(s["variant"], s["bin"])]
+            return r1_mock_sel(C, D, s["kind"], s["mech"], s["floor"], rng, pools[f"R1_{s['bin']}"])
+        if s["tag"] in ("A_rec", "diag"):
+            keyed = s["tag"] == "A_rec"
+            cat, par = seq_cat(s["term"], s["mech"], lambda k: parA_feh[rng.integers(0, len(parA_feh), k)], rng, keyed)
+            fit = fit_mock_seq(s["term"], cat, par, rng)
+            return {"sigma": fit["sigma"], "a": fit["a"], "tau0": fit["tau0"], "pass_rate": nA / len(par["A"])}
+        # sample B: identifiability (id) and misspecification (mis) mocks
+        term = s["term"]
+        t0, a, ls, b0, b1, lsb, eta = mixB[term]["_x"]
+        fb = 1 / (1 + np.exp(-eta))
+
+        def draw(k):
+            bg = rng.random(k) < fb
+            fe = parB_feh[rng.integers(0, len(parB_feh), k)]
+            tau = np.empty(k)
+            ko = ~bg
+            tau[ko] = _seq_latent(fe[ko], t0, a, np.exp(ls), rng, tmax)
+            nb_ = int(bg.sum())
+            if s["kind"] == "id":
+                tau[bg] = _seq_latent(fe[bg], b0, b1, np.exp(lsb), rng, tmax)
+            else:
+                fsel = rng.choice(allf_bg, nb_)
+                tb = np.empty(nb_)
+                for g in bgfits:
+                    mm = (fsel >= g["slice"][0]) & (fsel < g["slice"][1])
+                    kk = int(mm.sum())
+                    if kk:
+                        tb[mm] = mocks.latent_mixture(g["mu"], g["s"], g["w"], kk, rng, tmax)
+                fe[bg], tau[bg] = fsel, tb
+            sl = slice_index(fe, slices)
+            return {"tau": tau, "r": mocks.draw_r_keyed(tau, sl, *pools["sampleB"], rng), "feh": fe, "sl": sl}
+        cat, par = mocks.catalogue_sel(draw, nB, s["mech"], rng, s15=True, cut=cut, tmax=tmax)
+        sub = pd.DataFrame({"age": cat["A"], "eage": cat["e"], "feh": cat["feh"], "efeh": 0.0})
+        coef = None
+        if term == "E":
+            coef = m0.pass_coefs(_pass_table(P, par["A"], par["e"] / par["A"], par["sl"], len(slices)))
+        fit = fit_mixB(C, gsel(sub, term, coef), th=mixB[term]["_x"], rng=rng)
+        return {"sigma": fit["sigma"], "pass_rate": nB / len(par["A"])}
+
+    results = {s["k"]: [] for s in sets}
+    state = {s["k"]: {"group": s["group"], "times": []} for s in sets}
+    proj_log = []
+
+    def do(s, j):
+        rec = store.get(s["k"], j)
+        if rec is None:
+            rng = selaux.mock_rng(P["seed"], P["sel_seed_tag"], s["k"], j)
+            t = time.time()
+            res = run_one(s, rng)
+            dt = time.time() - t
+            res = {k: (None if v is None else (bool(v) if isinstance(v, (bool, np.bool_)) else
+                                               int(v) if isinstance(v, (int, np.integer)) else float(v)))
+                   for k, v in res.items()}
+            store.put(s["k"], j, res, dt)
+            rec = {"result": res, "seconds": dt}
+        results[s["k"]].append(rec["result"])
+        state[s["k"]]["times"].append(float(rec["seconds"]))
+
+    def check(where):
+        el = store.elapsed_s()
+        proj = selaux.projection_h(el, state, nmock)
+        done = sum(len(v) for v in results.values())
+        left = len(sets) * nmock - done
+        proj_log.append({"after": where, "elapsed_h": el / 3600, "projection_h": proj, "mocks_done": done,
+                         "mocks_left": left})
+        ctx.log(f"R-SEL projection after {where}: {proj:.2f} h total (elapsed {el / 3600:.2f} h, {done} mocks done)")
+        if left > 0 and proj > P["sel_stop_h"]:
+            info = {"projection_h": proj, "elapsed_h": el / 3600, "mocks_done": done, "after": where,
+                    "stopped_at": time.time()}
+            store.stop(info)
+            raise selaux.StopRun(
+                f"R-SEL runtime projection {proj:.2f} h exceeds {P['sel_stop_h']} h (README 2.5 SEL-8): stopped "
+                f"before the remaining mocks; {done} finished mocks are checkpointed in {store.dir}. Ask the "
+                f"user; mock counts are never reduced. Resuming needs the user's explicit consent, recorded in "
+                f"log.md, then create {store.dir / 'resume_consent.txt'} and rerun.")
+
+    t_m = time.time()
+    for s in sets:                                        # first mock of every set (timing)
+        do(s, 0)
+    check("first mock of every set")
+    for s in sets:
+        for j in range(1, nmock):
+            do(s, j)
+        check(f"set k={s['k']}")
+    mark("mocks")
+    mock_info = {"n_per_set": nmock, "n_sets": len(sets), "n_main_sets": sum(1 for s in sets if s.get("floor") != "sens"),
+                 "elapsed_h_this_session": (time.time() - t_m) / 3600, "elapsed_h_total": store.elapsed_s() / 3600,
+                 "projections": proj_log, "resumed": store.resumed,
+                 "mean_s_per_mock": {g: float(np.mean([t for st in state.values() if st["group"] == g for t in st["times"]]))
+                                     for g in ("R1", "AB", "diag")}}
+    kof = {}
+    for s in sets:
+        kof[(s["tag"], s.get("variant"), s.get("bin"), s.get("term"), s["kind"], s["mech"], s.get("floor"))] = s["k"]
+
+    # ---------------- R1-SEL decisions
+    def r1_bins(v, floor):
+        bins = []
+        for b in range(nbins):
+            D = r1d[(v, b)]
+            res, mk = {}, {}
+            for kind in selaux.R1_KINDS:
+                for mech in mechs:
+                    fl = "sens" if (kind == "power" and floor == "sens" and b in sens_bins) else "primary"
+                    k = kof[("R1", v, b, None, kind, mech, fl)]
+                    res[(kind, mech)] = results[k]
+                    mk[f"{kind}_{mech}"] = {"k": k, "d": [r["d"] for r in results[k]], "valley": [r["valley"] for r in results[k]]}
+            dec = r1_decide(P, D, res, nmock, qrank=P["sel_q_rank"])
+            pm = D["power_models"]["sens" if (floor == "sens" and b in sens_bins) else "primary"]
+            if floor == "sens" and b not in sens_bins:
+                dec["model_changed_without_set"] = bool(D["power_models"]["sens"]["w_old"] != D["power_models"]["primary"]["w_old"]
+                                                        or D["power_models"]["sens"]["young"] != D["power_models"]["primary"]["young"])
+            dec["resolvable_by_power"] = dec["resolvable"]
+            dec["power_model_invalid"] = not pm["valid"]
+            dec["resolvable"] = bool(dec["resolvable"] and pm["valid"])
+            dec.update({"bin": D["bin"], "n": D["n"], "k": D["shape"]["k"], "cap": D["shape"]["cap"],
+                        "valley": D["shape"]["valley"], "peaks": D["shape"]["peaks"], "power_model": pm,
+                        "bic": D["bic"], "mocks": mk,
+                        "pass_rate": {kk: (float(np.mean([r["pass_rate"] for r in res[(kn, me)]]))
+                                           if v != "Full" else None)
+                                      for kn in selaux.R1_KINDS for me in mechs for kk in [f"{kn}_{me}"]},
+                        "data_pass_frac": data_frac[f"R1_{b}"] if v != "Full" else None})
+            bins.append(dec)
+        verdict, med = selaux.r1_verdict(bins, P["min_bins"], P["edge_range"])
+        return {"bins": bins, "verdict": verdict, "median_edge": med}
+
+    r1v = {v: r1_bins(v, "primary") for v in selaux.R1_VARIANTS}
+    r1s = {v: r1_bins(v, "sens") for v in selaux.R1_VARIANTS}
+    for v in r1s.values():                                 # the sensitivity copy: power-related fields only
+        for b in v["bins"]:
+            b["mocks"] = {k: x for k, x in b["mocks"].items() if k.startswith("power")}
+    lab1 = selaux.r1_label(r1v["S15E"]["verdict"], r1v["S15N"]["verdict"], r1v["Full"]["verdict"])
+    lab1s = selaux.r1_label(r1s["S15E"]["verdict"], r1s["S15N"]["verdict"], r1s["Full"]["verdict"])
+    r1_out = {"variants": r1v, "floor_sensitivity": r1s, "label": lab1, "label_floor_sensitivity": lab1s,
+              "floor": P["sel_power_floor"], "floor_sens": P["sel_power_floor_sens"], "q_rank": P["sel_q_rank"],
+              "n_mock": nmock, "check_grid_0p02_bin": r1_check,
+              "data_fits": {f"{v}_{b}": _clean({k: x for k, x in D.items() if k not in ("shape",)}) for (v, b), D in r1d.items()},
+              "latent_density": {f"{v}_{b}": (D["_p"] / C.grid.step).round(5).tolist() for (v, b), D in r1d.items()},
+              "grid_mid": C.grid.mid.round(3).tolist()}
+
+    # ---------------- R3-SEL / R4-SEL decisions
+    def bias(vals, true):
+        v_ = np.asarray(vals, float) - true
+        n_ = len(v_)
+        return {"bias": float(v_.mean()), "mc_err": float(v_.std(ddof=1) / np.sqrt(n_)) if n_ > 1 else None}
+
+    def near(b_, tol):
+        return b_["mc_err"] is not None and abs(abs(b_["bias"]) - tol) <= b_["mc_err"]
+
+    r34t = {}
+    for t in ("E", "N"):
+        rec = {}
+        for mech in mechs:
+            rr = results[kof[("A_rec", None, None, t, "rec", mech, None)]]
+            bs = bias([r["sigma"] for r in rr], seq[t]["sigma"])
+            ba = bias([r["a"] for r in rr], seq[t]["a"])
+            rec[mech] = {"sigma": bs, "a": ba,
+                         "pass": bool(selaux.recovery_pass(bs["bias"], ba["bias"], P["rec_tol_sigma"], P["rec_tol_a"])),
+                         "near_tolerance": bool(near(bs, P["rec_tol_sigma"]) or near(ba, P["rec_tol_a"])),
+                         "sigma_values": [r["sigma"] for r in rr], "a_values": [r["a"] for r in rr],
+                         "pass_rate": float(np.mean([r["pass_rate"] for r in rr]))}
+        prim, flag = selaux.primacy(rec["rA"]["pass"], rec["rtau"]["pass"])
+        pfit = seq[t] if prim == "S15" else shared["full"] if prim == "Full" else None
+        R3, R4 = selaux.r34_bare(pfit, P["span_range"], P["sigma_paper"], P["sigma_tol"])
+        if prim == "S15":
+            r3_set = {"full": shared["full"], "feh_err": rob[t]["feh_err"], "f_min": rob[t]["f_min"], "f_max": rob[t]["f_max"]}
+            r4_set = {"full": shared["full"], "feh_err": rob[t]["feh_err"]}
+        elif prim == "Full":
+            r3_set = {"feh_err_full": shared["feh_err_full"], "full_f_min": shared["full_f_min"], "full_f_max": rob[t]["full_f_max"]}
+            r4_set = {"feh_err_full": shared["feh_err_full"]}
+        else:
+            r3_set, r4_set = {}, {}
+        lo_s, hi_s = P["span_range"]
+        r3_rob = bool(r3_set) and all(lo_s <= x["span"] <= hi_s for x in r3_set.values())
+        r4_rob = bool(r4_set) and all(abs(x["sigma"] - P["sigma_paper"]) <= P["sigma_tol"] for x in r4_set.values())
+        r34t[t] = {"sampleA": _clean(seq[t]), "error_scale": fscale[t], "recovery": rec,
+                   "primary": prim, "flag_rtau_recovery_failed": bool(flag),
+                   "R3": {"bare": R3, "robust": r3_rob, "label": selaux.with_robust(R3, r3_rob), "set": sorted(r3_set)},
+                   "R4": {"bare": R4, "robust": r4_rob, "label": selaux.with_robust(R4, r4_rob), "set": sorted(r4_set)},
+                   "robustness_fits": {**{k: _clean(x) for k, x in rob[t].items()}}}
+    for name in ("R3", "R4"):
+        q = selaux.selterm(r34t["E"][name]["bare"], r34t["N"][name]["bare"])
+        r34t["E"][name]["selection_term"] = q
+        r34t["E"][name]["label_full"] = f"{r34t['E'][name]['label']}; {q}"
+
+    # ---------------- intrinsic-SEL decisions
+    intr = {}
+    for t in ("E", "N"):
+        bsets = {}
+        for kind in selaux.B_KINDS:
+            for mech in mechs:
+                rr = results[kof[("B", None, None, t, kind, mech, None)]]
+                bb = bias([r["sigma"] for r in rr], mixB[t]["sigma"])
+                bb["near_tolerance"] = bool(near(bb, P["rec_tol_sigma"]))
+                bb["sigma_values"] = [r["sigma"] for r in rr]
+                bb["pass_rate"] = float(np.mean([r["pass_rate"] for r in rr]))
+                bsets[f"{kind}_{mech}"] = bb
+        ids = [r["sigma"] for mech in mechs for r in results[kof[("B", None, None, t, "id", mech, None)]]]
+        sd_id = float(np.std(ids, ddof=1)) if len(ids) > 1 else 0.0
+        biases = [b_["bias"] for b_ in bsets.values()]
+
+        def lab(fit):
+            se = max(fit["sigma_err"], sd_id)
+            return selaux.intrinsic_bare(fit["sigma"], se, biases, P["rec_tol_sigma"], P["z_one_sided"], P["sigma_paper"]), se
+        v0, se0 = lab(mixB[t])
+        vf = {k: lab(x)[0] for k, x in mixB_f[t].items()}
+        robust = bool(v0 == vf["f_min"] == vf["f_max"])
+        intr[t] = {"sampleB": _clean(mixB[t]), "sampleB_f": {k: _clean(x) for k, x in mixB_f[t].items()},
+                   "mock_bias": bsets, "sd_id": sd_id, "se_used": se0, "bare": v0, "f_labels": vf, "robust": robust,
+                   "label": f"{v0}, {'robust' if robust else 'not robust'}"}
+    q = selaux.selterm(intr["E"]["bare"], intr["N"]["bare"])
+    intr["E"]["selection_term"] = q
+    intr["E"]["label_full"] = f"{intr['E']['label']}; {q}"
+
+    # ---------------- SEL-2 diagnostic
+    diag = {}
+    for t in ("E", "N"):
+        for mech in mechs:
+            rr = results[kof[("diag", None, None, t, "diag", mech, None)]]
+            diag[f"{t}_{mech}"] = {"sigma": bias([r["sigma"] for r in rr], seq[t]["sigma"]),
+                                   "a": bias([r["a"] for r in rr], seq[t]["a"]),
+                                   "pass_rate": float(np.mean([r["pass_rate"] for r in rr]))}
+
+    # ---------------- per-set pass rates against the data (SEL-6)
+    rates = []
+    for s in sets:
+        pr = [r.get("pass_rate") for r in results[s["k"]]]
+        pr = [x for x in pr if x is not None]
+        if s["tag"] == "R1":
+            df_ = data_frac[f"R1_{s['bin']}"] if s["variant"] != "Full" else None
+        else:
+            df_ = data_frac["sampleA" if s["tag"] in ("A_rec", "diag") else "sampleB"]
+        rates.append({**{k: v for k, v in s.items() if k != "group"},
+                      "mock_pass_rate": float(np.mean(pr)) if pr else None,
+                      "mock_pass_rate_sd": float(np.std(pr)) if len(pr) > 1 else None, "data_pass_frac": df_})
+
+    r34_out = {"terms": r34t, "shared_full_fits": {k: _clean(x) for k, x in shared.items()},
+               "sampleA_extra_E": {k: _clean(x) for k, x in extra.items()},
+               "sampleA_sigma_boot_sd_E": float(np.std(boots)),
+               "fig2e_E": _clean(fig2e), "intrinsic": intr, "n_mock": nmock,
+               "labels": {"R3-SEL": r34t["E"]["R3"]["label_full"], "R4-SEL": r34t["E"]["R4"]["label_full"],
+                          "intrinsic-SEL": intr["E"]["label_full"],
+                          "term_N": {"R3": r34t["N"]["R3"]["label"], "R4": r34t["N"]["R4"]["label"],
+                                     "intrinsic": intr["N"]["label"]}}}
+    sel_out = {"pass_tables": pass_tables, "data_pass_frac": data_frac, "r2_deconvolved": r2s,
+               "sel7": sel7, "diagnostic": diag, "mock_pass_rates": rates, "mocks": mock_info,
+               "sets": [{k: v for k, v in s.items()} for s in sets],
+               "background_fits": [{"slice": g["slice"], "k": g["k"], "mu": g["mu"], "s": g["s"], "w": g["w"],
+                                    "n": int(len(g["feh"]))} for g in bgfits],
+               "labels": {"R1-SEL": lab1["label"], "R1-SEL_floor_0.20": lab1s["label"],
+                          "R3-SEL": r34_out["labels"]["R3-SEL"], "R4-SEL": r34_out["labels"]["R4-SEL"],
+                          "intrinsic-SEL": r34_out["labels"]["intrinsic-SEL"]},
+               "runtime_h": (time.time() - t_start) / 3600, "params": P}
+    summary = {"labels": sel_out["labels"], "mocks": {k: mock_info[k] for k in ("n_per_set", "n_sets", "elapsed_h_total")},
+               "runtime_h": sel_out["runtime_h"]}
+    return {"r1": r1_out, "r34": r34_out, "sel": sel_out, "summary": summary}

@@ -1,6 +1,7 @@
 """Mock catalogues for the R1 calibration and the R3/R4 recovery checks (README 2.1, 2.3).
 
-Deliberately independent of the likelihood code in m0.py: latent ages are drawn by rejection
+Deliberately independent of the likelihood code in m0.py (the R-SEL generator only uses the pass-bin
+edges and pools, README 2.5 SEL-2): latent ages are drawn by rejection
 sampling from the generating distributions, observed ages are drawn star by star, and the S15 cut
 is applied to the drawn catalogue values. Nothing here reads PARAMS.
 """
@@ -109,3 +110,63 @@ def catalogue(draw_rows, n_target, mech, rng, *, s15, cut=0.15, tmax=20.0, batch
     if have < n_target:
         raise RuntimeError(f"catalogue: selection rate too low ({have} of {n_target})")
     return {k: v[:n_target] for k, v in out.items()}
+
+
+# --------------------------------------------------------------------------------------------
+# README 2.5 (R-SEL), SEL-2: r keyed by the latent age; mock parent kept for the mock's term E
+# --------------------------------------------------------------------------------------------
+def draw_r_keyed(tau, sl, edges, pools, rng):
+    """Relative errors drawn uniformly with replacement from the data parent's pass-bin pool (of the
+    star's slice) whose observed-age bin contains the latent age tau. edges[s]: pass-bin edges of
+    slice s; pools[s][b]: array of parent relative errors of slice s in pass bin b."""
+    tau = np.asarray(tau, float)
+    sl = np.asarray(sl, np.int64)
+    r = np.full(len(tau), np.nan)
+    for s in range(len(edges)):
+        ms = np.flatnonzero(sl == s)
+        if not len(ms):
+            continue
+        ed = np.asarray(edges[s], float)
+        b = np.clip(np.searchsorted(ed, tau[ms], side="right") - 1, 0, len(pools[s]) - 1)
+        for bb in np.unique(b):
+            idx = ms[b == bb]
+            pool = np.asarray(pools[s][bb], float)
+            if not len(pool):
+                raise RuntimeError(f"empty r pool (slice {s}, pass bin {bb})")
+            r[idx] = pool[rng.integers(0, len(pool), len(idx))]
+    if np.isnan(r).any():
+        raise RuntimeError("draw_r_keyed: a star has no slice in the pass tables")
+    return r
+
+
+def catalogue_sel(draw_rows, n_target, mech, rng, *, s15, cut=0.15, tmax=20.0, batch=None):
+    """SEL-2 generator. draw_rows(m) returns a dict with 'tau', 'r' and optionally other per-star
+    arrays (e.g. 'feh', 'sl'). Every drawn star whose observed age lies in (0, tmax) is kept in draw
+    order (mocks.observe redraws the deviate until it does). For s15 the mock parent is that
+    sequence up to and including the star that completes n_target stars with e / A < cut; later
+    draws are discarded. Without s15 the first n_target kept stars are the sample (no parent).
+    Returns (sample, parent): dicts of arrays 'A', 'e', 'tau', 'r' and the other keys; parent also
+    has 'pass' (None without s15)."""
+    out = {}
+    have = 0
+    for _ in range(MAX_ROUNDS):
+        if have >= n_target:
+            break
+        m = batch or max(2 * (n_target - have), 1024)
+        rows = draw_rows(m)
+        A, e, keep = observe(rows["tau"], rows["r"], mech, rng, tmax)
+        new = {"A": A, "e": e}
+        for k, v in rows.items():
+            new[k] = np.asarray(v)[keep]
+        new["pass"] = (e / A < cut) if s15 else np.ones(len(A), bool)
+        for k, v in new.items():
+            out[k] = np.concatenate([out[k], v]) if k in out else v
+        have = int(out["pass"].sum())
+    if have < n_target:
+        raise RuntimeError(f"catalogue_sel: selection rate too low ({have} of {n_target})")
+    last = int(np.flatnonzero(out["pass"])[n_target - 1])
+    parent = {k: v[:last + 1] for k, v in out.items()}
+    sample = {k: v[parent["pass"]] for k, v in parent.items() if k != "pass"}
+    if not s15:
+        parent = None
+    return sample, parent

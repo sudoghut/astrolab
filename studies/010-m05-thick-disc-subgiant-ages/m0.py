@@ -5,6 +5,10 @@ of stars) with observed age A and error e has a kernel K_c = P(A | latent cell c
 truncated to [0, tmax] and renormalised for each latent age; on S15 a selection term P_c = P(pass
 the 15% cut | latent cell c) divides the likelihood. Nothing here reads PARAMS: every setting is an
 argument.
+
+Selection modes of the S15 denominator (README 2.0 and 2.5, SEL-1): "cut" (the 2.0 term, a fixed
+error and the cut A >= e / 0.15), "emp" (term E: an empirical pass fraction pi per pass bin of the
+observed age, per [Fe/H] slice, from pass_table) and "none" (term N: denominator 1).
 """
 from __future__ import annotations
 
@@ -56,6 +60,7 @@ class Cells:
     g: np.ndarray | None = None
     fe: np.ndarray | None = None
     efe: np.ndarray | None = None
+    sl: np.ndarray | None = None        # [Fe/H] slice index per cell (term E); None = one slice
 
     @property
     def nstar(self):
@@ -63,9 +68,11 @@ class Cells:
 
 
 def compress(age, eage, *, s15, step_a=0.05, nclass=20, feh=None, efeh=None, feh_step=0.05,
-             nefe=5, cut=0.15, none=False):
+             nefe=5, cut=0.15, none=False, sl=None):
     """Group stars into cells (README 2.0, Compression). none=True keeps one cell per star with its
-    own error. On S15 every cell gets the threshold e_rep / cut."""
+    own error. On S15 every cell gets the threshold e_rep / cut. sl (per-star slice index, term E
+    only) is added as the last cell key, so no cell mixes two [Fe/H] slices; with sl=None the cells
+    are exactly those of README 2.0."""
     age = np.asarray(age, float)
     eage = np.asarray(eage, float)
     if none:
@@ -85,7 +92,7 @@ def compress(age, eage, *, s15, step_a=0.05, nclass=20, feh=None, efeh=None, feh
             efe = np.zeros(len(guniq))
             if efeh is not None:
                 efe = np.array([np.median(np.asarray(efeh)[g == k]) for k in range(len(guniq))])
-        return Cells(A, e, w, thr, g, fe, efe)
+        return Cells(A, e, w, thr, g, fe, efe, None if sl is None else np.asarray(sl, np.int64))
     r = eage / age
     qs = np.quantile(r, np.linspace(0, 1, nclass + 1))
     cls = np.clip(np.searchsorted(qs, r, side="right") - 1, 0, nclass - 1)
@@ -99,6 +106,8 @@ def compress(age, eage, *, s15, step_a=0.05, nclass=20, feh=None, efeh=None, feh
             eq = np.quantile(efeh, np.linspace(0, 1, nefe + 1))
             ei = np.clip(np.searchsorted(eq, efeh, side="right") - 1, 0, nefe - 1)
             keys.append(ei)
+    if sl is not None:
+        keys.append(np.asarray(sl, np.int64))
     K = np.stack(keys, 1)
     uniq, inv, counts = np.unique(K, axis=0, return_inverse=True, return_counts=True)
     inv = inv.ravel()
@@ -120,20 +129,28 @@ def compress(age, eage, *, s15, step_a=0.05, nclass=20, feh=None, efeh=None, feh
         if efeh is not None:
             efe = np.array([np.median(np.asarray(efeh)[star_g == k]) for k in range(len(guniq))])
         del fsum
-    return Cells(A, e, w, thr, g, fe, efe)
+    csl = None if sl is None else uniq[:, -1].astype(np.int64)
+    return Cells(A, e, w, thr, g, fe, efe, csl)
 
 
-def kernels(grid: Grid, cells: Cells, *, f=1.0, truncate=True, dtype=np.float64):
+def kernels(grid: Grid, cells: Cells, *, f=1.0, truncate=True, dtype=np.float64, sel="cut", ptab=None):
     """K (n x C): observed-age density given each latent cell (cell-integrated); P (n x C) or None:
-    probability of passing the S15 cut given each latent cell."""
+    probability of passing the S15 cut given each latent cell. Cells without an S15 threshold (Full)
+    have no P in every mode. sel: "cut" (README 2.0), "emp" (term E, ptab from pass_coefs) or
+    "none" (term N, P = None)."""
+    if sel not in ("cut", "emp", "none"):
+        raise ValueError(f"unknown selection mode {sel!r}")
     e = (f * cells.e)[:, None]
     A = cells.A[:, None]
     K = ndiff((grid.lo - A) / e, (grid.hi - A) / e) / grid.step
+    Z = None
     if truncate:
         Z = ndiff((0.0 - grid.mid) / e, (grid.tmax - grid.mid) / e)
         K = K / Z
     P = None
-    if cells.thr is not None:
+    if cells.thr is not None and sel == "emp":
+        P = _emp_term(grid, cells, e, Z, ptab, truncate).astype(dtype)
+    elif cells.thr is not None and sel == "cut":
         thr = cells.thr[:, None]
         if truncate:
             P = ndiff((thr - grid.mid) / e, (grid.tmax - grid.mid) / e) / Z
@@ -141,6 +158,124 @@ def kernels(grid: Grid, cells: Cells, *, f=1.0, truncate=True, dtype=np.float64)
             P = ndtr(-(thr - grid.mid) / e)
         P = P.astype(dtype)
     return K.astype(dtype), P
+
+
+def _emp_term(grid, cells, e, Z, ptab, truncate):
+    """Term E (README 2.5, SEL-1): P_i(c) = sum_b pi_{s,b} [Phi((u_b - m_c)/e_i) - Phi((l_b - m_c)/e_i)]
+    / Z_i(c), accumulated edge by edge as sum_j c[s, j] Phi((U_j - m_c)/e_i) over the union edges U
+    of all slices (c from pass_coefs; one temporary of the size of P). Truncated: the outer edges are
+    0 and tmax and Z is the kernel's truncation normaliser. Untruncated: the outer bins extend to
+    -inf and +inf (their Phi terms are 0 and 1) and Z = 1."""
+    if ptab is None:
+        raise ValueError("selection mode 'emp' needs ptab (pass_coefs of the pass tables)")
+    U, coef, pi_last = ptab["U"], ptab["c"], ptab["pi_last"]
+    if not (abs(U[0]) < 1e-9 and abs(U[-1] - grid.tmax) < 1e-9):
+        raise ValueError("pass-bin edges must run from 0 to tmax")
+    n = len(cells.A)
+    sl = np.zeros(n, np.int64) if cells.sl is None else np.asarray(cells.sl, np.int64)
+    if n and (sl.min() < 0 or sl.max() >= coef.shape[0]):
+        raise ValueError("cell slice index outside the pass tables")
+    P = np.zeros((n, grid.n))
+    tmp = np.empty((n, grid.n))
+    js = range(len(U)) if truncate else range(1, len(U) - 1)
+    for j in js:
+        cj = coef[sl, j]
+        if not np.any(cj):
+            continue
+        np.subtract(U[j], grid.mid[None, :], out=tmp)
+        np.divide(tmp, e, out=tmp)
+        ndtr(tmp, out=tmp)
+        np.multiply(tmp, cj[:, None], out=tmp)
+        P += tmp
+    del tmp
+    if truncate:
+        P /= Z
+    else:
+        P += pi_last[sl][:, None]
+    np.clip(P, 0.0, 1.0, out=P)        # rounding of the edge sum
+    return P
+
+
+# --------------------------------------------------------------------------------------------
+# pass tables (README 2.5, SEL-0)
+# --------------------------------------------------------------------------------------------
+def merge_bins(counts, n_min):
+    """SEL-0 merge rule: walk from the youngest bin upward, accumulating consecutive bins until the
+    group's count is >= n_min, then close it; a last group with fewer than n_min is merged into the
+    previous closed group (or, if there is none, the slice is one group). Returns [first, last]
+    bin indices of each group."""
+    groups = []
+    start, acc = 0, 0
+    nb = len(counts)
+    for i, c in enumerate(counts):
+        acc += int(c)
+        if acc >= n_min:
+            groups.append([start, i])
+            start, acc = i + 1, 0
+    if start < nb:
+        if groups:
+            groups[-1][1] = nb - 1
+        else:
+            groups.append([0, nb - 1])
+    return groups
+
+
+def pass_table(age, relerr, sl=None, *, nslice=1, width=1.0, tmax=20.0, n_min=200, cut=0.15):
+    """Pass tables of a parent set (README 2.5, SEL-0). Parent rows need Age > 0 and a finite
+    relative error (others are dropped and counted in n_dropped). Observed-age bins [k w, (k + 1) w),
+    Age >= tmax in the last bin, merged per slice by merge_bins; pi = parent stars with
+    relerr < cut / parent stars. Returns one dict per slice: edges, n, n_pass, pi (lists), n_parent,
+    n_dropped, and pools (index arrays into the input, one per pass bin; not JSON)."""
+    age = np.asarray(age, float)
+    relerr = np.asarray(relerr, float)
+    sl = np.zeros(len(age), np.int64) if sl is None else np.asarray(sl, np.int64)
+    ok = np.isfinite(age) & (age > 0) & np.isfinite(relerr)
+    nb = int(round(tmax / width))
+    k = np.full(len(age), -1, np.int64)
+    k[ok] = np.clip(np.floor(age[ok] / width).astype(np.int64), 0, nb - 1)
+    passed = relerr < cut
+    out = []
+    for s in range(nslice):
+        ms = ok & (sl == s)
+        cnt = np.bincount(k[ms], minlength=nb)
+        groups = merge_bins(cnt, n_min)
+        gi = np.empty(nb, np.int64)
+        for b, (a0, a1) in enumerate(groups):
+            gi[a0:a1 + 1] = b
+        edges = [g[0] * width for g in groups] + [float(tmax)]
+        star_g = np.full(len(age), -1, np.int64)
+        star_g[ms] = gi[k[ms]]
+        pools = [np.flatnonzero(star_g == b) for b in range(len(groups))]
+        n = [int(len(p)) for p in pools]
+        npass = [int(passed[p].sum()) for p in pools]
+        pi = [npass[b] / n[b] if n[b] > 0 else 0.0 for b in range(len(groups))]
+        out.append({"edges": [float(x) for x in edges], "n": n, "n_pass": npass, "pi": pi,
+                    "n_parent": int(ms.sum()), "n_dropped": int(((~ok) & (sl == s)).sum()),
+                    "pools": pools})
+    return out
+
+
+def table_json(tables):
+    """JSON-safe copy of pass tables (without the pools)."""
+    return [{k: v for k, v in t.items() if k != "pools"} for t in tables]
+
+
+def pass_coefs(tables):
+    """Edge coefficients of term E for kernels(sel="emp"): the union U of all slices' edges and,
+    per slice s, c[s, j] = pi_s(bin left of U_j) - pi_s(bin right of U_j) (0 beyond the outer
+    edges), so that sum_b pi_b [Phi(u_b) - Phi(l_b)] = sum_j c[s, j] Phi(U_j); pi_last = pi of the
+    oldest bin (the untruncated variant's constant)."""
+    U = np.unique(np.round(np.concatenate([np.asarray(t["edges"], float) for t in tables]), 9))
+    S, J = len(tables), len(U) - 1
+    piu = np.zeros((S, J))
+    mids = 0.5 * (U[:-1] + U[1:])
+    for s, t in enumerate(tables):
+        ed = np.asarray(t["edges"], float)
+        b = np.clip(np.searchsorted(ed, mids, side="right") - 1, 0, len(t["pi"]) - 1)
+        piu[s] = np.asarray(t["pi"], float)[b]
+    ext = np.concatenate([np.zeros((S, 1)), piu, np.zeros((S, 1))], axis=1)
+    coef = ext[:, :-1] - ext[:, 1:]            # c_j = pi_{j-1} - pi_j, j = 0..J
+    return {"U": U, "c": coef, "pi_last": piu[:, -1].copy()}
 
 
 # --------------------------------------------------------------------------------------------
@@ -260,10 +395,10 @@ def floored_terms(w, num, den=None):
 # 1-D likelihood (one latent distribution for all cells)
 # --------------------------------------------------------------------------------------------
 class OneD:
-    def __init__(self, grid, cells, *, f=1.0, truncate=True, dtype=np.float64):
+    def __init__(self, grid, cells, *, f=1.0, truncate=True, dtype=np.float64, sel="cut", ptab=None):
         self.grid = grid
         self.cells = cells
-        self.K, self.P = kernels(grid, cells, f=f, truncate=truncate, dtype=dtype)
+        self.K, self.P = kernels(grid, cells, f=f, truncate=truncate, dtype=dtype, sel=sel, ptab=ptab)
         self.w = cells.w
 
     def ll_p(self, p, grad=False):
@@ -451,10 +586,11 @@ class Grouped:
     """Cells with group index g; latent distribution of group k is a truncated normal (old
     sequence), optionally mixed with a background truncated normal. Analytic gradients."""
 
-    def __init__(self, grid, cells, *, f=1.0, truncate=True, feh_err=False, dtype=np.float64):
+    def __init__(self, grid, cells, *, f=1.0, truncate=True, feh_err=False, dtype=np.float64, sel="cut",
+                 ptab=None):
         self.grid = grid
         self.c = cells
-        self.K, self.P = kernels(grid, cells, f=f, truncate=truncate, dtype=dtype)
+        self.K, self.P = kernels(grid, cells, f=f, truncate=truncate, dtype=dtype, sel=sel, ptab=ptab)
         self.w = cells.w.astype(float)
         self.g = cells.g
         self.fe = cells.fe

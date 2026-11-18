@@ -114,3 +114,173 @@ def test_summary_matches_parts():
 def test_result_files_small():
     for path in RESULTS.glob("*.json"):
         assert path.stat().st_size < 1024 ** 2, path.name
+
+
+# ---------------------------------------------------------------------------------------------
+# R-SEL re-test (README 2.5, T-031): every -SEL label and qualifier re-derived from the saved files
+# ---------------------------------------------------------------------------------------------
+def _median(xs):
+    xs = sorted(xs)
+    n = len(xs)
+    return None if not n else (xs[n // 2] if n % 2 else 0.5 * (xs[n // 2 - 1] + xs[n // 2]))
+
+
+def _r1_verdict(bins):
+    res = [b for b in bins if b["resolvable"]]
+    disj = [b for b in res if b["almost_disjoint"]]
+    if len(res) < 3:
+        return "undetermined"
+    med = _median([b["edge"] for b in disj if b["edge"] is not None])
+    return "reproduced" if (len(disj) >= 3 and med is not None and 6.5 <= med <= 9.5) else "not reproduced"
+
+
+def _sel_qual(e, n):
+    return "selection-term robust" if e == n else "selection-term sensitive"
+
+
+def _rob_word(x):
+    return "robust" if x else "not robust"
+
+
+def _r1_bins_check(bins, null_from=None):
+    for i, b in enumerate(bins):
+        src = null_from[i] if null_from is not None else b
+        q = []
+        for key in ("null_sn_rtau", "null_sn_rA", "null_sp_rtau", "null_sp_rA"):
+            m = src["mocks"][key]
+            assert len(m["d"]) == 50 and len(m["valley"]) == 50
+            ds = sorted(d for d, v in zip(m["d"], m["valley"]) if v)
+            q.append(ds[2] if len(ds) >= 3 else 0.25)
+        dstar = min([0.25] + q)
+        assert abs(b["d_star"] - dstar) < 1e-12
+        for mech in ("rtau", "rA"):
+            m = b["mocks"]["power_" + mech]
+            assert len(m["d"]) == 50
+            pw = sum(1 for d, v in zip(m["d"], m["valley"]) if v and d < dstar) / 50
+            assert abs(b["power"][mech] - pw) < 1e-12
+        res = all(v >= 0.80 for v in b["power"].values()) and not b["power_model_invalid"]
+        assert b["resolvable"] == res
+        assert b["power_model_invalid"] == (not b["power_model"]["valid"])
+        assert b["almost_disjoint"] == bool(b["valley"] and b["d"] < dstar and b["edge"] is not None)
+
+
+def test_sel_r1_labels():
+    r1, sel = load("r1_sel"), load("sel")
+    assert r1["n_mock"] == 50 and r1["q_rank"] == 3 and r1["floor"] == 0.12 and r1["floor_sens"] == 0.20
+    for name in ("S15E", "S15N", "Full"):
+        var = r1["variants"][name]
+        _r1_bins_check(var["bins"])
+        assert var["verdict"] == _r1_verdict(var["bins"])
+        sens = r1["floor_sensitivity"][name]
+        _r1_bins_check(sens["bins"], null_from=var["bins"])
+        assert sens["verdict"] == _r1_verdict(sens["bins"])
+        for b in var["bins"]:
+            assert b["power_model"]["w_old"] == max(b["power_model"]["w_old_raw"], 0.12)
+        for b in sens["bins"]:
+            assert b["power_model"]["w_old"] in (max(b["power_model"]["w_old_raw"], 0.20),
+                                                 max(b["power_model"]["w_old_raw"], 0.12))
+    for key, part in (("label", "variants"), ("label_floor_sensitivity", "floor_sensitivity")):
+        e, n, f = (r1[part][x]["verdict"] for x in ("S15E", "S15N", "Full"))
+        lab = r1[key]
+        assert lab["bare"] == e and lab["robust"] == (e == f) and lab["selection_term"] == _sel_qual(e, n)
+        assert lab["label"] == e + " (" + _rob_word(e == f) + "; " + _sel_qual(e, n) + ")"
+    assert sel["labels"]["R1-SEL"] == r1["label"]["label"]
+    assert sel["labels"]["R1-SEL_floor_0.20"] == r1["label_floor_sensitivity"]["label"]
+
+
+def _with_robust(v, rob):
+    return v + ("" if v != "reproduced" else (", robust" if rob else ", not robust"))
+
+
+def test_sel_r34_labels():
+    r34, sel = load("r34_sel"), load("sel")
+    assert r34["n_mock"] == 50
+    bare = {}
+    for t in ("E", "N"):
+        T = r34["terms"][t]
+        rec = T["recovery"]
+        for mech, x in rec.items():
+            assert len(x["sigma_values"]) == 50 and len(x["a_values"]) == 50
+            bs = sum(x["sigma_values"]) / 50 - T["sampleA"]["sigma"]
+            ba = sum(x["a_values"]) / 50 - T["sampleA"]["a"]
+            assert abs(bs - x["sigma"]["bias"]) < 1e-9 and abs(ba - x["a"]["bias"]) < 1e-9
+            assert x["pass"] == (abs(bs) <= 0.1 and abs(ba) <= 0.2)
+        if rec["rA"]["pass"]:
+            prim, fit = "S15", T["sampleA"]
+            assert T["flag_rtau_recovery_failed"] == (not rec["rtau"]["pass"])
+        elif rec["rtau"]["pass"]:
+            prim, fit = "Full", r34["shared_full_fits"]["full"]
+        else:
+            prim, fit = None, None
+        assert T["primary"] == prim
+        es = T["error_scale"]
+        assert abs(es["f_max"] - min(es["f_i"], es["f_ii"])) < 1e-12
+        fits = {**r34["shared_full_fits"], **T["robustness_fits"]}
+        if prim == "S15":
+            r3s, r4s = {"full", "feh_err", "f_min", "f_max"}, {"full", "feh_err"}
+        elif prim == "Full":
+            r3s, r4s = {"feh_err_full", "full_f_min", "full_f_max"}, {"feh_err_full"}
+        else:
+            r3s = r4s = set()
+        assert set(T["R3"]["set"]) == r3s and set(T["R4"]["set"]) == r4s
+        if fit is None:
+            r3 = r4 = "cannot determine"
+        else:
+            r3 = "reproduced" if 4.5 <= fit["span"] <= 6.5 else "not reproduced"
+            r4 = "reproduced" if abs(fit["sigma"] - 0.82) <= 0.1 else "not reproduced"
+        rob3 = bool(r3s) and all(4.5 <= fits[k]["span"] <= 6.5 for k in r3s)
+        rob4 = bool(r4s) and all(abs(fits[k]["sigma"] - 0.82) <= 0.1 for k in r4s)
+        assert T["R3"]["bare"] == r3 and T["R4"]["bare"] == r4
+        assert T["R3"]["label"] == _with_robust(r3, rob3) and T["R4"]["label"] == _with_robust(r4, rob4)
+        bare[t] = (r3, r4)
+    for i, name in enumerate(("R3", "R4")):
+        q = _sel_qual(bare["E"][i], bare["N"][i])
+        assert r34["terms"]["E"][name]["label_full"] == r34["terms"]["E"][name]["label"] + "; " + q
+        assert r34["labels"][name + "-SEL"] == r34["terms"]["E"][name]["label_full"]
+        assert sel["labels"][name + "-SEL"] == r34["labels"][name + "-SEL"]
+
+
+def test_sel_intrinsic_labels():
+    r34, sel = load("r34_sel"), load("sel")
+    bare = {}
+    for t in ("E", "N"):
+        I = r34["intrinsic"][t]
+        assert len(I["mock_bias"]) == 4
+        for b in I["mock_bias"].values():
+            assert len(b["sigma_values"]) == 50
+            assert abs(sum(b["sigma_values"]) / 50 - I["sampleB"]["sigma"] - b["bias"]) < 1e-9
+        ids = I["mock_bias"]["id_rtau"]["sigma_values"] + I["mock_bias"]["id_rA"]["sigma_values"]
+        mu = sum(ids) / len(ids)
+        sd = (sum((x - mu) ** 2 for x in ids) / (len(ids) - 1)) ** 0.5
+        assert abs(sd - I["sd_id"]) < 1e-9
+        biased = any(abs(b["bias"]) > 0.1 for b in I["mock_bias"].values())
+
+        def lab(fit):
+            se = max(fit["sigma_err"], sd)
+            if biased:
+                return "cannot determine", se
+            if fit["sigma"] + 1.645 * se < 0.82:
+                return "confirmed", se
+            if fit["sigma"] - 1.645 * se >= 0.82:
+                return "not confirmed", se
+            return "cannot determine", se
+        v0, se0 = lab(I["sampleB"])
+        assert I["bare"] == v0 and abs(I["se_used"] - se0) < 1e-12
+        vf = {k: lab(x)[0] for k, x in I["sampleB_f"].items()}
+        assert I["f_labels"] == vf
+        rob = v0 == vf["f_min"] == vf["f_max"]
+        assert I["robust"] == rob and I["label"] == v0 + ", " + _rob_word(rob)
+        bare[t] = v0
+    E = r34["intrinsic"]["E"]
+    assert E["label_full"] == E["label"] + "; " + _sel_qual(bare["E"], bare["N"])
+    assert sel["labels"]["intrinsic-SEL"] == E["label_full"] == r34["labels"]["intrinsic-SEL"]
+
+
+def test_sel_mock_counts_and_seeds():
+    sel = load("sel")
+    m = sel["mocks"]
+    assert m["n_per_set"] == 50 and m["n_sets"] == 124 and m["n_main_sets"] == 106
+    assert [s["k"] for s in sel["sets"]] == list(range(124))
+    assert sel["params"]["sel_seed_tag"] == 31 and sel["params"]["sel_n_mock"] == 50
+    for p in m["projections"]:                       # the run stops before remaining mocks above the limit
+        assert p["mocks_left"] == 0 or p["projection_h"] <= sel["params"]["sel_stop_h"]
