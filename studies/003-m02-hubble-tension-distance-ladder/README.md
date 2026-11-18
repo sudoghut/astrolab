@@ -516,8 +516,8 @@ timing fields changed). Numbers: `results/r2_re_rob.json`.
 - **Reading (pre-registered).** "Verdict sensitive": the null result of R2-RE depends on N5584's
   effect on τ̂. Without N5584, REML puts the host-level scatter at 0.031 mag, and the full-data host
   step under that τ gives z' = −2.04, which the pre-registered table reads as supporting the paper.
-  The τ part is undetermined, as section 2 expected (p near the 0.03 boundary estimate). The spread
-  part says R4's 1.33 is itself unusual under C: there is more scatter among calibrator SN rows than C
+  The τ part is undetermined, the label section 2 expected (it estimated p ≈ 0.03; observed 0.072). The
+  spread part says R4's excess spread (1.307 on the first 1,000 subsets; 1.33 on all 10,000) is itself unusual under C: there is more scatter among calibrator SN rows than C
   allows, without identifying the cause.
 - **What the two routes say together (descriptive).** N5584 matters in two opposite ways. Dropping
   it lowers τ̂ (so the τ route moves towards "supports"), but dropping its rows from the data also
@@ -532,7 +532,7 @@ timing fields changed). Numbers: `results/r2_re_rob.json`.
 - **Post hoc (referee, 2026-11-18; section 6): one host carries every signal.** Over the R4
   subsets that exclude N5584 the spread is 1.027 (p = 0.33 under the same null; we reproduced the
   referee's cache-only check, which is approximate because N5584 stays in the 37-host reference fit), while excluding any other single host leaves 1.21–1.34 (p ≤ 0.056). So
-  the "unusual spread" label, the size of τ̂ and the A flip are all the effect of one outlying host,
+  the "unusual spread" label, most of τ̂ (0.077 → 0.031 without it) and the A flip are the effect of one outlying host,
   N5584 (one SN, 2007af); whether its SN or its Cepheid distance is off is not identified. Without
   N5584's rows the host step gives z = −1.63 under C and −1.50 under V, i.e. "no host-selection effect
   detected" under either covariance. An explicit, pre-registered treatment of N5584 (removal and a
