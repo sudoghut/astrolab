@@ -299,11 +299,14 @@ likely push towards "consistent", so "borderline" is if anything optimistic; fol
 **R3-POST2 (2026-11-18, pre-registered, T-036).** The referee's test: σ_cal sampled on [0.3, 1.2] mag,
 Poisson likelihoods for the two brightest blank-field bins (2 and 9 sources) and γ allowed below 0,
 all at once. The chain converged and the fit is good. R2 "higher" stays **robust** (P = 0.99, ratio
-5.5–21.7, 16–84%). R3 is **calibration-uncertain**: P(consistent with N26) = 0.92, down from 0.96,
-the direction the referee expected. The binned z ≈ 8 data hardly constrain σ_cal (posterior
-0.43–1.05 mag, labelled "σ_cal prior-dominated"), and the "different" draws come almost all from
-σ_cal < 0.7, so whether our model's σ_UV overlaps N26's 1.5–2 mag stays undetermined: it hinges on
-the scatter at z ≈ 8, which these data cannot fix.
+5.5–21.7, 16–84%). R3 is **calibration-uncertain**: P(consistent with N26) = 0.92, down from 0.96.
+The binned z ≈ 8 data carry no information on σ_cal (posterior 0.43–1.05 mag, labelled "σ_cal
+prior-dominated"), and the "different" draws come almost all from σ_cal < 0.7, so whether our
+model's σ_UV overlaps N26's 1.5–2 mag stays undetermined: it hinges on the scatter at z ≈ 8, which
+these data cannot fix. The independent referee (verified) showed that the lower prior edge decides
+the label: keeping only σ_cal ≥ 0.5 gives P = 0.957, ≥ 0.7 gives 0.993; at matching σ_cal the
+result agrees with the earlier fixed-σ_cal fits, so the drop comes from including small σ_cal, not
+from the Poisson bins or γ < 0.
 
 ### Glossary
 
@@ -332,7 +335,7 @@ the scatter at z ≈ 8, which these data cannot fix.
 
 Newest first.
 
-- 2026-11-18: R3-POST2 (T-036): σ_cal free, Poisson bright bins, γ < 0 allowed; R2 robust (higher, P = 0.99), R3 calibration-uncertain (P = 0.92), σ_cal prior-dominated.
+- 2026-11-18: R3-POST2 (T-036): σ_cal free, Poisson bright bins, γ < 0 allowed; R2 robust (higher, P = 0.99), R3 calibration-uncertain (P = 0.92), σ_cal prior-dominated; referee: the σ_cal prior's lower edge decides the label.
 - 2026-11-16: R2/R3-POST (T-025): posterior calibration on binned z ≈ 8 data; R2 robust (higher), R3 borderline (P = 0.96); referee: R3 depends mainly on σ_cal (T-036).
 - 2026-11-15: independent referee: the z ≈ 8 LF uncertainty flips R3 (and R2 for φ* −1σ) and dust flips R3 (post-hoc explorations); fourth gap `gap_bin`; follow-up T-025.
 - 2026-11-15: results: Part 3 result column and "What we found" (R1 reproduced; R2 higher, calibration-dependent; R3 consistent, calibration-dependent).
@@ -523,7 +526,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 **R2/R3-POST（2026-11-16，预注册，T-025）。** 用带误差的分箱 z ≈ 8 数据校准并传播 500 个后验样本（四条链都收敛，没有拟合失配）：我们的恒定 SFE 模型预言的 z = 14–15 星系多于 N26 基准的概率为 1.00（σ_cal = 0.5 时 0.994），主拟合比值 16–84% 为 7.5–14.2，所以 R2"更高"**对光度函数校准的不确定性稳健**。R3 仍是**临界**：与 N26 一致的概率 0.96，差一点达到预注册的门槛，随 σ_cal 在 0.86–1.00 之间变化。两者都以基准模型成分为条件（晕质量函数、ε 的外推、不改正尘埃）。
 独立审稿发现 R3 对固定的 σ_cal 的依赖远大于对校准后验的依赖，而没有建模的效应（亮端箱按高斯处理、γ ≥ 0 的先验边界）很可能都偏向"一致"，所以"临界"只会偏乐观；后续 T-036。
 
-**R3-POST2（2026-11-18，预注册，T-036）。** 审稿人提出的检验：σ_cal 在 [0.3, 1.2] mag 上采样，最亮两个空白天区分箱（2 个和 9 个源）用泊松似然，允许 γ 小于 0，三处同时改动。链收敛，拟合良好。R2"更高"仍然**稳健**（P = 0.99，比值 16–84% 为 5.5–21.7）。R3 为**依赖校准**：与 N26 一致的概率 0.92，比此前的 0.96 低，方向与审稿人预期一致。分箱的 z ≈ 8 数据几乎约束不了 σ_cal（后验 0.43–1.05 mag，标为"σ_cal 由先验主导"），而"不同"的抽样几乎都来自 σ_cal < 0.7，所以我们模型所需的 σ_UV 是否与 N26 的 1.5–2 mag 重叠仍未确定：它取决于 z ≈ 8 的弥散，而这些数据定不下来。
+**R3-POST2（2026-11-18，预注册，T-036）。** 审稿人提出的检验：σ_cal 在 [0.3, 1.2] mag 上采样，最亮两个空白天区分箱（2 个和 9 个源）用泊松似然，允许 γ 小于 0，三处同时改动。链收敛，拟合良好。R2"更高"仍然**稳健**（P = 0.99，比值 16–84% 为 5.5–21.7）。R3 为**依赖校准**：与 N26 一致的概率 0.92，比此前的 0.96 低。分箱的 z ≈ 8 数据不含 σ_cal 的信息（后验 0.43–1.05 mag，标为"σ_cal 由先验主导"），而"不同"的抽样几乎都来自 σ_cal < 0.7，所以我们模型所需的 σ_UV 是否与 N26 的 1.5–2 mag 重叠仍未确定：它取决于 z ≈ 8 的弥散，而这些数据定不下来。独立审稿（已复核）表明，先验下界决定了标签：只取 σ_cal ≥ 0.5 的抽样 P = 0.957，≥ 0.7 为 0.993；在相同 σ_cal 上结果与此前固定 σ_cal 的拟合一致，所以下降来自纳入小的 σ_cal，而不是泊松分箱或 γ < 0。
 
 ### 术语表
 
@@ -551,7 +554,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 按时间倒序。
 
-- 2026-11-18：R3-POST2（T-036）：σ_cal 自由、亮端分箱用泊松似然、允许 γ < 0；R2 稳健（更高，P = 0.99），R3 依赖校准（P = 0.92），σ_cal 由先验主导。
+- 2026-11-18：R3-POST2（T-036）：σ_cal 自由、亮端分箱用泊松似然、允许 γ < 0；R2 稳健（更高，P = 0.99），R3 依赖校准（P = 0.92），σ_cal 由先验主导；审稿：σ_cal 先验的下界决定标签。
 - 2026-11-16：R2/R3-POST（T-025）：在分箱 z ≈ 8 数据上做后验校准；R2 稳健（更高），R3 临界（P = 0.96）；审稿：R3 主要取决于 σ_cal（T-036）。
 - 2026-11-15：独立审稿：z ≈ 8 光度函数的不确定性使 R3 翻转（φ* 减 1σ 时 R2 也翻转），尘埃使 R3 翻转（事后探索）；第四个缺口 `gap_bin`；后续 T-025。
 - 2026-11-15：结果：第三部分"结果"一列与"我们的发现"（R1 复现；R2 更高、依赖校准；R3 一致、依赖校准）。
