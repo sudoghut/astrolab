@@ -50,8 +50,8 @@ def one_shift(diff, names, seed, est, pop_size=None, record_pop=False):
     """One repetition on equally weighted difference samples: train a flow, estimate the shift.
 
     pop_size None: flow_from_chain is called exactly as in R6 (tensiometer's default). Otherwise
-    pop_size is passed explicitly (README 2.7). With record_pop the pop_size passed (or, if none was
-    passed, the signature default) and the number of trained populations are added to the result."""
+    pop_size is passed explicitly (README 2.7). With record_pop the pop_size actually passed (None if
+    none was passed), whether it was passed, and the number of trained populations are added."""
     tf = _setup()
     from getdist import MCSamples
     from tensiometer.mcmc_tension import flow as fl
@@ -75,7 +75,7 @@ def one_shift(diff, names, seed, est, pop_size=None, record_pop=False):
            "converged": converged, "train_s": round(t1 - t0, 1), "shift_s": round(time.time() - t1, 1)}
     if record_pop:
         logs = getattr(flow, "population_logs", None)
-        out.update(pop_size=int(pop_size) if pop_size is not None else defaults()["pop_size"],
+        out.update(pop_size=int(pop_size) if pop_size is not None else None,     # as passed (None: not)
                    pop_size_passed=pop_size is not None,
                    populations_trained=len(logs) if logs is not None else None)
     return out

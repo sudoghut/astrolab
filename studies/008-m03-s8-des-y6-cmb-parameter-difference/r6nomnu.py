@@ -73,6 +73,12 @@ def gate5(gate6):
     return {**gate6, "boxes": boxes}, dropped
 
 
+def gate_settings(gate6):
+    """The gate configuration saved with the results (README 2.7: 5-D gate = R6's without boxes[3])."""
+    g5, dropped = gate5(gate6)
+    return {"gate5": g5, "gate6": gate6, "dropped_box_index": EDGE_BOX, "dropped_box": dropped}
+
+
 def config(short, seeds, n, estimate, gate6, pop1):
     """Job configuration for r6flow.run_jobs. 'pop_size': None = not passed (tensiometer's default,
     as in R6) but recorded; 1 = passed explicitly."""
@@ -94,19 +100,29 @@ def plan(job, cfg, log, flowshift):
     (c) does not gate (d))."""
     gates, cases = cfg["gates"], cfg["cases"]
 
-    def gate(name, exact):
+    def run(descriptive, *parts):
+        """A crashed subprocess in a descriptive job ((c), (d)) is recorded as a failed repetition;
+        in (a) and (b) it propagates (run_jobs then reports "not evaluable")."""
+        if not descriptive:
+            return job(*parts)
+        try:
+            return job(*parts)
+        except RuntimeError:
+            return {"seed": parts[-1], "error": "subprocess failed"}
+
+    def gate(name, exact, descriptive=False):
         reps = []
         for k in gates[name]["seeds"]:
-            r = job("gate", name, k)
+            r = run(descriptive, "gate", name, k)
             reps.append(r)
             log(f"  {name} seed {k}: {r.get('n_sigma', r.get('error'))} (exact {exact['n_sigma']:.4f})")
         return flowshift.gate_summary(exact, reps, gates[name])
 
-    def case(name):
+    def case(name, descriptive=False):
         log(f"case {name}: {cases[name]['columns']}")
         reps = []
         for k in cases[name]["seeds"]:
-            r = job("case", name, k)
+            r = run(descriptive, "case", name, k)
             reps.append(r)
             log(f"  {name} seed {k}: {r.get('n_sigma', r.get('error'))}")
         return flowshift.case_summary(reps, cases[name]["columns"])
@@ -119,10 +135,12 @@ def plan(job, cfg, log, flowshift):
     else:
         res["nomnu"] = {"status": "not run (5-D known-answer gate failed)"}
     if "g5_pop1" in gates:
-        res["gate5_pop1"] = gate("g5_pop1", exact5)                     # (c)
-        res["gate6_pop1"] = gate("g6_pop1", job("exact", "g6_pop1"))
-        res["nomnu_pop1"] = case("nomnu_pop1")                          # (d)
-        res["main_pop1"] = case("main_pop1")
+        res["gate5_pop1"] = gate("g5_pop1", exact5, True)               # (c), descriptive
+        exact6 = run(True, "exact", "g6_pop1")
+        res["gate6_pop1"] = (gate("g6_pop1", exact6, True) if "error" not in exact6
+                             else {"status": "not run (6-D exact job failed)", "passed": False})
+        res["nomnu_pop1"] = case("nomnu_pop1", True)                    # (d), descriptive
+        res["main_pop1"] = case("main_pop1", True)
     return res
 
 
@@ -171,8 +189,8 @@ def _values(reps):
 
 def paired(reps_a, reps_b):
     """Per-seed differences a_k - b_k for seeds where both are finite."""
-    a = {r.get("seed"): r.get("n_sigma") for r in reps_a or []}
-    b = {r.get("seed"): r.get("n_sigma") for r in reps_b or []}
+    a = {r.get("seed"): r.get("n_sigma") for r in reps_a or [] if "error" not in r}   # failed: skipped
+    b = {r.get("seed"): r.get("n_sigma") for r in reps_b or [] if "error" not in r}
     diff = {str(k): float(a[k] - b[k]) for k in sorted(set(a) & set(b), key=str)
             if _num(a[k]) and _num(b[k])}
     vals = list(diff.values())
@@ -214,6 +232,7 @@ def _case_reps(res, name):
 def assemble(res, rec, gate_r1, bands, s_max, s_flag, f_crit, settings):
     """results/r6_nomnu.json: the label, the pop_size comparison and everything README 2.7 reports."""
     out = {"settings": settings, "dropped": DROPPED,
+           "r6_reused": {"path": "results/r6.json", "ok": bool(rec.get("ok")), "reason": rec.get("reason")},
            "r6": {k: rec.get(k) for k in ("n_bar", "s", "per_seed", "parameters", "gate_exact", "gate_mean",
                                           "verdict", "reason")}}
     if not rec.get("ok"):
@@ -248,5 +267,5 @@ def _summary(out):
     nums = out.get("numbers") or {}
     out["summary"] = {"label": out["label"], "reason": out["reason"], "n_bar5": nums.get("n_bar"),
                       "s5": nums.get("s"), "interval": nums.get("interval"),
-                      "n_bar6_r6": out["r6"].get("n_bar")}
+                      "n_bar6_r6": out["r6"].get("n_bar"), "r6_reused": out["r6_reused"]}
     return out

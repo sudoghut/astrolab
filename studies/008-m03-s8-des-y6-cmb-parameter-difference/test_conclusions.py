@@ -132,7 +132,11 @@ def test_r6_nomnu_label_rule():
         assert out["label"] == "not evaluable" and "not run" in flows["status"]
         return
     six = r6["flows"]["main"]["parameters"]
-    assert out["parameters"] == six and out["parameters_match_r6"] is True
+    assert out["r6_reused"]["ok"] is True and out["summary"]["r6_reused"]["ok"] is True
+    if out["parameters"] != six:                                    # pairing with R6 impossible
+        assert out["label"] == "not evaluable" and "parameter set differs" in flows["status"]
+        return
+    assert out["parameters_match_r6"] is True
     if not load("r2")["gate_r1_means"] or "status" in flows:         # rule 1 (R1) or no flows
         assert out["label"] == "not evaluable"
         return
@@ -140,6 +144,8 @@ def test_r6_nomnu_label_rule():
     g5 = flows["gate5"]
     gv = [r.get("n_sigma") for r in g5["repetitions"]]
     assert [r["seed"] for r in g5["repetitions"]] == [10, 11, 12]
+    assert all(r.get("pop_size_passed") is False and r.get("pop_size") is None
+               for r in g5["repetitions"] if "error" not in r)
     passed = all(v is not None and math.isfinite(v) and r.get("converged") and not r.get("lower_bound")
                  for v, r in zip(gv, g5["repetitions"])) and \
         abs(sum(gv) / 3 - g5["exact"]["n_sigma"]) <= 0.10 and all(abs(v - g5["exact"]["n_sigma"]) <= 0.20 for v in gv)
@@ -153,7 +159,8 @@ def test_r6_nomnu_label_rule():
         assert "mnu" not in case["parameters"]
         reps = case["repetitions"]
         assert [r["seed"] for r in reps] == [0, 1, 2, 3, 4]
-        assert all(r.get("pop_size_passed") is False for r in reps)
+        assert all(r.get("pop_size_passed") is False and r.get("pop_size") is None
+                   for r in reps if "error" not in r)
         ns = [r.get("n_sigma") for r in reps]
         if any(v is None or not math.isfinite(v) for v in ns) or not all(r.get("converged") for r in reps):
             expected = "not evaluable"                                   # rule 2
