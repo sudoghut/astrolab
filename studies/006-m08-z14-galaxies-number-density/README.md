@@ -448,16 +448,29 @@ brightest blank-field bins (counts 2 and 9) and γ allowed down to −1, all thr
 P(R3 consistent) by σ_cal bin (descriptive; draws per bin in brackets): 0.3–0.4: 0.77 (56); 0.4–0.5:
 0.83 (75); 0.5–0.6: 0.82 (49); 0.6–0.7: 0.89 (46); 0.7–0.8: 1.00 (66); 0.8–0.9: 1.00 (54); 0.9–1.0:
 0.98 (56); 1.0–1.1: 1.00 (47); 1.1–1.2: 0.98 (51). The draws spread almost evenly over the prior, and
-all "different" draws but two have σ_cal < 0.7. The least-squares start of the bootstrap sits at
-box edges (β ≈ 0, γ = −1, σ_cal = 0.3); the posterior does not pile up there.
+all "different" draws but two have σ_cal < 0.7. The least-squares point (`lsq.x`, where the
+bootstrap simulates) sits at three box edges (β ≈ 0, γ = −1, σ_cal = 0.3); after the referee it
+turned out not to be the optimum (section 6).
 
 Reading (pre-registered): "calibration-uncertain" → R3's overlap with N26's 1.5–2 mag **stays
 undetermined**; σ_cal is prior-dominated, so P(R3) = 0.92 is conditional on the [0.3, 1.2] mag range.
-The three changes moved P(R3 consistent) from 0.962 (R2/R3-POST primary) to 0.916, the direction the
-referee expected, but the joint fit does not say which change did it, and the binned z ≈ 8 data
-cannot tell σ_cal = 0.3 from 1.2. R2 "higher" stays robust with the freer model, and its spread
+The three changes moved P(R3 consistent) from 0.962 (R2/R3-POST primary) to 0.916; the joint fit
+does not say which change did it, and the binned z ≈ 8 data cannot tell σ_cal = 0.3 from 1.2. R2 "higher" stays robust with the freer model, and its spread
 widened (5th–95th percentile ratio 4.2–29.4 against 5.9–17.6). Both statements remain conditional on
 the fiducial ingredients (Sheth–Tormen, "dpl" extrapolation, no dust).
+
+**After the referee of R3-POST2 (post hoc, verified; 2026-11-18).** The data carry no information
+on σ_cal: refitting the other five parameters at fixed σ_cal gives −2 ln L = 4.779, 4.783, 4.787,
+4.791, 4.804 at σ_cal = 0.3, 0.5, 0.7, 0.9, 1.2 (a change of 0.025 across the prior), and the draws
+per bin follow the flat prior. P(R3 consistent) is therefore a prior-weighted average of how R3
+depends on σ_cal, and the lower prior edge decides on which side of 0.95 it lands: restricting the
+draws to σ_cal ≥ 0.3, 0.4, 0.5, 0.7 gives 0.916, 0.935, 0.957, 0.993 (n = 500, 444, 369, 274). The
+per-bin values above are the informative result. At matching σ_cal the per-bin P agrees with the
+fixed-σ_cal R2/R3-POST fits within its errors (about 0.05 per bin: 0.82 against 0.856 at 0.5, 1.00
+against 0.962 at 0.7, 0.98 against 0.998 at 0.9), so the drop from 0.962 comes mainly from including
+σ_cal < 0.5, not visibly from the Poisson bins or γ < 0 (γ < 0 draws have P = 0.88 against 0.92, but
+γ correlates with σ_cal, r = 0.21). 41 of the 42 "different" draws need less scatter than 1.5 mag
+(upper root < 1.5): the model already makes enough bright galaxies. R3 stays undetermined.
 
 ## 6. Referee notes
 
@@ -512,6 +525,26 @@ applied as written. Triage:
 | 7 | Bins are evaluated at the bin centre, not averaged (a few percent, inside the errors) | partly (referee's computation) | Accepted, negligible. |
 | 8 | The SE rule is degenerate at P = 1 (SE = 0); the Clopper–Pearson lower bound for 500/500 is about 0.993, so R2's "robust" stands; n_eff slightly overstated (about 450, not 500) | partly (the Clopper–Pearson bound recomputed; n_eff ≈ 450 is the referee's estimate) | Noted; no label change. |
 
+### Referee of R3-POST2 (2026-11-18)
+
+Independent referee (a subagent given README sections 1–4 with both addenda, the code and the
+results files, not section 5; small offline checks, no MCMC). Every label follows the rules as
+written (τ, n_eff = 500, P ± 2SE, bound fractions, the 0.54 mag width); the Poisson deviance, the
+integer-count bootstrap and σ_cal entering both the calibration and the z = 14–15 scatter match the
+addendum. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The least-squares point is not the optimum: `lsq.x` sits at β ≈ 0, γ = −1, σ_cal = 0.3 with −2 ln L = 4.991, the exact mirror of (β, γ) = (1, 0); a fit started elsewhere reaches 4.779 with interior β = 0.82, γ = 0.135. The bootstrap simulates there and its refits can be trapped the same way, which biases p upwards | yes (rerun of the referee's profile fits) | **Accepted**; stated in section 5; p = 0.950 is far from the 0.01 misfit line, so no label changes; `lsq.x` is not to be quoted as a best fit. |
+| 2 | P(R3) is set by the σ_cal prior: the profile likelihood changes by 0.025 across [0.3, 1.2], and P over σ_cal ≥ 0.3 / 0.4 / 0.5 / 0.7 is 0.916 / 0.935 / 0.957 / 0.993; with a [0.5, 1.2] prior the label would have been "borderline" | yes | **Accepted**; section 5 reports P(R3) by σ_cal as the informative result; the pre-registered label stands with "σ_cal prior-dominated". |
+| 3 | The drop from 0.962 to 0.916 should not be attributed to the Poisson bins or γ < 0: at matching σ_cal the per-bin P agrees with the fixed-σ_cal fits within about 0.05 | yes | **Accepted**; section 5 says so; the joint-only statement stays as pre-registered. |
+| 4 | 41 of 42 "different" draws have an upper root below 1.5 mag (the model makes enough bright galaxies with less scatter) | yes | Reported in section 5. |
+| 5 | Allowing γ < 0 adds a (β, γ) ↔ (−γ, −β) mirror: in the quadrant β ∈ [0, 1], γ ∈ [−1, 0] each ε shape appears twice, so "γ < 0 in 0.18 of draws" is a parameterisation statistic, not "ε rises at high mass" | the symmetry yes (exact −2 ln L match at the corner) | Noted; a restriction to β ≥ −γ would be an exploration. |
+| 6 | The R3 search for σ starts at 0.7 while σ_cal goes down to 0.3 | yes | Harmless for the overlap with 1.5–2.0 (the censoring is half-open); noted. |
+| 7 | Only two bins are Poisson; the −20.85 bin (about 14 sources) stays Gaussian; rounding 2.25 → 2 changes that bin's effective volume by 12% | yes | Accepted limitation, small next to item 2. |
+| 8 | n_eff = 500 is about right (draws about 160 steps apart against τ ≈ 1100, spread over walkers); the SE rule is not degenerate at P = 0.99 | yes | No action. |
+| 9 | The tests recompute labels from saved verdicts but trust `lsq`, so they cannot see item 1 | yes | Noted; the data statistic (4.84) is below the minimum over the draws (5.02). |
+
 ## 7. Open questions
 
 - The z ≈ 8 LF uncertainty is now propagated (R2/R3-POST, section 5): R2 is robust to it, R3 is
@@ -520,7 +553,7 @@ applied as written. Triage:
   dust at z ≈ 8.
 - R3-POST2 (T-036, section 5) left σ_cal free, used a Poisson likelihood for the bright blank-field
   bins and allowed γ < 0: R3 stays undetermined (P = 0.92, calibration-uncertain), and the binned
-  z ≈ 8 data do not constrain σ_cal. What independent constraint on the z ≈ 8 scatter (for example
+  z ≈ 8 data carry no information on σ_cal (P(R3) rises from 0.77 to about 1 across its prior). What independent constraint on the z ≈ 8 scatter (for example
   from clustering or abundance matching) would decide it?
 - How large is cosmic variance for two sources in 388 arcmin² at z ≈ 14 (`gap_poisson`), and what is
   the full effective area (`gap_area`)?
