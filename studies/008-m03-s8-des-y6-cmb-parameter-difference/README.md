@@ -280,7 +280,7 @@ support fails → "descriptive"; (5) the lower-bound rule below; (6) s > 0.07 �
 **Reported, not decisive** (same estimator, seeds 0–2, so that the run stays within a few hours):
 the six-parameter flow with S8 in place of As; the two data-constrained parameters of R4 (As, Ωm), next to the binned-KDE n_σ of the same pair
 computed in the same run with the R2 estimator (the only on-chain check of the curved directions);
-the 1-D S8 and 2-D (S8, Ωm) flows next to this study's binned-KDE values (`r2.json` `1d.n_sigma`
+the 1-D S8 (not run, see the amendment of 2026-11-18) and 2-D (S8, Ωm) flows next to this study's binned-KDE values (`r2.json` `1d.n_sigma`
 2.6735 and `2d.n_sigma` 2.1777); each repetition's Δ, interval and training time; the R4 Gaussian
 values beside the flow values. Like R2, R6 uses the chains as they are: no prior flow, no truncation.
 
