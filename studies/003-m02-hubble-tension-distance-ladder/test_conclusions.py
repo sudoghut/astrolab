@@ -275,3 +275,117 @@ def test_rob_three_way_label():
     assert rob.three_way(14, 400, "u", "n")[0] == "undetermined (Monte Carlo)"
     lo, hi = rob._cp(0, 10)
     assert lo == 0.0 and 0 < hi < 1
+
+
+def _row(z, d, sg, ref=-0.0405, extra=0.02):
+    """R2's verdict table, written out independently of run.py."""
+    if z <= -2 and abs(d - ref) <= 2 * sg + extra:
+        return "host selection significantly lowers H0, by the size the paper reports (supports the paper)"
+    if z <= -2:
+        return "host selection significantly lowers H0, but by a different size"
+    if abs(z) < 2:
+        return "no host-selection effect detected in these data (does not support the paper's quantitative claim)"
+    return "host selection raises H0 (contradicts the paper)"
+
+
+def test_r2_re_n5584_labels():
+    """README section 2, addendum 2026-11-18 (R2-RE-N5584): re-derive every label from the saved numbers."""
+    from scipy import stats
+
+    path = RESULTS / "r2_re_n5584.json"
+    out = load("r2_re_n5584")
+    assert path.stat().st_size < 1_000_000
+    s = load("summary")["R2_RE_N5584"]
+    assert s["status"] == out["status"]
+    if out["status"] != "evaluated":
+        pytest.skip(out["status"])
+    re_ = load("r2_re")
+    assert out["host"] == "N5584" and out["column"] == 26
+
+    def label(k, n, unusual, usual):
+        lo = 0.0 if k == 0 else stats.beta.ppf(0.025, k, n - k + 1)
+        hi = 1.0 if k == n else stats.beta.ppf(0.975, k + 1, n - k)
+        return unusual if hi < 0.05 else usual if lo > 0.05 else "undetermined (Monte Carlo)"
+
+    # (a) removal
+    a = out["drop"]
+    assert a["status"] == "evaluated"
+    assert a["rows_removed"]["total"] == a["rows_removed"]["calib_sn"] + a["rows_removed"]["cepheid"] \
+        + a["rows_removed"]["other"] and a["rows_removed"]["calib_sn"] >= 1
+    hs = a["c"]["host_step"]
+    assert abs(hs["z"] - hs["shift"] / hs["shift_sigma"]) < 1e-9
+    assert a["c"]["row"] == _row(hs["z"], hs["shift"], hs["shift_sigma"])
+    rn = a["r2_re"]
+    if rn["status"] == "evaluated":
+        h = rn["host_step"]
+        assert rn["verdict"] == _row(h["z"], h["shift"], h["shift_sigma"])
+        assert rn["tau_hat"] == (0.0 if rn["reml"]["at_zero"] else rn["reml"]["tau_hat"])
+        assert not rn["reml"]["at_upper_bound"]
+    r4n = a["r4n"]
+    if "percentile" in r4n:
+        assert r4n["cchp_shift"] == hs["shift"]
+        p = r4n["percentile"]
+        assert r4n["verdict"] == ("the selection itself is systematically low" if p < 5 else
+                                  "the selection itself is systematically high" if p > 95 else
+                                  "consistent with random-subset fluctuations")
+    t, sp = a["bn"].get("tau", {}), a["bn"].get("spread", {})
+    if t.get("status") == "evaluated":
+        assert t["tau_obs"] == rn["tau_hat"] and t["n_failed"] <= 20
+        assert abs(t["p"] - (1 + t["k"]) / (1 + t["n_ok"])) < 1e-12
+        assert t["label"] == label(t["k"], t["n_ok"], "tau_hat unusual under C (excess calibrator scatter)",
+                                   "tau_hat not unusual under C")
+    if sp.get("status") == "evaluated":
+        assert abs(sp["p"] - (1 + sp["k"]) / (1 + sp["n_sims"])) < 1e-12
+        assert sp["label"] == label(sp["k"], sp["n_sims"], "the R4 excess spread is unusual under C",
+                                    "the R4 spread is consistent with C")
+    if t.get("status") != "evaluated" or sp.get("status") != "evaluated":
+        exp = "not evaluable"
+    elif sp["label"] == "the R4 spread is consistent with C" and t["label"] != \
+            "tau_hat unusual under C (excess calibrator scatter)":
+        exp = "the excess calibrator scatter of R2-RE-ROB is attributable to N5584"
+    elif sp["label"] == "the R4 excess spread is unusual under C":
+        exp = "excess scatter remains without N5584"
+    elif sp["label"] == "the R4 spread is consistent with C":
+        exp = "tau excess remains without N5584"
+    else:
+        exp = "undetermined"
+    assert a["reading"] == exp == s["drop_reading"]
+
+    # (b) heavy-tailed host effect
+    b = out["heavy_tail"]
+    chk = b.get("implementation_check")
+    if chk is not None:
+        ok = chk["converged"] and abs(chk.get("tau_diff", 1)) <= 1e-4 and abs(chk.get("z_diff", 1)) <= 0.005
+        assert chk["passed"] == ok
+        if not ok:
+            assert b["status"].startswith("not evaluable (implementation check failed")
+    m = b.get("nu_main", {})
+    assert m.get("nu", 4) == 4
+    if b["status"] == "evaluated":
+        st = m["starts"]
+        assert len(st) == 2 and all(x["converged"] and x["iterations"] <= 10000 for x in st)
+        assert abs(st[0]["tau_hat"] - st[1]["tau_hat"]) <= 1e-4
+        assert 1e-3 <= m["tau_hat"] < 0.5 - 1e-3 or m["at_zero"]
+        h = m["host_step"]
+        assert abs(h["z"] - h["shift"] / h["shift_sigma"]) < 1e-9
+        assert m["row"] == _row(h["z"], h["shift"], h["shift_sigma"])
+        om = [x["omega"] for x in m["omega_ranked"]]
+        assert om == sorted(om) and len(om) == 37
+        exp_b = ("R2-RE verdict robust to a heavy-tailed host effect" if m["row"] == re_["verdict"] else
+                 "R2-RE verdict depends on the host-effect distribution (heavy-tailed: " + m["row"] + ")")
+        assert b["label"] == exp_b == s["t_label"]
+        if exp_b.startswith("R2-RE verdict robust"):
+            assert out["joint_reading"] == ("the null result holds under both removal and down-weighting of "
+                                            "N5584; only the hybrid tau route of R2-RE-ROB A flips")
+        else:
+            assert out["joint_reading"].startswith("the verdict depends on how one host is modelled")
+            assert f"{m['z']:.2f}" in out["joint_reading"] and f"{re_['z']:.2f}" in out["joint_reading"]
+    else:
+        assert out["joint_reading"].startswith("no joint reading")
+    for r in b.get("nu_sensitivity", []):
+        assert r["nu"] in (2, 10)
+        if r["status"] == "evaluated":
+            h = r["host_step"]
+            assert r["row"] == _row(h["z"], h["shift"], h["shift_sigma"])
+        else:
+            assert r["status"].startswith("reported, not evaluable")

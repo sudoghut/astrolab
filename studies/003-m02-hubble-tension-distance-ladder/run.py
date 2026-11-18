@@ -18,6 +18,7 @@ from scipy import linalg, optimize
 
 from astrolab import infer
 
+import n5584
 import rob
 
 # Tunable knobs (AGENTS.md section 2). Read inside main() and passed on as arguments.
@@ -40,6 +41,9 @@ PARAMS = {
     # R2-RE-ROB (README section 2, addendum 2026-11-17, T-032)
     "rob_check": True, "rob_n_tau": 400, "rob_n_spread": 2000, "rob_n_subsets": 1000,
     "rob_seed_base": 10_000, "rob_max_failed": 20,
+    # R2-RE-N5584 (README section 2, addendum 2026-11-18, T-039): (a) removal, (b) Student-t host effect
+    "n5584_check": True, "n5584_host": "N5584",
+    "t_nu": 4, "t_nu_sens": [2, 10], "t_maxiter": 10000, "t_tol": 1e-8, "t_starts": [0.077, 0.20],
 }
 
 DR = "PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/"
@@ -57,6 +61,7 @@ N_ROWS, N_PAR = 3492, 47
 NH = 37
 C_N4258, C_MH, C_LMC, C_M31, C_BW, C_MB, C_ZW, C_X, C_ZP, C_H0 = range(37, 47)
 PAR_NAMES = None  # filled in main from HOSTS
+N5584_COLUMN = 26  # N5584's column under the amended host labelling (host_identification.json)
 
 # R22 Table 6 (arXiv:2112.04510, PDF p. 30): host, SN, m0_B, sigma, mu_Ceph(a), sigma(a)
 TABLE6 = [
@@ -289,6 +294,84 @@ def shift_vector(res_sub, rows_sub, res_full, rows_full, col=C_H0):
     a[rows_sub] += res_sub["A"][kpos(res_sub, col)]
     a[rows_full] -= res_full["A"][kpos(res_full, col)]
     return a
+
+
+# ---------------------------------------------------------------- R4 (README section 2)
+def r4_draws(L, y, C, rows_a, res_a, qa, sa, base_rows, host_rows, host_cols, n_pick, draws, seed,
+             max_minutes, n_sn_col, out, log, name="R4"):
+    """R4's draw loop with its runtime guard: `draws` subsets of `n_pick` hosts drawn with
+    default_rng(seed).choice(len(host_cols), n_pick, replace=False), indexing `host_cols` in order
+    (R4: all 37 columns, so the index is the column; R4-N: the 36 columns without N5584). Each subset
+    is refitted under C and compared with the reference fit `res_a` on `rows_a` (5 log H0 qa, sigma
+    sa). Writes z_identity_check, seconds_per_draw, draws_reduced_from and a runtime status into
+    `out`; returns deltas, nsns, zs, picks (picks hold column indices)."""
+    rng = np.random.default_rng(seed)
+    cols = np.asarray(host_cols, dtype=np.int64)   # the dtype of rng.choice, as in the original loop
+    deltas, nsns, zs, picks = [], [], [], []
+    t1 = time.perf_counter()
+    i = 0
+    while i < draws:
+        pick = cols[rng.choice(len(cols), size=n_pick, replace=False)]
+        picks.append(pick)
+        rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
+        res = fit(L, y, C, rows, est=(i == 0))
+        deltas.append(float(res["q"][C_H0]) - qa)
+        # nested GLS with the same C: the full fit is efficient (BLUE) for a superset of the
+        # data, so Cov(full, sub) = Var(full) and Var(sub - full) = sigma_sub^2 - sigma_full^2
+        # (Hausman-type identity; checked exactly on R2's host step and on the first draw here)
+        if i == 0:
+            a1 = shift_vector(res, rows, res_a, rows_a)
+            exact = float(a1 @ C @ a1)
+            nested = float(res["sigma"][C_H0]) ** 2 - sa ** 2
+            out["z_identity_check"] = {"exact_aCa": exact, "nested": nested,
+                                       "rel_diff": abs(exact - nested) / exact}
+            if abs(exact - nested) > 1e-6 * exact:
+                raise RuntimeError(f"nested-variance identity failed: {exact} vs {nested}")
+        zs.append(deltas[-1] / np.sqrt(max(float(res["sigma"][C_H0]) ** 2 - sa ** 2, 1e-30)))
+        nsns.append(int(sum(n_sn_col[j] for j in pick)))
+        i += 1
+        if i == 100:
+            per = (time.perf_counter() - t1) / 100
+            proj = per * draws / 60
+            out["seconds_per_draw"] = per
+            if proj > max_minutes:
+                new = int(max_minutes * 60 / per) // 1000 * 1000
+                if new < 2000:
+                    out["status"] = "not evaluated (runtime)"
+                    deltas, nsns, zs, picks = [], [], [], []
+                    break
+                out["draws_reduced_from"] = draws
+                draws = new
+                log(f"{name}: projected {proj:.0f} min; draws reduced to {draws}")
+    return deltas, nsns, zs, picks
+
+
+def r4_summary(deltas, zs, nsns, d_h, z):
+    """R4's reported numbers and its pre-registered 5/95 percentile rule for the CCHP shift d_h."""
+    dl = np.array(deltas)
+    pct = float(100.0 * np.mean(dl <= d_h))
+    if pct < 5:
+        rv = "the selection itself is systematically low"
+    elif pct > 95:
+        rv = "the selection itself is systematically high"
+    else:
+        rv = "consistent with random-subset fluctuations"
+    qs_ = np.percentile(dl, [2.5, 5, 16, 50, 84, 95, 97.5])
+    hist, edges = np.histogram(dl, bins=60)
+    return {"draws": len(dl), "cchp_shift": d_h, "percentile": pct, "verdict": rv,
+            "quantiles": dict(zip(["p2.5", "p5", "p16", "p50", "p84", "p95", "p97.5"],
+                                  [float(x) for x in qs_])),
+            "mean": float(dl.mean()), "std": float(dl.std()),
+            "hist_counts": hist.tolist(), "hist_edges": [float(e) for e in edges],
+            "n_sn_mean": float(np.mean(nsns)),
+            # added after the first results (gate-1 review; descriptive): each draw's
+            # shift in units of its own C-propagated sigma, and where the CCHP z sits
+            "z_quantiles": dict(zip(["p2.5", "p5", "p16", "p50", "p84", "p95", "p97.5"],
+                                    [float(x) for x in np.percentile(zs, [2.5, 5, 16, 50, 84, 95, 97.5])])),
+            "z_std": float(np.std(zs)), "cchp_z": z,
+            "z_percentile": float(100.0 * np.mean(np.array(zs) <= z)),
+            "shift_by_n_sn": {str(n): float(np.mean(dl[np.array(nsns) == n]))
+                              for n in sorted(set(nsns))}}
 
 
 # ---------------------------------------------------------------- R2-RE (addendum 2026-11-16)
@@ -533,6 +616,23 @@ def r2_re_r4(out, L, y, V, res_aV, hs, rows_a, base_rows, host_rows, picks):
         out["r4_under_v"] = {"draws": len(zs), "z_std": float(zs_a.std()), "z_mean": float(zs_a.mean()),
                              "cchp_z": hs["z"], "z_percentile": float(100.0 * np.mean(zs_a <= hs["z"])),
                              "shift_percentile": float(100.0 * np.mean(np.array(deltas) <= hs["shift"]))}
+
+
+def n5584_summary(n_out):
+    """Short summary of R2-RE-N5584 for summary.json."""
+    if n_out.get("status") != "evaluated":
+        return {"status": n_out.get("status")}
+    a, b = n_out["drop"], n_out["heavy_tail"]
+    bn = a.get("bn", {})
+    return {"status": "evaluated",
+            "drop_reading": a.get("reading", a.get("status")),
+            "drop_tau_hat": a.get("r2_re", {}).get("tau_hat"),
+            "drop_R4N_verdict": a.get("r4n", {}).get("verdict", a.get("r4n", {}).get("status")),
+            "drop_BN_tau": bn.get("tau", {}).get("label", bn.get("tau", {}).get("status")),
+            "drop_BN_spread": bn.get("spread", {}).get("label", bn.get("spread", {}).get("status")),
+            "t_status": b.get("status"), "t_label": b.get("label"),
+            "t_tau_hat": b.get("nu_main", {}).get("tau_hat"), "t_z": b.get("nu_main", {}).get("z"),
+            "joint_reading": n_out["joint_reading"]}
 
 
 # ---------------------------------------------------------------- main
@@ -802,78 +902,23 @@ def main(ctx):
     ctx.save("r3", r3)
 
     # ---- R4 (descriptive)
-    rng = np.random.default_rng(P["r4_seed"])
     host_rows = [np.flatnonzero(nz[:, j]) for j in range(NH)]
     any_host = nz[:, :NH].any(axis=1)
     base_rows = np.array([i for i in rows_a if not any_host[i]])
     n_sn = {h: len(sn[h]["mb"]) for h in hosts}
+    n_sn_col = [n_sn[col_host[j]] for j in range(NH)]
     draws = int(P["r4_draws"])
     deltas, nsns, zs, picks = [], [], [], []
     r4 = {"status": "evaluated", "draws_requested": draws, "labelling_mode": mode}
     if not ident["host_step_evaluable"]:
         r4["status"] = "not evaluable"
     else:
-        t1 = time.perf_counter()
-        i = 0
-        while i < draws:
-            pick = rng.choice(NH, size=len(cchp), replace=False)
-            picks.append(pick)
-            rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
-            res = fit(L, y, C, rows, est=(i == 0))
-            deltas.append(float(res["q"][C_H0]) - qa)
-            # nested GLS with the same C: the full fit is efficient (BLUE) for a superset of the
-            # data, so Cov(full, sub) = Var(full) and Var(sub - full) = sigma_sub^2 - sigma_full^2
-            # (Hausman-type identity; checked exactly on R2's host step and on the first draw here)
-            if i == 0:
-                a1 = shift_vector(res, rows, res_a, rows_a)
-                exact = float(a1 @ C @ a1)
-                nested = float(res["sigma"][C_H0]) ** 2 - sa ** 2
-                r4["z_identity_check"] = {"exact_aCa": exact, "nested": nested,
-                                          "rel_diff": abs(exact - nested) / exact}
-                if abs(exact - nested) > 1e-6 * exact:
-                    raise RuntimeError(f"nested-variance identity failed: {exact} vs {nested}")
-            zs.append(deltas[-1] / np.sqrt(max(float(res["sigma"][C_H0]) ** 2 - sa ** 2, 1e-30)))
-            nsns.append(int(sum(n_sn[col_host[j]] for j in pick)))
-            i += 1
-            if i == 100:
-                per = (time.perf_counter() - t1) / 100
-                proj = per * draws / 60
-                r4["seconds_per_draw"] = per
-                if proj > P["r4_max_minutes"]:
-                    new = int(P["r4_max_minutes"] * 60 / per) // 1000 * 1000
-                    if new < 2000:
-                        r4["status"] = "not evaluated (runtime)"
-                        deltas, nsns, zs, picks = [], [], [], []
-                        break
-                    r4["draws_reduced_from"] = draws
-                    draws = new
-                    ctx.log(f"R4: projected {proj:.0f} min; draws reduced to {draws}")
+        deltas, nsns, zs, picks = r4_draws(L, y, C, rows_a, res_a, qa, sa, base_rows, host_rows,
+                                           np.arange(NH), len(cchp), draws, P["r4_seed"],
+                                           P["r4_max_minutes"], n_sn_col, r4, ctx.log, "R4")
         if deltas:
-            dl = np.array(deltas)
-            pct = float(100.0 * np.mean(dl <= d_h))
-            if pct < 5:
-                rv = "the selection itself is systematically low"
-            elif pct > 95:
-                rv = "the selection itself is systematically high"
-            else:
-                rv = "consistent with random-subset fluctuations"
-            qs_ = np.percentile(dl, [2.5, 5, 16, 50, 84, 95, 97.5])
-            hist, edges = np.histogram(dl, bins=60)
-            r4.update({"draws": len(dl), "cchp_shift": d_h, "percentile": pct, "verdict": rv,
-                       "quantiles": dict(zip(["p2.5", "p5", "p16", "p50", "p84", "p95", "p97.5"],
-                                             [float(x) for x in qs_])),
-                       "mean": float(dl.mean()), "std": float(dl.std()),
-                       "hist_counts": hist.tolist(), "hist_edges": [float(e) for e in edges],
-                       "n_sn_mean": float(np.mean(nsns)),
-                       # added after the first results (gate-1 review; descriptive): each draw's
-                       # shift in units of its own C-propagated sigma, and where the CCHP z sits
-                       "z_quantiles": dict(zip(["p2.5", "p5", "p16", "p50", "p84", "p95", "p97.5"],
-                                               [float(x) for x in np.percentile(zs, [2.5, 5, 16, 50, 84, 95, 97.5])])),
-                       "z_std": float(np.std(zs)), "cchp_z": z,
-                       "z_percentile": float(100.0 * np.mean(np.array(zs) <= z)),
-                       "shift_by_n_sn": {str(n): float(np.mean(dl[np.array(nsns) == n]))
-                                         for n in sorted(set(nsns))}})
-            ctx.log(f"R4: CCHP shift at percentile {pct:.1f} of {len(dl)} draws -> {rv}")
+            r4.update(r4_summary(deltas, zs, nsns, d_h, z))
+            ctx.log(f"R4: CCHP shift at percentile {r4['percentile']:.1f} of {r4['draws']} draws -> {r4['verdict']}")
     ctx.save("r4", r4)
 
     # ---- R2-RE (README section 2, addendum 2026-11-16): host-level random effect
@@ -906,6 +951,24 @@ def main(ctx):
                 f"B tau {rob_out['B'].get('tau', {}).get('label')}; "
                 f"B spread {rob_out['B'].get('spread', {}).get('label')}")
     ctx.save("r2_re_rob", rob_out)
+
+    # ---- R2-RE-N5584 (README section 2, addendum 2026-11-18, T-039): runs after, and in addition to,
+    # the R2-RE-ROB block, under the same condition (R2-RE run and the host step evaluable)
+    n_out = {"status": "not run (PARAMS)"}
+    if P["n5584_check"] and not (P["re_check"] and ident["host_step_evaluable"]):
+        n_out = {"status": "not evaluable (R2-RE not run or host step not evaluable)"}
+    if P["n5584_check"] and P["re_check"] and ident["host_step_evaluable"]:
+        calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]
+        fns_n = {"reml_tau": reml_tau, "reml_m2l": reml_m2l, "host_step_under": host_step_under,
+                 "with_re": with_re, "fit": fit, "shift_vector": shift_vector, "is_fit_failure": is_fit_failure,
+                 "C_H0": C_H0, "r4_draws": r4_draws, "r4_summary": r4_summary, "r2_re_r4": r2_re_r4,
+                 "verdict": lambda z_, d_, s_: host_step_verdict(z_, d_, s_, P["host_ref"], P["host_ref_extra"])}
+        n_out = n5584.run_block(L, y, C, nz, cls, rows_a, rows_s, sorted(cset), calib_groups, col_host[:NH],
+                                host_rows, n_sn_col, re, {"shift": d_h, "shift_sigma": s_h, "z": z}, P, fns_n,
+                                ctx.log, expected_col=N5584_COLUMN if P["n5584_host"] == "N5584" else None)
+        ctx.log(f"R2-RE-N5584: (a) {n_out['drop'].get('reading', n_out['drop']['status'])}; "
+                f"(b) {n_out['heavy_tail'].get('label')}")
+    ctx.save("r2_re_n5584", n_out)
 
     # One canonical qualified verdict for the host step (gate-2 review): states the labelling mode
     # and, when R4 ran, the empirical (random-subset) scale next to the C-propagated significance.
@@ -970,6 +1033,7 @@ def main(ctx):
         "R2_host_shift": d_h, "R2_host_sigma": s_h, "R2_host_z": z,
         "R3_cchp_match": r3.get("cchp_match"), "R3_d": r3.get("d"), "R3_sigma_d": r3.get("sigma_d"),
         "R4_percentile": r4.get("percentile"), "R4_verdict": r4.get("verdict", r4["status"]),
+        "R2_RE_N5584": n5584_summary(n_out),
         "runtime_s": time.perf_counter() - t0,
     }
     ctx.save("summary", summary)
