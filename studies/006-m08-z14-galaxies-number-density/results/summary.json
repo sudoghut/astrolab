@@ -32,6 +32,9 @@
   "sigma8_tol": 0.001,
   "run_variants": true,
   "post_check": true,
+  "post2_check": true,
+  "post2_n_poisson": 2,
+  "post2_identify_frac": 0.6,
   "post_walkers": 32,
   "post_steps": 100000,
   "post_burn": 20000,
@@ -80,5 +83,19 @@
    "consistent with N26": 0.962,
    "different": 0.038
   }
+ },
+ "R3_post2": {
+  "r2_label": "robust to the calibration uncertainty (higher); sigma_cal prior-dominated",
+  "r2_probabilities": {
+   "higher": 0.99,
+   "same order as N26's baseline": 0.01,
+   "lower": 0.0
+  },
+  "r3_label": "calibration-uncertain; sigma_cal prior-dominated",
+  "r3_probabilities": {
+   "consistent with N26": 0.916,
+   "different": 0.084
+  },
+  "sigma_cal_prior_dominated": true
  }
 }
