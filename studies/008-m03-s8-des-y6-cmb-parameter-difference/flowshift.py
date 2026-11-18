@@ -163,8 +163,8 @@ def run_job(job, inp, cfg):
         d = np.load(inp, allow_pickle=False)
         xa = np.column_stack([d["des_" + c] for c in cols])
         xb = np.column_stack([d["cmb_" + c] for c in cols])
-        return one_shift(resampled_difference(xa, d["des_w"], xb, d["cmb_w"], cfg["n"], k), cols, k,
-                         cfg["estimate"])
+        est = cfg["cases"][name].get("estimate", cfg["estimate"])    # amendment 2026-11-18 (README 2.6)
+        return one_shift(resampled_difference(xa, d["des_w"], xb, d["cmb_w"], cfg["n"], k), cols, k, est)
     except Exception as exc:             # recorded; the verdict rule handles failures
         return {"seed": int(job[-1]), "error": _clean(f"{type(exc).__name__}: {exc}")}
 

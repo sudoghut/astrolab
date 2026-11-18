@@ -67,6 +67,8 @@ PARAMS = {
     "r6_published": 1.8, "r6_tol": 0.15, "r6_s_max": 0.07, "r6_lb_margin": 0.10, "r6_n": 100_000,
     "r6_seeds_main": [0, 1, 2, 3, 4], "r6_seeds_reported": [0, 1, 2],
     "r6_estimate": {"tol": 0.02, "max_iter": 1000, "step": 100_000},
+    # amendment 2026-11-18 (README 2.6): iteration cap for the reported constrained / 1-D / 2-D cases
+    "r6_estimate_reported": {"tol": 0.02, "max_iter": 100, "step": 100_000},
     "r6_gate": {"mu1": 2.0, "mu2": 1.0, "curv": 0.3,
                 "boxes": [[-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.1, 1.9, 0.1]],
                 "n_exact": 2_000_000, "exact_seed": 999, "seeds": [10, 11, 12], "sample_seed_offset": 1000,
@@ -427,9 +429,12 @@ def main(ctx):
         con_short = [n.split("--")[-1] for n in r4["full_space"].get("constrained_parameters", [])]
         cases = {"main": {"columns": short, "seeds": P["r6_seeds_main"]},
                  "s8_for_as": {"columns": [("s8" if c in amp else c) for c in short], "seeds": P["r6_seeds_reported"]},
-                 "constrained": {"columns": con_short or amp + ["omega_m"], "seeds": P["r6_seeds_reported"]},
-                 "flow_1d": {"columns": ["s8"], "seeds": P["r6_seeds_reported"]},
-                 "flow_2d": {"columns": ["s8", "omega_m"], "seeds": P["r6_seeds_reported"]}}
+                 "constrained": {"columns": con_short or amp + ["omega_m"], "seeds": P["r6_seeds_reported"],
+                               "estimate": P["r6_estimate_reported"]},
+                 "flow_1d": {"columns": ["s8"], "seeds": P["r6_seeds_reported"],
+                               "estimate": P["r6_estimate_reported"]},
+                 "flow_2d": {"columns": ["s8", "omega_m"], "seeds": P["r6_seeds_reported"],
+                               "estimate": P["r6_estimate_reported"]}}
         cfg = {"n": P["r6_n"], "estimate": P["r6_estimate"], "gate": P["r6_gate"], "cases": cases}
         ctx.log("R6: known-answer gate, then the chains (several hours)")
         # README 2.6 order (1): a failed R1 gate decides; the flows are then not run
@@ -441,6 +446,8 @@ def main(ctx):
         kb = np.column_stack([arrays["cmb_" + c] for c in cases["constrained"]["columns"]])
         kde_con = s8diff.parameter_difference(ka, arrays["des_w"], kb, arrays["cmb_w"], P["n_pairs"], P["seeds"])
         r6 = {"parameters": six, "support": support6, "flows": res, "verdict": v, "reason": why,
+              "estimate": {"default": P["r6_estimate"],              # amendment 2026-11-18 (README 2.6)
+                           "by_case": {n: c.get("estimate", P["r6_estimate"]) for n, c in cases.items()}},
               "kde_reference": {"1d": r2.get("1d", {}).get("n_sigma"), "2d": r2.get("2d", {}).get("n_sigma"),
                                 "constrained": kde_con.get("n_sigma"), "constrained_s": kde_con.get("s")},
               "gaussian_reference": {"all": r4["full_space"].get("all", {}).get("n_sigma"),
