@@ -414,7 +414,8 @@ recomputed every number it could from about 34 MB of public files, with its own 
 - 2026-11-16: referee of R2-CAMB: the prior's source chain matches reading A (ωbc mean includes ων),
   so the evidence now favours A, which gives about −6.6; open question registered as T-030.
 - 2026-11-18: R2-CAMB-RD (T-030): θ* and r_d both from CAMB, pre-registered addendum; R2 robust to
-  the r_d formula (A −6.49 / −6.60, B −7.90 / −8.03); DESI's configuration not found in public sources.
+  the r_d formula (A −6.49 / −6.60, B −7.90 / −8.03); DESI's configuration not found in public sources
+  at that time (see the T-041 entry).
 - 2026-11-18: DESI's configuration (T-041, post hoc): DESI's public chain configuration compares the
   ωbc mean with ωb + ωc (reading B) unless the non-public likelihood adds ων; B is the likely convention.
 
@@ -657,5 +658,5 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 - 2026-11-14：独立审稿：R2 两种解读的分歧可能落在（未测量的）θ* 标定系统误差之内，且式 2 指向解读 A，所以约定仍未确定；补充 `mod_sig`、`Challenged` 与 `gap_regular`（先验截断）的说明。
 - 2026-11-16：R2-CAMB（T-022，计划 020）：在拟合点用 CAMB 的 θ*，预注册附录；R2 对 θ* 标定稳健，所以 A/B 的分歧反映的是 ωbc 约定本身（第三部分更新）。
 - 2026-11-16：R2-CAMB 的独立审稿：先验的来源链与解读 A 一致（ωbc 均值含 ων），证据现在偏向 A，而 A 给出约 −6.6；开放问题登记为 T-030。
-- 2026-11-18：R2-CAMB-RD（T-030）：θ* 与 r_d 都取自 CAMB，预注册附录；R2 对 r_d 公式稳健（A −6.49 / −6.60，B −7.90 / −8.03）；公开来源中没有找到 DESI 的配置。
+- 2026-11-18：R2-CAMB-RD（T-030）：θ* 与 r_d 都取自 CAMB，预注册附录；R2 对 r_d 公式稳健（A −6.49 / −6.60，B −7.90 / −8.03）；当时在公开来源中没有找到 DESI 的配置（见 T-041 一条）。
 - 2026-11-18：DESI 的配置（T-041，事后）：DESI 公开的链配置表明拿 ωbc 均值与 ωb + ωc 比较（解读 B），除非源码不公开的似然加上 ων；B 是可能性大的约定。
