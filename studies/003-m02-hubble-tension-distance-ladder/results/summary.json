@@ -28,7 +28,13 @@
   "cchp_match_tol": 0.02,
   "re_check": true,
   "re_tau_max": 0.5,
-  "re_grid_step": 0.01
+  "re_grid_step": 0.01,
+  "rob_check": true,
+  "rob_n_tau": 400,
+  "rob_n_spread": 2000,
+  "rob_n_subsets": 1000,
+  "rob_seed_base": 10000,
+  "rob_max_failed": 20
  },
  "validity": {
   "row_counts": {
@@ -75,5 +81,5 @@
  "R3_sigma_d": 0.04783482196376176,
  "R4_percentile": 5.680000000000001,
  "R4_verdict": "consistent with random-subset fluctuations",
- "runtime_s": 1678.0003021999728
+ "runtime_s": 12824.3704342
 }

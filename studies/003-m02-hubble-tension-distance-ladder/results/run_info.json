@@ -1,7 +1,7 @@
 {
  "study": "003-m02-hubble-tension-distance-ladder",
- "finished_at": "2026-11-16T10:54:58+00:00",
- "seconds": 1678.05,
+ "finished_at": "2026-11-18T13:15:54+00:00",
+ "seconds": 12825.46,
  "outputs": [
   "r1.json",
   "host_identification.json",
@@ -10,6 +10,7 @@
   "r3.json",
   "r4.json",
   "r2_re.json",
+  "r2_re_rob.json",
   "r2.json",
   "cross_paper.json",
   "summary.json"
