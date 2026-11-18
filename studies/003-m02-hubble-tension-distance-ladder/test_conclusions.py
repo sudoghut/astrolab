@@ -346,7 +346,7 @@ def test_r2_re_n5584_labels():
     elif sp["label"] == "the R4 excess spread is unusual under C":
         exp = "excess scatter remains without N5584"
     elif sp["label"] == "the R4 spread is consistent with C":
-        exp = "tau excess remains without N5584"
+        exp = "τ excess remains without N5584"
     else:
         exp = "undetermined"
     assert a["reading"] == exp == s["drop_reading"]
@@ -376,7 +376,7 @@ def test_r2_re_n5584_labels():
         assert b["label"] == exp_b == s["t_label"]
         if exp_b.startswith("R2-RE verdict robust"):
             assert out["joint_reading"] == ("the null result holds under both removal and down-weighting of "
-                                            "N5584; only the hybrid tau route of R2-RE-ROB A flips")
+                                            "N5584; only the hybrid τ route of R2-RE-ROB A flips")
         else:
             assert out["joint_reading"].startswith("the verdict depends on how one host is modelled")
             assert f"{m['z']:.2f}" in out["joint_reading"] and f"{re_['z']:.2f}" in out["joint_reading"]
