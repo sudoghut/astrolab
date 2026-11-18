@@ -291,6 +291,19 @@ S8 and the weights are passed to the TF environment as one temporary file in the
 resolved from `%LOCALAPPDATA%` at run time and only its availability and package versions are
 saved. Expected run time about 3–4 hours (each training about 10 minutes).
 
+**Amendment 2026-11-18 (user decision, before any secondary result was seen): iteration cap for
+the reported cases.** The formal run of 2026-11-17 finished the known-answer gate (seeds 10–12), the
+main case (seeds 0–4) and the S8-for-As case (seeds 0–2), then spent 20 hours on the first
+constrained repetition without finishing: with `max_iter = 1000` and `step = 100000`, the estimator
+may draw up to 10⁸ samples when the tension is large, and eight more reported repetitions were
+queued. The user chose to stop the run and cap the reported cases. For the constrained, 1-D and 2-D
+cases only, `estimate_shift` uses `max_iter = 100` (same `tol` and `step`); a repetition that does
+not reach the tolerance within the cap is reported as not converged, as before. The gate, the main
+case (which alone decides R6) and the S8-for-As case keep `max_iter = 1000`. Nothing of the stopped
+run was opened: no job result file, no log line with a Δ or n_σ, was read. The whole R6 is rerun
+from scratch (the job cache is keyed by the configuration, so earlier job files are not reused);
+with fixed seeds the gate and main results are expected to be identical.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
