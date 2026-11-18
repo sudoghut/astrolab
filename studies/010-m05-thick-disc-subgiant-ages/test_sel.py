@@ -348,5 +348,59 @@ def test_mock_store_stop_and_consent(tmp_path):
     assert st2.resumed and st2.get(1, 0)["result"] == {"d": 0.5}
     assert st2.elapsed_s() >= 0.0
     assert not (st2.dir / "resume_consent.txt").exists()          # consent is used once
+    assert st2.limit_h is None and st2.resumes()[0]["limit_h"] is None
     st2.finish()
     assert not st2.dir.exists()
+
+
+def test_checkpoint_key_ignores_stop_limit_and_parts():
+    text = (HERE / "run.py").read_text(encoding="utf-8")
+    assert '"sel_stop_h": 16.0' in text
+    edited = text.replace('"sel_stop_h": 16.0', '"sel_stop_h": 24.0').replace('"parts": ["sel"]', '"parts": ["orig", "sel"]')
+    assert selaux.strip_params(edited) == selaux.strip_params(text)
+    assert selaux.strip_params(text.replace("def main_sel(", "def main_sel_x(")) != selaux.strip_params(text)
+    P = dict(run.PARAMS)
+    src = {"run.py": selaux.strip_params(text), "m0.py": "x"}
+    k0 = selaux.checkpoint_key(P, src, b"data")
+    assert selaux.checkpoint_key({**P, "sel_stop_h": 24.0, "parts": ["orig"]}, src, b"data") == k0
+    assert selaux.checkpoint_key({**P, "sel_n_mock": 49}, src, b"data") != k0
+    assert selaux.checkpoint_key(P, src, b"other") != k0
+    assert selaux.checkpoint_key(P, {**src, "m0.py": "y"}, b"data") != k0
+    crlf = {k: v.replace("\n", "\r\n") for k, v in src.items()}
+    assert selaux.checkpoint_key(P, crlf, b"data") == k0
+
+
+def test_resume_with_raised_limit_continues_from_checkpoints(tmp_path):
+    sets = [{"k": k, "group": g} for k, g in enumerate(["R1", "R1", "AB"])]
+    calls = []
+
+    def run_one(s, rng):
+        calls.append(s["k"])
+        return {"d": float(rng.random()), "valley": True, "k": 2, "pass_rate": None}
+    mk = lambda k, j: selaux.mock_rng(0, 31, k, j)
+    st = selaux.MockStore(tmp_path, "key")
+    with pytest.raises(selaux.StopRun):
+        selaux.run_mock_sets(sets, 4, st, run_one, mk, 1e-12, log=lambda m: None)
+    assert sorted(calls) == [0, 1, 2]                      # stopped after the first-mock pass
+    with pytest.raises(selaux.StopRun):                     # no consent yet
+        selaux.MockStore(tmp_path, "key")
+    (st.dir / "resume_consent.txt").write_text("user consent 2026-11-18 (log.md)\nlimit_h = 24\n", encoding="utf-8")
+    st2 = selaux.MockStore(tmp_path, "key")
+    assert st2.resumed and st2.limit_h == 24.0 and st2.resumes()[-1]["limit_h"] == 24.0
+    calls.clear()
+    res, state, log = selaux.run_mock_sets(sets, 4, st2, run_one, mk, 1e-12, log=lambda m: None)
+    assert sorted(calls) == [0, 0, 0, 1, 1, 1, 2, 2, 2]    # only the mocks not yet checkpointed
+    assert all(p["limit_h"] == 24.0 for p in log) and log[-1]["mocks_left"] == 0
+    for s in sets:                                          # identical to an uninterrupted run
+        assert [r["d"] for r in res[s["k"]]] == [float(mk(s["k"], j).random()) for j in range(4)]
+    st2.release()
+    st3 = selaux.MockStore(tmp_path, "key")                 # the limit stays for the rest of the run
+    assert st3.limit_h == 24.0 and not st3.resumed
+    st3.release()
+
+
+def test_nonfinite_results_are_counted():
+    assert selaux.nonfinite({"sigma": float("nan"), "a": 1.0})
+    assert selaux.nonfinite({"d": float("inf")})
+    assert not selaux.nonfinite({"d": 0.3, "valley": True, "k": 2, "pass_rate": None})
+    assert selaux._jsonable_result({"x": np.float64("nan"), "v": np.bool_(True), "k": np.int64(3)})["k"] == 3

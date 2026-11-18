@@ -116,9 +116,14 @@ def test_result_files_small():
         assert path.stat().st_size < 1024 ** 2, path.name
 
 
+
 # ---------------------------------------------------------------------------------------------
 # R-SEL re-test (README 2.5, T-031): every -SEL label and qualifier re-derived from the saved files
 # ---------------------------------------------------------------------------------------------
+NMOCK = 50
+NONFINITE = "cannot determine (non-finite mock results)"
+
+
 def _median(xs):
     xs = sorted(xs)
     n = len(xs)
@@ -142,43 +147,100 @@ def _rob_word(x):
     return "robust" if x else "not robust"
 
 
-def _r1_bins_check(bins, null_from=None):
+def _edge_loop(trace):
+    """SEL-3 edge loop re-derived from the saved trace [edge, has valley, true d]: returns the kept
+    edge, its true d and validity, and checks the trace follows the loop."""
+    assert abs(trace[0][0] - 7.0) < 1e-9
+    for i in range(1, len(trace)):
+        assert abs(trace[i][0] - (trace[i - 1][0] - 0.5)) < 1e-9
+        assert trace[i - 1][1] and trace[i - 1][2] > 0.1          # lowered only while valley and d > 0.1
+    e, v, d = trace[-1]
+    if v and d <= 0.1:
+        return e, d, True
+    if not v:
+        return (e, d, False) if len(trace) == 1 else (trace[-2][0], trace[-2][2], False)
+    assert abs(e - 2.0) < 1e-9                                     # lowest candidate reached
+    return e, d, False
+
+
+def _sel_sets_expected():
+    out = []
+    for v in ("S15E", "S15N", "Full"):
+        for b in range(5):
+            for kind in ("null_sn", "null_sp", "power"):
+                for mech in ("rtau", "rA"):
+                    out.append(("R1", v, b, kind, mech, "primary"))
+    for term in ("E", "N"):
+        for mech in ("rtau", "rA"):
+            out.append(("A_rec", term, "rec", mech))
+    for term in ("E", "N"):
+        for kind in ("id", "mis"):
+            for mech in ("rtau", "rA"):
+                out.append(("B", term, kind, mech))
+    for term in ("E", "N"):
+        for mech in ("rtau", "rA"):
+            out.append(("diag", term, "diag", mech))
+    for v in ("S15E", "S15N", "Full"):
+        for b in (2, 3, 4):
+            for mech in ("rtau", "rA"):
+                out.append(("R1", v, b, "power", mech, "sens"))
+    return out
+
+
+def _set_tuple(s):
+    if s["tag"] == "R1":
+        return ("R1", s["variant"], s["bin"], s["kind"], s["mech"], s["floor"])
+    return (s["tag"], s["term"], s["kind"], s["mech"])
+
+
+def _r1_bins_check(bins, null_from=None, sens=False):
+    nf = 0
     for i, b in enumerate(bins):
         src = null_from[i] if null_from is not None else b
         q = []
         for key in ("null_sn_rtau", "null_sn_rA", "null_sp_rtau", "null_sp_rA"):
             m = src["mocks"][key]
-            assert len(m["d"]) == 50 and len(m["valley"]) == 50
-            ds = sorted(d for d, v in zip(m["d"], m["valley"]) if v)
+            assert len(m["d"]) == NMOCK and len(m["valley"]) == NMOCK
+            assert m["k"] < 90
+            nf += sum(d is None for d in m["d"])
+            ds = sorted(d for d, v in zip(m["d"], m["valley"]) if v and d is not None)
             q.append(ds[2] if len(ds) >= 3 else 0.25)
         dstar = min([0.25] + q)
-        assert abs(b["d_star"] - dstar) < 1e-12
+        if not nf:
+            assert abs(b["d_star"] - dstar) < 1e-12
+        pm = b["power_model"]
         for mech in ("rtau", "rA"):
             m = b["mocks"]["power_" + mech]
-            assert len(m["d"]) == 50
-            pw = sum(1 for d, v in zip(m["d"], m["valley"]) if v and d < dstar) / 50
-            assert abs(b["power"][mech] - pw) < 1e-12
-        res = all(v >= 0.80 for v in b["power"].values()) and not b["power_model_invalid"]
+            assert len(m["d"]) == NMOCK
+            nf += sum(d is None for d in m["d"])
+            in_sens = sens and i in (2, 3, 4)
+            assert (m["k"] >= 106) == in_sens
+            pw = sum(1 for d, v in zip(m["d"], m["valley"]) if v and d is not None and d < dstar) / NMOCK
+            if not nf:
+                assert abs(b["power"][mech] - pw) < 1e-12
+        floor = 0.20 if (sens and i in (2, 3, 4)) else 0.12
+        assert pm["floor"] == floor and pm["w_old"] == max(pm["w_old_raw"], floor)
+        edge, td, valid = _edge_loop(pm["edge_trace"])
+        assert pm["young"][1] == edge and pm["true_d"] == td and pm["valid"] == valid
+        assert b["power_model_invalid"] == (not valid)
+        res = all(v >= 0.80 for v in b["power"].values()) and valid
         assert b["resolvable"] == res
-        assert b["power_model_invalid"] == (not b["power_model"]["valid"])
-        assert b["almost_disjoint"] == bool(b["valley"] and b["d"] < dstar and b["edge"] is not None)
+        assert b["almost_disjoint"] == bool(b["valley"] and b["d"] < b["d_star"] and b["edge"] is not None)
+    return nf
 
 
 def test_sel_r1_labels():
     r1, sel = load("r1_sel"), load("sel")
-    assert r1["n_mock"] == 50 and r1["q_rank"] == 3 and r1["floor"] == 0.12 and r1["floor_sens"] == 0.20
+    assert r1["n_mock"] == NMOCK and r1["q_rank"] == 3 and r1["floor"] == 0.12 and r1["floor_sens"] == 0.20
     for name in ("S15E", "S15N", "Full"):
         var = r1["variants"][name]
-        _r1_bins_check(var["bins"])
-        assert var["verdict"] == _r1_verdict(var["bins"])
+        nf = _r1_bins_check(var["bins"])
+        assert bool(nf) == bool(var["nonfinite"])
+        assert var["verdict"] == (NONFINITE if nf else _r1_verdict(var["bins"]))
         sens = r1["floor_sensitivity"][name]
-        _r1_bins_check(sens["bins"], null_from=var["bins"])
-        assert sens["verdict"] == _r1_verdict(sens["bins"])
-        for b in var["bins"]:
-            assert b["power_model"]["w_old"] == max(b["power_model"]["w_old_raw"], 0.12)
-        for b in sens["bins"]:
-            assert b["power_model"]["w_old"] in (max(b["power_model"]["w_old_raw"], 0.20),
-                                                 max(b["power_model"]["w_old_raw"], 0.12))
+        nfs = _r1_bins_check(sens["bins"], null_from=var["bins"], sens=True)
+        assert bool(nfs) == bool(sens["nonfinite"])
+        assert sens["verdict"] == (NONFINITE if nfs else _r1_verdict(sens["bins"]))
     for key, part in (("label", "variants"), ("label_floor_sensitivity", "floor_sensitivity")):
         e, n, f = (r1[part][x]["verdict"] for x in ("S15E", "S15N", "Full"))
         lab = r1[key]
@@ -192,20 +254,38 @@ def _with_robust(v, rob):
     return v + ("" if v != "reproduced" else (", robust" if rob else ", not robust"))
 
 
+def _bias(values, true):
+    d = [x - true for x in values]
+    mu = sum(d) / len(d)
+    mc = (sum((x - mu) ** 2 for x in d) / (len(d) - 1)) ** 0.5 / len(d) ** 0.5
+    return mu, mc
+
+
+def _near(saved, mu, mc, tol):
+    assert abs(saved["bias"] - mu) < 1e-9 and abs(saved["mc_err"] - mc) < 1e-9
+    return abs(abs(mu) - tol) <= mc
+
+
 def test_sel_r34_labels():
     r34, sel = load("r34_sel"), load("sel")
-    assert r34["n_mock"] == 50
+    assert r34["n_mock"] == NMOCK
     bare = {}
     for t in ("E", "N"):
         T = r34["terms"][t]
         rec = T["recovery"]
-        for mech, x in rec.items():
-            assert len(x["sigma_values"]) == 50 and len(x["a_values"]) == 50
-            bs = sum(x["sigma_values"]) / 50 - T["sampleA"]["sigma"]
-            ba = sum(x["a_values"]) / 50 - T["sampleA"]["a"]
-            assert abs(bs - x["sigma"]["bias"]) < 1e-9 and abs(ba - x["a"]["bias"]) < 1e-9
-            assert x["pass"] == (abs(bs) <= 0.1 and abs(ba) <= 0.2)
-        if rec["rA"]["pass"]:
+        nf = any(x is None for m in rec.values() for x in m["sigma_values"] + m["a_values"])
+        assert nf == bool(T["nonfinite"])
+        if not nf:
+            for mech, x in rec.items():
+                assert len(x["sigma_values"]) == NMOCK and len(x["a_values"]) == NMOCK
+                bs, ms = _bias(x["sigma_values"], T["sampleA"]["sigma"])
+                ba, ma = _bias(x["a_values"], T["sampleA"]["a"])
+                near = _near(x["sigma"], bs, ms, 0.1) or _near(x["a"], ba, ma, 0.2)
+                assert x["near_tolerance"] == near
+                assert x["pass"] == (abs(bs) <= 0.1 and abs(ba) <= 0.2)
+        if nf:
+            prim, fit = None, None
+        elif rec["rA"]["pass"]:
             prim, fit = "S15", T["sampleA"]
             assert T["flag_rtau_recovery_failed"] == (not rec["rtau"]["pass"])
         elif rec["rtau"]["pass"]:
@@ -214,7 +294,8 @@ def test_sel_r34_labels():
             prim, fit = None, None
         assert T["primary"] == prim
         es = T["error_scale"]
-        assert abs(es["f_max"] - min(es["f_i"], es["f_ii"])) < 1e-12
+        f_ii = (1 + T["sampleA"]["sigma"] ** 2 / es["e2_mean"]) ** 0.5
+        assert abs(es["f_ii"] - f_ii) < 1e-9 and abs(es["f_max"] - min(es["f_i"], f_ii)) < 1e-9
         fits = {**r34["shared_full_fits"], **T["robustness_fits"]}
         if prim == "S15":
             r3s, r4s = {"full", "feh_err", "f_min", "f_max"}, {"full", "feh_err"}
@@ -223,7 +304,9 @@ def test_sel_r34_labels():
         else:
             r3s = r4s = set()
         assert set(T["R3"]["set"]) == r3s and set(T["R4"]["set"]) == r4s
-        if fit is None:
+        if nf:
+            r3 = r4 = NONFINITE
+        elif fit is None:
             r3 = r4 = "cannot determine"
         else:
             r3 = "reproduced" if 4.5 <= fit["span"] <= 6.5 else "not reproduced"
@@ -238,6 +321,7 @@ def test_sel_r34_labels():
         assert r34["terms"]["E"][name]["label_full"] == r34["terms"]["E"][name]["label"] + "; " + q
         assert r34["labels"][name + "-SEL"] == r34["terms"]["E"][name]["label_full"]
         assert sel["labels"][name + "-SEL"] == r34["labels"][name + "-SEL"]
+        assert r34["labels"]["term_N"][name] == r34["terms"]["N"][name]["label"]
 
 
 def test_sel_intrinsic_labels():
@@ -246,41 +330,53 @@ def test_sel_intrinsic_labels():
     for t in ("E", "N"):
         I = r34["intrinsic"][t]
         assert len(I["mock_bias"]) == 4
-        for b in I["mock_bias"].values():
-            assert len(b["sigma_values"]) == 50
-            assert abs(sum(b["sigma_values"]) / 50 - I["sampleB"]["sigma"] - b["bias"]) < 1e-9
-        ids = I["mock_bias"]["id_rtau"]["sigma_values"] + I["mock_bias"]["id_rA"]["sigma_values"]
-        mu = sum(ids) / len(ids)
-        sd = (sum((x - mu) ** 2 for x in ids) / (len(ids) - 1)) ** 0.5
-        assert abs(sd - I["sd_id"]) < 1e-9
-        biased = any(abs(b["bias"]) > 0.1 for b in I["mock_bias"].values())
+        nf = any(x is None for b in I["mock_bias"].values() for x in b["sigma_values"])
+        assert nf == bool(I["nonfinite"])
+        if nf:
+            v0, vf = NONFINITE, {k: NONFINITE for k in I["sampleB_f"]}
+            assert I["bare"] == v0 and I["f_labels"] == vf
+        else:
+            for b in I["mock_bias"].values():
+                assert len(b["sigma_values"]) == NMOCK
+                mu, mc = _bias(b["sigma_values"], I["sampleB"]["sigma"])
+                assert b["near_tolerance"] == _near(b, mu, mc, 0.1)
+            ids = I["mock_bias"]["id_rtau"]["sigma_values"] + I["mock_bias"]["id_rA"]["sigma_values"]
+            mu = sum(ids) / len(ids)
+            sd = (sum((x - mu) ** 2 for x in ids) / (len(ids) - 1)) ** 0.5
+            assert abs(sd - I["sd_id"]) < 1e-9
+            biased = any(abs(b["bias"]) > 0.1 for b in I["mock_bias"].values())
 
-        def lab(fit):
-            se = max(fit["sigma_err"], sd)
-            if biased:
+            def lab(fit):
+                if fit["sigma_err"] is None:
+                    return "cannot determine (non-finite standard error)", None
+                se = max(fit["sigma_err"], sd)
+                if biased:
+                    return "cannot determine", se
+                if fit["sigma"] + 1.645 * se < 0.82:
+                    return "confirmed", se
+                if fit["sigma"] - 1.645 * se >= 0.82:
+                    return "not confirmed", se
                 return "cannot determine", se
-            if fit["sigma"] + 1.645 * se < 0.82:
-                return "confirmed", se
-            if fit["sigma"] - 1.645 * se >= 0.82:
-                return "not confirmed", se
-            return "cannot determine", se
-        v0, se0 = lab(I["sampleB"])
-        assert I["bare"] == v0 and abs(I["se_used"] - se0) < 1e-12
-        vf = {k: lab(x)[0] for k, x in I["sampleB_f"].items()}
-        assert I["f_labels"] == vf
+            v0, se0 = lab(I["sampleB"])
+            assert I["bare"] == v0
+            assert (I["se_used"] is None and se0 is None) or abs(I["se_used"] - se0) < 1e-12
+            vf = {k: lab(x)[0] for k, x in I["sampleB_f"].items()}
+            assert I["f_labels"] == vf
         rob = v0 == vf["f_min"] == vf["f_max"]
         assert I["robust"] == rob and I["label"] == v0 + ", " + _rob_word(rob)
         bare[t] = v0
     E = r34["intrinsic"]["E"]
     assert E["label_full"] == E["label"] + "; " + _sel_qual(bare["E"], bare["N"])
     assert sel["labels"]["intrinsic-SEL"] == E["label_full"] == r34["labels"]["intrinsic-SEL"]
+    assert r34["labels"]["term_N"]["intrinsic"] == r34["intrinsic"]["N"]["label"]
 
 
 def test_sel_mock_counts_and_seeds():
     sel = load("sel")
     m = sel["mocks"]
-    assert m["n_per_set"] == 50 and m["n_sets"] == 124 and m["n_main_sets"] == 106
+    assert m["n_per_set"] == NMOCK and m["n_sets"] == 124 and m["n_main_sets"] == 106
     assert [s["k"] for s in sel["sets"]] == list(range(124))
-    assert sel["params"]["sel_seed_tag"] == 31 and sel["params"]["sel_n_mock"] == 50
+    assert [_set_tuple(s) for s in sel["sets"]] == _sel_sets_expected()     # SEL-8 loop nest
+    assert sel["params"]["sel_seed_tag"] == 31 and sel["params"]["sel_n_mock"] == NMOCK
     for p in m["projections"]:                       # the run stops before remaining mocks above the limit
-        assert p["mocks_left"] == 0 or p["projection_h"] <= sel["params"]["sel_stop_h"]
+        assert p["mocks_left"] == 0 or p["projection_h"] <= p["limit_h"]

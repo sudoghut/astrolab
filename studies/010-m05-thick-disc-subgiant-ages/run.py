@@ -18,8 +18,8 @@ R-SEL  re-test of R1, R3/R4 and the intrinsic scatter with the empirical selecti
 """
 from __future__ import annotations
 
-import hashlib
 import json
+import shutil
 import time
 from pathlib import Path
 
@@ -956,15 +956,32 @@ def _clean(d):
 
 
 def _sel_key(P, df):
-    """Checkpoint key: PARAMS (without 'parts' and the stop limit, which do not change any mock), the
-    code of this study and the catalogue."""
-    h = hashlib.sha256()
-    h.update(json.dumps({k: v for k, v in P.items() if k not in ("parts", "sel_stop_h")}, sort_keys=True,
-                        default=str).encode())
-    for name in ("run.py", "m0.py", "mocks.py", "selaux.py"):
-        h.update((HERE / name).read_bytes())
-    h.update(np.ascontiguousarray(pd.util.hash_pandas_object(df, index=True).to_numpy()).tobytes())
-    return h.hexdigest()[:24]
+    """Checkpoint key (selaux.checkpoint_key): PARAMS values without 'parts' and 'sel_stop_h' (they
+    change no mock), the code of this study with run.py's PARAMS literal removed, and the catalogue."""
+    src = {n: (HERE / n).read_text(encoding="utf-8") for n in ("run.py", "m0.py", "mocks.py", "selaux.py")}
+    src["run.py"] = selaux.strip_params(src["run.py"])
+    data = np.ascontiguousarray(pd.util.hash_pandas_object(df, index=True).to_numpy()).tobytes()
+    return selaux.checkpoint_key(P, src, data)
+
+
+ORIG_SEQ_INDEX = {"full": 1, "feh_err_full": 3, "full_f_min": 6}
+
+
+def orig_seq_rng(P, index):
+    """The 2.0 pipeline's shared stream C.rng = default_rng(seed), positioned as it was before that
+    pipeline's index-th sequence fit (SEL-8: data fits keep the 2.0 streams). In main_orig, C.rng is
+    first used by seven K = 1 mixture fits (R2 deconvolved S15 and Full, and the checks nclass_40,
+    no_compression, untruncated, full_nclass_40, full_no_compression), whose start draws do not
+    depend on the data; then each sequence fit draws its 8-start perturbations, in the order sample A
+    (0), Full (1), a^2 e_[Fe/H]^2 (2), Full a^2 e_[Fe/H]^2 (3), f_min (4), f_max (5), Full f_min (6)."""
+    rng = np.random.default_rng(P["seed"])
+    dummy, w = np.array([1.0, 2.0]), np.ones(2)
+    for _ in range(7):
+        m0.mixture_starts(dummy, w, 1, P["nstart"], rng)
+    Cx = Ctx(P)
+    for _ in range(index):
+        seq_starts(Cx, None, rng)
+    return rng
 
 
 def main_sel(ctx, P, store_root=None):
@@ -983,13 +1000,26 @@ def main_sel(ctx, P, store_root=None):
     assert P["jphi_median_range"][0] <= jmed <= P["jphi_median_range"][1], f"median JPHI {jmed}"
     with np.errstate(divide="ignore", invalid="ignore"):
         rel_all = E_all / A_all
-    s15 = F["s15"]
+    # SEL-0: rows with Age <= 0 have no relative error and are not in any parent; they are dropped from
+    # every S15 sample of the re-test (so S15 is a subset of the parent) and from every r pool.
+    pos = A_all > 0
+    n_le0 = {"valid": int((F["valid"] & ~pos).sum()), "s15": int((F["s15"] & ~pos).sum())}
+    ctx.log(f"R-SEL: rows with Age <= 0 dropped from the S15 samples and pools: {n_le0}")
+    s15 = F["s15"] & pos
+    F = dict(F, s15=s15)
     nbins = len(P["r1_bins"])
     mechs = P["mechs"]
     sens_bins = list(P["sel_floor_sens_bins"])
     nmock = int(P["sel_n_mock"])
     slices = P["sel_slices"]
     sets = selaux.sel_sets(nbins, mechs, sens_bins)
+    # keep the original run's provenance and run_info before astrolab rewrites them after this run
+    res_dir = getattr(ctx, "results", None)
+    if res_dir is not None and Path(res_dir).resolve() == (HERE / "results").resolve():
+        for name in ("provenance", "run_info"):
+            src, dst = Path(res_dir) / f"{name}.json", Path(res_dir) / f"orig_{name}.json"
+            if src.exists() and not dst.exists():
+                shutil.copy2(src, dst)
     root = Path(store_root) if store_root else config.cache_dir() / "s010_sel_mocks"
     store = selaux.MockStore(root, _sel_key(P, df))   # refuses a stopped run without consent
     ctx.log(f"R-SEL checkpoints: {store.dir} ({'resumed with consent' if store.resumed else 'new or continued'})")
@@ -1008,16 +1038,20 @@ def main_sel(ctx, P, store_root=None):
         store.release()                    # checkpoints are kept for a rerun
         raise
     out["sel"]["memory_peak_mb"] = memory
+    out["sel"]["age_le0_dropped"] = n_le0
     ctx.save("r1_sel", out["r1"])
     ctx.save("r34_sel", out["r34"])
     ctx.save("sel", out["sel"])
-    store.finish()
+    store.release()
+    ctx.log(f"R-SEL checkpoints kept in {store.dir} (a rerun reuses them; removed by the 7-day cleanup of "
+            "a later run with another key)")
     return out["summary"]
 
 
 def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, mechs, sens_bins, nmock,
               slices, sets, store, mark, t_start):
     cut, tmax = P["cut"], P["tmax"]
+    pos = A_all > 0                                       # SEL-0 parents and pools: Age > 0
 
     # ---------------- parents and pass tables (SEL-0)
     win = (feh > P["seq_feh"][0]) & (feh < P["seq_feh"][1])
@@ -1080,11 +1114,21 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
     fscale = {}
     for t in ("E", "N"):
         f_ii = float(np.sqrt(1 + seq[t]["sigma"] ** 2 / e2A))
-        fscale[t] = {"f_i": f_i, "f_ii": f_ii, "f_max": float(min(f_i, f_ii)), "f_min": P["f_min"]}
-    # robustness fits (2.3 / SEL-4); Full fits have denominator 1 and are shared by both terms
-    shared = {"full": fit_seq(C, grouped(C, subAf, False)),
-              "feh_err_full": fit_seq(C, grouped(C, subAf, False, feh_err=True)),
-              "full_f_min": fit_seq(C, grouped(C, subAf, False, f=P["f_min"]))}
+        fscale[t] = {"f_i": f_i, "f_ii": f_ii, "f_max": float(min(f_i, f_ii)), "f_min": P["f_min"],
+                     "e2_mean": e2A}
+    # robustness fits (2.3 / SEL-4); Full fits have denominator 1 and are shared by both terms; they
+    # use the 2.0 stream positions, so they reproduce the original run's Full fits (orig_seq_rng)
+    shared = {"full": fit_seq(C, grouped(C, subAf, False), rng=orig_seq_rng(P, ORIG_SEQ_INDEX["full"])),
+              "feh_err_full": fit_seq(C, grouped(C, subAf, False, feh_err=True),
+                                      rng=orig_seq_rng(P, ORIG_SEQ_INDEX["feh_err_full"])),
+              "full_f_min": fit_seq(C, grouped(C, subAf, False, f=P["f_min"]),
+                                    rng=orig_seq_rng(P, ORIG_SEQ_INDEX["full_f_min"]))}
+    orig_full = None
+    try:                                     # the recorded 2.0 values, saved next to the re-fits
+        o = json.loads((HERE / "results" / "r34.json").read_text(encoding="utf-8"))["sampleA_sensitivity"]
+        orig_full = {k: {kk: o[k][kk] for kk in ("tau0", "a", "sigma", "span")} for k in ORIG_SEQ_INDEX if k in o}
+    except (OSError, ValueError, KeyError):
+        pass
     rob = {}
     for t in ("E", "N"):
         fm = fscale[t]["f_max"]
@@ -1158,7 +1202,8 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
     nA, nB = len(subA), len(subB)
     parA_feh = feh[selA_full & (A_all > 0)]
     parB_feh = feh[selB_full & (A_all > 0)]
-    parA_rows = subAf[["feh"]].assign(r=subAf["eage"] / subAf["age"]).to_numpy()   # SEL-2 diagnostic only
+    subAf_pos = df[selA_full & pos]                                                  # Age > 0 (SEL-0)
+    parA_rows = subAf_pos[["feh"]].assign(r=subAf_pos["eage"] / subAf_pos["age"]).to_numpy()   # SEL-2 diagnostic only
     allf_bg = np.concatenate([g["feh"] for g in bgfits])
 
     def seq_cat(term, mech, fe_draw, rng, keyed=True):
@@ -1224,57 +1269,19 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
         fit = fit_mixB(C, gsel(sub, term, coef), th=mixB[term]["_x"], rng=rng)
         return {"sigma": fit["sigma"], "pass_rate": nB / len(par["A"])}
 
-    results = {s["k"]: [] for s in sets}
-    state = {s["k"]: {"group": s["group"], "times": []} for s in sets}
-    proj_log = []
-
-    def do(s, j):
-        rec = store.get(s["k"], j)
-        if rec is None:
-            rng = selaux.mock_rng(P["seed"], P["sel_seed_tag"], s["k"], j)
-            t = time.time()
-            res = run_one(s, rng)
-            dt = time.time() - t
-            res = {k: (None if v is None else (bool(v) if isinstance(v, (bool, np.bool_)) else
-                                               int(v) if isinstance(v, (int, np.integer)) else float(v)))
-                   for k, v in res.items()}
-            store.put(s["k"], j, res, dt)
-            rec = {"result": res, "seconds": dt}
-        results[s["k"]].append(rec["result"])
-        state[s["k"]]["times"].append(float(rec["seconds"]))
-
-    def check(where):
-        el = store.elapsed_s()
-        proj = selaux.projection_h(el, state, nmock)
-        done = sum(len(v) for v in results.values())
-        left = len(sets) * nmock - done
-        proj_log.append({"after": where, "elapsed_h": el / 3600, "projection_h": proj, "mocks_done": done,
-                         "mocks_left": left})
-        ctx.log(f"R-SEL projection after {where}: {proj:.2f} h total (elapsed {el / 3600:.2f} h, {done} mocks done)")
-        if left > 0 and proj > P["sel_stop_h"]:
-            info = {"projection_h": proj, "elapsed_h": el / 3600, "mocks_done": done, "after": where,
-                    "stopped_at": time.time()}
-            store.stop(info)
-            raise selaux.StopRun(
-                f"R-SEL runtime projection {proj:.2f} h exceeds {P['sel_stop_h']} h (README 2.5 SEL-8): stopped "
-                f"before the remaining mocks; {done} finished mocks are checkpointed in {store.dir}. Ask the "
-                f"user; mock counts are never reduced. Resuming needs the user's explicit consent, recorded in "
-                f"log.md, then create {store.dir / 'resume_consent.txt'} and rerun.")
-
     t_m = time.time()
-    for s in sets:                                        # first mock of every set (timing)
-        do(s, 0)
-    check("first mock of every set")
-    for s in sets:
-        for j in range(1, nmock):
-            do(s, j)
-        check(f"set k={s['k']}")
+    results, state, proj_log = selaux.run_mock_sets(
+        sets, nmock, store, run_one, lambda k, j: selaux.mock_rng(P["seed"], P["sel_seed_tag"], k, j),
+        P["sel_stop_h"], ctx.log)
     mark("mocks")
     mock_info = {"n_per_set": nmock, "n_sets": len(sets), "n_main_sets": sum(1 for s in sets if s.get("floor") != "sens"),
                  "elapsed_h_this_session": (time.time() - t_m) / 3600, "elapsed_h_total": store.elapsed_s() / 3600,
-                 "projections": proj_log, "resumed": store.resumed,
+                 "projections": proj_log, "resumed": store.resumed, "resumes": store.resumes(),
+                 "stop_limit_h": store.limit_h if store.limit_h is not None else P["sel_stop_h"],
+                 "nonfinite_per_set": {s["k"]: sum(selaux.nonfinite(r) for r in results[s["k"]]) for s in sets},
                  "mean_s_per_mock": {g: float(np.mean([t for st in state.values() if st["group"] == g for t in st["times"]]))
                                      for g in ("R1", "AB", "diag")}}
+    nf = {s["k"]: sum(selaux.nonfinite(r) for r in results[s["k"]]) for s in sets}
     kof = {}
     for s in sets:
         kof[(s["tag"], s.get("variant"), s.get("bin"), s.get("term"), s["kind"], s["mech"], s.get("floor"))] = s["k"]
@@ -1282,6 +1289,7 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
     # ---------------- R1-SEL decisions
     def r1_bins(v, floor):
         bins = []
+        nfv = {}
         for b in range(nbins):
             D = r1d[(v, b)]
             res, mk = {}, {}
@@ -1291,6 +1299,8 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
                     k = kof[("R1", v, b, None, kind, mech, fl)]
                     res[(kind, mech)] = results[k]
                     mk[f"{kind}_{mech}"] = {"k": k, "d": [r["d"] for r in results[k]], "valley": [r["valley"] for r in results[k]]}
+                    if nf[k]:
+                        nfv[str(k)] = nf[k]
             dec = r1_decide(P, D, res, nmock, qrank=P["sel_q_rank"])
             pm = D["power_models"]["sens" if (floor == "sens" and b in sens_bins) else "primary"]
             if floor == "sens" and b not in sens_bins:
@@ -1308,7 +1318,9 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
                         "data_pass_frac": data_frac[f"R1_{b}"] if v != "Full" else None})
             bins.append(dec)
         verdict, med = selaux.r1_verdict(bins, P["min_bins"], P["edge_range"])
-        return {"bins": bins, "verdict": verdict, "median_edge": med}
+        if nfv:                                          # any non-finite mock result of a set used here
+            verdict, med = selaux.NONFINITE, None
+        return {"bins": bins, "verdict": verdict, "median_edge": med, "nonfinite": nfv}
 
     r1v = {v: r1_bins(v, "primary") for v in selaux.R1_VARIANTS}
     r1s = {v: r1_bins(v, "sens") for v in selaux.R1_VARIANTS}
@@ -1336,8 +1348,12 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
     r34t = {}
     for t in ("E", "N"):
         rec = {}
+        nft = {}
         for mech in mechs:
-            rr = results[kof[("A_rec", None, None, t, "rec", mech, None)]]
+            kk_ = kof[("A_rec", None, None, t, "rec", mech, None)]
+            if nf[kk_]:
+                nft[str(kk_)] = nf[kk_]
+            rr = results[kk_]
             bs = bias([r["sigma"] for r in rr], seq[t]["sigma"])
             ba = bias([r["a"] for r in rr], seq[t]["a"])
             rec[mech] = {"sigma": bs, "a": ba,
@@ -1346,8 +1362,12 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
                          "sigma_values": [r["sigma"] for r in rr], "a_values": [r["a"] for r in rr],
                          "pass_rate": float(np.mean([r["pass_rate"] for r in rr]))}
         prim, flag = selaux.primacy(rec["rA"]["pass"], rec["rtau"]["pass"])
+        if nft:                                          # recovery biases undefined: no primacy, no verdict
+            prim, flag = None, False
         pfit = seq[t] if prim == "S15" else shared["full"] if prim == "Full" else None
         R3, R4 = selaux.r34_bare(pfit, P["span_range"], P["sigma_paper"], P["sigma_tol"])
+        if nft:
+            R3 = R4 = selaux.NONFINITE
         if prim == "S15":
             r3_set = {"full": shared["full"], "feh_err": rob[t]["feh_err"], "f_min": rob[t]["f_min"], "f_max": rob[t]["f_max"]}
             r4_set = {"full": shared["full"], "feh_err": rob[t]["feh_err"]}
@@ -1359,7 +1379,7 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
         lo_s, hi_s = P["span_range"]
         r3_rob = bool(r3_set) and all(lo_s <= x["span"] <= hi_s for x in r3_set.values())
         r4_rob = bool(r4_set) and all(abs(x["sigma"] - P["sigma_paper"]) <= P["sigma_tol"] for x in r4_set.values())
-        r34t[t] = {"sampleA": _clean(seq[t]), "error_scale": fscale[t], "recovery": rec,
+        r34t[t] = {"sampleA": _clean(seq[t]), "error_scale": fscale[t], "recovery": rec, "nonfinite": nft,
                    "primary": prim, "flag_rtau_recovery_failed": bool(flag),
                    "R3": {"bare": R3, "robust": r3_rob, "label": selaux.with_robust(R3, r3_rob), "set": sorted(r3_set)},
                    "R4": {"bare": R4, "robust": r4_rob, "label": selaux.with_robust(R4, r4_rob), "set": sorted(r4_set)},
@@ -1373,9 +1393,13 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
     intr = {}
     for t in ("E", "N"):
         bsets = {}
+        nfb = {}
         for kind in selaux.B_KINDS:
             for mech in mechs:
-                rr = results[kof[("B", None, None, t, kind, mech, None)]]
+                kk_ = kof[("B", None, None, t, kind, mech, None)]
+                if nf[kk_]:
+                    nfb[str(kk_)] = nf[kk_]
+                rr = results[kk_]
                 bb = bias([r["sigma"] for r in rr], mixB[t]["sigma"])
                 bb["near_tolerance"] = bool(near(bb, P["rec_tol_sigma"]))
                 bb["sigma_values"] = [r["sigma"] for r in rr]
@@ -1386,6 +1410,10 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
         biases = [b_["bias"] for b_ in bsets.values()]
 
         def lab(fit):
+            if nfb:
+                return selaux.NONFINITE, None
+            if not (np.isfinite(fit["sigma_err"]) and np.isfinite(sd_id) and np.isfinite(fit["sigma"])):
+                return "cannot determine (non-finite standard error)", None
             se = max(fit["sigma_err"], sd_id)
             return selaux.intrinsic_bare(fit["sigma"], se, biases, P["rec_tol_sigma"], P["z_one_sided"], P["sigma_paper"]), se
         v0, se0 = lab(mixB[t])
@@ -1393,6 +1421,7 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
         robust = bool(v0 == vf["f_min"] == vf["f_max"])
         intr[t] = {"sampleB": _clean(mixB[t]), "sampleB_f": {k: _clean(x) for k, x in mixB_f[t].items()},
                    "mock_bias": bsets, "sd_id": sd_id, "se_used": se0, "bare": v0, "f_labels": vf, "robust": robust,
+                   "nonfinite": nfb,
                    "label": f"{v0}, {'robust' if robust else 'not robust'}"}
     q = selaux.selterm(intr["E"]["bare"], intr["N"]["bare"])
     intr["E"]["selection_term"] = q
@@ -1402,8 +1431,9 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
     diag = {}
     for t in ("E", "N"):
         for mech in mechs:
-            rr = results[kof[("diag", None, None, t, "diag", mech, None)]]
-            diag[f"{t}_{mech}"] = {"sigma": bias([r["sigma"] for r in rr], seq[t]["sigma"]),
+            kk_ = kof[("diag", None, None, t, "diag", mech, None)]
+            rr = results[kk_]
+            diag[f"{t}_{mech}"] = {"nonfinite": nf[kk_], "sigma": bias([r["sigma"] for r in rr], seq[t]["sigma"]),
                                    "a": bias([r["a"] for r in rr], seq[t]["a"]),
                                    "pass_rate": float(np.mean([r["pass_rate"] for r in rr]))}
 
@@ -1421,6 +1451,7 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
                       "mock_pass_rate_sd": float(np.std(pr)) if len(pr) > 1 else None, "data_pass_frac": df_})
 
     r34_out = {"terms": r34t, "shared_full_fits": {k: _clean(x) for k, x in shared.items()},
+               "shared_full_fits_orig_recorded": orig_full,
                "sampleA_extra_E": {k: _clean(x) for k, x in extra.items()},
                "sampleA_sigma_boot_sd_E": float(np.std(boots)),
                "fig2e_E": _clean(fig2e), "intrinsic": intr, "n_mock": nmock,
