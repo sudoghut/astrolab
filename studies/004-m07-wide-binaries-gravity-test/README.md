@@ -143,8 +143,8 @@ recorded.
 - The simulated power numbers below (`explore/t034_power_mock.py`).
 - No velocity-derived quantity of any pair beyond 150 pc has been computed.
 
-Pairs within 150 pc have therefore been analysed with velocities. Only the 150–250 pc shell is
-unseen. The shares can only be estimated, from two different count predictions: about 32% of the
+Pairs within 150 pc have therefore been analysed with velocities. Only the 150–250 pc shell's velocity-derived
+quantities are unseen (its velocity-free design counts were inspected). The shares can only be estimated, from two different count predictions: about 32% of the
 predicted R5 sample lies at d < 130 pc (1250 of 3852) and about 38% at d < 150 pc (1467, the
 cache-based prediction at 150 pc). The unseen shell therefore holds about 62%, about 2385 pairs.
 Variant V14 tests that shell alone.
@@ -262,7 +262,8 @@ transfer factors. Calibrated noise-free L (Newton, MOND) of the counted designs:
 C25 degrouping at 150 pc (374, 0.0066) changes C26's rule and also fails at −25%.
 
 *Decision rule (labels fixed here).*
-- **G1 (design, fixed now): passes.** L_N* = 4.7 × 10³ ≥ 100 and L_M* = 7.2 × 10⁻⁴ ≤ 1/100. It also
+- **G1 (design, fixed now): passes in simulation**, conditional on the mock's assumptions (velocity
+  distribution and fixed calibration transferred to 130–250 pc; G1b and G2 are the guards). L_N* = 4.7 × 10³ ≥ 100 and L_M* = 7.2 × 10⁻⁴ ≤ 1/100. It also
   passes with counts reduced by 25%.
 - **G1b (velocity-free go/no-go; always applied before the velocity query N4).**
   1. Apply these cuts, in order, to the N1–N3 rows:
@@ -310,7 +311,8 @@ C25 degrouping at 150 pc (374, 0.0066) changes C26's rule and also fails at −2
   - MOND truth: medians A_M·b(x_j), errors A_M·b(x_j)·r_j.
   - Fit each with `wb.compare_models` to get L_N^data and L_M^data.
   - G2 passes if L_N^data ≥ 100 and L_M^data ≤ 1/100.
-- **Unblinded rule.** If N4 rows are accessed (downloaded or read from the cache) before section 2.1 is merged to main (section 3), R5 is
+- **Unblinded rule.** If any N4 row with velocity data is read (downloaded or from the cache; an
+  attempt that returns no rows does not count) before section 2.1 is merged to main (section 3), R5 is
   permanently unblinded. Every R5 label is then prefixed "R5 (unblinded, descriptive):", and no
   confirmatory verdict is given, even after the merge.
 - **R5 verdict.** A value equal to a threshold takes the outer label.

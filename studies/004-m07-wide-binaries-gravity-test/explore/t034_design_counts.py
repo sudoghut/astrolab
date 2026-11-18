@@ -14,6 +14,8 @@ Run: python -m astrolab explore 004 --tag t034-design --script explore/t034_desi
 """
 EDGES = [0.1057, 0.2307, 0.5088, 1.0275, 2.0902]
 C_HR = 1.590861779261529
+# Design-count partition (12 declination bands); the R5 extraction itself uses the 338 star-a regions
+# of README section 3, so these counts are estimates, not the run's exact partition.
 BANDS_F = [(-90.0 + 15.0 * i, -90.0 + 15.0 * (i + 1)) for i in range(11)] + [(75.0, 90.0001)]   # proxy queries (as run)
 BANDS_I = [(-90 + 15 * i, -90 + 15 * (i + 1)) for i in range(11)] + [(75, 90.0001)]       # lean queries (as run)
 PROXY_D = (130, 200, 250)
