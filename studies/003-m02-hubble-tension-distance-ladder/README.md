@@ -353,6 +353,13 @@ effective scatter τ̂/√ω̂_j, iteration counts, the implementation check, an
 block (`rob_check`) and under the same condition (R2-RE run and the host step evaluable); R4-N and
 B-N call R4 and `rob.null_sims`-style code with the reduced rows, groups and subsets passed in.
 
+*Clarification 2026-11-18 (before the formal run; from the code review).* Near τ = 0 the EM's relative
+change per step is O(τ²), so a true τ_T near zero would stop at the iteration cap and be labelled "not
+evaluable (not converged)" rather than "zero, R2's row" (rule (4)); "not converged" takes precedence as
+written, and the rules are not changed. A code check on the real data (run while implementing; only the
+convergence flags and iteration counts were looked at, no τ̂_T, z_T, rows or labels) converged from both
+starts for ν = 2, 4 and 10 (95–159 iterations), so this case does not arise here.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
