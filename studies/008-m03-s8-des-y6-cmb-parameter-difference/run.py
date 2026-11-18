@@ -461,7 +461,7 @@ def main(ctx):
         ctx.save("r6", r6)
         r6_path = ctx.results / "r6.json"
     else:                                # README 2.7: reuse the recorded R6; no training, no write
-        r6_path = ctx.path / "results" / "r6.json"
+        r6_path = ctx.study.results_dir / "r6.json"   # the recorded file, also in explore mode
     r6_rec = r6nomnu.check_r6(r6_path) if (P["r6_nomnu"] or not P["r6_retrain"]) else {"ok": False}
     r6_summary = (r6.get("verdict", r6.get("status")) if P["r6_retrain"]
                   else (r6_rec.get("verdict") if r6_rec["ok"] else f"not reused ({r6_rec.get('reason')})"))
@@ -471,6 +471,7 @@ def main(ctx):
     if P["r6_nomnu"]:
         settings = {k: P[k] for k in ("r6_retrain", "r6_nomnu_seeds", "r6_nomnu_s_max", "r6_nomnu_bands",
                                       "r6_pop1", "r6_nomnu_f_crit", "r6_n", "r6_estimate", "r6_s_max")}
+        settings["gates"] = r6nomnu.gate_settings(P["r6_gate"])
         args = dict(bands=P["r6_nomnu_bands"], s_max=P["r6_nomnu_s_max"], s_flag=P["r6_s_max"],
                     f_crit=P["r6_nomnu_f_crit"], settings=settings)
         six = r4["full_space"]["parameters"] if fs_ok else []
@@ -479,6 +480,9 @@ def main(ctx):
             nomnu = r6nomnu.assemble({}, r6_rec, bool(gate), **args)
         elif not fs_ok or r6nomnu.DROPPED not in short:
             nomnu = r6nomnu.assemble({"status": "not run (no full-space parameter set with mnu)"}, r6_rec,
+                                     bool(gate), **args)
+        elif r6_rec.get("parameters") != short:   # the pairing with R6 needs the same parameter set
+            nomnu = r6nomnu.assemble({"status": "not run (parameter set differs from recorded R6)"}, r6_rec,
                                      bool(gate), **args)
         elif not gate:                   # README 2.7 rule 1 (as R6: the flows are then not run)
             nomnu = r6nomnu.assemble({"status": "not run (R1 gate failed)"}, r6_rec, False, **args)

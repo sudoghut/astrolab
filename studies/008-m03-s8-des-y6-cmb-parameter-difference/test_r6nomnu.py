@@ -153,6 +153,8 @@ def test_run_reuse_path_never_writes_or_trains_r6():
     assert P["r6_retrain"] is False and P["r6_nomnu"] is True and P["r6_pop1"] is True
     assert P["r6_nomnu_seeds"] == [0, 1, 2, 3, 4] and P["r6_nomnu_s_max"] == 0.15
     assert P["r6_nomnu_bands"] == [1.00, 1.40]
+    assert 'ctx.study.results_dir / "r6.json"' in src and 'ctx.path / "results"' not in src
+    assert "parameter set differs from recorded R6" in src
 
 
 # ------------------------------------------------------------------ gate generalisation ----
@@ -236,7 +238,51 @@ def test_nomnu_plan_order_and_gate_failure(gate_val):
     assert out["label"] == (nm.PARTLY if gate_val == 2.0 else nm.NE)
     assert out["pop_size_comparison"]["6d"]["means"] == "means differ"
     assert out["gate6_exact_recomputed"]["equal"] is True
+    assert out["r6_reused"] == {"path": "results/r6.json", "ok": True, "reason": None}
+    assert out["summary"]["r6_reused"]["ok"] is True
     assert len(json.dumps(out)) < 1024 ** 2
+
+
+def test_descriptive_job_crash_is_a_failed_repetition():
+    """A crashed (c)/(d) subprocess is recorded as failed; a crash in (a)/(b) still propagates."""
+    cfg = nm.config(SHORT, [0, 1, 2, 3, 4], 10, {}, GATE6, True)
+    base = _fake_job([], 2.0)
+
+    def job(*parts):
+        if parts[:2] in (("case", "main_pop1"), ("exact", "g6_pop1")) and parts[-1] in (3, "g6_pop1"):
+            raise RuntimeError("job failed (code 1)")
+        return base(*parts)
+
+    res = fs.finite(nm.plan(job, cfg, lambda m: None, fs))
+    assert res["main_pop1"]["repetitions"][3] == {"seed": 3, "error": "subprocess failed"}
+    assert res["gate6_pop1"]["status"].startswith("not run") and res["gate6_pop1"]["passed"] is False
+    rec = {"ok": True, "repetitions": _reps([1.86, 1.64, 1.72, 1.61, 1.67]), "n_bar": 1.7, "gate_exact": 2.0}
+    out = nm.assemble(res, rec, True, BANDS, SMAX, 0.07, 6.39, {})
+    assert out["label"] == nm.PARTLY                                  # rule 2 covers only (b)
+    six = out["pop_size_comparison"]["6d"]
+    assert six["status"].startswith("not computed") and six["failed_pop1"] == [3]
+    assert "3" not in out["paired_6d_minus_5d"]["pop1"]["per_seed"]
+    assert "3" not in six["paired_pop1_minus_default"]["per_seed"]
+
+    def crash_b(*parts):
+        if parts[:2] == ("case", "nomnu"):
+            raise RuntimeError("job failed")
+        return base(*parts)
+    with pytest.raises(RuntimeError):
+        nm.plan(crash_b, cfg, lambda m: None, fs)
+
+
+def test_gate_settings_saved():
+    s = nm.gate_settings(GATE6)
+    assert s["dropped_box_index"] == 3 and s["dropped_box"] == [-0.1, 1.9, 0.1]
+    assert len(s["gate5"]["boxes"]) == 3 and s["gate5"]["n_exact"] == 2_000_000
+    assert s["gate5"]["exact_seed"] == 999 and s["gate5"]["tol_mean"] == 0.10 and s["gate6"] == GATE6
+
+
+def test_assemble_not_reusable_records_reason():
+    out = nm.assemble({}, {"ok": False, "reason": "results/r6.json missing"}, True, BANDS, SMAX, 0.07, 6.39, {})
+    assert out["label"] == nm.NE and out["r6_reused"]["ok"] is False
+    assert out["summary"]["r6_reused"]["reason"] == "results/r6.json missing"
 
 
 def test_r6_plan_job_sequence_unchanged():
@@ -285,10 +331,10 @@ def test_conclusion_test_on_assembled_output(tmp_path, monkeypatch, vals5, pop_v
         if parts[0] == "gate":
             g = cfg["gates"][parts[1]]
             v = exact6["n_sigma"] if parts[1] == "g6_pop1" else gate_val
-            return {**rec, "n_sigma": v, "pop_size": g["pop_size"] or 10, "pop_size_passed": g["pop_size"] is not None}
+            return {**rec, "n_sigma": v, "pop_size": g["pop_size"], "pop_size_passed": g["pop_size"] is not None}
         c = cfg["cases"][parts[1]]
         v = {"nomnu": vals5, "nomnu_pop1": pop_vals, "main_pop1": pop_vals}[parts[1]][k]
-        return {**rec, "n_sigma": v, "pop_size": c["pop_size"] or 10, "pop_size_passed": c["pop_size"] is not None}
+        return {**rec, "n_sigma": v, "pop_size": c["pop_size"], "pop_size_passed": c["pop_size"] is not None}
 
     res = fs.finite(nm.plan(job, cfg, lambda m: None, fs))
     rec = nm.check_r6(tmp_path / "r6.json")
