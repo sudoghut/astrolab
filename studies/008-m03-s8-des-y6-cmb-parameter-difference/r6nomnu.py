@@ -209,6 +209,9 @@ def pop_compare(reps10, reps1, f_crit):
     if v10 is None or v1 is None or len(v10) < 2 or len(v1) < 2:
         out["status"] = "not computed (a repetition failed, is non-finite or is a lower bound)"
         return out
+    if not all(r.get("converged") for r in list(reps1) + list(reps10)):
+        out["status"] = "not computed (a repetition has not converged)"
+        return out
     m10, s10 = float(np.mean(v10)), float(np.std(v10, ddof=1))
     m1, s1 = float(np.mean(v1)), float(np.std(v1, ddof=1))
     big, small = max(s1 ** 2, s10 ** 2), min(s1 ** 2, s10 ** 2)

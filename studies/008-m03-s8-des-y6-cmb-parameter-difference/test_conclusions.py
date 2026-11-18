@@ -197,7 +197,7 @@ def test_r6_nomnu_label_rule():
         cmp = out["pop_size_comparison"][dim]
         assert all(r.get("pop_size") == 1 and r.get("pop_size_passed") is True for r in r1 if "error" not in r)
         ok = all("error" not in r and r.get("n_sigma") is not None and math.isfinite(r["n_sigma"])
-                 and not r.get("lower_bound") for r in r10 + r1)
+                 and not r.get("lower_bound") and r.get("converged") for r in r10 + r1)
         if not ok:
             assert cmp["status"].startswith("not computed")
             continue
