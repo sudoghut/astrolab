@@ -139,8 +139,13 @@ def _r1_verdict(bins):
     return "reproduced" if (len(disj) >= 3 and med is not None and 6.5 <= med <= 9.5) else "not reproduced"
 
 
+def _cat(label):
+    i = label.find(" (")
+    return label[:i] if i >= 0 and label.endswith(")") else label
+
+
 def _sel_qual(e, n):
-    return "selection-term robust" if e == n else "selection-term sensitive"
+    return "selection-term robust" if _cat(e) == _cat(n) else "selection-term sensitive"
 
 
 def _rob_word(x):
@@ -244,8 +249,9 @@ def test_sel_r1_labels():
     for key, part in (("label", "variants"), ("label_floor_sensitivity", "floor_sensitivity")):
         e, n, f = (r1[part][x]["verdict"] for x in ("S15E", "S15N", "Full"))
         lab = r1[key]
-        assert lab["bare"] == e and lab["robust"] == (e == f) and lab["selection_term"] == _sel_qual(e, n)
-        assert lab["label"] == e + " (" + _rob_word(e == f) + "; " + _sel_qual(e, n) + ")"
+        rob = _cat(e) == _cat(f)
+        assert lab["bare"] == e and lab["robust"] == rob and lab["selection_term"] == _sel_qual(e, n)
+        assert lab["label"] == e + " (" + _rob_word(rob) + "; " + _sel_qual(e, n) + ")"
     assert sel["labels"]["R1-SEL"] == r1["label"]["label"]
     assert sel["labels"]["R1-SEL_floor_0.20"] == r1["label_floor_sensitivity"]["label"]
 
@@ -362,7 +368,7 @@ def test_sel_intrinsic_labels():
             assert (I["se_used"] is None and se0 is None) or abs(I["se_used"] - se0) < 1e-12
             vf = {k: lab(x)[0] for k, x in I["sampleB_f"].items()}
             assert I["f_labels"] == vf
-        rob = v0 == vf["f_min"] == vf["f_max"]
+        rob = _cat(v0) == _cat(vf["f_min"]) == _cat(vf["f_max"])
         assert I["robust"] == rob and I["label"] == v0 + ", " + _rob_word(rob)
         bare[t] = v0
     E = r34["intrinsic"]["E"]

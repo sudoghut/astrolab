@@ -313,6 +313,18 @@ def test_label_rules():
     assert selaux.r1_verdict(bins[:2] + [{"resolvable": True, "almost_disjoint": False, "edge": None}])[0] == "not reproduced"
 
 
+def test_qualifiers_compare_bare_categories():
+    cd, cdse = "cannot determine", "cannot determine (non-finite standard error)"
+    assert selaux.category(cdse) == cd and selaux.category("reproduced") == "reproduced"
+    assert selaux.category(selaux.NONFINITE) == cd
+    assert selaux.selterm(cd, cdse) == "selection-term robust"
+    assert selaux.selterm("confirmed", cdse) == "selection-term sensitive"
+    assert selaux.same_category(cd, cdse, selaux.NONFINITE)
+    lab = selaux.r1_label(selaux.NONFINITE, "undetermined", "cannot determine")
+    assert lab["robust"] and lab["selection_term"] == "selection-term sensitive"
+    assert lab["bare"] == selaux.NONFINITE                     # the parenthetical is kept for display
+
+
 def test_r1_decide_rank():
     P = dict(run.PARAMS)
     D = {"shape": {"valley": True, "d": 0.2, "edge": 8.0, "t": 7.0}}

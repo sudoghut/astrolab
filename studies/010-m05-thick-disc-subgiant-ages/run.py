@@ -1278,6 +1278,8 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
                  "elapsed_h_this_session": (time.time() - t_m) / 3600, "elapsed_h_total": store.elapsed_s() / 3600,
                  "projections": proj_log, "resumed": store.resumed, "resumes": store.resumes(),
                  "stop_limit_h": store.limit_h if store.limit_h is not None else P["sel_stop_h"],
+                 "stop_limit_source": ("consent limit.json (takes precedence over PARAMS['sel_stop_h'] for this "
+                                       "checkpoint folder)" if store.limit_h is not None else "PARAMS['sel_stop_h']"),
                  "nonfinite_per_set": {s["k"]: sum(selaux.nonfinite(r) for r in results[s["k"]]) for s in sets},
                  "mean_s_per_mock": {g: float(np.mean([t for st in state.values() if st["group"] == g for t in st["times"]]))
                                      for g in ("R1", "AB", "diag")}}
@@ -1418,7 +1420,7 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
             return selaux.intrinsic_bare(fit["sigma"], se, biases, P["rec_tol_sigma"], P["z_one_sided"], P["sigma_paper"]), se
         v0, se0 = lab(mixB[t])
         vf = {k: lab(x)[0] for k, x in mixB_f[t].items()}
-        robust = bool(v0 == vf["f_min"] == vf["f_max"])
+        robust = bool(selaux.same_category(v0, vf["f_min"], vf["f_max"]))
         intr[t] = {"sampleB": _clean(mixB[t]), "sampleB_f": {k: _clean(x) for k, x in mixB_f[t].items()},
                    "mock_bias": bsets, "sd_id": sd_id, "se_used": se0, "bare": v0, "f_labels": vf, "robust": robust,
                    "nonfinite": nfb,
