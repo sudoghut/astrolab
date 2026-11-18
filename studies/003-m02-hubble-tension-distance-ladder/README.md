@@ -529,6 +529,14 @@ timing fields changed). Numbers: `results/r2_re_rob.json`.
   detected"), now reported with the label "sensitive to single hosts (N5584)", and with the finding
   that excess calibrator scatter under C is present (spread) but τ̂ alone is not clearly unusual.
   The host-selection question remains between 1.5σ and 2.2σ, as before.
+- **Post hoc (referee, 2026-11-18; section 6): one host carries every signal.** Over the R4
+  subsets that exclude N5584 the spread is 1.027 (p = 0.33 under the same null; we reproduced the
+  referee's cache-only check), while excluding any other single host leaves 1.21–1.34 (p ≤ 0.056). So
+  the "unusual spread" label, the size of τ̂ and the A flip are all the effect of one outlying host,
+  N5584 (one SN, 2007af); whether its SN or its Cepheid distance is off is not identified. Without
+  N5584's rows the host step gives z = −1.63 under C and −1.50 under V, i.e. "no host-selection effect
+  detected" under either covariance. An explicit, pre-registered treatment of N5584 (removal and a
+  heavy-tailed host effect) is registered as T-039.
 - A smoke run before the formal run showed part of A (the N5584 removal: τ̂ ≈ 0.031, z ≈ −2.04);
   disclosed in `log.md` on 2026-11-17, rules unchanged.
 
@@ -565,6 +573,22 @@ The referee saw README sections 1-4 (with the R2-RE addendum), the code and the 
 | 6 | Circularity: R4 under V reuses the data τ was fitted on; the 1.33 spread under C was never calibrated against the null | yes | **Accepted**; section 5; null simulations registered as T-032. |
 | 7 | Code checks pass (REML, nested identity, interval, headline logic); `summary.json`'s `R2_host_shift`/`sigma`/`z` are the C values next to the R2-RE headline | yes | Noted here: those three fields are the C-error values; the R2-RE values are in `r2_re.json` (`host_step`) and `summary.json` `R2_RE.z`. Not changed (would need a rerun). |
 | 8 | Literature: Wojtak & Hjorth 2022/2024/2025 (arXiv:2206.08160, 2403.10388, 2506.22150), Perivolaropoulos & Skara 2022 (arXiv:2208.11169), Gall et al. (arXiv:2411.05642), as found by the referee; Efstathiou 2020 and Mörtsell et al. 2022 unverified | partly | Listed as context; not used in any verdict. |
+
+### Referee, R2-RE-ROB (independent subagent, 2026-11-18)
+
+The referee saw README sections 1–4, the code and the results, not sections 5–8 or the log; it ran
+offline checks from the cache. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | One host, N5584 (a single SN, 2007af), carries all three robustness outcomes: it alone flips the A row; it pulls τ̂ from 0.066–0.080 down to 0.031 when removed; and the R4 spread excess is entirely its effect: over the R4 subsets that exclude N5584 the spread is 1.027 (p = 0.33 against the same null), while excluding any other single host leaves 1.21–1.34 (p ≤ 0.056) | yes: we reran the referee's cache-only script (`spread_check.py`, 2.6 min): spread_obs 1.3071 and p = 0.0215 reproduced; without N5584 1.027, p = 0.330; next N1365 1.207, p = 0.056 (approximate: N5584 stays in the 37-host reference fit) | **Accepted** (post hoc, 2026-11-18). Section 5 reading extended below; the pre-registered labels stand. Follow-up registered as T-039. |
+| 2 | The A flip comes from the hybrid τ route (N5584's rows kept in the shift, its scatter removed from τ̂) and sits on a knife edge (z' = −2.04, at the "supports the paper" row); the data route is "no effect" under V for all 37 removals, and under C 33 of 37 removals still read "supports" | yes (results) | Accepted; stated in section 5. |
+| 3 | The R2 significance under C (z = −2.21) itself rests largely on N5584: without its rows z = −1.63 | yes (results) | Accepted; stated in section 5. |
+| 4 | The addendum's "more scatter among calibrator SN rows than C allows" is too specific: a host's offset is its SN-versus-Cepheid distance residual, so the Cepheid side could equally be the cause | yes | Accepted; wording in section 5 says "one outlying host", the gloss is kept only as the pre-registered text. |
+| 5 | The boundary-χ² estimate p ≈ 0.031 was optimistic (observed p_τ 0.072; 57.5% of null τ̂ exactly zero); τ̂ as the test statistic is not monotone in the likelihood ratio and costs some power | yes | Accepted limitation; noted. |
+| 6 | The spread simulations reuse the τ simulations' seeds 10000–10399 | yes | Not a bug (correlates the two parts' simulations only); noted. |
+| 7 | Literature (unverified, the referee's search): JWST/HST Cepheids in N5584 agree (arXiv:2307.15806); HST TRGB 31.76 ± 0.04 ± 0.12 (arXiv:1506.03089); JWST TRGB tip ambiguity (arXiv:2401.04776); TRGB–Cepheid comparison (arXiv:2408.00065); SN 2007af reddening (arXiv:2503.09702) | no | Context for T-039 (host extinction of SN 2007af is a hypothesis, not established); to be raised to [V] before use. |
+| 8 | No code or statistics bug: leave-one-out row removal, τ and data routes, the null construction (REML and Δ/σ independent of q̂ under C), Clopper–Pearson intervals and labels checked | – | None. |
 
 ## 7. Open questions
 

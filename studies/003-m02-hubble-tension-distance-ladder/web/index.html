@@ -61,13 +61,13 @@ const L = i18n.L, t = i18n.t;
 const f = (x, n = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '—' : Number(x).toFixed(n);
 const h0 = q => Math.pow(10, q / 5);
 const dh0 = (q, s) => h0(q) * Math.log(10) / 5 * s;
-const files = ['summary', 'r1', 'r2', 'r3', 'r4', 'cross_paper', 'host_identification', 'r2_re'];
+const files = ['summary', 'r1', 'r2', 'r3', 'r4', 'cross_paper', 'host_identification', 'r2_re', 'r2_re_rob'];
 let D = null;
 
 function cls(v) {
   if (!v) return '';
   if (/not evaluable|not reproduced|contradicts|not matched/.test(v)) return 'bad';
-  if (/conditional|amended|different size|not detected|does not support/.test(v)) return 'warn';
+  if (/conditional|amended|different size|not detected|does not support|sensitive|undetermined|unusual/.test(v)) return 'warn';
   return 'ok';
 }
 const VT = {
@@ -83,6 +83,13 @@ const VT = {
   'consistent with random-subset fluctuations': ['consistent with random-subset fluctuations', '与随机抽样的涨落一致'],
   'the selection itself is systematically low': ['the selection itself is systematically low', '选择本身系统性偏低'],
   'the selection itself is systematically high': ['the selection itself is systematically high', '选择本身系统性偏高'],
+  "verdict robust to single hosts' influence on tau": ["verdict robust to single hosts' influence on τ̂", '判定对单个宿主对 τ̂ 的影响稳健'],
+  "verdict sensitive to single hosts' influence on tau": ["verdict sensitive to single hosts' influence on τ̂", '判定对单个宿主对 τ̂ 的影响敏感'],
+  'tau unusual under C (excess calibrator scatter)': ['τ̂ unusual under C (excess calibrator scatter)', '在 C 下 τ̂ 不寻常（定标星额外离散）'],
+  'tau not unusual under C': ['τ̂ not unusual under C', '在 C 下 τ̂ 不算不寻常'],
+  'undetermined (Monte Carlo)': ['undetermined (Monte Carlo)', '无法判定（蒙特卡罗）'],
+  'the R4 excess spread is unusual under C': ['the R4 excess spread is unusual under C', '在 C 下 R4 的额外离散不寻常'],
+  'the R4 spread is consistent with C': ['the R4 spread is consistent with C', 'R4 的离散与 C 一致'],
 };
 const vt = v => {
   if (!v) return '—';
@@ -112,6 +119,10 @@ function render() {
     ['R2', L('Anchor step: all anchors → NGC 4258 only', '锚点一步：全部锚点 → 只用 NGC 4258'), `${f(A.shift, 4)} mag; σ ${f(A.sigma, 4)}`, `−0.0158 ± 0.005; σ 0.0461 ± 15%`, A.verdict],
     ['', L('Host step with C errors (2026-11-14): 37 hosts → 10 CCHP hosts', '宿主一步，C 误差（2026-11-14）：37 个宿主 → 10 个 CCHP 宿主') + (amended ? ` <i>(${L('amended, post-data', '修订，数据之后')})</i>` : ''), `${f(H.shift, 4)} ± ${f(H.shift_sigma, 4)} mag (${f(H.z, 2)}σ)`, '−0.0405', H.criterion_outcome || H.verdict, amended ? 'amended' : null],
     ...(D.r2_re && D.r2_re.status === 'evaluated' ? [['R2-RE', L(`Host step with a host-level random effect (headline; τ̂ = ${f(D.r2_re.tau_hat, 3)} mag, 68% ${f(D.r2_re.interval_68[0], 3)}–${typeof D.r2_re.interval_68[1] === 'number' ? f(D.r2_re.interval_68[1], 3) : D.r2_re.interval_68[1]})`, `含宿主级随机效应的宿主一步（标题判定；τ̂ = ${f(D.r2_re.tau_hat, 3)} mag，68% ${f(D.r2_re.interval_68[0], 3)}–${typeof D.r2_re.interval_68[1] === 'number' ? f(D.r2_re.interval_68[1], 3) : D.r2_re.interval_68[1]}）`), `${f(D.r2_re.host_step.shift, 4)} ± ${f(D.r2_re.host_step.shift_sigma, 4)} mag (${f(D.r2_re.host_step.z, 2)}σ)`, '−0.0405', H.verdict, amended ? 'amended' : null]] : []),
+    ...(D.r2_re_rob && D.r2_re_rob.A && D.r2_re_rob.A.status === 'evaluated' ? [
+      ['R2-RE-ROB', L(`Leave one host out: τ̂_j ${f(D.r2_re_rob.A.tau_range[0], 3)}–${f(D.r2_re_rob.A.tau_range[1], 3)} mag (sensitive: ${D.r2_re_rob.A.sensitive_hosts.join(', ') || '—'})`, `逐一剔除宿主：τ̂_j ${f(D.r2_re_rob.A.tau_range[0], 3)}–${f(D.r2_re_rob.A.tau_range[1], 3)} mag（敏感：${D.r2_re_rob.A.sensitive_hosts.join('、') || '—'}）`), `z' ${f(D.r2_re_rob.A.tau_route_z_range[0], 2)} … ${f(D.r2_re_rob.A.tau_route_z_range[1], 2)}`, '—', D.r2_re_rob.A.label],
+      ['', L('Null simulations: τ̂ under C', '零假设模拟：C 下的 τ̂'), `p = ${f(D.r2_re_rob.B.tau.p, 3)} (${D.r2_re_rob.B.tau.k}/${D.r2_re_rob.B.tau.n_ok})`, '0.05', D.r2_re_rob.B.tau.label],
+      ['', L('Null simulations: R4 spread under C', '零假设模拟：C 下 R4 的离散'), `${f(D.r2_re_rob.B.spread.spread_obs, 3)}; p = ${f(D.r2_re_rob.B.spread.p, 3)}`, '0.05', D.r2_re_rob.B.spread.label]] : []),
     ['', L('Host step, pre-registered labelling', '宿主一步，预注册的标注'), '', '', H.preregistered_verdict],
     ['R3', L('CCHP-side H0 on the same 10 hosts vs CCHP\'s 69.29', '同样 10 个宿主上 CCHP 一侧的 H0 对 CCHP 的 69.29'), `${f(R3.cchp_side_h0, 2)} (Δ ${f(R3.cchp_diff_mag, 4)} mag)`, '69.29 ± 0.02 mag', R3.cchp_match],
     ['', L('d = SH0ES − CCHP on the same hosts (descriptive)', 'd = 同宿主上 SH0ES − CCHP（只作描述）'), `${f(R3.d, 4)} ± ${f(R3.sigma_d, 4)} mag`, '—', null],
