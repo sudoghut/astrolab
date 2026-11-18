@@ -202,3 +202,45 @@ def test_r4_draws_full_column_set_is_r4_stream(synth):
         ref = rng.choice(run.NH, size=10, replace=False)
         assert p.dtype == ref.dtype and np.array_equal(p, ref)
     assert out["z_identity_check"]["rel_diff"] < 1e-6
+
+
+@pytest.mark.parametrize("case,expected", [
+    ("not_converged", "not evaluable (not converged; iterations 10000, 10000)"),
+    ("two_points", "not evaluable (multiple fixed points)"),
+    ("bound", "not evaluable (bound)"),
+])
+def test_heavy_tail_failure_branches(synth, monkeypatch, case, expected):
+    """Validity checks (2)-(4) of (b): forced fixed points give the pre-registered statuses for nu = 4,
+    and nu = 2, 10 carry the 'reported, not evaluable' prefix; the implementation check uses the real EM."""
+    run, n5584, L, y, C, nz, cls, groups = synth
+    rows_a = np.arange(len(y))
+    cchp = [0, 3, 7, 10, 12, 19, 21, 30, 33, 36]
+    other = [j for j in range(run.NH) if j not in cchp]
+    rows_s = np.array([i for i in rows_a if not nz[i, other].any()])
+    labels = [f"H{j:02d}" for j in range(run.NH)]
+    P = dict(run.PARAMS)
+    verdict = lambda z_, d_, s_: run.host_step_verdict(z_, d_, s_, P["host_ref"], P["host_ref_extra"])
+    fns = {"host_step_under": run.host_step_under, "with_re": run.with_re,
+           "is_fit_failure": run.is_fit_failure, "verdict": verdict}
+    est = run.reml_tau(lambda t: run.reml_m2l(L, y, C, rows_a, groups, t), 0.5, 0.01)
+    tau = 0.0 if est["at_zero"] else est["tau_hat"]
+    hs, _ = run.host_step_under(L, y, run.with_re(C, groups, tau), rows_a, rows_s)
+    re_out = {"status": "evaluated", "tau_hat": tau, "z": hs["z"],
+              "verdict": verdict(hs["z"], hs["shift"], hs["shift_sigma"])}
+    hc, _ = run.host_step_under(L, y, C, rows_a, rows_s)
+    real = n5584.vem
+
+    def fake(pre, nu, tau0, maxiter, tol, fix_omega=False):
+        if fix_omega:
+            return real(pre, nu, tau0, maxiter, tol, fix_omega=True)
+        om = np.ones(len(groups))
+        t_hat = {"not_converged": 0.1, "two_points": 0.1 if tau0 < 0.1 else 0.2, "bound": 0.5}[case]
+        return {"tau": t_hat, "omega": om, "iterations": 10000 if case == "not_converged" else 50,
+                "converged": case != "not_converged", "last_rel_change": 1e-3 if case == "not_converged" else 1e-9}
+
+    monkeypatch.setattr(n5584, "vem", fake)
+    b = n5584.heavy_tail(L, y, C, rows_a, rows_s, groups, labels, re_out, hc, P, fns, lambda m: None)
+    assert b["implementation_check"]["passed"]
+    assert b["status"] == expected and b["nu_main"]["status"] == expected
+    for r in b["nu_sensitivity"]:
+        assert r["status"] == "reported, not evaluable: " + expected
