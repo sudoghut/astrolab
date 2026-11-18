@@ -291,18 +291,22 @@ S8 and the weights are passed to the TF environment as one temporary file in the
 resolved from `%LOCALAPPDATA%` at run time and only its availability and package versions are
 saved. Expected run time about 3–4 hours (each training about 10 minutes).
 
-**Amendment 2026-11-18 (user decision, before any secondary result was seen): iteration cap for
-the reported cases.** The formal run of 2026-11-17 finished the known-answer gate (seeds 10–12), the
-main case (seeds 0–4) and the S8-for-As case (seeds 0–2), then spent 20 hours on the first
-constrained repetition without finishing: with `max_iter = 1000` and `step = 100000`, the estimator
-may draw up to 10⁸ samples when the tension is large, and eight more reported repetitions were
-queued. The user chose to stop the run and cap the reported cases. For the constrained, 1-D and 2-D
-cases only, `estimate_shift` uses `max_iter = 100` (same `tol` and `step`); a repetition that does
-not reach the tolerance within the cap is reported as not converged, as before. The gate, the main
-case (which alone decides R6) and the S8-for-As case keep `max_iter = 1000`. Nothing of the stopped
-run was opened: no job result file, no log line with a Δ or n_σ, was read. The whole R6 is rerun
-from scratch (the job cache is keyed by the configuration, so earlier job files are not reused);
-with fixed seeds the gate and main results are expected to be identical.
+**Amendment 2026-11-18 (after a stalled run, before any secondary result was seen): the 1-D flow is
+not run.** The formal run of 2026-11-17 finished the known-answer gate (seeds 10–12), the main case
+(seeds 0–4), the S8-for-As case and the constrained case (seeds 0–2 each; about 4–13 minutes per
+repetition), then ran for 20 hours on the first 1-D repetition (S8 alone) without finishing and was
+stopped. Diagnosis on synthetic data only: with tensiometer's default settings a 2-D flow trains in
+seconds, but a 1-D flow never starts training, because tensiometer 1.1.0's
+`trainable_bijectors.min_var_permutations` draws random permutations until it finds one different
+from the identity, and in one dimension the identity is the only permutation, so the loop never
+ends. The 1-D flow is therefore not run and is reported as "not run (tensiometer 1.1.0 does not
+support a 1-D flow with its default settings)"; the binned-KDE 1-D value (`r2.json` `1d.n_sigma`)
+stays the reference. Nothing else changes (all other cases keep `max_iter = 1000`). Nothing of the
+stopped run was opened: no job result file and no log line with a Δ or n_σ was read; its job folder
+was deleted. The whole R6 is rerun from scratch (the job cache is keyed by the configuration);
+with fixed seeds the gate and main results are expected to be identical. (A first version of this
+amendment, the same day, wrongly blamed the iteration cap of the constrained case and capped the
+reported cases at 100 iterations; that was withdrawn before any run.)
 
 ## 3. Data (with size estimate)
 

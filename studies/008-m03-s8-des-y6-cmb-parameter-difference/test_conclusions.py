@@ -59,10 +59,7 @@ def test_r6_verdict_rule():
     r6 = load("r6")
     if "verdict" not in r6:
         pytest.skip(r6.get("status", "R6 not run"))
-    est = r6.get("estimate")               # amendment 2026-11-18: cap only for the reported cases
-    if est is not None:
-        assert est["by_case"]["main"]["max_iter"] == 1000 and est["by_case"]["s8_for_as"]["max_iter"] == 1000
-        assert all(est["by_case"][n]["max_iter"] == 100 for n in ("constrained", "flow_1d", "flow_2d"))
+    assert "not run" in r6["flow_1d"]["status"]         # amendment 2026-11-18: no 1-D flow
     res = r6["flows"]
     if not load("r2")["gate_r1_means"]:             # README 2.6 order (1)
         assert r6["verdict"] == "not evaluable" and "R1" in r6["reason"]
