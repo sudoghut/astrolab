@@ -60,6 +60,7 @@ def test_r6_verdict_rule():
     if "verdict" not in r6:
         pytest.skip(r6.get("status", "R6 not run"))
     assert "not run" in r6["flow_1d"]["status"]         # amendment 2026-11-18: no 1-D flow
+    assert "flow_1d" not in (r6.get("flows") or {}).get("cases", {}) and "flow_1d" not in (r6.get("flows") or {})
     res = r6["flows"]
     if not load("r2")["gate_r1_means"]:             # README 2.6 order (1)
         assert r6["verdict"] == "not evaluable" and "R1" in r6["reason"]
