@@ -327,6 +327,36 @@ reproduce the 2026-11-14 numbers exactly). Numbers: `results/r2_camb.json`.
   "conditionally reproduced (reading B)", but B's match may be a coincidence or may reflect how
   DESI's code applied the mean; we cannot tell without DESI's likelihood configuration (T-030).
 
+### R2-CAMB-RD (addendum 2026-11-17, T-030)
+
+Run of 2026-11-18 (`python -m astrolab run 002`, 5189 s, camb 2.0.5; R1, R2, R3, the K check and
+R2-CAMB reproduce the earlier numbers exactly). Both θ* and r_d from CAMB (`rdrag` from the same
+`get_background` call). Numbers: `results/r2_camb.json`.
+
+| Variant | Reading A: Δχ²_MAP (shift vs R2-CAMB; vs formula) | Reading B: Δχ²_MAP (shift vs R2-CAMB; vs formula) | Verdicts |
+|---|---|---|---|
+| CAMB anchored-RD | −6.49 (+0.103; +0.096) | −7.90 (+0.107; +0.105) | A not reproduced, B reproduced |
+| CAMB raw-RD | −6.60 (+0.102; −0.017) | −8.03 (+0.106; −0.019) | A not reproduced, B reproduced |
+
+- **Conclusion (pre-registered rule): R2 robust to the r_d formula.** Both variants are valid (every
+  fit converged, 16–20 starts agree, nesting holds) and keep the per-reading verdicts. Rejected trial
+  points per fit: 33 infeasible and one CAMB error in each ΛCDM fit, 48–49 infeasible in each
+  w0waCDM fit, none non-finite.
+- CAMB's r_drag moves Δχ² by about +0.10 in every reading and variant, as the R2-CAMB referee
+  estimated (−6.48 for A, −7.90 for B with the formula θ*, against our anchored-RD −6.49, −7.90).
+  After the referee (section 6): this is a constant rescale, the Aubourg r_d being 0.99971–0.99972
+  of CAMB's r_drag at every optimum (about −0.020% the formula's own error, −0.007% N_eff 3.044 vs
+  3.046), and it moves both readings alike, so it cannot explain the A/B split. For raw-RD the shift
+  against the formula (−0.017, −0.019) is θ* (about −0.12) and r_d (about +0.10) cancelling.
+- Gap of reading A to the paper's −8.0: 1.51 (anchored-RD) and 1.40 (raw-RD). Raw-RD with reading A
+  is the variant closest to how a current Cobaya + CAMB run would evaluate the prior (section 2; it
+  uses N_eff = 3.044, while the prior's chains probably used 3.046): **−6.60**.
+- **What this changes.** Nothing in the verdicts ("robust" in the narrow sense that the
+  formula-vs-CAMB difference in r_d is too small to matter): with θ* and r_d both from CAMB, reading A still
+  gives about −6.5 to −6.6, and only reading B matches −8.0. The question of which quantity DESI's
+  code compared with the Eq. 35 mean stays open (the primary-source search of 2026-11-17 did not
+  find DESI's configuration; section 2), and so does, under A, the remaining ~1.4 in Δχ².
+
 ## 6. Referee notes (independent subagent, 2026-11-14)
 
 The referee saw only README sections 1-4, the code, the results, the Lean argument with its
@@ -364,6 +394,24 @@ sections 5-7; it ran small offline checks with camb.
 | 6 | Rules applied as pre-registered; the one pre-run change of the addendum made it stricter | yes | None. |
 | 7 | If the anchored variant is invalid and raw flips, the code says "depends on the absolute θ* calibration" | yes | Rejected: this is the pre-registered precedence (a valid variant is evaluated by its own rule); it did not occur. |
 
+### Referee, R2-CAMB-RD (independent subagent, 2026-11-18)
+
+A subagent given README sections 1–4, the section 6 tables, the code and the results files (not
+section 5); small offline checks with the cached DESI files, no fits rerun. No bug that changes a
+label; the json supports the conclusion. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The code matches the addendum (r_d = `rdrag` from the same `get_background` call, K_C scales θ* only, rejections counted, the shift against R2-CAMB from the same run, the labels); χ² recomputed at all 8 saved RD optima matches the json exactly | yes (rerun of the referee's script: difference 0 at every optimum) | None. |
+| 2 | The +0.10 shift is a constant r_d rescale: Aubourg / CAMB = 0.999712–0.999720 at every optimum; swapping r_d at fixed parameters gives Δχ² +0.103 (anchored-RD, A) before any refit, +0.103 after | yes | Stated in section 5. |
+| 3 | Where the 0.029% comes from: at the Planck reference point CAMB `rdrag` is 147.059 Mpc with N_eff = 3.044 and 147.049 with 3.046 (Planck's published 147.049), the formula 147.020; so about −0.020% is the formula's own error and −0.007% is N_eff. "Anchored-RD" is a hybrid: θ* is anchored to the Planck reference, r_d is not (as pre-registered) | yes | Stated in section 5. |
+| 4 | Neutrinos: CAMB's ων at Σmν = 0.06 eV is 6.449 × 10⁻⁴ against 6.442 × 10⁻⁴ from Σmν/93.14 (0.018 prior σ of ωbc); Σmν is fixed, so no Σmν–r_d degeneracy propagates | yes | None. |
+| 5 | r_d enters both readings alike (+0.103 / +0.107 anchored-RD), so it cannot explain the A/B split; the check had low power (flipping A needed about −0.4, B about ±0.9) and tests only the formula-vs-CAMB rescale, not r_d systematics in general | yes (the shifts) | **Accepted**; section 5 reads "robust" in this narrow sense. |
+| 6 | For the RD variants `dchi2_shift_vs_formula` mixes two changes: raw-RD's −0.017 is θ* (−0.12) plus r_d (+0.10) cancelling | yes | Section 5 leads with the shift against R2-CAMB and states the decomposition. |
+| 7 | No r_d diagnostics are saved at the RD optima (not required by the addendum) | yes | None; the ratios in item 2 are recorded here. |
+| 8 | Rejection tallies as expected (one CAMB error per ΛCDM fit, none non-finite) | yes | None. |
+| 9 | "Raw-RD with reading A is closest to the source's configuration" is only partly true: raw-RD uses N_eff = 3.044 and CAMB 2.0.5, while the prior's chains probably used 3.046 (the R2-CAMB raw offset) | partly (the N_eff difference yes; the chains' setting is the referee's inference) | **Accepted**; section 5 says "closest to how a current Cobaya + CAMB run would evaluate the prior". |
+
 ## 7. Open questions
 
 - The ωbc convention of the compressed prior (Eq. 35): which quantity does the paper's code compare
@@ -374,7 +422,9 @@ sections 5-7; it ran small offline checks with camb.
   split is robust to the θ* calibration (section 5, R2-CAMB), so R2 does depend on the convention.
   The prior's source chain matches reading A (section 5, referee; post hoc); what remains is which quantity
   DESI's code compared with the 0.14208 mean, and, if A, where the remaining ~1.4 in Δχ² comes
-  from (T-030).
+  from (T-030). R2-CAMB-RD (2026-11-18) ruled out the r_d formula as the source: with θ* and r_d
+  from CAMB, reading A gives −6.49 to −6.60. The primary sources not yet checked are Appendix A of
+  the paper (PDF), ref. [111] and any DESI chain release with its input files.
 - Wilks calibration (wiki `gap_regular`): simulate the Δχ² distribution under the ΛCDM best fit
   for DESI + compressed CMB and compare with χ²(2).
 - Leave-one-tracer-out sensitivity of Δχ² (`drop_z`), and DES-Dovekie as a third SN sample.
@@ -394,6 +444,7 @@ How a coding agent answers "what if" questions about this study without touching
 | `n_starts` | random starts per fit | ≥ 10 (fewer weakens the validity check) | cache only |
 | `r2_mcmc`, `k_check` | run the R2 posterior chains / the K check | true, false (false: much faster) | cache only |
 | `camb_check` | run the R2-CAMB check (addendum 2026-11-16); needs `camb` installed (not in the base install line) | true, false (false: much faster, no camb needed) | cache only |
+| `camb_rd_check` | also run R2-CAMB-RD (addendum 2026-11-17: r_d from CAMB's `rdrag`); needs `camb_check` | true, false | cache only |
 | `r1_steps`, `r2_steps` | chain lengths | ≥ 4000 / ≥ 6000 for the pre-registered precision | cache only |
 
 - Rerun with an override: `python -m astrolab explore 002 --tag <topic> --set KEY=VALUE`
