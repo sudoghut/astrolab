@@ -5,7 +5,8 @@ tensiometer, getdist), one job per process, started by r6flow.py:
 
     TF_USE_LEGACY_KERAS=1 PYTHONNOUSERSITE=1 <venv-tf python> -I flowshift.py <input.npz> <config.json> <output.json> <job>
 
-where <job> is "meta", "exact", "gate <seed>" or "case <name> <seed>". It never touches the network
+where <job> is "meta", "exact", "gate <seed>" or "case <name> <seed>" (R6), or "exact <gate>" and
+"gate <gate> <seed>" for a named gate in cfg["gates"] (R6-NOMNU, README 2.7). It never touches the network
 or the project folder: it reads the job folder's input.npz (the chains' columns and weights) and
 writes one JSON file atomically. The pure helpers (gate_summary, case_summary, finite) are also
 used by r6flow.py in the project environment. Order (README 2.6): the known-answer gate first; only
@@ -45,8 +46,12 @@ def defaults():
     return out
 
 
-def one_shift(diff, names, seed, est):
-    """One repetition on equally weighted difference samples: train a flow, estimate the shift."""
+def one_shift(diff, names, seed, est, pop_size=None, record_pop=False):
+    """One repetition on equally weighted difference samples: train a flow, estimate the shift.
+
+    pop_size None: flow_from_chain is called exactly as in R6 (tensiometer's default). Otherwise
+    pop_size is passed explicitly (README 2.7). With record_pop the pop_size passed (or, if none was
+    passed, the signature default) and the number of trained populations are added to the result."""
     tf = _setup()
     from getdist import MCSamples
     from tensiometer.mcmc_tension import flow as fl
@@ -54,7 +59,10 @@ def one_shift(diff, names, seed, est):
     tf.keras.utils.set_random_seed(seed)
     chain = MCSamples(samples=diff, names=list(names), ignore_rows=0)
     t0 = time.time()
-    flow = sp.flow_from_chain(chain, feedback=0, plot_every=0)
+    if pop_size is None:
+        flow = sp.flow_from_chain(chain, feedback=0, plot_every=0)
+    else:
+        flow = sp.flow_from_chain(chain, feedback=0, plot_every=0, pop_size=int(pop_size))
     t1 = time.time()
     p, lo, up = fl.estimate_shift(flow, tol=est["tol"], max_iter=est["max_iter"], step=est["step"])
     p, lo, up = float(p), float(lo), float(up)
@@ -62,9 +70,15 @@ def one_shift(diff, names, seed, est):
     at_floor = p >= 1.0
     # a NaN interval end (for example log p(0) undefined outside the flow's range) is not convergence
     converged = bool(np.isfinite(lo) and (at_floor or (np.isfinite(s_up) and s_up - s_lo <= est["tol"])))
-    return {"seed": seed, "delta": p, "delta_low": lo, "delta_up": up,
-            "n_sigma": s_lo if at_floor else _nsigma(p), "lower_bound": bool(at_floor),
-            "converged": converged, "train_s": round(t1 - t0, 1), "shift_s": round(time.time() - t1, 1)}
+    out = {"seed": seed, "delta": p, "delta_low": lo, "delta_up": up,
+           "n_sigma": s_lo if at_floor else _nsigma(p), "lower_bound": bool(at_floor),
+           "converged": converged, "train_s": round(t1 - t0, 1), "shift_s": round(time.time() - t1, 1)}
+    if record_pop:
+        logs = getattr(flow, "population_logs", None)
+        out.update(pop_size=int(pop_size) if pop_size is not None else defaults()["pop_size"],
+                   pop_size_passed=pop_size is not None,
+                   populations_trained=len(logs) if logs is not None else None)
+    return out
 
 
 def _clean(msg):
@@ -90,8 +104,18 @@ def synthetic(n, rng, g):
     return np.column_stack([x1, x2] + boxes)
 
 
+def gate_dim(g):
+    """Dimension of a synthetic gate distribution: the curved pair plus one column per box."""
+    return 2 + len(g["boxes"])
+
+
+def gate_names(g):
+    return [f"x{i}" for i in range(gate_dim(g))]
+
+
 def synthetic_exact(g):
-    """Exact n_sigma of the synthetic distribution from its analytic density (README 2.6)."""
+    """Exact n_sigma of the synthetic distribution from its analytic density (README 2.6); the
+    reference point 0 has the dimension implied by the box list (6-D for R6, 5-D for README 2.7)."""
     from scipy.stats import norm
 
     def logp(z):
@@ -103,7 +127,7 @@ def synthetic_exact(g):
         return out
 
     z = synthetic(g["n_exact"], np.random.default_rng(g["exact_seed"]), g)
-    p = float(np.mean(logp(z) > logp(np.zeros((1, 6)))[0]))
+    p = float(np.mean(logp(z) > logp(np.zeros((1, gate_dim(g))))[0]))
     return {"delta": p, "n_sigma": _nsigma(p)}
 
 
@@ -141,7 +165,9 @@ def finite(o):
 
 def run_job(job, inp, cfg):
     """One unit of work in its own process (so TensorFlow memory is freed when it exits):
-    'meta', 'exact', ('gate', seed) or ('case', name, seed)."""
+    'meta', 'exact', ('gate', seed) or ('case', name, seed) as in R6; ('exact', gate) and
+    ('gate', gate, seed) for a named gate in cfg['gates'] (README 2.7). A gate or case entry with a
+    'pop_size' key (None: not passed) records the pop_size used; without the key the call is R6's."""
     if job[0] == "meta":
         import getdist
         import tensiometer
@@ -151,20 +177,20 @@ def run_job(job, inp, cfg):
                              "legacy_keras": os.environ.get("TF_USE_LEGACY_KERAS")},
                 "settings": defaults()}
     if job[0] == "exact":
-        return synthetic_exact(cfg["gate"])
-    names6 = [f"x{i}" for i in range(6)]
+        return synthetic_exact(cfg["gate"] if len(job) == 1 else cfg["gates"][job[1]])
     try:
         if job[0] == "gate":
-            g, k = cfg["gate"], int(job[1])
+            g, k = (cfg["gate"], int(job[1])) if len(job) == 2 else (cfg["gates"][job[1]], int(job[2]))
             x = synthetic(cfg["n"], np.random.default_rng(g["sample_seed_offset"] + k), g)
-            return one_shift(x, names6, k, cfg["estimate"])
+            return one_shift(x, gate_names(g), k, cfg["estimate"], g.get("pop_size"), "pop_size" in g)
         name, k = job[1], int(job[2])
-        cols = cfg["cases"][name]["columns"]
+        case = cfg["cases"][name]
+        cols = case["columns"]
         d = np.load(inp, allow_pickle=False)
         xa = np.column_stack([d["des_" + c] for c in cols])
         xb = np.column_stack([d["cmb_" + c] for c in cols])
         return one_shift(resampled_difference(xa, d["des_w"], xb, d["cmb_w"], cfg["n"], k), cols, k,
-                         cfg["estimate"])
+                         cfg["estimate"], case.get("pop_size"), "pop_size" in case)
     except Exception as exc:             # recorded; the verdict rule handles failures
         return {"seed": int(job[-1]), "error": _clean(f"{type(exc).__name__}: {exc}")}
 
