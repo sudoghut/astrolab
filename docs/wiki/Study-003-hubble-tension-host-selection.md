@@ -242,7 +242,7 @@ section were added after the run (study README section 5; [web page](https://git
   does not survive. The independent referee (post hoc) found no bug but stressed how soft this null is:
   z crosses −2 already at τ ≈ 0.03 mag (the referee's estimate), the evidence for τ > 0 is modest (p ≈ 0.03), τ̂ may rest on a
   few non-CCHP hosts, and the rule was fixed knowing the first result; so the honest summary is a
-  shift of about −2 km/s/Mpc at 1.5σ–2.2σ. A leave-one-host-out check is registered (T-032).
+  shift of about −2 km/s/Mpc at 1.5σ–2.2σ. A leave-one-host-out check is registered (T-032). Numbers: [`results/r2_re.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re.json).
 - **Update 2026-11-18, R2-RE-ROB (T-032, pre-registered addendum): the null rests on one host.**
   Leaving out single hosts, the verdict changes only without N5584 (τ̂ falls to 0.031 and the
   full-data host step gives z' = −2.04, "supports the paper"); the pre-registered label is
@@ -252,7 +252,7 @@ section were added after the run (study README section 5; [web page](https://git
   (2007af), carries all three signals: over random subsets without it the spread is 1.03 (p = 0.33; an approximate post-hoc check, N5584 staying in the reference fit),
   and without its rows the host step is "no effect" under either covariance (z = −1.63, −1.50). The
   headline stays "no host-selection effect detected"; an explicit, pre-registered treatment of N5584
-  is registered (T-039). Numbers: [`results/r2_re_rob.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re_rob.json). Numbers: [`results/r2_re.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re.json).
+  is registered (T-039). Numbers: [`results/r2_re_rob.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re_rob.json).
 - **Same hosts, two indicators (stages C and E).** Putting CCHP's JWST TRGB distances in place
   of the Cepheids on the same 10 hosts gives 69.70, close to CCHP's own 69.29; the SH0ES and CCHP
   ladders on those hosts differ by +0.010 ± 0.048 mag (0.3 km/s/Mpc), and no host deviates by

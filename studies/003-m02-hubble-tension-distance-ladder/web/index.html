@@ -67,7 +67,7 @@ let D = null;
 function cls(v) {
   if (!v) return '';
   if (/not evaluable|not reproduced|contradicts|not matched/.test(v)) return 'bad';
-  if (/conditional|amended|different size|not detected|does not support|sensitive|undetermined|unusual/.test(v)) return 'warn';
+  if (/conditional|amended|different size|not detected|does not support|sensitive|undetermined|(?<!not )unusual/.test(v)) return 'warn';
   return 'ok';
 }
 const VT = {
