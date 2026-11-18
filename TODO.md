@@ -9,9 +9,6 @@
 - [ ] **T-034** M7：在与 C26 一致的 x 覆盖下（r_sky 下限低于 1 kAU）重新检验研究 004，并预先计算检验功效（预注册） · 登记 2026-11-16 · 来源 T-013 · 分支 feat/t034-wb-enlarged-retest
   - 计划：(1) 预注册 R5（d < 250 pc，功效门控 G1/G1b/G2；研究 README 第 2.1 节与第 3 节）→ 双闸审查；(2) 代码与查询（N1–N4、分层自助法、功效模拟）→ 双闸审查；(3) 在 2026-11-24 前取数（先取 N1–N3，G1b 通过后取 N4）；(4) 运行、结果、独立审稿、收尾（README、Wiki、log、DONE）。
   - 备注：独立审稿（事后，post hoc）发现原检验几乎没有功效（power）（无噪声牛顿数据 L = 6.2），而样本不足来自 C26 最低 x 箱，C26 很可能包含 1 kAU 以下的星对；事后探索（r_sky ≥ 300 AU）得 N = 1250，结果随赫罗图（Hertzsprung–Russell diagram）截断与去群（degrouping）相差几个数量级。新的预注册应事先给出 r_sky 下限、去群规则（含 C25 邻居诊断）、误差模型与预期 L，数据已在缓存中。2026-11-18：为使设计门槛 G1 通过，R5 改为 d < 250 pc，需要新查询 N1–N4（见研究 README 第 2.1 节与第 3 节）。
-- [ ] **T-027** M3：用归一化流复现 DES Y6 与 CMB 的全参数空间差异（1.8σ） · 登记 2026-11-15 · 来源 T-017 · 分支 feat/t027-flow-full-space-shift · 计划 [024](design/024-plan_m03-normalizing-flow-full-space-shift-des-y6-cmb.md)
-  - 备注：研究 008 的高斯近似依赖参数化（0.32–2.21σ），不能检验 1.8σ；需要 tensiometer 与 TensorFlow 等安装（数百 MB，须先征得用户同意），链文件已在缓存中。
-  - 备注：用户同意（2026-11-16）为此另建独立虚拟环境（`%LOCALAPPDATA%/astrolab/venv-tf`，只装 TensorFlow 与 tensiometer），Anaconda base 与项目 venv 不动。
 
 ## 下一步（Next）
 
