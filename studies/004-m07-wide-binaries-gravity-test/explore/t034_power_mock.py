@@ -56,7 +56,7 @@ def se_rel(pool, A, n, rng, reps=N_SE):
 
 
 def asimov(pool, A, counts, xm, rng):
-    s = np.array([se_rel(pool, A, int(n), rng) for n in counts])
+    s = np.array([se_rel(pool, A, int(np.floor(n + 0.5)), rng) for n in counts])
     xm = np.asarray(xm, float)
     b = wb.mond_boost(xm)
     LN = wb.compare_models(A * np.ones(len(xm)), xm, np.diag((A * s) ** 2))["L"]
@@ -84,11 +84,25 @@ def calibrated_pool():
     return A + F_CAL_FIXED * (raw - A), A
 
 
-def g1b(counts, x_medians):
-    """README 2.1 G1b: (L_N*, L_M*, passes) for the predicted counts and the observed velocity-free
-    x medians; pool from SEED_POOL with f_cal = 1.227, one fresh generator SEED_MC, bins in order."""
+G1B_FACTORS = np.array([0.969, 0.937, 0.953, 0.899, 0.809, 0.521])
+
+
+def g1b_counts(raw_counts, min_count=15):
+    """README 2.1 G1b steps 2-3: scale the six velocity-free bin counts by G1B_FACTORS, round to the
+    nearest integer (halves up), then apply the 15-pair outer merge to the rounded counts.
+    Returns (final counts, old-bin -> final-bin mapping, evaluable)."""
+    scaled = np.floor(np.asarray(raw_counts, float) * G1B_FACTORS + 0.5).astype(int)
+    mapping, evaluable = wb.merge_outer(scaled.tolist(), min_count)
+    final = [int(sum(scaled[k] for k in range(len(scaled)) if mapping[k] == g)) for g in range(max(mapping) + 1)]
+    return final, mapping, evaluable
+
+
+def g1b(final_counts, x_medians):
+    """README 2.1 G1b steps 4-5: (L_N*, L_M*, passes) for the final counts from g1b_counts() and the
+    observed velocity-free x medians of the final bins; pool from SEED_POOL with f_cal = 1.227, one
+    fresh generator SEED_MC, bins in increasing x."""
     pool, A = calibrated_pool()
-    LN, LM = asimov(pool, A, counts, x_medians, np.random.default_rng(SEED_MC))
+    LN, LM = asimov(pool, A, final_counts, x_medians, np.random.default_rng(SEED_MC))
     return LN, LM, bool(LN >= 100 and LM <= 0.01)
 
 
