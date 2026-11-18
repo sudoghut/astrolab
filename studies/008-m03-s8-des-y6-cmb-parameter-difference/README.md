@@ -481,7 +481,7 @@ about 12.5 minutes (6-D) or 5 minutes (2-D).
   within 0.04σ ((A_s, Ωm) 0.401 against 0.381; (S8, Ωm) 2.143 against 2.178).
 - *Post hoc remark (2026-11-18, not a change of rule):* section 2.6 accepted a 10% chance of "not
   evaluable" if the true spread were 0.05; the observed spreads (0.098 on the chains, 0.13 in the
-  gate) suggest a true spread of about 0.1, for which s > 0.07 is the likely outcome. The 0.07
+  gate) (s = 0.135 over the three gate seeds) suggest a true spread of about 0.1, for which s > 0.07 is the likely outcome. The 0.07
   threshold was set from the design runs without a measured spread; this is recorded, the label
   stands.
 
@@ -496,6 +496,13 @@ result 2.67σ. Most of the easing in R5 comes from KiDS.
   1.6–1.9σ over five trainings (mean 1.70), around D26's 1.8σ, but its training scatter (0.1σ)
   exceeds the registered stability limit, so R6 gives no verdict. The full-space number is not
   reproduced or refuted; it is bracketed.
+- **Post hoc (referee, 2026-11-18; section 6): the full-space number may be mostly Σmν.** The CMB
+  chain's Σmν sits against the shared prior edge at 0.06 eV (0.122 ± 0.056) while DES is
+  prior-dominated (0.384 ± 0.147); Σmν alone gives a 1-D difference of 1.74σ, the other five
+  parameters 0.27–0.88σ each. If the 6-D number is carried by this prior-edge direction, D26's 1.8σ
+  (and our 1.6–1.9σ) would say little about a disagreement in the data-constrained directions,
+  where the flow gives 0.40σ for (A_s, Ωm). A 1-D marginal does not decide the 6-D number; the
+  pre-registered test is T-040 (a 5-D flow without Σmν).
 
 ## 6. Referee notes
 
@@ -528,6 +535,21 @@ the cached chains with the study's own functions and downloaded nothing). Triage
 8. **Checked and fine** (by the referee): whitening, grid offsets, equal-tail side, split-normal
    construction, interval search, weighted covariances; non-finite and zero-weight rows all carry
    zero weight; ESS about 1.0 × 10⁴ per chain; cell/h 0.026 (1-D) and 0.127 (2-D).
+
+### Referee, R6-FLOW (independent subagent, 2026-11-18)
+
+The referee saw README sections 1–4, the code and the results, not sections 5–8 or the log; it ran
+short offline checks from the cache and read tensiometer's source. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | **The full-space number may be mostly the Σmν direction.** The CMB chain has Σmν = 0.122 ± 0.056, against the shared prior edge at 0.06; DES has 0.384 ± 0.147, prior-dominated over 0.06–0.6. The 1-D difference in Σmν alone, with the study's binned estimator, is 1.74σ (P(ΔΣmν > 0) = 0.935); the other five 1-D differences are 0.27–0.88σ, and the pairs (Σmν, A_s) and (Σmν, Ωm) 1.26σ and 1.02σ. The prior-support check cannot see this: both chains share the same prior ranges | yes: we reran the referee's cache-only script (`marg.py`, 3 s; its chain labels were swapped and are corrected here by row count): Σmν 1.7416σ, others as stated | **Accepted** (post hoc, 2026-11-18). Section 5 reading extended; the R6 label stands. A 1-D marginal does not decide the 6-D number, so this is suggestive, not shown. The decisive test (a 5-D flow without Σmν) is registered as T-040. |
+| 2 | **`pop_size = 10` is not ten independent initialisations.** tensiometer 1.1.0's `global_train` skips layers that are already built (the model is built at initialisation), so populations 2–10 continue from the previous population's weights; only the optimiser and learning-rate schedule restart. Section 2.6 step 4 ("ten trainings … the best kept") describes the settings, not what the code does | yes: `synthetic_probability.py` lines 1050–1062 (the loop that skips built layers) and the referee's 3-population test (population 2 starts at population 1's final weights) | **Accepted** (dated clarification, 2026-11-18): each repetition is one initialisation trained in up to ten successive rounds; the seed spread is single-initialisation spread. The settings were tensiometer's defaults as registered; the verdict is unchanged. A `pop_size = 1` comparison is part of T-040. |
+| 3 | The known-answer gate already showed a spread (s = 0.135 over seeds 10–12) about twice the registered limit 0.07, whose justification assumed a true spread of 0.05; "not evaluable" was predictable from the gate | yes (results) | Accepted; already in the post hoc remark of section 5, the gate spread added there. |
+| 4 | The Clopper–Pearson "convergence" measures only the Monte Carlo sampling of one fixed flow (half-width about 0.0008 in Δ, 30–50 times smaller than the seed spread); the saved intervals are not uncertainties of n_σ | yes | Accepted; noted (section 5 does not quote them). |
+| 5 | Smaller: the Monte Carlo error of the gate reference is about 0.002σ, not 0.001σ; the `ranges` prior bijector takes each repetition's range from that sample's minimum and maximum, so it varies with the seed; `main` and `s8_for_as` use the same resampling seeds (paired, not independent); with ESS about 10⁴ per chain, 100,000 draws repeat rows, so validation rows duplicate training rows | yes | Accepted as limitations; none changes the label. The paired seeds make the A_s/S8 comparison (1.740 against 1.714) a paired one. |
+| 6 | The verdict order, the independent re-derivation in `test_conclusions.py`, the lower-bound handling and the analytic gate density are correct; the s ≤ 0.07 rule withheld a verdict that the band alone would have called "reproduced" (0.10 from 1.8, within 0.345), so it is not a moved goalpost; the amendment of 2026-11-18 is consistent with the results | – | None. |
+| 7 | Literature (unverified, the referee's memory): Raveri & Doux 2021 (arXiv:2105.03324, flow-based shifts); Raveri & Hu 2019 (arXiv:1806.04649); Lemos et al. 2021 (arXiv:2012.09554); Raveri, Zacharegkas & Hu 2020 (arXiv:1912.04880, prior-dominated directions). D26's PTE 0.08 corresponds to 1.75σ | no | Context for T-040; to be raised to [V] before use. |
 
 
 ## 7. Open questions
