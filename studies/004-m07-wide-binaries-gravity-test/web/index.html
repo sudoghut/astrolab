@@ -34,6 +34,8 @@
   <div id="chain"></div>
   <h2><span class="en">Variants (R3, descriptive)</span><span class="zh">变体（R3，只作描述）</span></h2>
   <div id="variants"></div>
+  <h2><span class="en">R5: enlarged sample (d &lt; 250 pc), power gate G1b</span><span class="zh">R5：扩大样本（d &lt; 250 pc），功效门槛 G1b</span></h2>
+  <div id="r5"></div>
 </main>
 <script>
 const L = i18n.L, t = i18n.t;
@@ -101,12 +103,33 @@ function render() {
 }
 
 Promise.all(['summary', 'variants'].map(n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`results/${n}.json: HTTP ${r.status}`); return r.json(); })))
-  .then(([summary, variants]) => { D = {summary, variants}; render(); })
+  .then(([summary, variants]) => { D = {summary, variants}; render(); if (window._r5 !== undefined) { D.r5 = window._r5; renderR5(); } })
   .catch(e => {
     const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
     document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + msg;
   });
+function renderR5() {
+  const el = document.getElementById('r5');
+  const r = D && D.r5;
+  if (!r || !r.g1b) { el.innerHTML = `<p class="note">${L('R5 has not been run.', 'R5 尚未运行。')}</p>`; return; }
+  const g = r.g1b, tr = g.step1_trace || {};
+  const names = {canonical: ['canonical pairs', '规范星对'], degroup: ['relaxed degrouping', '宽松去群'], distance: ['ϖ̄ > 4.0 mas', 'ϖ̄ > 4.0 mas'], r_sky: ['300 AU ≤ r_sky ≤ 30 kAU', '300 AU ≤ r_sky ≤ 30 kAU'], ruwe: ['RUWE &lt; 1.25', 'RUWE &lt; 1.25'], hr: ['HR band', 'HR 带'], sigma_proxy: ['σ̃ &lt; 0.1', 'σ̃ &lt; 0.1']};
+  const pred = [1408, 988, 789, 375, 220, 72];
+  const lbl = r.label === 'R5: not run (insufficient predicted power)' ? L(r.label, 'R5：未运行（预测功效不足）') : r.label;
+  el.innerHTML =
+    `<div class="cards"><div class="card"><h3>${L('G1b: L_N* (needs ≥ 100)', 'G1b：L_N*（要求 ≥ 100）')}</h3><div>${g.L_N == null ? '—' : Number(g.L_N).toPrecision(3)}</div></div>` +
+    `<div class="card"><h3>${L('G1b: L_M* (needs ≤ 0.01)', 'G1b：L_M*（要求 ≤ 0.01）')}</h3><div>${g.L_M == null ? '—' : Number(g.L_M).toPrecision(3)}</div></div>` +
+    `<div class="card"><h3>${L('Label', '标签')}</h3><div class="verdict ${g.passes ? 'ok' : 'warn'}">${lbl}</div></div></div>` +
+    `<table><thead><tr><th>${L('after cut (velocity-free)', '截断之后（不用速度）')}</th><th class="num">${L('pairs', '对数')}</th></tr></thead><tbody>` +
+    Object.entries(tr).map(([k, v]) => `<tr><td>${names[k] ? L(...names[k]) : k}</td><td class="num">${v}</td></tr>`).join('') + `</tbody></table>` +
+    `<table><thead><tr><th>${L('bin', '箱')}</th><th class="num">${L('median x', 'x 中位数')}</th><th class="num">${L('counted', '计数')}</th><th class="num">${L('scaled', '缩放后')}</th><th class="num">${L('design prediction', '设计预测')}</th></tr></thead><tbody>` +
+    (g.final || []).map((n, j) => `<tr><td>${j + 1}</td><td class="num">${f(g.x_medians[j], 3)}</td><td class="num">${g.raw[j]}</td><td class="num">${n}</td><td class="num">${pred[j] !== undefined ? pred[j] : '—'}</td></tr>`).join('') + `</tbody></table>` +
+    `<p class="note">${L('G1b failed, so the velocity query N4 was not fetched and R5 gives no verdict (README section 2.1 and 5). Scaled counts use the pre-registered factors for the velocity steps.', 'G1b 未通过，所以没有获取速度查询 N4，R5 不给判决（README 第 2.1 与第 5 节）。缩放后的计数用的是预注册的速度步骤因子。')}</p>`;
+}
+fetch('../results/r5.json').then(r => r.ok ? r.json() : null).catch(() => null)
+  .then(r5 => { if (D) { D.r5 = r5; renderR5(); } else { window._r5 = r5; } });
 i18n.onLangChange(render);
+i18n.onLangChange(() => { if (D && D.r5 !== undefined) renderR5(); });
 </script>
 </body>
 </html>
