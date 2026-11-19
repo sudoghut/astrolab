@@ -485,9 +485,18 @@ def test_r2_re_sel_labels():
         else:
             exp = "undetermined"
     assert out["reading"] == exp == s["reading"]
+    # the dropped-host frequencies recounted from the saved per-simulation hosts
+    from collections import Counter
     sel_ = out.get("selection", {})
+    host_of = {r["column"]: r["host"] for r in out.get("real_criteria", [])}
+    n_sp, n_t = out["settings"]["sel_n_spread"], out["settings"]["sel_n_tau"]
     for c in ("X", "S"):
         if c in sel_:
-            n = sum(sel_[c]["frequency_all"].values())
-            assert sel_[c]["n_host_all"] == sel_[c]["frequency_all"].get("N5584", 0) and n == len(
-                sel_[c]["dropped"][:n])
+            dr = sel_[c]["dropped"]
+            assert len(dr) == max(n_sp, n_t)
+            assert sel_[c]["frequency_all"] == {host_of[j]: k for j, k in sorted(Counter(dr[:n_sp]).items())}
+            assert sel_[c]["frequency_first_tau"] == {host_of[j]: k for j, k in sorted(Counter(dr[:n_t]).items())}
+            assert sel_[c]["n_host_all"] == sum(1 for j in dr[:n_sp] if host_of[j] == "N5584")
+    if "X" in sel_ and "S" in sel_:
+        assert sel_["n_same_X_S"] == sum(1 for a, b in zip(sel_["X"]["dropped"][:n_sp], sel_["S"]["dropped"][:n_sp])
+                                         if a == b)

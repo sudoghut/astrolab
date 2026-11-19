@@ -30,17 +30,44 @@ TAU, OUTLIER, N_SUB = 0.05, 0.8, 120   # synthetic host scatter, N5584 offset (m
 CCHP = [0, 3, 7, 10, 12, 19, 21, 30, 33, 36]
 
 
-@pytest.fixture(scope="module")
-def lad():
+def _indep_spread_excl(run, L, y, C, rows_a, base_rows, host_rows, use):
+    """Criterion S computed independently: direct fits (no estimator rows) of each subset and of rows_a;
+    returns spread_excl for every host and the spread over all subsets."""
+    full = run.fit(L, y, C, rows_a)
+    zk = []
+    for pk in use:
+        rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pk]))
+        r = run.fit(L, y, C, rows)
+        zk.append((r["q"][run.C_H0] - full["q"][run.C_H0])
+                  / np.sqrt(r["sigma"][run.C_H0] ** 2 - full["sigma"][run.C_H0] ** 2))
+    zk = np.array(zk)
+    return np.array([np.std(zk[[j not in pk for pk in use]]) for j in range(run.NH)]), float(np.std(zk))
+
+
+def _build(name, extra=False):
     """The synthetic 37-host ladder of test_n5584 (host 26 = 'N5584' with an outlying SN), R4 draws on
-    37 hosts, and the R2-RE-N5584 block run on it with small counts."""
-    run = _load("run003_sel", "run.py")
-    tn = _load("tn003_sel", "test_n5584.py")
+    37 hosts, and the R2-RE-N5584 block run on it with small counts. With `extra`, an LMC row and two
+    Milky Way rows are inserted at scattered positions and left out of rows_a, so rows_a is a proper
+    sorted subset of the rows (as in the real data)."""
+    run = _load(name, "run.py")
+    tn = _load("tn003_" + name, "test_n5584.py")
     L, y, C = tn._synthetic(run, tau=TAU, outlier=OUTLIER)
+    if extra:
+        ext = []
+        for pos, c, val in ((0, run.C_LMC, 0.0), (101, run.C_MH, -5.85), (203, run.C_MH, -5.80)):
+            r = np.zeros(run.N_PAR)
+            r[c] = 1.0
+            L = np.insert(L, pos, r, axis=0)
+            y = np.insert(y, pos, val)
+            C = np.insert(np.insert(C, pos, 0.0, axis=0), pos, 0.0, axis=1)
+            C[pos, pos] = 0.03 ** 2
+            ext = [e + (e >= pos) for e in ext] + [pos]
+        rows_a = np.setdiff1d(np.arange(len(y)), ext)
+    else:
+        rows_a = np.arange(len(y))
     run.N_ROWS = len(y)
     nz, cls, _ = run.row_classes(L, y)
     groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(run.NH)]
-    rows_a = np.arange(len(y))
     other = [j for j in range(run.NH) if j not in CCHP]
     rows_s = np.array([i for i in rows_a if not nz[i, other].any()])
     labels = [f"H{j:02d}" for j in range(run.NH)]
@@ -62,7 +89,7 @@ def lad():
     hc, res_a = run.host_step_under(L, y, C, rows_a, rows_s)
     r4 = {}
     any_host = nz[:, :run.NH].any(axis=1)
-    base_rows = rows_a[~any_host]
+    base_rows = np.array([i for i in rows_a if not any_host[i]])
     _, _, _, picks = run.r4_draws(L, y, C, rows_a, res_a, hc["fivelogh0_37"], hc["sigma_37"], base_rows,
                                   host_rows, np.arange(run.NH), 10, P["r4_draws"], P["r4_seed"], 60.0,
                                   n_sn_col, r4, lambda m: None)
@@ -71,20 +98,16 @@ def lad():
     fns = {"reml_tau": run.reml_tau, "reml_m2l": run.reml_m2l, "fit": run.fit,
            "shift_vector": run.shift_vector, "is_fit_failure": run.is_fit_failure, "loo_chi2": run.loo_chi2,
            "C_H0": run.C_H0}
-    # criterion S on the real y, computed independently (direct fits, no estimator rows)
     use = picks[:P["sel_n_subsets"]]
-    full = run.fit(L, y, C, rows_a)
-    zk = []
-    for pk in use:
-        rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pk]))
-        r = run.fit(L, y, C, rows)
-        zk.append((r["q"][run.C_H0] - full["q"][run.C_H0])
-                  / np.sqrt(r["sigma"][run.C_H0] ** 2 - full["sigma"][run.C_H0] ** 2))
-    zk = np.array(zk)
-    s_indep = np.array([np.std(zk[[j not in pk for pk in use]]) for j in range(run.NH)])
+    s_indep, rob_spread = _indep_spread_excl(run, L, y, C, rows_a, base_rows, host_rows, use)
     return dict(run=run, L=L, y=y, C=C, nz=nz, cls=cls, groups=groups, rows_a=rows_a, rows_s=rows_s,
                 labels=labels, host_rows=host_rows, P=P, picks=picks, n_out=n_out, fns=fns,
-                base_rows=base_rows, s_indep=s_indep, re_out=re_out, hc=hc)
+                base_rows=base_rows, s_indep=s_indep, rob_spread=rob_spread, re_out=re_out, hc=hc)
+
+
+@pytest.fixture(scope="module")
+def lad():
+    return _build("run003_sel")
 
 
 def _rec(lad):
@@ -95,7 +118,7 @@ def _rec(lad):
 def _block(lad, P=None, n_out=None, fns=None, picks=None, **kw):
     rt, rs = _rec(lad)
     args = dict(recorded_tau=rt, recorded_spread=rs, crit_s_expected=float(lad["s_indep"][COL]),
-                expected_col=COL, n_pick=10)
+                expected_col=COL, n_pick=10, rob_spread_obs=lad["rob_spread"])
     args.update(kw)
     return sel.run_block(lad["L"], lad["y"], lad["C"], lad["nz"], lad["rows_a"], lad["groups"], lad["labels"],
                          lad["host_rows"], lad["picks"] if picks is None else picks,
@@ -250,6 +273,8 @@ def test_block_end_to_end(lad, base_out, tmp_path, monkeypatch):
     assert out["checks"]["criterion_s"]["selects"]["column"] == COL
     assert abs(out["checks"]["criterion_s"]["host_value"] - lad["s_indep"][COL]) < 1e-9
     assert out["checks"]["first_subsets"]["first_picks"] == lad["n_out"]["drop"]["r4n"]["first_picks"]
+    cs = out["checks"]["criterion_s"]
+    assert cs["rob_spread_obs"] == lad["rob_spread"] and cs["spread_37_matches_rob"] is True
     # counts, p values, labels and the reading follow the rules
     t = out["tau"]
     assert t["n_sims"] == 6 and t["n_ok"] + t["n_failed"] == 6
@@ -299,6 +324,10 @@ def test_seeds_and_selection_on_simulated_data(lad, base_out):
         est = run.reml_tau(lambda t: run.reml_m2l(L, ys, C, red["rows_n"], red["groups_n"], t), 0.5, 0.01,
                            interval=False)
         assert base_out["tau"]["taus"][s] == round(est["tau_hat"], 5)
+        # criterion S on the simulated y, independently (direct fits)
+        v, _ = _indep_spread_excl(run, L, ys, C, rows_a, lad["base_rows"], lad["host_rows"],
+                                  lad["picks"][:lad["P"]["sel_n_subsets"]])
+        assert base_out["selection"]["S"]["dropped"][s] == int(np.argmin(v))
     other = _block(lad, P=dict(lad["P"], sel_seed_base=10_000, sel_n_tau=1, sel_n_spread=6))
     assert other["selection"]["X"]["dropped"] != base_out["selection"]["X"]["dropped"][:6] or \
         other["tau"]["taus"][0] != base_out["tau"]["taus"][0]
@@ -412,6 +441,7 @@ def test_tau_failed_fit_limit(lad, n_fail, expect):
     out = _block(lad, P=_small(lad, sel_n_tau=3, sel_max_failed=1), fns=dict(lad["fns"], reml_tau=flaky))
     t = out["tau"]
     assert t["status"] == expect and t["n_failed"] == n_fail and t["n_ok"] == 3 - n_fail
+    assert len(t["sim_quantiles"]) == 3 and t["n_at_zero"] == sum(1 for x in t["taus"] if x < 1e-3)
     if expect == "evaluated":
         assert t["p"] == (1 + t["k"]) / (1 + t["n_ok"])
     else:
@@ -453,8 +483,67 @@ def test_reproduction_failures_stop_the_run(lad):
     n_out = copy.deepcopy(lad["n_out"])
     rs = n_out["drop"]["bn"]["spread"]["spread_obs"] * (1 + 1e-6)
     n_out["drop"]["bn"]["spread"]["spread_obs"] = rs
-    with pytest.raises(RuntimeError, match="d = N5584 path"):
-        _block(lad, P=_small(lad), n_out=n_out, recorded_spread=rs)
+    def no_tau(*a, **k):
+        raise AssertionError("the tau part ran before the spread_obs reproduction")
+    with pytest.raises(RuntimeError, match="d = N5584 path"):          # stops before the tau part
+        _block(lad, P=_small(lad), n_out=n_out, recorded_spread=rs, fns=dict(lad["fns"], reml_tau=no_tau))
+
+
+def test_no_r4n_draws_tau_runs_spread_parts_not_evaluable(lad):
+    """R4-N's runtime guard left no draws: first_picks is empty and B-N's spread part is not evaluated; no
+    first-subsets comparison, the tau part runs, both spread parts are not evaluable."""
+    n_out = copy.deepcopy(lad["n_out"])
+    n_out["drop"]["r4n"]["first_picks"] = []
+    n_out["drop"]["r4n"]["status"] = "not evaluated (runtime)"
+    n_out["drop"]["bn"]["spread"] = {"status": "not evaluable (R4 has no draws)"}
+    out = _block(lad, P=_small(lad), n_out=n_out)
+    assert out["status"] == "evaluated" and out["tau"]["status"] == "evaluated"
+    for p in ("spread_X", "spread_S"):
+        assert out[p]["status"] == "not evaluable (B-N's spread part not evaluated)"
+    assert out["reading"] == "not evaluable"
+
+
+def test_subset_count_must_match_rob(lad):
+    out = _block(lad, P=_small(lad, sel_n_subsets=N_SUB - 1))
+    assert out["status"].startswith("not evaluable (configuration: sel_n_subsets")
+    assert out["reading"] == "not evaluable" and "tau" not in out
+
+
+def test_rob_spread_flag_is_descriptive(lad):
+    out = _block(lad, P=_small(lad), rob_spread_obs=lad["rob_spread"] * 1.01)
+    assert out["checks"]["criterion_s"]["spread_37_matches_rob"] is False
+    assert out["spread_S"]["status"] == "evaluated"
+
+
+def test_rows_a_proper_subset_end_to_end():
+    """rows_a a proper sorted subset of the rows (LMC and Milky Way rows left out, as in the real data): the
+    position maps are exercised; the block runs and its d = N5584 path reproduces (a) bitwise."""
+    lx = _build("run003_sel_x", extra=True)
+    assert len(lx["rows_a"]) == len(lx["y"]) - 3 and lx["rows_a"][0] == 1
+    out = _block(lx, P=_small(lx))
+    for part in ("tau", "spread_X", "spread_S"):
+        assert out[part]["status"] == "evaluated", out[part]
+    assert out["checks"]["spread_obs_d_host"]["value"] == _rec(lx)[1]
+    assert out["checks"]["loo_maps"]["max_rel_diff"] <= 1e-8
+    assert out["checks"]["criterion_s"]["spread_37_matches_rob"] is True
+    run, L, y, C, rows_a = lx["run"], lx["L"], lx["y"], lx["C"], lx["rows_a"]
+    full = run.fit(L, y, C, rows_a)
+    yhat = L[np.ix_(rows_a, full["kept"])] @ full["q"][full["kept"]]
+    ys = y.copy()
+    ys[rows_a] = yhat + np.linalg.cholesky(C[np.ix_(rows_a, rows_a)]) @         np.random.default_rng(20_000).standard_normal(len(rows_a))
+    chi = [h["chi2"] for h in run.loo_chi2(L, ys, C, rows_a, lx["groups"], lx["labels"])["per_host"]]
+    d = int(np.argmax(chi))
+    assert out["selection"]["X"]["dropped"][0] == d
+    red = sel.reduced_system(lx["nz"], rows_a, d, lx["groups"], lx["host_rows"])
+    est = run.reml_tau(lambda t: run.reml_m2l(L, ys, C, red["rows_n"], red["groups_n"], t), 0.5, 0.01,
+                       interval=False)
+    assert out["tau"]["taus"][0] == round(est["tau_hat"], 5)
+    # the spread of simulation 0 for its X host, from rows built directly on the reduced system
+    res = run.fit(L, y, C, red["rows_n"], est=True)
+    M, sig = rob.shift_rows(L, y, C, red["rows_n"], res,
+                            [red["host_cols_n"][ix] for ix in sel.index_stream(N_SUB, 0, 36, 10)],
+                            red["base_n"], red["host_rows_n"], lx["fns"])
+    assert abs(out["spread_X"]["spreads"][0] - float(np.std((M @ ys[red["rows_n"]]) / sig))) <= 5e-7
 
 
 def test_wrong_column_is_refused(lad):

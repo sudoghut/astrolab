@@ -987,7 +987,8 @@ def main(ctx):
                  "is_fit_failure": is_fit_failure, "loo_chi2": loo_chi2, "C_H0": C_H0}
         sel_out = sel.run_block(L, y, C, nz, rows_a, calib_groups, col_host[:NH], host_rows, picks, n_out, P,
                                 fns_s, ctx.log, n_pick=len(cset),
-                                expected_col=N5584_COLUMN if P["n5584_host"] == "N5584" else None)
+                                expected_col=N5584_COLUMN if P["n5584_host"] == "N5584" else None,
+                                rob_spread_obs=rob_out.get("B", {}).get("spread", {}).get("spread_obs"))
         ctx.log(f"R2-RE-SEL: {sel_out.get('reading', sel_out['status'])}")
     ctx.save("r2_re_sel", sel_out)
 
