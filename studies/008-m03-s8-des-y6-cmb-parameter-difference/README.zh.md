@@ -583,14 +583,14 @@ KiDS-1000、HSC Y3 2023）距这个 CMB 1.4–3.1σ；其他当前探针（KiDS-
 | `probes` | R5 汇总值：name -> [mean, σ₊, σ₋, reference] | 任意已发表的 S8 | 只用缓存 |
 | `chains` | DES 服务器上的链文件名 | `chains_release/` 中的其他文件 | 新数据：先检查大小（50 MB 上限；只有 32pt 链有用户批准的例外） |
 | `r6_retrain`, `r6_nomnu_retrain` | `False`：不重新训练 R6 / R6-NOMNU，检查并复用已记录的 `results/r6.json` / `results/r6_nomnu.json`（README 2.7、2.8） | 保持 `False`（`True` 会重新训练数小时） | 只用缓存 |
-| `r6_shuf` | 运行 R6-SHUF（README 2.8）：在 DES 的 Σmν 列打乱（S）、从先验（prior）抽取（P）、两条链都打乱（SS）后训练流 | `False` 跳过（在 venv-tf 中约 4 小时的流训练） | 只用缓存 |
+| `r6_shuf` | 运行 R6-SHUF（README 2.8）：在 DES 的 Σmν 列打乱（S）、从先验（prior）抽取（P）、两条链都打乱（SS）后训练流 | `False` 跳过（在 venv-tf 中约 4 小时的流训练）；它默认为 `True`，且运行结束后作业文件夹会被删除，所以探索其他键时请加 `--set r6_shuf=False`，否则每次运行都会重新训练 | 只用缓存 |
 | `r6_shuf_seeds`, `r6_shuf_seed_offsets` | R6-SHUF 的种子 k（与 R6、R6-NOMNU 配对）以及 (S)、(P)、(SS) 随机数生成器的偏移 | 登记值 `[0..4]`、`[1000, 2000, 3000]` | 只用缓存 |
 | `r6_shuf_s_max`, `r6_shuf_e_min`, `r6_shuf_band` | R6-SHUF 标签规则 4–6（改变它们就不是登记的标签） | – | 只用缓存 |
 | `r6_shuf_gate` | 低偏移门槛（low-shift gate）：弯曲参数对的均值与已记录的精确 n_σ | – | 只用缓存 |
 | `r6_shuf_prior`, `r6_shuf_knn_k` | (P) 使用的 Σmν 先验范围；描述性 kNN（k 近邻，k-nearest neighbour）值的 k | 先验取自链文件头；k 10–200 | 只用缓存 |
 
 - 带覆盖参数重跑：`python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --set KEY=VALUE`
-  （输出在 `explore/<date>-<topic>/`，不入库；从缓存运行约 70 s）。
+  （输出在 `explore/<date>-<topic>/`，不入库；加 `--set r6_shuf=False` 时从缓存运行约 70 s）。
 - `run.py` 未覆盖的分析：写一个带 `def main(ctx)` 的脚本 `explore/<name>.py`，用
   `python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --script explore/<name>.py` 运行。
   已有：`explore/estimator_calibration.py`（估计量的合成数据校准）；
