@@ -398,8 +398,25 @@ def test_descriptive_crashes():
                   _cfg(), lambda m: None, fs)
     assert res["SS"]["repetitions"][2] == {"seed": 2, "error": "subprocess failed"}
     assert res["determinism"]["error"] == "subprocess failed" and res["knn"][1]["error"] == "subprocess failed"
-    with pytest.raises(RuntimeError):
-        rs.plan(_fake_job([], 0.86, crash={("shuf", "P", 3)}), _cfg(), lambda m: None, fs)
+
+
+def test_s_p_crash_recorded_and_plan_continues():
+    calls = []
+    res = rs.plan(_fake_job(calls, 0.86, crash={("shuf", "P", 3)}), _cfg(), lambda m: None, fs)
+    assert res["P"]["repetitions"][3] == {"seed": 3, "error": "subprocess failed"}
+    assert ("shuf", "SS", 4) in calls and ("shuf", "none", 0) in calls and ("knn", 4) in calls
+    rec = {"versions": {"tensorflow": "2.21.0"}, "settings": {"pop_size": 10}}
+    out = rs.assemble(fs.finite(res), {"ok": True, "per_seed": N6, **rec}, {"ok": True, "per_seed": N5, **rec},
+                      True, SEEDS, EMIN, SMAX, BAND, GATE_P, {})
+    assert out["label"] == rs.NE and "(P)" in out["reason"]
+
+
+def test_env_requires_settings_present():
+    rec = {"versions": {"tensorflow": "2.21.0"}, "settings": None}
+    res = {"versions": {"tensorflow": "2.21.0"}, "settings": None}
+    assert rs.env_matches(res, rec, rec)["ok"] is False
+    full = {"versions": {"tensorflow": "2.21.0"}, "settings": {"pop_size": 10}}
+    assert rs.env_matches(dict(full), full, full)["ok"] is True
 
 
 def test_assemble_not_reusable():

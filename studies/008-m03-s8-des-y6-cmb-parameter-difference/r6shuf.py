@@ -118,7 +118,9 @@ def env_matches(res, rec6, rec5):
     run = {"versions": res.get("versions"), "settings": res.get("settings")}
     out = {"run": run, "equal_r6": run == {"versions": rec6.get("versions"), "settings": rec6.get("settings")},
            "equal_r6_nomnu": run == {"versions": rec5.get("versions"), "settings": rec5.get("settings")}}
-    out["ok"] = bool(run["versions"] is not None and out["equal_r6"] and out["equal_r6_nomnu"])
+    present = all(isinstance(x.get(key), dict) and x.get(key) for x in (run, rec6, rec5)
+                  for key in ("versions", "settings"))
+    out["ok"] = bool(present and out["equal_r6"] and out["equal_r6_nomnu"])
     return out
 
 
@@ -168,7 +170,9 @@ def plan(job, cfg, log, flowshift, expected=None):
         log(f"variant {variant}: seeds {sc['seeds']}")
         vreps = []
         for k in sc["seeds"]:
-            r = descriptive("shuf", variant, k) if variant == "SS" else job("shuf", variant, k)
+            # a crashed repetition is recorded as failed; for (S) and (P) rule 3 then decides
+            # "not evaluable", and the remaining (descriptive) jobs still run
+            r = descriptive("shuf", variant, k)
             vreps.append(r)
             log(f"  {variant} seed {k}: {r.get('n_sigma', r.get('error'))}")
         res[variant] = flowshift.case_summary(vreps, sc["columns"])
