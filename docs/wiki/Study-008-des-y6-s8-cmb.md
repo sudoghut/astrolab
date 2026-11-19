@@ -341,6 +341,18 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
   this prior-edge direction, it says little about the data-constrained directions (where the flow
   gives 0.40σ for (A_s, Ωm)). A 1-D number does not decide the 6-D one; a 5-D flow without Σmν is
   registered as T-040.
+- **Update 2026-11-18, R6-NOMNU (T-040, pre-registered): the full-space number goes mostly with
+  Σmν.** A 5-D flow without Σmν (A_s, h, n_s, Ωb, Ωm; same rows, five trainings, a 5-D known-answer
+  gate that passed) gives 0.52σ (s = 0.04), against 1.70σ in 6-D: the pre-registered label is "the
+  full-space shift is mainly the Σmν direction" (in effective χ², 3.65 against 10.97). The
+  independent referee (post hoc, verified by us with short non-flow checks) refined this: the 6-D
+  number comes mostly from Σmν jointly with its DES correlations (shuffling DES's Σmν column lowers a
+  kNN 6-D estimate from 1.27–1.57σ to about 0.8σ), and partly from the prior shape (DES's Σmν is close
+  to its prior; with DES's Σmν drawn from the prior the 1-D difference is still 1.05σ). So D26's
+  full-space 1.8σ mostly reflects where the two chains sit relative to the shared neutrino-mass prior,
+  and the disagreement in the data-constrained directions is about 0.5σ. A one-population flow
+  (`pop_size = 1`) trains nine times faster but runs low in 5-D. A pre-registered shuffle and
+  prior-replacement check is registered (T-044). Numbers: [`results/r6_nomnu.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_nomnu.json).
 - **"Easing", measured on one ruler.** Against the same CMB chain, the previous generation sits at
   1.4–3.1σ (DES Y3 2.83σ, KiDS-1000 2.92–3.14σ, HSC Y3 2023 1.44–1.93σ) and the other current probes
   at 0.2–1.7σ (KiDS-Legacy 1.04σ, HSC Y3 2025 1.74σ, ACT lensing 0.18σ, eROSITA 1.51σ above the CMB);
@@ -375,6 +387,9 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
 
 Newest first.
 
+- 2026-11-18: R6-NOMNU (T-040): 5-D flow without Σmν gives 0.52σ, "mainly the Σmν direction";
+  referee (post hoc): Σmν jointly with its DES correlations and partly the prior; T-044 registered
+  (part 3 update).
 - 2026-11-18: referee of R6: Σmν alone differs by 1.74σ (the CMB chain sits at the prior edge), so the full-space number may be mostly that direction (T-040); tensiometer's ten populations are warm restarts of one initialisation.
 - 2026-11-18: R6 (normalizing flows, T-027): not evaluable (training spread 0.098 > 0.07); five estimates 1.61–1.86σ around D26's 1.8σ; the flow hardly depends on the parametrization; the 1-D flow not run (tensiometer loops forever in one dimension).
 - 2026-11-15: referee: bootstrap uncertainties (±0.03), the Gaussian full-space number depends on the parametrization, the step-A amendment labelled as procedural, R5 with modes.
@@ -584,6 +599,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 - **全空间需要归一化流。** 在采样参数中作高斯近似得到 0.89σ，而且它依赖坐标：(A_s, Ωm) 上 0.32σ，(S8, Ωm) 上 2.21σ，以 S8 代替 A_s 时 1.48σ（审稿后事后补做）。S8 是 A_s 与 Ωm 的非线性组合，DES 中好几个参数主要由先验决定，所以在采样坐标中作高斯近似会冲淡差别。这就是 D26 用归一化流的原因；没有哪个高斯数字能检验 1.8σ。
 - **用归一化流估计完整空间（R6，2026-11-16 的补充，2026-11-18 运行）：无法评估，但被框定。** 用 tensiometer 的默认流（在 tensiometer 1.1.0 中，它的十轮"种群"（population）是从一次初始化接着训练（热启动，warm restart），而不是重新开始，由审稿人发现），六参数差异的五个独立估计为 1.86、1.64、1.72、1.61 与 1.67σ（均值 1.70），D26 给出单个 1.8σ。一个已知答案的合成检验通过（均值 2.40，精确值 2.37）。预注册的稳定性上限（离散 s ≤ 0.07）未满足，s = 0.098，所以 R6 不给判决。这次运行说明：一次流训练使结果变动约 0.1σ，D26 的单个数字同样带有这一不确定度，但没有给出。与高斯近似不同，流几乎不依赖坐标（相同种子下用 A_s 为 1.74σ，用 S8 为 1.71σ），在两种估计都有的两个平面上与分箱密度估计相差不超过 0.04σ。1 维的流无法运行：tensiometer 1.1.0 在一维时陷入死循环（infinite loop）（在一次停滞的运行之后发现；2026-11-18 的修订）。
 - **事后（审稿）：完整空间的数字可能主要来自 Σmν。** CMB 链的中微子质量紧贴先验边界 0.06 eV，而 DES 几乎没有约束它；只用 Σmν 的 1 维差异为 1.74σ，其他每个参数为 0.21–0.89σ。如果六参数的 1.8σ 由这个先验边界方向承载，它对数据约束的方向说明不了多少（在 (A_s, Ωm) 上流给出 0.40σ）。1 维的数字不能决定 6 维的数字；不含 Σmν 的 5 维流登记为 T-040。
+- **2026-11-18 更新，R6-NOMNU（T-040，预注册）：完整空间的数字主要随 Σmν 而来。** 不含 Σmν 的 5 维流（A_s、h、n_s、Ωb、Ωm；相同的行，五次训练，5 维已知答案门控通过）给出 0.52σ（s = 0.04），而 6 维为 1.70σ：预注册标签为"完整空间的偏移主要来自 Σmν 方向"（有效 χ² 3.65 对 10.97）。独立审稿（事后，我们用不训练流的短检查复核）进一步说明：6 维数字主要来自 Σmν 与它在 DES 中的相关共同作用（打乱 DES 的 Σmν 列后，kNN 的 6 维估计从 1.27–1.57σ 降到约 0.8σ），部分来自先验形状（DES 的 Σmν 接近其先验；DES 的 Σmν 取自先验时 1 维差异仍为 1.05σ）。所以 D26 的完整空间 1.8σ 主要反映两条链相对共同的中微子质量先验的位置，而数据约束方向上的分歧约为 0.5σ。只用一个种群的流（`pop_size = 1`）训练快九倍，但在 5 维偏低。预注册的打乱与先验替换检查已登记（T-044）。数字见 [`results/r6_nomnu.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_nomnu.json)。
 - **用同一把尺子量"减弱"。** 对同一条 CMB 链，上一代为 1.4–3.1σ（DES Y3 2.83σ，KiDS-1000 2.92–3.14σ，HSC Y3 2023 1.44–1.93σ），当前其他探针为 0.2–1.7σ（KiDS-Legacy 1.04σ，HSC Y3 2025 1.74σ，ACT 透镜 0.18σ，eROSITA 在 CMB 之上 1.51σ）；DES Y6 3x2pt 为 2.67σ。逐个巡天看：KiDS 移动很大（2.9–3.1σ 到 1.0σ），DES 移动很小（2.83σ 到 2.67σ），HSC 几乎没动（1.4–1.9σ 到 1.74σ）。所以"减弱"主要是 KiDS 的结果，而不是所有巡天的普遍变化。（若较早的论文给出的是众数（mode，最可能值）而不是均值，KiDS-1000 3x2pt 为 2.93σ 而不是 3.14σ。）
 
 ### 术语表
@@ -610,6 +626,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 
 按时间倒序。
 
+- 2026-11-18：R6-NOMNU（T-040）：不含 Σmν 的 5 维流给出 0.52σ，"主要来自 Σmν 方向"；审稿（事后）：Σmν 与它在 DES 中的相关共同作用，部分来自先验；登记 T-044（第三部分更新）。
 - 2026-11-18：R6 的审稿：只用 Σmν 的差异为 1.74σ（CMB 链紧贴先验边界），完整空间的数字可能主要来自这个方向（T-040）；tensiometer 的十轮种群（population）是同一次初始化的接续训练（热启动，warm restart）。
 - 2026-11-18：R6（归一化流，T-027）：无法评估（训练离散 0.098 > 0.07）；五个估计 1.61–1.86σ，围绕 D26 的 1.8σ；流几乎不依赖参数化；1 维流未运行（tensiometer 在一维时陷入死循环）。
 - 2026-11-15：审稿：自助法不确定度（±0.03），全空间高斯数字依赖参数化，第 A 步修订标注为程序性说明，R5 的众数读法。
