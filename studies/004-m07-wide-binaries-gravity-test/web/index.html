@@ -128,7 +128,8 @@ function renderR5() {
     `<table><thead><tr><th>${L('bin', '箱')}</th><th class="num">${L('median x', 'x 中位数')}</th><th class="num">${L('counted', '计数')}</th><th class="num">${L('scaled', '缩放后')}</th><th class="num">${L('design prediction', '设计预测')}</th></tr></thead><tbody>` +
     (g.final || []).map((n, j) => `<tr><td>${j + 1}</td><td class="num">${f(g.x_medians[j], 3)}</td><td class="num">${ident ? g.raw[j] : '—'}</td><td class="num">${n}</td><td class="num">${ident && pred[j] !== undefined ? pred[j] : '—'}</td></tr>`).join('') + `</tbody></table>` +
     (g.passes ? '' : `<p class="note">${L('G1b failed, so the velocity query N4 was not fetched and R5 gives no verdict (README section 2.1 and 5).', 'G1b 未通过，所以没有获取速度查询 N4，R5 不给判决（README 第 2.1 与第 5 节）。')}</p>`) +
-    `<p class="note">${L('Scaled counts use the pre-registered factors for the velocity steps. Post hoc (referee, verified): relaxed degrouping keeps 44% of pairs at 130 pc but 23% at 250 pc, pointing to chance neighbours; direct test T-043.', '缩放后的计数用的是预注册的速度步骤因子。事后（审稿，已复核）：宽松去群在 130 pc 保留 44% 的星对，在 250 pc 只保留 23%，指向偶然邻居；直接检验为 T-043。')}</p>`;
+    `<p class="note">${L('Scaled counts use the pre-registered factors for the velocity steps; the mass step removes no pairs and has no row.', '缩放后的计数用的是预注册的速度步骤因子；质量步骤不去掉星对，因此没有单独一行。')}</p>` +
+    (g.passes ? '' : `<p class="note">${L('Post hoc (referee, verified): relaxed degrouping keeps 44% of pairs at 130 pc but 23% at 250 pc, pointing to chance neighbours; direct test T-043.', '事后（审稿，已复核）：宽松去群在 130 pc 保留 44% 的星对，在 250 pc 只保留 23%，指向偶然邻居；直接检验为 T-043。')}</p>`);
 }
 fetch('../results/r5.json').then(r => r.ok ? r.json() : null).catch(() => null)
   .then(r5 => { if (D) { D.r5 = r5; renderR5(); } else { window._r5 = r5; } });
