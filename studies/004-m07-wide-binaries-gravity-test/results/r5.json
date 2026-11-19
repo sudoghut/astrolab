@@ -1,0 +1,98 @@
+{
+ "mode": "r5",
+ "not_reproduction": "enlarged sample; not a reproduction",
+ "params": {
+  "r5_d_max_pc": 250.0,
+  "r5_rsky_min_au": 300.0,
+  "r5_n_boot": 10000,
+  "r5_seed": 0,
+  "r5_bytes_n1": 720,
+  "r5_bytes_n2": 40,
+  "r5_bytes_n3": 24,
+  "r5_bytes_n4": 600,
+  "r5_run_c25": true,
+  "r5_stop_after_g1b": true,
+  "parent": "parallax > 3.4783 AND parallax_over_error > 40 AND radial_velocity IS NOT NULL",
+  "neighbour": "parallax_over_error > 5 AND phot_g_mean_flux_over_error > 5 AND parallax + 3 * parallax_error > 3.4783",
+  "neighbour_c25": "parallax_over_error > 40 AND phot_g_mean_flux_over_error > 5 AND parallax + 3 * parallax_error > 3.4783",
+  "merge_time_utc": "2026-11-18T12:04:20Z",
+  "data_deadline_utc": "2026-11-24T00:00:00Z",
+  "edges": [
+   0.1057,
+   0.2307,
+   0.5088,
+   1.0275,
+   2.0902
+  ],
+  "min_per_bin": 15,
+  "hr_c": 1.590861779261529,
+  "g1b_factors": [
+   0.969,
+   0.937,
+   0.953,
+   0.899,
+   0.809,
+   0.521
+  ]
+ },
+ "queries_a": {
+  "n1_rows": 60259,
+  "n2_rows": 116401,
+  "n3_rows": 53860,
+  "n2_c25_rows": 116348,
+  "fallback_regions": {
+   "N2": [],
+   "N3": []
+  },
+  "n2_c25_errors": {}
+ },
+ "g1b": {
+  "step1_trace": {
+   "canonical": 60259,
+   "degroup": 11445,
+   "distance": 11078,
+   "r_sky": 8296,
+   "ruwe": 4929,
+   "hr": 2239,
+   "sigma_proxy": 2194
+  },
+  "raw": [
+   865,
+   521,
+   416,
+   205,
+   118,
+   69
+  ],
+  "final": [
+   838,
+   488,
+   396,
+   184,
+   95,
+   36
+  ],
+  "mapping": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "x_medians": [
+   0.0667126447001285,
+   0.14997294513091136,
+   0.32808143445076143,
+   0.7066154640156325,
+   1.3735533265140085,
+   2.7121242737257667
+  ],
+  "L_N": 68.41653333643568,
+  "L_M": 0.027884869714360997,
+  "evaluable": true,
+  "passes": false
+ },
+ "label": "R5: not run (insufficient predicted power)",
+ "est_bytes": 53989080
+}
