@@ -601,7 +601,7 @@ estimated input 54.0 MB of the 200 MB budget). Rows: N1 60,259, N2 116,401, N3 5
 
 | Step | Result |
 |---|---|
-| G1b step 1, pairs after each cut | canonical 60,259 → relaxed degrouping 11,445 → ϖ̄ > 4.0 mas 11,078 → 300 AU ≤ r_sky ≤ 30 kAU 8,296 → RUWE 4,929 → HR band 2,239 → σ̃ < 0.1 2,194 |
+| G1b step 1, pairs after each cut | canonical 60,259 → relaxed degrouping 11,445 → ϖ̄ > 4.0 mas 11,078 → 300 AU ≤ r_sky ≤ 30 kAU 8,296 → RUWE 4,929 → HR band 2,239 → masses and x 2,239 → σ̃ < 0.1 2,194 |
 | Counts per x bin (step 1) | 865, 521, 416, 205, 118, 69 |
 | Scaled and rounded (step 2) | 838, 488, 396, 184, 95, 36 (2,037); no merge needed (step 3) |
 | Bin median x | 0.067, 0.150, 0.328, 0.707, 1.37, 2.71 |
@@ -615,7 +615,8 @@ estimated input 54.0 MB of the 200 MB budget). Rows: N1 60,259, N2 116,401, N3 5
 - **Why (descriptive).** The x medians match the design, but the counts are 53% of the prediction
   (43–60% per bin), well beyond the 25% margin (with which L_N* would have been 568). Most of the
   difference comes before velocities, at degrouping: it keeps 19% of N1's candidate pairs (11,445 of
-  60,259), against 38% at 130 pc (8,425 of 21,949). Section 2.1 named this risk (the 3σ parallax
+  60,259), against 38% in the 2026-11-16 sample (150 pc parent, degrouped before its d < 130 pc cut; 8,425
+  of 21,949). Section 2.1 named this risk (the 3σ parallax
   window widens with distance, so more chance neighbours fall within 100 kAU), and G1b caught it
   before any velocity was read, as designed.
 - We recomputed `g1b_counts` and `g1b` from the saved counts and medians and got the same numbers
@@ -623,15 +624,16 @@ estimated input 54.0 MB of the 200 MB budget). Rows: N1 60,259, N2 116,401, N3 5
 - **Post hoc (referee, 2026-11-18; section 6).** The loss is degrouping, and it was predictable.
   Velocity-free, with the same cuts, relaxed degrouping keeps 44% of pairs at 130 pc, 39% at 150 pc and
   23% at 250 pc (1,347 of 3,042; 1,581 of 4,094; 2,194 of 9,478). The design's transfer factors were
-  measured at 130 pc and so carried that survival out to 250 pc. Even pairs at 300–1,000 AU, almost
-  all real binaries, survive only 11% of the time in the 150–250 pc shell (46% within 130 pc), and
+  measured at 130 pc and so carried that survival out to 250 pc. Even pairs at 300–1,000 AU, which
+  are expected to be mostly bound (El-Badry et al. 2021, arXiv:2101.05282), survive only 11% of the time in the 150–250 pc shell (46% within 130 pc), and
   survival depends strongly on Galactic latitude (|b| > 40°: 60% within 130 pc, 20% at 150–250 pc;
-  |b| < 10°: 17% and 2%). This is the signature of chance neighbours inside a parallax window that
-  deepens ∝ d², not of real triples: at 250 pc the relaxed rule thins the sample by sky density and
-  biases it towards high latitudes. Without degrouping the same pipeline gives exactly the server
-  proxy counts (3,067, 2,409, 1,771, 1,047, 745, 439), so tiling, de-duplication and the other cuts
-  are consistent. The G1b failure therefore reads as "the relaxed degrouping rule does not scale
-  beyond about 130–150 pc", not as a shortage of wide binaries. With the C25 neighbour table the same
+  |b| < 10°: 17% and 2%). This points to chance neighbours inside a parallax window that deepens
+  ∝ d², rather than real triples (an inference from the latitude dependence, the loss even at
+  300–1,000 AU and the mean neighbour count rising from 4.1 to 6.1 per star; the direct test is T-043):
+  at 250 pc the relaxed rule thins the sample by sky density and biases it towards high latitudes.
+  Without degrouping and with M_G-only masses the same pipeline gives exactly the server proxy counts (3,067, 2,409, 1,771, 1,047, 745, 439), so tiling, de-duplication and the other cuts
+  are consistent. The G1b failure therefore most likely reads as "the relaxed degrouping rule does
+  not scale beyond about 130–150 pc", not as a shortage of wide binaries. With the C25 neighbour table the same
   counts would give L_N* = 8 × 10⁵ (reported only; switching designs after seeing the counts is not
   allowed, and that design would need its own purity validation).
 
@@ -663,8 +665,8 @@ refused) and reran G1b. We reran its scripts and reproduced every number below. 
 | # | Point | Verified | Action |
 |---|---|---|---|
 | 1 | G1b and the label were evaluated as written: step-1 trace, raw and scaled counts (838.19 → 838 … 35.95 → 36), no merge, x medians, L_N* 68.42 and L_M* 0.0279 reproduce; factors, seeds, f_cal and thresholds equal the README; N4 never fetched | yes | None. |
-| 2 | The shortfall is degrouping: velocity-free kept fraction 0.443 (130 pc), 0.386 (150 pc), 0.231 (250 pc); among N1 pairs by distance 0.535, 0.298, 0.203, 0.125, 0.067 (< 100, 100–130, 130–150, 150–200, 200–250 pc); the design's T_j carried the 130 pc survival to 250 pc | yes (our rerun) | **Accepted** (post hoc, section 5). The trend was visible in the pre-registration's own 130 and 150 pc counts and was covered only by the arbitrary 25% margin. |
-| 3 | The loss is chance neighbours, not triples: pairs at 300–1,000 AU survive 10.8% in the 150–250 pc shell against 45.7% within 130 pc; survival by latitude 0.17 → 0.020 (\|b\| < 10°) and 0.60 → 0.20 (\|b\| > 40°); mean neighbours per star 4.1 → 6.1 | yes | **Accepted**; at 250 pc the relaxed rule is a density-dependent thinning that biases the sample to high latitudes (a selection effect for any design that keeps it). |
+| 2 | The shortfall is degrouping: velocity-free kept fraction 0.443 (130 pc), 0.386 (150 pc), 0.231 (250 pc); among N1 pairs by distance 0.535, 0.298, 0.203, 0.125, 0.067 (< 100, 100–130, 130–150, 150–200, 200–250 pc); the design's T_j carried the 130 pc survival to 250 pc | yes (our rerun) | **Accepted** (post hoc, section 5). The trend was visible in the cached 130 and 150 pc degrouping counts seen before the pre-registration (`explore/t034_degroup_counts.py`, section 2.1) and was covered only by the arbitrary 25% margin. |
+| 3 | The loss points to chance neighbours, not triples: pairs at 300–1,000 AU survive 10.8% in the 150–250 pc shell against 45.7% within 130 pc; survival by latitude 0.17 → 0.020 (\|b\| < 10°) and 0.60 → 0.20 (\|b\| > 40°); mean neighbours per star 4.1 → 6.1 | yes | **Accepted** as an inference (the direct chance-neighbour measurement is T-043); at 250 pc the relaxed rule is a density-dependent thinning that biases the sample to high latitudes (a selection effect for any design that keeps it). |
 | 4 | No artefact: without degrouping and with M_G masses the pipeline gives exactly the server proxy counts at 250 pc from a different tiling; N1 equals the lean server count; no fallback regions | yes | None. |
 | 5 | 25 of 116,426 N1 members have no N2 row, so their pairs always fail degrouping; the README does not cover this case (probably the relaxed neighbour filter, phot_g_mean_flux_over_error ≤ 5 or null; unchecked, needs a query) | partly (116,401 N2 rows) | Accepted limitation: at most 25 pairs before cuts; no effect on G1b. |
 | 6 | `se_rel` uses ddof = 0 | yes | Immaterial at 20,000 replicates. |
