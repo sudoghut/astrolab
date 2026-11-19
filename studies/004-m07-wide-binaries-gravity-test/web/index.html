@@ -61,7 +61,7 @@ const vtxt = v => {
 let D = null;
 
 function render() {
-  if (!D) return;
+  if (!D || !D.summary) return;
   const S = D.summary, V = D.variants, M = V.main, P = M.primary, R1 = S.R1;
   document.getElementById('cards').innerHTML = [
     ['R1 · ' + t('sample size', '样本量'), R1.verdict, `N = ${R1.N_main} ${t('vs C26', '对 C26')} ${R1.target} (±20%); ${t('cleanest', '最干净')} ${R1.N_cleanest} ${t('vs', '对')} ${R1.target_cleanest}`],
@@ -105,6 +105,8 @@ function render() {
 Promise.all(['summary', 'variants'].map(n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`results/${n}.json: HTTP ${r.status}`); return r.json(); })))
   .then(([summary, variants]) => { D = {summary, variants}; render(); if (window._r5 !== undefined) { D.r5 = window._r5; renderR5(); } })
   .catch(e => {
+    if (!D) D = {};
+    if (window._r5 !== undefined) { D.r5 = window._r5; renderR5(); }
     const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
     document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + msg;
   });
@@ -115,6 +117,7 @@ function renderR5() {
   const g = r.g1b, tr = g.step1_trace || {};
   const names = {canonical: ['canonical pairs', '规范星对'], degroup: ['relaxed degrouping', '宽松去群'], distance: ['ϖ̄ > 4.0 mas', 'ϖ̄ > 4.0 mas'], r_sky: ['300 AU ≤ r_sky ≤ 30 kAU', '300 AU ≤ r_sky ≤ 30 kAU'], ruwe: ['RUWE &lt; 1.25', 'RUWE &lt; 1.25'], hr: ['HR band', 'HR 带'], sigma_proxy: ['σ̃ &lt; 0.1', 'σ̃ &lt; 0.1']};
   const pred = [1408, 988, 789, 375, 220, 72];
+  const ident = Array.isArray(g.mapping) && g.mapping.length === (g.raw || []).length && g.mapping.every((m, j) => m === j);
   const lbl = r.label === 'R5: not run (insufficient predicted power)' ? L(r.label, 'R5：未运行（预测功效不足）') : r.label;
   el.innerHTML =
     `<div class="cards"><div class="card"><h3>${L('G1b: L_N* (needs ≥ 100)', 'G1b：L_N*（要求 ≥ 100）')}</h3><div>${g.L_N == null ? '—' : Number(g.L_N).toPrecision(3)}</div></div>` +
@@ -123,11 +126,13 @@ function renderR5() {
     `<table><thead><tr><th>${L('after cut (velocity-free)', '截断之后（不用速度）')}</th><th class="num">${L('pairs', '对数')}</th></tr></thead><tbody>` +
     Object.entries(tr).map(([k, v]) => `<tr><td>${names[k] ? L(...names[k]) : k}</td><td class="num">${v}</td></tr>`).join('') + `</tbody></table>` +
     `<table><thead><tr><th>${L('bin', '箱')}</th><th class="num">${L('median x', 'x 中位数')}</th><th class="num">${L('counted', '计数')}</th><th class="num">${L('scaled', '缩放后')}</th><th class="num">${L('design prediction', '设计预测')}</th></tr></thead><tbody>` +
-    (g.final || []).map((n, j) => `<tr><td>${j + 1}</td><td class="num">${f(g.x_medians[j], 3)}</td><td class="num">${g.raw[j]}</td><td class="num">${n}</td><td class="num">${pred[j] !== undefined ? pred[j] : '—'}</td></tr>`).join('') + `</tbody></table>` +
-    `<p class="note">${L('G1b failed, so the velocity query N4 was not fetched and R5 gives no verdict (README section 2.1 and 5). Scaled counts use the pre-registered factors for the velocity steps.', 'G1b 未通过，所以没有获取速度查询 N4，R5 不给判决（README 第 2.1 与第 5 节）。缩放后的计数用的是预注册的速度步骤因子。')}</p>`;
+    (g.final || []).map((n, j) => `<tr><td>${j + 1}</td><td class="num">${f(g.x_medians[j], 3)}</td><td class="num">${ident ? g.raw[j] : '—'}</td><td class="num">${n}</td><td class="num">${ident && pred[j] !== undefined ? pred[j] : '—'}</td></tr>`).join('') + `</tbody></table>` +
+    (g.passes ? '' : `<p class="note">${L('G1b failed, so the velocity query N4 was not fetched and R5 gives no verdict (README section 2.1 and 5).', 'G1b 未通过，所以没有获取速度查询 N4，R5 不给判决（README 第 2.1 与第 5 节）。')}</p>`) +
+    `<p class="note">${L('Scaled counts use the pre-registered factors for the velocity steps. Post hoc (referee, verified): relaxed degrouping keeps 44% of pairs at 130 pc but 23% at 250 pc, pointing to chance neighbours; direct test T-043.', '缩放后的计数用的是预注册的速度步骤因子。事后（审稿，已复核）：宽松去群在 130 pc 保留 44% 的星对，在 250 pc 只保留 23%，指向偶然邻居；直接检验为 T-043。')}</p>`;
 }
 fetch('../results/r5.json').then(r => r.ok ? r.json() : null).catch(() => null)
   .then(r5 => { if (D) { D.r5 = r5; renderR5(); } else { window._r5 = r5; } });
+// the summary loader runs render(), which needs summary and variants; R5 renders on its own
 i18n.onLangChange(render);
 i18n.onLangChange(() => { if (D && D.r5 !== undefined) renderR5(); });
 </script>
