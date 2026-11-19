@@ -620,6 +620,20 @@ estimated input 54.0 MB of the 200 MB budget). Rows: N1 60,259, N2 116,401, N3 5
   before any velocity was read, as designed.
 - We recomputed `g1b_counts` and `g1b` from the saved counts and medians and got the same numbers
   (L_N* 68.41653, L_M* 0.0278849).
+- **Post hoc (referee, 2026-11-18; section 6).** The loss is degrouping, and it was predictable.
+  Velocity-free, with the same cuts, relaxed degrouping keeps 44% of pairs at 130 pc, 39% at 150 pc and
+  23% at 250 pc (1,347 of 3,042; 1,581 of 4,094; 2,194 of 9,478). The design's transfer factors were
+  measured at 130 pc and so carried that survival out to 250 pc. Even pairs at 300–1,000 AU, almost
+  all real binaries, survive only 11% of the time in the 150–250 pc shell (46% within 130 pc), and
+  survival depends strongly on Galactic latitude (|b| > 40°: 60% within 130 pc, 20% at 150–250 pc;
+  |b| < 10°: 17% and 2%). This is the signature of chance neighbours inside a parallax window that
+  deepens ∝ d², not of real triples: at 250 pc the relaxed rule thins the sample by sky density and
+  biases it towards high latitudes. Without degrouping the same pipeline gives exactly the server
+  proxy counts (3,067, 2,409, 1,771, 1,047, 745, 439), so tiling, de-duplication and the other cuts
+  are consistent. The G1b failure therefore reads as "the relaxed degrouping rule does not scale
+  beyond about 130–150 pc", not as a shortage of wide binaries. With the C25 neighbour table the same
+  counts would give L_N* = 8 × 10⁵ (reported only; switching designs after seeing the counts is not
+  allowed, and that design would need its own purity validation).
 
 ## 6. Referee notes
 
@@ -640,6 +654,24 @@ perspective correction, σ(ṽ) Jacobian, MOND boost, bootstrap against MAD/√N
 | 9 | Lean: `[stated]` premises are no stronger than their quotes; the conclusion should carry "for our cleanest sample"; a missing gap is "x computed on the model's scale" | yes | Docstring of the conclusion qualified; the x-scale gap is recorded in section 7 and the wiki (not added to the Lean argument in this PR). |
 | 10 | Literature: Banik et al. 2024 (arXiv:2311.03436) and Chae 2023 (arXiv:2305.04613) on close-binary contamination; El-Badry, Rix & Heintz 2021 (arXiv:2101.05282) and Pittordis & Sutherland 2023 (arXiv:2205.02846) unverified | partly (the first two are study papers) | Context only. |
 
+### Referee, R5 (independent subagent, 2026-11-18)
+
+The referee saw README sections 1–4, the code and the results, not sections 5–8 or the log. It
+rebuilt N1–N3 and N2-C25 from the cache only (2,712 cache hits, no network, velocity queries
+refused) and reran G1b. We reran its scripts and reproduced every number below. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | G1b and the label were evaluated as written: step-1 trace, raw and scaled counts (838.19 → 838 … 35.95 → 36), no merge, x medians, L_N* 68.42 and L_M* 0.0279 reproduce; factors, seeds, f_cal and thresholds equal the README; N4 never fetched | yes | None. |
+| 2 | The shortfall is degrouping: velocity-free kept fraction 0.443 (130 pc), 0.386 (150 pc), 0.231 (250 pc); among N1 pairs by distance 0.535, 0.298, 0.203, 0.125, 0.067 (< 100, 100–130, 130–150, 150–200, 200–250 pc); the design's T_j carried the 130 pc survival to 250 pc | yes (our rerun) | **Accepted** (post hoc, section 5). The trend was visible in the pre-registration's own 130 and 150 pc counts and was covered only by the arbitrary 25% margin. |
+| 3 | The loss is chance neighbours, not triples: pairs at 300–1,000 AU survive 10.8% in the 150–250 pc shell against 45.7% within 130 pc; survival by latitude 0.17 → 0.020 (\|b\| < 10°) and 0.60 → 0.20 (\|b\| > 40°); mean neighbours per star 4.1 → 6.1 | yes | **Accepted**; at 250 pc the relaxed rule is a density-dependent thinning that biases the sample to high latitudes (a selection effect for any design that keeps it). |
+| 4 | No artefact: without degrouping and with M_G masses the pipeline gives exactly the server proxy counts at 250 pc from a different tiling; N1 equals the lean server count; no fallback regions | yes | None. |
+| 5 | 25 of 116,426 N1 members have no N2 row, so their pairs always fail degrouping; the README does not cover this case (probably the relaxed neighbour filter, phot_g_mean_flux_over_error ≤ 5 or null; unchecked, needs a query) | partly (116,401 N2 rows) | Accepted limitation: at most 25 pairs before cuts; no effect on G1b. |
+| 6 | `se_rel` uses ddof = 0 | yes | Immaterial at 20,000 replicates. |
+| 7 | With the N2-C25 table the G1b-style counts would be 2,152, 1,572, 1,147, 615, 371, 121 (L_N* 8 × 10⁵, L_M* 8 × 10⁻⁶) | yes | Reported only; not a verdict and not an allowed switch of design. |
+| 8 | Literature: Banik et al. 2024 (arXiv:2311.03436) use 8,611 wide binaries within 250 pc and model line-of-sight contamination; Chae 2023 (arXiv:2305.04613) 26,615 within 200 pc; El-Badry, Rix & Heintz 2021 (arXiv:2101.05282) estimate chance-alignment probabilities empirically (1.3 million binaries with > 90% bound probability within about 1 kpc); no published per-distance degrouping losses found | yes: the three abstract pages (2026-11-18); Pittordis & Sutherland (arXiv:2205.02846) not verified, not used | Context: larger samples at these distances model or estimate contamination instead of a hard neighbour veto. |
+| 9 | Most important next test: the chance-neighbour rate from randomly shifted positions (velocity-free, counted first), as a function of distance and latitude | – | Registered as T-043. |
+
 ## 7. Open questions
 
 - Why our sample is less than half of C26's (639 against 1421) with the same cuts: degrouping
@@ -654,8 +686,9 @@ perspective correction, σ(ṽ) Jacobian, MOND boost, bootstrap against MAD/√N
 - d < 200 pc and the C25-neighbour degrouping diagnostic were not run (sections 3–4).
 - R5 (2026-11-18) was not run: G1b failed because degrouping at 250 pc keeps half the 130 pc
   fraction. Whether a larger volume can reach C26's power at all depends on a degrouping rule that
-  does not lose pairs to chance neighbours as the parallax window widens; any such design needs a new
-  pre-registration (its velocity-free counts are now seen).
+  does not lose pairs to chance neighbours as the parallax window widens (section 6: the relaxed rule
+  keeps 44% at 130 pc and 23% at 250 pc); any such design needs a new pre-registration (its
+  velocity-free counts are now seen). A shifted-field measurement of the chance-neighbour rate is T-043.
 - The Lean argument lacks a premise that x is computed on the MOND model's scale (referee point 9);
   C26's lowest bin is inconsistent with its stated 1 kAU floor.
 - Design lesson: a hard 15-pair floor with a 5% redraw limit invalidates variants whose sparsest bin

@@ -272,6 +272,19 @@ by orders of magnitude with the HR cut and the degrouping (196 Newton to 4.5 × 
 pre-registered re-test is registered (T-034). Numbers and page: the study README section 5 and
 `web/index.html`.
 
+**Update 2026-11-18, R5 (T-034, pre-registered): not run.** The enlarged design (d < 250 pc, r_sky ≥
+300 AU) had a velocity-free power gate (G1b) applied before any velocity was fetched. It failed:
+after the velocity-free cuts the counts were 53% of the design prediction, giving a predicted
+likelihood ratio of 68 under Newtonian truth (needed ≥ 100) and 0.028 under MOND truth (needed ≤
+0.01), so the velocities were never fetched and R5 gives no verdict. The independent referee (post
+hoc, verified by us) traced the shortfall to degrouping: C26's relaxed neighbour rule keeps 44% of
+pairs at 130 pc but 23% at 250 pc, and even the closest pairs lose most of their members far from the
+Galactic poles. The parallax window that defines a "neighbour" deepens with distance, so chance
+neighbours, not real triples, remove the pairs. The rule does not scale beyond about 130–150 pc;
+larger published samples (Banik et al. 2024, arXiv:2311.03436; El-Badry et al. 2021,
+arXiv:2101.05282) model or estimate contamination instead. A chance-neighbour measurement is
+registered (T-043). Numbers: [`results/r5.json`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/results/r5.json).
+
 ### Glossary
 
 | Term | Meaning |
@@ -294,6 +307,9 @@ pre-registered re-test is registered (T-034). Numbers and page: the study README
 
 ### Changelog
 
+- 2026-11-18: R5 (T-034): pre-registered power gate G1b failed (L_N* 68 < 100), velocities not
+  fetched, R5 not run; referee (post hoc): relaxed degrouping keeps 23% of pairs at 250 pc (44% at
+  130 pc), chance neighbours; T-043 registered (part 3 update).
 - 2026-11-16: study run (steps A and B) and independent referee: different sample (639 pairs), cannot
   distinguish (L = 0.49) with no power; post-hoc r_sky 300 AU exploration; T-034 registered; part 3 results.
 - 2026-11-14: first version: parts 1–3, written before implementation (T-013, plan 013).
@@ -448,6 +464,8 @@ Gaia 档案 2026-11-25 至 12-02 下线，所以在此之前取数并缓存；�
 
 **我们的发现（2026-11-16）。** 服务器端重建得到 639 对，不到 C26 的 1421 的一半；与 C26 图 8 的计数相比，不足几乎全在 C26 最低的 x 箱，而 C26 所说的 1 kAU 下限填不满这个箱。按预注册的自助法（bootstrap）误差，检验无法区分牛顿与 MOND（L = 0.49），但独立审稿事后发现检验本身没有功效（power）：无噪声的牛顿数据也只给出 L = 6.2。用 C26 的 MAD/√N 误差时，同样的中位数给出 L = 1.7 × 10⁻⁵（偏向 MOND），所以在我们的样本上结果取决于误差约定——这正是 `gap_err` 的数值形式。独立审稿之后（事后，post hoc）：把 r_sky 下限降到 300 AU，样本（1250 对）与 C26 各箱更接近，而似然比随赫罗图截断与去群相差几个数量级（从偏向牛顿的 196 到偏向 MOND 的 4.5 × 10⁻⁴）。已登记预注册的重新检验（T-034）。数字与网页见研究 README 第 5 节与 `web/index.html`。
 
+**2026-11-18 更新，R5（T-034，预注册）：未运行。** 扩大样本的设计（d < 250 pc，r_sky ≥ 300 AU）在获取任何速度之前先用不含速度的功效门槛（G1b）检查。结果不通过：经过不用速度的截断后，计数只有设计预测的 53%，牛顿真值下预测的似然比为 68（要求 ≥ 100），MOND 真值下为 0.028（要求 ≤ 0.01），所以速度从未获取，R5 不给判决。独立审稿（事后，我们已复核）把不足追溯到去群：C26 的宽松邻居规则在 130 pc 保留 44% 的星对，在 250 pc 只保留 23%，而且远离银极时即使最近的星对也大多被去掉。定义"邻居"的视差窗口随距离加深，所以去掉星对的是偶然邻居，而不是真正的三合星。这一规则在约 130–150 pc 以外不再适用；已发表的更大样本（Banik et al. 2024，arXiv:2311.03436；El-Badry et al. 2021，arXiv:2101.05282）是对污染建模或估计。已登记偶然邻居率的测量（T-043）。数字见 [`results/r5.json`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/results/r5.json)。
+
 ### 术语表
 
 | 术语 | 含义 |
@@ -468,6 +486,7 @@ Gaia 档案 2026-11-25 至 12-02 下线，所以在此之前取数并缓存；�
 
 ### 研究进展
 
+- 2026-11-18：R5（T-034）：预注册的功效门槛 G1b 不通过（L_N* 68 < 100），未取速度，R5 未运行；审稿（事后）：宽松去群在 250 pc 只保留 23% 的星对（130 pc 为 44%），来自偶然邻居；登记 T-043（第三部分更新）。
 - 2026-11-16：研究运行（第 A、B 步）与独立审稿：样本不同（639 对），无法区分（L = 0.49）且检验没有功效；事后的 r_sky 300 AU 探索；登记 T-034；补上第三部分的结果。
 - 2026-11-14：第一版：第一至三部分，在实现之前写成（T-013，计划 013）。
 
