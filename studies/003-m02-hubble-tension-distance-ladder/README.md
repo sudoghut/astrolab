@@ -360,6 +360,232 @@ written, and the rules are not changed. A code check on the real data (run while
 convergence flags and iteration counts were looked at, no τ̂_T, z_T, rows or labels) converged from both
 starts for ν = 2, 4 and 10 (95–159 iterations), so this case does not arise here.
 
+### Addendum 2026-11-19: R2-RE-SEL, a selection-aware null for the removal of N5584 (T-042), pre-registered before any of these simulations
+
+*Why.* The R2-RE-N5584 referee (section 6, point 3) found that B-N simulates an unselected 36-host
+system, while N5584 was removed because it was the most extreme of 37 hosts. Dropping the most
+extreme host in each simulation would shrink the null τ̂ and the R4 spread, so B-N's p values (0.339
+and 0.359) are biased upward, towards "attributable to N5584"; section 5 therefore reads that label,
+post hoc, as "consistent with one outlying host". This addendum fixes a null that includes the
+selection: simulate the full 37-host system under C, drop the most extreme host by a fixed criterion,
+and only then compute τ̂ and the spread on the remaining 36 hosts.
+
+*How N5584 was singled out, and the criteria.* N5584 was removed because it carried all three
+robustness signals, found in sequence: (i) the largest leave-one-host-out χ² term under C (R2-RE
+referee, section 6, R2-RE point 2: N5584, N2525, N1015); (ii) R2-RE-ROB part A: the smallest τ̂_j and the
+only host whose removal flips the τ-route row; (iii) the R2-RE-ROB referee's spread-exclusion check: the
+smallest spread over the R4 subsets that exclude the host. No single statistic reproduces that history.
+Values on the real data, each picking N5584:
+
+| Criterion | N5584 | Next | Source |
+|---|---|---|---|
+| Raw leave-one-out χ² term under C (largest) | 12.478 (4 rows) | N2525 5.837 (3 rows), N1015 5.394 | `r2_re.json` `loo_chi2.C.per_host` |
+| Its χ² tail probability (smallest) | P(χ²₄ > 12.478) = 0.014 | N3982 P(χ²₁ > 4.246) = 0.039 | computed while drafting this addendum |
+| Same term under V(τ̂) (largest) | 7.652 | N2525 5.774 | `r2_re.json` `loo_chi2.V.per_host` |
+| Part A: smallest τ̂_j | 0.0314 | N1365 0.0659, N3982 0.0700 | `r2_re_rob.json` `A.hosts` |
+| Part A: the τ-route row flips | only N5584 | – | `r2_re_rob.json` `A.sensitive_hosts` |
+| Spread over the first 1,000 R4 subsets that exclude the host (smallest) | 1.027 (p = 0.330) | N1365 1.207 (p = 0.056); others up to 1.34 | section 6, R2-RE-ROB referee point 1 (our rerun of the referee's cache-only script; per-host values not saved in `results/`) |
+
+Two criteria are registered, because they are cheap per simulation; part A's criteria would need 37
+REML fits per simulation (about 11–12 min each) and are not feasible.
+- **Criterion X (raw leave-one-out χ² under C), used for the τ part and the first spread label.** It is
+  the statistic that named N5584 first. It is computed by `loo_chi2` in `run.py` (R2-RE addendum,
+  "reported, not decisive"): for host j with calibrator SN rows g_j (`calib_groups[j]`: rows with a
+  non-zero in column 42 and in exactly one host column, that of j), refit the NGC 4258-only system
+  (`rows_a`) under C without the rows g_j (host j's Cepheid rows kept, so μ₀,j is still fitted) with
+  `infer.gls`; r_j = y[g_j] − L[g_j, kept] q̂; S_j = C[g_j, g_j] + L[g_j, kept] Cov(q̂) L[g_j, kept]ᵀ;
+  χ²_j = r_jᵀ S_j⁻¹ r_j (`numpy.linalg.solve`). The raw term (not divided by its 1–4 rows, not a tail
+  probability), argmax over the 37 hosts, ties to the lowest column. r_j is linear in y through a fixed
+  map and S_j is fixed under C, so χ²_j is a fixed quadratic form in y (cheap per simulation). The
+  statistic is approximate as a χ² (it ignores the cross-covariance with the kept rows; R2-RE note),
+  which does not matter here: it is only a selection rule, used identically on data and simulations.
+- **Criterion S (spread excluding the host), used for the second spread label.** It is the criterion that
+  attributed the spread signal to N5584. Take R2-RE-ROB part B's subsets (the first 1,000 of R4's
+  10-of-37 draws, in order) with their shift rows a_k and σ_k on the 37-host system under C (Δ_k = a_kᵀ y,
+  σ_k² = σ²_subset − σ²_37, as in `rob.null_sims`; rebuilt in this block, about 2 min, since ROB does not
+  save them). That the referee's check used these subsets is our reading of an unsaved script, confirmed
+  only by its reproduction (spread_obs 1.3071, N5584 1.027). The reference fit is the 37-host fit with
+  N5584 included, as in the referee's check; this replicates the historical selection, so the
+  approximation noted in section 6 (N5584 stays in the reference fit) is irrelevant for a selection rule.
+  For host j, spread_excl_j = `numpy.std` (ddof = 0) of Δ_k/σ_k over the subsets that do not
+  contain j; the criterion is argmin_j spread_excl_j (ties to the lowest column). Linear in y up to the
+  standard deviation, so cheap per simulation. On the real data it must reproduce N5584 at 1.027 (within
+  0.001) and select N5584.
+
+*Direction of the criterion bias (stated now).* Criterion X is less aligned with τ̂ and with the spread
+than "smallest τ̂_j" or criterion S: in a simulation the host it drops is not necessarily the one that
+inflates τ̂ or the spread most, so the selected null shrinks less than under the aligned criteria and p
+comes out higher. p under criterion X is therefore likely an upper bound on a selection-aware p:
+"unusual" under X is strong evidence of remaining excess scatter, "not unusual" / "consistent" under X is
+weak evidence for "one outlying host". Criterion S is aligned with the spread statistic, so the second
+spread label is the stronger test of "consistent". The τ part has no aligned feasible criterion; its
+label carries this caveat.
+
+*Seen before this addendum.* Everything in sections 5–6, in particular: R2-RE τ̂ = 0.077 (0.048–0.105);
+R2-RE-ROB part A: all 37 τ̂_j (N5584 0.0314, N1365 0.0659, N3982 0.0700, the other 34 from 0.0757 to
+0.0800); part B on 37 hosts: p_τ = 0.072, p_spread = 0.021 (spread_obs 1.307), the 400 null τ̂ values
+(`r2_re_rob.json`: 230 at zero, 137 ≥ 0.0314, i.e. 0.34); the referee's spread-exclusion values above
+(N5584 1.027, p = 0.330; N1365 1.207, p = 0.056; the others up to 1.34; the full per-host list was seen
+when we reran the script, not saved); R2-RE-N5584 (a): 169 rows removed, τ̂_N = 0.03137 (68% interval
+0–0.070), host step z = −1.63 (C) and −1.50 (V); R4-N spread 1.044 (all 10,000 draws), CCHP at the 8.5th
+percentile; B-N: τ part 135 of 400 ≥ τ̂_N (220 at zero; null quantiles 5/50/95% 0, 0, 0.0796), p =
+0.339, interval 0.291–0.386; spread part spread_obs 1.0325 over the first 1,000 R4-N subsets, 717 of
+2,000 ≥ it, p = 0.359, interval 0.337–0.380 (null quantiles 0.771, 0.977, 1.222); the pre-registered
+reading "attributable to N5584" and its post-hoc gloss; R2-RE-T (ν = 4) ω̂ ranking: N5584 0.392, N1365
+0.804, N3982 0.879, all others 0.97–1.06; every per-host leave-one-out χ² term (C and V). While drafting
+this addendum, by arithmetic on those recorded terms only: treating the 37 terms under C as independent
+χ²_n (n = 1 for 11 hosts, 2 for 15, 3 for 8, 4 for 3), the probability that the largest reaches 12.478
+is about 0.12, so N5584's term is not exceptional once the choice among 37 hosts is allowed for
+(approximate: the terms are neither exactly χ² nor independent). Not yet run: any simulation of the
+selected null, in code or by hand; no code for this addendum exists.
+
+*Expected outcome (stated now).* The expected direction: dropping the most extreme host of each simulated
+system should lower the null τ̂ and spread relative to B-N, so the p values are expected below 0.339 and
+0.359, and lower under criterion S than under X. This is not guaranteed: the selected null runs on a
+different 36-host system in each simulation (N5584's simulated rows stay in whenever d_s ≠ N5584, and
+criterion X favours hosts with 3–4 calibrator rows), so its null distribution can differ from B-N's for
+reasons other than the selection. A rough argument (not a calculation of this test): under the null the
+dropped host's term exceeds its expected value by about 5–7 in a summed χ² whose null spread is about
+√(2 · 77) ≈ 12, a downward shift of roughly half a standard deviation, which would move p from about
+0.34 to roughly 0.1–0.3 under X; under S the shift for the spread is expected to be larger, by an amount
+we cannot estimate from recorded numbers. "Not unusual" / "consistent" under X is the more likely
+outcome; under S "undetermined" or "unusual" is more plausible than under X (the R2-RE-ROB anticipation
+of p ≈ 0.03 was off: observed 0.072).
+
+*Question.* When the null includes the choice of the most extreme of 37 hosts by a criterion that singles
+out N5584 on the real data, is the calibrator scatter of the remaining 36 hosts (τ̂_N and the R4-N spread)
+consistent with C?
+
+*Method (R2-RE-SEL).*
+- Null data: as R2-RE-ROB part B. Under C, fit the NGC 4258-only system (`rows_a`, 3,489 rows, 37
+  hosts) and take ŷ = L q̂ on those rows (the same ŷ as ROB). Simulation s draws y_s = ŷ + K ε_s on
+  `rows_a`, K the lower Cholesky factor of C restricted to `rows_a`, ε_s =
+  `numpy.random.default_rng(20_000 + s).standard_normal(len(rows_a))`. New seed base 20,000: ROB used
+  10,000 + s (s up to 1,999) on vectors of the same length, so base 10,000 would reproduce ROB's
+  simulations exactly; B-N used the same base on shorter vectors; R4 and R4-N use seed 0. Seeds
+  20,000–21,999 collide with none of them. Under C both selection statistics, REML and each Δ_k/σ_k
+  use only residual contrasts, so their joint null distribution does not depend on q̂.
+- Selection: in simulation s, d_s = criterion X's host and d'_s = criterion S's host, computed on y_s
+  exactly as defined above. The implementation may precompute, per host, the fixed map y[rows_a] → r_j
+  and S_j⁻¹ (37 GLS fits with `return_estimator=True`), provided it reproduces `loo_chi2` on the real y
+  to a relative 10⁻⁸ for every host (a mismatch is a bug and stops the run). On the real y both criteria
+  must select the host named by `PARAMS["n5584_host"]` (N5584, column 26); the recorded values say they do.
+- Reduced system for a dropped host d (d_s or d'_s): `rows_a` without every row with a non-zero in
+  column d (that host's Cepheid and calibrator SN rows), with the 36 other calibrator groups; anchor,
+  constraint and Hubble-flow rows kept. As in `n5584.drop_host`: rows_n = those rows; base_n = the rows of
+  rows_n with no non-zero in any host column; host_rows_n[j] = host_rows[j] ∩ rows_n. Unlike `drop_host`,
+  there is no guard against CCHP hosts (d can be one): the host step and `rows_s` are not used in this
+  block. Applied to the real data (d = N5584) this is exactly R2-RE-N5584 (a), so the observed values
+  are its τ̂_N and B-N's spread_obs.
+- Observed values: τ̂_obs = τ̂_N of R2-RE-N5584 (a) and spread_obs = B-N's spread_obs, both from the same
+  run; each must equal the recorded value: τ̂_N (0.03137144323410943) to a relative 10⁻⁶ (it comes from
+  the bounded optimiser, xatol 10⁻⁵), spread_obs (1.0325254787240916) to a relative 10⁻⁹. On a mismatch the block stops with status "not evaluable (observed values differ from the recorded
+  ones: code or data change)", which is reported and investigated before anything else.
+- τ part (criterion X): s = 0, …, 399: τ̂_s by R2-RE's REML procedure on the reduced system for d_s (grid
+  0, 0.01, …, 0.50 mag, then the bounded refinement; no interval; `reml_tau(..., interval=False)`), the
+  raw τ̂_s compared as in ROB and B-N (a τ̂_s at the upper bound counts as a value). n_τ = simulations
+  whose fit succeeded; k_τ = #{τ̂_s ≥ τ̂_obs}; p_τ = (1 + k_τ) / (1 + n_τ), with the two-sided
+  equal-tailed 95% Clopper–Pearson interval for k_τ / n_τ (`rob._cp`). No τ part under criterion S (it
+  would add 400 REML fits, about 2–2.8 h).
+- Spread parts (criteria X and S): s = 0, …, 1,999 (the τ part's simulations are the first 400 of
+  these, as in ROB). Subsets: the first 1,000 index draws of R4-N's stream, idx_k =
+  `rng.choice(36, 10, replace=False)` in order from `default_rng(r4_seed = 0)`, the same for every
+  simulation, mapped onto the 36 host columns other than d in column order (for d = N5584 these are
+  exactly B-N's subsets; the first five must equal `r2_re_n5584.json` `drop.r4n.first_picks`). For each
+  dropped host d that occurs under either criterion, as in `rob.null_sims`: the reference fit of the
+  reduced system under C, the shift rows a_k (subset fit minus reference fit, `shift_vector`) and σ_k² =
+  σ²_subset − σ²_36 (a non-positive value is a bug and stops the run), computed once per d and shared by
+  both criteria; simulations are grouped by d so that one matrix is held at a time. spread_s(d) =
+  `numpy.std` (ddof = 0) of (a_kᵀ y_s) / σ_k over the 1,000 subsets. The d = N5584 path on the real y must
+  reproduce spread_obs to a relative 10⁻⁹ (else a bug). For criterion X: k_X = #{spread_s(d_s) ≥
+  spread_obs}; for criterion S: k_S = #{spread_s(d'_s) ≥ spread_obs}; p = (1 + k) / 2,001 with the same
+  Clopper–Pearson interval for k / 2,000.
+
+*Decision rules and labels, fixed now (in this order).* R2-RE's row ("no host-selection effect
+detected") stays the headline; the R2 (2026-11-14), R2-RE, R2-RE-ROB and R2-RE-N5584 verdicts, labels
+and readings stay as recorded (in particular the (a) reading "attributable to N5584" under B-N's
+unselected null).
+- Not evaluable: the observed-value mismatch above → the whole block; R2-RE-N5584 (a) or its reduced-system
+  R2-RE not evaluated → the τ part; B-N's spread part not evaluated (including when R4-N's runtime guard
+  left no draws) → both spread parts; R4 has no draws (runtime guard) → the
+  criterion-S spread part; a leave-one-out fit under C fails (these fits do not depend on simulated data)
+  or criterion X does not select N5584 on the real data → the τ part and the criterion-X spread part;
+  criterion S does not select N5584 on the real data → the criterion-S spread part; spread_excl for N5584
+  on the real data differs from 1.027 by more than 0.001 → the criterion-S spread part (reproduction). τ part: more than 20
+  failed REML fits (`sel_max_failed`) → not evaluable; with 20 or fewer, p_τ and its interval use the
+  successful fits. Spread parts: a fit failure while building the rows for a dropped host → that part
+  not evaluable (fit).
+- τ label (criterion X): interval entirely below 0.05 → **"τ̂_N unusual under the selected null"**;
+  entirely above 0.05 → **"τ̂_N not unusual under the selected null"**; containing 0.05 →
+  **"undetermined (Monte Carlo)"**.
+- Spread labels, one per criterion (X, S): entirely below 0.05 → **"the 36-host spread is unusual under
+  the selected null (<X|S>)"**; entirely above → **"the 36-host spread is consistent with the selected
+  null (<X|S>)"**; containing 0.05 → **"undetermined (Monte Carlo)"**.
+- Reading, rules checked in this order: (1) any of the three parts not evaluable → "not evaluable"; (2)
+  both spread labels "consistent" and τ "not unusual" or "undetermined (Monte Carlo)" (i.e. not
+  "unusual") → **"the excess calibrator scatter of R2-RE-ROB is consistent with one outlying host,
+  selection included"** (the τ label comes from criterion X only, so its "not unusual" supports this
+  reading only to the extent the spread labels do); (3) either spread label "unusual" → **"excess scatter remains after removing
+  the most extreme host, selection included (criterion <X, S or both>)"**; (4) both spread labels
+  "consistent" and τ "unusual" → **"τ excess remains after removing the most extreme host, selection
+  included"**; (5) otherwise → "undetermined". Rule (3) is the union of two spread tests, so its
+  nominal false-alarm rate exceeds 0.05 (at most about 0.10; likely close to criterion S's alone, since the
+  two tests share the simulations and select the same host in many of them).
+- What the reading changes in section 5 (the text, not any label): (2) → the post-hoc gloss "consistent
+  with one outlying host" becomes the pre-registered reading of this test, quoted with the caveat that
+  the τ part uses criterion X only (its p likely an upper bound); (3) or (4) → the gloss is withdrawn and
+  section 5 states that the excess calibrator scatter is not accounted for by removing the single most
+  extreme host once that choice is simulated ("attributable to N5584" stays recorded as the outcome under
+  the unselected null); (5) or "not evaluable" → the gloss stays, marked post hoc, with this outcome next
+  to it. Separately, and descriptive only (it does not override rules (3) and (4)): for any part whose selected-null p is not below B-N's (p_τ ≥ 0.339, a spread p ≥
+  0.359), section 5 says that the selection did not lower that p value in this setup; the gloss then simply
+  stands for that part. In no case do the R2-RE headline row, `summary.json` `R2_host` or the claim's
+  verdict change.
+
+*Reported (not decisive).* n_τ, k_τ, p_τ, interval, quantiles (5/50/95%) and number at zero of τ̂_s;
+for each criterion k, p, interval and quantiles of the spread; next to them B-N's recorded unselected
+values; the frequency of each dropped host under X (over all 2,000 simulations and over the first 400)
+and under S, how often each is N5584 and how often d_s = d'_s; the null distributions of the largest
+leave-one-out term and of the smallest spread_excl, with the share of simulations reaching N5584's real
+values (max χ² ≥ 12.478; min spread_excl ≤ the real-data value), each as (1 + k) / 2,001 with its
+Clopper–Pearson interval (descriptive: how extreme N5584 is as the most extreme of 37 under C; no
+label); the real-data values of both criteria for all 37 hosts; the reproduction checks (leave-one-out
+maps, the criterion-S value 1.027, observed values, first subsets); the number of distinct dropped hosts,
+the time to build their rows, and the seconds per part.
+
+*Runtime (from measured times).* Recorded: R4 0.113 s per draw (`r4.json`), R4-N 0.101 s per draw;
+R2-RE-ROB block 9,037 s in the latest run (`r2_re_rob.json`; the R2-RE-N5584 addendum quoted 10,034 s);
+the R2-RE-N5584 (a) block 9,307 s (`r2_re_n5584.json` `drop.seconds`). Derived, not timed per
+simulation: from the (a) block, minus R4-N (10,000 × 0.101 s ≈ 1,010 s), R4-N under V (assumed about the
+same), REML with interval (about 1 min) and the B-N spread part (a few minutes), about 7,000 s remain for
+400 REML fits, about 18 s each; approximately 20 s on 37 hosts for ROB, from 9,037 s minus part A (37
+REML fits ≈ 11 min plus about 222 host-step fits, a few minutes; not timed) and the spread part (about
+2 min), i.e. about 8,000 s for 400. The 25 s of the TODO note is the conservative figure. Estimates:
+criterion-X maps about 1 min and criterion-S rows about 2 min once, then milliseconds to a few tens of
+milliseconds per simulation; τ part 400 × 18–25 s ≈ 2.0–2.8 h; spread parts about 2–2.5 min per distinct
+dropped host (one reference fit and 1,000 subset fits with estimators), shared by both criteria and
+bounded by 37 hosts ≈ 0.7–1.5 h, plus about a minute for the 2,000 simulated vectors. Added about
+2.8–4.4 h, against 2.5 h for R2-RE-ROB. The block needs the R2-RE-N5584 block (`n5584_check`), which
+itself runs independently of `rob_check`; `rob_check` stays on in the formal run only so that
+`r2_re_rob.json` is not overwritten with "not run" (cost about 2.5 h). A full run is therefore about
+8.5–10 h; no data downloaded. The formal run waits until no other study run uses the machine (TODO
+T-042). 400 and 2,000 are kept from ROB and B-N so that the Monte Carlo precision is the same as that of
+the p values being corrected. More simulations after the run would need a new pre-registration.
+
+*Code checks before the formal run.* Synthetic data only (the 2026-11-17 smoke-run lesson, log.md). On
+the real data, before the formal run, only the reproduction checks may be run (leave-one-out maps against
+`loo_chi2`, both criteria selecting N5584 and the value 1.027, the observed values, the first subsets for
+d = N5584), all of which reproduce numbers seen before this addendum; no simulation on the real ŷ, no
+τ̂_s, spread_s, p value or label.
+
+*Switch and code.* `PARAMS["sel_check"]` (true), with `"sel_seed_base": 20_000`, `"sel_n_tau": 400`,
+`"sel_n_spread": 2000`, `"sel_n_subsets": 1000`, `"sel_max_failed": 20`. The block runs after the
+R2-RE-N5584 block and only when that block runs (the same condition: R2-RE run and the host step
+evaluable). Results in `results/r2_re_sel.json`, a short summary in `summary.json` (`R2_RE_SEL`). None of
+this exists yet: no module (planned `sel.py`, which, like `rob.py` and `n5584.py`, receives `run.py`'s
+functions and does not import `run`), no `sel_*` keys in `PARAMS`, no results file, summary key, test or
+web section.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
