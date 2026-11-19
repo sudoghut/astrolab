@@ -653,6 +653,46 @@ timing fields changed). Numbers: `results/r2_re_rob.json`.
 - A smoke run before the formal run showed part of A (the N5584 removal: τ̂ ≈ 0.031, z ≈ −2.04);
   disclosed in `log.md` on 2026-11-17, rules unchanged.
 
+### R2-RE-N5584 (addendum 2026-11-18, T-039)
+
+Run of 2026-11-18 (`python -m astrolab run 003`, 20,775 s, of which this block 9,311 s; all earlier
+results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_n5584.json`.
+
+| Part | Result | Label (pre-registered rule) |
+|---|---|---|
+| (a) rows removed | 169 (4 calibrator SN rows, 165 Cepheid rows, no other); 3,320 rows, 36 hosts | – |
+| (a) host step under C (known before) | −0.0532 ± 0.0327 mag, z = −1.63 | no host-selection effect detected |
+| (a) R2-RE on 36 hosts (known before) | τ̂_N = 0.031 mag (68% interval 0–0.070); under V(τ̂_N) −0.0512 ± 0.0341, z = −1.50 | no host-selection effect detected |
+| (a) R4-N, 10,000 draws of 10 of 36 hosts | CCHP shift at the 8.5th percentile (z percentile 7.3); spread of Δ/σ 1.044; under V(τ̂_N): spread 0.993, percentiles 9.1 (shift) and 7.9 (z) | **consistent with random-subset fluctuations** |
+| (a) B-N, τ̂ under C (400 simulations, none failed) | 135 of 400 with τ̂_s ≥ 0.031 (220 at zero); p = 0.339, 95% interval 0.291–0.386 | **τ̂ not unusual under C** |
+| (a) B-N, R4-N spread under C (2,000 simulations, 1,000 subsets) | spread_obs 1.033; 717 of 2,000 ≥ it; p = 0.359, interval 0.337–0.380 | **the R4 spread is consistent with C** |
+| (a) reading | – | **the excess calibrator scatter of R2-RE-ROB is attributable to N5584** |
+| (b) implementation check (ω = 1, start τ = 0.20) | 147 iterations; τ within 5 × 10⁻⁷ and z' within 6 × 10⁻⁶ of R2-RE | passed |
+| (b) ν = 4, 37 hosts | both starts converge (95 and 121 iterations) to τ̂_T = 0.0752; N5584 ω̂ = 0.392 (effective scatter τ̂/√ω̂ = 0.120 mag), next N1365 0.804 and N3982 0.879, all others 0.97–1.06; host step under V_T −0.0553 ± 0.0401, z_T = −1.38 | no host-selection effect detected; **R2-RE verdict robust to a heavy-tailed host effect** |
+| (b) ν = 2 and 10 (reported only) | τ̂_T 0.068 and 0.078; N5584 ω̂ 0.175 and 0.724; z_T −1.32 and −1.46 | same row |
+| Joint reading | – | **the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips** |
+
+- **Reading (pre-registered).** Without N5584 the calibrator scatter is what C allows: τ̂ = 0.031 is
+  an ordinary value under the null (p = 0.34) and the R4 spread falls from 1.307 to 1.033 (p = 0.36),
+  so R2-RE-ROB's excess scatter is one host's. The CCHP selection is again an ordinary low draw (8.5th
+  percentile; R4 on 37 hosts gave 5.7). Keeping N5584 but letting the model down-weight it (ν = 4)
+  gives N5584 alone a clearly reduced weight and leaves the verdict where R2-RE put it (z_T = −1.38;
+  R2-RE −1.53). Both treatments give the same row; the R2-RE-ROB A flip to "supports the paper"
+  needs N5584's rows in the shift while its scatter is taken out of τ̂, which neither treatment does.
+- **As expected.** Section 2 predicted (a)'s reading and the direction of (b) (N5584 gets the
+  smallest weight); (a)'s τ̂ and host steps were known. What is new is that the B-N simulations
+  calibrate the 36-host scatter (p_τ = 0.34, p_spread = 0.36, against 0.072 and 0.021 with N5584),
+  that R4-N stays in the ordinary range, and that the heavy-tailed fit keeps the row for ν = 2, 4 and 10.
+- **Descriptive.** Over the treatments that remove or model N5584 the host step is z = −1.38 to −1.63
+  (C on 36 hosts −1.63, V on 36 hosts −1.50, V_T −1.38; R2-RE on 37 hosts −1.53); only C on all 37
+  hosts, which treats N5584's offset as measured, reaches −2.21. τ̂_T (0.075) is close to R2-RE's 0.077: the
+  heavy tail barely changes the typical host scatter; it widens N5584's own variance and so removes
+  most of N5584's pull on the shift.
+- **Status of R2.** The R2-RE headline row stands ("no host-selection effect detected"); R2-RE-ROB's
+  label "sensitive to single hosts (N5584)" stays as recorded and now has its pre-registered
+  explanation. Whether N5584's offset comes from its SN (2007af) or its Cepheid distance is still not
+  identified.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-14 (a subagent that saw the pre-registration, code and results, not
@@ -712,7 +752,11 @@ offline checks from the cache. Triage:
   physical origin is open: it measures the host-level scatter of SN-based minus Cepheid-based
   distances beyond C and cannot say which side causes it; calibrator-specific SN colour behaviour
   (Wojtak & Hjorth 2022) is one candidate; whether C's calibrator block already holds a within-SN
-  term is unchecked. Robustness of τ̂ to single hosts and its null distribution: T-032.
+  term is unchecked. Robustness of τ̂ to single hosts and its null distribution: T-032 (answered:
+  one host, N5584, carries the excess; R2-RE-N5584, T-039).
+- Is N5584's offset (effective scatter 0.12 mag under the heavy-tailed model) from its single SN,
+  2007af, or from its Cepheid distance? A TRGB or JAGB distance compared directly with the Cepheid one
+  for this host would decide it.
 - A Cepheid-only per-host comparison for R3 (μ from fits without each host's SN rows).
 - R4 suggests the CCHP selection is a low but ordinary draw: is there a property of those hosts
   (for example the TRGB-friendly, low-extinction halos) that correlates with their SN magnitudes?

@@ -34,7 +34,20 @@
   "rob_n_spread": 2000,
   "rob_n_subsets": 1000,
   "rob_seed_base": 10000,
-  "rob_max_failed": 20
+  "rob_max_failed": 20,
+  "n5584_check": true,
+  "n5584_host": "N5584",
+  "t_nu": 4,
+  "t_nu_sens": [
+   2,
+   10
+  ],
+  "t_maxiter": 10000,
+  "t_tol": 1e-08,
+  "t_starts": [
+   0.077,
+   0.2
+  ]
  },
  "validity": {
   "row_counts": {
@@ -81,5 +94,18 @@
  "R3_sigma_d": 0.04783482196376176,
  "R4_percentile": 5.680000000000001,
  "R4_verdict": "consistent with random-subset fluctuations",
- "runtime_s": 12824.3704342
+ "R2_RE_N5584": {
+  "status": "evaluated",
+  "drop_reading": "the excess calibrator scatter of R2-RE-ROB is attributable to N5584",
+  "drop_tau_hat": 0.03137144323410943,
+  "drop_R4N_verdict": "consistent with random-subset fluctuations",
+  "drop_BN_tau": "tau_hat not unusual under C",
+  "drop_BN_spread": "the R4 spread is consistent with C",
+  "t_status": "evaluated",
+  "t_label": "R2-RE verdict robust to a heavy-tailed host effect",
+  "t_tau_hat": 0.07521926289752753,
+  "t_z": -1.3783639922869286,
+  "joint_reading": "the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips"
+ },
+ "runtime_s": 20775.4409321
 }

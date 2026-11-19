@@ -177,6 +177,7 @@ def test_block_end_to_end_synthetic(synth, tmp_path, monkeypatch):
     from astrolab.results import write_json
     write_json(tmp_path / "r2_re_n5584.json", out)
     write_json(tmp_path / "r2_re.json", re_out)
+    write_json(tmp_path / "r2.json", {"host_step": hc})
     write_json(tmp_path / "summary.json", {"R2_RE_N5584": run.n5584_summary(out)})
     spec = importlib.util.spec_from_file_location("tc003_n", HERE / "test_conclusions.py")
     tc = importlib.util.module_from_spec(spec)

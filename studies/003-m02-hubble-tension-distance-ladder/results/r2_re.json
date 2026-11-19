@@ -615,5 +615,5 @@
   },
   "note": "predicted from the fit without the host's SN rows; the cross-covariance of those rows with the kept rows is ignored (README definition), so the comparison with chi^2(n) is approximate"
  },
- "seconds": 1500.1529586
+ "seconds": 1282.5295646000013
 }
