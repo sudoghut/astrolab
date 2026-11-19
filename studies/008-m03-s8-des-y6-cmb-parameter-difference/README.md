@@ -490,8 +490,9 @@ correlations are kept)?
   `default_rng(999)`), is 0.8601, computed while drafting this revision (synthetic data only; the
   candidates tried were (μ₁, μ₂) = (0.5–1.3, 0–0.65), exact 0.28–1.14, and 1.1/0.55 was chosen as the
   value nearest the expected range of n_S); seeds 10–12, R6's tolerances (mean within 0.10, each within
-  0.20). R6's recorded 6-D gate (exact 2.371) stays as the high-shift check. The low-shift gate covers
-  n_S and n_P (expected 0.6–1.0) in 6-D; n₅ (0.52, 5-D) is recorded and not re-gated. R6's design notes
+  0.20). R6's recorded 6-D gate (exact 2.371) stays as the high-shift check. The low-shift gate tests one
+  point (0.86) inside the expected range of n_S and n_P (0.6–1.0) in 6-D, on a synthetic distribution,
+  not the whole range or the shuffled and prior-replaced distributions themselves; n₅ (0.52, 5-D) is recorded and not re-gated. R6's design notes
   and the R6-NOMNU referee (item 5) show flows biased high at small shifts; the low-shift gate bounds
   that bias at 0.86 in 6-D, and any remaining bias moves φ in a direction not known in advance.
 
@@ -503,7 +504,8 @@ its CMB-side correlations, against the prior, the effect of the sixth dimension 
 residual). φ_k + ψ_k + ρ_k = 1 identically; the split depends on the order chosen (shuffle, then prior)
 and is not a unique decomposition. φ_k can lie outside [0, 1] (above 1 if n_S,k < n₅,k, below 0 if
 n_S,k > n₆,k); the rules below cover both. Means and s (ddof = 1) over the five seeds; φ is also
-reported on the χ²-equivalent scale of section 2.7 (descriptive).
+reported on the χ²-equivalent scale (descriptive): φ_χ²,k = (χ²₆,k − χ²_S,k)/(χ²₆,k − χ²₅,k), each χ² from
+its n_σ by section 2.7's mapping (k = 6 degrees of freedom for n₆ and n_S, 5 for n₅).
 
 *Label for R6-SHUF, fixed now* (a reading of the 6-D number, not a verdict on D26; rules in order, the
 first that applies decides):
@@ -525,7 +527,7 @@ first that applies decides):
    only, not the chains' own finite-sample noise, which section 6 (item 2) puts at about ±0.03 per n_σ
    (chain-row bootstrap, R2); the variants share the same rows, so that noise is largely common to
    n₆, n_S and n₅, and even uncorrelated it would move φ by about √2 × 0.03 / 1.2 ≈ 0.035. The
-   ±0.10 band around 0.50 is about three times that.
+   ±0.10 band around 0.50 is about three times that (a heuristic, not a derived uncertainty of φ).
 
 *Reported, descriptive.* Per seed n_S,k, n_P,k, n_SS,k, Δ, intervals, training times; E_k, φ_k, ψ_k,
 ρ_k with means and s; n̄_S, n̄_P, n̄_SS with s; the kNN values of all variants; the determinism check;
