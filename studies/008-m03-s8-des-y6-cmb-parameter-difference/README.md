@@ -413,6 +413,124 @@ downloaded (chains from the cache). PARAMS: `"r6_nomnu": True`, `"r6_nomnu_seeds
 `"r6_nomnu_s_max": 0.15`, `"r6_nomnu_bands": [1.00, 1.40]`, `"r6_pop1": True`, `"r6_retrain": False`; output
 `results/r6_nomnu.json`.
 
+### 2.8 Addendum 2026-11-19: R6-SHUF, what Σmν adds to the full-space difference (T-044)
+
+Written after R6-NOMNU and its referee review, before any flow was trained on a shuffled or
+prior-replaced Σmν column. It changes nothing above; the R6 and R6-NOMNU labels stay as recorded, and
+neither is retrained. The per-seed values are read from the recorded files:
+- n₆,k from `results/r6.json` with section 2.6/2.7's checks (`flows.complete` and `flows.gate.passed`
+  true; `flows.main` repetitions for seeds 0–4, each finite, converged and not a lower bound;
+  `flows.main.n_bar` = 1.6985 and `flows.main.s` = 0.0977 to 4 decimals);
+- n₅,k from `results/r6_nomnu.json`, default case only (`flows.complete` and `flows.gate5.passed`
+  true; `flows.nomnu` repetitions for seeds 0–4, each finite, converged and not a lower bound;
+  `flows.nomnu.n_bar` = 0.5236 and `flows.nomnu.s` = 0.0402 to 4 decimals; not the `pop_size = 1`
+  cases).
+If either file is missing or fails these checks, R6-SHUF is "not evaluable".
+
+*Why.* R6-NOMNU found that without Σmν the difference is 0.52σ, against 1.70σ in six parameters. Its
+referee (section 6) showed with a k-nearest-neighbour (kNN) density estimate that shuffling DES's Σmν
+column, which keeps its marginal and breaks its correlations with the other DES parameters, lowers the
+6-D value from 1.270/1.572σ to 0.781/0.795σ (k = 20/100), and that drawing DES's Σmν from its prior
+lowers it to 0.690/0.608σ. The kNN estimator is not calibrated: on R6's synthetic gate distributions
+(a design check run while drafting this addendum, synthetic data only, seeds 10–12, N = 100,000; the
+script is added as `explore/t044_knn_gate_design.py` in the same change) it gives 2.03–2.24σ against the exact 2.371 (6-D)
+and 2.02–2.16σ against 2.386 (5-D), 0.13–0.37σ low at k = 20, 50 and 100. This addendum therefore uses
+R6's flows, the estimator that passed the gate; kNN is reported beside them as descriptive.
+
+*Seen before this addendum.* Everything in sections 5–6 (R6, R6-NOMNU and both referee tables),
+including the kNN numbers above, the Gaussian conditional χ² of Σmν given the other five (4.35 against
+its marginal 2.74), DES's Σmν 0.384 ± 0.147 against the uniform prior's 0.330 ± 0.156, and the 1-D
+difference with DES's Σmν drawn from the prior (1.05σ). From the kNN numbers, with the kNN 5-D value
+(0.556/0.466) in place of n₅, the quantities defined below would be φ ≈ 0.68, ψ ≈ 0.13, ρ ≈ 0.19 at
+k = 20 and φ ≈ 0.70, ψ ≈ 0.17, ρ ≈ 0.13 at k = 100; the expected label is therefore "mainly through
+DES-side correlations". No flow has been trained on a shuffled or prior-replaced column. The prior
+range was read from the cached chains' headers while drafting: both the DES 3x2pt and the CMB chain
+give `mnu = 0.06 0.0773062 0.6` in their `[cosmological_parameters]` values section and no Σmν entry
+in a priors section, i.e. a uniform prior on [0.06, 0.6] eV (the CosmoSIS default within the values
+range).
+
+*Question.* Of what Σmν adds to the 6-D DES − CMB difference over the 5-D one, what fraction disappears
+when Σmν's correlations with the other **DES** parameters are broken (the CMB chain's own Σmν
+correlations are kept)?
+
+*Method.*
+- Data, rows, weights, burn-in, the R1 gate, N = 100,000, the flow settings (tensiometer defaults,
+  `pop_size` not passed) and `estimate_shift(tol=0.02, max_iter=1000, step=100000)` exactly as R6
+  (section 2.6); 6-D parameters (A_s, h, Σmν, n_s, Ωb, Ωm); seeds 0–4; TensorFlow seeded with k as in
+  R6.
+- For seed k the DES and CMB rows are drawn exactly as in R6's `resampled_difference`: the same two
+  `rng.choice` calls, in the same order, on `default_rng(k)`; a unit test checks that with no column
+  change the difference is bitwise equal to `resampled_difference`. So every variant is paired with R6
+  and R6-NOMNU at the same seed. Then only resampled Σmν columns are changed, before the difference is
+  taken:
+  - **(S) DES shuffled:** the N resampled DES Σmν values are permuted with
+    `numpy.random.default_rng(1000 + k).permutation(N)` (DES's weighted Σmν marginal is kept; its
+    pairing with the other DES parameters is broken);
+  - **(P) DES prior:** the N resampled DES Σmν values are replaced by `default_rng(2000 + k).uniform(0.06,
+    0.6, N)` (DES's marginal and correlations both replaced by the prior);
+  - **(SS) both shuffled, descriptive:** as (S), and the N resampled CMB Σmν values are permuted with
+    `default_rng(3000 + k).permutation(N)` (both chains' Σmν correlations broken; no label).
+  All other columns are unchanged. Flows are trained on the resulting 6-D differences, giving n_S,k,
+  n_P,k and n_SS,k. The same differences, and the 5-D difference without Σmν at the same seed,
+  are also passed to the kNN estimator, reported only: each sample x is whitened with the sample mean m
+  and covariance Σ (z = (x − m)L with LLᵀ = Σ⁻¹), the density proxy of a point is its distance to its
+  k-th nearest neighbour among the samples (k = 20 and 100), and n_σ = √2 erf⁻¹(f) with f the fraction
+  of samples whose proxy distance is smaller than the origin's (as in `explore/t044_knn_gate_design.py`);
+  it is computed in venv-tf on the arrays the flows are trained on.
+- Environment: the run records the versions and flow settings as R6 does; they must equal those in
+  both recorded files (`flows.versions`: tensorflow 2.21.0, tensiometer 1.1.0, getdist 1.7.7, numpy
+  2.5.5, legacy_keras 1; and `flows.settings`), otherwise R6-SHUF is "not evaluable" (rule 1).
+  Determinism check, reported only: R6 seed 0 is retrained once through the new draw path with no
+  column change (so it checks that path as well as TensorFlow determinism; a new job folder is used,
+  no earlier result can be picked up) and its n_σ is compared with the recorded 1.8569; if they differ
+  by more than 0.02, the result carries the flag "cross-run pairing approximate" and φ̄ is still read.
+- No new known-answer gate: the estimator, settings and dimension are R6's, whose 6-D gate passed
+  (section 5). Its limitation applies: the gate tests n_σ ≈ 2.4, while these variants are expected near
+  0.6–1.0, and R6's design notes and the R6-NOMNU referee (item 5) show flows biased high at small
+  shifts; that bias raises n_S, n_P and n₅ and moves φ in a direction not known in advance.
+
+*Quantities, per seed k* (all from flows, paired): E_k = n₆,k − n₅,k (what Σmν adds);
+φ_k = (n₆,k − n_S,k) / E_k (the fraction removed by breaking Σmν's DES-side correlations);
+ψ_k = (n_S,k − n_P,k) / E_k (DES's own Σmν marginal against its prior);
+ρ_k = (n_P,k − n₅,k) / E_k (what remains with DES's Σmν at its prior: the CMB chain's Σmν, including
+its CMB-side correlations, against the prior, the effect of the sixth dimension itself, and any
+residual). φ_k + ψ_k + ρ_k = 1 identically; the split depends on the order chosen (shuffle, then prior)
+and is not a unique decomposition. φ_k can lie outside [0, 1] (above 1 if n_S,k < n₅,k, below 0 if
+n_S,k > n₆,k); the rules below cover both. Means and s (ddof = 1) over the five seeds; φ is also
+reported on the χ²-equivalent scale of section 2.7 (descriptive).
+
+*Label for R6-SHUF, fixed now* (a reading of the 6-D number, not a verdict on D26; rules in order, the
+first that applies decides):
+1. R1 gate fails, the R6 or R6-NOMNU records fail their checks, or the versions or flow settings differ
+   from the recorded ones → "not evaluable".
+2. Any (S) or (P) repetition fails, is non-finite, has not converged or is a lower bound → "not
+   evaluable". ((SS) and the determinism check do not decide.)
+3. Any E_k ≤ 0.20 → "not evaluable" (the ratio is unstable; the recorded E_k are 1.03–1.38).
+4. s_φ > 0.30 → "not evaluable". (Expected s_φ: each flow value scatters by about 0.1σ in 6-D, so
+   n₆,k − n_S,k scatters by about 0.14 and φ_k by about 0.12 for E ≈ 1.2.)
+5. Otherwise the interval I_φ = φ̄ ± 2 s_φ/√5 (unrounded values) decides: I_φ ⊂ [0.50, ∞) → **"what Σmν
+   adds is mainly through its correlations with the other DES parameters"**; I_φ ⊂ (−∞, 0.50) →
+   **"what Σmν adds is mainly not through its DES-side correlations (the Σmν direction itself,
+   including the CMB side and the prior)"**; otherwise (I_φ straddles 0.50) → "between the two labels
+   (not decided)".
+
+*Reported, descriptive.* Per seed n_S,k, n_P,k, n_SS,k, Δ, intervals, training times; E_k, φ_k, ψ_k,
+ρ_k with means and s; n̄_S, n̄_P, n̄_SS with s; the kNN values of all variants; the determinism check.
+ψ̄, ρ̄, (SS) and kNN get no label.
+
+*Runtime.* R6's 6-D chain trainings took 745–759 s; 16 trainings (5 × S, P, SS and the determinism
+check) ≈ 3.4 h in venv-tf (`TF_USE_LEGACY_KERAS=1`, through the project venv's subprocess as for R6),
+run after study 010's T-031 run has finished (that run requires an otherwise idle machine); no data
+downloaded (chains from the cache). PARAMS: `"r6_shuf": True`, `"r6_shuf_seeds": [0, 1, 2, 3, 4]`,
+`"r6_shuf_s_max": 0.30`, `"r6_shuf_e_min": 0.20`, `"r6_shuf_band": 0.50`,
+`"r6_shuf_seed_offsets": [1000, 2000, 3000]`, `"r6_shuf_prior": [0.06, 0.6]`, `"r6_shuf_knn_k": [20, 100]`;
+output `results/r6_shuf.json`. R1–R5 run as usual (seconds). R6 and R6-NOMNU are not retrained and
+their result files are read, not rewritten: R6 through the existing `"r6_retrain": False` path; for
+R6-NOMNU a new key `"r6_nomnu_retrain": False` skips all of its runs (a)–(d), including the
+`pop_size = 1` cases, whatever `"r6_nomnu"` and `"r6_pop1"` say, and checks and reads
+`results/r6_nomnu.json` instead. This reuse path, the column variants and the kNN report are code to
+be written at the code stage; none exists yet.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
