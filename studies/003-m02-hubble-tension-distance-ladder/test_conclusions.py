@@ -394,3 +394,100 @@ def test_r2_re_n5584_labels():
             assert r["row"] == _row(h["z"], h["shift"], h["shift_sigma"])
         else:
             assert r["status"].startswith("reported, not evaluable")
+
+
+# R2-RE-SEL observed values recorded before the addendum (tau_hat_N, B-N spread_obs); README section 2
+SEL_RECORDED = (0.03137144323410943, 1.0325254787240916)
+
+
+def test_r2_re_sel_labels():
+    """README section 2, addendum 2026-11-19 (R2-RE-SEL): re-derive the labels, the reading (rules (1)-(5)
+    in order) and the reproduction checks from the saved numbers."""
+    from scipy import stats
+
+    path = RESULTS / "r2_re_sel.json"
+    out = load("r2_re_sel")
+    assert path.stat().st_size < 1_000_000
+    s = load("summary")["R2_RE_SEL"]
+    assert s["status"] == out["status"]
+    ne_obs = "not evaluable (observed values differ from the recorded ones: code or data change)"
+    if out["status"] == ne_obs:
+        assert out["observed"]["mismatches"] and out["reading"] == s["reading"] == "not evaluable"
+        return
+    if out["status"] != "evaluated":
+        pytest.skip(out["status"])
+    assert out["host"] == "N5584"
+    ob = out["observed"]
+    assert ob["mismatches"] == []
+    rt, rs = SEL_RECORDED
+    if ob["tau_hat_N"] is not None:
+        assert abs(ob["tau_hat_N"] - rt) <= 1e-6 * rt
+        drop = load("r2_re_n5584")["drop"]
+        assert ob["tau_hat_N"] == drop["r2_re"]["tau_hat"]
+    if ob["spread_obs"] is not None:
+        assert abs(ob["spread_obs"] - rs) <= 1e-9 * rs
+
+    def label(k, n, unusual, usual):
+        lo = 0.0 if k == 0 else stats.beta.ppf(0.025, k, n - k + 1)
+        hi = 1.0 if k == n else stats.beta.ppf(0.975, k + 1, n - k)
+        return unusual if hi < 0.05 else usual if lo > 0.05 else "undetermined (Monte Carlo)"
+
+    chk = out["checks"]
+    if "loo_maps" in chk:
+        assert chk["loo_maps"]["max_rel_diff"] <= 1e-8
+    t = out["tau"]
+    tu, tn = "τ̂_N unusual under the selected null", "τ̂_N not unusual under the selected null"
+    if t["status"] == "evaluated":
+        assert chk["criterion_x_selects"]["host"] == "N5584"
+        assert t["tau_obs"] == ob["tau_hat_N"]
+        assert t["n_ok"] + t["n_failed"] == t["n_sims"] and t["n_failed"] <= 20 and t["n_ok"] == len(t["taus"])
+        assert abs(t["p"] - (1 + t["k"]) / (1 + t["n_ok"])) < 1e-12
+        near = sum(1 for x in t["taus"] if abs(x - t["tau_obs"]) <= 5e-6)   # taus saved rounded to 1e-5
+        assert abs(t["k"] - sum(1 for x in t["taus"] if x >= t["tau_obs"])) <= near
+        assert t["label"] == label(t["k"], t["n_ok"], tu, tn)
+    elif t["status"] == "not evaluable (too many failed fits)":
+        assert t["n_failed"] > 20
+    for name, c in (("spread_X", "X"), ("spread_S", "S")):
+        sp = out[name]
+        if sp["status"] != "evaluated":
+            continue
+        assert sp["spread_obs"] == ob["spread_obs"]
+        assert chk["spread_obs_d_host"]["rel_diff"] <= 1e-9
+        assert abs(sp["p"] - (1 + sp["k"]) / (1 + sp["n_sims"])) < 1e-12
+        near = sum(1 for v in sp["spreads"] if abs(v - sp["spread_obs"]) <= 5e-7)
+        assert abs(sp["k"] - sum(1 for v in sp["spreads"] if v >= sp["spread_obs"])) <= near
+        assert sp["label"] == label(sp["k"], sp["n_sims"],
+                                    f"the 36-host spread is unusual under the selected null ({c})",
+                                    f"the 36-host spread is consistent with the selected null ({c})")
+        if c == "S":
+            cs = chk["criterion_s"]
+            assert cs["selects"]["host"] == "N5584" and cs["reproduced"]
+            assert abs(cs["host_value"] - cs["expected"]) <= 0.001
+        else:
+            assert chk["criterion_x_selects"]["host"] == "N5584"
+    # reading, rules (1)-(5) in order
+    sx, ss = out["spread_X"], out["spread_S"]
+    if not all(p["status"] == "evaluated" for p in (t, sx, ss)):
+        exp = "not evaluable"
+    else:
+        cx = sx["label"] == "the 36-host spread is consistent with the selected null (X)"
+        cs_ = ss["label"] == "the 36-host spread is consistent with the selected null (S)"
+        ux = sx["label"] == "the 36-host spread is unusual under the selected null (X)"
+        us = ss["label"] == "the 36-host spread is unusual under the selected null (S)"
+        if cx and cs_ and t["label"] != tu:
+            exp = ("the excess calibrator scatter of R2-RE-ROB is consistent with one outlying host, "
+                   "selection included")
+        elif ux or us:
+            exp = ("excess scatter remains after removing the most extreme host, selection included "
+                   "(criterion " + ("both" if ux and us else "X" if ux else "S") + ")")
+        elif cx and cs_:
+            exp = "τ excess remains after removing the most extreme host, selection included"
+        else:
+            exp = "undetermined"
+    assert out["reading"] == exp == s["reading"]
+    sel_ = out.get("selection", {})
+    for c in ("X", "S"):
+        if c in sel_:
+            n = sum(sel_[c]["frequency_all"].values())
+            assert sel_[c]["n_host_all"] == sel_[c]["frequency_all"].get("N5584", 0) and n == len(
+                sel_[c]["dropped"][:n])

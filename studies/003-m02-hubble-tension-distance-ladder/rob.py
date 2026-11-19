@@ -106,6 +106,30 @@ def leave_one_out(L, y, C, nz, rows_a, rows_s, cchp_cols, calib_groups, re_out, 
                                    "V": [min(zv), max(zv)] if zv else None}, "hosts": hosts}
 
 
+def shift_rows(L, y, C, rows_full, res_full, use, base_rows, host_rows, fns):
+    """Linear shift rows of 10-host subsets under C (part B's spread part; also used by sel.py):
+    for each subset (host columns) the rows are `base_rows` plus those hosts' rows, refitted under C;
+    row i of M maps y[rows_full] to the shift (subset fit minus the reference fit `res_full` on
+    `rows_full`), sig[i]^2 = sigma_subset^2 - sigma_full^2 (the nested identity)."""
+    sa2 = float(res_full["sigma"][fns["C_H0"]]) ** 2
+    M = np.zeros((len(use), len(rows_full)))
+    sig = np.zeros(len(use))
+    for i, pick in enumerate(use):
+        rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
+        res = fns["fit"](L, y, C, rows, est=True)
+        a = fns["shift_vector"](res, rows, res_full, rows_full)
+        M[i] = a[rows_full]
+        var = float(res["sigma"][fns["C_H0"]]) ** 2 - sa2
+        if not var > 0:      # the nested identity guarantees var > 0 (as in R4 under V)
+            raise RuntimeError(f"non-positive nested variance on subset {i}: {var}")
+        sig[i] = np.sqrt(var)
+        if i == 0:   # the shift vector covers only rows_full (subset rows are a subset of rows_full)
+            outside = np.setdiff1d(np.flatnonzero(a), rows_full)
+            if outside.size:
+                raise RuntimeError("subset shift vector has weight outside rows_a")
+    return M, sig
+
+
 def null_sims(L, y, C, rows_a, calib_groups, re_out, picks, base_rows, host_rows, P, fns, log):
     """Part B."""
     rows_a = np.asarray(rows_a)
@@ -133,23 +157,7 @@ def null_sims(L, y, C, rows_a, calib_groups, re_out, picks, base_rows, host_rows
     else:
         use = picks[:P["rob_n_subsets"]]
         rows_full = rows_a
-        sa2 = float(res_full["sigma"][fns["C_H0"]]) ** 2
-        M = np.zeros((len(use), len(rows_full)))
-        sig = np.zeros(len(use))
-        pos = {r: i for i, r in enumerate(rows_full)}
-        for i, pick in enumerate(use):
-            rows = np.union1d(base_rows, np.concatenate([host_rows[j] for j in pick]))
-            res = fns["fit"](L, y, C, rows, est=True)
-            a = fns["shift_vector"](res, rows, res_full, rows_full)
-            M[i] = a[rows_full]
-            var = float(res["sigma"][fns["C_H0"]]) ** 2 - sa2
-            if not var > 0:      # the nested identity guarantees var > 0 (as in R4 under V)
-                raise RuntimeError(f"non-positive nested variance on subset {i}: {var}")
-            sig[i] = np.sqrt(var)
-            if i == 0:   # the shift vector covers only rows_a (subset rows are a subset of rows_a)
-                outside = np.setdiff1d(np.flatnonzero(a), rows_full)
-                if outside.size:
-                    raise RuntimeError("subset shift vector has weight outside rows_a")
+        M, sig = shift_rows(L, y, C, rows_full, res_full, use, base_rows, host_rows, fns)
 
     # tau part
     if re_out.get("status") != "evaluated":
