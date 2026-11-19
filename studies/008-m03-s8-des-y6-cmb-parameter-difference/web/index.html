@@ -44,6 +44,9 @@
   <h2><span class="en">R6 · Full-space difference with normalizing flows (addendum 2026-11-16)</span><span class="zh">R6 · 用归一化流估计完整空间的差异（补充 2026-11-16）</span></h2>
   <div class="scroll"><table id="r6"></table></div>
   <p class="muted" id="r6note"></p>
+  <h2><span class="en">R6-NOMNU · Full space without Σmν (addendum 2026-11-18)</span><span class="zh">R6-NOMNU · 不含 Σmν 的完整空间（补充 2026-11-18）</span></h2>
+  <div class="scroll"><table id="r6n"></table></div>
+  <p class="muted" id="r6nnote"></p>
   <p class="muted" id="err"></p>
 </main>
 <script>
@@ -112,6 +115,7 @@ function render(d) {
   if (fs.constrained && fs.constrained.status === 'ok') g += `<tr><td>${L('Full space, Gaussian (data-constrained: A_s, Ωm)', '全空间，高斯近似（数据约束的 A_s、Ωm）')}</td><td>${f(fs.constrained.n_sigma)}</td></tr>`;
   document.getElementById('r4').innerHTML = g;
   renderR6(r6);
+  renderR6N(d.r6n);
   document.getElementById('r4note').innerHTML = L(
     'The Gaussian full-space numbers depend on the parametrization (post hoc, after the referee): 0.32σ in (A_s, Ωm) but 2.21σ in (S8, Ωm), and 1.48σ for the six parameters with S8 in place of A_s. None of them is a test of D26\'s flow-based 1.8σ.',
     '全空间的高斯近似数字依赖参数化（审稿后事后补做）：(A_s, Ωm) 上 0.32σ，(S8, Ωm) 上 2.21σ，以 S8 代替 A_s 的六参数为 1.48σ。它们都不是对 D26 基于归一化流的 1.8σ 的检验。');
@@ -142,10 +146,49 @@ function renderR6(r6) {
     `判决：<b>${vz(r6.verdict)}</b>（${r6.reason.startsWith('s = ') ? `s = ${f(fl.main.s)} > 0.07` : esc(r6.reason)}；预注册的稳定性上限为 s ≤ 0.07）。描述：五次训练给出 1.6–1.9σ，围绕 D26 的 1.8σ；一次流训练使 n_σ 变动约 0.1σ。与高斯近似不同，用 A_s 或 S8 时流给出几乎相同的值。1 维流未运行：tensiometer 1.1.0 在一维时陷入死循环（2026-11-18 的修订）。`);
 }
 
+const R6N_LABELS = {
+  'the full-space shift is mainly the Σmν direction': '完整空间的偏移主要来自 Σmν 方向',
+  'not mainly Σmν: the other directions carry most of the shift': '不主要来自 Σmν：其他方向承载了大部分偏移',
+  'partly the Σmν direction': '部分来自 Σmν 方向',
+  'between the two adjacent labels (not decided)': '介于相邻两个标签之间（未决）',
+  'not evaluable': '无法评估'};
+const R6N_CMP = {
+  'no detectable difference in spread with five repetitions': '五次重复下离散差异不可检测',
+  'spreads differ': '离散不同', 'means differ': '均值不同',
+  'means do not differ by the heuristic': '按经验规则均值没有差异'};
+function renderR6N(x) {
+  const t = document.getElementById('r6n'), note = document.getElementById('r6nnote');
+  if (!x || !x.flows) { t.innerHTML = ''; note.innerHTML = L('R6-NOMNU has not been run.', 'R6-NOMNU 尚未运行。'); return; }
+  const fl = x.flows, r6 = x.r6 || {};
+  const rows = [
+    ['gate5', L('5-D known-answer gate, default', '5 维已知答案门控，默认')],
+    ['nomnu', L('<b>5-D chains (A_s, h, n_s, Ωb, Ωm), default</b>', '<b>5 维链（A_s、h、n_s、Ωb、Ωm），默认</b>')],
+    ['gate5_pop1', L('5-D gate, pop_size = 1', '5 维门控，pop_size = 1')],
+    ['gate6_pop1', L('6-D gate, pop_size = 1', '6 维门控，pop_size = 1')],
+    ['nomnu_pop1', L('5-D chains, pop_size = 1', '5 维链，pop_size = 1')],
+    ['main_pop1', L('6-D chains, pop_size = 1', '6 维链，pop_size = 1')]];
+  let h = `<tr><th>${L('Run', '运行')}</th><th>${L('n_σ per seed', '各种子的 n_σ')}</th><th>n̄</th><th>s</th><th>${L('reference', '参照')}</th></tr>`;
+  for (const [k, name] of rows) {
+    const v = fl[k]; if (!v) continue;
+    const isGate = k.startsWith('gate');
+    const vals = (v.repetitions || []).map(r => f(r.n_sigma)).join(', ');
+    const ref = isGate ? L(`exact ${f((v.exact || {}).n_sigma)}; ${v.passed ? 'passed' : 'failed'}`, `精确值 ${f((v.exact || {}).n_sigma)}；${v.passed ? '通过' : '未通过'}`) : '–';
+    h += `<tr><td>${name}</td><td>${vals}</td><td>${f(isGate ? v.mean : v.n_bar)}</td><td>${isGate ? '–' : f(v.s)}</td><td>${ref}</td></tr>`;
+  }
+  if (r6.per_seed) h += `<tr><td>${L('R6, 6-D chains, default (recorded)', 'R6，6 维链，默认（已记录）')}</td><td>${Object.values(r6.per_seed).map(v => f(v)).join(', ')}</td><td>${f(r6.n_bar)}</td><td>${f(r6.s)}</td><td>–</td></tr>`;
+  t.innerHTML = h;
+  const num = x.numbers || {}, iv = num.interval || [];
+  const cmp = x.pop_size_comparison || {};
+  const cm = dim => cmp[dim] ? L(`${dim}: ${esc(cmp[dim].spread)}; ${esc(cmp[dim].means)}`, `${dim}：${R6N_CMP[cmp[dim].spread] || esc(cmp[dim].spread)}；${R6N_CMP[cmp[dim].means] || esc(cmp[dim].means)}`) : '';
+  note.innerHTML = L(
+    `Label (pre-registered): <b>${esc(x.label)}</b>` + (iv.length ? ` (I = [${f(iv[0])}, ${f(iv[1])}]; bands at 1.00 and 1.40).` : '.') + ` pop_size comparison (descriptive): ${cm('5d')}; ${cm('6d')}. The pop_size = 1 gates are reported only and do not decide anything.`,
+    `标签（预注册）：<b>${R6N_LABELS[x.label] || esc(x.label)}</b>` + (iv.length ? `（I = [${f(iv[0])}, ${f(iv[1])}]；区间边界 1.00 与 1.40）。` : '。') + `pop_size 比较（描述性）：${cm('5d')}；${cm('6d')}。pop_size = 1 的门控只报告，不决定任何结论。`);
+}
+
 let data = null;
 const getOpt = n => get(n).catch(() => null);
-Promise.all([...['r1', 'r2', 'r3', 'r4', 'r5'].map(get), getOpt('r6')])
-  .then(([r1, r2, r3, r4, r5, r6]) => { data = {r1, r2, r3, r4, r5, r6}; render(data); i18n.onLangChange(() => render(data)); })
+Promise.all([...['r1', 'r2', 'r3', 'r4', 'r5'].map(get), getOpt('r6'), getOpt('r6_nomnu')])
+  .then(([r1, r2, r3, r4, r5, r6, r6n]) => { data = {r1, r2, r3, r4, r5, r6, r6n}; render(data); i18n.onLangChange(() => render(data)); })
   .catch(e => { document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + esc(e); });
 </script>
 </body>

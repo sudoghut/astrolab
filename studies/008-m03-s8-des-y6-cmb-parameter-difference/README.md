@@ -609,6 +609,42 @@ result 2.67σ. Most of the easing in R5 comes from KiDS.
   where the flow gives 0.40σ for (A_s, Ωm). A 1-D marginal does not decide the 6-D number; the
   pre-registered test is T-040 (a 5-D flow without Σmν).
 
+**R6-NOMNU (addendum 2026-11-18, section 2.7, T-040): the full-space shift is mainly the Σmν
+direction.** Run of 2026-11-18 (`python -m astrolab run 008`, 7,098 s; R1–R5 unchanged; R6 reused from
+the recorded `results/r6.json`, checks passed, not retrained; numbers in `results/r6_nomnu.json`).
+
+| Run | n_σ per seed | n̄ | s | Outcome |
+|---|---|---|---|---|
+| (a) 5-D gate, default (seeds 10–12) | 2.401, 2.331, 2.452 | 2.395 | – | exact 2.386: **passed** |
+| (b) 5-D chains (A_s, h, n_s, Ωb, Ωm), default (seeds 0–4) | 0.478, 0.551, 0.518, 0.576, 0.494 | **0.524** | 0.040 | I = [0.488, 0.560] ⊂ (−∞, 1.00] |
+| R6, 6-D chains, default (recorded) | 1.857, 1.643, 1.719, 1.605, 1.669 | 1.699 | 0.098 | – |
+| (c) 5-D gate, `pop_size = 1` | 2.253, 2.215, 2.328 | 2.265 | – | exact 2.386: failed (mean 0.12 low; reported only) |
+| (c) 6-D gate, `pop_size = 1` | 2.372, 2.376, 2.529 | 2.425 | – | exact 2.371: passed (reported only) |
+| (d) 5-D chains, `pop_size = 1` | 0.408, 0.464, 0.509, 0.479, 0.434 | 0.459 | 0.039 | – |
+| (d) 6-D chains, `pop_size = 1` | 1.803, 1.823, 1.655, 1.832, 1.626 | 1.748 | 0.099 | – |
+
+- **Label (pre-registered, rule 5): "the full-space shift is mainly the Σmν direction".** Rules 1–4
+  do not apply (R1 and the 5-D gate pass; every repetition finite and converged; no lower bound;
+  s₅ = 0.040 ≤ 0.15). Flag (rule 6): s₅ ≤ 0.07. Paired per seed, n₆ − n₅ = 1.38, 1.09, 1.20, 1.03,
+  1.17 (mean 1.17).
+- **What it means.** Without Σmν the DES − CMB difference in the other five parameters is about 0.5σ;
+  with the pre-registered mapping that is an effective χ² of 3.65 against 10.97 for 1.699σ in 6-D,
+  so about two thirds of the full-space difference goes with Σmν, the direction in which the CMB
+  chain sits against the 0.06 eV prior edge. D26's full-space 1.8σ (and R6's 1.6–1.9σ) therefore
+  mostly measures where the two chains sit relative to a shared prior boundary in Σmν, not a
+  disagreement in the data-constrained directions. Section 2.7 had both predictions on record: the
+  marginals and the (A_s, Ωm) flow pointed low; the Gaussian χ² bookkeeping (1.41σ if Σmν carried
+  only its 1-D share) pointed higher. The outcome lies below the lower band edge (1.00) and far below the
+  bookkeeping's 1.41σ, so the bookkeeping's independence assumption does not hold here.
+- **`pop_size` comparison (descriptive, no label).** Training time per flow falls from about 670–
+  705 s to 71–83 s. Spread: variance ratios 1.05 (5-D) and 1.03 (6-D), "no detectable difference in
+  spread with five repetitions" in both. Means: 5-D "means differ" (n̄ 0.459 against 0.524; the
+  difference 0.065 exceeds the heuristic threshold 0.050; paired per-seed differences −0.070,
+  −0.087, −0.009, −0.097, −0.060); 6-D "means do not differ by the heuristic" (1.748 against 1.699;
+  threshold 0.124). The `pop_size = 1` 5-D gate is 0.12 low against its exact value, outside R6's
+  tolerance, so with one population the flow underestimates the known-answer case in 5-D; the
+  restarts of the default help there. Neither run changes the label.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-15 (subagent with the pre-registration, code and results only; it read
@@ -662,6 +698,8 @@ short offline checks from the cache and read tensiometer's source. Triage:
 1. The full-space 1.8σ: R6 (2026-11-18) brackets it at 1.6–1.9σ but is not evaluable because one flow
    training scatters by about 0.1σ. A verdict would need a new, pre-registered estimator whose
    scatter is measured first (for example the mean of more trainings, or a flow ensemble).
+   R6-NOMNU (2026-11-18) shows that most of it is the Σmν direction (0.52σ without Σmν), so a
+   verdict on the data-constrained directions matters more than a sharper 6-D number.
 2. How much does the S8 difference change with a lensing-inclusive or Planck-PR4-based CMB
    (D26 reports 1.0σ in full space against Planck 2018 alone)?
 3. Do KiDS-1000 and HSC Y3 (2023) quote means or modes? R5 shows a 0.1–0.2σ dependence.
