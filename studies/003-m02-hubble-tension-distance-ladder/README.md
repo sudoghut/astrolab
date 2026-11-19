@@ -673,8 +673,11 @@ results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_
 | Joint reading | – | **the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips** |
 
 - **Reading (pre-registered).** Without N5584 the calibrator scatter is what C allows: τ̂ = 0.031 is
-  an ordinary value under the null (p = 0.34) and the R4 spread falls from 1.307 to 1.033 (p = 0.36),
-  so R2-RE-ROB's excess scatter is one host's. The CCHP selection is again an ordinary low draw (8.5th
+  an ordinary value under the null (p = 0.34) and the spread over the first 1,000 subsets falls from
+  1.307 (37 hosts) to 1.033 (36 hosts; p = 0.36; over all 10,000 R4-N draws 1.044), so the
+  pre-registered rule gives "attributable to N5584". Because the null does not include the choice of
+  N5584 as the most extreme of 37 hosts (post hoc, section 6), we read this as "consistent with one
+  outlying host"; a selection-aware test is T-042. The CCHP selection is again an ordinary low draw (8.5th
   percentile; R4 on 37 hosts gave 5.7). Keeping N5584 but letting the model down-weight it (ν = 4)
   gives N5584 alone a clearly reduced weight and leaves the verdict where R2-RE put it (z_T = −1.38;
   R2-RE −1.53). Both treatments give the same row; the R2-RE-ROB A flip to "supports the paper"
@@ -788,7 +791,7 @@ removals) and reproduced every number quoted below. Triage:
   distances beyond C and cannot say which side causes it; calibrator-specific SN colour behaviour
   (Wojtak & Hjorth 2022) is one candidate; whether C's calibrator block already holds a within-SN
   term is unchecked. Robustness of τ̂ to single hosts and its null distribution: T-032 (answered:
-  one host, N5584, carries the excess; R2-RE-N5584, T-039).
+  the excess is consistent with one outlying host, N5584; R2-RE-N5584, T-039; selection-aware test T-042).
 - Is N5584's offset (effective scatter 0.12 mag under the heavy-tailed model) from its single SN,
   2007af, or from its Cepheid distance? The data cannot tell (section 6); the literature favours the SN
   (an independent Cepheid reanalysis agrees with SH0ES). A published per-host TRGB or JAGB distance for
