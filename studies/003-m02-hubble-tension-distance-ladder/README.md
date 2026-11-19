@@ -691,7 +691,25 @@ results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_
 - **Status of R2.** The R2-RE headline row stands ("no host-selection effect detected"); R2-RE-ROB's
   label "sensitive to single hosts (N5584)" stays as recorded and now has its pre-registered
   explanation. Whether N5584's offset comes from its SN (2007af) or its Cepheid distance is still not
-  identified.
+  identified by these data.
+- **Post hoc (referee, 2026-11-18; section 6).** (1) The variational EM is not the Student-t
+  estimate: the exact Student-t restricted likelihood (w integrated out by importance sampling) peaks
+  at τ ≈ 0.055 for ν = 4 (0.035 for ν = 2, 0.070 for ν = 10), against the EM's 0.075, 0.068 and 0.078;
+  the README said the fixed point maximises a bound, not the likelihood. Across fitting methods and
+  plug-in definitions z ranges from −1.11 to −1.85 (ν = 4: −1.15 to −1.67; exact posterior mixture
+  −1.47), so the row is the same in every variant, but z_T itself carries a method spread of about
+  ±0.3. (2) The B-N null does not include the selection of N5584 as the most extreme of 37 hosts;
+  a null that drops the worst host in each simulation would give smaller p values, so "attributable
+  to N5584" is better read as "consistent with one outlying host" (selection-aware null registered as
+  T-042). (3) Dropping only N5584's four SN rows gives z = −1.68 under C, and dropping only its
+  Cepheid rows −1.62: either removal neutralises the host, so the data cannot say which side is off.
+  Its SN rows sit +0.25 to +0.35 mag faint relative to the fit without them; the literature points to
+  the SN side: an independent reanalysis of N5584's HST Cepheids agrees with SH0ES (μ = 31.810 ± 0.047
+  against 31.786 ± 0.046, Javanmardi et al. 2021, arXiv:2102.12489) and JWST and HST Cepheid
+  intercepts agree there (Riess et al. 2023, arXiv:2307.15806), which also describes SN 2007af as a
+  normal, low-reddening SN Ia and the host as an expected outlier of about 0.25 mag among the
+  calibrators. That makes N5584 a statistical fluctuation of the SN Ia population rather than a data
+  defect, which is the random-effect picture.
 
 ## 6. Referee notes
 
@@ -743,6 +761,22 @@ offline checks from the cache. Triage:
 | 7 | Literature (unverified, the referee's search): JWST/HST Cepheids in N5584 agree (arXiv:2307.15806); HST TRGB 31.76 ± 0.04 ± 0.12 (arXiv:1506.03089); JWST TRGB tip ambiguity (arXiv:2401.04776); TRGB–Cepheid comparison (arXiv:2408.00065); SN 2007af reddening (arXiv:2503.09702) | no | Context for T-039 (host extinction of SN 2007af is a hypothesis, not established); to be raised to [V] before use. |
 | 8 | No code or statistics bug: leave-one-out row removal, τ and data routes, the null construction (REML and Δ/σ independent of q̂ under C), Clopper–Pearson intervals and labels checked | – | None. |
 
+### Referee, R2-RE-N5584 (independent subagent, 2026-11-18)
+
+The referee saw README sections 1–4, the code and the results, not sections 5–8 or the log; it ran
+offline checks from the cache. We reran its scripts (exact Student-t likelihood, z variants, partial
+removals) and reproduced every number quoted below. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The variational EM's τ̂_T is biased high against the exact Student-t restricted likelihood (ν = 4: 0.075 against about 0.055; ν = 2: 0.068 against 0.035; ν = 10: 0.078 against 0.070); z depends on the plug-in definition: exact posterior mixture −1.47, E_post[τ²/w] −1.34, τ²/E_post[w] −1.67, EM with E_q[τ²/w] −1.15; ν = 2 variants −1.11 to −1.85; the pre-registered plug-in τ̂²/ω̂_j gives N5584 less variance than the model's own E_q[τ²/w] | yes (our rerun: same numbers; importance-sampling effective sample size ≥ 3,700) | **Accepted limitation**, post hoc in section 5: the label "robust" holds in every variant (none reaches −2); z_T is reported with a method spread of about ±0.3. The pre-registered definition is kept. |
+| 2 | Both pre-registered EM starts lie at or above the Gaussian τ̂, so they could not reveal a low-τ mode; from 0.01, 0.02, 0.031, 0.05 and 0.4 all starts converge to the same fixed point (τ 0.075219, N5584 ω 0.3925) | referee's check (not rerun) | Noted; no bug. |
+| 3 | B-N simulates an unselected 36-host system, while N5584 was removed as the most extreme of 37; dropping the worst host in each simulation would shrink the null τ̂ and spread, so B-N's p values (0.34, 0.36) are biased upward, towards "attributable" | yes (argument; not computed) | **Accepted**; section 5 reads the label as "consistent with one outlying host"; a selection-aware null is registered as T-042. The pre-registered label stands. |
+| 4 | The two treatments disagree about the other 36 hosts: removal gives τ̂_N = 0.031 (0–0.070), while the t model gives the others an effective scatter of about 0.074 | yes (`omega_ranked`) | Accepted; noted in section 5 (descriptive). |
+| 5 | Dropping only N5584's SN rows (z = −1.68 under C; REML minimum near τ 0.03) is close to the full removal, so "the effect sits on the SN side"; its SN residuals are +0.25 to +0.35 mag | partly: the numbers reproduce, but dropping only its Cepheid rows gives z = −1.62 as well, since either removal leaves the host's offset unconstrained | **Inference rejected**; numbers recorded in section 5. The side is not identified by these data. |
+| 6 | Literature: Riess et al. 2023 (arXiv:2307.15806) report N5584 about 0.25 mag from the sample mean, Cepheids bright for the SN's standardised magnitude, SN 2007af normal and low-reddening, a couple of such outliers expected; JWST–HST intercept difference 0.02 ± 0.03 mag; Javanmardi et al. 2021 (arXiv:2102.12489) μ = 31.810 ± 0.047 against SH0ES 31.786 ± 0.046; Anand et al. 2024 (arXiv:2401.04776) and Li et al. 2024 (arXiv:2408.00065) give only sample means | yes: 2102.12489 and the 2307.15806 JWST–HST numbers on the abstract pages (2026-11-18); the 2307.15806 full-text statements were read in the HTML version through a summary, not quoted | **Accepted** as context (section 5): the Cepheid side is independently confirmed, so SN 2007af being faint after standardisation is the likely reading; not used in any label. |
+| 7 | No goalpost moved: every label and the joint reading re-derive from the saved numbers; EM updates, row removal (169 rows), R4-N mapping, B-N construction and the rule order are correct | yes (`test_conclusions.py`) | None. |
+
 ## 7. Open questions
 
 - Why the public `lstsq_results.txt` differs from the printed baseline (a later or variant fit).
@@ -755,8 +789,10 @@ offline checks from the cache. Triage:
   term is unchecked. Robustness of τ̂ to single hosts and its null distribution: T-032 (answered:
   one host, N5584, carries the excess; R2-RE-N5584, T-039).
 - Is N5584's offset (effective scatter 0.12 mag under the heavy-tailed model) from its single SN,
-  2007af, or from its Cepheid distance? A TRGB or JAGB distance compared directly with the Cepheid one
-  for this host would decide it.
+  2007af, or from its Cepheid distance? The data cannot tell (section 6); the literature favours the SN
+  (an independent Cepheid reanalysis agrees with SH0ES). A published per-host TRGB or JAGB distance for
+  N5584 would decide it.
+- Does "attributable to N5584" survive a null that also selects the most extreme host? T-042.
 - A Cepheid-only per-host comparison for R3 (μ from fits without each host's SN rows).
 - R4 suggests the CCHP selection is a low but ordinary draw: is there a property of those hosts
   (for example the TRGB-friendly, low-extinction halos) that correlates with their SN magnitudes?
