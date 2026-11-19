@@ -181,8 +181,8 @@ function renderR6N(x) {
   const cmp = x.pop_size_comparison || {};
   const cm = dim => cmp[dim] ? L(`${dim}: ${esc(cmp[dim].spread)}; ${esc(cmp[dim].means)}`, `${dim}：${R6N_CMP[cmp[dim].spread] || esc(cmp[dim].spread)}；${R6N_CMP[cmp[dim].means] || esc(cmp[dim].means)}`) : '';
   note.innerHTML = L(
-    `Label (pre-registered): <b>${esc(x.label)}</b>` + (iv.length ? ` (I = [${f(iv[0])}, ${f(iv[1])}]; bands at 1.00 and 1.40).` : '.') + ` pop_size comparison (descriptive): ${cm('5d')}; ${cm('6d')}. The pop_size = 1 gates are reported only and do not decide anything.`,
-    `标签（预注册）：<b>${R6N_LABELS[x.label] || esc(x.label)}</b>` + (iv.length ? `（I = [${f(iv[0])}, ${f(iv[1])}]；区间边界 1.00 与 1.40）。` : '。') + `pop_size 比较（描述性）：${cm('5d')}；${cm('6d')}。pop_size = 1 的门控只报告，不决定任何结论。`);
+    `Label (pre-registered): <b>${esc(x.label)}</b>` + (iv.length ? ` (I = [${f(iv[0])}, ${f(iv[1])}]; bands at 1.00 and 1.40).` : '.') + ` pop_size comparison (descriptive): ${cm('5d')}; ${cm('6d')}. The pop_size = 1 gates are reported only and do not decide anything. Post hoc (referee, verified): Σmν acts jointly with its DES correlations and partly through the prior shape; of the other five parameters, h, n_s and Ωb are themselves largely prior-dominated in DES (README sections 5–6; check T-044).`,
+    `标签（预注册）：<b>${R6N_LABELS[x.label] || esc(x.label)}</b>` + (iv.length ? `（I = [${f(iv[0])}, ${f(iv[1])}]；区间边界 1.00 与 1.40）。` : '。') + `pop_size 比较（描述性）：${cm('5d')}；${cm('6d')}。pop_size = 1 的门控只报告，不决定任何结论。事后（审稿，已复核）：这是 Σmν 与它在 DES 中的相关共同作用，部分来自先验形状；其余五个参数中 h、n_s、Ωb 在 DES 中也大多由先验主导（README 第 5–6 节；检查 T-044）。`);
 }
 
 let data = null;
