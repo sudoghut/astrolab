@@ -387,7 +387,7 @@ Values on the real data, each picking N5584:
 | Spread over the first 1,000 R4 subsets that exclude the host (smallest) | 1.027 (p = 0.330) | N1365 1.207 (p = 0.056); others up to 1.34 | section 6, R2-RE-ROB referee point 1 (our rerun of the referee's cache-only script; per-host values not saved in `results/`) |
 
 Two criteria are registered, because they are cheap per simulation; part A's criteria would need 37
-REML fits per simulation (about 11–12 min each) and are not feasible.
+REML fits per simulation (about 11–12 min for the 37 fits of one simulation) and are not feasible.
 - **Criterion X (raw leave-one-out χ² under C), used for the τ part and the first spread label.** It is
   the statistic that named N5584 first. It is computed by `loo_chi2` in `run.py` (R2-RE addendum,
   "reported, not decisive"): for host j with calibrator SN rows g_j (`calib_groups[j]`: rows with a
@@ -415,7 +415,8 @@ REML fits per simulation (about 11–12 min each) and are not feasible.
 *Direction of the criterion bias (stated now).* Criterion X is less aligned with τ̂ and with the spread
 than "smallest τ̂_j" or criterion S: in a simulation the host it drops is not necessarily the one that
 inflates τ̂ or the spread most, so the selected null shrinks less than under the aligned criteria and p
-comes out higher. p under criterion X is therefore likely an upper bound on a selection-aware p:
+is expected to come out higher (an expected direction, not a proven ordering: the host X drops
+need not be the one driving either statistic):
 "unusual" under X is strong evidence of remaining excess scatter, "not unusual" / "consistent" under X is
 weak evidence for "one outlying host". Criterion S is aligned with the spread statistic, so the second
 spread label is the stronger test of "consistent". The τ part has no aligned feasible criterion; its
@@ -528,12 +529,12 @@ unselected null).
   reading only to the extent the spread labels do); (3) either spread label "unusual" → **"excess scatter remains after removing
   the most extreme host, selection included (criterion <X, S or both>)"**; (4) both spread labels
   "consistent" and τ "unusual" → **"τ excess remains after removing the most extreme host, selection
-  included"**; (5) otherwise → "undetermined". Rule (3) is the union of two spread tests, so its
-  nominal false-alarm rate exceeds 0.05 (at most about 0.10; likely close to criterion S's alone, since the
-  two tests share the simulations and select the same host in many of them).
+  included"**; (5) otherwise → "undetermined". Rule (3) is the union of two spread tests; its
+  false-alarm rate is not quantified (each label needs its whole Clopper–Pearson interval below 0.05,
+  which is conservative; the two tests share the simulations and select the same host in many of them).
 - What the reading changes in section 5 (the text, not any label): (2) → the post-hoc gloss "consistent
   with one outlying host" becomes the pre-registered reading of this test, quoted with the caveat that
-  the τ part uses criterion X only (its p likely an upper bound); (3) or (4) → the gloss is withdrawn and
+  the τ part uses criterion X only (its p expected to be higher than under an aligned criterion); (3) or (4) → the gloss is withdrawn and
   section 5 states that the excess calibrator scatter is not accounted for by removing the single most
   extreme host once that choice is simulated ("attributable to N5584" stays recorded as the outcome under
   the unselected null); (5) or "not evaluable" → the gloss stays, marked post hoc, with this outcome next
