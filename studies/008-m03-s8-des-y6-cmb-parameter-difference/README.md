@@ -484,10 +484,16 @@ correlations are kept)?
   column change (so it checks that path as well as TensorFlow determinism; a new job folder is used,
   no earlier result can be picked up) and its n_σ is compared with the recorded 1.8569; if they differ
   by more than 0.02, the result carries the flag "cross-run pairing approximate" and φ̄ is still read.
-- No new known-answer gate: the estimator, settings and dimension are R6's, whose 6-D gate passed
-  (section 5). Its limitation applies: the gate tests n_σ ≈ 2.4, while these variants are expected near
-  0.6–1.0, and R6's design notes and the R6-NOMNU referee (item 5) show flows biased high at small
-  shifts; that bias raises n_S, n_P and n₅ and moves φ in a direction not known in advance.
+- Low-shift known-answer gate (6-D, run first, default settings): R6's 6-D synthetic distribution
+  (section 2.6, `flowshift.synthetic`) with the curved pair moved to μ₁ = 1.1, μ₂ = 0.55 (curvature
+  and the four boxes unchanged); its exact n_σ, by R6's Monte Carlo (2,000,000 draws,
+  `default_rng(999)`), is 0.8601, computed while drafting this revision (synthetic data only; the
+  candidates tried were (μ₁, μ₂) = (0.5–1.3, 0–0.65), exact 0.28–1.14, and 1.1/0.55 was chosen as the
+  value nearest the expected range of n_S); seeds 10–12, R6's tolerances (mean within 0.10, each within
+  0.20). R6's recorded 6-D gate (exact 2.371) stays as the high-shift check. The low-shift gate covers
+  n_S and n_P (expected 0.6–1.0) in 6-D; n₅ (0.52, 5-D) is recorded and not re-gated. R6's design notes
+  and the R6-NOMNU referee (item 5) show flows biased high at small shifts; the low-shift gate bounds
+  that bias at 0.86 in 6-D, and any remaining bias moves φ in a direction not known in advance.
 
 *Quantities, per seed k* (all from flows, paired): E_k = n₆,k − n₅,k (what Σmν adds);
 φ_k = (n₆,k − n_S,k) / E_k (the fraction removed by breaking Σmν's DES-side correlations);
@@ -503,26 +509,34 @@ reported on the χ²-equivalent scale of section 2.7 (descriptive).
 first that applies decides):
 1. R1 gate fails, the R6 or R6-NOMNU records fail their checks, or the versions or flow settings differ
    from the recorded ones → "not evaluable".
-2. Any (S) or (P) repetition fails, is non-finite, has not converged or is a lower bound → "not
+2. The low-shift gate fails (a repetition failed, non-finite, not converged or a lower bound, or the
+   tolerances missed) → "not evaluable (low-shift gate)"; the variants are still run and reported as
+   descriptive only.
+3. Any (S) or (P) repetition fails, is non-finite, has not converged or is a lower bound → "not
    evaluable". ((SS) and the determinism check do not decide.)
-3. Any E_k ≤ 0.20 → "not evaluable" (the ratio is unstable; the recorded E_k are 1.03–1.38).
-4. s_φ > 0.30 → "not evaluable". (Expected s_φ: each flow value scatters by about 0.1σ in 6-D, so
+4. Any E_k ≤ 0.20 → "not evaluable" (the ratio is unstable; the recorded E_k are 1.03–1.38).
+5. s_φ > 0.30 → "not evaluable". (Expected s_φ: each flow value scatters by about 0.1σ in 6-D, so
    n₆,k − n_S,k scatters by about 0.14 and φ_k by about 0.12 for E ≈ 1.2.)
-5. Otherwise the interval I_φ = φ̄ ± 2 s_φ/√5 (unrounded values) decides: I_φ ⊂ [0.50, ∞) → **"what Σmν
-   adds is mainly through its correlations with the other DES parameters"**; I_φ ⊂ (−∞, 0.50) →
+6. Otherwise the interval I_φ = φ̄ ± 2 s_φ/√5 (unrounded values) decides: I_φ ⊂ [0.60, ∞) → **"what Σmν
+   adds is mainly through its correlations with the other DES parameters"**; I_φ ⊂ (−∞, 0.40] →
    **"what Σmν adds is mainly not through its DES-side correlations (the Σmν direction itself,
-   including the CMB side and the prior)"**; otherwise (I_φ straddles 0.50) → "between the two labels
-   (not decided)".
+   including the CMB side and the prior)"**; otherwise (I_φ reaches into (0.40, 0.60)) → "between the
+   two labels (not decided)". Why a band and not 0.50: s_φ measures training and resampling scatter
+   only, not the chains' own finite-sample noise, which section 6 (item 2) puts at about ±0.03 per n_σ
+   (chain-row bootstrap, R2); the variants share the same rows, so that noise is largely common to
+   n₆, n_S and n₅, and even uncorrelated it would move φ by about √2 × 0.03 / 1.2 ≈ 0.035. The
+   ±0.10 band around 0.50 is about three times that.
 
 *Reported, descriptive.* Per seed n_S,k, n_P,k, n_SS,k, Δ, intervals, training times; E_k, φ_k, ψ_k,
-ρ_k with means and s; n̄_S, n̄_P, n̄_SS with s; the kNN values of all variants; the determinism check.
-ψ̄, ρ̄, (SS) and kNN get no label.
+ρ_k with means and s; n̄_S, n̄_P, n̄_SS with s; the kNN values of all variants; the determinism check;
+the low-shift gate's repetitions and exact value. ψ̄, ρ̄, (SS) and kNN get no label.
 
-*Runtime.* R6's 6-D chain trainings took 745–759 s; 16 trainings (5 × S, P, SS and the determinism
-check) ≈ 3.4 h in venv-tf (`TF_USE_LEGACY_KERAS=1`, through the project venv's subprocess as for R6),
+*Runtime.* R6's 6-D chain trainings took 745–759 s and its gate trainings 769–807 s; 19 trainings (the
+3 low-shift gate trainings, 5 × S, P, SS and the determinism check) ≈ 4.0 h in venv-tf (`TF_USE_LEGACY_KERAS=1`, through the project venv's subprocess as for R6),
 run after study 010's T-031 run has finished (that run requires an otherwise idle machine); no data
 downloaded (chains from the cache). PARAMS: `"r6_shuf": True`, `"r6_shuf_seeds": [0, 1, 2, 3, 4]`,
-`"r6_shuf_s_max": 0.30`, `"r6_shuf_e_min": 0.20`, `"r6_shuf_band": 0.50`,
+`"r6_shuf_s_max": 0.30`, `"r6_shuf_e_min": 0.20`, `"r6_shuf_band": [0.40, 0.60]`,
+`"r6_shuf_gate": {"mu1": 1.1, "mu2": 0.55, "exact": 0.8601}`,
 `"r6_shuf_seed_offsets": [1000, 2000, 3000]`, `"r6_shuf_prior": [0.06, 0.6]`, `"r6_shuf_knn_k": [20, 100]`;
 output `results/r6_shuf.json`. R1–R5 run as usual (seconds). R6 and R6-NOMNU are not retrained and
 their result files are read, not rewritten: R6 through the existing `"r6_retrain": False` path; for
