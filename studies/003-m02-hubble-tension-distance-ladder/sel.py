@@ -240,15 +240,16 @@ def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, n_out, P, f
         "tau": {k: bn_tau.get(k) for k in ("status", "k", "n_ok", "p", "ci95", "label", "sim_quantiles",
                                            "n_at_zero")},
         "spread": {k: bn_sp.get(k) for k in ("status", "k", "n_sims", "p", "ci95", "label", "sim_quantiles")}}
-    if n_sub != int(P["rob_n_subsets"]):
-        out.update(status=BLOCK_NE_CONFIG.format(a=n_sub, b=P["rob_n_subsets"]), reading=READ_NE,
-                   section5=SECTION5["stays"], seconds=time.perf_counter() - t_block)
-        log("R2-RE-SEL: " + out["status"])
-        return out
+    # the addendum's observed-value stop rule takes precedence over the implementation's configuration guard
     if bad:
         out.update(status=BLOCK_NE_OBSERVED, reading=READ_NE, section5=SECTION5["stays"],
                    seconds=time.perf_counter() - t_block)
         log("R2-RE-SEL: " + BLOCK_NE_OBSERVED + ": " + "; ".join(bad))
+        return out
+    if n_sub != int(P["rob_n_subsets"]):
+        out.update(status=BLOCK_NE_CONFIG.format(a=n_sub, b=P["rob_n_subsets"]), reading=READ_NE,
+                   section5=SECTION5["stays"], seconds=time.perf_counter() - t_block)
+        log("R2-RE-SEL: " + out["status"])
         return out
 
     reasons = {"tau": [], "spread_X": [], "spread_S": []}
