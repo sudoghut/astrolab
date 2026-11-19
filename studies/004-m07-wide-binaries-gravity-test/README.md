@@ -597,7 +597,7 @@ stopped on archive errors (a malformed XML response, an aborted asynchronous job
 transient "Unknown table gaiadr3.gaia_source"); each raised the pre-registered retry before the
 2026-11-24 deadline, and the final attempt resumed from the cache (25,969 s; no fallback regions;
 estimated input 54.0 MB of the 200 MB budget). Rows: N1 60,259, N2 116,401, N3 53,860, N2-C25
-116,348. **N4 (velocities) was not fetched**, so no R5 velocity data have been read.
+116,348. **N4 (velocities) was not fetched**, so no R5 velocity query was read.
 
 | Step | Result |
 |---|---|
@@ -633,7 +633,7 @@ estimated input 54.0 MB of the 200 MB budget). Rows: N1 60,259, N2 116,401, N3 5
   at 250 pc the relaxed rule thins the sample by sky density and biases it towards high latitudes.
   Without degrouping and with M_G-only masses the same pipeline gives exactly the server proxy counts (3,067, 2,409, 1,771, 1,047, 745, 439), so tiling, de-duplication and the other cuts
   are consistent. The G1b failure therefore most likely reads as "the relaxed degrouping rule does
-  not scale beyond about 130–150 pc", not as a shortage of wide binaries. With the C25 neighbour table the same
+  not scale beyond about 130–150 pc", not as a shortage of wide binaries. Post-hoc diagnostic only: with the C25 neighbour table the same
   counts would give L_N* = 8 × 10⁵ (reported only; switching designs after seeing the counts is not
   allowed, and that design would need its own purity validation).
 
