@@ -654,11 +654,10 @@ the recorded `results/r6.json`, checks passed, not retrained; numbers in `result
   prior [0.06, 0.6] eV. So most of the 6-D number comes from Σmν jointly with its DES correlations
   (probably the A_s–Σmν degeneracy; an inference), and the near-equality of the 1-D Σmν value
   (1.74σ) and the 6-D flow value (1.70σ) is largely a coincidence (an inference). DES's Σmν is close
-  to its prior (weighted mean and standard deviation 0.383 ± 0.148 on the rows used here; 0.384 ± 0.147
-  in section 6's R6 row, from the explore script; prior 0.330 ± 0.156); with DES's Σmν replaced by the prior the 1-D
+  to its prior (0.384 ± 0.147, against the prior's 0.330 ± 0.156); with DES's Σmν replaced by the prior the 1-D
   difference is still 1.05σ, i.e. about 1σ of the 1-D "shift" is the CMB chain at the prior edge
-  against the DES prior. Shuffling keeps that placement but still removes most of the 6-D number,
-  so the placement is the smaller part and the correlations the larger. The 5-D value (0.52σ; kNN
+  against the DES prior. Shuffling keeps that placement but still removes most of what Σmν adds over the 5-D value (about
+  70% at k = 20 and 100), so the placement is the smaller part and the correlations the larger. The 5-D value (0.52σ; kNN
   0.56/0.47σ, Gaussian 0.21σ) is therefore less affected by the Σmν prior edge; it is not a
   data-constrained number either (h, n_s and Ωb are largely prior-dominated in DES; (A_s, Ωm) 0.40σ). Dropping Σmν here means
   marginalising over it; conditioning on a fixed Σmν (DES's fixed-mass chain, 76 MB, above the
@@ -723,7 +722,7 @@ run was using the machine. We reran its scripts and reproduced every number belo
 |---|---|---|---|
 | 1 | The label re-derives from the saved numbers (n̄₅ 0.52363, s₅ 0.04021, I = [0.4877, 0.5596]; rules 1–4 do not apply); the 5-D column drop, seed pairing, gate construction, `pop_size` passing, rule order and comparison are correct | yes | None. |
 | 2 | Σmν contributes jointly with its correlations: Gaussian conditional χ² 4.35 against marginal 2.74; kNN 6-D 1.27/1.57σ real, 0.78/0.80σ with DES Σmν shuffled, 0.69/0.61σ with DES Σmν from its prior; the 1.41σ band edge (Σmν's own 1-D share) has no firm basis | yes (our rerun) | **Accepted** (post hoc, section 5): the label is read as "Σmν together with its correlations"; the band edges were already reported as resting on a failed independence assumption. Label unchanged. |
-| 3 | DES Σmν is close to prior-dominated (0.383 ± 0.148 against 0.330 ± 0.156; histogram rising to 0.6 eV); the CMB has 13% of its weight below 0.07 eV; with DES Σmν from the prior the 1-D difference is 1.05σ against 1.74σ | yes | **Accepted**: about 1σ of the 1-D Σmν shift is prior placement; the 5-D number is less affected by the Σmν prior edge (section 5), though h, n_s and Ωb are themselves largely prior-dominated in DES. |
+| 3 | DES Σmν is close to prior-dominated (0.384 ± 0.147 against 0.330 ± 0.156; histogram rising to 0.6 eV); the CMB has 13% of its weight below 0.07 eV; with DES Σmν from the prior the 1-D difference is 1.05σ against 1.74σ | yes | **Accepted**: about 1σ of the 1-D Σmν shift is prior placement; the 5-D number is less affected by the Σmν prior edge (section 5), though h, n_s and Ωb are themselves largely prior-dominated in DES. |
 | 4 | Marginalising over Σmν is not the only way to drop it; conditioning (DES's fixed-Σmν chain, 76 MB) answers a different question | yes (size from the pre-registration's chain list) | Accepted; section 5 states that the question is the marginal one; the conditional chain exceeds the 50 MB cap and would need the user's consent; not registered. |
 | 5 | The gate tests Δ ≈ 0.98, not the result's regime (Δ ≈ 0.40); the design notes show flows biased high at small shifts, so 0.52 is if anything high; kNN 0.56/0.47 agrees, Gaussian 0.21 is lower | yes | Accepted limitation; the label (I ⊂ (−∞, 1.00]) is robust to a downward bias. |
 | 6 | `pop_size = 1` underfits: lower in all five 5-D seeds (paired mean −0.065, s 0.034), fails the 5-D gate, passes the 6-D gate; the restarts reduce bias, not spread (s ≈ 0.04 in 5-D, 0.10 in 6-D for both) | yes | Accepted; the unpaired "means" heuristic is as pre-registered, the paired differences are reported in section 5. |
