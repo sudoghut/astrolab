@@ -688,7 +688,7 @@ refused) and reran G1b. We reran its scripts and reproduced every number below. 
 - d < 200 pc and the C25-neighbour degrouping diagnostic were not run (sections 3–4).
 - R5 (2026-11-18) was not run: G1b failed because degrouping at 250 pc keeps half the 130 pc
   fraction. Whether a larger volume can reach C26's power at all depends on a degrouping rule that
-  does not lose pairs to chance neighbours as the parallax window widens (section 6: the relaxed rule
+  does not lose pairs to spurious neighbours (most likely chance neighbours, T-043) as the parallax window widens (section 6: the relaxed rule
   keeps 44% at 130 pc and 23% at 250 pc); any such design needs a new pre-registration (its
   velocity-free counts are now seen). A shifted-field measurement of the chance-neighbour rate is T-043.
 - The Lean argument lacks a premise that x is computed on the MOND model's scale (referee point 9);
