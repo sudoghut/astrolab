@@ -212,3 +212,92 @@ def test_r6_nomnu_label_rule():
         for r_10, r_1 in zip(r10, r1):
             assert abs(cmp["paired_pop1_minus_default"]["per_seed"][str(r_1["seed"])]
                        - (r_1["n_sigma"] - r_10["n_sigma"])) < 1e-12
+
+
+def _good_rep(r):
+    import math
+    return ("error" not in r and isinstance(r.get("n_sigma"), (int, float)) and math.isfinite(r["n_sigma"])
+            and r.get("converged") is True and not r.get("lower_bound"))
+
+
+def _record_ok(flows, gate_key, case_key, n_bar, s):
+    """README 2.8 record checks, re-implemented here independently of r6shuf.check_r6 / check_nomnu."""
+    case = flows.get(case_key) or {}
+    reps = case.get("repetitions") or []
+    return (flows.get("complete") is True and (flows.get(gate_key) or {}).get("passed") is True
+            and [r.get("seed") for r in reps] == [0, 1, 2, 3, 4] and all(_good_rep(r) for r in reps)
+            and isinstance(case.get("n_bar"), float) and round(case["n_bar"], 4) == n_bar
+            and isinstance(case.get("s"), float) and round(case["s"], 4) == s)
+
+
+def test_r6_shuf_label_rule():
+    """README 2.8: re-derive the R6-SHUF label from the saved numbers and the recorded R6 / R6-NOMNU."""
+    import math
+
+    out = load("r6_shuf")
+    r6, nomnu = load("r6"), load("r6_nomnu")
+    flows = out["flows"]
+    ne, ne_gate = "not evaluable", "not evaluable (low-shift gate)"
+    ok6 = _record_ok(r6.get("flows") or {}, "gate", "main", 1.6985, 0.0977)
+    ok5 = _record_ok(nomnu.get("flows") or {}, "gate5", "nomnu", 0.5236, 0.0402)
+    assert out["records"]["r6"]["ok"] is ok6 and out["records"]["r6_nomnu"]["ok"] is ok5
+    expected = None
+    if not (ok6 and ok5) or "status" in flows or not load("r2")["gate_r1_means"]:
+        expected = ne                                                    # rule 1 (records, R1)
+    else:
+        env = {"versions": flows.get("versions"), "settings": flows.get("settings")}
+        same = all(env == {"versions": f["flows"]["versions"], "settings": f["flows"]["settings"]}
+                   for f in (r6, nomnu))
+        if not same or "gate_low" not in flows:
+            expected = ne                                                # rule 1 (environment)
+    if expected is None:
+        st = out["settings"]
+        assert st["r6_shuf_gate"]["mu1"] == 1.1 and st["r6_shuf_gate"]["mu2"] == 0.55
+        # the low-shift gate is R6's 6-D gate (as recorded with R6-NOMNU) with only mu1, mu2 moved
+        assert st["gate_low"] == {**nomnu["settings"]["gates"]["gate6"], "mu1": 1.1, "mu2": 0.55}
+        g = flows["gate_low"]
+        ex = g["exact"]["n_sigma"]
+        gv = [r.get("n_sigma") for r in g["repetitions"]]
+        assert [r["seed"] for r in g["repetitions"]] == [10, 11, 12]
+        passed = all(v is not None and math.isfinite(v) and r.get("converged") and not r.get("lower_bound")
+                     for v, r in zip(gv, g["repetitions"])) and \
+            abs(sum(gv) / 3 - ex) <= 0.10 and all(abs(v - ex) <= 0.20 for v in gv)
+        assert g["passed"] == passed
+        assert out["gate_low_exact"]["equal_to_4_decimals"] == (round(ex, 4) == 0.8601)
+        if not passed:
+            expected = ne_gate                                           # rule 2
+    if expected is None:
+        n6 = {r["seed"]: r["n_sigma"] for r in r6["flows"]["main"]["repetitions"]}
+        n5 = {r["seed"]: r["n_sigma"] for r in nomnu["flows"]["nomnu"]["repetitions"]}
+        rs, rp = flows["S"]["repetitions"], flows["P"]["repetitions"]
+        assert flows["S"]["parameters"] == r6["flows"]["main"]["parameters"]
+        if not all([r.get("seed") for r in x] == [0, 1, 2, 3, 4] and all(_good_rep(r) for r in x) for x in (rs, rp)):
+            expected = ne                                                # rule 3
+        else:
+            ns = {r["seed"]: r["n_sigma"] for r in rs}
+            e = {k: n6[k] - n5[k] for k in range(5)}
+            if any(v <= 0.20 for v in e.values()):
+                expected = ne                                            # rule 4
+            else:
+                phi = [(n6[k] - ns[k]) / e[k] for k in range(5)]
+                m, s = sum(phi) / 5, _sd(phi)
+                assert abs(m - out["numbers"]["phi_bar"]) < 1e-9 and abs(s - out["numbers"]["s_phi"]) < 1e-9
+                if s > 0.30:
+                    expected = ne                                        # rule 5
+                else:                                                    # rule 6
+                    lo, hi = m - 2 * s / math.sqrt(5), m + 2 * s / math.sqrt(5)
+                    if lo >= 0.60:
+                        expected = "what Σmν adds is mainly through its correlations with the other DES parameters"
+                    elif hi <= 0.40:
+                        expected = ("what Σmν adds is mainly not through its DES-side correlations (the Σmν "
+                                    "direction itself, including the CMB side and the prior)")
+                    else:
+                        expected = "between the two labels (not decided)"
+                for k in range(5):                                       # phi + psi + rho = 1
+                    q = out["quantities"]["per_seed"][str(k)]
+                    assert abs(q["phi"] + q["psi"] + q["rho"] - 1) < 1e-9
+        det = out.get("determinism") or {}
+        if isinstance(det.get("difference"), float):
+            assert det["flag"] == ("cross-run pairing approximate" if abs(det["difference"]) > 0.02 else None)
+    assert out["label"] == expected
+    assert out["summary"]["label"] == expected

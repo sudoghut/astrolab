@@ -6,7 +6,8 @@ tensiometer, getdist), one job per process, started by r6flow.py:
     TF_USE_LEGACY_KERAS=1 PYTHONNOUSERSITE=1 <venv-tf python> -I flowshift.py <input.npz> <config.json> <output.json> <job>
 
 where <job> is "meta", "exact", "gate <seed>" or "case <name> <seed>" (R6), or "exact <gate>" and
-"gate <gate> <seed>" for a named gate in cfg["gates"] (R6-NOMNU, README 2.7). It never touches the network
+"gate <gate> <seed>" for a named gate in cfg["gates"] (R6-NOMNU, README 2.7), and "shuf <variant> <seed>"
+and "knn <seed>" for the Sigma m_nu column variants of R6-SHUF (README 2.8). It never touches the network
 or the project folder: it reads the job folder's input.npz (the chains' columns and weights) and
 writes one JSON file atomically. The pure helpers (gate_summary, case_summary, finite) are also
 used by r6flow.py in the project environment. Order (README 2.6): the known-answer gate first; only
@@ -95,6 +96,65 @@ def resampled_difference(xa, wa, xb, wb, n, seed):
     return xa[ia] - xb[ib]
 
 
+# ------------------------------------------------------------------ R6-SHUF (README 2.8) ----
+VARIANTS = ("none", "S", "P", "SS")
+
+
+def variant_difference(xa, wa, xb, wb, n, seed, variant="none", col=None, offsets=(1000, 2000, 3000),
+                       prior=(0.06, 0.6)):
+    """README 2.8: the DES (xa) and CMB (xb) rows drawn exactly as resampled_difference (the same two
+    rng.choice calls, in the same order, on default_rng(seed)); then only the resampled Sigma m_nu
+    column `col` is changed before the difference is taken:
+      "none": no change (bitwise equal to resampled_difference);
+      "S":  DES column permuted with default_rng(offsets[0] + seed).permutation(n);
+      "P":  DES column replaced by default_rng(offsets[1] + seed).uniform(prior[0], prior[1], n);
+      "SS": as "S", and the CMB column permuted with default_rng(offsets[2] + seed).permutation(n)."""
+    if variant not in VARIANTS:
+        raise ValueError(f"unknown variant {variant!r}")
+    rng = np.random.default_rng(seed)
+    ia = rng.choice(len(wa), size=n, replace=True, p=wa / wa.sum())
+    ib = rng.choice(len(wb), size=n, replace=True, p=wb / wb.sum())
+    a, b = xa[ia], xb[ib]                # fancy indexing: copies, the inputs are not modified
+    if variant in ("S", "SS"):
+        a[:, col] = a[np.random.default_rng(offsets[0] + seed).permutation(n), col]
+    elif variant == "P":
+        a[:, col] = np.random.default_rng(offsets[1] + seed).uniform(prior[0], prior[1], n)
+    if variant == "SS":
+        b[:, col] = b[np.random.default_rng(offsets[2] + seed).permutation(n), col]
+    return a - b
+
+
+def knn_nsigma(x, k):
+    """README 2.8 kNN estimator, as explore/t044_knn_gate_design.py: whiten with the sample mean m and
+    covariance S (z = (x - m) L, L L^T = S^-1); the density proxy of a point is the distance to its
+    k-th nearest neighbour among the samples; n_sigma = sqrt(2) erfinv(f), f the fraction of samples
+    whose proxy distance is smaller than the origin's."""
+    return knn_nsigma_multi(x, [k])[0]
+
+
+def knn_nsigma_multi(x, ks):
+    """knn_nsigma for several k from one tree query (the same distances as one query per k)."""
+    from scipy.spatial import cKDTree
+    from scipy.special import erfinv
+    m = x.mean(0)
+    L = np.linalg.cholesky(np.linalg.inv(np.cov(x.T)))
+    z = (x - m) @ L
+    z0 = (-m) @ L
+    tree = cKDTree(z)
+    kmax = max(ks)
+    dz = tree.query(z, kmax + 1)[0]      # column 0: the sample itself (distance 0)
+    d0 = tree.query(z0[None], kmax)[0][0]
+    return [float(np.sqrt(2.0) * erfinv(np.mean(dz[:, k] < d0[k - 1]))) for k in ks]
+
+
+def _shuf_arrays(inp, sc):
+    d = np.load(inp, allow_pickle=False)
+    cols = sc["columns"]
+    xa = np.column_stack([d["des_" + c] for c in cols])    # DES 3x2pt (exported as des_<column>)
+    xb = np.column_stack([d["cmb_" + c] for c in cols])    # CMB (exported as cmb_<column>)
+    return xa, d["des_w"], xb, d["cmb_w"], cols.index(sc["mnu"])
+
+
 # ------------------------------------------------------------------ known-answer gate ----
 def synthetic(n, rng, g):
     """README 2.6 gate: a curved pair (x2 = z + curv (x1 - mu1)^2) and four box directions."""
@@ -167,7 +227,9 @@ def run_job(job, inp, cfg):
     """One unit of work in its own process (so TensorFlow memory is freed when it exits):
     'meta', 'exact', ('gate', seed) or ('case', name, seed) as in R6; ('exact', gate) and
     ('gate', gate, seed) for a named gate in cfg['gates'] (README 2.7). A gate or case entry with a
-    'pop_size' key (None: not passed) records the pop_size used; without the key the call is R6's."""
+    'pop_size' key (None: not passed) records the pop_size used; without the key the call is R6's.
+    README 2.8: ('shuf', variant, seed) trains one flow on a Sigma m_nu column variant (pop_size not
+    passed, R6's call) and ('knn', seed) gives the kNN values of all variants and of the 5-D difference."""
     if job[0] == "meta":
         import getdist
         import tensiometer
@@ -183,6 +245,21 @@ def run_job(job, inp, cfg):
             g, k = (cfg["gate"], int(job[1])) if len(job) == 2 else (cfg["gates"][job[1]], int(job[2]))
             x = synthetic(cfg["n"], np.random.default_rng(g["sample_seed_offset"] + k), g)
             return one_shift(x, gate_names(g), k, cfg["estimate"], g.get("pop_size"), "pop_size" in g)
+        if job[0] in ("shuf", "knn"):
+            sc = cfg["shuf"]
+            xa, wa, xb, wb, j = _shuf_arrays(inp, sc)
+
+            def draw(variant, k):
+                return variant_difference(xa, wa, xb, wb, cfg["n"], k, variant, j, sc["offsets"], sc["prior"])
+            if job[0] == "shuf":
+                variant, k = job[1], int(job[2])
+                out = one_shift(draw(variant, k), sc["columns"], k, cfg["estimate"], None, True)
+                return {**out, "variant": variant}
+            k = int(job[1])
+            t0 = time.time()
+            vals = {v: knn_nsigma_multi(draw(v, k), sc["knn_k"]) for v in VARIANTS}
+            vals["5d"] = knn_nsigma_multi(np.delete(draw("none", k), j, axis=1), sc["knn_k"])
+            return {"seed": k, "k": list(sc["knn_k"]), "n_sigma": vals, "knn_s": round(time.time() - t0, 1)}
         name, k = job[1], int(job[2])
         case = cfg["cases"][name]
         cols = case["columns"]
