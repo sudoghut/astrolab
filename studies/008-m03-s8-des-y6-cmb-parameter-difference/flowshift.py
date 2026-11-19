@@ -143,7 +143,7 @@ def knn_nsigma_multi(x, ks):
     tree = cKDTree(z)
     kmax = max(ks)
     dz = tree.query(z, kmax + 1)[0]      # column 0: the sample itself (distance 0)
-    d0 = tree.query(z0[None], kmax)[0][0]
+    d0 = np.atleast_1d(tree.query(z0[None], kmax)[0][0])   # k = 1 returns a squeezed scalar
     return [float(np.sqrt(2.0) * erfinv(np.mean(dz[:, k] < d0[k - 1]))) for k in ks]
 
 

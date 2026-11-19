@@ -159,7 +159,8 @@ def plan(job, cfg, log, flowshift, expected=None):
     exact = job("exact", "low")
     reps = []
     for k in cfg["gates"]["low"]["seeds"]:
-        r = job("gate", "low", k)
+        # a crashed gate repetition counts as failed (README 2.8 rule 2), so the variants still run
+        r = descriptive("gate", "low", k)
         reps.append(r)
         log(f"  low-shift gate seed {k}: {r.get('n_sigma', r.get('error'))} (exact {exact['n_sigma']:.4f})")
     res["gate_low"] = flowshift.gate_summary(exact, reps, cfg["gates"]["low"])
