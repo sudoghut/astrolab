@@ -824,6 +824,7 @@ R4 以及宿主识别精确复现了 2026-11-14 的数字）。数字：
 | `sn_match_tol` | 宿主识别容差（mag） | 0.1–0.3 | 只用缓存 |
 | `trgb_tip_sys` | R3 协方差中 NGC 4258 TRGB 顶端的不确定度（mag） | 0–0.05 | 只用缓存 |
 | `re_check`、`re_tau_max`、`re_grid_step` | 运行 R2-RE；τ 搜索范围与网格步长（mag） | true/false；0.3–1.0；0.005–0.02 | 只用缓存 |
+| `sel_check`、`sel_seed_base`、`sel_n_tau`、`sel_n_spread`、`sel_n_subsets`、`sel_max_failed` | 运行 R2-RE-SEL（含选择的零假设（selection-aware null），2026-11-19 增补；需要 `n5584_check`）；ε_s 的种子基数、τ 部分与弥散部分的模拟次数、每次弥散所用子集数、允许失败的 REML 拟合数 | true/false；20,000（预注册值；与 10,000–11,999 重叠的种子会重复 ROB 的模拟）；400 与 2,000 是预注册的次数（较小的值只用于快速查看，每次 τ 模拟约 20 s）；1,000；20 | 只用缓存 |
 
 - 带覆盖值重跑：`python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --set KEY=VALUE`
   （输出在 `explore/<date>-<topic>/`，不入库；使用默认的 R4 和 R2-RE 约 28 分钟；
@@ -836,7 +837,8 @@ R4 以及宿主识别精确复现了 2026-11-14 的数字）。数字：
   `r2.json`（`anchor_step`、`host_step.shift`、`.shift_sigma`（C 误差）、`.verdict`（主结论，评估了 R2-RE
   时为 R2-RE）、`.criterion_outcome`、`.descriptive_inflated_sigma`、`.headline_source`、
   `.preregistered_verdict`），`r2_re.json`（`tau_hat`、`interval_68`、`reml`、`host_step`、`verdict`、
-  `sensitivity_cepheid_rows`、`r4_under_v`、`loo_chi2`），
+  `sensitivity_cepheid_rows`、`r4_under_v`、`loo_chi2`），`r2_re_sel.json`（`tau`、`spread_X`、`spread_S`、
+  `reading`、`selection`、`extremeness`、`checks`；摘要键 `R2_RE_SEL`），
   `r3.json`（`cchp_side_h0`、`d`、`sigma_d`、`per_host`），`r4.json`（`percentile`、`quantiles`、
   histogram、`z_quantiles`、`z_std`、`z_percentile`、`cchp_z`），`host_identification.json`（`column_labels`、`relabelled`、`per_column_under_labels`），
   `cross_paper.json`。

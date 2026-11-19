@@ -20,6 +20,7 @@ from astrolab import infer
 
 import n5584
 import rob
+import sel
 
 # Tunable knobs (AGENTS.md section 2). Read inside main() and passed on as arguments.
 PARAMS = {
@@ -44,6 +45,9 @@ PARAMS = {
     # R2-RE-N5584 (README section 2, addendum 2026-11-18, T-039): (a) removal, (b) Student-t host effect
     "n5584_check": True, "n5584_host": "N5584",
     "t_nu": 4, "t_nu_sens": [2, 10], "t_maxiter": 10000, "t_tol": 1e-8, "t_starts": [0.077, 0.20],
+    # R2-RE-SEL (README section 2, addendum 2026-11-19, T-042): selection-aware null for dropping N5584
+    "sel_check": True, "sel_seed_base": 20_000, "sel_n_tau": 400, "sel_n_spread": 2000,
+    "sel_n_subsets": 1000, "sel_max_failed": 20,
 }
 
 DR = "PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/"
@@ -970,6 +974,23 @@ def main(ctx):
                 f"(b) {n_out['heavy_tail'].get('label')}")
     ctx.save("r2_re_n5584", n_out)
 
+    # ---- R2-RE-SEL (README section 2, addendum 2026-11-19, T-042): runs after the R2-RE-N5584 block and
+    # only when that block runs (the same condition: R2-RE run and the host step evaluable)
+    sel_out = {"status": "not run (PARAMS)"}
+    if P["sel_check"] and not P["n5584_check"]:
+        sel_out = {"status": "not run (the R2-RE-N5584 block is not run)"}
+    elif P["sel_check"] and not (P["re_check"] and ident["host_step_evaluable"]):
+        sel_out = {"status": "not evaluable (R2-RE not run or host step not evaluable)"}
+    elif P["sel_check"]:
+        calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]
+        fns_s = {"reml_tau": reml_tau, "reml_m2l": reml_m2l, "fit": fit, "shift_vector": shift_vector,
+                 "is_fit_failure": is_fit_failure, "loo_chi2": loo_chi2, "C_H0": C_H0}
+        sel_out = sel.run_block(L, y, C, nz, rows_a, calib_groups, col_host[:NH], host_rows, picks, n_out, P,
+                                fns_s, ctx.log, n_pick=len(cset),
+                                expected_col=N5584_COLUMN if P["n5584_host"] == "N5584" else None)
+        ctx.log(f"R2-RE-SEL: {sel_out.get('reading', sel_out['status'])}")
+    ctx.save("r2_re_sel", sel_out)
+
     # One canonical qualified verdict for the host step (gate-2 review): states the labelling mode
     # and, when R4 ran, the empirical (random-subset) scale next to the C-propagated significance.
     qual = []
@@ -1034,6 +1055,7 @@ def main(ctx):
         "R3_cchp_match": r3.get("cchp_match"), "R3_d": r3.get("d"), "R3_sigma_d": r3.get("sigma_d"),
         "R4_percentile": r4.get("percentile"), "R4_verdict": r4.get("verdict", r4["status"]),
         "R2_RE_N5584": n5584_summary(n_out),
+        "R2_RE_SEL": sel.summary(sel_out),
         "runtime_s": time.perf_counter() - t0,
     }
     ctx.save("summary", summary)
