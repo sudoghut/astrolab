@@ -644,6 +644,22 @@ the recorded `results/r6.json`, checks passed, not retrained; numbers in `result
   threshold 0.124). The `pop_size = 1` 5-D gate is 0.12 low against its exact value, outside R6's
   tolerance, so with one population the flow underestimates the known-answer case in 5-D; the
   restarts of the default help there. Neither run changes the label.
+- **Post hoc (referee, 2026-11-18; section 6): Σmν together with its correlations, and partly the
+  prior.** The label stands, but "the Σmν direction" is narrower than what the checks show. In the
+  Gaussian approximation Σmν adds a conditional χ² of 4.35 given the other five, more than its
+  marginal 2.74. A k-nearest-neighbour (kNN) density estimate of the 6-D difference gives 1.27/1.57σ
+  (k = 20/100) on the real chains, 0.78/0.80σ with DES's Σmν column shuffled (its marginal kept, its
+  correlations with the other parameters broken) and 0.69/0.61σ with DES's Σmν drawn from the uniform
+  prior [0.06, 0.6] eV. So most of the 6-D number comes from Σmν jointly with its DES correlations
+  (probably the A_s–Σmν degeneracy; an inference), and the near-equality of the 1-D Σmν value
+  (1.74σ) and the 6-D flow value (1.70σ) is largely a coincidence. DES's Σmν is close to its prior
+  (0.383 ± 0.148 against the prior's 0.330 ± 0.156); with DES's Σmν replaced by the prior the 1-D
+  difference is still 1.05σ, i.e. about 1σ of the 1-D "shift" is the CMB chain at the prior edge
+  against the DES prior. The 5-D value (0.52σ; kNN 0.56/0.47σ, Gaussian 0.21σ) is therefore the more
+  meaningful measure of disagreement in data-constrained directions. Dropping Σmν here means
+  marginalising over it; conditioning on a fixed Σmν (DES's fixed-mass chain, 76 MB, above the
+  50 MB per-download cap) would answer a different question and is not done. A pre-registered
+  shuffle and prior-replacement check is registered as T-044.
 
 ## 6. Referee notes
 
@@ -693,13 +709,34 @@ short offline checks from the cache and read tensiometer's source. Triage:
 | 7 | Literature (unverified, the referee's memory): Raveri & Doux 2021 (arXiv:2105.03324, flow-based shifts); Raveri & Hu 2019 (arXiv:1806.04649); Lemos et al. 2021 (arXiv:2012.09554); Raveri, Zacharegkas & Hu 2020 (arXiv:1912.04880, prior-dominated directions). D26's PTE 0.08 corresponds to 1.75σ | no | Context for T-040; to be raised to [V] before use. |
 
 
+### Referee, R6-NOMNU (independent subagent, 2026-11-18)
+
+The referee saw README sections 1–4, the code and the results, not sections 5–8 or the log; it was
+limited to short single-threaded checks on the cached chains (no flow training), because study 010's
+run was using the machine. We reran its scripts and reproduced every number below. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The label re-derives from the saved numbers (n̄₅ 0.52363, s₅ 0.04021, I = [0.4877, 0.5596]; rules 1–4 do not apply); the 5-D column drop, seed pairing, gate construction, `pop_size` passing, rule order and comparison are correct | yes | None. |
+| 2 | Σmν contributes jointly with its correlations: Gaussian conditional χ² 4.35 against marginal 2.74; kNN 6-D 1.27/1.57σ real, 0.78/0.80σ with DES Σmν shuffled, 0.69/0.61σ with DES Σmν from its prior; the 1.41σ band edge (Σmν's own 1-D share) has no firm basis | yes (our rerun) | **Accepted** (post hoc, section 5): the label is read as "Σmν together with its correlations"; the band edges were already reported as resting on a failed independence assumption. Label unchanged. |
+| 3 | DES Σmν is close to prior-dominated (0.383 ± 0.148 against 0.330 ± 0.156; histogram rising to 0.6 eV); the CMB has 13% of its weight below 0.07 eV; with DES Σmν from the prior the 1-D difference is 1.05σ against 1.74σ | yes | **Accepted**: about 1σ of the 1-D Σmν shift is prior placement, so the 5-D number is the more meaningful data tension (section 5). |
+| 4 | Marginalising over Σmν is not the only way to drop it; conditioning (DES's fixed-Σmν chain, 76 MB) answers a different question | yes (size from the pre-registration's chain list) | Accepted; section 5 states that the question is the marginal one; the conditional chain exceeds the 50 MB cap and would need the user's consent; not registered. |
+| 5 | The gate tests Δ ≈ 0.98, not the result's regime (Δ ≈ 0.40); the design notes show flows biased high at small shifts, so 0.52 is if anything high; kNN 0.56/0.47 agrees, Gaussian 0.21 is lower | yes | Accepted limitation; the label (I ⊂ (−∞, 1.00]) is robust to a downward bias. |
+| 6 | `pop_size = 1` underfits: lower in all five 5-D seeds (paired mean −0.065, s 0.034), fails the 5-D gate, passes the 6-D gate; the restarts reduce bias, not spread (s ≈ 0.04 in 5-D, 0.10 in 6-D for both) | yes | Accepted; the unpaired "means" heuristic is as pre-registered, the paired differences are reported in section 5. |
+| 7 | On success `results/r6_nomnu.json` `r6_reused.reason` holds R6's own verdict reason ("s = 0.0977 > 0.07"), which reads like a failure reason | yes (`r6nomnu.py`) | Noted here: `r6_reused.ok` is the reuse outcome; `reason` is R6's recorded reason. Not changed (would need a rerun). |
+| 8 | The reuse check does not test that `n_bar` and `s` agree with the per-seed values | yes | Accepted limitation (low risk: the file is checked against recorded values to 4 decimals). |
+| 9 | Literature (from memory, not verified by the referee or us): Raveri & Hu 2019 (arXiv:1806.04649), Raveri, Zacharegkas & Hu 2020 (arXiv:1912.04880), Raveri & Doux 2021 (arXiv:2105.03324), Lemos et al. 2021 (arXiv:2012.09554), Krause et al. 2021 (arXiv:2105.13548) | no | Context only; not used; to be verified before any use. |
+| 10 | Most important next test: the shuffle and prior-replacement check, pre-registered, with a non-flow estimator on the 6-D and (Σmν, A_s, Ωm) differences (minutes of CPU) | – | Registered as T-044. |
+
 ## 7. Open questions
 
 1. The full-space 1.8σ: R6 (2026-11-18) brackets it at 1.6–1.9σ but is not evaluable because one flow
    training scatters by about 0.1σ. A verdict would need a new, pre-registered estimator whose
    scatter is measured first (for example the mean of more trainings, or a flow ensemble).
-   R6-NOMNU (2026-11-18) shows that most of it is the Σmν direction (0.52σ without Σmν), so a
-   verdict on the data-constrained directions matters more than a sharper 6-D number.
+   R6-NOMNU (2026-11-18) shows that most of it goes with Σmν (0.52σ without Σmν), and the referee's
+   checks that this is Σmν jointly with its DES correlations and partly the prior shape (section 6;
+   pre-registered check T-044), so a verdict on the data-constrained directions matters more than a
+   sharper 6-D number.
 2. How much does the S8 difference change with a lensing-inclusive or Planck-PR4-based CMB
    (D26 reports 1.0σ in full space against Planck 2018 alone)?
 3. Do KiDS-1000 and HSC Y3 (2023) quote means or modes? R5 shows a 0.1–0.2σ dependence.
