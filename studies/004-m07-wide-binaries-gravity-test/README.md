@@ -589,6 +589,38 @@ cumulative byte estimate was 155.4 MB (budget 200 MB). Page: [`web/index.html`](
   d < 150 pc L = 0.67; no HR cut L = 196 (Newton); no degrouping L = 4.5 × 10⁻⁴ (MOND). The outcome
   swings by orders of magnitude with the sample definition. A pre-registered re-test is T-034.
 
+### R5 (addendum 2026-11-18, T-034): power gate G1b
+
+Run of 2026-11-18 (`python -m astrolab run 004` in R5 mode with `r5_stop_after_g1b` true; numbers in
+`results/r5.json`, provenance in `results/provenance_r5.json`). Three earlier attempts the same day
+stopped on archive errors (a malformed XML response, an aborted asynchronous job, read timeouts and a
+transient "Unknown table gaiadr3.gaia_source"); each raised the pre-registered retry before the
+2026-11-24 deadline, and the final attempt resumed from the cache (25,969 s; no fallback regions;
+estimated input 54.0 MB of the 200 MB budget). Rows: N1 60,259, N2 116,401, N3 53,860, N2-C25
+116,348. **N4 (velocities) was not fetched**, so no R5 velocity data have been read.
+
+| Step | Result |
+|---|---|
+| G1b step 1, pairs after each cut | canonical 60,259 → relaxed degrouping 11,445 → ϖ̄ > 4.0 mas 11,078 → 300 AU ≤ r_sky ≤ 30 kAU 8,296 → RUWE 4,929 → HR band 2,239 → σ̃ < 0.1 2,194 |
+| Counts per x bin (step 1) | 865, 521, 416, 205, 118, 69 |
+| Scaled and rounded (step 2) | 838, 488, 396, 184, 95, 36 (2,037); no merge needed (step 3) |
+| Bin median x | 0.067, 0.150, 0.328, 0.707, 1.37, 2.71 |
+| Design prediction (section 2.1) | 1408, 988, 789, 375, 220, 72 (3,852); x_j 0.063, 0.155, 0.328, 0.707, 1.31, 2.7 |
+| L_N*, L_M* (step 4) | 68.4 (needs ≥ 100), 0.028 (needs ≤ 0.01) |
+| **Label** | **"R5: not run (insufficient predicted power)"** |
+
+- **Reading (pre-registered).** G1b fails on both conditions, so N4 is not fetched and R5 gives no
+  verdict. The R2 result of 2026-11-16 ("cannot distinguish", with the referee's finding that the
+  test had no power) stands as the study's only test of C26's conclusion.
+- **Why (descriptive).** The x medians match the design, but the counts are 53% of the prediction
+  (43–60% per bin), well beyond the 25% margin (with which L_N* would have been 568). Most of the
+  difference comes before velocities, at degrouping: it keeps 19% of N1's candidate pairs (11,445 of
+  60,259), against 38% at 130 pc (8,425 of 21,949). Section 2.1 named this risk (the 3σ parallax
+  window widens with distance, so more chance neighbours fall within 100 kAU), and G1b caught it
+  before any velocity was read, as designed.
+- We recomputed `g1b_counts` and `g1b` from the saved counts and medians and got the same numbers
+  (L_N* 68.41653, L_M* 0.0278849).
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-16 (a subagent that saw README sections 1-4, the code, the results, the
@@ -620,6 +652,10 @@ perspective correction, σ(ṽ) Jacobian, MOND boost, bootstrap against MAD/√N
 - The outermost bin (x ≈ 2.7) holds only 24 pairs, which made the ipd = 0 and HR-constant variants
   invalid; without the HR cut the lowest bin (17 pairs) made that variant invalid.
 - d < 200 pc and the C25-neighbour degrouping diagnostic were not run (sections 3–4).
+- R5 (2026-11-18) was not run: G1b failed because degrouping at 250 pc keeps half the 130 pc
+  fraction. Whether a larger volume can reach C26's power at all depends on a degrouping rule that
+  does not lose pairs to chance neighbours as the parallax window widens; any such design needs a new
+  pre-registration (its velocity-free counts are now seen).
 - The Lean argument lacks a premise that x is computed on the MOND model's scale (referee point 9);
   C26's lowest bin is inconsistent with its stated 1 kAU floor.
 - Design lesson: a hard 15-pair floor with a 5% redraw limit invalidates variants whose sparsest bin
