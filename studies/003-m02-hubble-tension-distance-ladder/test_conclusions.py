@@ -445,6 +445,7 @@ def test_r2_re_sel_labels():
         near = sum(1 for x in t["taus"] if abs(x - t["tau_obs"]) <= 5e-6)   # taus saved rounded to 1e-5
         assert abs(t["k"] - sum(1 for x in t["taus"] if x >= t["tau_obs"])) <= near
         assert t["label"] == label(t["k"], t["n_ok"], tu, tn)
+        assert all(abs(a - b) < 1e-9 for a, b in zip(t["ci95"], _sel_cp(t["k"], t["n_ok"])))
     elif t["status"] == "not evaluable (too many failed fits)":
         assert t["n_failed"] > 20
     for name, c in (("spread_X", "X"), ("spread_S", "S")):
@@ -456,6 +457,7 @@ def test_r2_re_sel_labels():
         assert abs(sp["p"] - (1 + sp["k"]) / (1 + sp["n_sims"])) < 1e-12
         near = sum(1 for v in sp["spreads"] if abs(v - sp["spread_obs"]) <= 5e-7)
         assert abs(sp["k"] - sum(1 for v in sp["spreads"] if v >= sp["spread_obs"])) <= near
+        assert all(abs(a - b) < 1e-9 for a, b in zip(sp["ci95"], _sel_cp(sp["k"], sp["n_sims"])))
         assert sp["label"] == label(sp["k"], sp["n_sims"],
                                     f"the 36-host spread is unusual under the selected null ({c})",
                                     f"the 36-host spread is consistent with the selected null ({c})")
@@ -500,3 +502,11 @@ def test_r2_re_sel_labels():
     if "X" in sel_ and "S" in sel_:
         assert sel_["n_same_X_S"] == sum(1 for a, b in zip(sel_["X"]["dropped"][:n_sp], sel_["S"]["dropped"][:n_sp])
                                          if a == b)
+
+
+def _sel_cp(k, n):
+    """Two-sided 95% Clopper-Pearson interval, computed independently of rob._cp (R2-RE-SEL check)."""
+    from scipy import stats
+    lo = 0.0 if k == 0 else float(stats.beta.ppf(0.025, k, n - k + 1))
+    hi = 1.0 if k == n else float(stats.beta.ppf(0.975, k + 1, n - k))
+    return lo, hi
