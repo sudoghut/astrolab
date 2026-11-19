@@ -14,13 +14,19 @@ R6  full-space difference with normalizing flows (README 2.6, added 2026-11-16; 
     environment through r6flow.py / flowshift.py; several hours). With r6_retrain False (README 2.7)
     R6 is not retrained: the recorded results/r6.json is checked and reused, never rewritten.
 R6-NOMNU  the same without Sigma m_nu, and pop_size = 1 (README 2.7, T-040; r6nomnu.py; about 2.5 h).
+          With r6_nomnu_retrain False (README 2.8) none of its runs (a)-(d) is done: the recorded
+          results/r6_nomnu.json is checked and reused, never rewritten.
+R6-SHUF   what Sigma m_nu adds: DES's Sigma m_nu column shuffled or drawn from its prior (README 2.8,
+          T-044; r6shuf.py; about 4 h).
 """
+import functools
 import re
 
 import numpy as np
 
 import r6flow
 import r6nomnu
+import r6shuf
 import s8diff
 
 BASE = "https://desdr-server.ncsa.illinois.edu/despublic/y6a2_files/y6_key/chains_release/"
@@ -79,6 +85,15 @@ PARAMS = {
     "r6_nomnu": True, "r6_nomnu_seeds": [0, 1, 2, 3, 4], "r6_nomnu_s_max": 0.15,
     "r6_nomnu_bands": [1.00, 1.40], "r6_pop1": True,
     "r6_nomnu_f_crit": 6.39,          # F_0.95(4, 4): two-sided 10% test on the variance ratio
+    # R6-SHUF (README 2.8, T-044). r6_nomnu_retrain False: R6-NOMNU is not rerun ((a)-(d) skipped,
+    # whatever r6_nomnu and r6_pop1 say); results/r6_nomnu.json is checked and reused.
+    "r6_nomnu_retrain": False,
+    "r6_shuf": True, "r6_shuf_seeds": [0, 1, 2, 3, 4], "r6_shuf_s_max": 0.30, "r6_shuf_e_min": 0.20,
+    "r6_shuf_band": [0.40, 0.60],
+    "r6_shuf_gate": {"mu1": 1.1, "mu2": 0.55, "exact": 0.8601},
+    "r6_shuf_seed_offsets": [1000, 2000, 3000],   # (S) DES permutation, (P) DES prior, (SS) CMB permutation
+    "r6_shuf_prior": [0.06, 0.6],                # uniform Sigma m_nu prior of both chains (eV)
+    "r6_shuf_knn_k": [20, 100],
 }
 
 # The user's one-off exception to the 50 MB per-download cap (2026-11-15; log.md, README section 3),
@@ -468,7 +483,8 @@ def main(ctx):
 
     # ---------------------------------------------------------- R6-NOMNU ----
     nomnu = None
-    if P["r6_nomnu"]:
+    nomnu_path = ctx.study.results_dir / "r6_nomnu.json"   # README 2.8 reuse: the recorded file
+    if P["r6_nomnu_retrain"] and P["r6_nomnu"]:
         settings = {k: P[k] for k in ("r6_retrain", "r6_nomnu_seeds", "r6_nomnu_s_max", "r6_nomnu_bands",
                                       "r6_pop1", "r6_nomnu_f_crit", "r6_n", "r6_estimate", "r6_s_max")}
         settings["gates"] = r6nomnu.gate_settings(P["r6_gate"])
@@ -498,10 +514,46 @@ def main(ctx):
         nomnu["parameters_match_r6"] = bool(r6_rec.get("parameters") == short)
         ctx.log(f"R6-NOMNU: {nomnu['label']} ({nomnu['reason']})")
         ctx.save("r6_nomnu", nomnu)
+        nomnu_path = ctx.results / "r6_nomnu.json"
+
+    # ----------------------------------------------------------- R6-SHUF ----
+    shuf = None
+    if P["r6_shuf"]:
+        rec6 = r6shuf.check_r6(r6_path)
+        rec5 = r6shuf.check_nomnu(nomnu_path)
+        keys = ("r6_retrain", "r6_nomnu_retrain", "r6_shuf", "r6_shuf_seeds", "r6_shuf_s_max", "r6_shuf_e_min",
+                "r6_shuf_band", "r6_shuf_gate", "r6_shuf_seed_offsets", "r6_shuf_prior", "r6_shuf_knn_k",
+                "r6_n", "r6_estimate")
+        settings = {k: P[k] for k in keys}
+        settings["gate_low"] = r6shuf.low_gate(P["r6_gate"], P["r6_shuf_gate"])
+        six = r4["full_space"]["parameters"] if fs_ok else []
+        short = [n.split("--")[-1] for n in six]
+        if not (rec6["ok"] and rec5["ok"]):
+            res = {"status": "not run (R6 or R6-NOMNU record not reusable)"}
+        elif not fs_ok or r6shuf.MNU not in short:
+            res = {"status": "not run (no full-space parameter set with mnu)"}
+        elif rec6.get("parameters") != short or rec5.get("parameters") != short:
+            res = {"status": "not run (parameter set differs from recorded R6 or R6-NOMNU)"}
+        elif not gate:                   # README 2.8 rule 1 (as R6: the flows are then not run)
+            res = {"status": "not run (R1 gate failed)"}
+        else:
+            # the 6-D arrays exactly as R6 exported them; DES/CMB and the mnu column by name
+            arrays = r6flow.columns(chains, formats, six)
+            cfg = r6shuf.config(short, P["r6_shuf_seeds"], P["r6_n"], P["r6_estimate"], P["r6_gate"],
+                                P["r6_shuf_gate"], P["r6_shuf_seed_offsets"], P["r6_shuf_prior"],
+                                P["r6_shuf_knn_k"])
+            ctx.log("R6-SHUF: low-shift gate, then (S), (P), (SS), determinism and kNN (about 4 hours)")
+            res = r6flow.run_jobs(arrays, cfg, ctx.log, functools.partial(r6shuf.plan, expected=(rec6, rec5)))
+        shuf = r6shuf.assemble(res, rec6, rec5, bool(gate), P["r6_shuf_seeds"], P["r6_shuf_e_min"],
+                               P["r6_shuf_s_max"], P["r6_shuf_band"], P["r6_shuf_gate"], settings)
+        shuf["parameters"] = short
+        ctx.log(f"R6-SHUF: {shuf['label']} ({shuf['reason']})")
+        ctx.save("r6_shuf", shuf)
 
     return {"r1": {k: v.get("verdict") for k, v in r1.items() if isinstance(v, dict)},
             "r2": {t: r2[t]["verdict"] for t in ("1d", "2d") if t in r2},
             "r2_nsigma": {t: r2[t]["n_sigma"] for t in ("1d", "2d") if t in r2},
             "r3_nsigma": {t: r3[t]["n_sigma"] for t in ("1d", "2d") if t in r3},
             "r6": r6_summary,
-            **({"r6_nomnu": nomnu["summary"]} if nomnu else {})}
+            **({"r6_nomnu": nomnu["summary"]} if nomnu else {}),
+            **({"r6_shuf": shuf["summary"]} if shuf else {})}

@@ -892,6 +892,12 @@ How a coding agent answers "what if" questions about this study without touching
 | `published_nsigma`, `tol_nsigma` | R2 targets and allowance (changing them is not the registered verdict) | – | cache only |
 | `probes` | R5 summaries: name -> [mean, σ₊, σ₋, reference] | any published S8 | cache only |
 | `chains` | chain file names on the DES server | other files in `chains_release/` | new data: check sizes first (50 MB cap; only the 32pt chain has the user-approved exception) |
+| `r6_retrain`, `r6_nomnu_retrain` | `False`: R6 / R6-NOMNU are not retrained; the recorded `results/r6.json` / `results/r6_nomnu.json` are checked and reused (README 2.7, 2.8) | keep `False` (`True` retrains for hours) | cache only |
+| `r6_shuf` | run R6-SHUF (README 2.8): flows on DES's Σmν column shuffled (S), drawn from the prior (P) and both chains shuffled (SS) | `False` skips it (about 4 h of flows in venv-tf) | cache only |
+| `r6_shuf_seeds`, `r6_shuf_seed_offsets` | R6-SHUF seeds k (paired with R6 and R6-NOMNU) and the offsets of the (S), (P), (SS) generators | the registered `[0..4]`, `[1000, 2000, 3000]` | cache only |
+| `r6_shuf_s_max`, `r6_shuf_e_min`, `r6_shuf_band` | R6-SHUF label rules 4–6 (changing them is not the registered label) | – | cache only |
+| `r6_shuf_gate` | low-shift gate: curved-pair means and the recorded exact n_σ | – | cache only |
+| `r6_shuf_prior`, `r6_shuf_knn_k` | Σmν prior range used by (P); k of the descriptive kNN values | prior from the chain headers; k 10–200 | cache only |
 
 - Rerun with an override: `python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --set KEY=VALUE`
   (outputs in `explore/<date>-<topic>/`, not committed; about 70 s from cache).
