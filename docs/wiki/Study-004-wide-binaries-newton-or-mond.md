@@ -310,7 +310,7 @@ registered (T-043). Numbers: [`results/r5.json`](https://github.com/sudoghut/ast
 
 - 2026-11-18: R5 (T-034): pre-registered power gate G1b failed (L_N* 68 < 100), velocities not
   fetched, R5 not run; referee (post hoc): relaxed degrouping keeps 23% of pairs at 250 pc (44% at
-  130 pc), chance neighbours; T-043 registered (part 3 update).
+  130 pc), pointing to chance neighbours (inference; direct test T-043); T-043 registered (part 3 update).
 - 2026-11-16: study run (steps A and B) and independent referee: different sample (639 pairs), cannot
   distinguish (L = 0.49) with no power; post-hoc r_sky 300 AU exploration; T-034 registered; part 3 results.
 - 2026-11-14: first version: parts 1–3, written before implementation (T-013, plan 013).
@@ -487,7 +487,7 @@ Gaia 档案 2026-11-25 至 12-02 下线，所以在此之前取数并缓存；�
 
 ### 研究进展
 
-- 2026-11-18：R5（T-034）：预注册的功效门槛 G1b 不通过（L_N* 68 < 100），未取速度，R5 未运行；审稿（事后）：宽松去群在 250 pc 只保留 23% 的星对（130 pc 为 44%），来自偶然邻居；登记 T-043（第三部分更新）。
+- 2026-11-18：R5（T-034）：预注册的功效门槛 G1b 不通过（L_N* 68 < 100），未取速度，R5 未运行；审稿（事后）：宽松去群在 250 pc 只保留 23% 的星对（130 pc 为 44%），指向偶然邻居（推断，直接检验为 T-043）；登记 T-043（第三部分更新）。
 - 2026-11-16：研究运行（第 A、B 步）与独立审稿：样本不同（639 对），无法区分（L = 0.49）且检验没有功效；事后的 r_sky 300 AU 探索；登记 T-034；补上第三部分的结果。
 - 2026-11-14：第一版：第一至三部分，在实现之前写成（T-013，计划 013）。
 
