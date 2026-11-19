@@ -61,7 +61,7 @@ const L = i18n.L, t = i18n.t;
 const f = (x, n = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '—' : Number(x).toFixed(n);
 const h0 = q => Math.pow(10, q / 5);
 const dh0 = (q, s) => h0(q) * Math.log(10) / 5 * s;
-const files = ['summary', 'r1', 'r2', 'r3', 'r4', 'cross_paper', 'host_identification', 'r2_re', 'r2_re_rob'];
+const files = ['summary', 'r1', 'r2', 'r3', 'r4', 'cross_paper', 'host_identification', 'r2_re', 'r2_re_rob', 'r2_re_n5584'];
 let D = null;
 
 function cls(v) {
@@ -90,6 +90,13 @@ const VT = {
   'undetermined (Monte Carlo)': ['undetermined (Monte Carlo)', '无法判定（蒙特卡罗）'],
   'the R4 excess spread is unusual under C': ['the R4 excess spread is unusual under C', '在 C 下 R4 的额外离散不寻常'],
   'the R4 spread is consistent with C': ['the R4 spread is consistent with C', 'R4 的离散与 C 一致'],
+  'tau_hat unusual under C (excess calibrator scatter)': ['τ̂ unusual under C (excess calibrator scatter)', '在 C 下 τ̂ 不寻常（定标星额外离散）'],
+  'tau_hat not unusual under C': ['τ̂ not unusual under C', '在 C 下 τ̂ 不算不寻常'],
+  'the excess calibrator scatter of R2-RE-ROB is attributable to N5584': ['the excess calibrator scatter of R2-RE-ROB is attributable to N5584', 'R2-RE-ROB 中多出的校准离散可归因于 N5584'],
+  'excess scatter remains without N5584': ['excess scatter remains without N5584', '去掉 N5584 后仍有多余离散'],
+  'τ excess remains without N5584': ['τ excess remains without N5584', '去掉 N5584 后 τ 仍偏大'],
+  'R2-RE verdict robust to a heavy-tailed host effect': ['R2-RE verdict robust to a heavy-tailed host effect', 'R2-RE 的判定对重尾宿主效应稳健'],
+  'the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips': ['the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips', '无论去掉还是降权 N5584，零结果都成立；只有 R2-RE-ROB A 的混合 τ 路径会翻转'],
 };
 const vt = v => {
   if (!v) return '—';
@@ -123,6 +130,25 @@ function render() {
       ['R2-RE-ROB', L(`Leave one host out: τ̂_j ${f(D.r2_re_rob.A.tau_range[0], 3)}–${f(D.r2_re_rob.A.tau_range[1], 3)} mag (sensitive: ${D.r2_re_rob.A.sensitive_hosts.join(', ') || '—'})`, `逐一剔除宿主：τ̂_j ${f(D.r2_re_rob.A.tau_range[0], 3)}–${f(D.r2_re_rob.A.tau_range[1], 3)} mag（敏感：${D.r2_re_rob.A.sensitive_hosts.join('、') || '—'}）`), `z' ${f(D.r2_re_rob.A.tau_route_z_range[0], 2)} … ${f(D.r2_re_rob.A.tau_route_z_range[1], 2)}`, '—', D.r2_re_rob.A.label],
       ['', L('Null simulations: τ̂ under C', '零假设模拟：C 下的 τ̂'), `p = ${f(D.r2_re_rob.B.tau.p, 3)} (${D.r2_re_rob.B.tau.k}/${D.r2_re_rob.B.tau.n_ok})`, '0.05', D.r2_re_rob.B.tau.label],
       ['', L('Null simulations: R4 spread under C', '零假设模拟：C 下 R4 的离散'), `${f(D.r2_re_rob.B.spread.spread_obs, 3)}; p = ${f(D.r2_re_rob.B.spread.p, 3)}`, '0.05', D.r2_re_rob.B.spread.label]] : []),
+    ...(D.r2_re_n5584 && D.r2_re_n5584.drop && D.r2_re_n5584.drop.status === 'evaluated' ? (() => {
+      const a = D.r2_re_n5584.drop, b = D.r2_re_n5584.heavy_tail, m = b.nu_main || {};
+      const rows = [
+        ['R2-RE-N5584', L(`Without N5584 (36 hosts, ${a.rows_removed.total} rows removed): host step under C`, `去掉 N5584（36 个宿主，去掉 ${a.rows_removed.total} 行）：C 下的宿主一步`), `${f(a.c.host_step.shift, 4)} ± ${f(a.c.host_step.shift_sigma, 4)} mag (${f(a.c.z, 2)}σ)`, '—', a.c.row],
+        ['', L(`Without N5584: R2-RE (τ̂ = ${f(a.r2_re.tau_hat, 3)} mag)`, `去掉 N5584：R2-RE（τ̂ = ${f(a.r2_re.tau_hat, 3)} mag）`), `${f(a.r2_re.host_step.shift, 4)} ± ${f(a.r2_re.host_step.shift_sigma, 4)} mag (${f(a.r2_re.z, 2)}σ)`, '—', a.r2_re.verdict],
+        ['', L('Without N5584: R4-N, CCHP among random 10-host subsets', '去掉 N5584：R4-N，CCHP 在随机 10 宿主子集中的位置'), L(`${f(a.r4n.percentile, 1)}th percentile`, `第 ${f(a.r4n.percentile, 1)} 百分位`), '5–95', a.r4n.verdict],
+        ['', L('Without N5584: null simulations, τ̂ under C', '去掉 N5584：零假设模拟，C 下的 τ̂'), `p = ${f(a.bn.tau.p, 3)} (${a.bn.tau.k}/${a.bn.tau.n_ok})`, '0.05', a.bn.tau.label],
+        ['', L('Without N5584: null simulations, R4-N spread under C', '去掉 N5584：零假设模拟，C 下 R4-N 的离散'), `${f(a.bn.spread.spread_obs, 3)}; p = ${f(a.bn.spread.p, 3)}`, '0.05', a.bn.spread.label],
+        ['', L('Reading (a)', '解读 (a)'), '', '', a.reading]];
+      if (b && b.status === 'evaluated') {
+        const om = (m.omega_ranked || [])[0] || {};
+        rows.push(['', L(`Heavy-tailed host effect (Student-t, ν = ${m.nu}; τ̂ = ${f(m.tau_hat, 3)} mag; lowest weight ${om.host} ω̂ = ${f(om.omega, 2)})`, `重尾宿主效应（Student-t，ν = ${m.nu}；τ̂ = ${f(m.tau_hat, 3)} mag；权重最低 ${om.host} ω̂ = ${f(om.omega, 2)}）`), `${f(m.host_step.shift, 4)} ± ${f(m.host_step.shift_sigma, 4)} mag (${f(m.z, 2)}σ)`, '—', m.row]);
+        rows.push(['', L('Reading (b)', '解读 (b)'), '', '', b.label]);
+      } else {
+        rows.push(['', L('Heavy-tailed host effect', '重尾宿主效应'), '', '', b ? b.status : null]);
+      }
+      rows.push(['', L('Joint reading', '合并解读'), '', '', D.r2_re_n5584.joint_reading]);
+      return rows;
+    })() : []),
     ['', L('Host step, pre-registered labelling', '宿主一步，预注册的标注'), '', '', H.preregistered_verdict],
     ['R3', L('CCHP-side H0 on the same 10 hosts vs CCHP\'s 69.29', '同样 10 个宿主上 CCHP 一侧的 H0 对 CCHP 的 69.29'), `${f(R3.cchp_side_h0, 2)} (Δ ${f(R3.cchp_diff_mag, 4)} mag)`, '69.29 ± 0.02 mag', R3.cchp_match],
     ['', L('d = SH0ES − CCHP on the same hosts (descriptive)', 'd = 同宿主上 SH0ES − CCHP（只作描述）'), `${f(R3.d, 4)} ± ${f(R3.sigma_d, 4)} mag`, '—', null],
