@@ -46,6 +46,8 @@ READ_TAU = "τ excess remains after removing the most extreme host, selection in
 READ_UNDET = "undetermined"
 
 BLOCK_NE_OBSERVED = "not evaluable (observed values differ from the recorded ones: code or data change)"
+BLOCK_NE_CONFIG = ("not evaluable (configuration: sel_n_subsets = {a} differs from rob_n_subsets = {b}; "
+                   "B-N's spread_obs uses rob_n_subsets)")
 
 SECTION5 = {
     "consistent": ("the post-hoc gloss 'consistent with one outlying host' becomes the pre-registered "
@@ -192,9 +194,10 @@ def _cp_share(k, n):
 
 def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, n_out, P, fns, log, n_pick=10,
               recorded_tau=RECORDED_TAU_N, recorded_spread=RECORDED_SPREAD_OBS,
-              crit_s_expected=CRIT_S_EXPECTED, expected_col=None):
+              crit_s_expected=CRIT_S_EXPECTED, expected_col=None, rob_spread_obs=None):
     """The whole R2-RE-SEL block. `groups` are the 37 calibrator SN groups (calib_groups), `picks` R4's
-    draws on the 37-host system, `n_out` the R2-RE-N5584 block's output from the same run."""
+    draws on the 37-host system, `n_out` the R2-RE-N5584 block's output from the same run, `rob_spread_obs`
+    R2-RE-ROB part B's spread_obs from the same run (descriptive check of criterion S's subsets)."""
     t_block = time.perf_counter()
     rows_a = np.asarray(rows_a)
     nh = len(groups)
@@ -237,6 +240,11 @@ def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, n_out, P, f
         "tau": {k: bn_tau.get(k) for k in ("status", "k", "n_ok", "p", "ci95", "label", "sim_quantiles",
                                            "n_at_zero")},
         "spread": {k: bn_sp.get(k) for k in ("status", "k", "n_sims", "p", "ci95", "label", "sim_quantiles")}}
+    if n_sub != int(P["rob_n_subsets"]):
+        out.update(status=BLOCK_NE_CONFIG.format(a=n_sub, b=P["rob_n_subsets"]), reading=READ_NE,
+                   section5=SECTION5["stays"], seconds=time.perf_counter() - t_block)
+        log("R2-RE-SEL: " + out["status"])
+        return out
     if bad:
         out.update(status=BLOCK_NE_OBSERVED, reading=READ_NE, section5=SECTION5["stays"],
                    seconds=time.perf_counter() - t_block)
@@ -318,6 +326,11 @@ def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, n_out, P, f
                 "selects": {"column": ds_real, "host": labels[ds_real], "spread_excl": float(s_real[ds_real])},
                 "host_value": float(s_real[col]), "expected": crit_s_expected, "tol": CRIT_S_TOL,
                 "reproduced": bool(abs(s_real[col] - crit_s_expected) <= CRIT_S_TOL)}
+            sp37 = checks["criterion_s"]["spread_37"]
+            checks["criterion_s"]["rob_spread_obs"] = rob_spread_obs
+            checks["criterion_s"]["spread_37_matches_rob"] = (   # descriptive: the subsets are ROB's
+                None if rob_spread_obs is None
+                else bool(abs(sp37 - rob_spread_obs) <= SPREAD_RTOL * abs(rob_spread_obs)))
             if ds_real != col:
                 reasons["spread_S"].append(f"criterion S does not select {host} on the real data "
                                            f"(selects {labels[ds_real]})")
@@ -337,7 +350,7 @@ def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, n_out, P, f
              for ix in stream[:5]]
     checks["first_subsets"] = {"first_picks": first}
     bn_first = drop.get("r4n", {}).get("first_picks")
-    if bn_first is not None:
+    if spread_avail and bn_first:          # no comparison when R4-N left no draws / B-N's spread not evaluated
         checks["first_subsets"]["r2_re_n5584_first_picks"] = bn_first
         if first != bn_first[:len(first)]:
             raise RuntimeError("the first subsets for d = the dropped host differ from R4-N's first_picks")
@@ -363,6 +376,35 @@ def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, n_out, P, f
     MS = None                                    # one large matrix at a time
     seconds["selection_pass"] = time.perf_counter() - t0
 
+    # ---- the d = host rows and the spread_obs reproduction, before the tau part (an early stop)
+    do_x, do_s = status["spread_X"] == "evaluated", status["spread_S"] == "evaluated"
+    built, failed_d, cache = {}, {}, {}
+
+    def build(d):
+        tb = time.perf_counter()
+        red = reduced_system(nz, rows_a, d, groups, host_rows)
+        rows_n = red["rows_n"]
+        picks_d = [red["host_cols_n"][ix] for ix in stream]
+        res_ref = fns["fit"](L, y, C, rows_n, est=True)
+        M, sig = rob.shift_rows(L, y, C, rows_n, res_ref, picks_d, red["base_n"], red["host_rows_n"], fns)
+        built[d] = time.perf_counter() - tb
+        return rows_n, M, sig
+
+    if do_x or do_s:
+        try:
+            cache[col] = build(col)
+        except (np.linalg.LinAlgError, ValueError) as e:
+            if not fns["is_fit_failure"](e):
+                raise
+            raise RuntimeError(f"rows for {host} failed although B-N built them: {e}")
+        rows_n, M, sig = cache[col]
+        obs = float(np.std((M @ y[rows_n]) / sig))
+        checks["spread_obs_d_host"] = {"value": obs, "spread_obs": spread_obs,
+                                       "rel_diff": abs(obs - spread_obs) / abs(spread_obs)}
+        if not abs(obs - spread_obs) <= SPREAD_RTOL * abs(spread_obs):
+            raise RuntimeError(f"d = {host} path gives spread {obs!r}, B-N's spread_obs {spread_obs!r}")
+        M = None
+
     # ---- tau part (criterion X)
     t0 = time.perf_counter()
     if status["tau"] == "evaluated":
@@ -383,14 +425,14 @@ def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, n_out, P, f
                 log(f"  R2-RE-SEL tau: {s + 1} sims, {time.perf_counter() - t0:.0f} s")
         n, k = len(taus), int(np.sum(np.array(taus) >= tau_obs))
         tau_rec = {"tau_obs": tau_obs, "n_sims": n_tau, "n_ok": n, "n_failed": failed, "k": k,
-                   "taus": [round(t, 5) for t in taus]}
+                   "taus": [round(t, 5) for t in taus],
+                   "sim_quantiles": [float(q) for q in np.percentile(taus, [5, 50, 95])] if taus else None,
+                   "n_at_zero": int(sum(1 for t in taus if t < 1e-3))}
         if failed > P["sel_max_failed"]:
             tau_rec["status"] = "not evaluable (too many failed fits)"
         else:
             label, ci = tau_label(k, n)
-            tau_rec.update(status="evaluated", p=(1 + k) / (1 + n), ci95=list(ci), label=label,
-                           sim_quantiles=[float(q) for q in np.percentile(taus, [5, 50, 95])] if taus else None,
-                           n_at_zero=int(sum(1 for t in taus if t < 1e-3)))
+            tau_rec.update(status="evaluated", p=(1 + k) / (1 + n), ci95=list(ci), label=label)
     else:
         tau_rec = {"status": status["tau"]}
     tau_rec["reasons"] = reasons["tau"]
@@ -399,7 +441,6 @@ def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, n_out, P, f
 
     # ---- spread parts (criteria X and S): rows built once per dropped host, sims grouped by d
     t0 = time.perf_counter()
-    do_x, do_s = status["spread_X"] == "evaluated", status["spread_S"] == "evaluated"
     sp_x = [None] * n_spread if do_x else None
     sp_s = [None] * n_spread if do_s else None
     need = {}
@@ -409,31 +450,18 @@ def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, n_out, P, f
     if do_s:
         for s in range(n_spread):
             need.setdefault(d_s[s], set()).add(s)
-    built, failed_d = {}, {}
     if do_x or do_s:
-        need.setdefault(col, set())                # the d = host path reproduces spread_obs
         for d in sorted(need):
-            tb = time.perf_counter()
-            red = reduced_system(nz, rows_a, d, groups, host_rows)
-            rows_n = red["rows_n"]
-            picks_d = [red["host_cols_n"][ix] for ix in stream]
-            try:
-                res_ref = fns["fit"](L, y, C, rows_n, est=True)
-                M, sig = rob.shift_rows(L, y, C, rows_n, res_ref, picks_d, red["base_n"], red["host_rows_n"], fns)
-            except (np.linalg.LinAlgError, ValueError) as e:
-                if not fns["is_fit_failure"](e):
-                    raise
-                if d == col:
-                    raise RuntimeError(f"rows for {host} failed although B-N built them: {e}")
-                failed_d[d] = str(e)
-                continue
-            built[d] = time.perf_counter() - tb
-            if d == col:
-                obs = float(np.std((M @ y[rows_n]) / sig))
-                checks["spread_obs_d_host"] = {"value": obs, "spread_obs": spread_obs,
-                                               "rel_diff": abs(obs - spread_obs) / abs(spread_obs)}
-                if not abs(obs - spread_obs) <= SPREAD_RTOL * abs(spread_obs):
-                    raise RuntimeError(f"d = {host} path gives spread {obs!r}, B-N's spread_obs {spread_obs!r}")
+            if d in cache:                          # the d = host rows built above
+                rows_n, M, sig = cache.pop(d)
+            else:
+                try:
+                    rows_n, M, sig = build(d)
+                except (np.linalg.LinAlgError, ValueError) as e:
+                    if not fns["is_fit_failure"](e):
+                        raise
+                    failed_d[d] = str(e)
+                    continue
             pos_n = np.searchsorted(rows_a, rows_n)
             for s in sorted(need[d]):
                 v = float(np.std((M @ sim(s)[pos_n]) / sig))
@@ -442,6 +470,7 @@ def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, n_out, P, f
                 if do_s and d_s[s] == d:
                     sp_s[s] = v
             M = None
+    cache.clear()
     seconds["spread_parts"] = time.perf_counter() - t0
     out["dropped_hosts_built"] = {"n_distinct": len(built), "hosts": [labels[d] for d in sorted(built)],
                                   "seconds_build": {labels[d]: t for d, t in sorted(built.items())},
