@@ -651,7 +651,7 @@ the recorded `results/r6.json`, checks passed, not retrained; numbers in `result
   marginal 2.74. A k-nearest-neighbour (kNN) density estimate of the 6-D difference gives 1.27/1.57σ
   (k = 20/100) on the real chains, 0.78/0.80σ with DES's Σmν column shuffled (its marginal kept, its
   correlations with the other parameters broken) and 0.69/0.61σ with DES's Σmν drawn from the uniform
-  prior [0.06, 0.6] eV. So most of the 6-D number comes from Σmν jointly with its DES correlations
+  prior [0.06, 0.6] eV. So most of what Σmν adds to the 6-D number comes from it jointly with its DES correlations
   (probably the A_s–Σmν degeneracy; an inference), and the near-equality of the 1-D Σmν value
   (1.74σ) and the 6-D flow value (1.70σ) is largely a coincidence (an inference). DES's Σmν is close
   to its prior (0.384 ± 0.147, against the prior's 0.330 ± 0.156); with DES's Σmν replaced by the prior the 1-D
