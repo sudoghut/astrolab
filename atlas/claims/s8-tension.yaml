@@ -25,5 +25,5 @@ reproduction:
     - {name: "S8 KiDS-Legacy", paper: "0.815 +0.016/-0.021 (mode); mean 0.813 +/- 0.018", ours: "1.04 sigma from the CMB chain (summary only)", verified: V}
 open_questions:
   - "Same-prior, same-S8-definition meta-comparison across probes."
-  - "Is the full-space 1.8 sigma mostly the neutrino-mass direction (CMB Sigma m_nu at its prior edge; 1-D difference 1.74 sigma)? T-040."
+  - "How much of what Sigma m_nu adds to the full-space difference is its DES correlations, its marginal, or the prior shape? (R6-NOMNU, T-040: 0.52 sigma without Sigma m_nu against 1.70 sigma with it; pre-registered shuffle and prior-replacement check T-044.)"
 notes: "Milestone M3. Study 008 R6-NOMNU (2026-11-18): most of DES Y6's full-space 1.8 sigma difference from the CMB goes with Sigma m_nu (the CMB chain sits at the 0.06 eV prior edge, DES is close to its prior); referee (post hoc): mainly through Sigma m_nu's DES correlations, partly its prior placement (T-044); in the other five parameters the difference is 0.5 sigma, in the data-constrained pair (A_s, Omega_m) 0.40 sigma."
