@@ -645,6 +645,7 @@ resume, and Windows briefly refused a file replace twice. It also stopped itself
 projection rule, whose projection counted checkpointed mocks not yet replayed as remaining work. Each
 resume continued from the per-mock checkpoints with the user's explicit consent (`log.md`); the last
 ran under a 20 h limit, through an uncommitted wrapper that only retries the refused file replace.
+Both causes were fixed in the code afterwards (T-046, 2026-11-20; section 8).
 Per-mock seeds make the numbers independent of the interruptions.
 
 The run took 10.05 h of elapsed time over five sessions. This is the time the SEL-8 limit counts,
@@ -863,8 +864,9 @@ How a coding agent answers "what if" questions about this study without touching
   it needs about 6 GB of memory at peak (section 5.1). Since 2026-11-20 (T-046, after the R-SEL
   run; the code change gives a new checkpoint key) a refused file replace is retried for about 25 s
   before the run stops, and on a resume the projection counts mocks already checkpointed as
-  finished, with their recorded times, instead of as remaining work (`selaux.run_mock_sets`; the log
-  of projections gains `mocks_checkpointed_not_replayed`).
+  finished, with their recorded times, instead of as remaining work (`selaux.run_mock_sets`; in the
+  log of projections `mocks_left` now counts only mocks without a checkpoint, and
+  `mocks_checkpointed_not_replayed` is new).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 010-m05-thick-disc-subgiant-ages --tag <topic> --script explore/<name>.py`.
   A script can `import run` and reuse `run.load`, `run.flags`, `run.onedim`, `run.grouped`,

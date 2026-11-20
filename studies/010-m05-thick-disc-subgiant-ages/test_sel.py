@@ -428,8 +428,16 @@ def test_write_retries_a_refused_replace(tmp_path, monkeypatch):
     fails["n"] = 10                                          # a refusal that persists is raised
     with pytest.raises(PermissionError):
         selaux.MockStore._write(p, {"a": 2}, tries=4, pause=0.0)
+    assert fails["n"] == 6                                   # exactly 4 attempts
     assert json.loads(p.read_text(encoding="utf-8")) == {"a": 1}
     assert not list(tmp_path.glob("*.tmp"))                  # the temporary file is removed
+    monkeypatch.setattr(selaux.os, "replace", lambda s, t: (_ for _ in ()).throw(OSError(22, "other")))
+    with pytest.raises(OSError):                             # other errors: not retried, temp removed
+        selaux.MockStore._write(p, {"a": 3}, pause=0.0)
+    assert not list(tmp_path.glob("*.tmp"))
+    monkeypatch.setattr(selaux.os, "replace", real)
+    selaux.MockStore._write(p, {"a": 4}, tries=0)            # tries <= 0 still writes once
+    assert json.loads(p.read_text(encoding="utf-8")) == {"a": 4}
 
 
 def test_resume_does_not_count_checkpointed_mocks_as_left(tmp_path):
@@ -459,6 +467,62 @@ def test_resume_does_not_count_checkpointed_mocks_as_left(tmp_path):
     for s in sets:
         assert [r["d"] for r in res[s["k"]]] == [float(mk(s["k"], j).random()) for j in range(4)]
     st2.release()
+
+
+def _seed_sessions(st, sets, mk, skip, seconds):
+    for s in sets:
+        for j in range(4):
+            if (s["k"], j) not in skip:
+                st.put(s["k"], j, {"d": float(mk(s["k"], j).random())}, seconds)
+
+
+def test_resume_stop_rule_counts_only_mocks_without_checkpoint(tmp_path):
+    sets = [{"k": k, "group": "R1"} for k in range(3)]
+    mk = lambda k, j: selaux.mock_rng(0, 31, k, j)
+    run_one = lambda s, rng: {"d": float(rng.random())}
+    # (a) all mocks checkpointed, elapsed already above the limit: nothing is left, so no stop
+    st = selaux.MockStore(tmp_path, "a")
+    _seed_sessions(st, sets, mk, set(), 1.0)
+    (st.sessions / "old.json").write_text(json.dumps({"seconds": 7200.0}), encoding="utf-8")
+    st.release()
+    st = selaux.MockStore(tmp_path, "a")
+    res, _, log = selaux.run_mock_sets(sets, 4, st, run_one, mk, 1.0, log=lambda m: None)
+    assert log[0]["mocks_left"] == 0 and log[0]["projection_h"] > 1.0
+    st.release()
+    # (b) one mock without a checkpoint: the old count (8 replays + 1 left) x 1000 s would be ~2.5 h,
+    # the corrected one ~0.3 h; a 1 h limit must not stop
+    st = selaux.MockStore(tmp_path, "b")
+    _seed_sessions(st, sets, mk, {(2, 3)}, 1000.0)
+    st.release()
+    st = selaux.MockStore(tmp_path, "b")
+    res, _, log = selaux.run_mock_sets(sets, 4, st, run_one, mk, 1.0, log=lambda m: None)
+    assert log[0]["mocks_left"] == 1 and log[0]["projection_h"] < 0.5
+    st.release()
+    # (c) the same with a limit below one mock's time: the run stops before the uncomputed mock
+    st = selaux.MockStore(tmp_path, "c")
+    _seed_sessions(st, sets, mk, {(2, 3)}, 1000.0)
+    st.release()
+    st = selaux.MockStore(tmp_path, "c")
+    with pytest.raises(selaux.StopRun):
+        selaux.run_mock_sets(sets, 4, st, run_one, mk, 0.1, log=lambda m: None)
+    info = json.loads((st.dir / "stopped.json").read_text(encoding="utf-8"))
+    assert info["mocks_left"] == 1 and info["mocks_checkpointed"] == 11
+
+
+def test_damaged_checkpoint_counts_as_left_and_is_recomputed(tmp_path):
+    sets = [{"k": 0, "group": "R1"}]
+    mk = lambda k, j: selaux.mock_rng(0, 31, k, j)
+    st = selaux.MockStore(tmp_path, "key")
+    _seed_sessions(st, sets, mk, set(), 1.0)
+    (st.dir / "k000_j02.json").write_text("{", encoding="utf-8")
+    st.release()
+    st = selaux.MockStore(tmp_path, "key")
+    calls = []
+    run_one = lambda s, rng: calls.append(1) or {"d": float(rng.random())}
+    res, _, log = selaux.run_mock_sets(sets, 4, st, run_one, mk, 1e6, log=lambda m: None)
+    assert log[0]["mocks_left"] == 1 and len(calls) == 1
+    assert [r["d"] for r in res[0]] == [float(mk(0, j).random()) for j in range(4)]
+    st.release()
 
 
 def test_nonfinite_results_are_counted():
