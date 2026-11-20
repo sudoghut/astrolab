@@ -55,6 +55,7 @@
   <div class="scroll"><table id="seltab"></table></div>
   <h3><span class="en">R1-SEL per bin</span><span class="zh">R1-SEL 各箱</span></h3>
   <div class="scroll"><table id="selr1"></table></div>
+  <p class="muted"><span class="en">Post hoc (independent referee): the label hinges on bin [−0.7, −0.5), whose power is lost to mock fits that find no valley; mocks that do find one give d ≈ 0.01–0.03. A diagnostic rerun is registered (T-045); see README section 5.1.</span><span class="zh">事后（独立审稿）：标签取决于箱 [−0.7, −0.5)，它的功效损失在没有找到谷的模拟拟合上；找到谷的模拟给出 d ≈ 0.01–0.03。已登记诊断性重跑（T-045）；见 README 第 5.1 节。</span></p>
   <h3><span class="en">R3/R4-SEL and intrinsic-SEL: fits and mocks by term</span><span class="zh">R3/R4-SEL 与 intrinsic-SEL：按选择项的拟合与模拟</span></h3>
   <div class="scroll"><table id="selr34"></table></div>
   <p class="muted" id="selerr"></p>
@@ -183,7 +184,7 @@ function sel() {
   if (!S) return;
   const lab = S.r34.labels, R1 = S.r1.label, tE = S.r34.terms.E, tN = S.r34.terms.N, iE = S.r34.intrinsic.E, iN = S.r34.intrinsic.N;
   document.getElementById('seltab').innerHTML =
-    head([L('label', '标签'), L('-SEL label (term E)', '-SEL 标签（项 E）'), L('term N (bare)', '项 N（单独）'), L('original label', '原判定')]) +
+    head([L('label', '标签'), L('-SEL label (term E)', '-SEL 标签（项 E）'), L('term N label', '项 N 标签'), L('original label', '原判定')]) +
     row(['R1-SEL', verdict(R1.label), verdict(S.r1.variants.S15N.verdict), verdict(D.summary.R1.S15.verdict)]) +
     row(['R3-SEL', verdict(lab['R3-SEL']), verdict(lab.term_N.R3), verdict(D.summary.R3)]) +
     row(['R4-SEL', verdict(lab['R4-SEL']), verdict(lab.term_N.R4), verdict(D.summary.R4)]) +

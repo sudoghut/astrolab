@@ -647,8 +647,10 @@ resume continued from the per-mock checkpoints with the user's explicit consent 
 ran under a 20 h limit, through an uncommitted wrapper that only retries the refused file replace.
 Per-mock seeds make the numbers independent of the interruptions.
 
-The mock stage took 10.05 h in total across sessions (estimate 7.2–11.2 h) for 6,200 mocks: 124 sets
-of 50, with no reduced fallback. Peak working set: 6.26 GB in the mock stage and 3.47 GB in the data
+The run took 10.05 h of elapsed time over five sessions. This is the time the SEL-8 limit counts,
+and each session refits the data and replays the checkpoints. The 6,200 mocks (124 sets of 50, with
+no reduced fallback) took 5.97 h of compute, the sum of the per-mock times, against the estimate of
+7.2–11.2 h. The final session's data fits took about 0.73 h, against SEL-8's 1–1.5 h. Peak working set: 6.26 GB in the mock stage and 3.47 GB in the data
 fits, well above SEL-8's estimate of about 1–1.5 GB. The estimate was wrong; the cause was not
 investigated (the memory reap of 2026-11-19 happened under this load).
 
@@ -680,7 +682,8 @@ verdicts above stand (SEL-9).
   - **Metal-rich bins and power models.** The metal-rich bins have no valley in the data and power 0.
     Every power model is valid: true d ≤ 0.04, with young edge 7.0 Gyr (6.5 Gyr for [0.1, 0.3)), as
     checked before the run.
-  - **Floor 0.20 sensitivity.** Same verdict in all three variants. Only [−0.1, 0.1) changes, to power
+  - **Floor 0.20 sensitivity.** Same verdict in all three variants. The power models of [−0.3, −0.1) and [0.1, 0.3) change but
+    their power does not; only [−0.1, 0.1)'s power changes, to
     0.04 / 0.06 (term E), 0.60–0.68 (term N) and 0.36–0.52 (Full), and its data d is 1 anyway.
 - **R3-SEL / R4-SEL.**
   - **Recovery and primacy.** Term E's recovery passes under both mechanisms (σ bias −0.051 / −0.066
@@ -715,7 +718,7 @@ verdicts above stand (SEL-9).
   - **R2 deconvolved latent Gaussian.** μ = 12.61 Gyr with term E and 12.73 with term N (σ = 2.24 /
     2.21), against 12.19 with the old term on S15 and 12.59 on Full.
   - **SEL-2 diagnostic (original generator, r independent of τ).** σ bias +0.025 / +0.022 with term E
-    and −0.014 / −0.024 with term N, and a bias within ±0.07. With age-independent errors both new
+    and −0.014 / −0.024 with term N, and |a bias| ≤ 0.071. With age-independent errors both new
     terms recover σ. Term N fails only when the mocks carry the data's age dependence of r.
   - **SEL-7 variants.** 0.5 Gyr pass bins: σ_sel 2.55, span 6.09, σ_int 0.752. One slice: 2.53, 6.39,
     0.741.
@@ -725,9 +728,10 @@ verdicts above stand (SEL-9).
      - Power mocks of this bin that find a valley always find a deep one (median d 0.008–0.027). The
        misses are mocks without a valley: 10 and 21 of 50 for term E, 6 and 6 for term N, 15 and 13
        for Full.
-     - In the term-E mocks, BIC chose K = 1 in 2 and 4 of them. Each mock has 40,000–46,000 stars
-       drawn from a two-component model, so a converged K = 2 fit cannot lose to K = 1 on BIC; the
-       K ≥ 2 fits failed (a local optimum or a non-finite likelihood; the mocks do not record which).
+     - BIC chose K = 1 in 2 and 4 of the term-E mocks (term N 0 and 3, Full 4 and 1). Each mock has
+       40,000–46,000 stars drawn from a two-component model, so a converged K = 2 fit would not be
+       expected to lose to K = 1 on BIC. Our inference is that the K ≥ 2 fits failed (a local optimum
+       or a non-finite likelihood); the checkpoints store only the chosen K.
      - Mock fits start only from the data fit and 2 perturbations (rule of 2.0; point 5 of the
        original referee).
      - The label therefore measures the mock optimiser as much as the data. If this bin were
@@ -737,11 +741,13 @@ verdicts above stand (SEL-9).
      - The metal-rich bins have power 0 because K ≤ 4 Gaussians smear the generating model's uniform
        young edge: their power mocks give d ≈ 0.29–0.48 against a true 0.016–0.04. That is a limit
        of the density model, not of the data.
-  2. **Term N's failed recovery and the R3/R4 qualifier.** Term N's failure comes from the SEL-2
-     generator.
+  2. **Term N's failed recovery and the R3/R4 qualifier.** The evidence points to the SEL-2
+     generator as the cause of term N's failure (an inference: the original generator also differs by
+     drawing r jointly with [Fe/H]).
      - The τ-keyed r pools are binned in observed age, so their pass fractions already contain the age
        dependence created by the errors themselves (SEL-10).
-     - The recovery mocks pass 1.3–1.9 points less often than the data (0.843 / 0.849 against 0.862),
+     - The recovery mocks pass 1.2–1.9 points less often than the data (term E 0.843 / 0.849, term N
+       0.844 / 0.850, against 0.862),
        while the original generator matches the data (0.856 / 0.862) and term N recovers under it
        (σ bias −0.014 / −0.024).
      - So "selection-term sensitive" on R3/R4 records which generator is adopted, not a contrary
@@ -750,7 +756,7 @@ verdicts above stand (SEL-9).
      order". At fixed A, e/A depends on τ through z, so the violation is first order (corrected here;
      the frozen text is left as it was). Term E recovers within tolerance under both mechanisms
      anyway.
-  4. **Intrinsic-SEL's margin.** The margin to 0.82 (0.071 Gyr) is comparable to:
+  4. **Intrinsic-SEL's margin.** The margin to 0.82 (0.072 Gyr) is comparable to:
      - the f = 0.8 shift (+0.065),
      - the misspecification mock biases (+0.049 / +0.067), and
      - the term E–N difference (−0.03).
@@ -787,10 +793,10 @@ numbers and found each one as the rules give. Triage:
 
 | # | Point | Verified | Action |
 |---|---|---|---|
-| 1 | R1-SEL's label, including its "selection-term sensitive", hinges on bin [−0.7, −0.5). That bin's power is lost to mock fits without a valley, including K = 1 chosen by BIC on 40,000+ stars drawn from a two-component model (failed K ≥ 2 fits). With that bin resolvable, every variant would read "not reproduced". | Yes, from the checkpoints: term E chose K = 1 in 2 and 4 of 50 mocks; mocks without a valley were 10/21 (term E), 6/6 (term N) and 15/13 (Full); mocks with a valley have median d 0.008–0.027. | **Accepted** as a limitation of the mock fits; the rule was applied as written. Post-hoc reading in section 5.1. A diagnostic rerun with data-independent starts is registered (T-045). |
-| 2 | Term N's recovery failure is built into the τ-keyed generator, whose pools are binned in observed age, so R3/R4's "selection-term sensitive" carries no data information. In some sets the mock pass rates do not match the data. | Yes. Recovery mocks pass 0.843/0.849 against the data's 0.862. Under the original generator they pass 0.856/0.862 and term N's bias is −0.014/−0.024. Sample-B misspecification mocks pass 0.903–0.908 against 0.883. | **Accepted**; section 5.1, reading 2. |
+| 1 | R1-SEL's label, including its "selection-term sensitive", hinges on bin [−0.7, −0.5). That bin's power is lost to mock fits without a valley, including K = 1 chosen by BIC on 40,000+ stars drawn from a two-component model (failed K ≥ 2 fits, inferred). With that bin resolvable, every variant would read "not reproduced". | Yes, from the checkpoints: K = 1 in 2 and 4 of 50 mocks for term E (term N 0/3, Full 4/1); mocks without a valley were 10/21 (term E), 6/6 (term N) and 15/13 (Full); mocks with a valley have median d 0.008–0.027. | **Accepted** as a limitation of the mock fits; the rule was applied as written. Post-hoc reading in section 5.1. A diagnostic rerun with data-independent starts is registered (T-045). |
+| 2 | Term N's recovery failure is built into the τ-keyed generator, whose pools are binned in observed age, so R3/R4's "selection-term sensitive" carries no data information. In some sets the mock pass rates do not match the data. | Yes. Recovery mocks pass 0.843/0.849 (term E) and 0.844/0.850 (term N) against the data's 0.862. Under the original generator they pass 0.856/0.862 and term N's bias is −0.014/−0.024. Sample-B misspecification mocks pass 0.903–0.908 against 0.883. | **Accepted**; section 5.1, reading 2. |
 | 3 | Term E's assumption is violated to first order under e = r·τ, not to second order as SEL-1 says. Catalogue errors that depend on Teff or M_K at fixed A are not mocked. The 17–20 Gyr pass bin, after a dip at 14–16 Gyr, looks like the grid-edge pile-up (the edge-drop fit gives σ_sel 2.47 and span 5.81). | The wording point: yes, from the algebra. The rest: from the results. | **Accepted**. Wording corrected in section 5.1, reading 3; the untested error dependence and the edge effect are noted in section 7. |
-| 4 | Intrinsic-SEL's margin (0.071 Gyr) is smaller than the systematics: the f = 0.8 shift (+0.065), the misspecification bias (+0.05/+0.07) and the term difference (−0.03). The f_max check is one-sided. The old component is Gaussian in all mocks. Old-sequence mock stars draw [Fe/H] from the whole sample-B parent. | Yes, from the results and run.py's draw. | **Accepted**; section 5.1, reading 4; section 7. |
+| 4 | Intrinsic-SEL's margin (0.072 Gyr) is smaller than the systematics: the f = 0.8 shift (+0.065), the misspecification bias (+0.05/+0.07) and the term difference (−0.03). The f_max check is one-sided. The old component is Gaussian in all mocks. Old-sequence mock stars draw [Fe/H] from the whole sample-B parent. | Yes, from the results and run.py's draw. | **Accepted**; section 5.1, reading 4; section 7. |
 | 5 | R4-SEL carries no "robust" qualifier, while R1-SEL's "undetermined" does. | Yes. | **Rejected** as a defect. Section 2.3 attaches "robust / not robust" only to "reproduced" for R3/R4 (`selaux.with_robust`), while 2.1's R1 robustness applies to any verdict; both are as pre-registered. |
 | 6 | The 16 h stop fired, and the limit was raised to 20 h with consent. | Yes. | Disclosed in section 5.1 and `log.md`. |
 | 7 | Literature: Silva Aguirre et al. 2018 (arXiv:1710.09847) find that high- and low-α ages overlap; Miglio et al. 2021 (arXiv:2004.14806). | No; the IDs are the referee's and were not verified by us. | Noted as context; not used. |
@@ -850,8 +856,9 @@ How a coding agent answers "what if" questions about this study without touching
   (outputs in `explore/<date>-<topic>/`, not committed). The original pipeline needs
   `--set 'parts=["orig"]'`; without mocks
   (`--set n_mock=2 --set n_mock_reduced=2 --set n_boot=2 --set n_boot_r6=5`) it takes about 30 min,
-  and the full calibration about 5 h. The R-SEL pipeline (the default) takes about 1.5 h of data fits
-  plus mocks (`--set sel_n_mock=2` for a quick run; 50 per set took 10 h in all). Its mocks are
+  and the full calibration about 5 h. The R-SEL pipeline (the default) takes about 0.75 h of data fits
+  plus mocks (`--set sel_n_mock=2` for a quick run; at 50 per set the mocks took 6 h of compute and
+  the interrupted run 10 h in all). Its mocks are
   checkpointed in the cache under a key of the code and PARAMS, so an override starts a new folder;
   it needs about 6 GB of memory at peak (section 5.1).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
