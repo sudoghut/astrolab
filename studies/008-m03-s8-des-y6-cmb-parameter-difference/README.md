@@ -827,20 +827,21 @@ unchanged; R6 and R6-NOMNU read from their recorded files, checks passed, not re
   two thirds goes when DES's Σmν is decoupled from DES's other parameters, about a third when DES's
   own Σmν marginal is then replaced by the prior, and almost nothing remains: with DES's Σmν at its
   prior the 6-D value (0.552) is within 0.03σ of the 5-D value (0.524).
-- **(SS) equals (S)** (0.909 both; paired per-seed differences −0.031 to +0.034): shuffling the CMB
+- **(SS) agrees with (S)** (0.909 both; paired per-seed differences −0.031 to +0.034): shuffling the CMB
   chain's Σmν as well changes nothing visible (descriptive).
 - **What it means.** Section 6 found that DES's Σmν against the CMB, with DES's Σmν drawn from the
   prior, still differs by 1.05σ in 1-D, because the CMB chain sits at the 0.06 eV prior edge. In six
-  dimensions, what remains with DES's Σmν at its prior is only about 0.03σ over the 5-D value (ρ̄).
+  dimensions, what remains with DES's Σmν at its prior is only about 0.03σ over the 5-D value
+  (n̄_P − n̄₅ = 0.029σ; ρ̄ = 0.023 of E).
   ρ̄ lumps together the CMB chain's Σmν against the prior, the sixth dimension itself and any residual,
   and does not separate them; nothing in it is of the size of the 1-D 1.05σ (a reading of ρ̄; n_P and
-  n₅ are not gated). What Σmν adds to the
-  full-space number comes mostly from how DES's Σmν co-varies with its other parameters (which
+  n₅ are not gated). By the registered label (near the edge of the gates' calibration; see the post
+  hoc item below), what Σmν adds to the full-space number comes mostly from how DES's Σmν co-varies with its other parameters (which
   parameters is not tested here; the referee's A_s–Σmν degeneracy remains an inference), and about a
   third from DES's Σmν marginal (0.384 ± 0.147) differing from its prior (0.330 ± 0.156). Combined
-  with R6-NOMNU: D26's full-space 1.8σ (R6 1.6–1.9σ) is about 0.5σ in the five other parameters, plus
-  a Σmν part that is mostly DES's own Σmν correlations, with a small remainder (ρ̄) once DES's Σmν
-  is at its prior. Section 2.8 expected this label from the kNN numbers
+  with R6-NOMNU: the 5-D value without Σmν is about 0.5σ, and the 6-D value (R6 1.6–1.9σ, around D26's
+  1.8σ) exceeds it by E ≈ 1.17σ, of which about two thirds goes with DES's own Σmν correlations and
+  a small remainder (ρ̄) is left once DES's Σmν is at its prior. Section 2.8 expected this label from the kNN numbers
   (φ ≈ 0.68/0.70); its expected ψ (0.13/0.17) and ρ (0.19/0.13) were not borne out.
 - **kNN, descriptive (not calibrated, section 2.8).** Means over the five seeds, k = 20/100: real
   1.247/1.527, (S) 0.917/0.871, (P) 0.699/0.538, (SS) 0.946/0.869, 5-D 0.533/0.501. From these means
