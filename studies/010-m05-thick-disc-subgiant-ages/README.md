@@ -534,6 +534,79 @@ The re-test labels carry the suffix "-SEL" (R1-SEL, R3-SEL, R4-SEL, intrinsic-SE
   slightly richer in old stars (0.12) than its α-selected fraction (0.094 S15, 0.097 Full). Mock fits still start from the data fit with
   3 starts (section 6, point 5).
 
+### 2.6 R1-SEL-FIT (addendum 2026-11-20, T-049), pre-registered before any mock fit with the new starts
+
+This addendum registers a rerun of R1-SEL (2.5, SEL-3) in which every mock fit also uses
+data-independent starts. It changes nothing else in 2.0–2.5 and no recorded label; the label it
+produces is called R1-SEL-FIT.
+
+- **Why.** The T-045 diagnostic (section 5.1, post hoc) regenerated the six power sets of bin
+  [−0.7, −0.5) and found that the mocks without a valley are local optima of the mock fits: the
+  original fits (the data fit's parameters plus 2 perturbations, 2.1) gave an NLL that rises from some
+  K to K + 1 in 27–38 of 50 mocks per set, which the global optima of nested models cannot do; with 8
+  data-independent starts per K the bin's power was 1.00 in all six sets (recorded 0.58–0.88). The
+  null sets and the other bins were not refitted, so whether R1-SEL's line between "undetermined"
+  and "not reproduced" moves is open.
+
+- **Seen before this addendum (disclosure).** Everything in sections 5–7 and `log.md`, in particular:
+  the R1-SEL results of every bin and variant (data d: S15 term E 0.410, 0.579, 0.502, 1, 1; term N
+  0.367, 0.580, 0.482, 1, 1; Full 0.386, 0.579, 0.479, 1, 1; d* = 0.25 (the cap) everywhere; no
+  valley in any of the 3,000 null mocks; powers per bin and mechanism as in section 5.1; verdicts
+  undetermined / not reproduced / undetermined); the recorded d values of every power mock (in the
+  two resolvable bins up to 0.04 and 0.14); and the T-045 refit of bin [−0.7, −0.5)'s power sets
+  (power 1.00 in all six, K = 3 or 4, d at most 0.018). No null set and no other bin has been fitted
+  with the new starts.
+
+- **What changes (mock fits only).** In every R1 mock fit (null and power sets, all five bins, all
+  three variants, primary and floor-0.20 power sets), for each K = 1–4 the fit is done twice on the
+  same catalogue and model: (o) exactly as in SEL-3 (`run.fit_mixtures` from the data fit's
+  parameters with 2 perturbations, then `run.shape_from_fits`, on the SEL-8 stream of the mock); (i)
+  from 8 data-independent starts per K (`m0.mixture_starts`: the 2.0 quantile start plus 7 seeded
+  perturbations) on a separate stream `default_rng([seed, 45, k, j])` (the T-045 stream, so the
+  power sets of bin [−0.7, −0.5) repeat T-045's fits). For each K the fit used is (i) if its NLL is
+  lower than (o)'s by more than 0.01 (the tie rule of 2.0's start selection), else (o). K is chosen by
+  BIC on these fits. If K = 4 is chosen, K = 5 is fitted from 8 data-independent starts on stream (i)
+  and compared in the same way with (o)'s K = 5 fit when (o) chose K = 4 (otherwise the (i) fit is
+  used); the 2.1 mode-matching rule then applies. The catalogue (drawn before any fit) and (o) are
+  unchanged, so (o) must reproduce the recorded R1-SEL d and valley flag of every mock.
+- **Unchanged.** Data fits (40 starts, the 2.0 streams), power models (primary floor 0.12 and the
+  0.20 sensitivity), null families, mock generator (SEL-2), set numbering and mock streams (SEL-8),
+  50 mocks per set (90 main sets and 18 floor-sensitivity sets, 5,400 mocks), the d* rule, strict
+  d < d*, power ≥ 80% under both mechanisms, the 2.1 verdict rule and the SEL-3 labels and
+  qualifiers. R1-SEL-FIT = the 2.1 verdict on S15 term E with the new mock fits; "robust" if Full gives
+  the same verdict; "selection-term robust" if S15 term N gives the same bare verdict; the floor-0.20
+  verdict is reported next to it without changing it.
+- **Checks (a failure makes R1-SEL-FIT "not evaluable (reproduction)", reported and investigated
+  before anything else).** Every data fit equals `r1_sel.json` (`data_fits`: d, K and all mixture
+  parameters to a relative 10⁻⁹); for every mock, (o)'s d equals the recorded value to 10⁻⁹ and its
+  valley flag is the same.
+- **Reported (no verdict).** Per set: power or false-positive rate, q_s and d* under the new fits next
+  to the recorded ones; the number of mocks whose valley flag or pass changes; the number of mocks
+  whose (o) NLL rises with K and whose new NLL does; the K chosen under (o) and under the new fits;
+  the time per mock.
+- **What the outcome can be (stated now).** The data fits do not change, so no bin can become
+  almost disjoint (data d ≥ 0.367 against d* ≤ 0.25; the metal-rich bins have no valley), and
+  "reproduced" is impossible. The question is only whether at least three bins are resolvable
+  ("not reproduced") or fewer ("undetermined"). Expected: bin [−0.7, −0.5) resolvable in all three
+  variants (T-045). The open part is the null sets: better fits may find valleys in some null mocks
+  and lower d* below its cap; bins [−0.5, −0.3) and [−0.3, −0.1) stay resolvable if d* stays above
+  their power mocks' d (up to 0.04 and 0.14 under the original fits). The metal-rich bins may gain
+  power if their power mocks' fits improve; they cannot become almost disjoint. Our expectation is
+  "not reproduced" in all three variants, which would make R1-SEL-FIT "not reproduced (robust;
+  selection-term robust)".
+- **Runtime and machine.** T-045 measured about 4.2 s per mock for S15 term E and about 2.4 s for
+  term N and Full, both fits included: 5,400 mocks ≈ 4.5–5 h, plus the 15 R1 data fits (≈ 10–20 min)
+  and the pass tables; no data download, cache only. The run is started only on an otherwise idle
+  machine. Checkpoints per mock in the system cache (`s010_selfit_mocks`), keyed by PARAMS and code;
+  the SEL-8 projection rule applies with a stop at 12 h (resuming needs the user's consent, recorded
+  in `log.md`); no label is computed until every set has its 50 mocks.
+- **Reporting.** Results in a new file `r1_selfit.json`; `r1_sel.json` and the recorded R1 and
+  R1-SEL labels are not overwritten. Section 5 reports R1-SEL-FIT next to R1-SEL as the rerun with
+  improved mock fits, not as a correction of it; the claim and the wiki report both.
+- **Code (none exists yet).** A new part `"selfit"` in `PARAMS["parts"]` runs only this rerun (pass
+  tables of the R1 bins, R1 data fits, the 108 R1 sets); `PARAMS["selfit_seed_tag"] = 45`,
+  `PARAMS["selfit_nstart"] = 8`, `PARAMS["selfit_stop_h"] = 12`.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
