@@ -5,8 +5,9 @@ For every R5 parent RV star that belongs to an N1 pair (README 2.1), the N2 neig
 with the star's position moved by SHIFT_DEG in declination (towards the equator; RA, parallax and
 parallax error unchanged). Neighbours found around the shifted position, with the same selection,
 100 kAU radius and 3-sigma parallax rule, are unrelated to the star: their number is the chance
-neighbour count at that distance and sky density. Per pair, "both stars have no chance neighbour" is
-the survival expected if degrouping removed pairs only through chance neighbours; it is compared with
+neighbour count at that distance and sky density. Per pair, "both stars have no shifted neighbour" is a
+shifted-field proxy for the survival expected if degrouping removed pairs only through chance
+neighbours (it does not identify which real neighbours are chance alignments); it is compared with
 the observed relaxed-rule survival (N2: both stars' only neighbour is the partner), by distance shell
 and Galactic latitude.
 
@@ -17,7 +18,7 @@ neighbour; their number is bounded by the region's N2 rows (the same parent star
 count-first split is used. Parents within 29.9 pc (parallax >= 33.4 mas) are excluded on the server:
 beyond it the shifted and true 100 kAU circles are disjoint and the shifted circle stays inside the
 region's star-b box; the near-star region (d < 10 pc) is not queried. A region whose N1, N2 or shifted
-query fails is recorded and skipped, and a pair is used only if both stars are parents of regions
+query fails is recorded and skipped, and a pair is used only if both stars lie in regions
 whose queries all worked (a pair's star b can lie in another region's margin).
 
 Run: python -m astrolab explore 004 --tag t043-shift --script explore/t043_shifted_neighbours.py
@@ -69,6 +70,23 @@ def shifted_query(region, near_b, select, shift):
     return f"SELECT COUNT(*) AS n FROM ({inner}) AS g" if select == "count" else inner
 
 
+def in_regions(regs, ra, dec, plx):
+    """True where a star lies in one of the (non-near) regions as star a: half-open RA and declination
+    boxes (declination closed at +90), parallax below the near-star limit (queries.star_a_where)."""
+    ra, dec, plx = np.asarray(ra, float), np.asarray(dec, float), np.asarray(plx, float)
+    hit = np.zeros(len(ra), bool)
+    for g in regs:
+        if g["ra0"] == 0.0 and g["ra1"] == 360.0:
+            m_ra = np.ones(len(ra), bool)
+        elif g["ra0"] <= g["ra1"]:
+            m_ra = (ra >= g["ra0"]) & (ra < g["ra1"])
+        else:
+            m_ra = (ra >= g["ra0"]) | (ra < g["ra1"])
+        m_dec = (dec >= g["dec0"]) & ((dec < g["dec1"]) if g["dec1"] < 90.0 else (dec <= g["dec1"]))
+        hit |= m_ra & m_dec
+    return hit & (plx < 100.0)
+
+
 def galactic_b(ra, dec):
     from astropy.coordinates import SkyCoord
     import astropy.units as u
@@ -82,7 +100,7 @@ def summarise(pairs, mask):
         return {"pairs": 0}
     return {"pairs": n,
             "observed_survival": float(sub["survives"].mean()),
-            "chance_only_survival": float(sub["no_chance"].mean()),
+            "no_shifted_neighbour_fraction": float(sub["no_chance"].mean()),   # shifted-field proxy
             "mean_extra_real_neighbours_per_star": float(np.mean(np.r_[sub["extra_a"], sub["extra_b"]])),
             "mean_chance_neighbours_per_star": float(np.mean(np.r_[sub["chance_a"], sub["chance_b"]])),
             "frac_stars_with_chance_neighbour": float(np.mean(np.r_[sub["chance_a"], sub["chance_b"]] > 0))}
@@ -116,10 +134,8 @@ def main(ctx):
         # count-first, split-in-RA path of section 3 is used instead.
         bound = int(len(d2))
         try:
-            if bound >= P["max_rows"] or bound * BYTES_ROW > run._max_bytes():
+            if bound == 0 or bound >= P["max_rows"] or bound * BYTES_ROW > run._max_bytes():
                 _, d3 = run._r5_region(ctx, P, "T043", name, r, False, budget, build, BYTES_ROW)
-            elif bound == 0:
-                d3 = pd.DataFrame({"source_id": [], "n": []})
             else:
                 budget.reserve(bound * BYTES_ROW, f"T043 {name}")
                 try:
@@ -128,8 +144,10 @@ def main(ctx):
                 except BaseException:
                     budget.release(bound * BYTES_ROW)
                     raise
-                if len(d3) > bound:            # the bound was wrong: fall back to the server count
-                    ctx.log(f"T043 {name}: {len(d3)} rows exceed the bound {bound}; using the server count")
+                if len(d3) > bound or len(d3) >= P["max_rows"]:
+                    # N2 holds only parents with at least one true neighbour (nearly all N1 members: the
+                    # partner), so the bound can be short; then, or at the row cap, count and split
+                    ctx.log(f"T043 {name}: {len(d3)} rows against the bound {bound}; using the server count")
                     _, d3 = run._r5_region(ctx, P, "T043", name, r, False, budget, build, BYTES_ROW)
             err = None
         except run._stops():
@@ -142,14 +160,14 @@ def main(ctx):
         out = list(ex.map(one, regions))
     failed = {name: err for name, _, _, _, err in out if err}
     ok_names = {name for name, _, _, _, err in out if not err}
-    # every N2 parent of a region whose queries all worked; a pair is used only if both stars are among
-    # them (a pair's star b can lie in another region's margin, and that region may have failed)
-    ok_parents = set()
+    # a pair is used only if both stars lie in regions whose queries all worked (a pair's star b can lie
+    # in another region's margin, and that region may have failed); a star without an N2 row there has
+    # no true neighbour (not survival) and one without a shifted row no shifted neighbour
+    ok_regions = [r for name, r in regions if name in ok_names]
     ctx.log(f"regions: {len(out)}; shifted query failed in {len(failed)}: {dict(list(failed.items())[:3])}")
 
     n1 = pd.concat([d1 for name, d1, _, _, _ in out if name in ok_names and len(d1)], ignore_index=True)
     n2 = pd.concat([d2 for name, _, d2, _, _ in out if name in ok_names and len(d2)], ignore_index=True)
-    ok_parents.update(int(s) for s in n2["source_id"])
     sh = [d3 for name, _, _, d3, _ in out if name in ok_names and d3 is not None and len(d3)]
     sh = pd.concat(sh, ignore_index=True) if sh else pd.DataFrame({"source_id": [], "n": []})
     for name, df in (("N2", n2), ("shifted", sh)):
@@ -165,8 +183,8 @@ def main(ctx):
     cut = ((n1["pbar"] > 4.0) & (n1["rsky"] >= 300.0) & (n1["ruwe_a"] < 1.25) & (n1["ruwe_b"] < 1.25)
            & (n1["parallax_a"] < PLX_MAX) & (n1["parallax_b"] < PLX_MAX))
     pairs = n1[cut].copy()
-    both_ok = np.array([int(p) in ok_parents and int(q) in ok_parents
-                        for p, q in zip(pairs["source_id_a"], pairs["source_id_b"])], bool)
+    both_ok = (in_regions(ok_regions, pairs["ra_a"].values, pairs["dec_a"].values, pairs["parallax_a"].values)
+               & in_regions(ok_regions, pairs["ra_b"].values, pairs["dec_b"].values, pairs["parallax_b"].values))
     dropped_failed = int((~both_ok).sum())
     pairs = pairs[both_ok].copy()
     real = {int(s): (int(n), int(f)) for s, n, f in zip(n2["source_id"], n2["n"], n2["first_neighbour"])}
@@ -195,7 +213,7 @@ def main(ctx):
                     "shifts); the shifted field also samples moving groups wider than 2 deg as 'chance'"),
            "cumulative": {}, "by_shell": {}, "by_shell_lat": {}, "by_shell_sep": {}}
     for hi in CUMULATIVE:
-        res["cumulative"][f"<{hi:g}"] = summarise(pairs, pairs["d"] < hi)
+        res["cumulative"][f"29.9-{hi:g}"] = summarise(pairs, pairs["d"] < hi)
     for lo, hi in SHELLS:
         m = (pairs["d"] >= lo) & (pairs["d"] < hi)
         key = f"{lo:g}-{hi:g}"
