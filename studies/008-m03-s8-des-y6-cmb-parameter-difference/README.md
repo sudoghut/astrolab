@@ -903,8 +903,8 @@ correlations Ωm +0.39 / +0.76, h +0.06 / −0.80, Ωb +0.00 / +0.83, n_s +0.05 
   and A_s and the Gaussian 2-D (A_s, Ωm) offset are similar to, or smaller than, their marginal
   counterparts (Ωm −0.21 against +0.34; A_s −0.67 against −0.75; in raw units Ωm −0.0048 against
   +0.0092, A_s −0.126 against −0.138 in 10⁻⁹; 2-D 0.33σ against 0.32σ). This compares means and a
-  Gaussian summary, not the full conditional distributions, and says nothing causal. The offsets
-  grow in size with Σmν. Across the bins the CMB's conditional means of Ωm, h and Ωb change more than
+  Gaussian summary, not the full conditional distributions, and says nothing causal. The Ωm, h, Ωb,
+  A_s and 2-D offsets grow in size with Σmν (n_s does not). Across the bins the CMB's conditional means of Ωm, h and Ωb change more than
   DES's (Ωm: CMB 0.322 → 0.384, DES 0.318 → 0.344; h: 0.668 → 0.625 against 0.669 → 0.680; Ωb:
   0.0503 → 0.0572 against about 0.0458 throughout); for A_s both change (DES 1.993 → 1.949, CMB
   2.119 → 2.170). That the CMB's shifts follow its geometric degeneracy is an interpretation, not
