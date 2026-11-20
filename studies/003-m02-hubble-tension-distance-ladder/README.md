@@ -986,23 +986,25 @@ results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_
 - **Post hoc (referee, 2026-11-20; section 6): what "consistent" can and cannot show.** The null is C
   with no outlier, so rule (2) says only that the 36 remaining hosts do not reject C; it does not test
   one outlying host against host-level scatter spread over all hosts. Against such diffuse scatter the
-  criterion-S spread test has little power (with a proxy, see section 6: it rejects at 5% in 21% of
-  simulations for τ = 0.05 mag and 45% for τ = 0.077), so the pre-registered reading, which stands as
-  a label, should be read as "after the selection is simulated, the 36 remaining hosts are consistent
-  with C". A statistic that does separate the two pictures, the drop of the spread when the S-selected
-  host is removed (real data 1.307 − 1.027 = 0.280), favours one outlying host: it is reached in 0.6%
-  of simulations under C and in 1.9% and 3.6% under diffuse scatter with τ = 0.05 and 0.077 (37-host
-  spread at least 1.307 and post-drop spread at most 1.027 together: 0.2% under either). This statistic
-  was chosen after seeing the data and uses a proxy; a pre-registered version is registered as T-048.
-  Two further points: the three labels are not independent (τ̂_s and the criterion-X spread correlate
-  at 0.81 over the first 400 simulations), and criterion X barely conditions the τ part (p = 0.26 in the
-  37 simulations where X drops N5584, 0.24 in the other 363), as the section 2 caveat said.
-
+  criterion-S spread test has little power (with a proxy statistic, see section 6: it rejects at 5% in
+  21% of simulations for τ = 0.05 mag and 45% for τ = 0.077), so the pre-registered reading, which
+  stands as a label, should be read as "after the selection is simulated, the 36 remaining hosts are
+  consistent with C". The drop of the spread when the S-selected host is removed (real data 1.307 −
+  1.027 = 0.280) is unusual under C and less unusual under diffuse scatter: it is reached in 0.6% of
+  simulations under C and in 1.9% and 3.6% under diffuse scatter with τ = 0.05 and 0.077 (37-host
+  spread at least 1.307 and post-drop spread at most 1.027 together: 0.2% under either). This points
+  towards one outlying host but does not show it: no single-outlier model was simulated, and the drop
+  partly restates the already high 37-host spread (reached in 25 of 2,000 simulations under C). The
+  statistic was chosen after seeing the data and uses a proxy; a pre-registered comparison, including a
+  single-host offset model, is registered as T-048. Two further points: the three labels are not
+  independent (τ̂_s and the criterion-X spread correlate at 0.81 over the first 400 simulations), and
+  criterion X barely conditions the τ part (p = 0.26 in the 37 simulations where X drops N5584, 0.24 in
+  the other 363), as the section 2 caveat said.
 - **Status of R2.** Unchanged, as fixed in section 2: the R2-RE headline row ("no host-selection
   effect detected"), the R2-RE-ROB and R2-RE-N5584 labels, `summary.json` `R2_host` and the claim's
   verdict stay as recorded.
 - **Runtime.** The block took 12,258 s: τ part 8,015 s (about 20 s per REML fit), spread parts 3,975 s
-  (rows for 37 dropped hosts, about 110 s each); the whole run 9.3 h, within the 8.5–10 h estimate. No
+  (rows for the other 36 dropped hosts, about 110 s each; N5584's were built before the τ part); the whole run 9.3 h, within the 8.5–10 h estimate. No
   data downloaded.
 
 ## 6. Referee notes
@@ -1080,7 +1082,7 @@ reran that script and the τ split ourselves and reproduced every number quoted 
 
 | # | Point | Verified | Action |
 |---|---|---|---|
-| 1 | Rule (2) cannot tell one outlying host from diffuse host scatter: the null is C with no outlier; with the smallest spread_excl as a proxy (correlation 0.979 with the 36-host spread under S), a diffuse random effect V(τ) on all 37 hosts is rejected at 5% in only 21% (τ = 0.05) and 45% (τ = 0.077) of simulations, and the real post-selection value is at or below the simulated one in 66% and 39%. The drop D = spread_37 − min_j spread_excl_j (real 0.280) does discriminate: P(D ≥ 0.280) = 0.006 under C (99th percentile 0.251), 0.019 under V(0.05), 0.036 under V(0.077); the joint event "spread_37 ≥ 1.307 and post-drop spread ≤ 1.027" has probability 0.002 under both diffuse models | yes (our rerun: same numbers; 2,000 simulations under C, 1,000 per V, seeds 50,000 +) | **Accepted** (post hoc): section 5 reads the label as "the 36 remaining hosts are consistent with C" and reports D as exploratory evidence for one outlying host; the pre-registered label stands. A pre-registered single-outlier versus diffuse-scatter test is registered as T-048. |
+| 1 | Rule (2) cannot tell one outlying host from diffuse host scatter: the null is C with no outlier; with the smallest spread_excl as a proxy (correlation 0.979 with the 36-host spread under S), a diffuse random effect V(τ) on all 37 hosts is rejected at 5% in only 21% (τ = 0.05) and 45% (τ = 0.077) of simulations, and the simulated post-selection value is at or below the real one in 66% and 39% (the real value is ordinary under V too). The drop D = spread_37 − min_j spread_excl_j (real 0.280) is rarer: P(D ≥ 0.280) = 0.006 under C (99th percentile 0.251), 0.019 under V(0.05), 0.036 under V(0.077); the joint event "spread_37 ≥ 1.307 and post-drop spread ≤ 1.027" has probability 0.002 under both diffuse models | yes (our rerun: same numbers; 2,000 simulations under C, 1,000 per V, seeds 50,000 +) | **Accepted** (post hoc): section 5 reads the label as "the 36 remaining hosts are consistent with C" and reports D as exploratory, pointing towards one outlying host without showing it (no single-outlier model was simulated; D partly restates the high 37-host spread); the pre-registered label stands. A pre-registered comparison of C, diffuse scatter and a single-host offset model is registered as T-048. |
 | 2 | Criterion X hardly conditions the τ null: p is about the same whether X dropped N5584 (37 simulations) or another host (363); X mostly drops hosts with 3–4 calibrator rows (N5468, N5584, N5643 about 9% each; N3982, second by tail probability, 6 of 2,000), so the fall from 0.339 to 0.244 may come as much from the different 36-host systems as from selection | yes ((1 + k)/(1 + n): 0.263 and 0.245) | Accepted; this is the direction section 2 stated; noted in section 5. |
 | 3 | The three labels are not independent: τ̂_s and spread_X correlate at 0.81 over the first 400 simulations; both spreads share the subset rows | yes (0.810) | Accepted; section 5 says so; rule (2)'s three labels are not three confirmations. |
 | 4 | The history is not mimicked: N5584 was looked at because the 37-host spread was already high (ROB p = 0.021) and singled out by X, part A and S in sequence; but conditioning on a high simulated 37-host spread (top 10%, or ≥ 1.2) gives post-selection spread ≥ 1.033 in 82–89% of simulations, so conditioning would strengthen "consistent"; P(spread_37 ≥ 1.307) under C is 25 of 2,000; union selection was not simulated | yes (0.825 for the top 10%, 0.889 for ≥ 1.2) | Accepted limitation; does not change the reading. |
@@ -1100,7 +1102,8 @@ reran that script and the τ split ourselves and reproduced every number quoted 
   (Wojtak & Hjorth 2022) is one candidate; whether C's calibrator block already holds a within-SN
   term is unchecked. Robustness of τ̂ to single hosts and its null distribution: T-032 (answered:
   the excess is consistent with one outlying host, N5584; R2-RE-N5584, T-039; also with the selection
-  of the most extreme host simulated, R2-RE-SEL, T-042).
+  of the most extreme host simulated, R2-RE-SEL, T-042, a test with little power against diffuse host
+  scatter; T-048).
 - Is N5584's offset (effective scatter 0.12 mag under the heavy-tailed model) from its single SN,
   2007af, or from its Cepheid distance? The data cannot tell (section 6); the literature favours the SN
   (an independent Cepheid reanalysis agrees with SH0ES). A published per-host TRGB or JAGB distance for
@@ -1110,8 +1113,8 @@ reran that script and the τ split ourselves and reproduced every number quoted 
   under C (p = 0.24 for τ̂ under criterion X; 0.24 and 0.14 for the spread under X and S), so the
   reading is "consistent with one outlying host, selection included"; the τ part has no aligned
   criterion. The test has little power against diffuse host scatter (referee, post hoc); is the excess
-  one outlying host or scatter spread over all hosts? A post-hoc spread-drop statistic favours one
-  host; a pre-registered test is T-048.
+  one outlying host or scatter spread over all hosts? A post-hoc spread-drop statistic points towards
+  one host but no single-outlier model was simulated; a pre-registered comparison is T-048.
 - Is the calibrator SN block of C globally under-scaled? Every null in this study takes C as given
   (R2-RE-SEL referee, point 5).
 - A Cepheid-only per-host comparison for R3 (μ from fits without each host's SN rows).
