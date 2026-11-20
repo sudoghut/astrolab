@@ -1012,7 +1012,7 @@ was using the machine. Triage:
    checks that this is Σmν jointly with its DES correlations and partly the prior shape (section 6;
    pre-registered check T-044), so a verdict on the data-constrained pair (A_s, Ωm) (R6 flow 0.40σ)
    matters more than a sharper 6-D number. R6-SHUF's pre-registered label (T-044, 2026-11-20) is that
-   the Σmν part is mainly DES's own Σmν correlations (φ̄ = 0.67); which DES parameters carry them is not tested.
+   the Σmν part is mainly DES's own Σmν correlations (φ̄ = 0.67); R6-SHUF itself does not show which DES parameters carry them.
    Its referee (post hoc) found the label near the edge of what the gates certify (bias-corrected
    I_φ = [0.601, 0.669]); a known-answer test of φ is registered as T-047. Its no-flow first part
    (conditional means, 2026-11-20, post hoc; section 5) finds DES's Σmν nearly a joint linear
