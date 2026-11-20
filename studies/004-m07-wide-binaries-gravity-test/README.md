@@ -689,10 +689,10 @@ By separation the two agree as well (150–250 pc: 300–1,000 AU 0.117 / 0.116,
   parallax precision, or a probabilistic rule using this chance rate); that is a new design and
   needs a new pre-registration. R5's label and R2 are unchanged.
 - **Limits.** One deterministic shift per region (no repeat with other shifts, so the error from
-  the shift itself is not estimated). The binomial error of each fraction is about 0.005–0.01 for the
+  the shift itself is not estimated). The binomial error of each fraction is about 0.003–0.01 for the
   shells and up to about 0.02 in bins below about 1,000 pairs, and slightly larger in truth because a
   star can belong to several pairs. The shift moves |b| by up to 2° and towards higher density at
-  some positions; the 130–150 pc, |b| < 10° bin (observed 1.9 points above expected, about 1.5–2σ)
+  some positions; the 130–150 pc, |b| < 10° bin (observed 1.9 points above expected, about 1.5σ)
   may show that effect where density changes fast, or noise. Pairs straddling declination 0 get
   opposite shifts, so their two shifted circles sample unrelated fields while the true circles
   overlap. Latitude bins use star a's true position. Moving groups and clusters wider than 2° are sampled by
