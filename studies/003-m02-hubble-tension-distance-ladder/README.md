@@ -957,7 +957,7 @@ results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_
 
 - **Reading (pre-registered, rule 2).** With the choice of the most extreme of 37 hosts simulated, the
   scatter of the 36 remaining hosts is still ordinary under C: all three Clopper–Pearson intervals lie
-  above 0.05. So the post-hoc gloss of R2-RE-N5584, "consistent with one outlying host", is now the
+  above 0.05 (τ under X 0.201–0.288, spread under X 0.222–0.260, spread under S 0.122–0.152). So the post-hoc gloss of R2-RE-N5584, "consistent with one outlying host", is now the
   pre-registered reading of this test, with one caveat: the τ part uses criterion X only, which is less
   aligned with τ̂ than "smallest τ̂_j" (not feasible: 37 REML fits per simulation), so its p is
   expected to be higher than under an aligned criterion; the τ label supports the reading only as far
