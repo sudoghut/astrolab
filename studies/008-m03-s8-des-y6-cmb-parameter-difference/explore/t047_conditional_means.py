@@ -28,6 +28,8 @@ def _load(ctx, P, key):
     chain, info = s8diff.load_chain(path, cmap, 0.0)
     hdr = [h.lower() for h in fmt["header"]]
     X = np.column_stack([chain["data"][:, hdr.index("cosmological_parameters--" + n)] for n in NAMES])
+    if not np.all(chain["w"] >= 0):
+        raise ValueError(f"{key}: negative weights")
     w = chain["w"] / chain["w"].sum()
     ok = np.all(np.isfinite(X), axis=1) & np.isfinite(w)
     return X[ok], w[ok] / w[ok].sum(), info

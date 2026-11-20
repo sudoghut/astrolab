@@ -894,20 +894,23 @@ to the other five parameters, DES / CMB: multiple R² 0.867 / 0.926; partial cor
 correlations Ωm +0.39 / +0.76, h +0.06 / −0.80, Ωb +0.00 / +0.83, n_s +0.05 / −0.18, A_s
 −0.07 / +0.18.
 
-- **Reading (descriptive).** In the DES chain Σmν is almost a linear function of the other
-  parameters jointly (R² = 0.87; large partial correlations with Ωm, h, Ωb and A_s), although its
-  pairwise correlations are small except with Ωm (+0.39). So the pairwise correlations do not show
-  which parameters carry the dependence: shuffling DES's Σmν breaks a joint relation with Ωm, h, Ωb
-  and A_s together. In the lowest Σmν bin, where 95% of the CMB weight lies, the per-parameter
-  conditional means of Ωm and A_s are no farther from the CMB than the marginal means (Ωm −0.21
-  against +0.34; A_s −0.67 against −0.75; in raw units Ωm −0.0048 against +0.0092, A_s −0.126 against
-  −0.138 in 10⁻⁹), and the 2-D (A_s, Ωm) offset is the same (0.33σ against 0.32σ): DES's low-Σmν
-  region does not move (A_s, Ωm) away from the CMB. The offsets grow with Σmν; for Ωm, h and Ωb
-  mainly because the CMB's conditional means move strongly with Σmν (its geometric degeneracy), for
-  A_s because both chains move (DES's mean falls, the CMB's rises). Above 0.36 eV they compare DES
-  with a CMB tail of ESS 13–38, so those rows are poorly determined. The sign change of the Ωm
-  offset between the bins and the marginal is a mixture effect: the CMB weight sits in the lowest
-  bin, the DES weight is spread over all five.
+- **Reading (descriptive).** In the DES chain a linear regression of Σmν on all five other
+  parameters has R² = 0.87, with large partial correlations (conditional linear associations) with
+  Ωm, h, Ωb and A_s, although the pairwise correlations are small except with Ωm (+0.39). So the
+  pairwise correlations do not describe Σmν's linear ties, and shuffling DES's Σmν breaks a joint
+  relation with the other parameters rather than one pair; which parameters matter for φ is not
+  shown. In the lowest Σmν bin, where 95% of the CMB weight lies, the conditional mean offsets of Ωm
+  and A_s and the Gaussian 2-D (A_s, Ωm) offset are similar to, or smaller than, their marginal
+  counterparts (Ωm −0.21 against +0.34; A_s −0.67 against −0.75; in raw units Ωm −0.0048 against
+  +0.0092, A_s −0.126 against −0.138 in 10⁻⁹; 2-D 0.33σ against 0.32σ). This compares means and a
+  Gaussian summary, not the full conditional distributions, and says nothing causal. The offsets
+  grow in size with Σmν. Across the bins the CMB's conditional means of Ωm, h and Ωb change more than
+  DES's (Ωm: CMB 0.322 → 0.384, DES 0.318 → 0.344; h: 0.668 → 0.625 against 0.669 → 0.680; Ωb:
+  0.0503 → 0.0572 against about 0.0458 throughout); for A_s both change (DES 1.993 → 1.949, CMB
+  2.119 → 2.170). That the CMB's shifts follow its geometric degeneracy is an interpretation, not
+  measured here. Above 0.36 eV the offsets compare DES with a CMB tail of ESS 13–38, so those rows
+  are poorly determined. The sign change of the Ωm offset between the bins and the marginal is a
+  mixture effect: the CMB weight sits in the lowest bin, the DES weight is spread over all five.
 - **Limits.** Conditional means and covariances, per parameter and for one pair, not the 6-D
   difference; φ (a 6-D, partly non-linear quantity) cannot be read off them, and these numbers are
   not a check of φ = 0.67. One binning (quintiles of DES); no error bars (the ESS per bin is given).
@@ -1015,9 +1018,9 @@ was using the machine. Triage:
    the Σmν part is mainly DES's own Σmν correlations (φ̄ = 0.67); R6-SHUF itself does not show which DES parameters carry them.
    Its referee (post hoc) found the label near the edge of what the gates certify (bias-corrected
    I_φ = [0.601, 0.669]); a known-answer test of φ is registered as T-047. Its no-flow first part
-   (conditional means, 2026-11-20, post hoc; section 5) finds DES's Σmν nearly a joint linear
-   function of Ωm, h, Ωb and A_s (R² = 0.87), and DES's low-Σmν region no farther from the CMB in
-   (A_s, Ωm).
+   (conditional means, 2026-11-20, post hoc; section 5) finds DES's Σmν tied linearly to the other
+   five parameters jointly (R² = 0.87), not to one of them, and in the lowest Σmν bin (A_s, Ωm) mean
+   offsets similar to the marginal ones (descriptive; not a test of φ).
 2. How much does the S8 difference change with a lensing-inclusive or Planck-PR4-based CMB
    (D26 reports 1.0σ in full space against Planck 2018 alone)?
 3. Do KiDS-1000 and HSC Y3 (2023) quote means or modes? R5 shows a 0.1–0.2σ dependence.
