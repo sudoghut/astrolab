@@ -793,14 +793,14 @@ verdicts above stand (SEL-9).
     or 2), every mock has a valley, and no mock that passed under the original fits fails. Power is
     1.00 in all six sets. It stays at or above 0.80 unless refitted null sets lower d* below 0.016 (the
     largest 80th percentile of d over the sets); the original fits found no valley in any of the bin's
-    200 null mocks, but those fits used the same optimiser, so this is not shown.
+    200 null mocks per variant, but those fits used the same optimiser, so this is not shown.
   - **What this means for R1-SEL (post hoc; the pre-registered label stands).** With converged mock fits
     bin [−0.7, −0.5) would be resolvable in all three variants. Each variant would then have three
     resolvable bins and none almost disjoint (data d = 0.37–0.58 against d* ≤ 0.25), which the 2.1 rule
-    reads as "not reproduced". So bin 0's lost power is an artefact of the mock optimiser, as the
+    reads as "not reproduced". So the lost power of bin [−0.7, −0.5) is an artefact of the mock optimiser, as the
     referee inferred, and R1-SEL would read "not reproduced" if the null sets and the other resolvable
     bins hold up under the same refit. That is not tested here: better null fits could find valleys and
-    lower d* from its cap 0.25, and the two other resolvable bins are more exposed to that than bin 0
+    lower d* from its cap 0.25, and the two other resolvable bins are more exposed to that than bin [−0.7, −0.5)
     (their recorded power mocks reach d = 0.03–0.14; power 1.00 at d* = 0.25); the metal-rich bins'
     power 0, attributed above to the density model, may also be partly optimiser-limited. A pre-registered rerun of R1-SEL with
     data-independent starts in every mock fit is registered as T-049.
