@@ -286,8 +286,9 @@ labels above stand as the pre-registered outcome; the re-test labels are the cur
   (T-045, exploration, post hoc) showed why: the missed mocks are local optima of the mock fits; with
   data-independent starts every mock finds its valley and the bin's power is 1.00 in all six sets
   (recorded 0.58–0.88). So the bin would be resolvable, and because no bin has an almost disjoint
-  valley the reading would be "not reproduced"; the recorded label stays "undetermined" until a
-  pre-registered rerun with better mock fits (T-049).
+  valley the reading would be "not reproduced", provided the null mocks and the other bins hold up
+  under the same refit (not tested); the recorded label stays "undetermined" until a pre-registered
+  rerun with better mock fits (T-049).
 - **Variant without a selection term.** It agrees on the intrinsic scatter. It fails the recovery test
   for the sequence under the mocks' error generator, which is why R3/R4 carry "selection-term
   sensitive". Post hoc, the referee's evidence points to that generator as the cause (an
@@ -326,8 +327,9 @@ Newest first.
   6.09 Gyr); R4-SEL not reproduced (2.55 Gyr); intrinsic-SEL confirmed, not robust (0.748 Gyr);
   R1-SEL undetermined, hinging on one bin's mock-fit-limited power (T-045); part 3 updated.
 - 2026-11-20: diagnostic refit (T-045, post hoc): the deciding bin's missed mocks are local optima of the
-  mock fits; with data-independent starts its power is 1.00, so R1-SEL's substantive reading is "not
-  reproduced"; pre-registered rerun registered as T-049 (part 3 updated).
+  mock fits; with data-independent starts its power is 1.00, so R1-SEL would read "not reproduced" if the null
+  mocks and other bins hold up (not tested); pre-registered rerun registered as T-049 (part 3
+  updated).
 - 2026-11-16: study run and independent referee: R2 reproduced (12.93 Gyr); R1 undetermined; R3/R4
   and the intrinsic scatter cannot be determined (the S15 selection term of M0 is misspecified, found
   by the referee; re-test T-031); `mod_bin` relabelled `gap_bin` (GAP), so three gaps; part 3 results.
@@ -471,7 +473,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 - **老盘跨度复现，且稳健：** 1.5 dex 上 6.09 Gyr（各稳健性拟合中为 5.9–6.3）。
 - **α 选择样本的离散未复现：** 2.55 Gyr，而 XR22 为 0.82。
 - **老序列的内禀离散确认低于 0.82 Gyr：** 在带背景成分的混合模型中为 0.748 Gyr。它不稳健：误差乘以 0.8 后就无法判定。
-- **8 Gyr 分界仍无法判定。** 标签取决于一个贫金属箱，而该箱的功效受限于漏掉谷的模拟拟合（独立审稿，事后）。诊断性重拟合（T-045，探索，事后）说明了原因：漏掉的模拟是模拟拟合的局部最优；用与数据无关的起点时每个模拟都找到谷，该箱六组的功效都是 1.00（记录值 0.58–0.88）。所以这个箱可分辨，而没有一个箱的谷几乎不相交，结论会是"未复现"；在用更好的模拟拟合做预注册重跑（T-049）之前，记录的标签仍是"无法判定"。
+- **8 Gyr 分界仍无法判定。** 标签取决于一个贫金属箱，而该箱的功效受限于漏掉谷的模拟拟合（独立审稿，事后）。诊断性重拟合（T-045，探索，事后）说明了原因：漏掉的模拟是模拟拟合的局部最优；用与数据无关的起点时每个模拟都找到谷，该箱六组的功效都是 1.00（记录值 0.58–0.88）。所以这个箱会是可分辨的，而没有一个箱的谷几乎不相交，只要零假设模拟与其他箱在同样的重拟合下保持不变（未检验），结论会是"未复现"；在用更好的模拟拟合做预注册重跑（T-049）之前，记录的标签仍是"无法判定"。
 - **不加选择项的变体。** 它在内禀离散上给出相同结论；在模拟的误差生成器下，它对序列的回收检验失败，所以 R3/R4 带有"对选择项敏感"。事后看，审稿的证据指向这个生成器是原因（推断：在原生成器下这个变体能够恢复）。
 
 对话探索：`python -m astrolab explore 010 --tag <主题> --set 键=值` 可用改变的参数（例如 J_φ 截断、误差截断或高 α 阈值）重跑任一拟合，不影响正式结果；见研究 README 第 8 节。
@@ -500,7 +502,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 按时间倒序。
 
 - 2026-11-20：重新检验 R-SEL（T-031）及其独立审稿：R3-SEL 复现、稳健（跨度 6.09 Gyr）；R4-SEL 未复现（2.55 Gyr）；内禀离散-SEL 确认、不稳健（0.748 Gyr）；R1-SEL 无法判定，取决于一个功效受模拟拟合限制的箱（T-045）；更新第三部分。
-- 2026-11-20：诊断性重拟合（T-045，事后）：关键箱漏掉的模拟是模拟拟合的局部最优；用与数据无关的起点时功效为 1.00，所以 R1-SEL 的实质解读是"未复现"；预注册重跑登记为 T-049（更新第三部分）。
+- 2026-11-20：诊断性重拟合（T-045，事后）：关键箱漏掉的模拟是模拟拟合的局部最优；用与数据无关的起点时功效为 1.00，所以如果零假设模拟与其他箱保持不变（未检验），R1-SEL 会读作"未复现"；预注册重跑登记为 T-049（更新第三部分）。
 - 2026-11-16：研究运行与独立审稿：R2 复现（12.93 Gyr）；R1 无法判定；R3/R4 与本征弥散无法判定（M0 的 S15 选择项设定错误，独立审稿发现；重新检验 T-031）；`mod_bin` 改为 `gap_bin`（GAP），因而有三个缺口；补上第三部分的结果。
 - 2026-11-15：闸门 1 审查：宇宙年龄由 XR22 写明（Planck 2015），没有只属标准知识的前提；`gap_onset` 列出四个步骤，扩展数据图 2 的尾巴描述为溅出的盘星，而不是晕的混入。
 - 2026-11-15：第一版：第一至第三部分（预注册的来源；计划 `design/019-plan_*`）。

@@ -782,7 +782,7 @@ verdicts above stand (SEL-9).
   | S15 term N, e = r·τ | 0.88 | 6 | 38 | 1.00 | 0.009 |
   | S15 term N, e = r·A | 0.88 | 6 | 37 | 1.00 | 0.009 |
   | Full, e = r·τ | 0.70 | 15 | 37 | 1.00 | 0.009 |
-  | Full, e = r·A | 0.74 | 13 | 35 | 1.00 | 0.010 |
+  | Full, e = r·A | 0.74 | 13 | 35 | 1.00 | 0.009 |
 
   - **The misses are local optima of the mock fits.** In 27–38 of 50 mocks per set the original fits'
     NLL rises from some K to K + 1, which a converged nested fit cannot do; with the independent starts
@@ -791,16 +791,18 @@ verdicts above stand (SEL-9).
     so the convergence flag does not detect these optima.
   - **With the better fits** BIC chooses K = 3 in 43–47 of 50 mocks and K = 4 in the rest (never K = 1
     or 2), every mock has a valley, and no mock that passed under the original fits fails. Power is
-    1.00 in all six sets, and stays at or above 0.80 for any d* above 0.017 (the largest 80th
-    percentile of d over the sets), so refitting the null sets, which could only lower d* from its cap
-    0.25, would not change this.
+    1.00 in all six sets. It stays at or above 0.80 unless refitted null sets lower d* below 0.016 (the
+    largest 80th percentile of d over the sets); the original fits found no valley in any of the bin's
+    200 null mocks, but those fits used the same optimiser, so this is not shown.
   - **What this means for R1-SEL (post hoc; the pre-registered label stands).** With converged mock fits
     bin [−0.7, −0.5) would be resolvable in all three variants. Each variant would then have three
     resolvable bins and none almost disjoint (data d = 0.37–0.58 against d* ≤ 0.25), which the 2.1 rule
-    reads as "not reproduced". The recorded "undetermined" is therefore an artefact of the mock
-    optimiser, as the referee inferred. Not tested here: the null sets and the other bins (the two
-    resolvable bins already have power 1.00; the metal-rich bins' power 0, attributed above to the
-    density model, may also be partly optimiser-limited). A pre-registered rerun of R1-SEL with
+    reads as "not reproduced". So bin 0's lost power is an artefact of the mock optimiser, as the
+    referee inferred, and R1-SEL would read "not reproduced" if the null sets and the other resolvable
+    bins hold up under the same refit. That is not tested here: better null fits could find valleys and
+    lower d* from its cap 0.25, and the two other resolvable bins are more exposed to that than bin 0
+    (their recorded power mocks reach d = 0.03–0.14; power 1.00 at d* = 0.25); the metal-rich bins'
+    power 0, attributed above to the density model, may also be partly optimiser-limited. A pre-registered rerun of R1-SEL with
     data-independent starts in every mock fit is registered as T-049.
 
 ## 6. Referee notes
@@ -846,8 +848,9 @@ numbers and found each one as the rules give. Triage:
   with an empirical age-dependent pass fraction (term E), a corrected power floor and r keyed by
   age. The -SEL labels are reported there next to the original ones.
 - **R1-SEL's deciding bin (T-045, done as a diagnostic).** The power of bin [−0.7, −0.5) was lost to
-  local optima of the mock fits; with data-independent starts it is 1.00 in all six sets, so the
-  substantive reading of R1-SEL is "not reproduced" (section 5.1, post hoc). A pre-registered rerun of
+  local optima of the mock fits; with data-independent starts it is 1.00 in all six sets, so R1-SEL
+  would read "not reproduced" if the null sets and the other resolvable bins hold up under the same
+  refit (section 5.1, post hoc; not tested). A pre-registered rerun of
   R1-SEL with such starts in every mock fit, null sets and all bins included, is T-049.
 - **Which error generator is right.** Open points from section 5.1, readings 2–4:
   - Term N fails recovery only under the τ-keyed generator, whose pools carry the age dependence
