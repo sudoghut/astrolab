@@ -641,7 +641,7 @@ estimated input 54.0 MB of the 200 MB budget). Rows: N1 60,259, N2 116,401, N3 5
 
 Not pre-registered and not a verdict: it tests the referee's inference above (chance neighbours, not
 triples). Script `explore/t043_shifted_neighbours.py`, run 2026-11-20 on all 338 R5 regions (no failed
-region; each region counted on the server before it was fetched; 89,252 shifted rows). For every N1
+region; each region counted on the server before it was fetched; 89,252 parent rows with at least one shifted neighbour, each holding a count). For every N1
 member it counts the N2 neighbours (same relaxed rule: parallax_over_error > 5,
 phot_g_mean_flux_over_error > 5, parallax + 3σ > 3.478 mas, within 100 kAU projected and the 3σ
 parallax window) around a position shifted 2° in declination towards the equator; the shifted circle
@@ -673,12 +673,15 @@ By separation the two agree as well (150–250 pc: 300–1,000 AU 0.117 / 0.116,
 
 - **Reading (descriptive).** In every shell, latitude bin and separation bin the observed survival is
   at most 6.3 percentage points below or 1.9 above the shifted-field expectation, and the number of real extra
-  neighbours per star is close to the shifted count (ratio 0.93–1.12 by shell). So almost all of the
-  degrouping loss, and its fall with distance and towards the plane, is what chance neighbours alone
-  produce: the referee's inference is confirmed. The remainder, observed below expected by about
+  neighbours per star is close to the shifted count (ratio 0.93–1.12 by shell). So the degrouping loss,
+  and its fall with distance and towards the plane, is close to what a chance-only proxy predicts:
+  the measurement supports the referee's inference that most of the loss is chance neighbours (it
+  does not show that the shifted and true fields have the same neighbour distribution). The
+  remainder, observed below expected by about
   12% of the expected survival at 29.9–130 pc and 6% beyond (shell averages; up to 27% in the
-  |b| < 10° bin at 29.9–130 pc), is an estimate of the loss to real triples, moving groups and
-  clusters smaller than 2°, not a bound: the systematic error from the shift is not measured and
+  |b| < 10° bin at 29.9–130 pc), is an observed proxy difference, not a bound: it may hold losses to
+  real triples, moving groups and clusters smaller than 2°, but also shift bias, correlations
+  between pairs and neighbours, and noise. The systematic error from the shift is not measured and
   could go either way (within 130 pc the shifted field holds slightly more neighbours per star than
   the true one, which would make the real remainder larger). The 300–1,000 AU pairs at 150–250 pc
   (11.7% observed, 11.6% expected) lose nothing beyond chance within the statistical error.
@@ -754,7 +757,7 @@ refused) and reran G1b. We reran its scripts and reproduced every number below. 
   does not lose pairs to spurious neighbours as the parallax window widens (section 6: the relaxed rule
   keeps 44% at 130 pc and 23% at 250 pc); any such design needs a new pre-registration (its
   velocity-free counts are now seen). The shifted-field measurement (T-043, section 5, post hoc)
-  shows that the loss is almost entirely chance neighbours.
+  shows that the loss is close to a chance-only expectation, so mostly chance neighbours.
 - The Lean argument lacks a premise that x is computed on the MOND model's scale (referee point 9);
   C26's lowest bin is inconsistent with its stated 1 kAU floor.
 - Design lesson: a hard 15-pair floor with a 5% redraw limit invalidates variants whose sparsest bin
