@@ -595,8 +595,9 @@ produces is called R1-SEL-FIT.
   "reproduced" is impossible. The question is only whether at least three bins are resolvable
   ("not reproduced") or fewer ("undetermined"). Expected: bin [−0.7, −0.5) resolvable in all three
   variants (T-045). The open part is the null sets: better fits may find valleys in some null mocks
-  and lower d* below its cap; the power of bins [−0.5, −0.3) and [−0.3, −0.1) stays ≥ 0.80 if d*
-  exceeds the 80th percentile of their new power-mock d (all original values ≤ 0.04 and ≤ 0.14). The metal-rich bins may gain
+  and lower d* below its cap; bins [−0.5, −0.3) and [−0.3, −0.1) stay resolvable if, under each
+  mechanism, at least 40 of their 50 new power mocks have a valley with d < d* (under the original
+  fits all have a valley and all d ≤ 0.04 and ≤ 0.14). The metal-rich bins may gain
   power if their power mocks' fits improve; they cannot become almost disjoint. Our expectation is
   "not reproduced" in all three variants, which would make R1-SEL-FIT "not reproduced (robust;
   selection-term robust)".
