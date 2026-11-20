@@ -12,10 +12,9 @@ the observed relaxed-rule survival (N2: both stars' only neighbour is the partne
 and Galactic latitude.
 
 Data: N1 and N2 are the R5 queries of 2026-11-18 (cache hits when still cached). The shifted query is
-new: per region, the rows (source_id, n), about 40 bytes per parent star with at least one shifted
-neighbour; their number is bounded by the region's N2 rows (the same parent stars, minus those within
-29.9 pc), which replaces the server count (about 100 s per region on the archive); above the caps the
-count-first split is used. Parents within 29.9 pc (parallax >= 33.4 mas) are excluded on the server:
+new: per region, a server count first (split in RA above the caps, as section 3), then the rows
+(source_id, n), about 40 bytes per parent star with at least one shifted neighbour (about 100 s per
+query on the archive). Parents within 29.9 pc (parallax >= 33.4 mas) are excluded on the server:
 beyond it the shifted and true 100 kAU circles are disjoint and the shifted circle stays inside the
 region's star-b box; the near-star region (d < 10 pc) is not queried. A region whose N1, N2 or shifted
 query fails is recorded and skipped, and a pair is used only if both stars lie in regions
@@ -127,32 +126,18 @@ def main(ctx):
         except run._stops():
             raise
         except Exception as e:  # noqa: BLE001 - N1/N2 not obtained: record the region as failed
+            if not (run._archive_error(e) or isinstance(e, run.DataNotObtained)):
+                raise
             return name, None, None, None, f"N1/N2 {type(e).__name__}: {str(e)[:200]}"
         build = lambda rr, nn, sel: shifted_query(rr, nb, sel, shift_for(rr))
-        # The shifted table has at most one row per parent star of the region's N2 table (the same
-        # parents), so len(d2) bounds its size and replaces the server COUNT; above the caps, the
-        # count-first, split-in-RA path of section 3 is used instead.
-        bound = int(len(d2))
         try:
-            if bound == 0 or bound >= P["max_rows"] or bound * BYTES_ROW > run._max_bytes():
-                _, d3 = run._r5_region(ctx, P, "T043", name, r, False, budget, build, BYTES_ROW)
-            else:
-                budget.reserve(bound * BYTES_ROW, f"T043 {name}")
-                try:
-                    d3 = ctx.tap(build(r, False, "rows"), "gaia", label=f"T043 {name}", max_rows=P["max_rows"],
-                                 mode="async", release="Gaia DR3")
-                except BaseException:
-                    budget.release(bound * BYTES_ROW)
-                    raise
-                if len(d3) > bound or len(d3) >= P["max_rows"]:
-                    # N2 holds only parents with at least one true neighbour (nearly all N1 members: the
-                    # partner), so the bound can be short; then, or at the row cap, count and split
-                    ctx.log(f"T043 {name}: {len(d3)} rows against the bound {bound}; using the server count")
-                    _, d3 = run._r5_region(ctx, P, "T043", name, r, False, budget, build, BYTES_ROW)
+            _, d3 = run._r5_region(ctx, P, "T043", name, r, False, budget, build, BYTES_ROW)   # count first
             err = None
         except run._stops():
             raise
         except Exception as e:  # noqa: BLE001 - archive refusal or timeout: record and skip
+            if not run._archive_error(e):
+                raise                     # a code defect or count mismatch stops the run
             d3, err = None, f"{type(e).__name__}: {str(e)[:200]}"
         return name, d1, d2, d3, err
 
@@ -208,7 +193,7 @@ def main(ctx):
                         "degroup_pc": Q.DEGROUP_PC},
            "regions": len(out), "failed_regions": failed, "pairs_total": int(len(pairs)),
            "n_shifted_rows": int(len(sh)), "pairs_dropped_not_in_ok_regions": dropped_failed,
-           "note": ("per-star means count a star once per pair it belongs to; the declination shift moves |b| by "
+           "note": ("latitude bins use star a's true (unshifted) position; per-star means count a star once per pair it belongs to; the declination shift moves |b| by "
                     "up to 2 deg and its direction depends on the region (pairs straddling dec 0 get opposite "
                     "shifts); the shifted field also samples moving groups wider than 2 deg as 'chance'"),
            "cumulative": {}, "by_shell": {}, "by_shell_lat": {}, "by_shell_sep": {}}
