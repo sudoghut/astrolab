@@ -819,7 +819,8 @@ unchanged; R6 and R6-NOMNU read from their recorded files, checks passed, not re
   recorded files; the low-shift gate passes; every (S) and (P) repetition is finite, converged and not
   a lower bound; E_k = 1.379, 1.091, 1.201, 1.029, 1.174 (all > 0.20); s_φ = 0.037 ≤ 0.30. φ_k =
   0.684, 0.636, 0.714, 0.692, 0.630; φ̄ = 0.671, I_φ = [0.638, 0.704] ⊂ [0.60, ∞). No flag (the
-  determinism difference is 0.000 ≤ 0.02, so the pairing with the recorded runs is exact).
+  determinism difference is 0.000 ≤ 0.02: R6 seed 0 is reproduced exactly; the other seeds and
+  R6-NOMNU use the same draw path, which a unit test checks).
 - **The rest of the split (descriptive).** ψ̄ = 0.306 (s 0.029; 0.28–0.35 per seed) and ρ̄ = 0.023
   (s 0.055; −0.047 to 0.085). On the χ² scale φ_χ² = 0.601 (0.56–0.64). Read in the registered order
   (shuffle, then prior; the split is not unique): of the 1.17σ that Σmν adds over the 5-D value, about
@@ -830,13 +831,16 @@ unchanged; R6 and R6-NOMNU read from their recorded files, checks passed, not re
   chain's Σmν as well changes nothing visible (descriptive).
 - **What it means.** Section 6 found that DES's Σmν against the CMB, with DES's Σmν drawn from the
   prior, still differs by 1.05σ in 1-D, because the CMB chain sits at the 0.06 eV prior edge. In six
-  dimensions that placement adds only about 0.03σ over the 5-D value (ρ̄). What Σmν adds to the
+  dimensions, what remains with DES's Σmν at its prior is only about 0.03σ over the 5-D value (ρ̄).
+  ρ̄ lumps together the CMB chain's Σmν against the prior, the sixth dimension itself and any residual,
+  and does not separate them; nothing in it is of the size of the 1-D 1.05σ (a reading of ρ̄; n_P and
+  n₅ are not gated). What Σmν adds to the
   full-space number comes mostly from how DES's Σmν co-varies with its other parameters (which
   parameters is not tested here; the referee's A_s–Σmν degeneracy remains an inference), and about a
   third from DES's Σmν marginal (0.384 ± 0.147) differing from its prior (0.330 ± 0.156). Combined
   with R6-NOMNU: D26's full-space 1.8σ (R6 1.6–1.9σ) is about 0.5σ in the five other parameters, plus
-  a Σmν part that is mostly DES's own Σmν correlations; the CMB's position at the prior edge
-  contributes little in six dimensions. Section 2.8 expected this label from the kNN numbers
+  a Σmν part that is mostly DES's own Σmν correlations, with a small remainder (ρ̄) once DES's Σmν
+  is at its prior. Section 2.8 expected this label from the kNN numbers
   (φ ≈ 0.68/0.70); its expected ψ (0.13/0.17) and ρ (0.19/0.13) were not borne out.
 - **kNN, descriptive (not calibrated, section 2.8).** Means over the five seeds, k = 20/100: real
   1.247/1.527, (S) 0.917/0.871, (P) 0.699/0.538, (SS) 0.946/0.869, 5-D 0.533/0.501. From these means
@@ -845,8 +849,8 @@ unchanged; R6 and R6-NOMNU read from their recorded files, checks passed, not re
   seeds. So kNN at k = 100 agrees with the flow label and kNN at k = 20 does not; section 2.8's kNN
   expectation (φ ≈ 0.68 at k = 20) rested on one seed. The kNN values are not used for the label.
 - **Limits.** The low-shift gate checks one point (0.86) in 6-D, on a synthetic distribution; it
-  passes, but one of its three trainings was 0.17 low, so a single flow training at this level is
-  uncertain by up to about 0.2σ. n_S (0.91) is close to the gated point and n₆ (1.70) lies between it
+  passes, but one of its three trainings was 0.17 low, so a single flow training at this level may
+  be off by up to about 0.2σ (from three trainings; an inference). n_S (0.91) is close to the gated point and n₆ (1.70) lies between it
   and R6's gate (2.371); n₅ (0.52, 5-D) and n_P (0.55) lie below both, where R6's design notes found
   flows biased high, and are not gated. A high bias in n₅ shrinks E and raises φ; a high bias in n_P
   raises ρ and lowers ψ, not φ. The seed scatter s_φ excludes the chains' own finite-sample noise;
@@ -858,8 +862,9 @@ unchanged; R6 and R6-NOMNU read from their recorded files, checks passed, not re
   each input by its own gate's mean offset (n₆ by R6's gate, +0.025; n₅ by the 5-D gate, +0.009; n_S
   by the low-shift gate, −0.028) gives φ̄ = 0.635 and I_φ = [0.601, 0.669], still above 0.60 but by
   0.001 (our recomputation; a post hoc check, not a rule, and the gate offsets are themselves noisy:
-  the low-shift gate's three trainings scatter by s = 0.14). A bias of about +0.045σ in n_S relative
-  to n₆, or −0.07σ in n₅, would move the label to "between". Shuffling replaces the joint
+  the low-shift gate's three trainings scatter by s = 0.14). If n_S were biased low by about 0.045σ
+  relative to n₆ (the low-shift gate reads 0.028 low), or n₅ biased high by about 0.075σ (the
+  direction R6's design notes found for flows at small shifts), the label would become "between". Shuffling replaces the joint
   distribution of Σmν and the other DES parameters by the product of their marginals, so φ measures
   what that change does to the difference; it does not show which DES parameters carry the
   correlation, or whether DES's low-Σmν region moves them away from the CMB. A known-answer test of φ
@@ -941,11 +946,11 @@ was using the machine. Triage:
 | # | Point | Verified | Action |
 |---|---|---|---|
 | 1 | The label re-derives from the saved numbers (φ_k 0.684, 0.636, 0.714, 0.692, 0.630; φ̄ 0.6712, s_φ 0.0366, I_φ = [0.6385, 0.7040]); rules applied in order (`r6shuf.py`); the variants change only the Σmν column(s) after R6's two `rng.choice` calls (`flowshift.py`); the determinism check reproduces R6 seed 0 exactly; the recomputed low-shift exact value is 0.86006 | yes (our recomputation; determinism difference 0.0) | None. |
-| 2 | **The margin is smaller than what the gates certify.** With each input corrected by its gate's mean offset (+0.025, +0.009, −0.028), φ̄ = 0.635 and I_φ = [0.601, 0.669]; a relative bias of about +0.045σ in n_S or −0.07σ in n₅ would give "between". n₅ was gated only at 2.39 | yes (our recomputation gives the same numbers) | **Accepted** (post hoc, section 5): the label stands as registered; it is reported as robust to training scatter but near the edge of the calibration. Known-answer test of φ registered as T-047. |
+| 2 | **The margin is smaller than what the gates certify.** With each input corrected by its gate's mean offset (+0.025, +0.009, −0.028), φ̄ = 0.635 and I_φ = [0.601, 0.669]; n_S biased low by about 0.045σ relative to n₆, or n₅ biased high by about 0.075σ, would give "between". n₅ was gated only at 2.39 | yes (our recomputation gives the same numbers) | **Accepted** (post hoc, section 5): the label stands as registered; it is reported as robust to training scatter but near the edge of the calibration. Known-answer test of φ registered as T-047. |
 | 3 | The low-shift gate's three trainings scatter by s ≈ 0.14 (0.839, 0.689, 0.969), four times the chain variants' s (0.033); it bounds a mean bias only loosely | yes | Accepted limitation (section 5). |
 | 4 | s_φ is small partly by construction: ∂φ/∂n₆ ≈ 0.28, and n_S and n₅ vary little, so the noisiest input (n₆, s = 0.098) is damped; the 0.037 is not unusual precision | yes ((n̄_S − n̄₅)/Ē² = 0.28) | Accepted (section 5). |
 | 5 | The low-shift gate reuses R6's gate seeds (10–12) and `sample_seed_offset` (1000), so its draws are R6's gate draws with the curved pair moved, not an independent realisation | yes (`PARAMS["r6_gate"]`, `results/r6_shuf.json` `settings.gate_low`) | Accepted; noted here. As registered (section 2.8 uses R6's gate distribution and seeds). |
-| 6 | kNN in the run: φ = 0.64 at k = 100 (0.58–0.70 per seed) but 0.45 at k = 20 (0.12–0.89); section 2.8's kNN expectation at k = 20 rested on one seed | yes | Accepted (section 5 states it). kNN stays descriptive. |
+| 6 | kNN in the run: φ = 0.64 at k = 100 (0.58–0.70 per seed) but 0.45 at k = 20 (mean of the per-seed values, 0.12–0.89; 0.46 from the means); section 2.8's kNN expectation at k = 20 rested on one seed | yes | Accepted (section 5 states it). kNN stays descriptive. |
 | 7 | Shuffling replaces the joint distribution by the product of marginals; φ measures what that does to the difference, not which DES parameters carry the correlation or whether low Σmν moves DES away from the CMB | – | Accepted (section 5); the label's wording is kept. A no-flow check of DES's conditional (A_s, Ωm) means in Σmν bins is part of T-047. |
 | 8 | (SS) ≈ (S) and (P) ≈ n₅, so the "shuffle, then prior" order shows no artefact; the (P) range equals both chains' header range; shuffling keeps the Σmν range the flow's `ranges` bijector sees | yes | None. |
 | 9 | Process: the low-shift gate point was chosen near the expected n_S, which came from kNN numbers already seen | yes (section 2.8 states it) | Already on record in section 2.8; a calibration point, not a decision threshold. |
@@ -960,8 +965,8 @@ was using the machine. Triage:
    R6-NOMNU (2026-11-18) shows that most of it goes with Σmν (0.52σ without Σmν), and the referee's
    checks that this is Σmν jointly with its DES correlations and partly the prior shape (section 6;
    pre-registered check T-044), so a verdict on the data-constrained pair (A_s, Ωm) (R6 flow 0.40σ)
-   matters more than a sharper 6-D number. R6-SHUF (T-044, 2026-11-20) confirms that the Σmν part is
-   mainly DES's own Σmν correlations (φ̄ = 0.67); which DES parameters carry them is not tested.
+   matters more than a sharper 6-D number. R6-SHUF's pre-registered label (T-044, 2026-11-20) is that
+   the Σmν part is mainly DES's own Σmν correlations (φ̄ = 0.67); which DES parameters carry them is not tested.
    Its referee (post hoc) found the label near the edge of what the gates certify (bias-corrected
    I_φ = [0.601, 0.669]); a known-answer test of φ and a conditional-means check are registered as
    T-047.
