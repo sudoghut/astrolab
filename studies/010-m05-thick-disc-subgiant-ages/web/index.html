@@ -78,8 +78,11 @@ const getJ = n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new
 const card = (t, v, cls, note) => `<div class="card"><div class="muted">${t}</div><div class="big ${cls || ''}">${v}</div><div class="muted">${note || ''}</div></div>`;
 const ZH = {'reproduced': '复现', 'not reproduced': '未复现', 'undetermined': '无法判定', 'cannot determine': '不能判定',
             'confirmed': '确认', 'not confirmed': '不确认', 'robust': '稳健', 'not robust': '不稳健',
-            'selection-term robust': '对选择项稳健', 'selection-term sensitive': '对选择项敏感'};
-const vz = v => String(v).split(/(, |; | \(|\))/).map(p => ({', ': '，', '; ': '；', ' (': '（', ')': '）'})[p] || ZH[p] || p).join('');
+            'selection-term robust': '对选择项稳健', 'selection-term sensitive': '对选择项敏感',
+            'not evaluable': '不可评估', 'evaluated': '已评估',
+            'not evaluable (reproduction): data fits differ from r1_sel.json': '不可评估（重现）：数据拟合与 r1_sel.json 不同',
+            'not evaluable (reproduction): fit (o) differs from the recorded R1-SEL mocks': '不可评估（重现）：拟合 (o) 与记录的 R1-SEL 模拟不同'};
+const vz = v => ZH[String(v)] || String(v).split(/(, |; | \(|\))/).map(p => ({', ': '，', '; ': '；', ' (': '（', ')': '）'})[p] || ZH[p] || p).join('');
 const vcls = v => String(v).startsWith('reproduced') || v === 'confirmed' ? 'good' : (String(v).startsWith('not') ? 'bad' : '');
 const verdict = v => L(esc(v), esc(vz(v)));
 const row = cells => `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
@@ -248,7 +251,7 @@ function selfit() {
     });
   }
   document.getElementById('selfit').innerHTML =
-    head([L('variant', '变体'), '[Fe/H]', 'd', L('d* (R1-SEL)', 'd*（R1-SEL）'), L('power r·τ / r·A', '功效 r·τ / r·A'), L('R1-SEL power', 'R1-SEL 功效'), L('resolvable', '可分辨'), L('almost disjoint', '几乎不相交')]) + rr.join('');
+    head([L('variant', '变体'), '[Fe/H]', 'd', L('d* (R1-SEL in brackets)', 'd*（括号内为 R1-SEL）'), L('power r·τ / r·A', '功效 r·τ / r·A'), L('R1-SEL power', 'R1-SEL 功效'), L('resolvable', '可分辨'), L('almost disjoint', '几乎不相交')]) + rr.join('');
 }
 
 Promise.all(['summary', 'r1', 'r2', 'r34', 'r56', 'r7'].map(getJ)).then(([summary, r1d, r2d, r34d, r56d, r7d]) => {

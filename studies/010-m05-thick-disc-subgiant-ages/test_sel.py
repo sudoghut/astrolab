@@ -587,7 +587,7 @@ def test_selfit_path_o_reproduces_r1_mock_sel(kind):
     new = run.r1_mock_selfit(C, D, kind, "rA", "primary", (np.random.default_rng(5), np.random.default_rng(6)),
                              pools, 8)
     assert new["o_d"] == ref["d"] and new["o_valley"] == ref["valley"] and new["o_k"] == ref["k"]
-    assert set(new["use"][:4]) <= {"o", "i"} and new["use"][4] in "oi-"
+    assert all(isinstance(new[f"i_used_k{K}"], bool) for K in range(1, 5)) and new["i_used_k5"] in (-1, 0, 1)
     # a different (i) stream does not change (o)
     other = run.r1_mock_selfit(C, D, kind, "rA", "primary", (np.random.default_rng(5), np.random.default_rng(7)),
                                pools, 8)
@@ -637,3 +637,24 @@ def test_r1_sel_bins_rederives_recorded_r1_sel():
             for got, w in zip(out["bins"], want["bins"]):
                 assert got["power"] == w["power"] and got["d_star"] == w["d_star"]
                 assert got["resolvable"] == w["resolvable"] and got["almost_disjoint"] == w["almost_disjoint"]
+
+
+def test_selfit_mock_through_run_mock_sets(tmp_path):
+    """End to end through the checkpointing runner: tuple make_rng, a JSON-storable result, and the
+    replay from the checkpoint equals the first computation (README 2.6)."""
+    C = run.Ctx(dict(run.PARAMS))
+    D, pools = _synthetic_D(C)
+    sets = [{"k": 4, "group": "R1", "kind": "power", "mech": "rtau", "floor": "primary"}]
+    run_one = lambda s, rngs: run.r1_mock_selfit(C, D, s["kind"], s["mech"], s["floor"], rngs, pools, 8)
+    make_rng = lambda k, j: (np.random.default_rng([0, 31, k, j]), np.random.default_rng([0, 45, k, j]))
+    st = selaux.MockStore(tmp_path, "k1")
+    res, state, _ = selaux.run_mock_sets(sets, 1, st, run_one, make_rng, 12.0, log=lambda m: None)
+    st.release()
+    r = res[4][0]
+    assert set(r) >= {"d", "valley", "k", "o_d", "o_valley", "o_k", "i_used_k1", "i_used_k5", "o_nonmonotone"}
+    assert r["i_used_k5"] in (-1, 0, 1) and not selaux.nonfinite(r)
+    st2 = selaux.MockStore(tmp_path, "k1")
+    res2, _, _ = selaux.run_mock_sets(sets, 1, st2, lambda s, g: (_ for _ in ()).throw(AssertionError("recomputed")),
+                                      make_rng, 12.0, log=lambda m: None)
+    st2.release()
+    assert res2[4][0] == r
