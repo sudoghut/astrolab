@@ -785,7 +785,7 @@ verdicts above stand (SEL-9).
   | Full, e = r·A | 0.74 | 13 | 35 | 1.00 | 0.009 |
 
   - **The misses are local optima of the mock fits.** In 27–38 of 50 mocks per set the original fits'
-    NLL rises from some K to K + 1, which a converged nested fit cannot do; with the independent starts
+    NLL rises from some K to K + 1, which the global optima of nested models cannot do, so the original fits missed those optima; with the independent starts
     it never does (0 of 300), and the better fits never do either. Every missed mock has a K ≥ 2 fit
     whose NLL the independent starts lower by at least 1,500. L-BFGS-B reported success for every fit,
     so the convergence flag does not detect these optima.
