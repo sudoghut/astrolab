@@ -1701,17 +1701,23 @@ def _selfit_finish(ctx, P, store, sets, nmock, run_one, make_rng, r1d, data_frac
         out["status"] = "not evaluable (reproduction): fit (o) differs from the recorded R1-SEL mocks"
         lab = {"label": out["status"], "computed_label_not_used": lab}
         labs = {"label": out["status"], "computed_label_not_used": labs}
+    elif nmock != 50:                              # README 2.6: labels need 50 mocks in every set
+        out["status"] = f"no label (exploration with {nmock} mocks per set; the label needs 50)"
+        lab = {"label": out["status"], "computed_label_not_used": lab}
+        labs = {"label": out["status"], "computed_label_not_used": labs}
     else:
         out["status"] = "evaluated"
     dstar_new, dstar_rec = {}, {}
     for v in selaux.R1_VARIANTS:
         for b in range(nbins):
-            dstar_new[(v, b)] = r1v[v]["bins"][b]["d_star"]
-            dstar_rec[(v, b)] = rec["variants"][v]["bins"][b]["d_star"]
+            for fl, src_new, src_rec in (("primary", r1v, "variants"), ("sens", r1s, "floor_sensitivity")):
+                dstar_new[(v, b, fl)] = src_new[v]["bins"][b]["d_star"]
+                dstar_rec[(v, b, fl)] = rec[src_rec][v]["bins"][b]["d_star"]
     per_set = []                                   # reported, no verdict
     for s in sets:
         rr, x = results[s["k"]], recmock.get(s["k"])
-        dn, dr = dstar_new[(s["variant"], s["bin"])], dstar_rec[(s["variant"], s["bin"])]
+        key = (s["variant"], s["bin"], s["floor"])
+        dn, dr = dstar_new[key], dstar_rec[key]
         passes = lambda valley, d, ds: bool(valley and d is not None and d < ds)
         per_set.append({**{k: s[k] for k in ("k", "variant", "bin", "kind", "mech", "floor")},
                         "valley_new": int(sum(r["valley"] for r in rr)),

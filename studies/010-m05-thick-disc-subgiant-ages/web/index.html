@@ -81,7 +81,8 @@ const ZH = {'reproduced': '复现', 'not reproduced': '未复现', 'undetermined
             'selection-term robust': '对选择项稳健', 'selection-term sensitive': '对选择项敏感',
             'not evaluable': '不可评估', 'evaluated': '已评估',
             'not evaluable (reproduction): data fits differ from r1_sel.json': '不可评估（重现）：数据拟合与 r1_sel.json 不同',
-            'not evaluable (reproduction): fit (o) differs from the recorded R1-SEL mocks': '不可评估（重现）：拟合 (o) 与记录的 R1-SEL 模拟不同'};
+            'not evaluable (reproduction): fit (o) differs from the recorded R1-SEL mocks': '不可评估（重现）：拟合 (o) 与记录的 R1-SEL 模拟不同',
+            'no label (exploration with 2 mocks per set; the label needs 50)': '无标签（每组 2 次模拟的探索；标签需要 50 次）'};
 const vz = v => ZH[String(v)] || String(v).split(/(, |; | \(|\))/).map(p => ({', ': '，', '; ': '；', ' (': '（', ')': '）'})[p] || ZH[p] || p).join('');
 const vcls = v => String(v).startsWith('reproduced') || v === 'confirmed' ? 'good' : (String(v).startsWith('not') ? 'bad' : '');
 const verdict = v => L(esc(v), esc(vz(v)));
