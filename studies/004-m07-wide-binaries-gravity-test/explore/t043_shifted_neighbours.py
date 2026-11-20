@@ -33,7 +33,8 @@ import run
 import wb
 
 SHIFT_DEG = 2.0                 # circle (<= 1.24 deg beyond 25 pc) + shift < the 3.3 deg declination margin
-PLX_MAX = 33.4                  # parents beyond 29.9 pc: shifted and true circles (radius <= 1.0 deg) disjoint
+PLX_MAX = 33.4                  # parents beyond 29.9 pc: the exact 100 kAU neighbourhoods (radius <= 1.0 deg) of the
+                                # true and shifted positions are disjoint (the 1.12x search circles may overlap)
 SHELLS = [(29.9, 130.0), (130.0, 150.0), (150.0, 250.0)]
 CUMULATIVE = [130.0, 150.0, 250.0]  # the referee's cumulative bins (d < 130, 150, 250 pc; beyond 29.9 pc)
 LAT_BINS = [(0.0, 10.0), (10.0, 40.0), (40.0, 90.0)]
