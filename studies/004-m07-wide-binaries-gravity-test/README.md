@@ -646,9 +646,11 @@ member it counts the N2 neighbours (same relaxed rule: parallax_over_error > 5,
 phot_g_mean_flux_over_error > 5, parallax + 3σ > 3.478 mas, within 100 kAU projected and the 3σ
 parallax window) around a position shifted 2° in declination towards the equator; the shifted circle
 holds no real companion of the parent, so its count samples chance neighbours at the same depth and
-nearly the same sky density. Pairs: N1 with the velocity-free cuts of the R5 chain before RUWE
-(ϖ̄ > 4.0 mas, 300 AU ≤ r_sky ≤ 30 kAU) and parents beyond 29.9 pc (so the true and shifted circles
-are disjoint), 23,575 pairs (none dropped for a failed region). "Observed survival" is the relaxed
+nearly the same sky density. Pairs: N1 with the velocity-free cuts of the R5 chain up to RUWE,
+before the HR band (ϖ̄ > 4.0 mas, 300 AU ≤ r_sky ≤ 30 kAU, RUWE < 1.25 for both stars), and parents
+beyond 29.9 pc (so the true and shifted circles are disjoint), 23,575 pairs (none dropped for a
+failed region). Because pairs within 29.9 pc are excluded and the chain stops before the HR band,
+the observed survival here is not the same quantity as the referee's 44% at 130 pc above. "Observed survival" is the relaxed
 rule's outcome (each star's only N2 neighbour is its partner); "no shifted neighbour" is the fraction
 of pairs whose two shifted circles are both empty, the survival expected if degrouping removed pairs
 only through chance neighbours.
@@ -670,24 +672,30 @@ By separation the two agree as well (150–250 pc: 300–1,000 AU 0.117 / 0.116,
 0.096 / 0.106; 29.9–130 pc: 0.446 / 0.493 and 0.397 / 0.458).
 
 - **Reading (descriptive).** In every shell, latitude bin and separation bin the observed survival is
-  at most 6.1 percentage points below or 1.9 above the shifted-field expectation, and the number of real extra
+  at most 6.3 percentage points below or 1.9 above the shifted-field expectation, and the number of real extra
   neighbours per star is close to the shifted count (ratio 0.93–1.12 by shell). So almost all of the
   degrouping loss, and its fall with distance and towards the plane, is what chance neighbours alone
-  produce: the referee's inference is confirmed. The remainder (observed below expected by 12% of the
-  expected survival within 130 pc, 6% beyond) is the most that real triples, moving groups and
-  clusters smaller than 2° can account for. The 300–1,000 AU pairs at 150–250 pc (11.7% observed,
-  11.6% expected) lose nothing beyond chance.
+  produce: the referee's inference is confirmed. The remainder, observed below expected by about
+  12% of the expected survival at 29.9–130 pc and 6% beyond (shell averages; up to 27% in the
+  |b| < 10° bin at 29.9–130 pc), is an estimate of the loss to real triples, moving groups and
+  clusters smaller than 2°, not a bound: the systematic error from the shift is not measured and
+  could go either way (within 130 pc the shifted field holds slightly more neighbours per star than
+  the true one, which would make the real remainder larger). The 300–1,000 AU pairs at 150–250 pc
+  (11.7% observed, 11.6% expected) lose nothing beyond chance within the statistical error.
 - **Meaning for the study.** The relaxed rule does not scale: beyond about 130–150 pc it removes most
   bound pairs because of unrelated stars in a parallax window that deepens with distance, and it
   thins the sample by sky density (a selection towards high latitudes). An enlarged design would need
   a degrouping rule that allows for the expected chance count (for example a stricter neighbour
   parallax precision, or a probabilistic rule using this chance rate); that is a new design and
   needs a new pre-registration. R5's label and R2 are unchanged.
-- **Limits.** One deterministic shift per region (no repeat with other shifts, so no error from the
-  shift itself; the binomial error of each fraction is ≤ 0.01 except in bins of a few hundred pairs).
-  The shift moves |b| by up to 2° and towards higher density at some positions; the 130–150 pc,
-  |b| < 10° bin (observed above expected) shows the size of that effect where density changes fast.
-  Latitude bins use star a's true position. Moving groups and clusters wider than 2° are sampled by
+- **Limits.** One deterministic shift per region (no repeat with other shifts, so the error from
+  the shift itself is not estimated). The binomial error of each fraction is about 0.005–0.01 for the
+  shells and up to about 0.02 in bins below about 1,000 pairs, and slightly larger in truth because a
+  star can belong to several pairs. The shift moves |b| by up to 2° and towards higher density at
+  some positions; the 130–150 pc, |b| < 10° bin (observed 1.9 points above expected, about 1.5–2σ)
+  may show that effect where density changes fast, or noise. Pairs straddling declination 0 get
+  opposite shifts, so their two shifted circles sample unrelated fields while the true circles
+  overlap. Latitude bins use star a's true position. Moving groups and clusters wider than 2° are sampled by
   the shifted circle and so count as chance. Per-star means count a star once per pair it belongs
   to. Exploration output (`explore/2026-11-20-t043-shift/`) was deleted after these numbers were
   copied.
@@ -783,7 +791,7 @@ How a coding agent answers "what if" questions about this study without touching
   "How does the verdict depend on the bootstrap?" → `--set n_boot=5000 --set boot_seed=1`.
   "What if a0 = 1.0e-10?" → `--set a0=1.0e-10`. The velocity-free occupancy check:
   `--script explore/occupancy_step_a.py`. The chance-neighbour rate from a shifted field (all R5
-  regions, about 5 h of archive queries, counted first): `--script explore/t043_shifted_neighbours.py`.
+  regions, about 4.5 h of archive queries, counted first): `--script explore/t043_shifted_neighbours.py`.
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.
 

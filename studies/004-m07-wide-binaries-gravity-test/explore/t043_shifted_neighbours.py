@@ -165,7 +165,7 @@ def main(ctx):
                                     n1["parallax_b"].values, n1["parallax_error_b"].values)
     n1 = n1.assign(pbar=pb, rsky=wb.sky_separation_au(n1["ra_a"].values, n1["dec_a"].values,
                                                       n1["ra_b"].values, n1["dec_b"].values, pb))
-    # R5's velocity-free server cuts (N4): pbar > 4 mas, r_sky >= 300 AU, RUWE < 1.25; and beyond 25 pc
+    # R5's velocity-free server cuts (N4): pbar > 4 mas, r_sky >= 300 AU, RUWE < 1.25; and beyond 29.9 pc
     cut = ((n1["pbar"] > 4.0) & (n1["rsky"] >= 300.0) & (n1["ruwe_a"] < 1.25) & (n1["ruwe_b"] < 1.25)
            & (n1["parallax_a"] < PLX_MAX) & (n1["parallax_b"] < PLX_MAX))
     pairs = n1[cut].copy()
