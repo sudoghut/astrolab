@@ -59,6 +59,11 @@
   <h3><span class="en">R3/R4-SEL and intrinsic-SEL: fits and mocks by term</span><span class="zh">R3/R4-SEL 与 intrinsic-SEL：按选择项的拟合与模拟</span></h3>
   <div class="scroll"><table id="selr34"></table></div>
   <p class="muted" id="selerr"></p>
+  <h2><span class="en">R1-SEL-FIT · R1-SEL with data-independent starts in every mock fit (T-049)</span><span class="zh">R1-SEL-FIT · 每个模拟拟合都加入与数据无关的起点（T-049）</span></h2>
+  <p><span class="en">Pre-registered in README 2.6. The data fits and the mock catalogues are those of R1-SEL; each mock is also fitted from 8 data-independent starts per K, and the better fit is used. Reported next to R1-SEL, not replacing it.</span><span class="zh">预注册见 README 2.6。数据拟合与模拟星表都与 R1-SEL 相同；每次模拟另外从每个 K 8 个与数据无关的起点拟合，取较好的拟合。与 R1-SEL 并列报告，不取代它。</span></p>
+  <p id="selfitlab"></p>
+  <div class="scroll"><table id="selfit"></table></div>
+  <p class="muted" id="selfiterr"></p>
 
   <p class="muted" id="err"></p>
   <section id="skylinks" class="card" hidden></section>
@@ -221,10 +226,35 @@ function renderAll() {
   catch (e) { document.getElementById('err').innerHTML = L('Could not render the results: ', '无法显示结果：') + esc(e); }
   try { sel(); }
   catch (e) { document.getElementById('selerr').innerHTML = L('Could not render the re-test: ', '无法显示重新检验：') + esc(e); }
+  try { selfit(); }
+  catch (e) { document.getElementById('selfiterr').innerHTML = L('Could not render R1-SEL-FIT: ', '无法显示 R1-SEL-FIT：') + esc(e); }
+}
+
+function selfit() {
+  const R = D.selfit;
+  if (!R) return;
+  const lab = R.label && R.label.label ? R.label.label : R.status;
+  document.getElementById('selfitlab').innerHTML = `<b>R1-SEL-FIT</b>: ${verdict(lab)} · ` +
+    L('floor 0.20: ', '下限 0.20：') + verdict(R.label_floor_sensitivity ? R.label_floor_sensitivity.label : R.status) + ' · ' +
+    L('R1-SEL (recorded): ', 'R1-SEL（已记录）：') + verdict(R.recorded_r1_sel ? R.recorded_r1_sel.label : '—');
+  if (!R.variants) { document.getElementById('selfit').innerHTML = ''; return; }
+  const rr = [];
+  for (const v of ['S15E', 'S15N', 'Full']) {
+    R.variants[v].bins.forEach((b, i) => {
+      const old = R.recorded_r1_sel.power[v][i];
+      rr.push(row([i === 0 ? `<b>${esc(v)}</b> (${esc(T(R.variants[v].verdict, vz(R.variants[v].verdict)))})` : '', `[${b.bin.map(x => f(x, 1)).join(', ')})`,
+        f(b.d), `${f(b.d_star)} (${f(R.recorded_r1_sel.d_star[v][i])})`, `${f(b.power.rtau)} / ${f(b.power.rA)}`, `${f(old.rtau)} / ${f(old.rA)}`,
+        b.resolvable ? L('yes', '是') : L('no', '否'), b.almost_disjoint ? L('yes', '是') : L('no', '否')]));
+    });
+  }
+  document.getElementById('selfit').innerHTML =
+    head([L('variant', '变体'), '[Fe/H]', 'd', L('d* (R1-SEL)', 'd*（R1-SEL）'), L('power r·τ / r·A', '功效 r·τ / r·A'), L('R1-SEL power', 'R1-SEL 功效'), L('resolvable', '可分辨'), L('almost disjoint', '几乎不相交')]) + rr.join('');
 }
 
 Promise.all(['summary', 'r1', 'r2', 'r34', 'r56', 'r7'].map(getJ)).then(([summary, r1d, r2d, r34d, r56d, r7d]) => {
-  D = {summary, r1: r1d, r2: r2d, r34: r34d, r56: r56d, r7: r7d, sel: null};
+  D = {summary, r1: r1d, r2: r2d, r34: r34d, r56: r56d, r7: r7d, sel: null, selfit: null};
+  getJ('r1_selfit').then(x => { D.selfit = x; renderAll(); })
+    .catch(e => { document.getElementById('selfiterr').innerHTML = L('R1-SEL-FIT results not available yet: ', '尚无 R1-SEL-FIT 的结果：') + esc(e); });
   Promise.all(['r1_sel', 'r34_sel'].map(getJ)).then(([a, b]) => { D.sel = {r1: a, r34: b}; renderAll(); })
     .catch(e => { document.getElementById('selerr').innerHTML = L('Re-test results not available: ', '没有重新检验的结果：') + esc(e); });
   const hs = document.getElementById('hsel');

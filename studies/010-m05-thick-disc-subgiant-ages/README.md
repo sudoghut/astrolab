@@ -969,7 +969,8 @@ How a coding agent answers "what if" questions about this study without touching
 | `r2_feh`, `r2_jphi` | R2 sample window and J_φ cut | ±0.1 dex around −1; 0–1000 | cache only |
 | `f_min` | error-scale sensitivity value | 0.6–1.0 | cache only |
 | `grid_step` | latent grid step (Gyr) | 0.02–0.1 | cache only |
-| `parts` | which pipeline runs: `["orig"]` (sections 2.0–2.4; `r1/r2/r34/r56/r7/summary.json`) and/or `["sel"]` (section 2.5 R-SEL; `r1_sel/r34_sel/sel.json`); the committed value is `["sel"]` | either or both | cache only |
+| `parts` | which pipeline runs: `["orig"]` (sections 2.0–2.4; `r1/r2/r34/r56/r7/summary.json`) and/or `["sel"]` (section 2.5 R-SEL; `r1_sel/r34_sel/sel.json`), or `["selfit"]` alone (section 2.6 R1-SEL-FIT; `r1_selfit.json`, records `provenance_selfit.json`, `run_info_selfit.json`; reads `r1_sel.json`); the committed value is `["selfit"]` (T-049) | either or both of orig/sel; selfit alone | cache only |
+| `selfit_seed_tag`, `selfit_nstart`, `selfit_stop_h` | R1-SEL-FIT: stream tag of the data-independent starts, starts per K, stop limit (h) | 45 and 8 are pre-registered; 12 h | cache only |
 | `sel_n_mock` | R-SEL mocks per set (verdicts need 50) | 2–50 | cache only |
 | `sel_power_floor`, `sel_power_floor_sens` | R1-SEL power-model floor and its sensitivity value | 0.10–0.30 | cache only |
 | `sel_pass_width`, `sel_n_min` | pass-bin width (Gyr) and minimum parent count per pass bin (SEL-0) | 0.5–2; 100–500 | cache only |
@@ -1006,7 +1007,11 @@ How a coding agent answers "what if" questions about this study without touching
   `R3`, `R4`, `robustness_fits`, `error_scale`; `intrinsic.<E|N>`; `sampleA_extra_E`; `fig2e_E`;
   `shared_full_fits`; `labels`); `sel.json` (`pass_tables`, `data_pass_frac`, `r2_deconvolved`,
   `sel7`, `diagnostic`, `mock_pass_rates`, `mocks` with the runtime projections, `labels`,
-  `memory_peak_mb`).
+  `memory_peak_mb`). R1-SEL-FIT: `r1_selfit.json` (`status`, `label`, `label_floor_sensitivity`,
+  `variants`, `floor_sensitivity` as in `r1_sel.json`; `recorded_r1_sel`; `per_set` (valley counts,
+  K chosen, NLL rising with K under (o) and under the new fits, time per mock); `data_fit_mismatches`,
+  `mock_reproduction`; `mocks` with the projections). The R1-SEL-FIT run (the committed default) takes
+  about 5 h of mocks plus about 25 min of data fits, on an otherwise idle machine.
 - Example questions: "Does the R1 valley survive a stricter error cut?" → `--set cut=0.10`.
   "Is the 13 Gyr mean sensitive to the J_φ cut?" → `--set r2_jphi=300` (R2 also reports 300 and 700).
   "What if the selection term conditioned on relative error instead of e?" → an `explore/` script

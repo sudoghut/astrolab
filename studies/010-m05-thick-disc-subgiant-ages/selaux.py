@@ -55,6 +55,25 @@ def sel_sets(nbins, mechs, sens_bins):
     return sets
 
 
+def selfit_sets(nbins, mechs, sens_bins):
+    """The R1 sets of sel_sets with their SEL-8 numbers (README 2.6: 90 main + 18 floor-sensitivity sets)."""
+    return [s for s in sel_sets(nbins, mechs, sens_bins) if s["tag"] == "R1"]
+
+
+def better_fit(nll_o, nll_i, tol=0.01):
+    """README 2.6: the data-independent fit (i) replaces the original (o) only if its NLL is finite and
+    lower by more than tol (the 2.0 start-selection tie rule); returns "i" or "o"."""
+    if nll_i is None or not math.isfinite(nll_i):
+        return "o"
+    return "i" if nll_i < nll_o - tol else "o"
+
+
+def nonmonotone_k(nll, tol=0.01):
+    """Ks whose NLL is higher than that of K - 1 by more than tol (impossible for global optima of nested models)."""
+    ks = sorted(nll)
+    return [k for a, k in zip(ks, ks[1:]) if nll[k] > nll[a] + tol]
+
+
 def mock_rng(seed, tag, k, j):
     """Per-mock stream default_rng([seed, 31, k, j]) (SEL-8)."""
     return np.random.default_rng([int(seed), int(tag), int(k), int(j)])
@@ -147,7 +166,7 @@ class StopRun(RuntimeError):
     """Raised when the runtime projection exceeds the stop limit (SEL-8)."""
 
 
-NO_KEY_PARAMS = ("parts", "sel_stop_h")     # change no mock, so they do not enter the checkpoint key
+NO_KEY_PARAMS = ("parts", "sel_stop_h", "selfit_stop_h")   # change no mock: not in the checkpoint key
 _PARAMS_RE = re.compile(r"^PARAMS = \{\n.*?^\}\n", re.S | re.M)
 
 
