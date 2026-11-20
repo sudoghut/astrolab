@@ -255,28 +255,32 @@ class MockStore:
         (PermissionError, WinError 5) while another process briefly holds the target open (an indexer,
         antivirus or Dropbox); the replace is retried with a short pause, and only a refusal that
         persists is raised (T-046)."""
-        tries = MockStore.REPLACE_TRIES if tries is None else int(tries)
+        tries = max(1, MockStore.REPLACE_TRIES if tries is None else int(tries))
         tmp = path.with_name(path.name + f".{os.getpid()}.tmp")
-        tmp.write_text(json.dumps(obj), encoding="utf-8")
-        for attempt in range(tries):
+        try:
+            tmp.write_text(json.dumps(obj), encoding="utf-8")
+            for attempt in range(tries):
+                try:
+                    os.replace(tmp, path)
+                    return
+                except PermissionError:
+                    if attempt == tries - 1:
+                        raise
+                    time.sleep(pause * (1 + attempt % 4))
+        except BaseException:
             try:
-                os.replace(tmp, path)
-                return
-            except PermissionError:
-                if attempt == tries - 1:
-                    try:
-                        tmp.unlink(missing_ok=True)
-                    except OSError:
-                        pass
-                    raise
-                time.sleep(pause * (1 + attempt % 4))
+                tmp.unlink(missing_ok=True)
+            except OSError:
+                pass
+            raise
 
     def _path(self, k, j):
         return self.dir / f"k{int(k):03d}_j{int(j):02d}.json"
 
     def checkpointed_seconds(self, sets, nmock):
         """(k, j) -> recorded seconds of every valid checkpoint of these sets (read once at the start
-        of a run; damaged files are removed by get and computed again)."""
+        of a run, so each checkpoint is read twice in a resumed run: here and when it is replayed;
+        damaged files are removed by get and computed again)."""
         out = {}
         for s in sets:
             for j in range(nmock):
@@ -398,11 +402,12 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print):
         log(f"R-SEL projection after {where}: {proj:.2f} h total (elapsed {el / 3600:.2f} h, {done} mocks done, "
             f"{finished - done} more checkpointed, {left} left; limit {limit} h)")
         if left > 0 and proj > limit:
-            store.stop({"projection_h": proj, "elapsed_h": el / 3600, "mocks_done": done, "after": where,
+            store.stop({"projection_h": proj, "elapsed_h": el / 3600, "mocks_done": done,
+                        "mocks_checkpointed": finished, "mocks_left": left, "after": where,
                         "limit_h": limit, "stopped_at": time.time()})
             raise StopRun(
                 f"R-SEL runtime projection {proj:.2f} h exceeds {limit} h (README 2.5 SEL-8): stopped before the "
-                f"remaining mocks; {done} finished mocks are checkpointed in {store.dir}. Ask the user; mock "
+                f"remaining {left} mocks; {finished} finished mocks are checkpointed in {store.dir}. Ask the user; mock "
                 f"counts are never reduced. Resuming needs the user's explicit consent, recorded in log.md; then "
                 f"create {store.dir / 'resume_consent.txt'} (optionally with a line limit_h = <hours> for a new "
                 f"limit) and rerun.")
