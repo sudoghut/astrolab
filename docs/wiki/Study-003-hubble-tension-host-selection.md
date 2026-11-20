@@ -278,10 +278,11 @@ section were added after the run (study README section 5; [web page](https://git
   with the caveat that the τ part has no criterion aligned with τ̂. Descriptively, a largest
   leave-one-out term as big as N5584's occurs in 11% of null simulations. The referee (post hoc,
   verified by us) found no bug but pointed out that "consistent" only means the 36 remaining hosts do
-  not reject C: the test has little power against host scatter spread over all hosts (it rejects such
-  scatter in 21–45% of simulations). A statistic chosen afterwards, how much the spread drops when the
-  selected host is removed, does favour one outlying host (reached in 0.6% of simulations under C and
-  2–4% under diffuse scatter); a pre-registered version is registered as T-048. The headline ("no
+  not reject C: the test has little power against host scatter spread over all hosts (with a proxy
+  statistic it rejects such scatter in 21–45% of simulations). A statistic chosen afterwards, how much
+  the spread drops when the selected host is removed, is rare under C (0.6% of simulations) and less
+  rare under diffuse scatter (2–4%): it points towards one outlying host, but no single-outlier model
+  was simulated; a pre-registered comparison is registered as T-048. The headline ("no
   host-selection effect detected") is unchanged. Numbers:
   [`results/r2_re_sel.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re_sel.json).
 - **Same hosts, two indicators (stages C and E).** Putting CCHP's JWST TRGB distances in place
@@ -309,7 +310,7 @@ section were added after the run (study README section 5; [web page](https://git
 - 2026-11-20: R2-RE-SEL (T-042): selection-aware null; with the choice of the most extreme host
   simulated, the 36-host scatter is still ordinary (p 0.24, 0.24, 0.14): consistent with one outlying
   host, selection included; referee (post hoc): low power against diffuse scatter, a post-hoc
-  spread-drop statistic favours one host, T-048 registered (part 3 update).
+  spread-drop statistic points towards one host, T-048 registered (part 3 update).
 - 2026-11-18: R2-RE-N5584 (T-039): N5584 removed or down-weighted; the null holds under both;
   referee (post hoc): variational τ biased high, z method spread about ±0.3, selection-aware null
   registered as T-042 (part 3 update).
@@ -452,7 +453,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 - **公开矩阵复现了 R22 印出的拟合**（H0 = 73.04，χ²/自由度 1.031）。我们预注册的主要目标，即作者的 `lstsq_results.txt`，是另一个拟合（约 73.3）。
 - **偏离预注册。** 公开的方程矩阵的列不是按 R22 宿主表的顺序排列的，所以预注册的宿主识别失败，宿主一步（R2）、R3 与 R4 按预注册为*不可评估*。第一次运行之后，我们只用超新星星等、造父变星数目与宿主距离重新标注各列；这样 CCHP 宿主集合是唯一确定的。下面的结果都依赖这一数据之后的标注。
 - **宿主一步（环节 A–B）。** 把只用 NGC 4258 的阶梯限于 10 个 CCHP 宿主，5 log H0 移动 −0.073 ± 0.033 mag（H0 72.4 → 70.0），按协方差传播的误差为 −2.2σ。这符合预注册判定表中"显著，且大小与该文一致"一行，但我们的移动是论文的 −1.3 km/s/Mpc 的 1.8 倍，只在宽的容差内一致。随机 10 宿主子样本的离散大于协方差的预期（Δ/σ 的离散为 1.33），在这一经验尺度上 CCHP 的选择约低 1.7σ（第 4.7–5.7 百分位）：偏低，但不算异常。按这一倍数膨胀误差后，预注册判定表会给出"未检测到宿主选择的效应"；独立审稿把这一点列为最主要的意见，带逐宿主随机效应（random effect）的检验已登记待做（T-023）。
-- **2026-11-20 更新，R2-RE-SEL（T-042，预注册附录）：把选择放进模拟后，仍是一个离群宿主。** 上一条更新中的零假设模拟没有包含 N5584 是怎样被找出来的：它是 37 个宿主中最极端的一个。本检验在 C 下模拟全部 37 个宿主，每次按一个固定准则去掉最极端的宿主（这个准则在真实数据上选出 N5584；X：留一宿主 χ² 项最大；S：不含该宿主的随机子样本离散最小），然后才测量其余 36 个宿主的离散。真实的 36 宿主离散仍是普通的：τ̂ 的 p = 0.24（准则 X；不考虑选择时 0.34），随机子样本离散的 p = 0.24 与 0.14（X 与 S；不考虑选择时 0.36）。预注册解读为"计入选择后，多出的校准离散与一个离群宿主相容"，所以先前的事后说法现在是预注册的结果，附一条限定：τ 部分没有与 τ̂ 对应的准则。描述性地，零假设模拟中有 11% 的最大留一项与 N5584 的一样大。独立审稿（事后，我们已复核）没有发现错误，但指出"相符"只表示其余 36 个宿主不拒绝 C：这个检验对分散在所有宿主上的离散功效很低（只在 21–45% 的模拟中拒绝）。一个事后选择的统计量，即去掉选出的宿主时离散下降多少，确实倾向于一个离群宿主（C 下只有 0.6% 的模拟达到，分散离散下 2–4%）；预注册的版本登记为 T-048。标题判定（"未检出宿主选择效应"）不变。数字见 [`results/r2_re_sel.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re_sel.json)。
+- **2026-11-20 更新，R2-RE-SEL（T-042，预注册附录）：把选择放进模拟后，仍是一个离群宿主。** 上一条更新中的零假设模拟没有包含 N5584 是怎样被找出来的：它是 37 个宿主中最极端的一个。本检验在 C 下模拟全部 37 个宿主，每次按一个固定准则去掉最极端的宿主（这个准则在真实数据上选出 N5584；X：留一宿主 χ² 项最大；S：不含该宿主的随机子样本离散最小），然后才测量其余 36 个宿主的离散。真实的 36 宿主离散仍是普通的：τ̂ 的 p = 0.24（准则 X；不考虑选择时 0.34），随机子样本离散的 p = 0.24 与 0.14（X 与 S；不考虑选择时 0.36）。预注册解读为"计入选择后，多出的校准离散与一个离群宿主相容"，所以先前的事后说法现在是预注册的结果，附一条限定：τ 部分没有与 τ̂ 对应的准则。描述性地，零假设模拟中有 11% 的最大留一项与 N5584 的一样大。独立审稿（事后，我们已复核）没有发现错误，但指出"相符"只表示其余 36 个宿主不拒绝 C：这个检验对分散在所有宿主上的离散功效很低（用代理统计量，只在 21–45% 的模拟中拒绝）。一个事后选择的统计量，即去掉选出的宿主时离散下降多少，在 C 下少见（0.6% 的模拟），在分散离散下没那么少见（2–4%）：它指向一个离群宿主，但没有模拟单个离群者的模型；预注册的比较登记为 T-048。标题判定（"未检出宿主选择效应"）不变。数字见 [`results/r2_re_sel.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re_sel.json)。
 - **同样的宿主、两种指示器（环节 C 与 E）。** 在同样 10 个宿主上用 CCHP 的 JWST TRGB 距离代替造父变星，得到 69.70，与 CCHP 自己的 69.29 接近；这些宿主上 SH0ES 与 CCHP 两个阶梯相差 +0.010 ± 0.048 mag（0.3 km/s/Mpc），没有宿主偏离超过 1.2σ。
 - **对论证的意义。** 本项目能重算的 `gap_rule` 输入在 R22 的数据中成立：选出的宿主给出比全样本低的 H0，而在这些宿主上造父变星与 TRGB 一致。规则本身（因此差异"完全"是选择造成的）没有被检验，而选择效应至多约 2σ，加入宿主级随机效应后不显著（R2-RE，下一条）。
 - **2026-11-16 更新，R2-RE（T-023，预注册附录）：未检出宿主选择效应。** 用限制最大似然（REML, restricted maximum likelihood）估计的宿主级随机效应（random effect）为 0.077 mag（68% 区间 0.048–0.105），它消除了随机子样本多出来的离散（Δ/σ 的离散 1.33 → 1.005）。计入它之后，CCHP 宿主一步为 −0.062 ± 0.040 mag（z = −1.53），不变的预注册判定表给出"未检出宿主选择效应"，现在是宿主一步的标题判定（2026-11-14 的判定保留记录）。移动的方向与大小（约 −2 km/s/Mpc）不变，不成立的是显著性。独立审稿（事后）没有发现错误，但强调这个"未检出"很软：τ ≈ 0.03 mag 时 z 就越过 −2（审稿的估计），τ > 0 的证据不强（p ≈ 0.03），τ̂ 可能由少数非 CCHP 宿主决定，而且规则是在已知第一次结果后定的；所以如实的概括是约 −2 km/s/Mpc 的移动，显著性 1.5σ–2.2σ。逐一剔除宿主的检验已登记（T-032）。数字见 [`results/r2_re.json`](https://github.com/sudoghut/astrolab/blob/main/studies/003-m02-hubble-tension-distance-ladder/results/r2_re.json)。
@@ -471,7 +472,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 ### 研究进展
 
-- 2026-11-20：R2-RE-SEL（T-042）：考虑选择的零假设；把选出最极端宿主这一步放进模拟后，36 个宿主的离散仍是普通的（p 0.24、0.24、0.14）：计入选择后与一个离群宿主相容；审稿（事后）：对分散离散功效低，事后的离散下降统计量倾向于一个宿主，登记 T-048（第三部分更新）。
+- 2026-11-20：R2-RE-SEL（T-042）：考虑选择的零假设；把选出最极端宿主这一步放进模拟后，36 个宿主的离散仍是普通的（p 0.24、0.24、0.14）：计入选择后与一个离群宿主相容；审稿（事后）：对分散离散功效低，事后的离散下降统计量指向一个宿主，登记 T-048（第三部分更新）。
 - 2026-11-18：R2-RE-N5584（T-039）：去掉或降权 N5584，零结果都成立；审稿（事后）：变分 τ 偏高，z 的方法离散约 ±0.3，考虑选择的零假设登记为 T-042（第三部分更新）。
 - 2026-11-18：R2-RE-ROB（T-032）：逐一剔除宿主与零假设模拟；零结果对 N5584 敏感，而（审稿，事后）它承载了全部信号；登记 T-039（第三部分更新）。
 - 2026-11-16：R2-RE（T-023，计划 021）：宿主级随机效应（REML，0.077 mag）；宿主一步变为"未检出宿主选择效应"（z = −1.53），成为标题判定（第三部分更新）。
