@@ -283,8 +283,8 @@ labels above stand as the pre-registered outcome; the re-test labels are the cur
   decided.
 - **The 8 Gyr split stays undetermined.** The label hinges on one metal-poor bin. That bin's power is
   limited by mock fits that miss the valley (independent referee, post hoc; a diagnostic rerun is
-  registered as T-045). If the bin were resolvable, the reading would be "not reproduced", because no
-  bin has an almost disjoint valley.
+  registered as T-045). Post hoc: if the bin were resolvable, the reading would be "not reproduced",
+  because no bin has an almost disjoint valley.
 - **Variant without a selection term.** It agrees on the intrinsic scatter. It fails the recovery test
   for the sequence under the mocks' error generator, which is why R3/R4 carry "selection-term
   sensitive".
@@ -464,7 +464,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 - **老盘跨度复现，且稳健：** 1.5 dex 上 6.09 Gyr（各稳健性拟合中为 5.9–6.3）。
 - **α 选择样本的离散未复现：** 2.55 Gyr，而 XR22 为 0.82。
 - **老序列的内禀离散确认低于 0.82 Gyr：** 在带背景成分的混合模型中为 0.748 Gyr。它不稳健：误差乘以 0.8 后就无法判定。
-- **8 Gyr 分界仍无法判定。** 标签取决于一个贫金属箱，而该箱的功效受限于漏掉谷的模拟拟合（独立审稿，事后；已登记诊断性重跑 T-045）。若这个箱可分辨，结论会是"未复现"，因为没有一个箱的谷几乎不相交。
+- **8 Gyr 分界仍无法判定。** 标签取决于一个贫金属箱，而该箱的功效受限于漏掉谷的模拟拟合（独立审稿，事后；已登记诊断性重跑 T-045）。事后看：若这个箱可分辨，结论会是"未复现"，因为没有一个箱的谷几乎不相交。
 - **不加选择项的变体。** 它在内禀离散上给出相同结论；在模拟的误差生成器下，它对序列的回收检验失败，所以 R3/R4 带有"对选择项敏感"。
 
 对话探索：`python -m astrolab explore 010 --tag <主题> --set 键=值` 可用改变的参数（例如 J_φ 截断、误差截断或高 α 阈值）重跑任一拟合，不影响正式结果；见研究 README 第 8 节。
