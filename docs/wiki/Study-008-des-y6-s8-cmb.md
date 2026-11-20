@@ -368,12 +368,14 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
   known-answer test of φ is registered (T-047). Numbers: [`results/r6_shuf.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_shuf.json).
 - **Update 2026-11-20, conditional means (T-047 first part, exploration, post hoc; no flow).** In
   bins of Σmν (DES quintiles) we compared the two chains' conditional means of the other five
-  parameters. In the DES chain Σmν is linearly correlated mainly with Ωm (+0.39; the others
-  |r| ≤ 0.07), so shuffling it mostly breaks that relation (to the extent the dependence is linear).
+  parameters. In the DES chain Σmν is almost a joint linear function of Ωm, h, Ωb and A_s (R² = 0.87),
+  although its pairwise correlations are small except with Ωm, so shuffling it breaks that joint
+  relation; the pairwise numbers do not say which parameters carry it.
   Where the CMB weight lies (Σmν < 0.24 eV, 95%), DES is closer to the CMB in Ωm (−0.21σ against
-  +0.34σ marginally) and about as far in A_s (−0.67σ against −0.75σ); the offsets grow at higher Σmν
-  mainly because the CMB's own means move along its geometric degeneracy, where its tail is thinly
-  sampled. The known-answer test of φ needs a flow environment and waits for the user's consent.
+  +0.34σ marginally), about as far in A_s (−0.67σ against −0.75σ) and the same in the 2-D
+  (A_s, Ωm) offset (0.33σ against 0.32σ); the offsets grow at higher Σmν, largely because the CMB's
+  own means move along its geometric degeneracy, where its tail is thinly sampled. These numbers do
+  not test φ. The known-answer test of φ needs a flow environment and waits for the user's consent.
   Numbers in the study README, section 5.
 - **"Easing", measured on one ruler.** Against the same CMB chain, the previous generation sits at
   1.4–3.1σ (DES Y3 2.83σ, KiDS-1000 2.92–3.14σ, HSC Y3 2023 1.44–1.93σ) and the other current probes
@@ -410,7 +412,7 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
 Newest first.
 
 - 2026-11-20: T-047 first part (exploration, post hoc): conditional means in Σmν bins; DES's Σmν
-  correlates mainly with Ωm, and its low-Σmν region is no farther from the CMB in (A_s, Ωm) (part 3
+  is nearly a joint linear function of Ωm, h, Ωb and A_s, and its low-Σmν region is no farther from the CMB in (A_s, Ωm) (part 3
   updated).
 - 2026-11-20: R6-SHUF (T-044): shuffling DES's Σmν lowers the 6-D flow value to 0.91σ, drawing it
   from the prior to 0.55σ; φ = 0.67, "mainly through its correlations with the other DES parameters";
@@ -629,7 +631,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 - **事后（审稿）：完整空间的数字可能主要来自 Σmν。** CMB 链的中微子质量紧贴先验边界 0.06 eV，而 DES 几乎没有约束它；只用 Σmν 的 1 维差异为 1.74σ，其他每个参数为 0.21–0.89σ。如果六参数的 1.8σ 由这个先验边界方向承载，它对数据约束的方向说明不了多少（在 (A_s, Ωm) 上流给出 0.40σ）。1 维的数字不能决定 6 维的数字；不含 Σmν 的 5 维流登记为 T-040。
 - **2026-11-18 更新，R6-NOMNU（T-040，预注册）：完整空间的数字主要随 Σmν 而来。** 不含 Σmν 的 5 维流（A_s、h、n_s、Ωb、Ωm；相同的行，五次训练，5 维已知答案门控通过）给出 0.52σ（s = 0.04），而 6 维为 1.70σ：预注册标签为"完整空间的偏移主要来自 Σmν 方向"（有效 χ² 3.65 对 10.97）。独立审稿（事后，我们用不训练流的短检查复核）进一步说明：6 维数字主要来自 Σmν 与它在 DES 中的相关共同作用（打乱 DES 的 Σmν 列后，kNN 的 6 维估计从 1.27–1.57σ 降到约 0.8σ），部分来自先验形状（DES 的 Σmν 接近其先验；DES 的 Σmν 取自先验时 1 维差异仍为 1.05σ）。所以 D26 的完整空间 1.8σ 主要随 Σmν 而来，主要通过它的相关，部分通过它相对先验的位置；其余五个参数上的差异约为 0.5σ（其中一些在 DES 中本身也由先验主导；在受数据约束的 (A_s, Ωm) 上为 0.40σ）。只用一个种群的流（`pop_size = 1`）训练快约九倍，但在 5 维偏低。预注册的打乱与先验替换检查已登记（T-044）。数字见 [`results/r6_nomnu.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_nomnu.json)。
 - **2026-11-20 更新，R6-SHUF（T-044，预注册）：主要是 DES 自身 Σmν 的相关。** 用相同的 6 维流、逐种子与 R6 配对，分别在打乱 DES 的 Σmν 列（保留它的分布，切断它与 DES 其他参数的联系）和把 DES 的 Σmν 换成先验抽样的情形下训练。打乱使差异从 1.70σ 降到 0.91σ；换成先验降到 0.55σ，接近不含 Σmν 的 0.52σ。Σmν 增加的部分中，比例 φ = 0.67（预注册区间 0.64–0.70）随打乱而去：预注册标签为"Σmν 增加的部分主要通过它与其他 DES 参数的相关"。约三分之一来自 DES 的 Σmν 分布相对其先验的差别，DES 的 Σmν 取先验后只剩约 0.03σ（这一余项把 CMB 链的 Σmν、第六维与其他残差合在一起）。独立审稿（事后，我们已复核）发现标签对训练离散稳健，但接近已知答案门控所能保证的边缘（按门控的均值偏差修正后区间为 0.60–0.67）；由哪些 DES 参数承担这种相关，没有检验。φ 的已知答案检验已登记（T-047）。数字见 [`results/r6_shuf.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_shuf.json)。
-- **2026-11-20 更新，条件均值（T-047 第一部分，探索，事后；不训练流）。** 我们按 Σmν 分箱（DES 的五分位数），比较两条链中其他五个参数的条件均值。在 DES 链中 Σmν 主要与 Ωm 线性相关（+0.39；其他 |r| ≤ 0.07），所以打乱它主要破坏的是这一关系（在依赖为线性的范围内）。在 CMB 权重所在处（Σmν < 0.24 eV，95%），DES 在 Ωm 上更接近 CMB（−0.21σ，边缘分布为 +0.34σ），在 A_s 上距离相当（−0.67σ 对 −0.75σ）；更高的 Σmν 处偏移增大，主要是因为 CMB 自身的均值沿它的几何简并移动，而那里的尾部样本很少。φ 的已知答案检验需要流的环境，等待用户同意。数字见研究 README 第 5 节。
+- **2026-11-20 更新，条件均值（T-047 第一部分，探索，事后；不训练流）。** 我们按 Σmν 分箱（DES 的五分位数），比较两条链中其他五个参数的条件均值。在 DES 链中 Σmν 几乎是 Ωm、h、Ωb、A_s 共同的线性函数（R² = 0.87），尽管除 Ωm 外两两相关系数都很小，所以打乱它破坏的是这一联合关系；两两相关不能说明由哪些参数承担。在 CMB 权重所在处（Σmν < 0.24 eV，95%），DES 在 Ωm 上更接近 CMB（−0.21σ，边缘分布为 +0.34σ），在 A_s 上距离相当（−0.67σ 对 −0.75σ），(A_s, Ωm) 的二维偏移也相同（0.33σ 对 0.32σ）；更高的 Σmν 处偏移增大，很大程度上是因为 CMB 自身的均值沿它的几何简并移动，而那里的尾部样本很少。这些数字不检验 φ。φ 的已知答案检验需要流的环境，等待用户同意。数字见研究 README 第 5 节。
 - **用同一把尺子量"减弱"。** 对同一条 CMB 链，上一代为 1.4–3.1σ（DES Y3 2.83σ，KiDS-1000 2.92–3.14σ，HSC Y3 2023 1.44–1.93σ），当前其他探针为 0.2–1.7σ（KiDS-Legacy 1.04σ，HSC Y3 2025 1.74σ，ACT 透镜 0.18σ，eROSITA 在 CMB 之上 1.51σ）；DES Y6 3x2pt 为 2.67σ。逐个巡天看：KiDS 移动很大（2.9–3.1σ 到 1.0σ），DES 移动很小（2.83σ 到 2.67σ），HSC 几乎没动（1.4–1.9σ 到 1.74σ）。所以"减弱"主要是 KiDS 的结果，而不是所有巡天的普遍变化。（若较早的论文给出的是众数（mode，最可能值）而不是均值，KiDS-1000 3x2pt 为 2.93σ 而不是 3.14σ。）
 
 ### 术语表
@@ -656,7 +658,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 
 按时间倒序。
 
-- 2026-11-20：T-047 第一部分（探索，事后）：Σmν 分箱中的条件均值；DES 的 Σmν 主要与 Ωm 相关，其低 Σmν 区域在 (A_s, Ωm) 上并不更远离 CMB（第三部分更新）。
+- 2026-11-20：T-047 第一部分（探索，事后）：Σmν 分箱中的条件均值；DES 的 Σmν 几乎是 Ωm、h、Ωb、A_s 共同的线性函数，其低 Σmν 区域在 (A_s, Ωm) 上并不更远离 CMB（第三部分更新）。
 - 2026-11-20：R6-SHUF（T-044）：打乱 DES 的 Σmν 使 6 维流的值降到 0.91σ，换成先验降到 0.55σ；φ = 0.67，"主要通过它与其他 DES 参数的相关"；审稿（事后）：接近门控标定的边缘；登记 T-047（第三部分更新）。
 - 2026-11-18：R6-NOMNU（T-040）：不含 Σmν 的 5 维流给出 0.52σ，"主要来自 Σmν 方向"；审稿（事后）：Σmν 与它在 DES 中的相关共同作用，部分来自先验形状；登记 T-044（第三部分更新）。
 - 2026-11-18：R6 的审稿：只用 Σmν 的差异为 1.74σ（CMB 链紧贴先验边界），完整空间的数字可能主要来自这个方向（T-040）；tensiometer 的十轮种群（population）是同一次初始化的接续训练（热启动，warm restart）。

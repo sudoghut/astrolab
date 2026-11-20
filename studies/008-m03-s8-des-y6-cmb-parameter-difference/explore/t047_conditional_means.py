@@ -5,11 +5,14 @@ Question: does the DES 3x2pt chain's Sigma m_nu column raise the six-parameter d
 (R6-SHUF) through its correlation with the other DES parameters? Without a flow, look at the conditional
 means: in bins of Sigma m_nu (weighted quantiles of the DES chain), the weighted mean of each other
 parameter in each chain, and its offset DES - CMB in units of the combined conditional standard
-deviation. Also the weighted correlation of each parameter with Sigma m_nu in each chain.
+deviation. Also the weighted correlation of each parameter with Sigma m_nu in each chain, the multiple
+R^2 of Sigma m_nu on the other five and the partial correlations (from the inverse weighted covariance),
+and per bin the 2-D offset in (A_s, Omega_m) with the conditional covariances (a Gaussian approximation).
 Run with:
     python -m astrolab explore 008 --tag t047-conditional-means --script explore/t047_conditional_means.py
 """
 import numpy as np
+from scipy import stats
 
 import run
 import s8diff
@@ -50,6 +53,25 @@ def corr(x, y, w):
     return float(np.average((x - mx) * (y - my), weights=w) / (sx * sy))
 
 
+def linear_ties(X, w, im):
+    """Multiple R^2 of column im on the others and the partial correlations, from the inverse weighted
+    covariance (precision matrix)."""
+    prec = np.linalg.inv(np.cov(X.T, aweights=w))
+    r2 = 1.0 - 1.0 / (prec[im, im] * np.cov(X.T, aweights=w)[im, im])
+    part = {NAMES[j]: float(-prec[im, j] / np.sqrt(prec[im, im] * prec[j, j]))
+            for j in range(X.shape[1]) if j != im}
+    return float(r2), part
+
+
+def offset_2d(a, wa, b, wb, cols):
+    """Gaussian 2-D offset between two weighted samples: Mahalanobis distance with the summed
+    covariances, and the equivalent two-sided n_sigma of chi^2 with 2 degrees of freedom."""
+    d = np.average(a[:, cols], axis=0, weights=wa) - np.average(b[:, cols], axis=0, weights=wb)
+    c = np.cov(a[:, cols].T, aweights=wa) + np.cov(b[:, cols].T, aweights=wb)
+    m2 = float(d @ np.linalg.solve(c, d))
+    return {"mahalanobis": float(np.sqrt(m2)), "n_sigma": float(stats.norm.isf(stats.chi2.sf(m2, 2) / 2))}
+
+
 def ess(w):
     return float(w.sum() ** 2 / np.sum(w ** 2)) if w.sum() > 0 else 0.0
 
@@ -64,6 +86,14 @@ def main(ctx):
     out = {"n_bins": N_BINS, "mnu_edges_des_quantiles": [float(e) for e in edges[1:-1]],
            "mnu": {"des": mean_sd(des[:, im], wd), "cmb": mean_sd(cmb[:, im], wc)},
            "corr_with_mnu": {}, "overall": {}, "bins": []}
+    pair = [NAMES.index("a_s_1e9"), NAMES.index("omega_m")]
+    for key, X, w in (("des", des, wd), ("cmb", cmb, wc)):
+        r2, part = linear_ties(X, w, im)
+        out.setdefault("multiple_r2_mnu", {})[key] = r2
+        out.setdefault("partial_corr_with_mnu", {})[key] = part
+        ctx.log(f"{key}: multiple R^2 of mnu on the others {r2:.3f}; partial correlations "
+                + ", ".join(f"{k} {v:+.2f}" for k, v in part.items()))
+    out["overall_as_om_2d"] = offset_2d(des, wd, cmb, wc, pair)
     for j, name in enumerate(NAMES):
         if j == im:
             continue
@@ -89,10 +119,13 @@ def main(ctx):
             cm, cs = mean_sd(cmb[mc_, j], wc[mc_])
             row["params"][name] = {"des_mean": dm, "des_sd": ds, "cmb_mean": cm, "cmb_sd": cs,
                                    "offset_sigma": (dm - cm) / np.hypot(ds, cs)}
+        row["as_om_2d"] = offset_2d(des[md_], wd[md_], cmb[mc_], wc[mc_], pair)
         out["bins"].append(row)
         ctx.log(f"mnu bin {b} [{lo:.3f}, {hi:.3f}): DES w {row['des_weight']:.3f} (ESS {row['des_ess']:.0f}), "
                 f"CMB w {row['cmb_weight']:.3f} (ESS {row['cmb_ess']:.0f}); offsets (sigma) "
-                + ", ".join(f"{k} {v['offset_sigma']:+.2f}" for k, v in row["params"].items()))
+                + ", ".join(f"{k} {v['offset_sigma']:+.2f}" for k, v in row["params"].items())
+                + f"; (A_s, Omega_m) 2-D {row['as_om_2d']['n_sigma']:.2f} sigma")
+    ctx.log(f"overall (A_s, Omega_m) 2-D: {out['overall_as_om_2d']['n_sigma']:.2f} sigma")
     ctx.log("overall offsets (sigma): " + ", ".join(f"{k} {v['offset_sigma']:+.2f}" for k, v in out["overall"].items()))
     ctx.log("corr with mnu (DES / CMB): " + ", ".join(
         f"{k} {v['des']:+.2f} / {v['cmb']:+.2f}" for k, v in out["corr_with_mnu"].items()))
