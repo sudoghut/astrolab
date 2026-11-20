@@ -225,8 +225,8 @@ function renderR6S(x) {
   tq.innerHTML = hq;
   const iv = (x.numbers || {}).interval || [];
   note.innerHTML = L(
-    `Label (pre-registered): <b>${esc(x.label)}</b>` + (iv.length ? ` (I_φ = [${f(iv[0])}, ${f(iv[1])}]; band 0.40–0.60).` : '.') + ` The split is in the registered order (shuffle, then prior) and is not unique; ψ, ρ, (SS) and the kNN values (in the results file, not calibrated) get no label. With DES's Σmν at its prior, the 6-D value is close to the 5-D one: the CMB's position at the 0.06 eV prior edge adds little in six dimensions. The low-shift gate checks one point (0.86); n₅ and n_P lie below it and are not gated (README section 5).`,
-    `标签（预注册）：<b>${R6S_LABELS[x.label] || esc(x.label)}</b>` + (iv.length ? `（I_φ = [${f(iv[0])}, ${f(iv[1])}]；区间 0.40–0.60）。` : '。') + `分解按预注册的顺序（先打乱，再换成先验），并不唯一；ψ、ρ、(SS) 与 kNN 的值（在结果文件中，未经标定）不给标签。DES 的 Σmν 取先验时，6 维值接近 5 维值：CMB 贴着 0.06 eV 先验边界的位置在 6 维中贡献很小。低偏移门控只检查一个点（0.86）；n₅ 与 n_P 低于它，没有门控（README 第 5 节）。`);
+    `Label (pre-registered): <b>${esc(x.label)}</b>` + (iv.length ? ` (I_φ = [${f(iv[0])}, ${f(iv[1])}]; band 0.40–0.60).` : '.') + ` The split is in the registered order (shuffle, then prior) and is not unique; ψ, ρ, (SS) and the kNN values (in the results file, not calibrated) get no label. With DES's Σmν at its prior, the 6-D value is close to the 5-D one (ρ lumps together the CMB chain's Σmν, the sixth dimension and any residual). The low-shift gate checks one point (0.86); n₅ and n_P lie below it and are not gated. Post hoc (independent referee): corrected for the gates' mean offsets, I_φ = [0.601, 0.669], near the edge of the calibration; a known-answer test of φ is registered (T-047; README sections 5–6).`,
+    `标签（预注册）：<b>${R6S_LABELS[x.label] || esc(x.label)}</b>` + (iv.length ? `（I_φ = [${f(iv[0])}, ${f(iv[1])}]；区间 0.40–0.60）。` : '。') + `分解按预注册的顺序（先打乱，再换成先验），并不唯一；ψ、ρ、(SS) 与 kNN 的值（在结果文件中，未经标定）不给标签。DES 的 Σmν 取先验时，6 维值接近 5 维值（ρ 把 CMB 链的 Σmν、第六维与残差合在一起）。低偏移门控只检查一个点（0.86）；n₅ 与 n_P 低于它，没有门控。事后（独立审稿）：按门控的均值偏差修正后 I_φ = [0.601, 0.669]，接近标定的边缘；φ 的已知答案检验已登记（T-047；README 第 5–6 节）。`);
 }
 
 let data = null;
