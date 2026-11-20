@@ -499,7 +499,7 @@ Lean 论证及其"引文 / 类型 / 内容"对照表，没有看到第 5-8 节�
   （`--set n_mock=2 --set n_mock_reduced=2 --set n_boot=2 --set n_boot_r6=5`）一次运行约 30 min，
   完整标定约 5 h。R-SEL 流程（默认）的数据拟合约 0.75 h，另加模拟（快速运行用 `--set sel_n_mock=2`；
   每组 50 次时模拟的计算时间为 6 h，这次被中断的运行共用了 10 h）。它的模拟按代码与 PARAMS 的键存档在缓存中，所以覆盖参数会开一个新的文件夹；
-  峰值内存约 6 GB（第 5.1 节）。
+  峰值内存约 6 GB（第 5.1 节）。自 2026-11-20 起（T-046，在 R-SEL 运行之后；代码改动使存档键改变），被拒的文件替换会重试约 25 s 后才使运行停止；续跑时，预测把已存档的模拟按其记录的时间计为已完成，而不是剩余工作（`selaux.run_mock_sets`；预测记录增加 `mocks_checkpointed_not_replayed`）。
 - `run.py` 没有覆盖的分析：在 `explore/<name>.py` 写带 `def main(ctx)` 的脚本，用
   `python -m astrolab explore 010-m05-thick-disc-subgiant-ages --tag <topic> --script explore/<name>.py` 运行。
   脚本可以 `import run` 并复用 `run.load`、`run.flags`、`run.onedim`、`run.grouped`、

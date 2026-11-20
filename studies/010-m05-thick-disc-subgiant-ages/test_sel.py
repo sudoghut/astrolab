@@ -1,6 +1,7 @@
 """Offline tests of the R-SEL code (README 2.5, T-031): synthetic data only, no network, no catalogue."""
 import importlib.util
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -409,6 +410,55 @@ def test_resume_with_raised_limit_continues_from_checkpoints(tmp_path):
     st3 = selaux.MockStore(tmp_path, "key")                 # the limit stays for the rest of the run
     assert st3.limit_h == 24.0 and not st3.resumed
     st3.release()
+
+
+def test_write_retries_a_refused_replace(tmp_path, monkeypatch):
+    real = os.replace
+    fails = {"n": 3}
+
+    def flaky(src, dst):
+        if fails["n"] > 0:
+            fails["n"] -= 1
+            raise PermissionError(5, "Access is denied")
+        return real(src, dst)
+    monkeypatch.setattr(selaux.os, "replace", flaky)
+    p = tmp_path / "x.json"
+    selaux.MockStore._write(p, {"a": 1}, pause=0.0)
+    assert json.loads(p.read_text(encoding="utf-8")) == {"a": 1} and fails["n"] == 0
+    fails["n"] = 10                                          # a refusal that persists is raised
+    with pytest.raises(PermissionError):
+        selaux.MockStore._write(p, {"a": 2}, tries=4, pause=0.0)
+    assert json.loads(p.read_text(encoding="utf-8")) == {"a": 1}
+    assert not list(tmp_path.glob("*.tmp"))                  # the temporary file is removed
+
+
+def test_resume_does_not_count_checkpointed_mocks_as_left(tmp_path):
+    sets = [{"k": k, "group": g} for k, g in enumerate(["R1", "R1", "AB"])]
+    mk = lambda k, j: selaux.mock_rng(0, 31, k, j)
+    st = selaux.MockStore(tmp_path, "key")
+    for s in sets:                                          # an earlier session checkpointed sets 0 and 2
+        if s["k"] != 1:
+            for j in range(4):
+                st.put(s["k"], j, {"d": float(mk(s["k"], j).random())}, 100.0)
+    st.release()
+    st2 = selaux.MockStore(tmp_path, "key")
+    calls = []
+
+    def run_one(s, rng):
+        calls.append(s["k"])
+        return {"d": float(rng.random())}
+    res, state, log = selaux.run_mock_sets(sets, 4, st2, run_one, mk, 1e6, log=lambda m: None)
+    first = log[0]                                          # after the first-mock pass
+    assert first["mocks_done"] == 3 and first["mocks_checkpointed_not_replayed"] == 6
+    assert first["mocks_left"] == 3                          # only set 1's mocks 1-3
+    el = first["elapsed_h"] * 3600
+    # set 1 (R1) uses the finished R1 set 0 (100 s per mock): 3 x 100 s; nothing else is left
+    assert first["projection_h"] == pytest.approx((el + 3 * 100.0) / 3600, abs=1e-6)
+    assert sorted(calls) == [1, 1, 1, 1]
+    assert log[-1]["mocks_left"] == 0
+    for s in sets:
+        assert [r["d"] for r in res[s["k"]]] == [float(mk(s["k"], j).random()) for j in range(4)]
+    st2.release()
 
 
 def test_nonfinite_results_are_counted():

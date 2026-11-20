@@ -247,14 +247,44 @@ class MockStore:
         p = self.dir / "resumes.json"
         return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
 
+    REPLACE_TRIES = 40                     # about 25 s in all (T-046)
+
     @staticmethod
-    def _write(path, obj):
+    def _write(path, obj, *, tries=None, pause=0.25):
+        """Atomic write: a temporary file, then os.replace. On Windows the replace is sometimes refused
+        (PermissionError, WinError 5) while another process briefly holds the target open (an indexer,
+        antivirus or Dropbox); the replace is retried with a short pause, and only a refusal that
+        persists is raised (T-046)."""
+        tries = MockStore.REPLACE_TRIES if tries is None else int(tries)
         tmp = path.with_name(path.name + f".{os.getpid()}.tmp")
         tmp.write_text(json.dumps(obj), encoding="utf-8")
-        os.replace(tmp, path)
+        for attempt in range(tries):
+            try:
+                os.replace(tmp, path)
+                return
+            except PermissionError:
+                if attempt == tries - 1:
+                    try:
+                        tmp.unlink(missing_ok=True)
+                    except OSError:
+                        pass
+                    raise
+                time.sleep(pause * (1 + attempt % 4))
 
     def _path(self, k, j):
         return self.dir / f"k{int(k):03d}_j{int(j):02d}.json"
+
+    def checkpointed_seconds(self, sets, nmock):
+        """(k, j) -> recorded seconds of every valid checkpoint of these sets (read once at the start
+        of a run; damaged files are removed by get and computed again)."""
+        out = {}
+        for s in sets:
+            for j in range(nmock):
+                if self._path(s["k"], j).exists():
+                    rec = self.get(s["k"], j)
+                    if rec is not None:
+                        out[(s["k"], j)] = float(rec["seconds"])
+        return out
 
     def get(self, k, j):
         p = self._path(k, j)
@@ -322,10 +352,15 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print):
     come from the checkpoints; new ones are computed with make_rng(k, j) and checkpointed. After the
     first-mock pass and after every set, the projection is checked against the stop limit (a limit
     from a consent file replaces stop_h); above it, with mocks left, the run stops (StopRun).
+    Mocks already checkpointed when the run starts count as finished in the projection, with their
+    recorded times, even before they are replayed: their time is already in the elapsed total, so
+    counting them as remaining would count it twice (T-046). Only mocks without a checkpoint are left.
     Returns results (k -> list of dicts in mock order), state (times) and the projection log."""
     results = {s["k"]: [] for s in sets}
     state = {s["k"]: {"group": s["group"], "times": []} for s in sets}
     proj_log = []
+    ckpt = store.checkpointed_seconds(sets, nmock)
+    replayed = {s["k"]: set() for s in sets}
 
     def do(s, j):
         rec = store.get(s["k"], j)
@@ -337,17 +372,31 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print):
             rec = {"result": res, "seconds": dt}
         results[s["k"]].append(rec["result"])
         state[s["k"]]["times"].append(float(rec["seconds"]))
+        replayed[s["k"]].add(j)
+
+    def known_state():
+        # replayed mocks in mock order, then the checkpointed ones not yet replayed (j = 0 is always
+        # replayed first, so times[0] stays each set's first-mock time)
+        out = {}
+        for s in sets:
+            k = s["k"]
+            extra = [ckpt[(k, j)] for j in range(nmock) if j not in replayed[k] and (k, j) in ckpt]
+            out[k] = {"group": s["group"], "times": state[k]["times"] + extra}
+        return out
 
     def check(where):
         limit = store.limit_h if store.limit_h is not None else float(stop_h)
         el = store.elapsed_s()
-        proj = projection_h(el, state, nmock)
+        known = known_state()
+        proj = projection_h(el, known, nmock)
         done = sum(len(v) for v in results.values())
-        left = len(sets) * nmock - done
+        finished = sum(len(v["times"]) for v in known.values())
+        left = len(sets) * nmock - finished
         proj_log.append({"after": where, "elapsed_h": el / 3600, "projection_h": proj, "mocks_done": done,
-                         "mocks_left": left, "limit_h": limit})
+                         "mocks_checkpointed_not_replayed": finished - done, "mocks_left": left,
+                         "limit_h": limit})
         log(f"R-SEL projection after {where}: {proj:.2f} h total (elapsed {el / 3600:.2f} h, {done} mocks done, "
-            f"limit {limit} h)")
+            f"{finished - done} more checkpointed, {left} left; limit {limit} h)")
         if left > 0 and proj > limit:
             store.stop({"projection_h": proj, "elapsed_h": el / 3600, "mocks_done": done, "after": where,
                         "limit_h": limit, "stopped_at": time.time()})
