@@ -4,10 +4,10 @@
 
 *Paper: Xiang & Rix 2022, "A time-resolved picture of our Milky Way's early formation history", Nature 603, 599, arXiv:2203.12110. Study:
 [`studies/010-m05-thick-disc-subgiant-ages`](https://github.com/sudoghut/astrolab/tree/main/studies/010-m05-thick-disc-subgiant-ages).
-Status: concluded (2026-11-16). Last updated: 2026-11-16 (see the changelog at the end). The source of this page lives in the main repository at
+Status: concluded (2026-11-16). Last updated: 2026-11-20 (see the changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：银河系的盘何时开始形成？二十五万颗亚巨星的年龄。状态：已结束（2026-11-16）。论文：Xiang & Rix 2022，Nature 603, 599，arXiv:2203.12110。研究：[`studies/010-m05-thick-disc-subgiant-ages`](https://github.com/sudoghut/astrolab/tree/main/studies/010-m05-thick-disc-subgiant-ages)。最后更新：2026-11-16（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：银河系的盘何时开始形成？二十五万颗亚巨星的年龄。状态：已结束（2026-11-16）。论文：Xiang & Rix 2022，Nature 603, 599，arXiv:2203.12110。研究：[`studies/010-m05-thick-disc-subgiant-ages`](https://github.com/sudoghut/astrolab/tree/main/studies/010-m05-thick-disc-subgiant-ages)。最后更新：2026-11-20（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -270,6 +270,25 @@ the span (about 6 Gyr) agrees and the scatter of the α-selected sample (2.4–2
 times XR22's 0.82 Gyr, likely not a like-for-like comparison. A re-test is registered (T-031).
 Numbers and page: the study README section 5 and `web/index.html`.
 
+**Re-test with a consistent selection term (T-031, 2026-11-20).** A new pre-registration (README
+section 2.5) replaced the selection term with the pass fraction measured on the catalogue as a
+function of observed age, and drew the mocks' errors with the data's age dependence. The original
+labels above stand as the pre-registered outcome; the re-test labels are the current reading.
+
+- **The old-disc span is reproduced, robustly:** 6.09 Gyr over 1.5 dex (5.9–6.3 in every robustness
+  fit).
+- **The scatter of the α-selected sample is not reproduced:** 2.55 Gyr against 0.82.
+- **The intrinsic scatter of the old sequence is confirmed below 0.82 Gyr:** 0.748 Gyr in a mixture
+  with a background component. It is not robust: with errors scaled by 0.8 it can no longer be
+  decided.
+- **The 8 Gyr split stays undetermined.** The label hinges on one metal-poor bin. That bin's power is
+  limited by mock fits that miss the valley (independent referee, post hoc; a diagnostic rerun is
+  registered as T-045). If the bin were resolvable, the reading would be "not reproduced", because no
+  bin has an almost disjoint valley.
+- **Variant without a selection term.** It agrees on the intrinsic scatter. It fails the recovery test
+  for the sequence under the mocks' error generator, which is why R3/R4 carry "selection-term
+  sensitive".
+
 Exploring via chat: `python -m astrolab explore 010 --tag <topic> --set key=value`
 reruns any fit with changed parameters (for example the J_φ cut, the error cut or the high-α
 threshold) without touching the formal results; see the study README section 8.
@@ -299,6 +318,9 @@ threshold) without touching the formal results; see the study README section 8.
 
 Newest first.
 
+- 2026-11-20: re-test R-SEL (T-031) and its independent referee: R3-SEL reproduced, robust (span
+  6.09 Gyr); R4-SEL not reproduced (2.55 Gyr); intrinsic-SEL confirmed, not robust (0.748 Gyr);
+  R1-SEL undetermined, hinging on one bin's mock-fit-limited power (T-045); part 3 updated.
 - 2026-11-16: study run and independent referee: R2 reproduced (12.93 Gyr); R1 undetermined; R3/R4
   and the intrinsic scatter cannot be determined (the S15 selection term of M0 is misspecified, found
   by the referee; re-test T-031); `mod_bin` relabelled `gap_bin` (GAP), so three gaps; part 3 results.
@@ -437,6 +459,14 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 **我们的发现（2026-11-16）。** 在已发表的星表上，最老盘箱的 13 Gyr 均值在星表自己的年龄标尺上复现（12.93 Gyr），但它随等年龄线与 α 标尺变化约 1 Gyr、随去卷积变化 0.3–0.7 Gyr，而距大爆炸只有 0.87 Gyr 的余量，所以 `gap_scale` 是关键的一步。8 Gyr 分界无法判定：在数据能分辨的箱里，潜在年龄密度在两个阶段之间下凹，但没有到"几乎不相交"（而且功效模型（power model）的下限使一个富金属箱按构造无法分辨）。老盘序列也无法判定，因为我们去卷积中 15% 误差截断的选择项（selection term）在两种模拟误差机制下都设定错误（独立审稿（referee）发现，事后（post hoc））；非正式地看，跨度（约 6 Gyr）一致，α 选择样本的离散（2.4–2.7 Gyr）约为 XR22 的 0.82 Gyr 的三倍，可能不是同类比较。已登记重新检验（T-031）。数字与网页见研究 README 第 5 节与 `web/index.html`。
 
+**用一致的选择项重新检验（T-031，2026-11-20）。** 新的预注册（README 第 2.5 节）把选择项换成在星表上按观测年龄测得的通过比例，模拟的误差也按数据中对年龄的依赖抽取。上面的原标签作为预注册的结果保持不变；重新检验的标签是当前的解读。
+
+- **老盘跨度复现，且稳健：** 1.5 dex 上 6.09 Gyr（各稳健性拟合中为 5.9–6.3）。
+- **α 选择样本的离散未复现：** 2.55 Gyr，而 XR22 为 0.82。
+- **老序列的内禀离散确认低于 0.82 Gyr：** 在带背景成分的混合模型中为 0.748 Gyr。它不稳健：误差乘以 0.8 后就无法判定。
+- **8 Gyr 分界仍无法判定。** 标签取决于一个贫金属箱，而该箱的功效受限于漏掉谷的模拟拟合（独立审稿，事后；已登记诊断性重跑 T-045）。若这个箱可分辨，结论会是"未复现"，因为没有一个箱的谷几乎不相交。
+- **不加选择项的变体。** 它在内禀离散上给出相同结论；在模拟的误差生成器下，它对序列的回收检验失败，所以 R3/R4 带有"对选择项敏感"。
+
 对话探索：`python -m astrolab explore 010 --tag <主题> --set 键=值` 可用改变的参数（例如 J_φ 截断、误差截断或高 α 阈值）重跑任一拟合，不影响正式结果；见研究 README 第 8 节。
 
 ### 术语表
@@ -462,6 +492,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 按时间倒序。
 
+- 2026-11-20：重新检验 R-SEL（T-031）及其独立审稿：R3-SEL 复现、稳健（跨度 6.09 Gyr）；R4-SEL 未复现（2.55 Gyr）；内禀离散-SEL 确认、不稳健（0.748 Gyr）；R1-SEL 无法判定，取决于一个功效受模拟拟合限制的箱（T-045）；更新第三部分。
 - 2026-11-16：研究运行与独立审稿：R2 复现（12.93 Gyr）；R1 无法判定；R3/R4 与本征弥散无法判定（M0 的 S15 选择项设定错误，独立审稿发现；重新检验 T-031）；`mod_bin` 改为 `gap_bin`（GAP），因而有三个缺口；补上第三部分的结果。
 - 2026-11-15：闸门 1 审查：宇宙年龄由 XR22 写明（Planck 2015），没有只属标准知识的前提；`gap_onset` 列出四个步骤，扩展数据图 2 的尾巴描述为溅出的盘星，而不是晕的混入。
 - 2026-11-15：第一版：第一至第三部分（预注册的来源；计划 `design/019-plan_*`）。

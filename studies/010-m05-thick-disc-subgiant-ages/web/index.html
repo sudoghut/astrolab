@@ -50,6 +50,15 @@
   <h2><span class="en">R7 · Total age spread of the high-α disc (descriptive)</span><span class="zh">R7 · 高 α 盘的总年龄跨度（描述性）</span></h2>
   <div class="scroll"><table id="r7tab"></table></div>
 
+  <h2><span class="en">Re-test with a consistent selection term (R-SEL, T-031)</span><span class="zh">用一致的选择项重新检验（R-SEL，T-031）</span></h2>
+  <p class="muted"><span class="en">Pre-registered in README section 2.5 (2026-11-17), after the original run: M0's S15 term is replaced by an empirical pass fraction in observed age (term E, primary) and, as a sensitivity, by no term (term N); mocks draw relative errors keyed by latent age as in the data; R1's power floor is 0.12; 50 mocks per set. The labels above (original pre-registration) stay as recorded; these -SEL labels are reported next to them, not as corrections.</span><span class="zh">在原运行之后于 README 第 2.5 节预注册（2026-11-17）：M0 的 S15 选择项换成按观测年龄的经验通过比例（项 E，主结果），并以不加选择项（项 N）作敏感度检验；模拟按潜在年龄抽取相对误差，以符合数据；R1 功效模型的下限为 0.12；每组 50 次模拟。上面的判定（原预注册）保持记录不变；这些 -SEL 标签与之并列报告，不作为更正。</span></p>
+  <div class="scroll"><table id="seltab"></table></div>
+  <h3><span class="en">R1-SEL per bin</span><span class="zh">R1-SEL 各箱</span></h3>
+  <div class="scroll"><table id="selr1"></table></div>
+  <h3><span class="en">R3/R4-SEL and intrinsic-SEL: fits and mocks by term</span><span class="zh">R3/R4-SEL 与 intrinsic-SEL：按选择项的拟合与模拟</span></h3>
+  <div class="scroll"><table id="selr34"></table></div>
+  <p class="muted" id="selerr"></p>
+
   <p class="muted" id="err"></p>
 </main>
 <script>
@@ -60,8 +69,9 @@ const f = (x, d = 2) => (x === null || x === undefined || Number.isNaN(x)) ? '�
 const getJ = n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`${n}.json: HTTP ${r.status}`); return r.json(); });
 const card = (t, v, cls, note) => `<div class="card"><div class="muted">${t}</div><div class="big ${cls || ''}">${v}</div><div class="muted">${note || ''}</div></div>`;
 const ZH = {'reproduced': '复现', 'not reproduced': '未复现', 'undetermined': '无法判定', 'cannot determine': '不能判定',
-            'confirmed': '确认', 'not confirmed': '不确认', 'robust': '稳健', 'not robust': '不稳健'};
-const vz = v => String(v).split(', ').map(p => ZH[p] || p).join('，');
+            'confirmed': '确认', 'not confirmed': '不确认', 'robust': '稳健', 'not robust': '不稳健',
+            'selection-term robust': '对选择项稳健', 'selection-term sensitive': '对选择项敏感'};
+const vz = v => String(v).split(/(, |; | \(|\))/).map(p => ({', ': '，', '; ': '；', ' (': '（', ')': '）'})[p] || ZH[p] || p).join('');
 const vcls = v => String(v).startsWith('reproduced') || v === 'confirmed' ? 'good' : (String(v).startsWith('not') ? 'bad' : '');
 const verdict = v => L(esc(v), esc(vz(v)));
 const row = cells => `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
@@ -168,13 +178,52 @@ function r7() {
     `<tr><td colspan="8">${L('Miglio et al. 2021 (asteroseismic, Kepler): 95% within 1.52 (+0.54/−0.46) Gyr.', 'Miglio 等 2021（星震学，Kepler）：95% 在 1.52（+0.54/−0.46）Gyr 内。')}</td></tr>`;
 }
 
+function sel() {
+  const S = D.sel;
+  if (!S) return;
+  const lab = S.r34.labels, R1 = S.r1.label, tE = S.r34.terms.E, tN = S.r34.terms.N, iE = S.r34.intrinsic.E, iN = S.r34.intrinsic.N;
+  document.getElementById('seltab').innerHTML =
+    head([L('label', '标签'), L('-SEL label (term E)', '-SEL 标签（项 E）'), L('term N (bare)', '项 N（单独）'), L('original label', '原判定')]) +
+    row(['R1-SEL', verdict(R1.label), verdict(S.r1.variants.S15N.verdict), verdict(D.summary.R1.S15.verdict)]) +
+    row(['R3-SEL', verdict(lab['R3-SEL']), verdict(lab.term_N.R3), verdict(D.summary.R3)]) +
+    row(['R4-SEL', verdict(lab['R4-SEL']), verdict(lab.term_N.R4), verdict(D.summary.R4)]) +
+    row(['intrinsic-SEL', verdict(lab['intrinsic-SEL']), verdict(lab.term_N.intrinsic), verdict(D.summary.intrinsic.verdict)]);
+  const rr = [];
+  for (const v of ['S15E', 'S15N', 'Full']) {
+    S.r1.variants[v].bins.forEach((b, i) => {
+      const fb = S.r1.floor_sensitivity[v].bins[i];
+      rr.push(row([i === 0 ? `<b>${esc(v)}</b> (${esc(T(S.r1.variants[v].verdict, vz(S.r1.variants[v].verdict)))})` : '', `[${fb.bin.map(x => f(x, 1)).join(', ')})`,
+        f(b.d), f(b.d_star), `${f(b.power.rtau)} / ${f(b.power.rA)}`, `${f(fb.power.rtau)} / ${f(fb.power.rA)}`,
+        b.resolvable ? L('yes', '是') : L('no', '否'), b.almost_disjoint ? L('yes', '是') : L('no', '否')]));
+    });
+  }
+  document.getElementById('selr1').innerHTML =
+    head([L('variant', '变体'), '[Fe/H]', 'd', 'd*', L('power r·τ / r·A', '功效 r·τ / r·A'), L('power at floor 0.20', '下限 0.20 时的功效'), L('resolvable', '可分辨'), L('almost disjoint', '几乎不相交')]) + rr.join('');
+  const fit = (name, x) => row([name, f(x.tau0), f(x.a), f(x.sigma), f(x.span)]);
+  const rec = (name, r) => row([name, `σ ${f(r.rtau.sigma.bias, 3)} / ${f(r.rA.sigma.bias, 3)}`, `a ${f(r.rtau.a.bias, 3)} / ${f(r.rA.a.bias, 3)}`, r.rtau.pass && r.rA.pass ? L('both pass', '都通过') : L('fail', '未通过'), '']);
+  const mb = (name, x) => row([name, `σ_int ${f(x.sampleB.sigma, 3)}`, `SE ${f(x.se_used, 4)}`, `${L('mock bias', '模拟偏差')} ${Object.values(x.mock_bias).map(m => f(m.bias, 3)).join(', ')}`, `f = 0.8: ${f(x.sampleB_f.f_min.sigma, 3)}; f_max: ${f(x.sampleB_f.f_max.sigma, 3)}`]);
+  document.getElementById('selr34').innerHTML =
+    head([L('item', '项目'), 'τ̄0 (Gyr)', 'a (Gyr/dex)', 'σ (Gyr)', L('span (Gyr)', '跨度（Gyr）')]) +
+    fit(L('sample A, term E', '样本 A，项 E'), tE.sampleA) + fit(L('sample A, term N', '样本 A，项 N'), tN.sampleA) +
+    fit(L('sample A, Full (no term)', '样本 A，Full（无选择项）'), S.r34.shared_full_fits.full) + fit(L('Fig. 2e, term E', 'Fig. 2e，项 E'), S.r34.fig2e_E) +
+    row([L('XR22', 'XR22'), '9.38', '−3.8', '0.82', '5–6']) +
+    head([L('recovery (r·τ / r·A)', '恢复（r·τ / r·A）'), L('σ bias (Gyr)', 'σ 偏差（Gyr）'), L('a bias', 'a 偏差'), L('tolerance', '容差'), '']) +
+    rec(L('term E', '项 E'), tE.recovery) + rec(L('term N', '项 N'), tN.recovery) +
+    head([L('sample B mixture', '样本 B 混合'), 'σ_int (Gyr)', 'SE', L('bias (id r·τ, id r·A, mis r·τ, mis r·A)', '偏差（可辨识 r·τ、r·A，误设 r·τ、r·A）'), L('error-scale refits', '误差标尺重拟合')]) +
+    mb(L('term E', '项 E'), iE) + mb(L('term N', '项 N'), iN);
+}
+
 function renderAll() {
   try { cards(); heat(); r1(); r2(); r34(); r7(); }
   catch (e) { document.getElementById('err').innerHTML = L('Could not render the results: ', '无法显示结果：') + esc(e); }
+  try { sel(); }
+  catch (e) { document.getElementById('selerr').innerHTML = L('Could not render the re-test: ', '无法显示重新检验：') + esc(e); }
 }
 
 Promise.all(['summary', 'r1', 'r2', 'r34', 'r56', 'r7'].map(getJ)).then(([summary, r1d, r2d, r34d, r56d, r7d]) => {
-  D = {summary, r1: r1d, r2: r2d, r34: r34d, r56: r56d, r7: r7d};
+  D = {summary, r1: r1d, r2: r2d, r34: r34d, r56: r56d, r7: r7d, sel: null};
+  Promise.all(['r1_sel', 'r34_sel'].map(getJ)).then(([a, b]) => { D.sel = {r1: a, r34: b}; renderAll(); })
+    .catch(e => { document.getElementById('selerr').innerHTML = L('Re-test results not available: ', '没有重新检验的结果：') + esc(e); });
   const hs = document.getElementById('hsel');
   const names = {all: ['all S15', '全部 S15'], late: ['late phase', '晚期'], early_hiJ: ['early, J_φ > 500', '早期，J_φ > 500'], early_loJ: ['early, J_φ ≤ 500', '早期，J_φ ≤ 500']};
   const fill = () => { hs.innerHTML = Object.keys(names).map(k => `<option value="${k}">${esc(T(...names[k]))}</option>`).join(''); };
