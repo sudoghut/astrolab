@@ -1589,8 +1589,15 @@ def selfit_data_check(D, rf, rb, tag, tol=1e-9):
     cmp("skewnorm", D["skewnorm"], rf["skewnorm"])
     cmp("splitnorm", D["splitnorm"], rf["splitnorm"])
     for fl in ("primary", "sens"):
-        for key in ("mu_old", "s_old", "w_old", "true_d", "young"):
-            cmp(f"power_models.{fl}.{key}", D["power_models"][fl][key], rf["power_models"][fl][key])
+        for key, val in rf["power_models"][fl].items():     # every numeric field of the recorded power model
+            if isinstance(val, bool) or val is None or isinstance(val, str):
+                if D["power_models"][fl].get(key) != val:
+                    bad.append(f"{tag}.power_models.{fl}.{key}")
+            elif key != "edge_trace":
+                cmp(f"power_models.{fl}.{key}", D["power_models"][fl][key], val)
+        if "edge_trace" in rf["power_models"][fl]:          # rows (edge, has valley, true d), as floats
+            cmp(f"power_models.{fl}.edge_trace", [[float(x) for x in row] for row in D["power_models"][fl]["edge_trace"]],
+                [[float(x) for x in row] for row in rf["power_models"][fl]["edge_trace"]])
     cmp("d", D["shape"]["d"], rb["d"])
     cmp("k", D["shape"]["k"], rb["k"])
     return bad
