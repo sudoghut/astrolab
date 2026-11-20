@@ -649,9 +649,9 @@ Per-mock seeds make the numbers independent of the interruptions.
 
 The run took 10.05 h of elapsed time over five sessions. This is the time the SEL-8 limit counts,
 and each session refits the data and replays the checkpoints. The 6,200 mocks (124 sets of 50, with
-no reduced fallback) took 5.97 h of compute, the sum of the per-mock times, against the estimate of
-7.2–11.2 h. The final session's data fits took about 0.73 h, against SEL-8's 1–1.5 h. Peak working set: 6.26 GB in the mock stage and 3.47 GB in the data
-fits, well above SEL-8's estimate of about 1–1.5 GB. The estimate was wrong; the cause was not
+no reduced fallback) took 5.97 h of compute (the sum of the per-mock fit times as checkpointed), against the
+estimate of 7.2–11.2 h. The final session's data fits took about 0.73 h, against SEL-8's 1–1.5 h.
+Peak working set: 6.26 GB in the mock stage and 3.47 GB in the data fits, well above SEL-8's estimate of about 1–1.5 GB. The estimate was wrong; the cause was not
 investigated (the memory reap of 2026-11-19 happened under this load).
 
 New files: `r1_sel.json`, `r34_sel.json` and `sel.json`. `r1.json`, `r34.json` and `summary.json`
