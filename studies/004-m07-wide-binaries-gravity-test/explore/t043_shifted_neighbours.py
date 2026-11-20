@@ -1,0 +1,182 @@
+"""T-043 (post hoc, exploration; no verdict): the chance-neighbour rate of the relaxed degrouping rule,
+measured with shifted positions and without velocities.
+
+For every R5 parent RV star that belongs to an N1 pair (README 2.1), the N2 neighbour query is repeated
+with the star's position moved by SHIFT_DEG in declination (towards the equator; RA, parallax and
+parallax error unchanged). Neighbours found around the shifted position, with the same selection,
+100 kAU radius and 3-sigma parallax rule, are unrelated to the star: their number is the chance
+neighbour count at that distance and sky density. Per pair, "both stars have no chance neighbour" is
+the survival expected if degrouping removed pairs only through chance neighbours; it is compared with
+the observed relaxed-rule survival (N2: both stars' only neighbour is the partner), by distance shell
+and Galactic latitude.
+
+Data: N1 and N2 are the R5 queries of 2026-11-18 (cache hits when still cached). The shifted query is
+new: per region, the rows (source_id, n), about 40 bytes per parent star with at least one shifted
+neighbour; their number is bounded by the region's N2 rows (the same parent stars), which replaces
+the server count (about 100 s per region on the archive); above the caps the count-first split is used. Parents within 25 pc (parallax >= 40 mas) are excluded locally, because
+their 100 kAU circle plus the shift can leave the region's star-b box; the near-star region (d < 10
+pc) is not queried. A region whose shifted query fails is recorded and skipped.
+
+Run: python -m astrolab explore 004 --tag t043-shift --script explore/t043_shifted_neighbours.py
+"""
+from concurrent.futures import ThreadPoolExecutor
+
+import numpy as np
+import pandas as pd
+
+import queries as Q
+import r5
+import run
+import wb
+
+SHIFT_DEG = 2.0                 # > the 100 kAU radius at 25 pc (1.11 deg); circle + shift < the 3.3 deg margin
+PLX_MAX = 40.0                  # parents beyond 25 pc only
+SHELLS = [(25.0, 130.0), (130.0, 150.0), (150.0, 250.0)]
+LAT_BINS = [(0.0, 10.0), (10.0, 40.0), (40.0, 90.0)]
+SEP_BINS = [(300.0, 1000.0), (1000.0, 30000.0)]
+WORKERS = 4                     # archive-bound threads; local CPU use is small
+BYTES_ROW = 40
+REGION_LIMIT = None             # smoke tests only: the first N regions
+
+
+def shift_for(region):
+    """Declination shift towards the equator (no wrap through a pole)."""
+    return -SHIFT_DEG if region["dec0"] >= 0.0 else SHIFT_DEG
+
+
+def shifted_query(region, near_b, select, shift):
+    """N2 (restricted to N1 members) with star a's position moved by `shift` degrees in declination."""
+    cols = ["source_id", "ra", "dec", "parallax", "parallax_error"]
+    aw = Q.star_a_where(region, r5.PARENT_RV, False) + \
+        f" AND source_id IN ({r5.member_subquery(region, False, near_b)})"
+    a = Q._sub(aw, cols, "a")
+    b = Q._sub(Q.star_b_where(region, r5.NEIGHBOUR, False), cols, "b")
+    pbar = ("((b.parallax_error*b.parallax_error*a.parallax + a.parallax_error*a.parallax_error*b.parallax)"
+            " / (a.parallax_error*a.parallax_error + b.parallax_error*b.parallax_error))")
+    dec = f"(a.dec + ({shift}))"
+    conds = ["a.source_id <> b.source_id",
+             "ABS(a.parallax - b.parallax) < 3 * SQRT(a.parallax_error*a.parallax_error"
+             " + b.parallax_error*b.parallax_error)",
+             f"DISTANCE(POINT(a.ra, {dec}), POINT(b.ra, b.dec)) * 3.141592653589793 / 180.0 * 1000.0 / {pbar}"
+             f" <= {Q.DEGROUP_PC}"]
+    circ = (f"CIRCLE(a.ra, {dec}, {Q.DEGROUP_PC} * a.parallax * 1.12 / 1000.0 * 180.0 / 3.141592653589793)")
+    inner = (f"SELECT a.source_id AS source_id, COUNT(*) AS n FROM {a} JOIN {b} "
+             f"ON 1 = CONTAINS(POINT(b.ra, b.dec), {circ}) WHERE {' AND '.join(conds)} GROUP BY a.source_id")
+    return f"SELECT COUNT(*) AS n FROM ({inner}) AS g" if select == "count" else inner
+
+
+def galactic_b(ra, dec):
+    from astropy.coordinates import SkyCoord
+    import astropy.units as u
+    return SkyCoord(ra=np.asarray(ra) * u.deg, dec=np.asarray(dec) * u.deg, frame="icrs").galactic.b.deg
+
+
+def summarise(pairs, mask):
+    sub = pairs[mask]
+    n = int(len(sub))
+    if n == 0:
+        return {"pairs": 0}
+    return {"pairs": n,
+            "observed_survival": float(sub["survives"].mean()),
+            "chance_only_survival": float(sub["no_chance"].mean()),
+            "mean_extra_real_neighbours_per_star": float(np.mean(np.r_[sub["extra_a"], sub["extra_b"]])),
+            "mean_chance_neighbours_per_star": float(np.mean(np.r_[sub["chance_a"], sub["chance_b"]])),
+            "frac_stars_with_chance_neighbour": float(np.mean(np.r_[sub["chance_a"], sub["chance_b"]] > 0))}
+
+
+def main(ctx):
+    P = dict(run.PARAMS)
+    R = {k: P[k] for k in P if k.startswith("r5_")}
+    nb = P["near_b"]
+    budget = run.Budget(float(P["budget_bytes"]))
+    regions = [(name, r) for name, r, near in run._regions(P) if not near]
+    if REGION_LIMIT:
+        regions = regions[:REGION_LIMIT]
+
+    def one(item):
+        name, r = item
+        _, d1 = run._r5_region(ctx, P, "N1", name, r, False, budget,
+                               lambda rr, nn, sel: r5.n1_query(rr, nn, nb, sel), R["r5_bytes_n1"])
+        _, d2 = run._r5_region(ctx, P, "N2", name, r, False, budget,
+                               lambda rr, nn, sel: r5.neighbour_query(rr, nn, nb, r5.NEIGHBOUR, sel, True),
+                               R["r5_bytes_n2"])
+        build = lambda rr, nn, sel: shifted_query(rr, nb, sel, shift_for(rr))
+        # The shifted table has at most one row per parent star of the region's N2 table (the same
+        # parents), so len(d2) bounds its size and replaces the server COUNT; above the caps, the
+        # count-first, split-in-RA path of section 3 is used instead.
+        bound = int(len(d2))
+        try:
+            if bound >= P["max_rows"] or bound * BYTES_ROW > run._max_bytes():
+                _, d3 = run._r5_region(ctx, P, "T043", name, r, False, budget, build, BYTES_ROW)
+            elif bound == 0:
+                d3 = pd.DataFrame({"source_id": [], "n": []})
+            else:
+                budget.reserve(bound * BYTES_ROW, f"T043 {name}")
+                d3 = ctx.tap(build(r, False, "rows"), "gaia", label=f"T043 {name}", max_rows=P["max_rows"],
+                             mode="async", release="Gaia DR3")
+                if len(d3) > bound:
+                    raise run.StopAndAsk(f"T043 {name}: {len(d3)} rows exceed the bound {bound}; stop")
+            err = None
+        except (run.BudgetStop, run.StopAndAsk):
+            raise
+        except Exception as e:  # noqa: BLE001 - archive refusal or timeout: record and skip
+            d3, err = None, f"{type(e).__name__}: {str(e)[:200]}"
+        return name, d1, d2, d3, err
+
+    with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        out = list(ex.map(one, regions))
+    failed = {name: err for name, _, _, _, err in out if err}
+    ok_names = {name for name, _, _, _, err in out if not err}
+    ctx.log(f"regions: {len(out)}; shifted query failed in {len(failed)}: {dict(list(failed.items())[:3])}")
+
+    n1 = pd.concat([d1 for name, d1, _, _, _ in out if name in ok_names and len(d1)], ignore_index=True)
+    n2 = pd.concat([d2 for name, _, d2, _, _ in out if name in ok_names and len(d2)], ignore_index=True)
+    sh = [d3 for name, _, _, d3, _ in out if name in ok_names and d3 is not None and len(d3)]
+    sh = pd.concat(sh, ignore_index=True) if sh else pd.DataFrame({"source_id": [], "n": []})
+    for name, df in (("N2", n2), ("shifted", sh)):
+        if df["source_id"].duplicated().any():
+            raise RuntimeError(f"{name} table has duplicate source_id rows; stop")
+
+    n1 = n1.iloc[wb.canonical_pairs(n1["source_id_a"].to_numpy(), n1["source_id_b"].to_numpy())].reset_index(drop=True)
+    pb, _, _ = wb.weighted_parallax(n1["parallax_a"].values, n1["parallax_error_a"].values,
+                                    n1["parallax_b"].values, n1["parallax_error_b"].values)
+    n1 = n1.assign(pbar=pb, rsky=wb.sky_separation_au(n1["ra_a"].values, n1["dec_a"].values,
+                                                      n1["ra_b"].values, n1["dec_b"].values, pb))
+    # R5's velocity-free server cuts (N4): pbar > 4 mas, r_sky >= 300 AU, RUWE < 1.25; and beyond 25 pc
+    cut = ((n1["pbar"] > 4.0) & (n1["rsky"] >= 300.0) & (n1["ruwe_a"] < 1.25) & (n1["ruwe_b"] < 1.25)
+           & (n1["parallax_a"] < PLX_MAX) & (n1["parallax_b"] < PLX_MAX))
+    pairs = n1[cut].copy()
+    real = {int(s): (int(n), int(f)) for s, n, f in zip(n2["source_id"], n2["n"], n2["first_neighbour"])}
+    chance = {int(s): int(n) for s, n in zip(sh["source_id"], sh["n"])}
+    ia, ib = pairs["source_id_a"].astype("int64").to_numpy(), pairs["source_id_b"].astype("int64").to_numpy()
+
+    def single(s, partner):
+        v = real.get(int(s))
+        return v is not None and v[0] == 1 and v[1] == int(partner)
+    pairs["survives"] = [single(p, q) and single(q, p) for p, q in zip(ia, ib)]
+    pairs["extra_a"] = [max(real.get(int(p), (0, 0))[0] - 1, 0) for p in ia]
+    pairs["extra_b"] = [max(real.get(int(q), (0, 0))[0] - 1, 0) for q in ib]
+    pairs["chance_a"] = [chance.get(int(p), 0) for p in ia]
+    pairs["chance_b"] = [chance.get(int(q), 0) for q in ib]
+    pairs["no_chance"] = (pairs["chance_a"] == 0) & (pairs["chance_b"] == 0)
+    pairs["d"] = 1000.0 / pairs["pbar"]
+    pairs["absb"] = np.abs(galactic_b(pairs["ra_a"].values, pairs["dec_a"].values))
+
+    res = {"settings": {"shift_deg": SHIFT_DEG, "plx_max": PLX_MAX, "shells_pc": SHELLS, "lat_bins_deg": LAT_BINS,
+                        "sep_bins_au": SEP_BINS, "neighbour": r5.NEIGHBOUR, "parent": r5.PARENT_RV,
+                        "degroup_pc": Q.DEGROUP_PC},
+           "regions": len(out), "failed_regions": failed, "pairs_total": int(len(pairs)),
+           "n_shifted_rows": int(len(sh)), "by_shell": {}, "by_shell_lat": {}, "by_shell_sep": {}}
+    for lo, hi in SHELLS:
+        m = (pairs["d"] >= lo) & (pairs["d"] < hi)
+        key = f"{lo:g}-{hi:g}"
+        res["by_shell"][key] = summarise(pairs, m)
+        for blo, bhi in LAT_BINS:
+            res["by_shell_lat"][f"{key}|b{blo:g}-{bhi:g}"] = summarise(
+                pairs, m & (pairs["absb"] >= blo) & (pairs["absb"] < bhi))
+        for slo, shi in SEP_BINS:
+            res["by_shell_sep"][f"{key}|s{slo:g}-{shi:g}"] = summarise(
+                pairs, m & (pairs["rsky"] >= slo) & (pairs["rsky"] < shi))
+        ctx.log(f"{key} pc: {res['by_shell'][key]}")
+    ctx.save("t043_shifted_neighbours", res)
+    return res
