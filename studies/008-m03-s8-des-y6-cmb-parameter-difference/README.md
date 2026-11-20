@@ -871,6 +871,41 @@ unchanged; R6 and R6-NOMNU read from their recorded files, checks passed, not re
   correlation, or whether DES's low-Σmν region moves them away from the CMB. A known-answer test of φ
   itself and a check of DES's conditional means in Σmν bins are registered as T-047.
 
+**Conditional means in Σmν bins (exploration, post hoc, 2026-11-20, T-047 first part; no flow).**
+Script `explore/t047_conditional_means.py` (cache only, about a minute, single-threaded). Both
+chains are binned in Σmν at the DES chain's weighted quintiles (edges 0.239, 0.359, 0.452, 0.529 eV;
+outer bins open); in each bin the weighted mean and standard deviation of each other parameter are
+compared, offset = (DES − CMB) / √(σ_DES² + σ_CMB²) of the conditional distributions.
+
+| Σmν bin (eV) | CMB weight (ESS) | Ωm | H0 | Ωb | n_s | A_s |
+|---|---|---|---|---|---|---|
+| < 0.239 | 0.953 (9,882) | −0.21 | +0.01 | −0.54 | −0.56 | −0.67 |
+| 0.239–0.359 | 0.044 (474) | −0.78 | +0.32 | −0.88 | −0.40 | −0.75 |
+| 0.359–0.452 | 0.003 (38) | −1.07 | +0.57 | −1.13 | −0.26 | −0.81 |
+| 0.452–0.529 | 0.001 (23) | −1.30 | +0.77 | −1.24 | −0.20 | −0.99 |
+| ≥ 0.529 | 0.000 (13) | −1.53 | +0.99 | −1.41 | −0.26 | −1.24 |
+| marginal (no binning) | – | +0.34 | +0.10 | −0.56 | −0.45 | −0.75 |
+
+Each DES bin holds 0.20 of the weight (effective sample size, ESS, 1,862–2,393). Weighted
+correlation with Σmν, DES / CMB: Ωm +0.39 / +0.76, H0 +0.06 / −0.80, Ωb +0.00 / +0.83, n_s
++0.05 / −0.18, A_s −0.07 / +0.18.
+
+- **Reading (descriptive).** In the DES chain Σmν is linearly correlated mainly with Ωm (+0.39); the
+  other four correlations are |r| ≤ 0.07. So, to the extent that the dependence is linear,
+  shuffling DES's Σmν (R6-SHUF (S)) mostly breaks its Σmν–Ωm relation; non-linear dependence is not
+  measured here. In the lowest Σmν bin, where 95% of the CMB weight lies, DES is closer to the CMB in
+  Ωm (−0.21 against +0.34 marginally) and about as far in A_s (−0.67 against −0.75): DES's low-Σmν
+  region does not move (A_s, Ωm) away from the CMB. The offsets grow with Σmν mainly because the
+  CMB's conditional means move strongly with Σmν (its geometric degeneracy in Ωm, H0, Ωb), and above
+  0.36 eV they compare DES with a CMB tail of ESS 13–38, so those rows are poorly determined. The
+  sign change of the Ωm offset between the bins and the marginal is a mixture effect: the CMB weight
+  sits in the lowest bin, the DES weight is spread over all five.
+- **Limits.** Conditional means and standard deviations per parameter, not a multi-dimensional
+  difference; one binning (quintiles of DES); no error bars (the chains' ESS per bin is given). It
+  does not test φ itself; the known-answer test of φ (T-047's flow part) needs a TensorFlow
+  environment, which was removed after T-044 and is reinstalled only with the user's consent.
+  Exploration output was deleted after these numbers were copied.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-15 (subagent with the pre-registration, code and results only; it read
@@ -969,8 +1004,9 @@ was using the machine. Triage:
    matters more than a sharper 6-D number. R6-SHUF's pre-registered label (T-044, 2026-11-20) is that
    the Σmν part is mainly DES's own Σmν correlations (φ̄ = 0.67); which DES parameters carry them is not tested.
    Its referee (post hoc) found the label near the edge of what the gates certify (bias-corrected
-   I_φ = [0.601, 0.669]); a known-answer test of φ and a conditional-means check are registered as
-   T-047.
+   I_φ = [0.601, 0.669]); a known-answer test of φ is registered as T-047. Its no-flow first part
+   (conditional means, 2026-11-20, post hoc; section 5) finds DES's Σmν linearly correlated mainly
+   with Ωm, and DES's low-Σmν region no farther from the CMB in (A_s, Ωm).
 2. How much does the S8 difference change with a lensing-inclusive or Planck-PR4-based CMB
    (D26 reports 1.0σ in full space against Planck 2018 alone)?
 3. Do KiDS-1000 and HSC Y3 (2023) quote means or modes? R5 shows a 0.1–0.2σ dependence.
