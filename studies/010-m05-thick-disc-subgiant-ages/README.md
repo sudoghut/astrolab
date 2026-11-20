@@ -860,7 +860,11 @@ How a coding agent answers "what if" questions about this study without touching
   plus mocks (`--set sel_n_mock=2` for a quick run; at 50 per set the mocks took 6 h of compute and
   the interrupted run 10 h in all). Its mocks are
   checkpointed in the cache under a key of the code and PARAMS, so an override starts a new folder;
-  it needs about 6 GB of memory at peak (section 5.1).
+  it needs about 6 GB of memory at peak (section 5.1). Since 2026-11-20 (T-046, after the R-SEL
+  run; the code change gives a new checkpoint key) a refused file replace is retried for about 25 s
+  before the run stops, and on a resume the projection counts mocks already checkpointed as
+  finished, with their recorded times, instead of as remaining work (`selaux.run_mock_sets`; the log
+  of projections gains `mocks_checkpointed_not_replayed`).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 010-m05-thick-disc-subgiant-ages --tag <topic> --script explore/<name>.py`.
   A script can `import run` and reuse `run.load`, `run.flags`, `run.onedim`, `run.grouped`,
