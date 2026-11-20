@@ -738,7 +738,8 @@ verdicts above stand (SEL-9).
      - The label therefore measures the mock optimiser as much as the data. If this bin were
        resolvable, all three variants would read "not reproduced": no bin is almost disjoint (data
        d = 0.37–0.58, while power mocks in the two resolvable bins give d ≈ 0.03–0.06).
-     - A diagnostic rerun of this bin with data-independent starts is registered (T-045).
+     - A diagnostic rerun of this bin with data-independent starts is registered (T-045; done, below:
+       the misses are local optima of the mock fits).
      - The metal-rich bins have power 0 because K ≤ 4 Gaussians smear the generating model's uniform
        young edge: their power mocks give d ≈ 0.29–0.48 against a true 0.016–0.04. That is a limit
        of the density model, not of the data.
@@ -765,6 +766,42 @@ verdicts above stand (SEL-9).
      f_max drives σ_int to 0.17, so only the f = 0.8 refit can break the label. By linear
      interpolation, "confirmed" holds for f ≳ 0.83, a bound nothing here fixes. All mocks keep a
      Gaussian old component.
+
+- **Diagnostic refit of the deciding bin (T-045; exploration, post hoc, 2026-11-20; the -SEL labels
+  above stand).** Script `explore/t045_r1sel_power_refit.py` (about 20 min, cache only). It rebuilt bin
+  [−0.7, −0.5)'s data fits (identical to `r1_sel.json`: d, K and all mixture parameters, difference 0)
+  and regenerated its six power sets with the SEL-8 streams; the original mock fits reproduce every
+  recorded d and valley flag (300 of 300) and every checkpointed K. It then refitted each catalogue with
+  data-independent starts (the 2.0 quantile starts, 8 per K, K = 1–5, own stream) and kept, for each K,
+  the better of the two fits.
+
+  | Variant, mechanism | Power, recorded | Mocks without a valley | NLL rises with K (original fits) | Power, better fits | d of better fits, 95th percentile |
+  |---|---|---|---|---|---|
+  | S15 term E, e = r·τ | 0.80 | 10 | 29 of 50 | 1.00 | 0.017 |
+  | S15 term E, e = r·A | 0.58 | 21 | 27 | 1.00 | 0.015 |
+  | S15 term N, e = r·τ | 0.88 | 6 | 38 | 1.00 | 0.009 |
+  | S15 term N, e = r·A | 0.88 | 6 | 37 | 1.00 | 0.009 |
+  | Full, e = r·τ | 0.70 | 15 | 37 | 1.00 | 0.009 |
+  | Full, e = r·A | 0.74 | 13 | 35 | 1.00 | 0.010 |
+
+  - **The misses are local optima of the mock fits.** In 27–38 of 50 mocks per set the original fits'
+    NLL rises from some K to K + 1, which a converged nested fit cannot do; with the independent starts
+    it never does (0 of 300), and the better fits never do either. Every missed mock has a K ≥ 2 fit
+    whose NLL the independent starts lower by at least 1,500. L-BFGS-B reported success for every fit,
+    so the convergence flag does not detect these optima.
+  - **With the better fits** BIC chooses K = 3 in 43–47 of 50 mocks and K = 4 in the rest (never K = 1
+    or 2), every mock has a valley, and no mock that passed under the original fits fails. Power is
+    1.00 in all six sets, and stays at or above 0.80 for any d* above 0.017 (the largest 80th
+    percentile of d over the sets), so refitting the null sets, which could only lower d* from its cap
+    0.25, would not change this.
+  - **What this means for R1-SEL (post hoc; the pre-registered label stands).** With converged mock fits
+    bin [−0.7, −0.5) would be resolvable in all three variants. Each variant would then have three
+    resolvable bins and none almost disjoint (data d = 0.37–0.58 against d* ≤ 0.25), which the 2.1 rule
+    reads as "not reproduced". The recorded "undetermined" is therefore an artefact of the mock
+    optimiser, as the referee inferred. Not tested here: the null sets and the other bins (the two
+    resolvable bins already have power 1.00; the metal-rich bins' power 0, attributed above to the
+    density model, may also be partly optimiser-limited). A pre-registered rerun of R1-SEL with
+    data-independent starts in every mock fit is registered as T-049.
 
 ## 6. Referee notes
 
@@ -808,10 +845,10 @@ numbers and found each one as the rules give. Triage:
 - **A selection term consistent with the error mechanism (T-031, done).** Re-tested in section 5.1
   with an empirical age-dependent pass fraction (term E), a corrected power floor and r keyed by
   age. The -SEL labels are reported there next to the original ones.
-- **R1-SEL's deciding bin (T-045).** The power of bin [−0.7, −0.5) is lost to mock fits without a
-  valley, some of them with K = 1. A diagnostic rerun with data-independent starts, recording the NLL
-  for each K, would show whether R1-SEL's substantive reading is "not reproduced" (section 5.1,
-  reading 1).
+- **R1-SEL's deciding bin (T-045, done as a diagnostic).** The power of bin [−0.7, −0.5) was lost to
+  local optima of the mock fits; with data-independent starts it is 1.00 in all six sets, so the
+  substantive reading of R1-SEL is "not reproduced" (section 5.1, post hoc). A pre-registered rerun of
+  R1-SEL with such starts in every mock fit, null sets and all bins included, is T-049.
 - **Which error generator is right.** Open points from section 5.1, readings 2–4:
   - Term N fails recovery only under the τ-keyed generator, whose pools carry the age dependence
     of the pass fraction that the errors themselves create.
@@ -869,6 +906,8 @@ How a coding agent answers "what if" questions about this study without touching
   `mocks_checkpointed_not_replayed` is new).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 010-m05-thick-disc-subgiant-ages --tag <topic> --script explore/<name>.py`.
+  Existing: `explore/t045_r1sel_power_refit.py` (T-045: refit of bin [−0.7, −0.5)'s R1-SEL power mocks
+  with data-independent starts, about 20 min).
   A script can `import run` and reuse `run.load`, `run.flags`, `run.onedim`, `run.grouped`,
   `run.fit_mixtures`, `run.fit_seq` and `m0`/`mocks` (see the execution log of `design/019-plan_*` for examples of
   convergence and recovery checks).
