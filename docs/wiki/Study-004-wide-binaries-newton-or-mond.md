@@ -287,14 +287,15 @@ arXiv:2101.05282) model or estimate contamination instead. A chance-neighbour me
 registered (T-043). Numbers: [`results/r5.json`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/results/r5.json).
 
 **Update 2026-11-20, chance neighbours (T-043, exploration, post hoc).** We counted, for every star of
-the R5 candidate pairs, the neighbours that the relaxed rule would find around a position shifted 2°
+the R5 candidate pairs with parents beyond 29.9 pc, the neighbours that the relaxed rule would find around a position shifted 2°
 in declination: such a circle holds no real companion, so its count is the chance-neighbour rate at
 the same depth. The fraction of pairs whose two shifted circles are both empty matches the observed
-survival closely: 0.47 against 0.42 within 130 pc, 0.24 against 0.22 at 130–150 pc, 0.11 against
+survival closely: 0.47 against 0.42 at 29.9–130 pc, 0.24 against 0.22 at 130–150 pc, 0.11 against
 0.10 at 150–250 pc, with the same fall towards the Galactic plane, and real extra neighbours per star
 (3.8–6.0) match the shifted count (4.1–5.7). So almost all of the degrouping loss is chance
-neighbours, which confirms the referee's inference; real triples and moving groups account for at
-most about 12% of the expected survival within 130 pc and 6% beyond. A larger sample would need a
+neighbours, which confirms the referee's inference; the remainder, an estimate (not a bound) of
+the loss to real triples and moving groups, is about 12% of the expected survival at 29.9–130 pc
+and 6% beyond. A larger sample would need a
 degrouping rule that allows for chance neighbours, and so a new pre-registration. Numbers in the
 study README, section 5 (script
 [`explore/t043_shifted_neighbours.py`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/explore/t043_shifted_neighbours.py)).
@@ -483,7 +484,7 @@ Gaia 档案 2026-11-25 至 12-02 下线，所以在此之前取数并缓存；�
 
 **2026-11-18 更新，R5（T-034，预注册）：未运行。** 扩大样本的设计（d < 250 pc，r_sky ≥ 300 AU）在获取任何速度之前先用不含速度的功效门槛（G1b）检查。结果不通过：经过不用速度的截断后，计数只有设计预测的 53%，牛顿真值下预测的似然比为 68（要求 ≥ 100），MOND 真值下为 0.028（要求 ≤ 0.01），所以速度从未获取，R5 不给判决。独立审稿（事后，我们已复核）把不足追溯到去群：C26 的宽松邻居规则在 130 pc 保留 44% 的星对，在 250 pc 只保留 23%；300–1,000 AU 的星对在 150–250 pc 只存活 11%，而且越靠近银道面存活率越低（|b| < 10° 时降到 2%）。定义"邻居"的视差窗口随距离加深，所以这指向偶然邻居而不是真正的三合星（推断，直接检验为 T-043）。这一规则很可能在约 130–150 pc 以外不再适用；已发表的更大样本（Banik et al. 2024，arXiv:2311.03436；El-Badry et al. 2021，arXiv:2101.05282）是对污染建模或估计。已登记偶然邻居率的测量（T-043）。数字见 [`results/r5.json`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/results/r5.json)。
 
-**2026-11-20 更新，偶然邻居（T-043，探索，事后）。** 对 R5 候选星对中的每颗星，我们计数宽松规则在赤纬平移 2° 的位置周围会找到的邻居：这样的圆内没有真实伴星，所以它的计数就是同样深度下的偶然邻居率。两颗星的平移圆都为空的星对比例与观测存活率非常接近：130 pc 以内 0.47 对 0.42，130–150 pc 0.24 对 0.22，150–250 pc 0.11 对 0.10，向银道面的下降也一样；每颗星的额外真实邻居（3.8–6.0）与平移计数（4.1–5.7）相当。所以去群损失几乎全部来自偶然邻居，证实了审稿的推断；真正的三合星与移动星群最多占 130 pc 以内预期存活率的约 12%，更远处 6%。更大的样本需要一种考虑偶然邻居的去群规则，因而需要新的预注册。数字见研究 README 第 5 节（脚本 [`explore/t043_shifted_neighbours.py`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/explore/t043_shifted_neighbours.py)）。
+**2026-11-20 更新，偶然邻居（T-043，探索，事后）。** 对 R5 候选星对中母星在 29.9 pc 以外的每颗星，我们计数宽松规则在赤纬平移 2° 的位置周围会找到的邻居：这样的圆内没有真实伴星，所以它的计数就是同样深度下的偶然邻居率。两颗星的平移圆都为空的星对比例与观测存活率非常接近：29.9–130 pc 0.47 对 0.42，130–150 pc 0.24 对 0.22，150–250 pc 0.11 对 0.10，向银道面的下降也一样；每颗星的额外真实邻居（3.8–6.0）与平移计数（4.1–5.7）相当。所以去群损失几乎全部来自偶然邻居，证实了审稿的推断；剩余部分是对真正的三合星与移动星群所造成损失的估计（不是上限），约为 29.9–130 pc 预期存活率的 12%，更远处 6%。更大的样本需要一种考虑偶然邻居的去群规则，因而需要新的预注册。数字见研究 README 第 5 节（脚本 [`explore/t043_shifted_neighbours.py`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/explore/t043_shifted_neighbours.py)）。
 
 ### 术语表
 
