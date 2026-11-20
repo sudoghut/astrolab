@@ -12,10 +12,13 @@ and Galactic latitude.
 
 Data: N1 and N2 are the R5 queries of 2026-11-18 (cache hits when still cached). The shifted query is
 new: per region, the rows (source_id, n), about 40 bytes per parent star with at least one shifted
-neighbour; their number is bounded by the region's N2 rows (the same parent stars), which replaces
-the server count (about 100 s per region on the archive); above the caps the count-first split is used. Parents within 25 pc (parallax >= 40 mas) are excluded locally, because
-their 100 kAU circle plus the shift can leave the region's star-b box; the near-star region (d < 10
-pc) is not queried. A region whose shifted query fails is recorded and skipped.
+neighbour; their number is bounded by the region's N2 rows (the same parent stars, minus those within
+29.9 pc), which replaces the server count (about 100 s per region on the archive); above the caps the
+count-first split is used. Parents within 29.9 pc (parallax >= 33.4 mas) are excluded on the server:
+beyond it the shifted and true 100 kAU circles are disjoint and the shifted circle stays inside the
+region's star-b box; the near-star region (d < 10 pc) is not queried. A region whose N1, N2 or shifted
+query fails is recorded and skipped, and a pair is used only if both stars are parents of regions
+whose queries all worked (a pair's star b can lie in another region's margin).
 
 Run: python -m astrolab explore 004 --tag t043-shift --script explore/t043_shifted_neighbours.py
 """
@@ -29,9 +32,10 @@ import r5
 import run
 import wb
 
-SHIFT_DEG = 2.0                 # > the 100 kAU radius at 25 pc (1.11 deg); circle + shift < the 3.3 deg margin
-PLX_MAX = 40.0                  # parents beyond 25 pc only
-SHELLS = [(25.0, 130.0), (130.0, 150.0), (150.0, 250.0)]
+SHIFT_DEG = 2.0                 # circle (<= 1.24 deg beyond 25 pc) + shift < the 3.3 deg declination margin
+PLX_MAX = 33.4                  # parents beyond 29.9 pc: shifted and true circles (radius <= 1.0 deg) disjoint
+SHELLS = [(29.9, 130.0), (130.0, 150.0), (150.0, 250.0)]
+CUMULATIVE = [130.0, 150.0, 250.0]  # the referee's cumulative bins (d < 130, 150, 250 pc; beyond 29.9 pc)
 LAT_BINS = [(0.0, 10.0), (10.0, 40.0), (40.0, 90.0)]
 SEP_BINS = [(300.0, 1000.0), (1000.0, 30000.0)]
 WORKERS = 4                     # archive-bound threads; local CPU use is small
@@ -47,7 +51,7 @@ def shift_for(region):
 def shifted_query(region, near_b, select, shift):
     """N2 (restricted to N1 members) with star a's position moved by `shift` degrees in declination."""
     cols = ["source_id", "ra", "dec", "parallax", "parallax_error"]
-    aw = Q.star_a_where(region, r5.PARENT_RV, False) + \
+    aw = Q.star_a_where(region, r5.PARENT_RV, False) + f" AND parallax < {PLX_MAX}" + \
         f" AND source_id IN ({r5.member_subquery(region, False, near_b)})"
     a = Q._sub(aw, cols, "a")
     b = Q._sub(Q.star_b_where(region, r5.NEIGHBOUR, False), cols, "b")
@@ -95,11 +99,17 @@ def main(ctx):
 
     def one(item):
         name, r = item
-        _, d1 = run._r5_region(ctx, P, "N1", name, r, False, budget,
-                               lambda rr, nn, sel: r5.n1_query(rr, nn, nb, sel), R["r5_bytes_n1"])
-        _, d2 = run._r5_region(ctx, P, "N2", name, r, False, budget,
-                               lambda rr, nn, sel: r5.neighbour_query(rr, nn, nb, r5.NEIGHBOUR, sel, True),
-                               R["r5_bytes_n2"])
+        try:
+            _, d1 = run._r5_region(ctx, P, "N1", name, r, False, budget,
+                                   lambda rr, nn, sel: r5.n1_query(rr, nn, nb, sel), R["r5_bytes_n1"])
+            _, d2, _ = run._r5_with_fallback(
+                ctx, P, "N2", name, r, False, budget,
+                lambda rr, nn, sel: r5.neighbour_query(rr, nn, nb, r5.NEIGHBOUR, sel, True),
+                lambda rr, nn, sel: r5.neighbour_query(rr, nn, nb, r5.NEIGHBOUR, sel, False), R["r5_bytes_n2"])
+        except run._stops():
+            raise
+        except Exception as e:  # noqa: BLE001 - N1/N2 not obtained: record the region as failed
+            return name, None, None, None, f"N1/N2 {type(e).__name__}: {str(e)[:200]}"
         build = lambda rr, nn, sel: shifted_query(rr, nb, sel, shift_for(rr))
         # The shifted table has at most one row per parent star of the region's N2 table (the same
         # parents), so len(d2) bounds its size and replaces the server COUNT; above the caps, the
@@ -112,12 +122,17 @@ def main(ctx):
                 d3 = pd.DataFrame({"source_id": [], "n": []})
             else:
                 budget.reserve(bound * BYTES_ROW, f"T043 {name}")
-                d3 = ctx.tap(build(r, False, "rows"), "gaia", label=f"T043 {name}", max_rows=P["max_rows"],
-                             mode="async", release="Gaia DR3")
-                if len(d3) > bound:
-                    raise run.StopAndAsk(f"T043 {name}: {len(d3)} rows exceed the bound {bound}; stop")
+                try:
+                    d3 = ctx.tap(build(r, False, "rows"), "gaia", label=f"T043 {name}", max_rows=P["max_rows"],
+                                 mode="async", release="Gaia DR3")
+                except BaseException:
+                    budget.release(bound * BYTES_ROW)
+                    raise
+                if len(d3) > bound:            # the bound was wrong: fall back to the server count
+                    ctx.log(f"T043 {name}: {len(d3)} rows exceed the bound {bound}; using the server count")
+                    _, d3 = run._r5_region(ctx, P, "T043", name, r, False, budget, build, BYTES_ROW)
             err = None
-        except (run.BudgetStop, run.StopAndAsk):
+        except run._stops():
             raise
         except Exception as e:  # noqa: BLE001 - archive refusal or timeout: record and skip
             d3, err = None, f"{type(e).__name__}: {str(e)[:200]}"
@@ -127,10 +142,14 @@ def main(ctx):
         out = list(ex.map(one, regions))
     failed = {name: err for name, _, _, _, err in out if err}
     ok_names = {name for name, _, _, _, err in out if not err}
+    # every N2 parent of a region whose queries all worked; a pair is used only if both stars are among
+    # them (a pair's star b can lie in another region's margin, and that region may have failed)
+    ok_parents = set()
     ctx.log(f"regions: {len(out)}; shifted query failed in {len(failed)}: {dict(list(failed.items())[:3])}")
 
     n1 = pd.concat([d1 for name, d1, _, _, _ in out if name in ok_names and len(d1)], ignore_index=True)
     n2 = pd.concat([d2 for name, _, d2, _, _ in out if name in ok_names and len(d2)], ignore_index=True)
+    ok_parents.update(int(s) for s in n2["source_id"])
     sh = [d3 for name, _, _, d3, _ in out if name in ok_names and d3 is not None and len(d3)]
     sh = pd.concat(sh, ignore_index=True) if sh else pd.DataFrame({"source_id": [], "n": []})
     for name, df in (("N2", n2), ("shifted", sh)):
@@ -146,6 +165,10 @@ def main(ctx):
     cut = ((n1["pbar"] > 4.0) & (n1["rsky"] >= 300.0) & (n1["ruwe_a"] < 1.25) & (n1["ruwe_b"] < 1.25)
            & (n1["parallax_a"] < PLX_MAX) & (n1["parallax_b"] < PLX_MAX))
     pairs = n1[cut].copy()
+    both_ok = np.array([int(p) in ok_parents and int(q) in ok_parents
+                        for p, q in zip(pairs["source_id_a"], pairs["source_id_b"])], bool)
+    dropped_failed = int((~both_ok).sum())
+    pairs = pairs[both_ok].copy()
     real = {int(s): (int(n), int(f)) for s, n, f in zip(n2["source_id"], n2["n"], n2["first_neighbour"])}
     chance = {int(s): int(n) for s, n in zip(sh["source_id"], sh["n"])}
     ia, ib = pairs["source_id_a"].astype("int64").to_numpy(), pairs["source_id_b"].astype("int64").to_numpy()
@@ -166,7 +189,13 @@ def main(ctx):
                         "sep_bins_au": SEP_BINS, "neighbour": r5.NEIGHBOUR, "parent": r5.PARENT_RV,
                         "degroup_pc": Q.DEGROUP_PC},
            "regions": len(out), "failed_regions": failed, "pairs_total": int(len(pairs)),
-           "n_shifted_rows": int(len(sh)), "by_shell": {}, "by_shell_lat": {}, "by_shell_sep": {}}
+           "n_shifted_rows": int(len(sh)), "pairs_dropped_not_in_ok_regions": dropped_failed,
+           "note": ("per-star means count a star once per pair it belongs to; the declination shift moves |b| by "
+                    "up to 2 deg and its direction depends on the region (pairs straddling dec 0 get opposite "
+                    "shifts); the shifted field also samples moving groups wider than 2 deg as 'chance'"),
+           "cumulative": {}, "by_shell": {}, "by_shell_lat": {}, "by_shell_sep": {}}
+    for hi in CUMULATIVE:
+        res["cumulative"][f"<{hi:g}"] = summarise(pairs, pairs["d"] < hi)
     for lo, hi in SHELLS:
         m = (pairs["d"] >= lo) & (pairs["d"] < hi)
         key = f"{lo:g}-{hi:g}"
