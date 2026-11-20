@@ -15,6 +15,8 @@ R7  total age spread of the high-alpha disc (descriptive); R5, R6 plots and perc
 R-SEL  re-test of R1, R3/R4 and the intrinsic scatter with the empirical selection term E and
     term N (README 2.5, T-031; PARAMS["parts"] = ["sel"], results r1_sel.json, r34_sel.json, sel.json;
     the original pipeline above is parts = ["orig"] and writes r1/r2/r34/r56/r7/summary.json).
+R1-SEL-FIT  R1-SEL with data-independent starts added to every mock fit (README 2.6, T-049;
+    PARAMS["parts"] = ["selfit"], results r1_selfit.json, records provenance_selfit/run_info_selfit).
 """
 from __future__ import annotations
 
@@ -66,14 +68,17 @@ PARAMS = {
     "hist_age": [0.0, 20.0, 0.25], "hist_feh": [-2.5, 0.6, 0.1],
     # age-scale envelope (literature magnitudes, not recomputed)
     "env_mist": 0.5, "env_alpha": [0.5, 1.0], "env_chen_frac": -0.129,
-    # which pipeline runs: "orig" (README 2.0-2.4; r1/r2/r34/r56/r7/summary.json) and/or "sel"
-    # (README 2.5 R-SEL re-test, T-031; r1_sel/r34_sel/sel.json, never overwrites the original files)
-    "parts": ["sel"],
+    # which pipeline runs: "orig" (README 2.0-2.4; r1/r2/r34/r56/r7/summary.json), "sel"
+    # (README 2.5 R-SEL re-test, T-031; r1_sel/r34_sel/sel.json) or "selfit" alone (README 2.6
+    # R1-SEL-FIT, T-049; r1_selfit.json); no part overwrites another part's files
+    "parts": ["selfit"],
     # R-SEL (README 2.5): pass tables (SEL-0), power floor and edge loop (SEL-3), mocks and stop (SEL-8)
     "sel_slices": [[-1.2, -0.6], [-0.6, 0.0], [0.0, 0.5]], "sel_pass_width": 1.0,
     "sel_pass_width_alt": 0.5, "sel_n_min": 200,
     "sel_power_floor": 0.12, "sel_power_floor_sens": 0.20, "sel_floor_sens_bins": [2, 3, 4],
     "sel_edge_min": 2.0, "sel_n_mock": 50, "sel_q_rank": 3, "sel_seed_tag": 31, "sel_stop_h": 16.0,
+    # R1-SEL-FIT (README 2.6, T-049): data-independent starts in every R1 mock fit; results r1_selfit.json
+    "selfit_seed_tag": 45, "selfit_nstart": 8, "selfit_stop_h": 12.0,
 }
 
 
@@ -407,14 +412,18 @@ def fit_mixB(C, model, seq=None, th=None, rng=None):
 def main(ctx):
     P = dict(PARAMS)
     parts = list(P["parts"])
-    if not parts or any(x not in ("orig", "sel") for x in parts):
-        raise ValueError(f"PARAMS['parts'] must be a non-empty subset of ['orig', 'sel'], got {parts}")
+    if not parts or any(x not in ("orig", "sel", "selfit") for x in parts):
+        raise ValueError(f"PARAMS['parts'] must be a non-empty subset of ['orig', 'sel', 'selfit'], got {parts}")
+    if "selfit" in parts and len(parts) > 1:
+        raise ValueError("PARAMS['parts'] = ['selfit'] runs alone (it reads r1_sel.json and keeps its own records)")
     out = {}
     if "orig" in parts:
         out = main_orig(ctx, P)
     if "sel" in parts:
         sel = main_sel(ctx, P)
         out = sel if not out else {"orig": out, "sel": sel}
+    if "selfit" in parts:
+        out = main_selfit(ctx, P)
     return out
 
 
@@ -936,6 +945,43 @@ def r1_mock_sel(C, D, kind, mech, floor, rng, pools):
             "pass_rate": (D["_n"] / len(par["A"])) if par is not None else None}
 
 
+def r1_sel_bins(P, r1d, results, kof, nf, data_frac, v, floor, nbins, mechs, sens_bins, nmock):
+    """R1-SEL per-bin decisions and verdict of one variant (2.1 rules, SEL-3); shared by R1-SEL-FIT (2.6)."""
+    bins = []
+    nfv = {}
+    for b in range(nbins):
+        D = r1d[(v, b)]
+        res, mk = {}, {}
+        for kind in selaux.R1_KINDS:
+            for mech in mechs:
+                fl = "sens" if (kind == "power" and floor == "sens" and b in sens_bins) else "primary"
+                k = kof[("R1", v, b, None, kind, mech, fl)]
+                res[(kind, mech)] = results[k]
+                mk[f"{kind}_{mech}"] = {"k": k, "d": [r["d"] for r in results[k]], "valley": [r["valley"] for r in results[k]]}
+                if nf[k]:
+                    nfv[str(k)] = nf[k]
+        dec = r1_decide(P, D, res, nmock, qrank=P["sel_q_rank"])
+        pm = D["power_models"]["sens" if (floor == "sens" and b in sens_bins) else "primary"]
+        if floor == "sens" and b not in sens_bins:
+            dec["model_changed_without_set"] = bool(D["power_models"]["sens"]["w_old"] != D["power_models"]["primary"]["w_old"]
+                                                    or D["power_models"]["sens"]["young"] != D["power_models"]["primary"]["young"])
+        dec["resolvable_by_power"] = dec["resolvable"]
+        dec["power_model_invalid"] = not pm["valid"]
+        dec["resolvable"] = bool(dec["resolvable"] and pm["valid"])
+        dec.update({"bin": D["bin"], "n": D["n"], "k": D["shape"]["k"], "cap": D["shape"]["cap"],
+                    "valley": D["shape"]["valley"], "peaks": D["shape"]["peaks"], "power_model": pm,
+                    "bic": D["bic"], "mocks": mk,
+                    "pass_rate": {kk: (float(np.mean([r["pass_rate"] for r in res[(kn, me)]]))
+                                       if v != "Full" else None)
+                                  for kn in selaux.R1_KINDS for me in mechs for kk in [f"{kn}_{me}"]},
+                    "data_pass_frac": data_frac[f"R1_{b}"] if v != "Full" else None})
+        bins.append(dec)
+    verdict, med = selaux.r1_verdict(bins, P["min_bins"], P["edge_range"])
+    if nfv:                                          # any non-finite mock result of a set used here
+        verdict, med = selaux.NONFINITE, None
+    return {"bins": bins, "verdict": verdict, "median_edge": med, "nonfinite": nfv}
+
+
 def _pass_table(P, age, rel, sl, nslice, width=None):
     return m0.pass_table(age, rel, sl, nslice=nslice, width=width or P["sel_pass_width"], tmax=P["tmax"],
                          n_min=P["sel_n_min"], cut=P["cut"])
@@ -1290,39 +1336,7 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
 
     # ---------------- R1-SEL decisions
     def r1_bins(v, floor):
-        bins = []
-        nfv = {}
-        for b in range(nbins):
-            D = r1d[(v, b)]
-            res, mk = {}, {}
-            for kind in selaux.R1_KINDS:
-                for mech in mechs:
-                    fl = "sens" if (kind == "power" and floor == "sens" and b in sens_bins) else "primary"
-                    k = kof[("R1", v, b, None, kind, mech, fl)]
-                    res[(kind, mech)] = results[k]
-                    mk[f"{kind}_{mech}"] = {"k": k, "d": [r["d"] for r in results[k]], "valley": [r["valley"] for r in results[k]]}
-                    if nf[k]:
-                        nfv[str(k)] = nf[k]
-            dec = r1_decide(P, D, res, nmock, qrank=P["sel_q_rank"])
-            pm = D["power_models"]["sens" if (floor == "sens" and b in sens_bins) else "primary"]
-            if floor == "sens" and b not in sens_bins:
-                dec["model_changed_without_set"] = bool(D["power_models"]["sens"]["w_old"] != D["power_models"]["primary"]["w_old"]
-                                                        or D["power_models"]["sens"]["young"] != D["power_models"]["primary"]["young"])
-            dec["resolvable_by_power"] = dec["resolvable"]
-            dec["power_model_invalid"] = not pm["valid"]
-            dec["resolvable"] = bool(dec["resolvable"] and pm["valid"])
-            dec.update({"bin": D["bin"], "n": D["n"], "k": D["shape"]["k"], "cap": D["shape"]["cap"],
-                        "valley": D["shape"]["valley"], "peaks": D["shape"]["peaks"], "power_model": pm,
-                        "bic": D["bic"], "mocks": mk,
-                        "pass_rate": {kk: (float(np.mean([r["pass_rate"] for r in res[(kn, me)]]))
-                                           if v != "Full" else None)
-                                      for kn in selaux.R1_KINDS for me in mechs for kk in [f"{kn}_{me}"]},
-                        "data_pass_frac": data_frac[f"R1_{b}"] if v != "Full" else None})
-            bins.append(dec)
-        verdict, med = selaux.r1_verdict(bins, P["min_bins"], P["edge_range"])
-        if nfv:                                          # any non-finite mock result of a set used here
-            verdict, med = selaux.NONFINITE, None
-        return {"bins": bins, "verdict": verdict, "median_edge": med, "nonfinite": nfv}
+        return r1_sel_bins(P, r1d, results, kof, nf, data_frac, v, floor, nbins, mechs, sens_bins, nmock)
 
     r1v = {v: r1_bins(v, "primary") for v in selaux.R1_VARIANTS}
     r1s = {v: r1_bins(v, "sens") for v in selaux.R1_VARIANTS}
@@ -1473,3 +1487,237 @@ def _sel_body(ctx, P, C, df, F, A_all, E_all, feh, jphi, rel_all, s15, nbins, me
     summary = {"labels": sel_out["labels"], "mocks": {k: mock_info[k] for k in ("n_per_set", "n_sets", "elapsed_h_total")},
                "runtime_h": sel_out["runtime_h"]}
     return {"r1": r1_out, "r34": r34_out, "sel": sel_out, "summary": summary}
+
+
+# =============================================================================================
+# R1-SEL-FIT (README 2.6, T-049): R1-SEL with data-independent starts in every mock fit
+# =============================================================================================
+def r1_mock_selfit(C, D, kind, mech, floor, rngs, pools, nstart):
+    """One R1-SEL-FIT mock: the R1-SEL mock of r1_mock_sel (catalogue and fit (o) on the SEL-8 stream,
+    unchanged), then fit (i) from nstart data-independent starts per K on its own stream, consumed in
+    the order K = 1..kmax, then kmax + 1; per K the better fit (selaux.better_fit) is used (README 2.6)."""
+    P = C.P
+    rng, rng2 = rngs
+    variant = D["variant"]
+    s15 = variant != "Full"
+    if kind == "null_sn":
+        loc, lsc, al = D["skewnorm"]
+        lat = lambda k: mocks.latent_skewnorm(loc, np.exp(lsc), al, k, rng, P["tmax"])
+    elif kind == "null_sp":
+        mm, l1, l2 = D["splitnorm"]
+        lat = lambda k: mocks.latent_split(mm, np.exp(l1), np.exp(l2), k, rng, P["tmax"])
+    else:
+        pm = D["power_models"][floor]
+        lat = lambda k: mocks.latent_power(pm["mu_old"], pm["s_old"], pm["w_old"], pm["young"][1], k, rng,
+                                           lo=pm["young"][0], tmax=P["tmax"])
+    edges, rpools = pools
+
+    def draw(k):
+        tau = lat(k)
+        sl = np.zeros(k, np.int64)
+        return {"tau": tau, "r": mocks.draw_r_keyed(tau, sl, edges, rpools, rng), "sl": sl}
+    cat, par = mocks.catalogue_sel(draw, D["_n"], mech, rng, s15=s15, cut=P["cut"], tmax=P["tmax"])
+    coef = None
+    if variant == "S15E":
+        coef = m0.pass_coefs(_pass_table(P, par["A"], par["e"] / par["A"], None, 1))
+    model = onedim(C, cat["A"], cat["e"], s15, sel=R1_SEL_MODE[variant], ptab=coef)
+    A, w, n = model.cells.A, model.cells.w, model.cells.nstar
+    kmax, K5 = P["kmax"], P["kmax"] + 1
+    # (o): exactly r1_mock_sel's fits, on the SEL-8 stream
+    fits_o = fit_mixtures(C, model, A, w, kmax, starts_from=D["_starts"], rng=rng)
+    kb_o, _ = choose_k(fits_o, n)
+    v_o, _, k5_o = shape_from_fits(C, model, fits_o, kb_o, A, w, starts_from=D["_starts"], rng=rng)
+    nll_o = {K: float(x[1]) for K, x in fits_o.items()}
+    # (i): data-independent starts on stream (i), K = 1..kmax in order
+    fits_i = {}
+    for K in range(1, kmax + 1):
+        try:
+            r = model.fit_mixture(K, m0.mixture_starts(A, w, K, nstart, rng2))
+            fits_i[K] = (r.x, float(r.fun))
+        except RuntimeError:                       # every start non-finite: (i) not available for this K
+            fits_i[K] = (None, float("nan"))
+    use = {K: selaux.better_fit(nll_o[K], fits_i[K][1]) for K in range(1, kmax + 1)}
+    fits = {K: (fits_i[K] if use[K] == "i" else fits_o[K]) for K in range(1, kmax + 1)}
+    kb, _ = choose_k(fits, n)
+    th5, use5 = None, "-"
+    if kb == kmax:
+        nll5 = float("nan")
+        try:
+            r5 = model.fit_mixture(K5, m0.mixture_starts(A, w, K5, nstart, rng2))
+            th5, nll5 = r5.x, float(r5.fun)
+        except RuntimeError:
+            pass
+        use5 = "i"
+        if k5_o is not None:
+            nll5_o = float(model.mix_negll(k5_o, K5)[0])
+            use5 = selaux.better_fit(nll5_o, nll5)
+            if use5 == "o":
+                th5 = k5_o
+        if th5 is None:
+            raise RuntimeError("K = 5 fit (i) failed and no (o) K = 5 fit exists")
+    p = m0.mix_cells(C.grid, fits[kb][0], kb)
+    keep = None
+    if kb == kmax:
+        p5 = m0.mix_cells(C.grid, th5, K5)
+        pk5 = [C.grid.mid[i] for i in m0.peaks(p5 / C.grid.step, P["prom"])]
+        keep = lambda t: any(abs(t - u) <= P["mode_match"] for u in pk5)
+    v = m0.valley(C.grid, p, lo=P["valley_lo"], hi=P["valley_hi"], side_mass=P["side_mass"],
+                  prom=P["prom"], keep_peaks=keep)
+    nll = {K: float(fits[K][1]) for K in fits}
+    return {"d": float(v["d"]), "valley": bool(v["valley"]), "k": int(kb),
+            "o_d": float(v_o["d"]), "o_valley": bool(v_o["valley"]), "o_k": int(v_o["k"]),
+            "use": "".join(use[K] for K in range(1, kmax + 1)) + use5,
+            "o_nonmonotone": len(selaux.nonmonotone_k(nll_o)), "nonmonotone": len(selaux.nonmonotone_k(nll)),
+            "pass_rate": (D["_n"] / len(par["A"])) if par is not None else None}
+
+
+def selfit_data_check(D, rf, rb, tag, tol=1e-9):
+    """README 2.6 reproduction check of one R1 data fit against r1_sel.json (absolute tol); list of mismatches."""
+    bad = []
+
+    def cmp(name, a, b_):
+        a, b_ = np.asarray(a, float), np.asarray(b_, float)
+        if a.shape != b_.shape or not np.all(np.abs(a - b_) <= tol):
+            bad.append(f"{tag}.{name}")
+    if set(D["fits"]) != set(rf["fits"]):
+        bad.append(f"{tag}.fits.keys")
+    for K, th in rf["fits"].items():
+        if K in D["fits"]:
+            cmp(f"fits.{K}", D["fits"][K], th)
+    cmp("skewnorm", D["skewnorm"], rf["skewnorm"])
+    cmp("splitnorm", D["splitnorm"], rf["splitnorm"])
+    for fl in ("primary", "sens"):
+        for key in ("mu_old", "s_old", "w_old", "true_d", "young"):
+            cmp(f"power_models.{fl}.{key}", D["power_models"][fl][key], rf["power_models"][fl][key])
+    cmp("d", D["shape"]["d"], rb["d"])
+    cmp("k", D["shape"]["k"], rb["k"])
+    return bad
+
+
+def selfit_mock_check(results, sets, recorded):
+    """README 2.6: fit (o) must reproduce every recorded R1-SEL mock (d within 1e-9, same valley flag).
+    recorded: r1_sel.json. Returns the list of [k, j] that differ (a missing record counts)."""
+    recmock = {}
+    for src in ("variants", "floor_sensitivity"):
+        for v in selaux.R1_VARIANTS:
+            for B in recorded[src][v]["bins"]:
+                for x in B["mocks"].values():
+                    recmock[x["k"]] = x
+    bad = []
+    for s in sets:
+        x = recmock.get(s["k"])
+        for j, r in enumerate(results[s["k"]]):
+            if x is None or j >= len(x["d"]) or abs(r["o_d"] - x["d"][j]) > 1e-9 or r["o_valley"] != x["valley"][j]:
+                bad.append([s["k"], j])
+    return bad, recmock
+
+
+def main_selfit(ctx, P, store_root=None, recorded=None):
+    """R1-SEL-FIT (README 2.6, T-049). Writes r1_selfit.json; r1_sel.json is read, never written."""
+    from astrolab import config
+
+    t_start = time.time()
+    if hasattr(ctx, "record_suffix"):
+        ctx.record_suffix = "_selfit"            # provenance_selfit.json, run_info_selfit.json
+    C = Ctx(P)
+    df = load(ctx, P)
+    F = flags(df, P)
+    A_all, E_all = df["age"].to_numpy(), df["eage"].to_numpy()
+    feh = df["feh"].to_numpy()
+    assert len(df) == P["n_rows"], f"row count {len(df)} != {P['n_rows']}"
+    with np.errstate(divide="ignore", invalid="ignore"):
+        rel_all = E_all / A_all
+    F = dict(F, s15=F["s15"] & (A_all > 0))       # SEL-0, as main_sel
+    nbins, mechs = len(P["r1_bins"]), P["mechs"]
+    sens_bins = list(P["sel_floor_sens_bins"])
+    nmock = int(P["sel_n_mock"])
+    rec = recorded if recorded is not None else json.loads((HERE / "results" / "r1_sel.json").read_text(encoding="utf-8"))
+    # pass tables and pools of the R1 bins (as _sel_body: Full parent of the bin, all rows)
+    pools, coefs, data_frac = {}, {}, {}
+    for b, (lo, hi) in enumerate(P["r1_bins"]):
+        mask = F["valid"] & (feh >= lo) & (feh < hi)
+        tab = _pass_table(P, A_all[mask], rel_all[mask], None, 1)
+        coefs[b] = m0.pass_coefs(tab)
+        pools[b] = _pools(tab, rel_all[mask])
+        data_frac[f"R1_{b}"] = _frac(tab)
+    r1d, mism = {}, []
+    for v in selaux.R1_VARIANTS:
+        for b in range(nbins):
+            D = r1_data_sel(C, df, F, b, v, coefs[b])
+            r1d[(v, b)] = D
+            mism += selfit_data_check(D, rec["data_fits"][f"{v}_{b}"], rec["variants"][v]["bins"][b], f"{v}_{b}")
+            ctx.log(f"R1-SEL-FIT data {v} bin {b}: K={D['shape']['k']} d={D['shape']['d']:.3f}")
+    out = {"status": None, "data_fit_mismatches": mism, "n_mock": nmock,
+           "nstart_indep": int(P["selfit_nstart"]), "seed_tag_indep": int(P["selfit_seed_tag"])}
+    if mism:
+        out["status"] = "not evaluable (reproduction): data fits differ from r1_sel.json"
+        out["label"] = {"label": out["status"]}
+        out["params"] = P
+        ctx.save("r1_selfit", out)
+        return {"R1-SEL-FIT": out["status"]}
+    sets = selaux.selfit_sets(nbins, mechs, sens_bins)
+    root = Path(store_root) if store_root else config.cache_dir() / "s010_selfit_mocks"
+    store = selaux.MockStore(root, _sel_key(P, df))
+    ctx.log(f"R1-SEL-FIT checkpoints: {store.dir}")
+
+    def run_one(s, rngs):
+        D = r1d[(s["variant"], s["bin"])]
+        return r1_mock_selfit(C, D, s["kind"], s["mech"], s["floor"], rngs, pools[s["bin"]], int(P["selfit_nstart"]))
+
+    def make_rng(k, j):
+        return (selaux.mock_rng(P["seed"], P["sel_seed_tag"], k, j),
+                np.random.default_rng([int(P["seed"]), int(P["selfit_seed_tag"]), int(k), int(j)]))
+    try:
+        results, state, proj_log = selaux.run_mock_sets(sets, nmock, store, run_one, make_rng,
+                                                        P["selfit_stop_h"], ctx.log)
+    except selaux.StopRun:
+        raise
+    except BaseException:
+        store.release()                            # checkpoints are kept for a rerun
+        raise
+    nf = {s["k"]: sum(selaux.nonfinite(r) for r in results[s["k"]]) for s in sets}
+    kof = {("R1", s["variant"], s["bin"], None, s["kind"], s["mech"], s["floor"]): s["k"] for s in sets}
+    repro_bad, recmock = selfit_mock_check(results, sets, rec)
+    out["mock_reproduction"] = {"n_mocks": sum(len(results[s["k"]]) for s in sets),
+                                "n_mismatches": len(repro_bad), "mismatches": repro_bad[:50]}
+    r1v = {v: r1_sel_bins(P, r1d, results, kof, nf, data_frac, v, "primary", nbins, mechs, sens_bins, nmock)
+           for v in selaux.R1_VARIANTS}
+    r1s = {v: r1_sel_bins(P, r1d, results, kof, nf, data_frac, v, "sens", nbins, mechs, sens_bins, nmock)
+           for v in selaux.R1_VARIANTS}
+    for vv in r1s.values():                       # the sensitivity copy: power-related fields only
+        for B in vv["bins"]:
+            B["mocks"] = {k: x for k, x in B["mocks"].items() if k.startswith("power")}
+    lab = selaux.r1_label(r1v["S15E"]["verdict"], r1v["S15N"]["verdict"], r1v["Full"]["verdict"])
+    labs = selaux.r1_label(r1s["S15E"]["verdict"], r1s["S15N"]["verdict"], r1s["Full"]["verdict"])
+    if repro_bad:
+        out["status"] = "not evaluable (reproduction): fit (o) differs from the recorded R1-SEL mocks"
+        lab = {"label": out["status"], "computed_label_not_used": lab}
+        labs = {"label": out["status"], "computed_label_not_used": labs}
+    else:
+        out["status"] = "evaluated"
+    per_set = []                                   # reported, no verdict
+    for s in sets:
+        rr, x = results[s["k"]], recmock[s["k"]]
+        per_set.append({**{k: s[k] for k in ("k", "variant", "bin", "kind", "mech", "floor")},
+                        "valley_new": int(sum(r["valley"] for r in rr)), "valley_recorded": int(sum(x["valley"])),
+                        "valley_changed": int(sum(r["valley"] != r["o_valley"] for r in rr)),
+                        "o_nonmonotone": int(sum(r["o_nonmonotone"] > 0 for r in rr)),
+                        "new_nonmonotone": int(sum(r["nonmonotone"] > 0 for r in rr)),
+                        "k_o": {str(K): int(sum(r["o_k"] == K for r in rr)) for K in range(1, P["kmax"] + 1)},
+                        "k_new": {str(K): int(sum(r["k"] == K for r in rr)) for K in range(1, P["kmax"] + 1)},
+                        "d_new_quantiles_5_50_80_95": [float(q) for q in np.percentile([r["d"] for r in rr], [5, 50, 80, 95])],
+                        "mean_s_per_mock": float(np.mean(state[s["k"]]["times"]))})
+    recv = rec["variants"]
+    out.update({"label": lab, "label_floor_sensitivity": labs, "variants": r1v, "floor_sensitivity": r1s,
+                "recorded_r1_sel": {"label": rec["label"]["label"],
+                                    "verdicts": {v: recv[v]["verdict"] for v in selaux.R1_VARIANTS},
+                                    "power": {v: [B["power"] for B in recv[v]["bins"]] for v in selaux.R1_VARIANTS},
+                                    "d_star": {v: [B["d_star"] for B in recv[v]["bins"]] for v in selaux.R1_VARIANTS}},
+                "per_set": per_set, "nonfinite": {str(k): x for k, x in nf.items() if x},
+                "mocks": {"n_sets": len(sets), "projections": proj_log, "elapsed_h_total": store.elapsed_s() / 3600,
+                          "resumed": store.resumed, "resumes": store.resumes(),
+                          "stop_limit_h": store.limit_h if store.limit_h is not None else P["selfit_stop_h"]},
+                "runtime_h": (time.time() - t_start) / 3600, "params": P})
+    ctx.save("r1_selfit", out)
+    store.release()
+    return {"R1-SEL-FIT": lab["label"], "R1-SEL-FIT floor 0.20": labs["label"], "status": out["status"]}

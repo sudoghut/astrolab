@@ -258,6 +258,35 @@ def test_sel_r1_labels():
     assert sel["labels"]["R1-SEL_floor_0.20"] == r1["label_floor_sensitivity"]["label"]
 
 
+def test_selfit_r1_labels():
+    """R1-SEL-FIT (README 2.6): reproduction checks passed, and every per-bin result, verdict and label
+    re-derives from the saved mock d values with the 2.1 rules, as for R1-SEL."""
+    r1 = load("r1_selfit")
+    assert r1["data_fit_mismatches"] == []
+    assert r1["status"] == "evaluated" and r1["mock_reproduction"]["n_mismatches"] == 0
+    assert r1["mock_reproduction"]["n_mocks"] == 108 * NMOCK
+    assert r1["nstart_indep"] == 8 and r1["seed_tag_indep"] == 45
+    for name in ("S15E", "S15N", "Full"):
+        var = r1["variants"][name]
+        nf = _r1_bins_check(var["bins"])
+        assert bool(nf) == bool(var["nonfinite"])
+        assert var["verdict"] == (NONFINITE if nf else _r1_verdict(var["bins"]))
+        sens = r1["floor_sensitivity"][name]
+        nfs = _r1_bins_check(sens["bins"], null_from=var["bins"], sens=True)
+        assert sens["verdict"] == (NONFINITE if nfs else _r1_verdict(sens["bins"]))
+    for key, part in (("label", "variants"), ("label_floor_sensitivity", "floor_sensitivity")):
+        e, n, f = (r1[part][x]["verdict"] for x in ("S15E", "S15N", "Full"))
+        lab = r1[key]
+        rob = _cat(e) == _cat(f)
+        assert lab["bare"] == e and lab["robust"] == rob and lab["selection_term"] == _sel_qual(e, n)
+        assert lab["label"] == e + " (" + _rob_word(rob) + "; " + _sel_qual(e, n) + ")"
+    # data fits unchanged, so no bin can be almost disjoint and "reproduced" is impossible (README 2.6)
+    for part in ("variants", "floor_sensitivity"):
+        for name in ("S15E", "S15N", "Full"):
+            assert not any(b["almost_disjoint"] for b in r1[part][name]["bins"])
+            assert r1[part][name]["verdict"] != "reproduced"
+
+
 def _with_robust(v, rob):
     return v + ("" if v != "reproduced" else (", robust" if rob else ", not robust"))
 

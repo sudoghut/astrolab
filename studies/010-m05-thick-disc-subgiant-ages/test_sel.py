@@ -369,7 +369,7 @@ def test_mock_store_stop_and_consent(tmp_path):
 def test_checkpoint_key_ignores_stop_limit_and_parts():
     text = (HERE / "run.py").read_text(encoding="utf-8")
     assert '"sel_stop_h": 16.0' in text
-    edited = text.replace('"sel_stop_h": 16.0', '"sel_stop_h": 24.0').replace('"parts": ["sel"]', '"parts": ["orig", "sel"]')
+    edited = text.replace('"sel_stop_h": 16.0', '"sel_stop_h": 24.0').replace('"parts": ["selfit"]', '"parts": ["orig", "sel"]')
     assert selaux.strip_params(edited) == selaux.strip_params(text)
     assert selaux.strip_params(text.replace("def main_sel(", "def main_sel_x(")) != selaux.strip_params(text)
     P = dict(run.PARAMS)
@@ -530,3 +530,110 @@ def test_nonfinite_results_are_counted():
     assert selaux.nonfinite({"d": float("inf")})
     assert not selaux.nonfinite({"d": 0.3, "valley": True, "k": 2, "pass_rate": None})
     assert selaux._jsonable_result({"x": np.float64("nan"), "v": np.bool_(True), "k": np.int64(3)})["k"] == 3
+
+
+# ---------------------------------------------------------------------------------------------
+# R1-SEL-FIT (README 2.6, T-049)
+# ---------------------------------------------------------------------------------------------
+def test_selfit_helpers_and_sets():
+    assert selaux.better_fit(10.0, 9.99) == "o"            # within the 0.01 tie rule: keep (o)
+    assert selaux.better_fit(10.0, 9.98) == "i"
+    assert selaux.better_fit(10.0, float("nan")) == "o"    # a non-finite (i) is never selected
+    assert selaux.better_fit(10.0, None) == "o"
+    assert selaux.nonmonotone_k({1: 5.0, 2: 6.0, 3: 4.0, 4: 4.005}) == [2]
+    assert selaux.nonmonotone_k({1: 5.0, 2: 4.0, 3: 3.0}) == []
+    P = run.PARAMS
+    sets = selaux.selfit_sets(len(P["r1_bins"]), P["mechs"], P["sel_floor_sens_bins"])
+    assert [s["k"] for s in sets] == list(range(90)) + list(range(106, 124))
+    assert all(s["tag"] == "R1" for s in sets) and len(sets) * P["sel_n_mock"] == 5400
+    assert P["selfit_seed_tag"] == 45 and P["selfit_nstart"] == 8 and P["selfit_stop_h"] == 12.0
+    assert "selfit_stop_h" in selaux.NO_KEY_PARAMS
+
+
+def test_parts_validation(monkeypatch):
+    for bad in (["selfit", "sel"], ["orig", "selfit"], ["x"], []):
+        monkeypatch.setitem(run.PARAMS, "parts", bad)
+        with pytest.raises(ValueError):
+            run.main(None)
+
+
+def _synthetic_D(C, variant="Full", n=3000, seed=11):
+    """A small R1 data-fit dict for one synthetic bin (power model of README 2.1 with old weight 0.4)."""
+    rng = np.random.default_rng(seed)
+    tau = mocks.latent_power(11.0, 0.82, 0.4, 7.0, n, rng)
+    rel = rng.uniform(0.03, 0.14, n)
+    A = tau * (1 + rel * rng.standard_normal(n))
+    A = np.clip(A, 0.2, 19.8)
+    tab = run._pass_table(C.P, A, rel, None, 1)
+    pools = run._pools(tab, rel)
+    model = run.onedim(C, A, A * rel, variant != "Full")
+    fits = run.fit_mixtures(C, model, model.cells.A, model.cells.w, C.P["kmax"], nstart=3,
+                            rng=np.random.default_rng(seed + 1))
+    starts = {K: th for K, (th, _) in fits.items()}
+    starts[C.P["kmax"] + 1] = m0.mixture_starts(model.cells.A, model.cells.w, C.P["kmax"] + 1, 1,
+                                                np.random.default_rng(seed + 2))[0]
+    pm = {"mu_old": 11.0, "s_old": 0.82, "w_old": 0.4, "young": [1.5, 7.0]}
+    return {"variant": variant, "_n": n, "_starts": starts, "skewnorm": [9.0, np.log(3.0), 0.0],
+            "splitnorm": [9.0, np.log(3.0), np.log(2.0)], "power_models": {"primary": pm, "sens": pm}}, pools
+
+
+@pytest.mark.parametrize("kind", ["power", "null_sn"])
+def test_selfit_path_o_reproduces_r1_mock_sel(kind):
+    """README 2.6: fit (o) of r1_mock_selfit is r1_mock_sel on the same SEL-8 stream (the (i) stream is
+    separate), and the chosen fit is never worse than (o) for any K."""
+    C = run.Ctx(dict(run.PARAMS))
+    D, pools = _synthetic_D(C)
+    ref = run.r1_mock_sel(C, D, kind, "rA", "primary", np.random.default_rng(5), pools)
+    new = run.r1_mock_selfit(C, D, kind, "rA", "primary", (np.random.default_rng(5), np.random.default_rng(6)),
+                             pools, 8)
+    assert new["o_d"] == ref["d"] and new["o_valley"] == ref["valley"] and new["o_k"] == ref["k"]
+    assert set(new["use"][:4]) <= {"o", "i"} and new["use"][4] in "oi-"
+    # a different (i) stream does not change (o)
+    other = run.r1_mock_selfit(C, D, kind, "rA", "primary", (np.random.default_rng(5), np.random.default_rng(7)),
+                               pools, 8)
+    assert other["o_d"] == new["o_d"] and other["o_k"] == new["o_k"]
+
+
+def test_selfit_mock_check_flags_differences():
+    rec = {"variants": {v: {"bins": [{"mocks": {"power_rA": {"k": 5, "d": [0.1, 1.0], "valley": [True, False]}}}]}
+                        for v in selaux.R1_VARIANTS},
+           "floor_sensitivity": {v: {"bins": []} for v in selaux.R1_VARIANTS}}
+    sets = [{"k": 5}]
+    ok = {5: [{"o_d": 0.1, "o_valley": True}, {"o_d": 1.0, "o_valley": False}]}
+    assert run.selfit_mock_check(ok, sets, rec)[0] == []
+    bad = {5: [{"o_d": 0.1 + 2e-9, "o_valley": True}, {"o_d": 1.0, "o_valley": True}]}
+    assert run.selfit_mock_check(bad, sets, rec)[0] == [[5, 0], [5, 1]]
+    assert run.selfit_mock_check({6: ok[5]}, [{"k": 6}], rec)[0] == [[6, 0], [6, 1]]   # no record counts as a difference
+
+
+def test_r1_sel_bins_rederives_recorded_r1_sel():
+    """The refactored decision function (shared by R1-SEL and R1-SEL-FIT) re-derives the recorded R1-SEL
+    powers, d*, resolvability and verdicts from the recorded mock d values."""
+    path = HERE / "results" / "r1_sel.json"
+    if not path.exists():
+        pytest.skip("results/r1_sel.json not present")
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    P = dict(run.PARAMS)
+    nbins, mechs, sens = len(P["r1_bins"]), P["mechs"], list(P["sel_floor_sens_bins"])
+    sets = selaux.selfit_sets(nbins, mechs, sens)
+    _, recmock = run.selfit_mock_check({}, [], rec)
+    results = {s["k"]: [{"d": d, "valley": v, "pass_rate": 0.9} for d, v in zip(recmock[s["k"]]["d"], recmock[s["k"]]["valley"])]
+               for s in sets}
+    nf = {s["k"]: 0 for s in sets}
+    kof = {("R1", s["variant"], s["bin"], None, s["kind"], s["mech"], s["floor"]): s["k"] for s in sets}
+    r1d = {}
+    for v in selaux.R1_VARIANTS:
+        for b in range(nbins):
+            B, F_ = rec["variants"][v]["bins"][b], rec["data_fits"][f"{v}_{b}"]
+            r1d[(v, b)] = {"shape": {"d": B["d"], "edge": B["edge"], "t": B["valley_t"], "k": B["k"], "cap": B["cap"],
+                                     "valley": B["valley"], "peaks": B["peaks"]},
+                           "power_models": F_["power_models"], "bin": B["bin"], "n": B["n"], "bic": B["bic"]}
+    data_frac = {f"R1_{b}": None for b in range(nbins)}
+    for floor, src in (("primary", "variants"), ("sens", "floor_sensitivity")):
+        for v in selaux.R1_VARIANTS:
+            out = run.r1_sel_bins(P, r1d, results, kof, nf, data_frac, v, floor, nbins, mechs, sens, P["sel_n_mock"])
+            want = rec[src][v]
+            assert out["verdict"] == want["verdict"]
+            for got, w in zip(out["bins"], want["bins"]):
+                assert got["power"] == w["power"] and got["d_star"] == w["d_star"]
+                assert got["resolvable"] == w["resolvable"] and got["almost_disjoint"] == w["almost_disjoint"]

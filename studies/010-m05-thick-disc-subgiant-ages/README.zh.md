@@ -521,7 +521,8 @@ Lean 论证及其"引文 / 类型 / 内容"对照表，没有看到第 5-8 节�
 | `r2_feh`, `r2_jphi` | R2 样本窗口和 J_φ 截断 | −1 附近 ±0.1 dex；0–1000 | 只用缓存 |
 | `f_min` | 误差标度敏感度取值 | 0.6–1.0 | 只用缓存 |
 | `grid_step` | 潜在网格步长（Gyr） | 0.02–0.1 | 只用缓存 |
-| `parts` | 运行哪条流程：`["orig"]`（第 2.0–2.4 节；`r1/r2/r34/r56/r7/summary.json`）和/或 `["sel"]`（第 2.5 节 R-SEL；`r1_sel/r34_sel/sel.json`）；入库的取值是 `["sel"]` | 任一或两者 | 只用缓存 |
+| `parts` | 运行哪条流程：`["orig"]`（第 2.0–2.4 节；`r1/r2/r34/r56/r7/summary.json`）和/或 `["sel"]`（第 2.5 节 R-SEL；`r1_sel/r34_sel/sel.json`），或单独的 `["selfit"]`（第 2.6 节 R1-SEL-FIT；`r1_selfit.json`，记录 `provenance_selfit.json`、`run_info_selfit.json`；读取 `r1_sel.json`）；入库的取值是 `["selfit"]`（T-049） | orig/sel 任一或两者；selfit 单独 | 只用缓存 |
+| `selfit_seed_tag`, `selfit_nstart`, `selfit_stop_h` | R1-SEL-FIT：与数据无关起点的随机数流标记、每个 K 的起点数、停止上限（小时） | 45 与 8 为预注册值；12 小时 | 只用缓存 |
 | `sel_n_mock` | R-SEL 每组模拟数（判决需要 50） | 2–50 | 只用缓存 |
 | `sel_power_floor`, `sel_power_floor_sens` | R1-SEL 功效模型的下限及其敏感度取值 | 0.10–0.30 | 只用缓存 |
 | `sel_pass_width`, `sel_n_min` | 通过箱宽度（Gyr）与每个通过箱的最少母样本星数（SEL-0） | 0.5–2；100–500 | 只用缓存 |
@@ -547,7 +548,7 @@ Lean 论证及其"引文 / 类型 / 内容"对照表，没有看到第 5-8 节�
   `label`；含功效模型的 `data_fits`）；`r34_sel.json`（`terms.<E|N>`：`sampleA`、`recovery`、
   `R3`、`R4`、`robustness_fits`、`error_scale`；`intrinsic.<E|N>`；`sampleA_extra_E`；`fig2e_E`；
   `shared_full_fits`；`labels`）；`sel.json`（`pass_tables`、`data_pass_frac`、`r2_deconvolved`、
-  `sel7`、`diagnostic`、`mock_pass_rates`、含运行时间预测的 `mocks`、`labels`、`memory_peak_mb`）。
+  `sel7`、`diagnostic`、`mock_pass_rates`、含运行时间预测的 `mocks`、`labels`、`memory_peak_mb`）。R1-SEL-FIT：`r1_selfit.json`（`status`、`label`、`label_floor_sensitivity`，与 `r1_sel.json` 同样的 `variants`、`floor_sensitivity`；`recorded_r1_sel`；`per_set`（有谷的次数、选中的 K、(o) 与新拟合下 NLL 随 K 上升的次数、每次模拟用时）；`data_fit_mismatches`、`mock_reproduction`；含运行时间预测的 `mocks`）。R1-SEL-FIT 运行（入库的默认流程）约需 5 小时模拟加约 25 分钟数据拟合，须在机器没有其他运行时进行。
 - 示例问题："R1 的谷在更严格的误差截断下还在吗？" → `--set cut=0.10`。
   "13 Gyr 均值对 J_φ 截断敏感吗？" → `--set r2_jphi=300`（R2 也报告 300 和 700）。
   "如果选择项以相对误差而不是 e 为条件会怎样？" → 一个 `explore/` 脚本
