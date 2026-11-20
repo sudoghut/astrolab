@@ -184,7 +184,7 @@
     "nested": 0.0009580613153800828,
     "rel_diff": 7.819788662380219e-14
    },
-   "seconds_per_draw": 0.10108045000000856,
+   "seconds_per_draw": 0.10353136299992911,
    "first_picks": [
     [
      22,
@@ -874,7 +874,7 @@
   },
   "reading": "the excess calibrator scatter of R2-RE-ROB is attributable to N5584",
   "status": "evaluated",
-  "seconds": 9306.550613200001
+  "seconds": 9607.164834099996
  },
  "heavy_tail": {
   "model": "u_j | w_j ~ N(0, tau^2/w_j), w_j ~ Gamma(nu/2, rate nu/2); variational EM; plug-in V_T = C + sum_j (tau_hat^2/omega_hat_j) h_j h_j^T",
@@ -1921,8 +1921,8 @@
    "tau_r2_re": 0.07669875579792439,
    "z_t": -1.3783639922869286
   },
-  "seconds": 4.176879999999073
+  "seconds": 3.984285099984845
  },
  "joint_reading": "the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips",
- "seconds": 9310.734765000001
+ "seconds": 9611.157109199994
 }
