@@ -983,6 +983,21 @@ results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_
   0.886) than leaving out N5584 does on the real data, so by this statistic the subsets without N5584
   are on the high side, in line with p = 0.14 under criterion S; it uses the 37-host reference fit
   (N5584 inside), unlike the spread parts.
+- **Post hoc (referee, 2026-11-20; section 6): what "consistent" can and cannot show.** The null is C
+  with no outlier, so rule (2) says only that the 36 remaining hosts do not reject C; it does not test
+  one outlying host against host-level scatter spread over all hosts. Against such diffuse scatter the
+  criterion-S spread test has little power (with a proxy, see section 6: it rejects at 5% in 21% of
+  simulations for τ = 0.05 mag and 45% for τ = 0.077), so the pre-registered reading, which stands as
+  a label, should be read as "after the selection is simulated, the 36 remaining hosts are consistent
+  with C". A statistic that does separate the two pictures, the drop of the spread when the S-selected
+  host is removed (real data 1.307 − 1.027 = 0.280), favours one outlying host: it is reached in 0.6%
+  of simulations under C and in 1.9% and 3.6% under diffuse scatter with τ = 0.05 and 0.077 (37-host
+  spread at least 1.307 and post-drop spread at most 1.027 together: 0.2% under either). This statistic
+  was chosen after seeing the data and uses a proxy; a pre-registered version is registered as T-048.
+  Two further points: the three labels are not independent (τ̂_s and the criterion-X spread correlate
+  at 0.81 over the first 400 simulations), and criterion X barely conditions the τ part (p = 0.26 in the
+  37 simulations where X drops N5584, 0.24 in the other 363), as the section 2 caveat said.
+
 - **Status of R2.** Unchanged, as fixed in section 2: the R2-RE headline row ("no host-selection
   effect detected"), the R2-RE-ROB and R2-RE-N5584 labels, `summary.json` `R2_host` and the claim's
   verdict stay as recorded.
@@ -1056,6 +1071,24 @@ removals) and reproduced every number quoted below. Triage:
 | 6 | Literature: Riess et al. 2023 (arXiv:2307.15806) report N5584 about 0.25 mag from the sample mean, Cepheids bright for the SN's standardised magnitude, SN 2007af normal and low-reddening, a couple of such outliers expected; JWST–HST intercept difference 0.02 ± 0.03 mag; Javanmardi et al. 2021 (arXiv:2102.12489) μ = 31.810 ± 0.047 against SH0ES 31.786 ± 0.046; Anand et al. 2024 (arXiv:2401.04776) and Li et al. 2024 (arXiv:2408.00065) give only sample means | yes: 2102.12489 and the 2307.15806 JWST–HST numbers on the abstract pages (2026-11-18); the 2307.15806 full-text statements were read in the HTML version through a summary, not quoted | **Accepted** as context (section 5): the Cepheid side is supported by an independent reanalysis of the HST data and by the JWST–HST agreement, so SN 2007af being faint after standardisation is the likely reading; not used in any label. |
 | 7 | No goalpost moved: every label and the joint reading re-derive from the saved numbers; EM updates, row removal (169 rows), R4-N mapping, B-N construction and the rule order are correct | yes (`test_conclusions.py`) | None. |
 
+### Referee, R2-RE-SEL (independent subagent, 2026-11-20)
+
+The referee saw README sections 1–4, the code and the results, not sections 5–8 or the log; it ran a
+cache-only script (about 3 min) that rebuilt criterion S's subset rows and re-simulated seeds
+20,000–21,999, reproducing the saved criterion-S choices and smallest spread_excl values exactly. We
+reran that script and the τ split ourselves and reproduced every number quoted below. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | Rule (2) cannot tell one outlying host from diffuse host scatter: the null is C with no outlier; with the smallest spread_excl as a proxy (correlation 0.979 with the 36-host spread under S), a diffuse random effect V(τ) on all 37 hosts is rejected at 5% in only 21% (τ = 0.05) and 45% (τ = 0.077) of simulations, and the real post-selection value is at or below the simulated one in 66% and 39%. The drop D = spread_37 − min_j spread_excl_j (real 0.280) does discriminate: P(D ≥ 0.280) = 0.006 under C (99th percentile 0.251), 0.019 under V(0.05), 0.036 under V(0.077); the joint event "spread_37 ≥ 1.307 and post-drop spread ≤ 1.027" has probability 0.002 under both diffuse models | yes (our rerun: same numbers; 2,000 simulations under C, 1,000 per V, seeds 50,000 +) | **Accepted** (post hoc): section 5 reads the label as "the 36 remaining hosts are consistent with C" and reports D as exploratory evidence for one outlying host; the pre-registered label stands. A pre-registered single-outlier versus diffuse-scatter test is registered as T-048. |
+| 2 | Criterion X hardly conditions the τ null: p is about the same whether X dropped N5584 (37 simulations) or another host (363); X mostly drops hosts with 3–4 calibrator rows (N5468, N5584, N5643 about 9% each; N3982, second by tail probability, 6 of 2,000), so the fall from 0.339 to 0.244 may come as much from the different 36-host systems as from selection | yes ((1 + k)/(1 + n): 0.263 and 0.245) | Accepted; this is the direction section 2 stated; noted in section 5. |
+| 3 | The three labels are not independent: τ̂_s and spread_X correlate at 0.81 over the first 400 simulations; both spreads share the subset rows | yes (0.810) | Accepted; section 5 says so; rule (2)'s three labels are not three confirmations. |
+| 4 | The history is not mimicked: N5584 was looked at because the 37-host spread was already high (ROB p = 0.021) and singled out by X, part A and S in sequence; but conditioning on a high simulated 37-host spread (top 10%, or ≥ 1.2) gives post-selection spread ≥ 1.033 in 82–89% of simulations, so conditioning would strengthen "consistent"; P(spread_37 ≥ 1.307) under C is 25 of 2,000; union selection was not simulated | yes (0.825 for the top 10%, 0.889 for ≥ 1.2) | Accepted limitation; does not change the reading. |
+| 5 | Every test takes the public C as correct; a globally under-scaled calibrator SN block would shift all nulls together, and no block tests a global rescaling against a host term | argued | Accepted limitation; noted in section 7. |
+| 6 | No code bug: leave-one-out maps (3.4 × 10⁻¹²), criterion S (1.0267; N5584 is outside 740 of the 1,000 subsets, 700–756 across hosts), observed values, subsets and seeds, sorted `rows_a` for the `searchsorted` calls, spread_X = spread_S where the criteria agree, REML on the reduced rows; the `sel_n_subsets` guard is an implementation guard (already stated in section 8) | yes | None. |
+| 7 | No goalpost moved: every label and the reading re-derive from the saved counts; the outcome under S ("consistent", p = 0.137) is less extreme than section 2 thought plausible | yes | None; stated in section 5. |
+| 8 | Literature: Feeney, Mortlock & Dalmasso 2018 (arXiv:1707.00007; abstract checked by the referee) model ladder outliers with non-Gaussian populations instead of cutting them (H0 72.72 → 73.15); Wojtak & Hjorth 2022 (arXiv:2206.08160, unverified by the referee) as a diffuse-scatter alternative; Efstathiou 2020 (arXiv:2007.10716) marginal | partly | Context only; not used in any label. |
+
 ## 7. Open questions
 
 - Why the public `lstsq_results.txt` differs from the printed baseline (a later or variant fit).
@@ -1076,7 +1109,11 @@ removals) and reproduced every number quoted below. Triage:
   R2-RE-SEL (2026-11-20, T-042): with the selection simulated the 36-host scatter is still ordinary
   under C (p = 0.24 for τ̂ under criterion X; 0.24 and 0.14 for the spread under X and S), so the
   reading is "consistent with one outlying host, selection included"; the τ part has no aligned
-  criterion.
+  criterion. The test has little power against diffuse host scatter (referee, post hoc); is the excess
+  one outlying host or scatter spread over all hosts? A post-hoc spread-drop statistic favours one
+  host; a pre-registered test is T-048.
+- Is the calibrator SN block of C globally under-scaled? Every null in this study takes C as given
+  (R2-RE-SEL referee, point 5).
 - A Cepheid-only per-host comparison for R3 (μ from fits without each host's SN rows).
 - R4 suggests the CCHP selection is a low but ordinary draw: is there a property of those hosts
   (for example the TRGB-friendly, low-extinction halos) that correlates with their SN magnitudes?
