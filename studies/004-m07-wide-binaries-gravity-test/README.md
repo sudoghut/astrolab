@@ -637,6 +637,61 @@ estimated input 54.0 MB of the 200 MB budget). Rows: N1 60,259, N2 116,401, N3 5
   counts would give L_N* = 8 × 10⁵ (reported only; switching designs after seeing the counts is not
   allowed, and that design would need its own purity validation).
 
+### Chance-neighbour rate from a shifted field (exploration, post hoc, 2026-11-20, T-043)
+
+Not pre-registered and not a verdict: it tests the referee's inference above (chance neighbours, not
+triples). Script `explore/t043_shifted_neighbours.py`, run 2026-11-20 on all 338 R5 regions (no failed
+region; each region counted on the server before it was fetched; 89,252 shifted rows). For every N1
+member it counts the N2 neighbours (same relaxed rule: parallax_over_error > 5,
+phot_g_mean_flux_over_error > 5, parallax + 3σ > 3.478 mas, within 100 kAU projected and the 3σ
+parallax window) around a position shifted 2° in declination towards the equator; the shifted circle
+holds no real companion of the parent, so its count samples chance neighbours at the same depth and
+nearly the same sky density. Pairs: N1 with the velocity-free cuts of the R5 chain before RUWE
+(ϖ̄ > 4.0 mas, 300 AU ≤ r_sky ≤ 30 kAU) and parents beyond 29.9 pc (so the true and shifted circles
+are disjoint), 23,575 pairs (none dropped for a failed region). "Observed survival" is the relaxed
+rule's outcome (each star's only N2 neighbour is its partner); "no shifted neighbour" is the fraction
+of pairs whose two shifted circles are both empty, the survival expected if degrouping removed pairs
+only through chance neighbours.
+
+| Distance shell | Pairs | Observed survival | No shifted neighbour | Extra real neighbours per star | Shifted (chance) neighbours per star |
+|---|---|---|---|---|---|
+| 29.9–130 pc | 6,773 | 0.417 | 0.472 | 3.78 | 4.08 |
+| 130–150 pc | 2,582 | 0.223 | 0.237 | 5.55 | 4.96 |
+| 150–250 pc | 14,220 | 0.102 | 0.109 | 6.02 | 5.73 |
+| 29.9–250 pc (all) | 23,575 | 0.206 | 0.227 | 5.32 | 5.17 |
+
+| Shell, \|b\| | 0–10° | 10–40° | 40–90° |
+|---|---|---|---|
+| 29.9–130 pc: observed / no shifted | 0.148 / 0.202 | 0.424 / 0.474 | 0.570 / 0.633 |
+| 130–150 pc | 0.053 / 0.034 | 0.208 / 0.220 | 0.354 / 0.387 |
+| 150–250 pc | 0.016 / 0.017 | 0.091 / 0.098 | 0.193 / 0.203 |
+
+By separation the two agree as well (150–250 pc: 300–1,000 AU 0.117 / 0.116, 1–30 kAU
+0.096 / 0.106; 29.9–130 pc: 0.446 / 0.493 and 0.397 / 0.458).
+
+- **Reading (descriptive).** In every shell, latitude bin and separation bin the observed survival is
+  at most 6.1 percentage points below or 1.9 above the shifted-field expectation, and the number of real extra
+  neighbours per star is close to the shifted count (ratio 0.93–1.12 by shell). So almost all of the
+  degrouping loss, and its fall with distance and towards the plane, is what chance neighbours alone
+  produce: the referee's inference is confirmed. The remainder (observed below expected by 12% of the
+  expected survival within 130 pc, 6% beyond) is the most that real triples, moving groups and
+  clusters smaller than 2° can account for. The 300–1,000 AU pairs at 150–250 pc (11.7% observed,
+  11.6% expected) lose nothing beyond chance.
+- **Meaning for the study.** The relaxed rule does not scale: beyond about 130–150 pc it removes most
+  bound pairs because of unrelated stars in a parallax window that deepens with distance, and it
+  thins the sample by sky density (a selection towards high latitudes). An enlarged design would need
+  a degrouping rule that allows for the expected chance count (for example a stricter neighbour
+  parallax precision, or a probabilistic rule using this chance rate); that is a new design and
+  needs a new pre-registration. R5's label and R2 are unchanged.
+- **Limits.** One deterministic shift per region (no repeat with other shifts, so no error from the
+  shift itself; the binomial error of each fraction is ≤ 0.01 except in bins of a few hundred pairs).
+  The shift moves |b| by up to 2° and towards higher density at some positions; the 130–150 pc,
+  |b| < 10° bin (observed above expected) shows the size of that effect where density changes fast.
+  Latitude bins use star a's true position. Moving groups and clusters wider than 2° are sampled by
+  the shifted circle and so count as chance. Per-star means count a star once per pair it belongs
+  to. Exploration output (`explore/2026-11-20-t043-shift/`) was deleted after these numbers were
+  copied.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-16 (a subagent that saw README sections 1-4, the code, the results, the
@@ -688,9 +743,10 @@ refused) and reran G1b. We reran its scripts and reproduced every number below. 
 - d < 200 pc and the C25-neighbour degrouping diagnostic were not run (sections 3–4).
 - R5 (2026-11-18) was not run: G1b failed because degrouping at 250 pc keeps half the 130 pc
   fraction. Whether a larger volume can reach C26's power at all depends on a degrouping rule that
-  does not lose pairs to spurious neighbours (most likely chance neighbours, T-043) as the parallax window widens (section 6: the relaxed rule
+  does not lose pairs to spurious neighbours as the parallax window widens (section 6: the relaxed rule
   keeps 44% at 130 pc and 23% at 250 pc); any such design needs a new pre-registration (its
-  velocity-free counts are now seen). A shifted-field measurement of the chance-neighbour rate is T-043.
+  velocity-free counts are now seen). The shifted-field measurement (T-043, section 5, post hoc)
+  shows that the loss is almost entirely chance neighbours.
 - The Lean argument lacks a premise that x is computed on the MOND model's scale (referee point 9);
   C26's lowest bin is inconsistent with its stated 1 kAU floor.
 - Design lesson: a hard 15-pair floor with a 5% redraw limit invalidates variants whose sparsest bin
@@ -726,7 +782,8 @@ How a coding agent answers "what if" questions about this study without touching
 - Example questions: "Does a 500 AU r_sky floor bring the counts closer to C26?" → `--set rsky_min_au=500`.
   "How does the verdict depend on the bootstrap?" → `--set n_boot=5000 --set boot_seed=1`.
   "What if a0 = 1.0e-10?" → `--set a0=1.0e-10`. The velocity-free occupancy check:
-  `--script explore/occupancy_step_a.py`.
+  `--script explore/occupancy_step_a.py`. The chance-neighbour rate from a shifted field (all R5
+  regions, about 5 h of archive queries, counted first): `--script explore/t043_shifted_neighbours.py`.
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.
 

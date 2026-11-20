@@ -8,11 +8,11 @@ Framework for Testing Gravity with Wide Binaries: No Evidence for MOND", MNRAS, 
 128, arXiv:2305.04613 (C23); Cookson 2024, MNRAS 533, 110, doi:10.1093/mnras/stae1820,
 arXiv:2408.13618 (C24). Study:
 [`studies/004-m07-wide-binaries-gravity-test`](https://github.com/sudoghut/astrolab/tree/main/studies/004-m07-wide-binaries-gravity-test).
-Status: concluded (2026-11-16). Last updated: 2026-11-16 (see the changelog at the end). The source of this page
+Status: concluded (2026-11-16). Last updated: 2026-11-20 (see the changelog at the end). The source of this page
 lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：宽双星：低加速度下是牛顿引力还是 MOND？状态：已结束（2026-11-16）。论文：Cookson、Banik、El-Badry 等 2026（C26），arXiv:2602.24035（MNRAS）；背景：Banik 等 2024（B24），MNRAS 527, 4573，arXiv:2311.03436；Chae 2023（C23），ApJ 952, 128，arXiv:2305.04613；Cookson 2024（C24），MNRAS 533, 110，arXiv:2408.13618。研究：[`studies/004-m07-wide-binaries-gravity-test`](https://github.com/sudoghut/astrolab/tree/main/studies/004-m07-wide-binaries-gravity-test)。最后更新：2026-11-16（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：宽双星：低加速度下是牛顿引力还是 MOND？状态：已结束（2026-11-16）。论文：Cookson、Banik、El-Badry 等 2026（C26），arXiv:2602.24035（MNRAS）；背景：Banik 等 2024（B24），MNRAS 527, 4573，arXiv:2311.03436；Chae 2023（C23），ApJ 952, 128，arXiv:2305.04613；Cookson 2024（C24），MNRAS 533, 110，arXiv:2408.13618。研究：[`studies/004-m07-wide-binaries-gravity-test`](https://github.com/sudoghut/astrolab/tree/main/studies/004-m07-wide-binaries-gravity-test)。最后更新：2026-11-20（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -286,6 +286,19 @@ larger published samples (Banik et al. 2024, arXiv:2311.03436; El-Badry et al. 2
 arXiv:2101.05282) model or estimate contamination instead. A chance-neighbour measurement is
 registered (T-043). Numbers: [`results/r5.json`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/results/r5.json).
 
+**Update 2026-11-20, chance neighbours (T-043, exploration, post hoc).** We counted, for every star of
+the R5 candidate pairs, the neighbours that the relaxed rule would find around a position shifted 2°
+in declination: such a circle holds no real companion, so its count is the chance-neighbour rate at
+the same depth. The fraction of pairs whose two shifted circles are both empty matches the observed
+survival closely: 0.47 against 0.42 within 130 pc, 0.24 against 0.22 at 130–150 pc, 0.11 against
+0.10 at 150–250 pc, with the same fall towards the Galactic plane, and real extra neighbours per star
+(3.8–6.0) match the shifted count (4.1–5.7). So almost all of the degrouping loss is chance
+neighbours, which confirms the referee's inference; real triples and moving groups account for at
+most about 12% of the expected survival within 130 pc and 6% beyond. A larger sample would need a
+degrouping rule that allows for chance neighbours, and so a new pre-registration. Numbers in the
+study README, section 5 (script
+[`explore/t043_shifted_neighbours.py`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/explore/t043_shifted_neighbours.py)).
+
 ### Glossary
 
 | Term | Meaning |
@@ -308,6 +321,9 @@ registered (T-043). Numbers: [`results/r5.json`](https://github.com/sudoghut/ast
 
 ### Changelog
 
+- 2026-11-20: T-043 (exploration, post hoc): a 2° shifted field shows that the relaxed degrouping
+  loss is almost entirely chance neighbours (observed survival 0.42 / 0.22 / 0.10 against 0.47 / 0.24
+  / 0.11 expected from chance alone in the three shells) (part 3 update).
 - 2026-11-18: R5 (T-034): pre-registered power gate G1b failed (L_N* 68 < 100), velocities not
   fetched, R5 not run; referee (post hoc): relaxed degrouping keeps 23% of pairs at 250 pc (44% at
   130 pc), pointing to chance neighbours (inference; direct test T-043); T-043 registered (part 3 update).
@@ -467,6 +483,8 @@ Gaia 档案 2026-11-25 至 12-02 下线，所以在此之前取数并缓存；�
 
 **2026-11-18 更新，R5（T-034，预注册）：未运行。** 扩大样本的设计（d < 250 pc，r_sky ≥ 300 AU）在获取任何速度之前先用不含速度的功效门槛（G1b）检查。结果不通过：经过不用速度的截断后，计数只有设计预测的 53%，牛顿真值下预测的似然比为 68（要求 ≥ 100），MOND 真值下为 0.028（要求 ≤ 0.01），所以速度从未获取，R5 不给判决。独立审稿（事后，我们已复核）把不足追溯到去群：C26 的宽松邻居规则在 130 pc 保留 44% 的星对，在 250 pc 只保留 23%；300–1,000 AU 的星对在 150–250 pc 只存活 11%，而且越靠近银道面存活率越低（|b| < 10° 时降到 2%）。定义"邻居"的视差窗口随距离加深，所以这指向偶然邻居而不是真正的三合星（推断，直接检验为 T-043）。这一规则很可能在约 130–150 pc 以外不再适用；已发表的更大样本（Banik et al. 2024，arXiv:2311.03436；El-Badry et al. 2021，arXiv:2101.05282）是对污染建模或估计。已登记偶然邻居率的测量（T-043）。数字见 [`results/r5.json`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/results/r5.json)。
 
+**2026-11-20 更新，偶然邻居（T-043，探索，事后）。** 对 R5 候选星对中的每颗星，我们计数宽松规则在赤纬平移 2° 的位置周围会找到的邻居：这样的圆内没有真实伴星，所以它的计数就是同样深度下的偶然邻居率。两颗星的平移圆都为空的星对比例与观测存活率非常接近：130 pc 以内 0.47 对 0.42，130–150 pc 0.24 对 0.22，150–250 pc 0.11 对 0.10，向银道面的下降也一样；每颗星的额外真实邻居（3.8–6.0）与平移计数（4.1–5.7）相当。所以去群损失几乎全部来自偶然邻居，证实了审稿的推断；真正的三合星与移动星群最多占 130 pc 以内预期存活率的约 12%，更远处 6%。更大的样本需要一种考虑偶然邻居的去群规则，因而需要新的预注册。数字见研究 README 第 5 节（脚本 [`explore/t043_shifted_neighbours.py`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/explore/t043_shifted_neighbours.py)）。
+
 ### 术语表
 
 | 术语 | 含义 |
@@ -487,6 +505,7 @@ Gaia 档案 2026-11-25 至 12-02 下线，所以在此之前取数并缓存；�
 
 ### 研究进展
 
+- 2026-11-20：T-043（探索，事后）：赤纬平移 2° 的视场表明宽松去群的损失几乎全部来自偶然邻居（三个壳层的观测存活率 0.42 / 0.22 / 0.10，仅由偶然邻居预期 0.47 / 0.24 / 0.11）（第三部分更新）。
 - 2026-11-18：R5（T-034）：预注册的功效门槛 G1b 不通过（L_N* 68 < 100），未取速度，R5 未运行；审稿（事后）：宽松去群在 250 pc 只保留 23% 的星对（130 pc 为 44%），指向偶然邻居（推断，直接检验为 T-043）；登记 T-043（第三部分更新）。
 - 2026-11-16：研究运行（第 A、B 步）与独立审稿：样本不同（639 对），无法区分（L = 0.49）且检验没有功效；事后的 r_sky 300 AU 探索；登记 T-034；补上第三部分的结果。
 - 2026-11-14：第一版：第一至三部分，在实现之前写成（T-013，计划 013）。
