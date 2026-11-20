@@ -47,7 +47,13 @@
   "t_starts": [
    0.077,
    0.2
-  ]
+  ],
+  "sel_check": true,
+  "sel_seed_base": 20000,
+  "sel_n_tau": 400,
+  "sel_n_spread": 2000,
+  "sel_n_subsets": 1000,
+  "sel_max_failed": 20
  },
  "validity": {
   "row_counts": {
@@ -107,5 +113,15 @@
   "t_z": -1.3783639922869286,
   "joint_reading": "the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips"
  },
- "runtime_s": 20775.4409321
+ "R2_RE_SEL": {
+  "status": "evaluated",
+  "reading": "the excess calibrator scatter of R2-RE-ROB is consistent with one outlying host, selection included",
+  "tau": "τ̂_N not unusual under the selected null",
+  "p_tau": 0.24438902743142144,
+  "spread_X": "the 36-host spread is consistent with the selected null (X)",
+  "p_spread_X": 0.24087956021989004,
+  "spread_S": "the 36-host spread is consistent with the selected null (S)",
+  "p_spread_S": 0.13693153423288357
+ },
+ "runtime_s": 33374.32105920001
 }
