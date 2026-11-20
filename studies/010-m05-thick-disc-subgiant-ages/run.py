@@ -1539,7 +1539,7 @@ def r1_mock_selfit(C, D, kind, mech, floor, rngs, pools, nstart):
     use = {K: selaux.better_fit(nll_o[K], fits_i[K][1]) for K in range(1, kmax + 1)}
     fits = {K: (fits_i[K] if use[K] == "i" else fits_o[K]) for K in range(1, kmax + 1)}
     kb, _ = choose_k(fits, n)
-    th5, use5 = None, "-"
+    th5, use5 = None, None
     if kb == kmax:
         nll5 = float("nan")
         try:
@@ -1566,7 +1566,9 @@ def r1_mock_selfit(C, D, kind, mech, floor, rngs, pools, nstart):
     nll = {K: float(fits[K][1]) for K in fits}
     return {"d": float(v["d"]), "valley": bool(v["valley"]), "k": int(kb),
             "o_d": float(v_o["d"]), "o_valley": bool(v_o["valley"]), "o_k": int(v_o["k"]),
-            "use": "".join(use[K] for K in range(1, kmax + 1)) + use5,
+            **{f"i_used_k{K}": use[K] == "i" for K in range(1, kmax + 1)},
+            "i_used_k5": {None: -1, "o": 0, "i": 1}[use5],          # -1: no K = 5 fit (K = 4 not chosen)
+            # NLL rising with K, over K = 1..kmax (T-045 also counted K = 5 for its better fits)
             "o_nonmonotone": len(selaux.nonmonotone_k(nll_o)), "nonmonotone": len(selaux.nonmonotone_k(nll)),
             "pass_rate": (D["_n"] / len(par["A"])) if par is not None else None}
 
@@ -1607,7 +1609,8 @@ def selfit_mock_check(results, sets, recorded):
     for s in sets:
         x = recmock.get(s["k"])
         for j, r in enumerate(results[s["k"]]):
-            if x is None or j >= len(x["d"]) or abs(r["o_d"] - x["d"][j]) > 1e-9 or r["o_valley"] != x["valley"][j]:
+            if (x is None or j >= len(x["d"]) or x["d"][j] is None or r["o_d"] is None
+                    or abs(r["o_d"] - x["d"][j]) > 1e-9 or r["o_valley"] != x["valley"][j]):
                 bad.append([s["k"], j])
     return bad, recmock
 
@@ -1667,15 +1670,20 @@ def main_selfit(ctx, P, store_root=None, recorded=None):
     def make_rng(k, j):
         return (selaux.mock_rng(P["seed"], P["sel_seed_tag"], k, j),
                 np.random.default_rng([int(P["seed"]), int(P["selfit_seed_tag"]), int(k), int(j)]))
-    try:
-        results, state, proj_log = selaux.run_mock_sets(sets, nmock, store, run_one, make_rng,
-                                                        P["selfit_stop_h"], ctx.log)
-    except selaux.StopRun:
-        raise
-    except BaseException:
-        store.release()                            # checkpoints are kept for a rerun
-        raise
-    nf = {s["k"]: sum(selaux.nonfinite(r) for r in results[s["k"]]) for s in sets}
+    try:                                           # the lock is released on every path; checkpoints stay
+        return _selfit_finish(ctx, P, store, sets, nmock, run_one, make_rng, r1d, data_frac, rec, out, t_start)
+    finally:
+        store.release()
+
+
+USED_FIELDS = ("d", "valley", "k", "pass_rate")      # fields the R1 rules use (the non-finite rule looks at these)
+
+
+def _selfit_finish(ctx, P, store, sets, nmock, run_one, make_rng, r1d, data_frac, rec, out, t_start):
+    nbins, mechs, sens_bins = len(P["r1_bins"]), P["mechs"], list(P["sel_floor_sens_bins"])
+    results, state, proj_log = selaux.run_mock_sets(sets, nmock, store, run_one, make_rng,
+                                                    P["selfit_stop_h"], ctx.log)
+    nf = {s["k"]: sum(selaux.nonfinite({f: r.get(f) for f in USED_FIELDS}) for r in results[s["k"]]) for s in sets}
     kof = {("R1", s["variant"], s["bin"], None, s["kind"], s["mech"], s["floor"]): s["k"] for s in sets}
     repro_bad, recmock = selfit_mock_check(results, sets, rec)
     out["mock_reproduction"] = {"n_mocks": sum(len(results[s["k"]]) for s in sets),
@@ -1695,12 +1703,24 @@ def main_selfit(ctx, P, store_root=None, recorded=None):
         labs = {"label": out["status"], "computed_label_not_used": labs}
     else:
         out["status"] = "evaluated"
+    dstar_new, dstar_rec = {}, {}
+    for v in selaux.R1_VARIANTS:
+        for b in range(nbins):
+            dstar_new[(v, b)] = r1v[v]["bins"][b]["d_star"]
+            dstar_rec[(v, b)] = rec["variants"][v]["bins"][b]["d_star"]
     per_set = []                                   # reported, no verdict
     for s in sets:
-        rr, x = results[s["k"]], recmock[s["k"]]
+        rr, x = results[s["k"]], recmock.get(s["k"])
+        dn, dr = dstar_new[(s["variant"], s["bin"])], dstar_rec[(s["variant"], s["bin"])]
+        passes = lambda valley, d, ds: bool(valley and d is not None and d < ds)
         per_set.append({**{k: s[k] for k in ("k", "variant", "bin", "kind", "mech", "floor")},
-                        "valley_new": int(sum(r["valley"] for r in rr)), "valley_recorded": int(sum(x["valley"])),
+                        "valley_new": int(sum(r["valley"] for r in rr)),
+                        "valley_recorded": int(sum(x["valley"])) if x else None,
                         "valley_changed": int(sum(r["valley"] != r["o_valley"] for r in rr)),
+                        "pass_changed": (int(sum(passes(r["valley"], r["d"], dn) != passes(x["valley"][j], x["d"][j], dr)
+                                                 for j, r in enumerate(rr))) if x else None),
+                        "i_used_by_k": {str(K): int(sum(r[f"i_used_k{K}"] for r in rr)) for K in range(1, P["kmax"] + 1)},
+                        "i_used_k5": int(sum(r["i_used_k5"] == 1 for r in rr)),
                         "o_nonmonotone": int(sum(r["o_nonmonotone"] > 0 for r in rr)),
                         "new_nonmonotone": int(sum(r["nonmonotone"] > 0 for r in rr)),
                         "k_o": {str(K): int(sum(r["o_k"] == K for r in rr)) for K in range(1, P["kmax"] + 1)},
@@ -1711,13 +1731,12 @@ def main_selfit(ctx, P, store_root=None, recorded=None):
     out.update({"label": lab, "label_floor_sensitivity": labs, "variants": r1v, "floor_sensitivity": r1s,
                 "recorded_r1_sel": {"label": rec["label"]["label"],
                                     "verdicts": {v: recv[v]["verdict"] for v in selaux.R1_VARIANTS},
-                                    "power": {v: [B["power"] for B in recv[v]["bins"]] for v in selaux.R1_VARIANTS},
-                                    "d_star": {v: [B["d_star"] for B in recv[v]["bins"]] for v in selaux.R1_VARIANTS}},
+                                    **{key: {v: [B[key] for B in recv[v]["bins"]] for v in selaux.R1_VARIANTS}
+                                       for key in ("power", "d_star", "q", "fpr", "resolvable")}},
                 "per_set": per_set, "nonfinite": {str(k): x for k, x in nf.items() if x},
                 "mocks": {"n_sets": len(sets), "projections": proj_log, "elapsed_h_total": store.elapsed_s() / 3600,
                           "resumed": store.resumed, "resumes": store.resumes(),
                           "stop_limit_h": store.limit_h if store.limit_h is not None else P["selfit_stop_h"]},
                 "runtime_h": (time.time() - t_start) / 3600, "params": P})
     ctx.save("r1_selfit", out)
-    store.release()
     return {"R1-SEL-FIT": lab["label"], "R1-SEL-FIT floor 0.20": labs["label"], "status": out["status"]}

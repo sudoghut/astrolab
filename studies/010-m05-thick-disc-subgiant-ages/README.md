@@ -1009,7 +1009,8 @@ How a coding agent answers "what if" questions about this study without touching
   `sel7`, `diagnostic`, `mock_pass_rates`, `mocks` with the runtime projections, `labels`,
   `memory_peak_mb`). R1-SEL-FIT: `r1_selfit.json` (`status`, `label`, `label_floor_sensitivity`,
   `variants`, `floor_sensitivity` as in `r1_sel.json`; `recorded_r1_sel`; `per_set` (valley counts,
-  K chosen, NLL rising with K under (o) and under the new fits, time per mock); `data_fit_mismatches`,
+  K chosen, NLL rising with K over K = 1–4 under (o) and under the new fits, how often (i) was used per K,
+  changes in valley and pass, time per mock); `data_fit_mismatches`,
   `mock_reproduction`; `mocks` with the projections). The R1-SEL-FIT run (the committed default) takes
   about 5 h of mocks plus about 25 min of data fits, on an otherwise idle machine.
 - Example questions: "Does the R1 valley survive a stricter error cut?" → `--set cut=0.10`.

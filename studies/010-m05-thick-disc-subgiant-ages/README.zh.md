@@ -548,7 +548,7 @@ Lean 论证及其"引文 / 类型 / 内容"对照表，没有看到第 5-8 节�
   `label`；含功效模型的 `data_fits`）；`r34_sel.json`（`terms.<E|N>`：`sampleA`、`recovery`、
   `R3`、`R4`、`robustness_fits`、`error_scale`；`intrinsic.<E|N>`；`sampleA_extra_E`；`fig2e_E`；
   `shared_full_fits`；`labels`）；`sel.json`（`pass_tables`、`data_pass_frac`、`r2_deconvolved`、
-  `sel7`、`diagnostic`、`mock_pass_rates`、含运行时间预测的 `mocks`、`labels`、`memory_peak_mb`）。R1-SEL-FIT：`r1_selfit.json`（`status`、`label`、`label_floor_sensitivity`，与 `r1_sel.json` 同样的 `variants`、`floor_sensitivity`；`recorded_r1_sel`；`per_set`（有谷的次数、选中的 K、(o) 与新拟合下 NLL 随 K 上升的次数、每次模拟用时）；`data_fit_mismatches`、`mock_reproduction`；含运行时间预测的 `mocks`）。R1-SEL-FIT 运行（入库的默认流程）约需 5 小时模拟加约 25 分钟数据拟合，须在机器没有其他运行时进行。
+  `sel7`、`diagnostic`、`mock_pass_rates`、含运行时间预测的 `mocks`、`labels`、`memory_peak_mb`）。R1-SEL-FIT：`r1_selfit.json`（`status`、`label`、`label_floor_sensitivity`，与 `r1_sel.json` 同样的 `variants`、`floor_sensitivity`；`recorded_r1_sel`；`per_set`（有谷的次数、选中的 K、(o) 与新拟合下 NLL 在 K = 1–4 中随 K 上升的次数、每个 K 用 (i) 的次数、有无谷与是否通过的变化、每次模拟用时）；`data_fit_mismatches`、`mock_reproduction`；含运行时间预测的 `mocks`）。R1-SEL-FIT 运行（入库的默认流程）约需 5 小时模拟加约 25 分钟数据拟合，须在机器没有其他运行时进行。
 - 示例问题："R1 的谷在更严格的误差截断下还在吗？" → `--set cut=0.10`。
   "13 Gyr 均值对 J_φ 截断敏感吗？" → `--set r2_jphi=300`（R2 也报告 300 和 700）。
   "如果选择项以相对误差而不是 e 为条件会怎样？" → 一个 `explore/` 脚本
