@@ -904,7 +904,7 @@ results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_
   1.307 (37 hosts) to 1.033 (36 hosts; p = 0.36; over all 10,000 R4-N draws 1.044), so the
   pre-registered rule gives "attributable to N5584". Because the null does not include the choice of
   N5584 as the most extreme of 37 hosts (post hoc, section 6), we read this as "consistent with one
-  outlying host"; a selection-aware test is T-042. The CCHP selection is again an ordinary low draw (8.5th
+  outlying host"; the selection-aware test R2-RE-SEL (T-042, below) gives this as its pre-registered reading. The CCHP selection is again an ordinary low draw (8.5th
   percentile; R4 on 37 hosts gave 5.7). Keeping N5584 but letting the model down-weight it (ν = 4)
   gives N5584 alone a clearly reduced weight and leaves the verdict where R2-RE put it (z_T = −1.38;
   R2-RE −1.53). Both treatments give the same row; the R2-RE-ROB A flip to "supports the paper"
@@ -941,6 +941,54 @@ results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_
   normal, low-reddening SN Ia and the host as an expected outlier of about 0.25 mag among the
   calibrators. That would make N5584 (literature-based, not tested here) a statistical fluctuation of the SN Ia population rather than a data
   defect, which is the random-effect picture.
+
+### R2-RE-SEL (addendum 2026-11-19, T-042)
+
+Run of 2026-11-20 (`python -m astrolab run 003`, 33,375 s, of which this block 12,258 s; all earlier
+results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_sel.json`.
+
+| Part | Selected null (this block) | Unselected null B-N (recorded) | Label (pre-registered rule) |
+|---|---|---|---|
+| Reproduction checks | leave-one-out maps within 3.4 × 10⁻¹² of `loo_chi2`; both criteria select N5584 on the real data (X: χ² 12.478; S: spread_excl 1.0267, expected 1.027 ± 0.001); τ̂_N and spread_obs equal the recorded values; the first five subsets equal B-N's | – | passed |
+| τ̂ under C, criterion X (400 simulations, none failed) | 97 of 400 with τ̂_s ≥ τ̂_N = 0.031 (257 at zero; quantiles 5/50/95% 0, 0, 0.062); p = 0.244, 95% interval 0.201–0.288 | 135 of 400 (220 at zero; 95% quantile 0.080); p = 0.339 | **τ̂_N not unusual under the selected null** |
+| 36-host spread under C, criterion X (2,000 simulations, 1,000 subsets) | 481 of 2,000 ≥ spread_obs 1.033 (quantiles 0.746, 0.947, 1.153); p = 0.241, interval 0.222–0.260 | 717 of 2,000 (0.771, 0.977, 1.222); p = 0.359 | **the 36-host spread is consistent with the selected null (X)** |
+| 36-host spread under C, criterion S | 273 of 2,000 ≥ 1.033 (quantiles 0.705, 0.898, 1.106); p = 0.137, interval 0.122–0.152 | as above | **the 36-host spread is consistent with the selected null (S)** |
+| Reading | – | – | **the excess calibrator scatter of R2-RE-ROB is consistent with one outlying host, selection included** (rule 2) |
+
+- **Reading (pre-registered, rule 2).** With the choice of the most extreme of 37 hosts simulated, the
+  scatter of the 36 remaining hosts is still ordinary under C: all three Clopper–Pearson intervals lie
+  above 0.05. So the post-hoc gloss of R2-RE-N5584, "consistent with one outlying host", is now the
+  pre-registered reading of this test, with one caveat: the τ part uses criterion X only, which is less
+  aligned with τ̂ than "smallest τ̂_j" (not feasible: 37 REML fits per simulation), so its p is
+  expected to be higher than under an aligned criterion; the τ label supports the reading only as far
+  as the spread labels do. The pre-registered label of R2-RE-N5584 (a), "attributable to N5584", stays
+  recorded as the outcome under the unselected null.
+- **As expected, in direction.** The selection lowered every p value relative to B-N (τ 0.339 → 0.244;
+  spread 0.359 → 0.241 under X and → 0.137 under S), and criterion S, the one aligned with the spread,
+  lowered it most; no part has p at or above B-N's (descriptive rule: none). The X values fall in the
+  0.1–0.3 that section 2's rough argument gave. Section 2 thought "undetermined" or "unusual" more
+  plausible under S than under X; the outcome under S is "consistent" (interval 0.122–0.152).
+- **Which host the criteria drop (reported).** Under the null, criterion X drops one of the hosts with
+  four calibrator rows most often (N5468 and N5584 190 times each, N5643 170 of 2,000; all 37 hosts
+  occur), as expected from a raw χ² term; criterion S drops N5468 192, N5643 170 and N5584 161 times
+  (36 hosts occur). The two criteria drop the same host in 457 of 2,000 simulations (89 of the first
+  400). The selection is simulated, not N5584's identity: in about nine simulations out of ten the
+  dropped host is another one.
+- **How extreme N5584 is as the most extreme of 37 (descriptive, no label).** The largest
+  leave-one-out χ² term reaches N5584's 12.478 in 228 of 2,000 null simulations (p = 0.114, interval
+  0.100–0.129), close to the 0.12 that section 2 estimated by treating the 37 terms as independent χ²
+  variables: N5584's term is large but not exceptional once the choice among 37 hosts is allowed for.
+  The smallest spread_excl over the 37 hosts is at or below the real value 1.027 in 1,764 of 2,000
+  simulations (p = 0.882): under C, leaving out the "best" host typically leaves a smaller spread (median
+  0.886) than leaving out N5584 does on the real data, so by this statistic the subsets without N5584
+  are on the high side, in line with p = 0.14 under criterion S; it uses the 37-host reference fit
+  (N5584 inside), unlike the spread parts.
+- **Status of R2.** Unchanged, as fixed in section 2: the R2-RE headline row ("no host-selection
+  effect detected"), the R2-RE-ROB and R2-RE-N5584 labels, `summary.json` `R2_host` and the claim's
+  verdict stay as recorded.
+- **Runtime.** The block took 12,258 s: τ part 8,015 s (about 20 s per REML fit), spread parts 3,975 s
+  (rows for 37 dropped hosts, about 110 s each); the whole run 9.3 h, within the 8.5–10 h estimate. No
+  data downloaded.
 
 ## 6. Referee notes
 
@@ -1018,12 +1066,17 @@ removals) and reproduced every number quoted below. Triage:
   distances beyond C and cannot say which side causes it; calibrator-specific SN colour behaviour
   (Wojtak & Hjorth 2022) is one candidate; whether C's calibrator block already holds a within-SN
   term is unchecked. Robustness of τ̂ to single hosts and its null distribution: T-032 (answered:
-  the excess is consistent with one outlying host, N5584; R2-RE-N5584, T-039; selection-aware test T-042).
+  the excess is consistent with one outlying host, N5584; R2-RE-N5584, T-039; also with the selection
+  of the most extreme host simulated, R2-RE-SEL, T-042).
 - Is N5584's offset (effective scatter 0.12 mag under the heavy-tailed model) from its single SN,
   2007af, or from its Cepheid distance? The data cannot tell (section 6); the literature favours the SN
   (an independent Cepheid reanalysis agrees with SH0ES). A published per-host TRGB or JAGB distance for
   N5584 would decide it.
-- Does "attributable to N5584" survive a null that also selects the most extreme host? T-042.
+- Does "attributable to N5584" survive a null that also selects the most extreme host? Answered by
+  R2-RE-SEL (2026-11-20, T-042): with the selection simulated the 36-host scatter is still ordinary
+  under C (p = 0.24 for τ̂ under criterion X; 0.24 and 0.14 for the spread under X and S), so the
+  reading is "consistent with one outlying host, selection included"; the τ part has no aligned
+  criterion.
 - A Cepheid-only per-host comparison for R3 (μ from fits without each host's SN rows).
 - R4 suggests the CCHP selection is a low but ordinary draw: is there a property of those hosts
   (for example the TRGB-friendly, low-extinction halos) that correlates with their SN magnitudes?

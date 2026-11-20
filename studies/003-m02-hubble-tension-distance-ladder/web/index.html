@@ -61,13 +61,13 @@ const L = i18n.L, t = i18n.t;
 const f = (x, n = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '—' : Number(x).toFixed(n);
 const h0 = q => Math.pow(10, q / 5);
 const dh0 = (q, s) => h0(q) * Math.log(10) / 5 * s;
-const files = ['summary', 'r1', 'r2', 'r3', 'r4', 'cross_paper', 'host_identification', 'r2_re', 'r2_re_rob', 'r2_re_n5584'];
+const files = ['summary', 'r1', 'r2', 'r3', 'r4', 'cross_paper', 'host_identification', 'r2_re', 'r2_re_rob', 'r2_re_n5584', 'r2_re_sel'];
 let D = null;
 
 function cls(v) {
   if (!v) return '';
   if (/not evaluable|not reproduced|contradicts|not matched/.test(v)) return 'bad';
-  if (/conditional|amended|different size|not detected|does not support|sensitive|undetermined|(?<!not )unusual/.test(v)) return 'warn';
+  if (/conditional|amended|different size|not detected|does not support|sensitive|undetermined|remains|(?<!not )unusual/.test(v)) return 'warn';
   return 'ok';
 }
 const VT = {
@@ -92,9 +92,17 @@ const VT = {
   'the R4 spread is consistent with C': ['the R4 spread is consistent with C', 'R4 的离散与 C 一致'],
   'tau_hat unusual under C (excess calibrator scatter)': ['τ̂ unusual under C (excess calibrator scatter)', '在 C 下 τ̂ 不寻常（定标星额外离散）'],
   'tau_hat not unusual under C': ['τ̂ not unusual under C', '在 C 下 τ̂ 不算不寻常'],
-  'the excess calibrator scatter of R2-RE-ROB is attributable to N5584': ['the excess calibrator scatter of R2-RE-ROB is attributable to N5584 (pre-registered label; read post hoc only as consistent with one outlying host, since the null does not include choosing the most extreme of 37 hosts; selection-aware test T-042)', 'R2-RE-ROB 中多出的校准离散可归因于 N5584（预注册标签；由于零假设没有包含从 37 个宿主中选出最极端者这一步，事后只读作“与一个离群宿主相容”；考虑选择的检验 T-042）'],
+  'the excess calibrator scatter of R2-RE-ROB is attributable to N5584': ['the excess calibrator scatter of R2-RE-ROB is attributable to N5584 (pre-registered label; the unselected null; with the choice of the most extreme of 37 hosts simulated, R2-RE-SEL reads it as consistent with one outlying host)', 'R2-RE-ROB 中多出的校准离散可归因于 N5584（预注册标签；由于零假设没有包含从 37 个宿主中选出最极端者这一步，R2-RE-SEL 把这一步放进模拟后读作“与一个离群宿主相容”）'],
   'excess scatter remains without N5584': ['excess scatter remains without N5584', '去掉 N5584 后仍有多余离散'],
   'τ excess remains without N5584': ['τ excess remains without N5584', '去掉 N5584 后 τ 仍偏大'],
+  'τ̂_N unusual under the selected null': ['τ̂_N unusual under the selected null', '在考虑选择的零假设下 τ̂_N 不寻常'],
+  'τ̂_N not unusual under the selected null': ['τ̂_N not unusual under the selected null', '在考虑选择的零假设下 τ̂_N 不算不寻常'],
+  'the 36-host spread is unusual under the selected null (X)': ['the 36-host spread is unusual under the selected null (X)', '36 个宿主的离散在考虑选择的零假设下不寻常（X）'],
+  'the 36-host spread is unusual under the selected null (S)': ['the 36-host spread is unusual under the selected null (S)', '36 个宿主的离散在考虑选择的零假设下不寻常（S）'],
+  'the 36-host spread is consistent with the selected null (X)': ['the 36-host spread is consistent with the selected null (X)', '36 个宿主的离散与考虑选择的零假设相符（X）'],
+  'the 36-host spread is consistent with the selected null (S)': ['the 36-host spread is consistent with the selected null (S)', '36 个宿主的离散与考虑选择的零假设相符（S）'],
+  'the excess calibrator scatter of R2-RE-ROB is consistent with one outlying host, selection included': ['the excess calibrator scatter of R2-RE-ROB is consistent with one outlying host, selection included (the τ part uses criterion X only)', '计入选择后，R2-RE-ROB 中多出的校准离散与一个离群宿主相容（τ 部分只用准则 X）'],
+  'τ excess remains after removing the most extreme host, selection included': ['τ excess remains after removing the most extreme host, selection included', '计入选择后，去掉最极端宿主后 τ 仍偏大'],
   'R2-RE verdict robust to a heavy-tailed host effect': ['R2-RE verdict robust to a heavy-tailed host effect', 'R2-RE 的判定对重尾宿主效应稳健'],
   'the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips': ['the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips', '无论去掉还是降权 N5584，零结果都成立；只有 R2-RE-ROB A 的混合 τ 路径会翻转'],
 };
@@ -149,6 +157,16 @@ function render() {
       rows.push(['', L('Joint reading', '合并解读'), '', '', D.r2_re_n5584.joint_reading]);
       return rows;
     })() : []),
+    ...(D.r2_re_sel && D.r2_re_sel.status === 'evaluated' ? (() => {
+      const z = D.r2_re_sel, part = (q, en, zh) => q && q.status === 'evaluated'
+        ? ['', L(en, zh), `${q.spread_obs !== undefined ? f(q.spread_obs, 3) + '; ' : ''}p = ${f(q.p, 3)} (${q.k}/${q.n_ok !== undefined ? q.n_ok : q.n_sims})`, '0.05', q.label]
+        : ['', L(en, zh), '', '', q ? q.status : null];
+      return [
+        part(z.tau, 'Most extreme of 37 hosts dropped in each simulation (criterion X): τ̂ under C', '每次模拟去掉 37 个宿主中最极端者（准则 X）：C 下的 τ̂'),
+        part(z.spread_X, 'Same, 36-host spread (criterion X)', '同上，36 个宿主的离散（准则 X）'),
+        part(z.spread_S, 'Same, 36-host spread (criterion S: smallest spread without the host)', '同上，36 个宿主的离散（准则 S：不含该宿主时离散最小）'),
+        ['', L('Reading (R2-RE-SEL)', '解读（R2-RE-SEL）'), '', '', z.reading]].map((r, i) => i === 0 ? ['R2-RE-SEL', ...r.slice(1)] : r);
+    })() : (D.r2_re_sel ? [['R2-RE-SEL', L('Selection-aware null', '考虑选择的零假设'), '', '', D.r2_re_sel.status]] : [])),
     ['', L('Host step, pre-registered labelling', '宿主一步，预注册的标注'), '', '', H.preregistered_verdict],
     ['R3', L('CCHP-side H0 on the same 10 hosts vs CCHP\'s 69.29', '同样 10 个宿主上 CCHP 一侧的 H0 对 CCHP 的 69.29'), `${f(R3.cchp_side_h0, 2)} (Δ ${f(R3.cchp_diff_mag, 4)} mag)`, '69.29 ± 0.02 mag', R3.cchp_match],
     ['', L('d = SH0ES − CCHP on the same hosts (descriptive)', 'd = 同宿主上 SH0ES − CCHP（只作描述）'), `${f(R3.d, 4)} ± ${f(R3.sigma_d, 4)} mag`, '—', null],
