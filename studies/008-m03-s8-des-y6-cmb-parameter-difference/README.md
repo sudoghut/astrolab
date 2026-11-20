@@ -798,6 +798,58 @@ the recorded `results/r6.json`, checks passed, not retrained; numbers in `result
   50 MB per-download cap) would answer a different question and is not done. A pre-registered
   shuffle and prior-replacement check is registered as T-044.
 
+**R6-SHUF (addendum 2026-11-19, section 2.8, T-044): what Σmν adds is mainly through its
+correlations with the other DES parameters.** Run of 2026-11-20 (`python -m astrolab run 008`,
+04:13–08:18, 14,707 s against the estimated 4.0 h; no other study run on the machine; R1–R5
+unchanged; R6 and R6-NOMNU read from their recorded files, checks passed, not retrained; numbers in
+`results/r6_shuf.json`). Each flow training took 754–776 s, except the first gate training (523 s).
+
+| Run | n_σ per seed | n̄ | s | Outcome |
+|---|---|---|---|---|
+| Low-shift gate, 6-D synthetic (seeds 10–12) | 0.839, 0.689, 0.969 | 0.832 | – | exact 0.8601: **passed** (mean 0.028 low; largest single deviation 0.171, seed 11) |
+| (S) DES Σmν shuffled (seeds 0–4) | 0.914, 0.949, 0.862, 0.893, 0.929 | **0.909** | 0.033 | – |
+| (P) DES Σmν from the prior | 0.526, 0.617, 0.497, 0.528, 0.594 | 0.552 | 0.051 | – |
+| (SS) both chains' Σmν shuffled (descriptive) | 0.907, 0.918, 0.841, 0.919, 0.962 | 0.909 | 0.044 | – |
+| R6, 6-D (recorded) | 1.857, 1.643, 1.719, 1.605, 1.669 | 1.699 | 0.098 | – |
+| R6-NOMNU, 5-D (recorded) | 0.478, 0.551, 0.518, 0.576, 0.494 | 0.524 | 0.040 | – |
+| Determinism check (R6 seed 0 through the new draw path) | 1.857 | – | – | recorded 1.8569; difference 0.000 |
+
+- **Label (pre-registered, rule 6): "what Σmν adds is mainly through its correlations with the other
+  DES parameters".** Rules 1–5 do not apply: R1 passes; the versions and flow settings equal both
+  recorded files; the low-shift gate passes; every (S) and (P) repetition is finite, converged and not
+  a lower bound; E_k = 1.379, 1.091, 1.201, 1.029, 1.174 (all > 0.20); s_φ = 0.037 ≤ 0.30. φ_k =
+  0.684, 0.636, 0.714, 0.692, 0.630; φ̄ = 0.671, I_φ = [0.638, 0.704] ⊂ [0.60, ∞). No flag (the
+  determinism difference is 0.000 ≤ 0.02, so the pairing with the recorded runs is exact).
+- **The rest of the split (descriptive).** ψ̄ = 0.306 (s 0.029; 0.28–0.35 per seed) and ρ̄ = 0.023
+  (s 0.055; −0.047 to 0.085). On the χ² scale φ_χ² = 0.601 (0.56–0.64). Read in the registered order
+  (shuffle, then prior; the split is not unique): of the 1.17σ that Σmν adds over the 5-D value, about
+  two thirds goes when DES's Σmν is decoupled from DES's other parameters, about a third when DES's
+  own Σmν marginal is then replaced by the prior, and almost nothing remains: with DES's Σmν at its
+  prior the 6-D value (0.552) is within 0.03σ of the 5-D value (0.524).
+- **(SS) equals (S)** (0.909 both; paired per-seed differences −0.031 to +0.034): shuffling the CMB
+  chain's Σmν as well changes nothing visible (descriptive).
+- **What it means.** Section 6 found that DES's Σmν against the CMB, with DES's Σmν drawn from the
+  prior, still differs by 1.05σ in 1-D, because the CMB chain sits at the 0.06 eV prior edge. In six
+  dimensions that placement adds only about 0.03σ over the 5-D value (ρ̄). What Σmν adds to the
+  full-space number comes mostly from how DES's Σmν co-varies with its other parameters (which
+  parameters is not tested here; the referee's A_s–Σmν degeneracy remains an inference), and about a
+  third from DES's Σmν marginal (0.384 ± 0.147) differing from its prior (0.330 ± 0.156). Combined
+  with R6-NOMNU: D26's full-space 1.8σ (R6 1.6–1.9σ) is about 0.5σ in the five other parameters, plus
+  a Σmν part that is mostly DES's own Σmν correlations; the CMB's position at the prior edge
+  contributes little in six dimensions. Section 2.8 expected this label from the kNN numbers
+  (φ ≈ 0.68/0.70); its expected ψ (0.13/0.17) and ρ (0.19/0.13) were not borne out.
+- **kNN, descriptive (not calibrated, section 2.8).** Means over the five seeds, k = 20/100: real
+  1.247/1.527, (S) 0.917/0.871, (P) 0.699/0.538, (SS) 0.946/0.869, 5-D 0.533/0.501. From these means
+  φ would be 0.46 at k = 20 and 0.64 at k = 100. At k = 20 the real-chain value scatters from 1.07 to
+  1.43 between seeds. The kNN values are not used for the label.
+- **Limits.** The low-shift gate checks one point (0.86) in 6-D, on a synthetic distribution; it
+  passes, but one of its three trainings was 0.17 low, so a single flow training at this level is
+  uncertain by up to about 0.2σ. n_S (0.91) is close to the gated point and n₆ (1.70) lies between it
+  and R6's gate (2.371); n₅ (0.52, 5-D) and n_P (0.55) lie below both, where R6's design notes found
+  flows biased high, and are not gated. A high bias in n₅ shrinks E and raises φ; a high bias in n_P
+  raises ρ and lowers ψ, not φ. The seed scatter s_φ excludes the chains' own finite-sample noise;
+  section 2.8's band allows for about 0.035 of it, and I_φ's lower end is 0.038 above 0.60.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-15 (subagent with the pre-registration, code and results only; it read
@@ -873,7 +925,8 @@ run was using the machine. We reran its scripts and reproduced every number belo
    R6-NOMNU (2026-11-18) shows that most of it goes with Σmν (0.52σ without Σmν), and the referee's
    checks that this is Σmν jointly with its DES correlations and partly the prior shape (section 6;
    pre-registered check T-044), so a verdict on the data-constrained pair (A_s, Ωm) (R6 flow 0.40σ)
-   matters more than a sharper 6-D number.
+   matters more than a sharper 6-D number. R6-SHUF (T-044, 2026-11-20) confirms that the Σmν part is
+   mainly DES's own Σmν correlations (φ̄ = 0.67); which DES parameters carry them is not tested.
 2. How much does the S8 difference change with a lensing-inclusive or Planck-PR4-based CMB
    (D26 reports 1.0σ in full space against Planck 2018 alone)?
 3. Do KiDS-1000 and HSC Y3 (2023) quote means or modes? R5 shows a 0.1–0.2σ dependence.
@@ -910,7 +963,10 @@ How a coding agent answers "what if" questions about this study without touching
   `chain` diagnostics); `results/r2.json` (`1d`, `2d`: `n_sigma`, `s`, `per_seed`,
   `bandwidth_variants`, `verdict`; `support`; `gaussian_means`; `gaussian_modes`;
   `truncated_sensitivity`); `results/r3.json`; `results/r4.json` (`projection_shift`, `map_shift`,
-  `algorithms_1d`, `threshold`, `full_space`); `results/r5.json` (per probe `n_sigma`).
+  `algorithms_1d`, `threshold`, `full_space`); `results/r5.json` (per probe `n_sigma`);
+  `results/r6_shuf.json` (R6-SHUF: `label`, `reason`, `numbers` (`phi_bar`, `s_phi`, `interval`),
+  `quantities` (per seed E, φ, ψ, ρ, φ_χ²), `means`, `flows` (`gate_low`, `S`, `P`, `SS`,
+  `determinism`), `knn`, `records`, `environment`, `flags`).
 - Example questions: "what if the CMB were shifted by 1σ?" -> a script that shifts the CMB samples;
   "how does KiDS-Legacy's 0.815 mode (not the mean) compare?" -> `--set` on `probes`.
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)

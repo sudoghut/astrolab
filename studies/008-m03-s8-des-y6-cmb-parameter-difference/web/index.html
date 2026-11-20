@@ -47,6 +47,10 @@
   <h2><span class="en">R6-NOMNU · Full space without Σmν (addendum 2026-11-18)</span><span class="zh">R6-NOMNU · 不含 Σmν 的完整空间（补充 2026-11-18）</span></h2>
   <div class="scroll"><table id="r6n"></table></div>
   <p class="muted" id="r6nnote"></p>
+  <h2><span class="en">R6-SHUF · What Σmν adds: DES's Σmν shuffled or drawn from its prior (addendum 2026-11-19)</span><span class="zh">R6-SHUF · Σmν 增加了什么：打乱 DES 的 Σmν 或从先验抽取（补充 2026-11-19）</span></h2>
+  <div class="scroll"><table id="r6s"></table></div>
+  <div class="scroll"><table id="r6sq"></table></div>
+  <p class="muted" id="r6snote"></p>
   <p class="muted" id="err"></p>
 </main>
 <script>
@@ -116,6 +120,7 @@ function render(d) {
   document.getElementById('r4').innerHTML = g;
   renderR6(r6);
   renderR6N(d.r6n);
+  renderR6S(d.r6s);
   document.getElementById('r4note').innerHTML = L(
     'The Gaussian full-space numbers depend on the parametrization (post hoc, after the referee): 0.32σ in (A_s, Ωm) but 2.21σ in (S8, Ωm), and 1.48σ for the six parameters with S8 in place of A_s. None of them is a test of D26\'s flow-based 1.8σ.',
     '全空间的高斯近似数字依赖参数化（审稿后事后补做）：(A_s, Ωm) 上 0.32σ，(S8, Ωm) 上 2.21σ，以 S8 代替 A_s 的六参数为 1.48σ。它们都不是对 D26 基于归一化流的 1.8σ 的检验。');
@@ -185,10 +190,49 @@ function renderR6N(x) {
     `标签（预注册）：<b>${R6N_LABELS[x.label] || esc(x.label)}</b>` + (iv.length ? `（I = [${f(iv[0])}, ${f(iv[1])}]；区间边界 1.00 与 1.40）。` : '。') + `pop_size 比较（描述性）：${cm('5d')}；${cm('6d')}。pop_size = 1 的门控只报告，不决定任何结论。事后（审稿，已复核）：这是 Σmν 与它在 DES 中的相关共同作用，部分来自先验形状；其余五个参数中 h、n_s、Ωb 在 DES 中也大多由先验主导（README 第 5–6 节；检查 T-044）。`);
 }
 
+const R6S_LABELS = {
+  'what Σmν adds is mainly through its correlations with the other DES parameters': 'Σmν 增加的部分主要通过它与其他 DES 参数的相关',
+  'what Σmν adds is mainly not through its DES-side correlations (the Σmν direction itself, including the CMB side and the prior)': 'Σmν 增加的部分主要不通过它在 DES 一侧的相关（Σmν 方向本身，包括 CMB 一侧与先验）',
+  'between the two labels (not decided)': '介于两个标签之间（未决定）',
+  'not evaluable': '无法评估', 'not evaluable (low-shift gate)': '无法评估（低偏移门控）'};
+function renderR6S(x) {
+  const t = document.getElementById('r6s'), tq = document.getElementById('r6sq'), note = document.getElementById('r6snote');
+  if (!x || !x.flows) { t.innerHTML = ''; tq.innerHTML = ''; note.innerHTML = L('R6-SHUF has not been run.', 'R6-SHUF 尚未运行。'); return; }
+  const fl = x.flows, rec = x.records || {};
+  const vals = reps => (reps || []).map(r => f(r.n_sigma)).join(', ');
+  let h = `<tr><th>${L('Run', '运行')}</th><th>${L('n_σ per seed', '各种子的 n_σ')}</th><th>n̄</th><th>s</th><th>${L('reference', '参照')}</th></tr>`;
+  const g = fl.gate_low;
+  if (g) h += `<tr><td>${L('Low-shift gate, 6-D synthetic', '低偏移门控，6 维合成分布')}</td><td>${vals(g.repetitions)}</td><td>${f(g.mean)}</td><td>–</td><td>${L(`exact ${f(g.exact && g.exact.n_sigma)}; ${g.passed ? 'passed' : 'failed'}`, `精确值 ${f(g.exact && g.exact.n_sigma)}；${g.passed ? '通过' : '未通过'}`)}</td></tr>`;
+  const rows = [['S', L('<b>(S) DES Σmν shuffled</b>', '<b>(S) 打乱 DES 的 Σmν</b>')],
+    ['P', L('(P) DES Σmν from the prior', '(P) DES 的 Σmν 取自先验')],
+    ['SS', L('(SS) both chains\' Σmν shuffled (descriptive)', '(SS) 两条链的 Σmν 都打乱（描述性）')]];
+  for (const [k, name] of rows) { const v = fl[k]; if (v) h += `<tr><td>${name}</td><td>${vals(v.repetitions)}</td><td>${f(v.n_bar)}</td><td>${f(v.s)}</td><td>–</td></tr>`; }
+  for (const [k, name] of [['r6', L('R6, 6-D (recorded)', 'R6，6 维（已记录）')], ['r6_nomnu', L('R6-NOMNU, 5-D (recorded)', 'R6-NOMNU，5 维（已记录）')]]) {
+    const r = rec[k]; if (r && r.per_seed) h += `<tr><td>${name}</td><td>${Object.values(r.per_seed).map(v => f(v)).join(', ')}</td><td>${f(r.n_bar)}</td><td>${f(r.s)}</td><td>–</td></tr>`;
+  }
+  const det = x.determinism;
+  if (det && det.repetition) h += `<tr><td>${L('Determinism check (R6 seed 0)', '确定性检查（R6 种子 0）')}</td><td>${f(det.repetition.n_sigma)}</td><td>–</td><td>–</td><td>${L(`recorded ${f(det.recorded, 4)}; difference ${f(det.difference)}`, `记录值 ${f(det.recorded, 4)}；差 ${f(det.difference)}`)}</td></tr>`;
+  t.innerHTML = h;
+  const q = x.quantities || {};
+  let hq = `<tr><th>${L('Quantity', '量')}</th><th>${L('per seed', '各种子')}</th><th>${L('mean', '均值')}</th><th>s</th></tr>`;
+  for (const [k, name] of [['E', L('E = n₆ − n₅ (what Σmν adds)', 'E = n₆ − n₅（Σmν 增加的部分）')],
+    ['phi', L('<b>φ = (n₆ − n_S)/E: DES-side correlations</b>', '<b>φ = (n₆ − n_S)/E：DES 一侧的相关</b>')],
+    ['psi', L('ψ = (n_S − n_P)/E: DES Σmν marginal against its prior', 'ψ = (n_S − n_P)/E：DES 的 Σmν 边缘分布对先验')],
+    ['rho', L('ρ = (n_P − n₅)/E: what remains', 'ρ = (n_P − n₅)/E：剩余部分')],
+    ['phi_chi2', L('φ on the χ² scale (descriptive)', 'χ² 尺度上的 φ（描述性）')]]) {
+    const v = q[k]; if (v) hq += `<tr><td>${name}</td><td>${(v.values || []).map(z => f(z)).join(', ')}</td><td>${f(v.mean)}</td><td>${f(v.s)}</td></tr>`;
+  }
+  tq.innerHTML = hq;
+  const iv = (x.numbers || {}).interval || [];
+  note.innerHTML = L(
+    `Label (pre-registered): <b>${esc(x.label)}</b>` + (iv.length ? ` (I_φ = [${f(iv[0])}, ${f(iv[1])}]; band 0.40–0.60).` : '.') + ` The split is in the registered order (shuffle, then prior) and is not unique; ψ, ρ, (SS) and the kNN values (in the results file, not calibrated) get no label. With DES's Σmν at its prior, the 6-D value is close to the 5-D one: the CMB's position at the 0.06 eV prior edge adds little in six dimensions. The low-shift gate checks one point (0.86); n₅ and n_P lie below it and are not gated (README section 5).`,
+    `标签（预注册）：<b>${R6S_LABELS[x.label] || esc(x.label)}</b>` + (iv.length ? `（I_φ = [${f(iv[0])}, ${f(iv[1])}]；区间 0.40–0.60）。` : '。') + `分解按预注册的顺序（先打乱，再换成先验），并不唯一；ψ、ρ、(SS) 与 kNN 的值（在结果文件中，未经标定）不给标签。DES 的 Σmν 取先验时，6 维值接近 5 维值：CMB 贴着 0.06 eV 先验边界的位置在 6 维中贡献很小。低偏移门控只检查一个点（0.86）；n₅ 与 n_P 低于它，没有门控（README 第 5 节）。`);
+}
+
 let data = null;
 const getOpt = n => get(n).catch(() => null);
-Promise.all([...['r1', 'r2', 'r3', 'r4', 'r5'].map(get), getOpt('r6'), getOpt('r6_nomnu')])
-  .then(([r1, r2, r3, r4, r5, r6, r6n]) => { data = {r1, r2, r3, r4, r5, r6, r6n}; render(data); i18n.onLangChange(() => render(data)); })
+Promise.all([...['r1', 'r2', 'r3', 'r4', 'r5'].map(get), getOpt('r6'), getOpt('r6_nomnu'), getOpt('r6_shuf')])
+  .then(([r1, r2, r3, r4, r5, r6, r6n, r6s]) => { data = {r1, r2, r3, r4, r5, r6, r6n, r6s}; render(data); i18n.onLangChange(() => render(data)); })
   .catch(e => { document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + esc(e); });
 </script>
 </body>

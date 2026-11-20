@@ -1,7 +1,7 @@
 {
  "study": "008-m03-s8-des-y6-cmb-parameter-difference",
- "finished_at": "2026-11-19T05:01:10+00:00",
- "seconds": 7097.97,
+ "finished_at": "2026-11-20T13:18:31+00:00",
+ "seconds": 14707.26,
  "outputs": [
   "formats.json",
   "r1.json",
@@ -9,6 +9,6 @@
   "r3.json",
   "r4.json",
   "r5.json",
-  "r6_nomnu.json"
+  "r6_shuf.json"
  ]
 }
