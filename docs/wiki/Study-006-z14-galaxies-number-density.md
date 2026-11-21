@@ -26,9 +26,9 @@ z ≳ 10 than expected. Whether that means new physics (in cosmology or star for
 that young galaxies are burstier, less dusty or more efficient at forming stars than assumed is
 one of the main open questions of high-redshift astronomy.
 
-Two galaxies anchor the very top of the redshift range. JADES-GS-z14-0 (C24) lies at
+Two galaxies anchor the very top of the redshift range. [JADES-GS-z14-0](https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus=JADES-GS-z14-0&study=006-m08-z14-galaxies-number-density) (C24) lies at
 z_spec = 14.32 (refined to 14.18 from the ALMA [O III] 88 µm line; Schouws et al. 2024, Carniani
-et al. 2025) and has absolute UV magnitude M_UV = −20.81. MoM-z14 (N26), found in the "Mirage or
+et al. 2025) and has absolute UV magnitude M_UV = −20.81. [MoM-z14](https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus=MoM-z14&study=006-m08-z14-galaxies-number-density) (N26), found in the "Mirage or
 Miracle" survey, lies at z_spec = 14.44 ± 0.02 with M_UV = −20.23 ± 0.06. Both were confirmed by
 spectra, not only by colours. N26 asks how common such galaxies are and how that compares with
 what was expected before JWST.
@@ -371,7 +371,7 @@ Newest first.
 
 红移 z ≈ 14 的星系发出的光，离开时宇宙只有约 2.8 亿岁（N26；确切年龄取决于宇宙学参数），是现在年龄的 2%。在詹姆斯·韦布空间望远镜（JWST, James Webb Space Telescope）之前，星系形成模型预言这么早的星系会很稀少、很暗：足以容纳亮星系的暗物质晕（dark-matter halo）几乎还来不及形成。JWST 在 z ≳ 10 发现的亮星系比预期多得多。这究竟意味着新的物理（宇宙学或恒星形成），还是只说明年轻的星系比假设的更爆发、更少尘埃或恒星形成效率更高，是高红移天文学的主要开放问题之一。
 
-两个星系位于红移范围的最顶端。JADES-GS-z14-0（C24）位于 z_spec = 14.32（后来由 ALMA 的 [O III] 88 µm 谱线精化为 14.18；Schouws 等 2024、Carniani 等 2025），紫外绝对星等 M_UV = −20.81。MoM-z14（N26）在"Mirage or Miracle"巡天中发现，位于 z_spec = 14.44 ± 0.02，M_UV = −20.23 ± 0.06。两者都由光谱而不只是颜色确认。N26 问这样的星系有多常见，以及与 JWST 之前的预期相比如何。
+两个星系位于红移范围的最顶端。[JADES-GS-z14-0](https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus=JADES-GS-z14-0&study=006-m08-z14-galaxies-number-density)（C24）位于 z_spec = 14.32（后来由 ALMA 的 [O III] 88 µm 谱线精化为 14.18；Schouws 等 2024、Carniani 等 2025），紫外绝对星等 M_UV = −20.81。[MoM-z14](https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus=MoM-z14&study=006-m08-z14-galaxies-number-density)（N26）在"Mirage or Miracle"巡天中发现，位于 z_spec = 14.44 ± 0.02，M_UV = −20.23 ± 0.06。两者都由光谱而不只是颜色确认。N26 问这样的星系有多常见，以及与 JWST 之前的预期相比如何。
 
 #### 1.2 数据
 

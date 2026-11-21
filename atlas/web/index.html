@@ -29,6 +29,20 @@
   svg.chart a:hover text { text-decoration: underline; }
   .legend { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
   .legend li { margin: 2px 0; }
+  .sky-tools { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 6px 0; font-size: 13px; }
+  .sky-tools button { font: inherit; padding: 2px 10px; border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 4px; cursor: pointer; }
+  .sky-togs { display: flex; gap: 4px 14px; flex-wrap: wrap; font-size: 12.5px; margin: 4px 0 8px; }
+  .sky-tog { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+  .sky-tog .sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .sky-wrap { position: relative; overflow: hidden; border-radius: 10px; }
+  svg.sky { min-width: 0; touch-action: none; cursor: grab; user-select: none; }
+  svg.sky .pt { cursor: pointer; outline: none; }
+  svg.sky .pt:focus circle, svg.sky .pt:hover circle { stroke: var(--text); }
+  .sky-tip { position: absolute; z-index: 2; max-width: 300px; background: var(--surface); color: var(--text); border: 1px solid var(--line);
+             border-radius: 8px; padding: 8px 26px 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.18); }
+  .sky-tip p { margin: 6px 0; }
+  .sky-tip .small { font-size: 11.5px; }
+  .sky-tip .close { position: absolute; top: 2px; right: 4px; border: 0; background: none; color: var(--muted); font-size: 16px; cursor: pointer; }
   @media (max-width: 640px) { .level { grid-template-columns: 1fr; gap: 6px; } }
 </style>
 </head>
@@ -162,7 +176,11 @@ function renderScale(d) {
 
 // ---------------------------------------------------------------- sky view
 // Mollweide projection in Galactic coordinates; longitude increases to the left (l = 0 at the centre).
+// Zoom (wheel, buttons), pan (drag), reset; each target has a card (hover, focus or click) with its
+// role in the study (footprint note / note_zh, T-053). Deep link: ?view=sky&focus=<target name>[&study=<id>].
 const SW = 1000, R = 168, SH = Math.ceil(2 * Math.SQRT2 * R) + 24, CX = SW / 2, CY = SH / 2;
+const SKY_COLORS = ['#d1495b', '#2e86ab', '#e09f3e', '#3b8b5a', '#8e5ea2', '#c2185b', '#00897b', '#6d4c41', '#5c6bc0', '#7cb342'];
+const SKY = { k: 1, tx: 0, ty: 0, hidden: new Set(), pinned: null, pending: null };
 function moll(l, b) {
   let lam = ((l + 180) % 360 + 360) % 360 - 180;            // [-180, 180)
   const phi = b * Math.PI / 180;
@@ -178,49 +196,157 @@ function moll(l, b) {
   return [CX + R * x, CY - R * y];
 }
 function path(pts) { return 'M' + pts.map(p => p.map(v => v.toFixed(1)).join(',')).join('L'); }
+const bare = n => String(n || '').replace(/\s*\(CCHP host\)\s*$/i, '').trim().toLowerCase();
+function skyTargets(d) {
+  const out = [];
+  d.studies.forEach((s, i) => {
+    for (const tg of fpOf(s, d).sky.targets)
+      if (tg && Number.isFinite(tg.l) && Number.isFinite(tg.b)) out.push({s, i, tg, xy: moll(tg.l, tg.b)});
+  });
+  return out;
+}
 function renderSky(d) {
-  let g = `<ellipse cx="${CX}" cy="${CY}" rx="${2 * Math.SQRT2 * R}" ry="${Math.SQRT2 * R}" style="fill:none;stroke:${css('--line')}"/>`;
+  let g = `<ellipse cx="${CX}" cy="${CY}" rx="${2 * Math.SQRT2 * R}" ry="${Math.SQRT2 * R}" style="fill:none;stroke:${css('--line')}" vector-effect="non-scaling-stroke"/>`;
   for (let b = -60; b <= 60; b += 30) {
     const pts = []; for (let l = -179.999; l <= 179.999; l += 2) pts.push(moll(l, b)); pts.push(moll(179.999, b));
-    g += `<path class="grid" d="${path(pts)}" ${b === 0 ? `style="stroke:${css('--muted')};stroke-opacity:0.6"` : ''}/>`;
+    g += `<path class="grid" vector-effect="non-scaling-stroke" d="${path(pts)}" ${b === 0 ? `style="stroke:${css('--muted')};stroke-opacity:0.6"` : ''}/>`;
   }
   for (let l = -150; l <= 180; l += 30) {
     const pts = []; for (let b = -90; b <= 90; b += 2) pts.push(moll(l === 180 ? 179.999 : l, b));
-    g += `<path class="grid" d="${path(pts)}"/>`;
+    g += `<path class="grid" vector-effect="non-scaling-stroke" d="${path(pts)}"/>`;
   }
-  for (const l of [0, 90, 180, 270]) { const [x, y] = moll(l === 180 ? 179.99 : l, 0); g += `<text class="tick" x="${x + 3}" y="${y - 4}">${l}°</text>`; }
-  const allsky = [], surveys = [], unresolved = [];
-  let k = 0;
+  for (const l of [0, 90, 180, 270]) { const [x, y] = moll(l === 180 ? 179.99 : l, 0); g += `<text class="tick sky-lab" data-x="${x + 3}" data-y="${y - 4}" x="${x + 3}" y="${y - 4}">${l}°</text>`; }
+  const allsky = [], surveys = [], unresolved = [], counts = new Map();
   for (const s of d.studies) {
     const fp = fpOf(s, d).sky; const title = plain(s, 'title');
     const href = s.has_web ? `../../studies/${s.id}/web/` : null;
     if (fp.modes.includes('all-sky')) allsky.push([title, href]);
     if (fp.modes.includes('survey') && fp.survey) surveys.push([title, href, fp.survey]);
-    for (const tg of fp.targets) {
-      if (!tg || !Number.isFinite(tg.l) || !Number.isFinite(tg.b)) { unresolved.push([title, tg && tg.name]); continue; }
-      const [x, y] = moll(tg.l, tg.b);
-      let dot = `<g><title>${esc(tg.name)} — ${esc(title)}; l = ${tg.l.toFixed(1)}°, b = ${tg.b.toFixed(1)}°</title>
-        <circle cx="${x}" cy="${y}" r="5" style="fill:${css('--refuted')};stroke:${css('--surface')}"/><text x="${x + 7}" y="${y + 4 + (k % 2) * 11}">${esc(tg.name)}</text></g>`;
-      if (href) dot = `<a href="${esc(href)}">${dot}</a>`;
-      g += dot; k++;
-    }
+    for (const tg of fp.targets) if (!tg || !Number.isFinite(tg.l) || !Number.isFinite(tg.b)) unresolved.push([title, tg && tg.name]);
   }
-  const svg = `<div class="chart-wrap"><svg class="chart" viewBox="0 0 ${SW} ${SH + 10}" role="group" aria-label="${esc(t('Sky view, Galactic coordinates', '天空视图，银道坐标'))}">${g}</svg></div>`;
+  const pts = skyTargets(d);
+  pts.forEach((p, n) => {
+    counts.set(p.s.id, (counts.get(p.s.id) || 0) + 1);
+    const col = SKY_COLORS[p.i % SKY_COLORS.length];
+    g += `<g class="pt" data-n="${n}" data-study="${esc(p.s.id)}" tabindex="0" role="button" aria-label="${esc(p.tg.name)}">
+      <circle cx="${p.xy[0]}" cy="${p.xy[1]}" r="4.5" style="fill:${col};stroke:${css('--surface')}"/>
+      <text class="sky-lab pt-lab" data-x="${p.xy[0] + 7}" data-y="${p.xy[1] + 4}" x="${p.xy[0] + 7}" y="${p.xy[1] + 4}">${esc(p.tg.name)}</text></g>`;
+  });
+  const tools = `<div class="sky-tools"><button type="button" data-z="in" aria-label="${esc(t('Zoom in', '放大'))}">+</button>
+    <button type="button" data-z="out" aria-label="${esc(t('Zoom out', '缩小'))}">−</button>
+    <button type="button" data-z="reset">${L('Reset', '复原')}</button>
+    <span class="muted">${L('Scroll or use the buttons to zoom, drag to pan; hover or tap a point for its card.', '滚轮或按钮缩放，拖动平移；把鼠标移到点上或点一下，可看它的概述。')}</span></div>`;
+  const toggles = [...counts.entries()].map(([id, c]) => {
+    const s = d.studies.find(x => x.id === id), i = d.studies.indexOf(s);
+    return `<label class="sky-tog"><input type="checkbox" data-study="${esc(id)}" ${SKY.hidden.has(id) ? '' : 'checked'}>
+      <span class="sw" style="background:${SKY_COLORS[i % SKY_COLORS.length]}"></span>${esc(plain(s, 'title'))} (${c})</label>`;
+  }).join('');
+  const svg = `<div class="sky-wrap"><svg class="chart sky" viewBox="0 0 ${SW} ${SH + 10}" role="group" aria-label="${esc(t('Sky view, Galactic coordinates', '天空视图，银道坐标'))}">
+    <rect x="0" y="0" width="${SW}" height="${SH + 10}" style="fill:transparent"/><g id="skyview">${g}</g></svg><div id="skytip" class="sky-tip" hidden></div></div>`;
   const link = ([title, href]) => href ? `<a href="${esc(href)}">${esc(title)}</a>` : esc(title);
   const items = [];
-  items.push(`<li>${L('Mollweide projection, Galactic coordinates; the equator is the Galactic plane, l = 0 (Galactic centre) in the middle, l increasing to the left. Red points: targets of studies.', '莫尔韦德投影，银道坐标；赤道是银道面，中心为 l = 0（银心），l 向左增大。红点：研究的目标天体。')}</li>`);
+  items.push(`<li>${L('Mollweide projection, Galactic coordinates; the equator is the Galactic plane, l = 0 (Galactic centre) in the middle, l increasing to the left. Points: targets of studies, coloured by study.', '莫尔韦德投影，银道坐标；赤道是银道面，中心为 l = 0（银心），l 向左增大。点：研究的目标天体，按研究着色。')}</li>`);
   if (allsky.length) items.push(`<li>${L('All-sky footprint', '全天足迹')}: ${allsky.map(link).join('; ')}</li>`);
   for (const [title, href, sv] of surveys) items.push(`<li>${L('Survey region (not drawn)', '巡天区域（未画出边界）')}: ${esc(sv.name)}${sv.note ? ' — ' + esc(sv.note) : ''} (${link([title, href])})</li>`);
   for (const [title, name] of unresolved) items.push(`<li>${L('Target without coordinates (run the study)', '缺坐标的目标（请先运行研究）')}: ${esc(name)} (${esc(title)})</li>`);
   const without = d.studies.filter(s => !fpOf(s, d).sky.modes.length).map(s => esc(plain(s, 'title')));
   if (without.length) items.push(`<li>${L('No sky footprint', '没有天空足迹')}: ${without.join('; ')}</li>`);
-  return svg + `<ul class="legend">${items.join('')}</ul>`;
+  return tools + `<div class="sky-togs">${toggles}</div>` + svg + `<ul class="legend">${items.join('')}</ul>`;
+}
+function skyCard(p, d) {
+  const s = p.s, tg = p.tg, href = s.has_web ? `../../studies/${s.id}/web/` : null;
+  const note = tg.note ? L(esc(tg.note), tg.note_zh ? esc(tg.note_zh) : null) : '';
+  const deep = `?view=sky&focus=${encodeURIComponent(tg.name.replace(/\s*\(CCHP host\)\s*$/i, ''))}&study=${encodeURIComponent(s.id)}`;
+  const coords = `l ${tg.l.toFixed(2)}°, b ${tg.b.toFixed(2)}°` + (Number.isFinite(tg.ra) ? ` · RA ${tg.ra.toFixed(3)}°, Dec ${tg.dec.toFixed(3)}°` : '');
+  return `<button type="button" class="close" aria-label="${esc(t('Close', '关闭'))}">×</button><strong>${esc(tg.name)}</strong>
+    <div class="muted">${href ? `<a href="${esc(href)}">${esc(plain(s, 'title'))}</a>` : esc(plain(s, 'title'))}</div>
+    ${note ? `<p>${note}</p>` : ''}<div class="muted small">${coords} · <a href="${esc(deep)}">${L('link to this point', '指向此点的链接')}</a></div>`;
+}
+function wireSky(d) {
+  const svg = document.querySelector('svg.sky'); if (!svg) return;
+  const view = svg.querySelector('#skyview'), tip = document.getElementById('skytip'), wrap = svg.parentNode;
+  const pts = skyTargets(d);
+  const apply = () => {
+    view.setAttribute('transform', `translate(${SKY.tx} ${SKY.ty}) scale(${SKY.k})`);
+    const showAll = SKY.k >= 2.5;
+    for (const el of view.querySelectorAll('.pt')) {
+      const p = pts[+el.dataset.n], few = (fpOf(p.s, d).sky.targets.length <= 5);
+      el.style.display = SKY.hidden.has(el.dataset.study) ? 'none' : '';
+      el.querySelector('circle').setAttribute('r', (4.5 / Math.sqrt(SKY.k)).toFixed(2));
+      el.querySelector('.pt-lab').style.display = (showAll || few) ? '' : 'none';
+    }
+    for (const el of view.querySelectorAll('.sky-lab')) el.style.fontSize = (12 / SKY.k).toFixed(2) + 'px';
+    for (const el of view.querySelectorAll('.sky-lab')) el.style.strokeWidth = (4 / SKY.k).toFixed(2) + 'px';
+  };
+  const toSvg = (cx, cy) => { const pt = svg.createSVGPoint(); pt.x = cx; pt.y = cy; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
+  const zoomAt = (f, sx, sy) => {
+    const k2 = Math.min(Math.max(SKY.k * f, 1), 40);
+    f = k2 / SKY.k; SKY.tx = sx - f * (sx - SKY.tx); SKY.ty = sy - f * (sy - SKY.ty); SKY.k = k2;
+    if (SKY.k === 1) { SKY.tx = 0; SKY.ty = 0; }
+    apply(); place();
+  };
+  const show = (n, pin) => {
+    const p = pts[n]; tip.innerHTML = skyCard(p, d); tip.hidden = false; tip.dataset.n = n;
+    if (pin) SKY.pinned = n;
+    tip.querySelector('.close').addEventListener('click', () => { SKY.pinned = null; tip.hidden = true; });
+    place();
+  };
+  const place = () => {
+    if (tip.hidden) return;
+    const p = pts[+tip.dataset.n]; const m = svg.getScreenCTM(), w = wrap.getBoundingClientRect();
+    const x = (SKY.k * p.xy[0] + SKY.tx) * m.a + m.e - w.left, y = (SKY.k * p.xy[1] + SKY.ty) * m.d + m.f - w.top;
+    tip.style.left = Math.min(Math.max(x + 12, 4), w.width - 300) + 'px'; tip.style.top = (y + 12) + 'px';
+  };
+  const hide = () => { if (SKY.pinned === null) tip.hidden = true; };
+  for (const el of view.querySelectorAll('.pt')) {
+    const n = +el.dataset.n;
+    el.addEventListener('pointerenter', () => { if (SKY.pinned === null) show(n, false); });
+    el.addEventListener('pointerleave', hide);
+    el.addEventListener('focus', () => { if (SKY.pinned === null) show(n, false); });
+    el.addEventListener('blur', hide);
+    el.addEventListener('click', e => { e.stopPropagation(); show(n, true); });
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(n, true); } });
+  }
+  svg.addEventListener('wheel', e => { e.preventDefault(); const q = toSvg(e.clientX, e.clientY); zoomAt(e.deltaY < 0 ? 1.25 : 0.8, q.x, q.y); }, {passive: false});
+  let drag = null;
+  svg.addEventListener('pointerdown', e => { if (e.target.closest('.pt')) return; drag = {x: e.clientX, y: e.clientY, tx: SKY.tx, ty: SKY.ty, moved: false}; svg.setPointerCapture(e.pointerId); });
+  svg.addEventListener('pointermove', e => {
+    if (!drag) return; const m = svg.getScreenCTM();
+    const dx = (e.clientX - drag.x) / m.a, dy = (e.clientY - drag.y) / m.d;
+    if (Math.abs(dx) + Math.abs(dy) > 2) drag.moved = true;
+    SKY.tx = drag.tx + dx; SKY.ty = drag.ty + dy; apply(); place();
+  });
+  svg.addEventListener('pointerup', () => { if (drag && !drag.moved) { SKY.pinned = null; tip.hidden = true; } drag = null; });
+  document.querySelectorAll('.sky-tools button').forEach(b => b.addEventListener('click', () => {
+    if (b.dataset.z === 'reset') { SKY.k = 1; SKY.tx = 0; SKY.ty = 0; apply(); place(); return; }
+    zoomAt(b.dataset.z === 'in' ? 1.5 : 1 / 1.5, CX, CY);
+  }));
+  document.querySelectorAll('.sky-togs input').forEach(c => c.addEventListener('change', () => {
+    if (c.checked) SKY.hidden.delete(c.dataset.study); else SKY.hidden.add(c.dataset.study);
+    if (!tip.hidden && SKY.hidden.has(pts[+tip.dataset.n].s.id)) { SKY.pinned = null; tip.hidden = true; }
+    apply();
+  }));
+  // deep link: centre and pin the requested target once
+  if (SKY.pending) {
+    const want = bare(SKY.pending.focus), sid = SKY.pending.study;
+    const n = pts.findIndex(p => bare(p.tg.name) === want && (!sid || p.s.id === sid));
+    SKY.pending = null;
+    if (n >= 0) { SKY.hidden.delete(pts[n].s.id); SKY.k = 6; SKY.tx = CX - 6 * pts[n].xy[0]; SKY.ty = CY - 6 * pts[n].xy[1]; apply(); show(n, true); return; }
+  }
+  apply();
+  if (SKY.pinned !== null && pts[SKY.pinned]) show(SKY.pinned, true);
 }
 
 // ---------------------------------------------------------------- views
 const VIEWS = { list: [['List', '列表'], renderList], scale: [['Scale', '尺度'], renderScale], sky: [['Sky', '天空'], renderSky] };
 let DATA = null, VIEW = 'list';
 try { const v = localStorage.getItem('atlas-view'); if (v && VIEWS[v]) VIEW = v; } catch (e) {}
+// deep link (T-053): ?view=sky&focus=<target name>[&study=<id>] opens the sky view on that target
+try {
+  const q = new URLSearchParams(location.search);
+  if (q.get('view') && VIEWS[q.get('view')]) VIEW = q.get('view');
+  if (q.get('focus')) { VIEW = 'sky'; SKY.pending = {focus: q.get('focus'), study: q.get('study')}; }
+} catch (e) {}
 function render() {
   if (!DATA) return;
   document.getElementById('views').setAttribute('aria-label', t('View', '视图'));
@@ -231,6 +357,7 @@ function render() {
   }));
   try {
     document.getElementById('atlas').innerHTML = VIEWS[VIEW][1](DATA);
+    if (VIEW === 'sky') wireSky(DATA);
   } catch (e) {
     console.error(e);
     document.getElementById('atlas').innerHTML = `<p class="muted">${L('This view could not be drawn from data/atlas.json; regenerate it with <code>python -m astrolab atlas</code>.', '无法用 data/atlas.json 绘制此视图；请用 <code>python -m astrolab atlas</code> 重新生成。')}</p>`;

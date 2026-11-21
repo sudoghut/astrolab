@@ -52,7 +52,9 @@
   <div class="scroll"><table id="r6sq"></table></div>
   <p class="muted" id="r6snote"></p>
   <p class="muted" id="err"></p>
+  <section id="skylinks" class="card"></section>
 </main>
+<script src="../../../atlas/web/skylinks.js"></script>
 <script>
 const L = (en, zh) => i18n.L(en, zh);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));

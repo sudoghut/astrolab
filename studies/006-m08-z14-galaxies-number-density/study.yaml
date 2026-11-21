@@ -17,6 +17,6 @@ footprint:
   sky:
     mode: targets
     targets:                     # discovery-paper coordinates (ICRS, degrees)
-      - {name: "MoM-z14", ra: 150.0933255, dec: 2.2731627}           # Naidu et al. 2026, arXiv:2505.11263, Table 1
-      - {name: "JADES-GS-z14-0", ra: 53.0829375, dec: -27.8556306}   # Carniani et al. 2024, arXiv:2405.18485, Table 1 (03:32:19.905 -27:51:20.27)
+      - {name: "MoM-z14", ra: 150.0933255, dec: 2.2731627, note: "Spectroscopically confirmed galaxy at z = 14.44, one of the two galaxies behind N26's number density at z = 14-15, which the study reproduces.", note_zh: "光谱确认的 z = 14.44 星系，是 N26 在 z = 14–15 的数密度所依据的两个星系之一；本研究复现了这一数密度。"}           # Naidu et al. 2026, arXiv:2505.11263, Table 1
+      - {name: "JADES-GS-z14-0", ra: 53.0829375, dec: -27.8556306, note: "Spectroscopically confirmed galaxy at z of about 14.2-14.3, the other galaxy in N26's z = 14-15 count, and the only one in the Harikane et al. 2025 z ~ 14 bin (context, R4).", note_zh: "光谱确认的星系，z 约 14.2–14.3，是 N26 在 z = 14–15 计数中的另一个星系，也是 Harikane 等 2025 z ≈ 14 箱中唯一的星系（背景，R4）。"}   # Carniani et al. 2024, arXiv:2405.18485, Table 1 (03:32:19.905 -27:51:20.27)
   data: ["N26 counts, area and volume (arXiv:2505.11263)", "Bouwens et al. 2021 and 2022, Harikane et al. 2025 luminosity-function tables"]

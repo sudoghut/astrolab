@@ -18,7 +18,7 @@ footprint:
   sky:
     mode: all-sky + targets      # all-sky NSS screen plus three targets
     targets:                     # coordinates are resolved from Gaia in results/targets.json
-      - {name: "Gaia BH1", gaia_dr3: 4373465352415301632}
-      - {name: "Gaia BH2", gaia_dr3: 5870569352746779008}
-      - {name: "Gaia BH3", gaia_dr3: 4318465066420528000}
+      - {name: "Gaia BH1", gaia_dr3: 4373465352415301632, note: "Dormant black hole orbiting a Sun-like star. From DR3 astrometry alone the study finds a companion of 13.3 (+2.9/-2.3) Msun, against 9.62 +/- 0.18 published (R1 passes, with low power).", note_zh: "绕一颗类太阳恒星运动的休眠黑洞。只用 DR3 天体测量，本研究得到伴星质量 13.3（+2.9/−2.3）M☉，论文值 9.62 ± 0.18（R1 通过，功效低）。"}
+      - {name: "Gaia BH2", gaia_dr3: 5870569352746779008, note: "Dormant black hole orbiting a red giant. From DR3 astrometry alone the study finds 8.52 (+0.61/-0.56) Msun, against 8.9 +/- 0.3 published (R2 passes).", note_zh: "绕一颗红巨星运动的休眠黑洞。只用 DR3 天体测量，本研究得到 8.52（+0.61/−0.56）M☉，论文值 8.9 ± 0.3（R2 通过）。"}
+      - {name: "Gaia BH3", gaia_dr3: 4318465066420528000, note: "Dormant black hole of about 33 Msun announced from Gaia DR4 pre-release data; it has no DR3 orbit, so the study tests it on DR4 release day (R3, 2026-12-02).", note_zh: "由 Gaia DR4 预发布数据宣布的约 33 M☉ 休眠黑洞；DR3 中没有它的轨道解，所以本研究在 DR4 发布日检验它（R3，2026-12-02）。"}
   data: [gaiadr3.nss_two_body_orbit, gaiadr3.gaia_source, gaiadr3.astrophysical_parameters]

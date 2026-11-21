@@ -21,7 +21,7 @@ skill is the order of work and the checklists. Design rationale: `design/007-pla
 - Create the study folder as scaffolding only: `python -m astrolab new <slug> "<title>" --level Lx`.
   The article needs it (its Lean file lives in `argument/`, its page name uses the study number);
   the study itself - pre-registration, `run.py`, web page - still comes after the article (step 4). Fill `study.yaml`
-  `papers:` (arXiv IDs), `wiki:` (page name without `.md`, e.g. `Study-012-gaia-bh3`), the Chinese fields (`title_zh`, `question_zh`; tests reject `TODO`) and the `footprint` (required: scale, sky mode, data; targets with sourced coordinates where the paper has named objects).
+  `papers:` (arXiv IDs), `wiki:` (page name without `.md`, e.g. `Study-012-gaia-bh3`), the Chinese fields (`title_zh`, `question_zh`; tests reject `TODO`) and the `footprint` (required: scale, sky mode, data; targets with sourced coordinates where the paper has named objects, each with a one-line `note`/`note_zh` on its role and result).
 - Retrofitting an existing, already implemented study: copy `argument/`, README section 8 and
   the `papers`/`wiki` fields from `studies/_template/` by hand; write the article the same way,
   but mark part 3's table "written after implementation (post hoc)" (AGENTS.md section 2).
@@ -126,7 +126,9 @@ new data), example questions, results keys. An agent answering a "what if" quest
 
 - Part 3 starts (in both languages) with a clickable link to the study's online page,
   https://sudoghut.github.io/astrolab/studies/<id>/web/ (template line "Interactive page"); results
-  text links to that page, not to `web/index.html` on GitHub.
+  text links to that page, not to `web/index.html` on GitHub. The first mention of each sky target in
+  each language links to the Atlas sky view centred on it:
+  https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus=<target name>&study=<id>.
 - Extend part 3: fill the Result column and add "what we found" with numbers and links to the
   results files. The interactive page is online (link above; locally `python -m astrolab serve`); add a
   static figure if wiki readers need to see a result without opening it.

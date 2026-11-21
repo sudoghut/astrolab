@@ -104,7 +104,7 @@ solar masses, in an object that gives no light.
    than about 2–3% of the light at 4000 Å would have diluted them; the UV is faint. "A 9Msun main-sequence
    star would outshine the giant at all wavelengths", and "one or more red giant companions would outshine
    the giant in the optical".
-5. **What else?** As for BH1, a compact-object cluster "would be difficult to assemble and would rapidly
+5. **What else?** As for [BH1](https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus=Gaia%20BH1&study=001-m04-gaia-dormant-black-holes), a compact-object cluster "would be difficult to assemble and would rapidly
    become unstable"; the mass "is too large to be a neutron star or white dwarf, or any plausible
    combination of white dwarfs, neutron stars, and faint stars". The conclusion is explicitly conditional:
    "if the Gaia astrometric solution is correct, the companion must be a BH, or a close binary containing a
@@ -136,10 +136,10 @@ matter as *known positive controls*: a screen for dark companions should recover
 
 #### 1.4 What they conclude, and how sure they are
 
-- BH1 and BH2: dark companions of 9.6 and 8.9 Msun that contain at least one black hole; the simplest
+- BH1 and [BH2](https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus=Gaia%20BH2&study=001-m04-gaia-dormant-black-holes): dark companions of 9.6 and 8.9 Msun that contain at least one black hole; the simplest
   reading is a single black hole. The papers are confident about the mass and the darkness; the
   identification as a black hole rests on no other dark object of that mass being plausible.
-- BH3: a 33 Msun dark companion; a single black hole is the simplest explanation, from preliminary data.
+- [BH3](https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus=Gaia%20BH3&study=001-m04-gaia-dormant-black-holes): a 33 Msun dark companion; a single black hole is the simplest explanation, from preliminary data.
 - For the authors to be wrong, one of these would have to fail: the orbit is spurious (for BH1 the RVs
   alone already give more than 5 Msun; for BH2 the conclusion is stated conditionally; for BH3 ground-based
   RVs confirm it); or the dark mass is a stable group of three or more neutron stars or white dwarfs
@@ -486,7 +486,7 @@ Newest first.
 2. **视向速度后续观测。** 七个月内 48 个视向速度（FEROS 43 个、UVES 5 个）。后续视向速度与只用 Gaia 的解完全一致。联合拟合给出 P = 1276.7 ± 0.6 天、e = 0.518。Gaia 档案中的周期（1352 ± 45 天）与之相差 1.6σ，作者自己只用 Gaia 重新拟合得到 1300 ± 26 天；他们把差别归因于自己的模型要求光谱轨道和天体测量轨道大小一致（a0 = a1），而 Gaia 流程没有这样做。
 3. **质量。** 由巨星的温度和半径配合演化轨迹得到 M1 = 1.07 ± 0.19 M☉；联合拟合给出 **M2 = 8.9 ± 0.3 M☉**，轨道倾角约 35°。如果轨道其实接近侧向，最小质量是 2.6 M☉，论文指出这对白矮星或中子星仍然太重。
 4. **不发光。** 最深的吸收线降到连续谱的约 2%，所以在 4000 Å 处贡献超过约 2–3% 光的伴星会把它们冲淡；紫外也很暗。一颗 9 M☉ 的主序星会在所有波段都比巨星亮，一颗或多颗红巨星伴星会在光学波段比可见星亮。
-5. **还可能是什么？** 与 BH1 相同：一群致密天体难以形成，而且很快会变得不稳定；这个质量对中子星或白矮星，或白矮星、中子星与暗星的任何合理组合都太大。结论是有条件的：如果 Gaia 天体测量解是正确的，伴星必定是黑洞，或含有黑洞的密近双星。作者认为 Gaia 解出错的可能性很小，因为独立的视向速度符合它的预测。论文另一处（§6.1）指出，同样筛选条件下的六个候选中，有四个的 Gaia 解后来证明是虚假的。
+5. **还可能是什么？** 与 [BH1](https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus=Gaia%20BH1&study=001-m04-gaia-dormant-black-holes) 相同：一群致密天体难以形成，而且很快会变得不稳定；这个质量对中子星或白矮星，或白矮星、中子星与暗星的任何合理组合都太大。结论是有条件的：如果 Gaia 天体测量解是正确的，伴星必定是黑洞，或含有黑洞的密近双星。作者认为 Gaia 解出错的可能性很小，因为独立的视向速度符合它的预测。论文另一处（§6.1）指出，同样筛选条件下的六个候选中，有四个的 Gaia 解后来证明是虚假的。
 
 ##### 1.3c Gaia BH3（Gaia 合作组 Panuzzo 等 2024）
 
@@ -498,8 +498,8 @@ Newest first.
 
 #### 1.4 结论与把握程度
 
-- BH1 与 BH2：9.6 和 8.9 M☉ 的暗伴星，至少含有一个黑洞；最简单的解读是单个黑洞。论文对质量和不发光很有把握；认定为黑洞依赖于没有其他这种质量的暗天体说得通。
-- BH3：33 M☉ 的暗伴星；单个黑洞是最简单的解释，数据是初步的。
+- BH1 与 [BH2](https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus=Gaia%20BH2&study=001-m04-gaia-dormant-black-holes)：9.6 和 8.9 M☉ 的暗伴星，至少含有一个黑洞；最简单的解读是单个黑洞。论文对质量和不发光很有把握；认定为黑洞依赖于没有其他这种质量的暗天体说得通。
+- [BH3](https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus=Gaia%20BH3&study=001-m04-gaia-dormant-black-holes)：33 M☉ 的暗伴星；单个黑洞是最简单的解释，数据是初步的。
 - 作者若是错的，需要以下之一成立：轨道是虚假的（BH1 单凭视向速度已给出 5 M☉ 以上；BH2 的结论本来就是条件句；BH3 由地面视向速度证实）；或者暗质量是由三颗以上中子星或白矮星组成的稳定群体（BH1、BH2 论证为不合理，BH3 没有讨论，数据都没有排除）。
 
 ### 第二部分 · 论证逻辑

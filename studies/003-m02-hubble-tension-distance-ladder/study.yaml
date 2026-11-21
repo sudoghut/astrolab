@@ -16,6 +16,8 @@ footprint:
   sky:
     mode: survey + targets
     survey: {name: "SH0ES + Pantheon+", note: "Cepheid hosts and Hubble-flow SNe Ia across the sky (public SH0ES matrices); CCHP JWST hosts are a subset"}
+    target_note: "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled."
+    target_note_zh: "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
     targets:   # the 37 SH0ES Cepheid hosts (R22 column labels); RC3 J2000 positions (VizieR VII/155 via
                # the CfA mirror, 2026-11-21; Mrk 1337 as MCG -1-33-34); CCHP's 10 hosts marked
       - {name: "M101 (CCHP host)", ra: 210.8025, dec: 54.3487}
@@ -44,7 +46,7 @@ footprint:
       - {name: "NGC 4639 (CCHP host)", ra: 190.7195, dec: 13.2584}
       - {name: "NGC 4680", ra: 191.7287, dec: -11.6364}
       - {name: "NGC 5468", ra: 211.6458, dec: -5.4536}
-      - {name: "NGC 5584", ra: 215.5999, dec: -0.3867}
+      - {name: "NGC 5584", ra: 215.5999, dec: -0.3867, note: "The outlying host (one supernova, SN 2007af): it carries the excess calibrator scatter. Without it the scatter is consistent with the covariance, also when the choice of the most extreme host is simulated; the host-selection result stays 'not detected'.", note_zh: "离群宿主（一颗超新星 SN 2007af）：多出的定标星离散来自它。去掉它后离散与协方差相符，把\"选出最极端宿主\"放进模拟后也是如此；宿主选择的结论仍是\"未检出\"。"}
       - {name: "NGC 5643 (CCHP host)", ra: 218.1729, dec: -44.1734}
       - {name: "NGC 5728", ra: 220.6008, dec: -17.2534}
       - {name: "NGC 5861", ra: 227.317, dec: -11.3214}

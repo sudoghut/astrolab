@@ -28,7 +28,9 @@
 
   <h2><span class="en">Nearest objects</span><span class="zh">最近的天体</span></h2>
   <div class="card scroll"><table id="near"></table></div>
+  <section id="skylinks" class="card"></section>
 </main>
+<script src="../../../atlas/web/skylinks.js"></script>
 <script>
 // English-only fallback if i18n.js failed to load, so the page still renders.
 const i18nApi = window.i18n || { L: en => en, t: en => en, onLangChange() {} };

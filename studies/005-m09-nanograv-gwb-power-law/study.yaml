@@ -16,6 +16,8 @@ footprint:
   scale: {min_pc: 160.0, max_pc: 6.45e+3, note: "pulsar-Earth distances of the NANOGrav 15-yr pulsars, 0.16-6.45 kpc (best estimates of the VizieR B/psr snapshot of the ATNF catalogue, 2017, 2,536 pulsars, defaulting to TC93 DM-based distances, for 55 of the 67; the 12 newer pulsars are not in that snapshot); the background's sources (supermassive black hole binaries) are cosmological"}
   sky:
     mode: all-sky + targets
+    target_note: "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar."
+    target_note_zh: "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
     targets:   # the 67 pulsars of the 15-yr GWB analysis (L8, arXiv:2306.16213; 15-yr data set Table 5, arXiv:2306.16217,
                # without J0614-3329); positions from the VizieR B/psr ATNF snapshot (CfA mirror, 2026-11-21), coarse where marked
       - {name: "PSR J0023+0923", ra: 5.8203, dec: 9.39}
