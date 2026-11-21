@@ -2,12 +2,12 @@
 
 [English](#english) · [中文](#中文)
 
-*Paper: Konietzka, Goodman, Zucker, Burkert, Alves, Foley, Swiggum, Koller, Miret-Roig 2024, "The Radcliffe Wave is oscillating", Nature 628, 62–65, doi:10.1038/s41586-024-07127-3, arXiv:2402.12596. Study:
+*Paper: Konietzka, Goodman, Zucker, Burkert, Alves, Foley, Swiggum, Koller, Miret-Roig 2024, "The Radcliffe Wave is oscillating", Nature 628, 62–65, doi:10.1038/s41586-024-07127-3, [arXiv:2402.12596](https://arxiv.org/abs/2402.12596). Study:
 [`studies/011-m11-radcliffe-wave-oscillation`](https://github.com/sudoghut/astrolab/tree/main/studies/011-m11-radcliffe-wave-oscillation) (web page: [online](https://sudoghut.github.io/astrolab/studies/011-m11-radcliffe-wave-oscillation/web/)).
 Status: planned. Last updated: 2026-11-21 (see the changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：Radcliffe 波在振荡吗？年轻星团与银河系中的竖直振荡。状态：计划中。论文：Konietzka, Goodman, Zucker, Burkert, Alves, Foley, Swiggum, Koller, Miret-Roig 2024，Nature 628, 62–65，doi:10.1038/s41586-024-07127-3，arXiv:2402.12596。研究：[`studies/011-m11-radcliffe-wave-oscillation`](https://github.com/sudoghut/astrolab/tree/main/studies/011-m11-radcliffe-wave-oscillation)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/011-m11-radcliffe-wave-oscillation/web/)）。最后更新：2026-11-21（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：Radcliffe 波在振荡吗？年轻星团与银河系中的竖直振荡。状态：计划中。论文：Konietzka, Goodman, Zucker, Burkert, Alves, Foley, Swiggum, Koller, Miret-Roig 2024，Nature 628, 62–65，doi:10.1038/s41586-024-07127-3，[arXiv:2402.12596](https://arxiv.org/abs/2402.12596)。研究：[`studies/011-m11-radcliffe-wave-oscillation`](https://github.com/sudoghut/astrolab/tree/main/studies/011-m11-radcliffe-wave-oscillation)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/011-m11-radcliffe-wave-oscillation/web/)）。最后更新：2026-11-21（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -32,7 +32,8 @@ named it the **Radcliffe Wave**.
 
 A shape alone does not tell you whether anything is moving. A wavy rope lying on the floor and a
 rope being shaken look the same in one photograph. To know whether the Radcliffe Wave is a real wave
-(something that moves up and down through the plane), one needs **velocities**, in particular the
+(whose stars actually oscillate up and down through the plane, with the vertical velocities a
+wave predicts at each position), one needs **velocities**, in particular the
 vertical velocity v_z, perpendicular to the disc. Earlier kinematic studies with young stars
 (Tu et al. 2022; Thulasidharan et al. 2022; Bobylev et al. 2022; Li & Chen 2022; Alfaro et al. 2022;
 Donada & Figueras 2021) gave mixed or inconclusive answers; K24 calls them "inconclusive".
@@ -252,7 +253,7 @@ z₀ = 1/(√6 μ₀) (Spitzer 1942):
   matter density 0.001 (+0.024/−0.021) M☉ pc⁻³** for a spherical halo, consistent with zero and with
   conventional estimates at 1σ;
 - **the Sun's vertical oscillation period 95 (+12/−10) Myr**, using the Sun's vertical velocity
-  7.8 km/s and 2000 Monte Carlo draws; so the Sun **crosses the disc every 48 (+6/−5) Myr**. The Sun's
+  7.8 km/s and 2000 Monte Carlo draws; K24 compute it in the potential fitted to the Wave with the frequency parameters left free (column (7), ω₀ ≈ 68 km s⁻¹ kpc⁻¹; our reading of the Methods); so the Sun **crosses the disc every 48 (+6/−5) Myr**. The Sun's
   height (−10 to 25 pc) changes it by < 0.5 Myr; R☉ from 7.9 to 8.7 kpc has no effect. For comparison,
   baryons alone (McKee et al. 2015, Σ₀ = 47.1 M☉ pc⁻²) give 95.3 Myr, and baryons plus a dark halo of
   0.013 M☉ pc⁻³ give 88.2 Myr, both within 1σ;
@@ -269,7 +270,7 @@ correction of eq. 3 (μ₀z_max ≈ 0.29) lowers it by ~7% to about 0.070 Myr⁻
 15 pc/Myr ≈ 15 km/s (1 pc/Myr ≈ 0.98 km/s), close to the reported ~14 km/s (the radial factor
 exp[(r☉ − r)/(2r₀)] of eq. 3 and where along the Wave the amplitude peaks account for the rest; our reading). (2) *Period.* The Sun, with v_z = 7.8 km/s, rises only ~100–115 pc (our estimate). With the fitted
 ω₀ = 68 km s⁻¹ kpc⁻¹ (0.0695 Myr⁻¹) and the ~2% anharmonic correction at ~115 pc, 2π/ω ≈ 92 Myr,
-close to K24's 95 (+12/−10) Myr (in the adopted ω₀ = 74 potential the Sun's period would be
+close to K24's 95 (+12/−10) Myr; this is our independent estimate, not K24's calculation (in the adopted ω₀ = 74 potential the Sun's period would be
 ≈ 83–84 Myr). (3) *Density.* ρ₀ = ω₀²/(4πG): ω₀ = 68 km s⁻¹ kpc⁻¹ =
 2.2 × 10⁻¹⁵ s⁻¹ gives 5.8 × 10⁻²¹ kg m⁻³ = 0.085 M☉ pc⁻³. (4) *Phase velocity.* λ/T ≈ 4000 pc / 95 Myr
 ≈ 42 km/s at the CMa end and 400 pc / 90 Myr ≈ 4.4 km/s at the Cygnus end, matching ~40 and ~5 km/s.
@@ -297,8 +298,9 @@ should show.
 - **Points of our reading to carry into part 2** (not raised by K24 as problems):
   - "strongly preferred" (main text) versus ΔlnZ ≈ 1 and "both models are an equivalently good fit"
     (Methods). The Bayes factor compares B = 1 with B free, not travelling with standing; the
-    standing wave is excluded by the phase argument and by B = 0.84 (+0.07/−0.06) lying ~5σ above 0.5
-    in the posterior. Also, with ΔlnZ = ln Z₂ − ln Z₁ ≈ +1 and Z₂ the B-free model, the stated
+    standing wave is excluded by the phase argument (the spread of the cluster phases φ_k), and
+    the posterior interval of B, 0.84 (+0.07/−0.06), lies well above 0.5 (we do not convert this
+    separation into a significance: the posterior is bounded and not Gaussian). Also, with ΔlnZ = ln Z₂ − ln Z₁ ≈ +1 and Z₂ the B-free model, the stated
     preference for fixed B = 1 seems to have the opposite sign (unless the indices are swapped).
     K24 report the evidence ratios (B = 1 vs B free; fixed vs free potential) as only ΔlnZ ≈ 1 and use
     them to justify B = 1 and to call the potentials equivalent. The posterior median B = 0.84 cannot
@@ -369,7 +371,7 @@ should show.
 | standing wave | a wave with fixed nodes; position and velocity have the same spatial pattern |
 | B | K24's mixing parameter: 1 (or 0) = travelling wave, 0.5 = standing wave |
 | anharmonic oscillator | an oscillator whose frequency depends on amplitude (here: slower for larger excursions) |
-| phase velocity | the speed at which crests appear to move, wavelength / period |
+| phase velocity | the distance a crest moves per unit time: wavelength divided by the temporal period |
 | LSR | local standard of rest: the frame of a circular orbit at the Sun's position |
 | ¹²CO | carbon monoxide, whose 2.6-mm line traces molecular gas and its line-of-sight velocity |
 | Bayes factor, ΔlnZ | the Bayes factor is the ratio of the evidences of two models; ΔlnZ is its natural log; ΔlnZ ≈ 1 is weak preference |
@@ -406,7 +408,7 @@ Newest first.
 
 太阳位于由恒星与气体组成的薄盘中。离我们不远处（最近的部分约 250–300 秒差距（parsec, pc）；1 pc ≈ 3.26 光年）有一条约 2.7 千秒差距（kpc）长的、致密而正在形成恒星的气体云链：大犬座 OB1（CMa OB1）、猎户座（Orion）、英仙座（Perseus）、金牛座（Taurus）、仙王座（Cepheus）、北美星云（North America Nebula）与天鹅座 X（Cygnus X）。2020 年，Alves 等（Nature 578, 237；arXiv:2001.08748）用三维尘埃图（3D dust maps）测出这些云的三维位置，发现它们并非散乱分布，而是组成一条窄而连贯的线，像一条阻尼正弦波（damped sine wave）那样在银道面上下蜿蜒，"平均周期约 2 kpc，最大振幅约 160 pc"。他们称之为 **Radcliffe 波**（Radcliffe Wave）。
 
-只看形状并不能说明它是否在运动。地上一条弯弯曲曲的绳子与一条正在被抖动的绳子，在一张照片里看起来一样。要知道 Radcliffe 波是不是真正的"波"（在银道面上下运动的东西），需要**速度**，尤其是垂直于盘面的竖直速度 v_z。早先用年轻恒星做的运动学研究（Tu 等 2022；Thulasidharan 等 2022；Bobylev 等 2022；Li & Chen 2022；Alfaro 等 2022；Donada & Figueras 2021）结论不一，K24 称之为"不确定"（inconclusive）。
+只看形状并不能说明它是否在运动。地上一条弯弯曲曲的绳子与一条正在被抖动的绳子，在一张照片里看起来一样。要知道 Radcliffe 波是不是真正的"波"（其中的恒星确实穿过银道面上下振荡，并且在每个位置都有波所预言的竖直速度），需要**速度**，尤其是垂直于盘面的竖直速度 v_z。早先用年轻恒星做的运动学研究（Tu 等 2022；Thulasidharan 等 2022；Bobylev 等 2022；Li & Chen 2022；Alfaro 等 2022；Donada & Figueras 2021）结论不一，K24 称之为"不确定"（inconclusive）。
 
 为什么重要：
 
@@ -491,10 +493,10 @@ Newest first.
 
 - **银道面中央总密度 ρ₀ = 0.085 (+0.021/−0.017) M☉ pc⁻³**，标高 z₀ = 294 (+63/−43) pc（K24 提醒，z₀ 超过约 300 pc 时频率的变化小于噪声），面密度 Σ₀ = 2 z₀ ρ₀ = 50.3 M☉ pc⁻²；
 - 减去重子（恒星与气体，0.084 ± 0.012 M☉ pc⁻³，McKee 等 2015）：球形晕的**本地暗物质密度 0.001 (+0.024/−0.021) M☉ pc⁻³**，与零相容，并在 1σ 内与常规估计一致；
-- **太阳的竖直振荡周期 95 (+12/−10) Myr**，取太阳竖直速度 7.8 km/s，用 2000 次蒙特卡罗（Monte Carlo）抽样；所以太阳**每 48 (+6/−5) Myr 穿越一次银盘**。太阳的高度（−10 到 25 pc）使其改变 < 0.5 Myr；R☉ 从 7.9 到 8.7 kpc 没有影响。作为比较，只用重子（McKee 等 2015，Σ₀ = 47.1 M☉ pc⁻²）得 95.3 Myr，重子加 0.013 M☉ pc⁻³ 的暗晕得 88.2 Myr，都在 1σ 以内；
+- **太阳的竖直振荡周期 95 (+12/−10) Myr**，取太阳竖直速度 7.8 km/s，用 2000 次蒙特卡罗（Monte Carlo）抽样；K24 用的是频率参数放开、对 Radcliffe 波拟合得到的引力势（第 (7) 列，ω₀ ≈ 68 km s⁻¹ kpc⁻¹；按我们对方法部分的理解）；所以太阳**每 48 (+6/−5) Myr 穿越一次银盘**。太阳的高度（−10 到 25 pc）使其改变 < 0.5 Myr；R☉ 从 7.9 到 8.7 kpc 没有影响。作为比较，只用重子（McKee 等 2015，Σ₀ = 47.1 M☉ pc⁻²）得 95.3 Myr，重子加 0.013 M☉ pc⁻³ 的暗晕得 88.2 Myr，都在 1σ 以内；
 - **薄暗盘**（dark disk）：假设暗盘标高为 25 pc，K24 称之为"相对较大"（偏保守，因为面密度相同时更薄的盘会使周期更短），并且没有额外的暗晕（暗晕"只会进一步降低上限"），95 Myr 的周期给出面密度 0.1 (+3.3/−3.3) M☉ pc⁻²，K24 称之为上限（我们的理解：与零相容，1σ 上端约 3.4 M☉ pc⁻²）。
 
-**粗略估算。** (1) *速度幅度。* 小振幅的角频率为 ω₀ = 74 km s⁻¹ kpc⁻¹ = 0.076 Myr⁻¹（1 km s⁻¹ kpc⁻¹ ≈ 1/978 Myr⁻¹）。在 z_max = 220 pc，式 3 的非谐修正（μ₀z_max ≈ 0.29）在太阳半径处使其降低约 7%，到约 0.070 Myr⁻¹（我们的计算）。速度幅度 = 振幅 × 角频率 ≈ 220 pc × 0.070 Myr⁻¹ ≈ 15 pc/Myr ≈ 15 km/s（1 pc/Myr ≈ 0.98 km/s），接近报告的约 14 km/s（其余差别来自式 3 的径向因子 exp[(r☉ − r)/(2r₀)] 以及振幅峰值沿波的位置；我们的理解）。(2) *周期。* 太阳以 v_z = 7.8 km/s 只升到约 100–115 pc（我们的估算）。用拟合得到的 ω₀ = 68 km s⁻¹ kpc⁻¹（0.0695 Myr⁻¹）以及约 115 pc 处约 2% 的非谐修正，2π/ω ≈ 92 Myr，接近 K24 的 95 (+12/−10) Myr（在采用的 ω₀ = 74 引力势中，太阳的周期约为 83–84 Myr）。(3) *密度。* ρ₀ = ω₀²/(4πG)：ω₀ = 68 km s⁻¹ kpc⁻¹ = 2.2 × 10⁻¹⁵ s⁻¹，得 5.8 × 10⁻²¹ kg m⁻³ = 0.085 M☉ pc⁻³。(4) *相速度。* λ/T 在 CMa 一端约 4000 pc / 95 Myr ≈ 42 km/s，在天鹅座一端约 400 pc / 90 Myr ≈ 4.4 km/s，与约 40 与约 5 km/s 相符。所以主要结论归结为：波的高度（220 pc）与竖直速度（约 14 km/s）错开四分之一波长，正是一个在已知银盘引力势中振荡的物体应有的表现。
+**粗略估算。** (1) *速度幅度。* 小振幅的角频率为 ω₀ = 74 km s⁻¹ kpc⁻¹ = 0.076 Myr⁻¹（1 km s⁻¹ kpc⁻¹ ≈ 1/978 Myr⁻¹）。在 z_max = 220 pc，式 3 的非谐修正（μ₀z_max ≈ 0.29）在太阳半径处使其降低约 7%，到约 0.070 Myr⁻¹（我们的计算）。速度幅度 = 振幅 × 角频率 ≈ 220 pc × 0.070 Myr⁻¹ ≈ 15 pc/Myr ≈ 15 km/s（1 pc/Myr ≈ 0.98 km/s），接近报告的约 14 km/s（其余差别来自式 3 的径向因子 exp[(r☉ − r)/(2r₀)] 以及振幅峰值沿波的位置；我们的理解）。(2) *周期。* 太阳以 v_z = 7.8 km/s 只升到约 100–115 pc（我们的估算）。用拟合得到的 ω₀ = 68 km s⁻¹ kpc⁻¹（0.0695 Myr⁻¹）以及约 115 pc 处约 2% 的非谐修正，2π/ω ≈ 92 Myr，接近 K24 的 95 (+12/−10) Myr；这是我们独立的估算，不是 K24 的计算（在采用的 ω₀ = 74 引力势中，太阳的周期约为 83–84 Myr）。(3) *密度。* ρ₀ = ω₀²/(4πG)：ω₀ = 68 km s⁻¹ kpc⁻¹ = 2.2 × 10⁻¹⁵ s⁻¹，得 5.8 × 10⁻²¹ kg m⁻³ = 0.085 M☉ pc⁻³。(4) *相速度。* λ/T 在 CMa 一端约 4000 pc / 95 Myr ≈ 42 km/s，在天鹅座一端约 400 pc / 90 Myr ≈ 4.4 km/s，与约 40 与约 5 km/s 相符。所以主要结论归结为：波的高度（220 pc）与竖直速度（约 14 km/s）错开四分之一波长，正是一个在已知银盘引力势中振荡的物体应有的表现。
 
 #### 1.4 结论与把握程度
 
@@ -506,7 +508,7 @@ Newest first.
   5. 把它当作连贯的振子，测得 ρ₀ = 0.085 M☉ pc⁻³、与零相容的本地暗物质密度、暗盘的上限，以及太阳 95 Myr 的竖直周期。
 - **作者给出的保留：** 阻尼轮廓可能是数据约束不了的混合形；标高在约 300 pc 以上约束很弱；在几千万年的时间尺度上，波很可能受到云的瓦解与相混合（phase mixing）的影响；天鹅座一端的小起伏与尘埃距离误差相当；英仙座与金牛座不随波运动；波的起源仍未解决。
 - **我们读出的、要带进第二部分的要点**（K24 并未把它们当作问题提出）：
-  - 正文的"强烈偏好"与方法部分的 ΔlnZ ≈ 1、"两个模型拟合得同样好"之间的差别。贝叶斯因子比较的是 B = 1 与 B 自由，而不是行波与驻波；驻波是由相位论证以及后验 B = 0.84 (+0.07/−0.06) 高出 0.5 约 5σ 排除的。另外，若 ΔlnZ = ln Z₂ − ln Z₁ ≈ +1 且 Z₂ 是 B 自由的模型，所说的"B = 1 固定略受偏好"符号似乎相反（除非下标互换）。K24 报告的证据比（B = 1 对 B 自由；固定对放开引力势）都只有 ΔlnZ ≈ 1，并用它们来论证取 B = 1、称几个引力势等价。后验中位数 B = 0.84 不能读作反对 B = 1 的约 2σ 证据，因为先验在 1 处截断（后验以 1 为界时，即使 B = 1，中位数也会低于 1）；相关的比较是 B = 1 对 B 自由的证据比 ΔlnZ ≈ 1。B = 1 的拟合同时固定了 ω₀t = 0。
+  - 正文的"强烈偏好"与方法部分的 ΔlnZ ≈ 1、"两个模型拟合得同样好"之间的差别。贝叶斯因子比较的是 B = 1 与 B 自由，而不是行波与驻波；驻波是由相位论证以及后验 B = 0.84 (+0.07/−0.06) 在后验中远高于 0.5 排除的（区间 0.84（+0.07/−0.06）；我们不把这一距离换算成显著性：后验有界且不是高斯分布）。另外，若 ΔlnZ = ln Z₂ − ln Z₁ ≈ +1 且 Z₂ 是 B 自由的模型，所说的"B = 1 固定略受偏好"符号似乎相反（除非下标互换）。K24 报告的证据比（B = 1 对 B 自由；固定对放开引力势）都只有 ΔlnZ ≈ 1，并用它们来论证取 B = 1、称几个引力势等价。后验中位数 B = 0.84 不能读作反对 B = 1 的约 2σ 证据，因为先验在 1 处截断（后验以 1 为界时，即使 B = 1，中位数也会低于 1）；相关的比较是 B = 1 对 B 自由的证据比 ΔlnZ ≈ 1。B = 1 的拟合同时固定了 ω₀t = 0。
   - 离群判据 tanh(x²) > tanh(3) 按单个分量是 |x| > √3 σ ≈ 1.7σ，而 K24 称之为 3σ 半径。
   - 先验是"依据初步拟合"（用同样的数据）设定的，有些与后验差不多一样窄（γ：ln γ 先验宽 0.07，即 γ 约 ±0.10，后验 ±0.07–0.09；A：先验 ±20 pc，后验 ±11–18 pc）。尤其是 γ 的结果可能主要由先验决定。r₀ 的先验 N(3659, 500) pc 与第 (7) 列的后验 3563 (+514/−500) pc 一样宽，所以那里的 r₀ 由先验决定。δ 的先验 exp(6.5) ≈ 665 ± 67 pc 比只用云的后验 798 pc 低约 2σ。ω₀ 的先验 ln(ω₀/(km s⁻¹ pc⁻¹)) ~ N(−2.4, 0.17) 即 ω₀ ≈ 91 km s⁻¹ kpc⁻¹ 约 ± 17%，中心比采用值 74 高约 1.2σ、比后验 68 高约 1.7σ（按对数）。只有 μ₀ 的先验 ln(μ₀ pc) ~ N(−1.346, 0.25)，即 0.26 pc⁻¹，按印刷的形式无法解释（我们的理解）。
   - 拟合用的竖直频率 ω(s) 来自对现有银河系模型拟合的引力势；因此 v_z 的预言并不独立于用来称量银盘的引力势（第 8 步用同样的数据把它放开）。
@@ -535,7 +537,7 @@ Newest first.
 | 驻波（standing wave） | 波节固定的波；位置与速度的空间图样相同 |
 | B | K24 的混合参数：1（或 0）= 行波，0.5 = 驻波 |
 | 非谐振子（anharmonic oscillator） | 频率随振幅变化的振子（此处：振幅越大越慢） |
-| 相速度（phase velocity） | 波峰看起来移动的速度，波长 / 周期 |
+| 相速度（phase velocity） | 波峰单位时间移动的距离，即波长除以时间周期 |
 | 本地静止标准（local standard of rest, LSR） | 太阳位置处圆轨道的参考系 |
 | ¹²CO | 一氧化碳，其 2.6 毫米谱线示踪分子气体及其视线速度 |
 | 贝叶斯因子（Bayes factor）、ΔlnZ | 贝叶斯因子是两个模型证据（evidence）之比，ΔlnZ 是它的自然对数；ΔlnZ ≈ 1 是弱偏好 |
@@ -550,7 +552,7 @@ Newest first.
 
 ### 来源
 
-- Konietzka 等 2024，Nature 628, 62–65，doi:10.1038/s41586-024-07127-3，arXiv:2402.12596（本文研究的论文；读的是 arXiv v1 全文）[V]。
+- Konietzka 等 2024，Nature 628, 62–65，doi:10.1038/s41586-024-07127-3，[arXiv:2402.12596](https://arxiv.org/abs/2402.12596)（本文研究的论文；读的是 arXiv v1 全文）[V]。
 - 数据：Harvard Dataverse doi:10.7910/DVN/XSCB9N（星团）与 doi:10.7910/DVN/Q7F4PC（¹²CO）[V 仅元数据]。
 - Alves 等 2020，Nature 578, 237，arXiv:2001.08748 [V 摘要]。
 - Zhu 等 2024，ApJ 971, 167，arXiv:2402.15346 [V 摘要；S 卷号]。
