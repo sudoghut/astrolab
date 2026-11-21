@@ -301,7 +301,8 @@ should show.
     standing wave is excluded by the phase argument (the spread of the cluster phases φ_k), and
     the posterior interval of B, 0.84 (+0.07/−0.06), lies well above 0.5 (we do not convert this
     separation into a significance: the posterior is bounded and not Gaussian). Also, with ΔlnZ = ln Z₂ − ln Z₁ ≈ +1 and Z₂ the B-free model, the stated
-    preference for fixed B = 1 seems to have the opposite sign (unless the indices are swapped).
+    preference for fixed B = 1 seems to have the opposite sign (unless the indices are swapped):
+    the printed definitions and the stated preference are inconsistent, and we cannot tell which is mistaken.
     K24 report the evidence ratios (B = 1 vs B free; fixed vs free potential) as only ΔlnZ ≈ 1 and use
     them to justify B = 1 and to call the potentials equivalent. The posterior median B = 0.84 cannot
     be read as ~2σ evidence against B = 1, because the prior is truncated at 1 (a posterior bounded
@@ -323,7 +324,7 @@ should show.
   - The CO agreement and the cluster agreement are shown as figures without a goodness-of-fit number.
 - **What would have to be true for the authors to be wrong:**
   - *The velocities are not coherent with the positions.* Zhu et al. 2024 (ApJ 971, 167 [S: volume
-    from a search listing]; arXiv:2402.15346 [V abstract]) re-measured vertical velocities, adding
+    from a search listing]; arXiv:2402.15346 [V abstract]) re-estimated vertical velocities, adding
     radial velocities by two routes: (i) young stars with APOGEE-2 radial velocities and Gaia DR3
     proper motions, and (ii) cloud radial velocities with the Gaia DR3 proper motions of associated
     young stellar objects (YSOs), and found that the vertical-velocity oscillations "are not synchronous with the
@@ -374,7 +375,7 @@ should show.
 | phase velocity | the distance a crest moves per unit time: wavelength divided by the temporal period |
 | LSR | local standard of rest: the frame of a circular orbit at the Sun's position |
 | ¹²CO | carbon monoxide, whose 2.6-mm line traces molecular gas and its line-of-sight velocity |
-| Bayes factor, ΔlnZ | the Bayes factor is the ratio of the evidences of two models; ΔlnZ is its natural log; ΔlnZ ≈ 1 is weak preference |
+| Bayes factor, ΔlnZ | the Bayes factor is the ratio of the evidences of two models; ΔlnZ is its natural log; |ΔlnZ| ≈ 1 is a modest evidence difference, its sign (set by the convention) giving the preferred model |
 | midplane density ρ₀ | total mass density (stars, gas, dark matter) in the Galactic plane near the Sun |
 
 ### Changelog
@@ -508,13 +509,13 @@ Newest first.
   5. 把它当作连贯的振子，测得 ρ₀ = 0.085 M☉ pc⁻³、与零相容的本地暗物质密度、暗盘的上限，以及太阳 95 Myr 的竖直周期。
 - **作者给出的保留：** 阻尼轮廓可能是数据约束不了的混合形；标高在约 300 pc 以上约束很弱；在几千万年的时间尺度上，波很可能受到云的瓦解与相混合（phase mixing）的影响；天鹅座一端的小起伏与尘埃距离误差相当；英仙座与金牛座不随波运动；波的起源仍未解决。
 - **我们读出的、要带进第二部分的要点**（K24 并未把它们当作问题提出）：
-  - 正文的"强烈偏好"与方法部分的 ΔlnZ ≈ 1、"两个模型拟合得同样好"之间的差别。贝叶斯因子比较的是 B = 1 与 B 自由，而不是行波与驻波；驻波是由相位论证以及后验 B = 0.84 (+0.07/−0.06) 在后验中远高于 0.5 排除的（区间 0.84（+0.07/−0.06）；我们不把这一距离换算成显著性：后验有界且不是高斯分布）。另外，若 ΔlnZ = ln Z₂ − ln Z₁ ≈ +1 且 Z₂ 是 B 自由的模型，所说的"B = 1 固定略受偏好"符号似乎相反（除非下标互换）。K24 报告的证据比（B = 1 对 B 自由；固定对放开引力势）都只有 ΔlnZ ≈ 1，并用它们来论证取 B = 1、称几个引力势等价。后验中位数 B = 0.84 不能读作反对 B = 1 的约 2σ 证据，因为先验在 1 处截断（后验以 1 为界时，即使 B = 1，中位数也会低于 1）；相关的比较是 B = 1 对 B 自由的证据比 ΔlnZ ≈ 1。B = 1 的拟合同时固定了 ω₀t = 0。
+  - 正文的"强烈偏好"与方法部分的 ΔlnZ ≈ 1、"两个模型拟合得同样好"之间的差别。贝叶斯因子比较的是 B = 1 与 B 自由，而不是行波与驻波；驻波是由相位论证以及后验 B = 0.84 (+0.07/−0.06) 在后验中远高于 0.5 排除的（区间 0.84（+0.07/−0.06）；我们不把这一距离换算成显著性：后验有界且不是高斯分布）。另外，若 ΔlnZ = ln Z₂ − ln Z₁ ≈ +1 且 Z₂ 是 B 自由的模型，所说的"B = 1 固定略受偏好"符号似乎相反（除非下标互换）：印出的定义与所述的偏好彼此矛盾，我们无法判断哪一处有误。K24 报告的证据比（B = 1 对 B 自由；固定对放开引力势）都只有 ΔlnZ ≈ 1，并用它们来论证取 B = 1、称几个引力势等价。后验中位数 B = 0.84 不能读作反对 B = 1 的约 2σ 证据，因为先验在 1 处截断（后验以 1 为界时，即使 B = 1，中位数也会低于 1）；相关的比较是 B = 1 对 B 自由的证据比 ΔlnZ ≈ 1。B = 1 的拟合同时固定了 ω₀t = 0。
   - 离群判据 tanh(x²) > tanh(3) 按单个分量是 |x| > √3 σ ≈ 1.7σ，而 K24 称之为 3σ 半径。
   - 先验是"依据初步拟合"（用同样的数据）设定的，有些与后验差不多一样窄（γ：ln γ 先验宽 0.07，即 γ 约 ±0.10，后验 ±0.07–0.09；A：先验 ±20 pc，后验 ±11–18 pc）。尤其是 γ 的结果可能主要由先验决定。r₀ 的先验 N(3659, 500) pc 与第 (7) 列的后验 3563 (+514/−500) pc 一样宽，所以那里的 r₀ 由先验决定。δ 的先验 exp(6.5) ≈ 665 ± 67 pc 比只用云的后验 798 pc 低约 2σ。ω₀ 的先验 ln(ω₀/(km s⁻¹ pc⁻¹)) ~ N(−2.4, 0.17) 即 ω₀ ≈ 91 km s⁻¹ kpc⁻¹ 约 ± 17%，中心比采用值 74 高约 1.2σ、比后验 68 高约 1.7σ（按对数）。只有 μ₀ 的先验 ln(μ₀ pc) ~ N(−1.346, 0.25)，即 0.26 pc⁻¹，按印刷的形式无法解释（我们的理解）。
   - 拟合用的竖直频率 ω(s) 来自对现有银河系模型拟合的引力势；因此 v_z 的预言并不独立于用来称量银盘的引力势（第 8 步用同样的数据把它放开）。
   - CO 的一致与星团的一致都以图示给出，没有拟合优度数值。
 - **作者若是错的，需要什么成立：**
-  - *速度与位置并不协调。* Zhu 等 2024（ApJ 971, 167 [S：卷号来自检索列表]；arXiv:2402.15346 [V 摘要]）重新测量了竖直速度，通过两条途径加入了视向速度：(i) 年轻恒星的 APOGEE-2 视向速度配合 Gaia DR3 自行；(ii) 云的视向速度配合相关年轻恒星天体（young stellar objects, YSOs）的 Gaia DR3 自行，发现竖直速度的振荡"与竖直坐标不同步"：沿波的 v_z 呈约 5 km s⁻¹ kpc⁻¹ 的梯度，呈"偶极状"（dipole-like）图样，他们认为这使 Radcliffe 波模型"受到质疑"。如果他们的 v_z 图样正确，定义 K24 行波的 90° 相位关系就不成立。
+  - *速度与位置并不协调。* Zhu 等 2024（ApJ 971, 167 [S：卷号来自检索列表]；arXiv:2402.15346 [V 摘要]）重新估算了竖直速度，通过两条途径加入了视向速度：(i) 年轻恒星的 APOGEE-2 视向速度配合 Gaia DR3 自行；(ii) 云的视向速度配合相关年轻恒星天体（young stellar objects, YSOs）的 Gaia DR3 自行，发现竖直速度的振荡"与竖直坐标不同步"：沿波的 v_z 呈约 5 km s⁻¹ kpc⁻¹ 的梯度，呈"偶极状"（dipole-like）图样，他们认为这使 Radcliffe 波模型"受到质疑"。如果他们的 v_z 图样正确，定义 K24 行波的 90° 相位关系就不成立。
   - *在一个振荡周期内波不是刚体。* Li、Zhou & Chen 2024（arXiv:2410.14603 [V 摘要]；期刊未核实）用本地气体的三维模拟论证，银河系的剪切（shear）与本轮运动（epicyclic motion）会在约 45 Myr 内把波拉长到"几乎是现在长度的两倍"，而在这段时间内"所提出的竖直振荡只完成半个周期"，并称把它当作刚体是"过度简化"。若如此，用一条相位规律 Λ(s)（以及刚体式的盘面内漂移）描述的单一连贯振荡就不是好的描述，即使局部的片段在上下运动。
   - *位置与速度给出不同的波长，或漂移更快。* Bobylev、Ikhsanov & Bajkova 2025（Astrophys. Bull. 80(2)，arXiv:2503.21019 [V 摘要]）按年龄分析疏散星团：与波相关的星团不超过 30 Myr（支持 K24 的年龄截断）；对 5.2 Myr 的一组，他们得到位置振幅 z_max = 117 ± 12 pc、波长 4.55 ± 0.14 kpc，但竖直速度幅度为 4.86 ± 0.19 km/s、波长 1.74 ± 0.08 kpc；对 18.6 Myr 的一组为 54 ± 5 pc（λ 6.30 ± 0.12 kpc）与 7.90 ± 0.16 km/s（λ 0.83 ± 0.11 kpc）；远离银心的径向运动为 10 pc/Myr（≈ 10 km/s，是 K24 5 km/s 的两倍）；他们倾向于约 2 kpc 宽的超新星激波前起源。z 与 v_z 的波长不同（我们的理解）不是单一连贯行波所预言的。他们的方法与选择和 K24 不同。
   - *离群点与选择的处理造成了信号。* 英仙座与金牛座的星团全部被标为离群点；软的 3σ 离群模型与核密度权重决定了每个区域的分量。如果 90° 相位差依赖于这些选择，或依赖于少数几个猎户座与仙王座的星团，振荡就没那么可靠。
@@ -540,7 +541,7 @@ Newest first.
 | 相速度（phase velocity） | 波峰单位时间移动的距离，即波长除以时间周期 |
 | 本地静止标准（local standard of rest, LSR） | 太阳位置处圆轨道的参考系 |
 | ¹²CO | 一氧化碳，其 2.6 毫米谱线示踪分子气体及其视线速度 |
-| 贝叶斯因子（Bayes factor）、ΔlnZ | 贝叶斯因子是两个模型证据（evidence）之比，ΔlnZ 是它的自然对数；ΔlnZ ≈ 1 是弱偏好 |
+| 贝叶斯因子（Bayes factor）、ΔlnZ | 贝叶斯因子是两个模型证据（evidence）之比，ΔlnZ 是它的自然对数；|ΔlnZ| ≈ 1 表示证据差别不大，偏好哪个模型由符号（取决于约定）决定 |
 | 银道面中央密度 ρ₀（midplane density） | 太阳附近银道面上的总质量密度（恒星、气体、暗物质） |
 
 ### 研究进展
