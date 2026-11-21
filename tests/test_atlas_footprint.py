@@ -222,9 +222,7 @@ def test_wiki_first_mentions_link_to_the_sky():
         if not art or not fp["sky"]["targets"] or not (wiki / f"{art}.md").exists():
             continue
         text = (wiki / f"{art}.md").read_text(encoding="utf-8")
-        assert "
-## English" in text and "
-## 中文" in text, f"{art}: needs '## English' and '## 中文' sections"
+        assert "\n## English" in text and "\n## 中文" in text, f"{art}: needs '## English' and '## 中文' sections"
         body_en = text[text.index("\n## English"):text.index("\n## 中文")]
         body_zh = text[text.index("\n## 中文"):]
         for t in fp["sky"]["targets"]:
