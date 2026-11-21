@@ -100,14 +100,39 @@ def thread_settings():
     return out
 
 
+def stage_settings(P):
+    """The settings a power record must share with the full stage, as they read back from JSON."""
+    return json_like({**{k: P[k] for k in STAGE_SETTING_KEYS if k != "threads"}, "threads": thread_settings()})
+
+
+def thread_problems(a, b):
+    """Thread settings differ: the environment strictly; the thread pools only for an internal_api present in both
+    records (which BLAS libraries are loaded can depend on what ran before the snapshot)."""
+    a, b = a or {}, b or {}
+    out = []
+    if a.get("env") != b.get("env"):
+        out.append(f"threads env: power stage {a.get('env')!r}, now {b.get('env')!r}")
+    pa, pb = {}, {}
+    for d, rec in ((pa, a), (pb, b)):
+        for api, n in rec.get("threadpools") or []:
+            d.setdefault(api, set()).add(int(n))
+    for api in sorted(set(pa) & set(pb)):
+        if pa[api] != pb[api]:
+            out.append(f"threads {api}: power stage {sorted(pa[api])}, now {sorted(pb[api])}")
+    return out
+
+
 def power_record_problems(power_rec, settings):
     """Why a power record cannot be the basis of a full stage (an error, not rule (1)): a stub ("not run" or
-    not a power-stage record) or settings that differ from this run's."""
-    if not isinstance(power_rec, dict) or power_rec.get("stage") != "power" or "settings" not in power_rec             or str(power_rec.get("status", "")).startswith("not run"):
-        return [f"the power record is a stub or not a power-stage record (status {power_rec.get('status')!r})"]
+    not a power-stage record) or settings that differ from this run's (threads: thread_problems)."""
+    if (not isinstance(power_rec, dict) or power_rec.get("stage") != "power" or "settings" not in power_rec
+            or str(power_rec.get("status", "")).startswith("not run")):
+        st = power_rec.get("status") if isinstance(power_rec, dict) else None
+        return [f"the power record is a stub or not a power-stage record (status {st!r})"]
     ps = power_rec["settings"]
-    return [f"{k}: power stage {ps.get(k)!r}, now {settings.get(k)!r}" for k in STAGE_SETTING_KEYS
-            if ps.get(k) != settings.get(k)]
+    bad = [f"{k}: power stage {ps.get(k)!r}, now {settings.get(k)!r}" for k in STAGE_SETTING_KEYS
+           if k != "threads" and ps.get(k) != settings.get(k)]
+    return bad + thread_problems(ps.get("threads"), settings.get("threads"))
 
 
 # ---------------------------------------------------------------- names

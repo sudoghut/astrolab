@@ -670,8 +670,12 @@ def test_main_g_only_power_then_full(tmp_path, monkeypatch, lad):
     assert p["status"] == "evaluated" and "G_obs" not in json.dumps(_jsonable(p))
     assert any(m.startswith("R2-RE-G power stage (n = 40)") for m in ctx.logs)
     assert "(committed file, standalone mode)" in p["settings"]["reml_grid_source"]
-    # full stage: reads the power record from results/, writes r2_re_g, the eight sims files and R2_RE_G only
+    # full stage: reads the power record from results/, writes r2_re_g, the eight sims files and R2_RE_G only;
+    # it needs the power line in log.md (M2, gate 1 round 2)
     run2, ctx2, _ = _main_g(tmp_path, monkeypatch, "run003_gonly_f", lad, "full", summary=False)
+    line = shape.power_log_line(json.loads((tmp_path / "r2_re_g_power.json").read_text(encoding="utf-8")))
+    assert line in ctx.logs
+    monkeypatch.setattr(run2, "study_log_text", lambda: "# log\n- " + line + "\n")
     ret = run2.main(ctx2)
     assert ctx2.record_suffix == "_g"
     assert set(ctx2.saved) == {"r2_re_g", "summary"} | {f"r2_re_g_sims_{k}" for k in SIM_KEYS}
@@ -680,6 +684,39 @@ def test_main_g_only_power_then_full(tmp_path, monkeypatch, lad):
     s = ctx2.saved["summary"]
     assert list(s) == ["params", "R2_RE_D", "R2_RE_G", "runtime_s"] and ret == s
     assert all(s[k] == old[k] for k in old) and s["R2_RE_G"] == shape.summary(g)
+
+
+def test_main_g_only_full_stage_checks_before_loading(tmp_path, monkeypatch, lad):
+    """M2 (gate 1 round 2): a formal g_only full stage reads the power record before loading any data and refuses a
+    stub, different settings, or a power line missing from log.md."""
+    run, ctx, _ = _main_g(tmp_path, monkeypatch, "run003_gonly_c0", lad, "power")
+    run.main(ctx)
+    p = json.loads((tmp_path / "r2_re_g_power.json").read_text(encoding="utf-8"))
+    from astrolab.results import write_json
+    run2, ctx2, _ = _main_g(tmp_path, monkeypatch, "run003_gonly_c1", lad, "full", summary=False)
+    monkeypatch.setattr(run2, "load", lambda ctx: pytest.fail("data loaded"))
+    monkeypatch.setattr(run2, "study_log_text", lambda: "nothing here")
+    with pytest.raises(RuntimeError, match="not in log.md"):
+        run2.main(ctx2)
+    monkeypatch.setattr(run2, "study_log_text", lambda: shape.power_log_line(p))
+    write_json(tmp_path / "r2_re_g_power.json", dict(p, settings=dict(p["settings"], g_inner_seed=1)))
+    with pytest.raises(RuntimeError, match="g_inner_seed"):
+        run2.main(ctx2)
+    stub, _ = run2.g_not_run(run2.PARAMS, "not run (PARAMS)", "power")
+    write_json(tmp_path / "r2_re_g_power.json", stub)
+    with pytest.raises(RuntimeError, match="stub"):
+        run2.main(ctx2)
+    assert set(ctx2.saved) == set()
+
+
+def test_thread_settings_comparison():
+    """M1 (gate 1 round 2): the environment is compared strictly; thread pools only for libraries in both."""
+    a = {"env": {"OMP_NUM_THREADS": "1"}, "threadpools": [["blas", 1], ["openmp", 1]]}
+    assert shape.thread_problems(a, a) == []
+    assert shape.thread_problems(a, {"env": {"OMP_NUM_THREADS": "1"}, "threadpools": [["blas", 1]]}) == []
+    assert shape.thread_problems(a, dict(a, threadpools=[["blas", 1], ["openmp", 1], ["other", 8]])) == []
+    assert shape.thread_problems(a, dict(a, threadpools=[["blas", 4]]))[0].startswith("threads blas")
+    assert shape.thread_problems(a, dict(a, env={"OMP_NUM_THREADS": None}))[0].startswith("threads env")
 
 
 def test_main_g_only_refusals(tmp_path, monkeypatch, lad):
@@ -716,7 +753,12 @@ def test_exploration_cannot_reach_g_obs_before_the_formal_full_stage(tmp_path, m
     monkeypatch.setitem(run.PARAMS, "g_only", False)
     with pytest.raises(RuntimeError, match="would compute G on the data"):
         run.main(ctx)
+    # S1 (gate 1 round 2): also a formal (non-exploration) full study run with g_check = true
+    ctx.max_save_bytes = None
+    with pytest.raises(RuntimeError, match="would compute G on the data"):
+        run.main(ctx)
     assert ctx.saved == {}
+    ctx.max_save_bytes = 1024 ** 2
     # the power stage is allowed in an exploration
     (tmp_path / "p").mkdir()
     run2, ctx2, _ = _main_g(tmp_path / "p", monkeypatch, "run003_gonly_x2", lad, "power", summary=False)
@@ -724,11 +766,17 @@ def test_exploration_cannot_reach_g_obs_before_the_formal_full_stage(tmp_path, m
     ctx2.max_save_bytes = 1024 ** 2
     run2.main(ctx2)
     assert set(ctx2.saved) == {"r2_re_g_power"}
-    # formal_g_done: absent, a "not run" stub, a formal record
+    # formal_g_done (M3, gate 1 round 2): absent, a stub, a not-evaluable record without `observed`, a formal record
     run3 = _load("run003_g_done", "run.py")
-    res = HERE / "results" / "r2_re_g.json"
-    exp = res.exists() and not json.loads(res.read_text(encoding="utf-8"))["status"].startswith("not run")
-    assert run3.formal_g_done() == exp
+    from astrolab.results import write_json
+    f = tmp_path / "g.json"
+    assert not run3.formal_g_done(f)
+    for rec, exp in (({"status": "not run (PARAMS)"}, False),
+                     ({"status": "not evaluable (R2-RE not run or host step not evaluable)"}, False),
+                     ({"status": "not evaluable (anti-conservative at τ = 0.05)", "observed": {}}, True),
+                     ({"status": "evaluated"}, True)):
+        write_json(f, rec)
+        assert run3.formal_g_done(f) == exp, rec
 
 
 def test_g_check_false_full_run_keeps_formal_files(tmp_path):
@@ -748,6 +796,11 @@ def test_g_check_false_full_run_keeps_formal_files(tmp_path):
     ctx2 = _Ctx(tmp_path / "e")
     g2 = run.save_g_stubs(ctx2, run.PARAMS, "not run (PARAMS)")
     assert g2["status"] == "not run (PARAMS)" and len(ctx2.saved) == 10
+    # M3 (gate 1 round 2): the not-evaluable records of a g_check = true run follow the same rule
+    ctx3 = _Ctx(tmp_path)
+    g3 = run.save_g_stubs(ctx3, run.PARAMS, "not evaluable (R2-RE not run or host step not evaluable)")
+    assert g3 == formal and "r2_re_g" not in ctx3.saved
+    assert json.loads((tmp_path / "r2_re_g.json").read_text(encoding="utf-8")) == formal
 
 
 def test_main_g_only_exploration_runs_both_stages(tmp_path, monkeypatch, lad):

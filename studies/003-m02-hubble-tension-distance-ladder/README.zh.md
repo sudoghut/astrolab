@@ -815,11 +815,14 @@ R2-RE-D 的 `TIE_D` 相同）。
 9. 另外报告（不起决定作用）：两个阶段中每组 k_s 的 SHA-256（`k_sha256`；完整阶段报告它们是否一致，由计数决定）、每个宿主的
    σ_δ,j = M_jj^(−1/2)、max |W X| 与联合秩 p + rank(M)（只依赖设计，两个阶段都有），以及 p_dbl 与 p_rev 的计数相对 n 的
    Clopper–Pearson 区间。
-10. 没有 `results/r2_re_g_power.json` 时，独立模式下的完整阶段拒绝运行（在任何计算之前报错）。对话探索（闸门 1 审查，
-    2026-11-21）：在正式完整阶段的 `results/r2_re_g.json`（不是"not run"记录）提交到 `run.py` 旁边之前，`g_check = true` 的
-    对话探索只能以 `g_only = true` 与 `g_stage = "power"` 运行；`g_only` 的完整阶段与 `g_check = true` 的完整研究对话探索都在读取
-    任何数据之前被拒绝，所以没有任何对话探索能在正式运行之前算出数据上的 G。此后，对话探索的完整阶段（其文件夹开始时为空）在同一
-    进程中运行两个阶段，功效记录先保存。功效记录在模拟之前就已停止时（规则 (1)，或"not evaluated (runtime)"），完整阶段不重新
+10. 正式的两阶段运行之前不计算数据上的 G（闸门 1 审查，2026-11-21，两轮）。在正式完整阶段的 `results/r2_re_g.json`
+    （状态为 "evaluated"，或含 `observed` 的记录）提交到 `run.py` 旁边之前，`g_check = true` 的运行必须是 `g_only = true`：
+    `g_check = true` 的研究完整运行或完整研究对话探索在读取任何数据之前被拒绝，对话探索中 `g_only` 的完整阶段也是如此，所以对话
+    探索只能运行 `g_stage = "power"`。正式的 `g_only` 完整阶段在读取任何数据之前读取 `results/r2_re_g_power.json`，当它缺失、
+    是占位记录、设置不同（第 13 条），或者它的功效行（该记录的 `shape.power_log_line`）不在研究的 `log.md` 中时拒绝运行（报错）。
+    对话探索脚本（`explore/*.py`）在正式运行之前同样不得在数据上计算 G、Σz² 或其他宿主的 z_j。因此上文"在研究的完整运行中，
+    两个阶段按此顺序在同一进程中运行"一句只在正式的两阶段运行之后适用：那时研究的完整运行，或对话探索的完整阶段（其文件夹开始时
+    为空），在同一进程中运行两个阶段，功效记录先保存。功效记录在模拟之前就已停止时（规则 (1)，或"not evaluated (runtime)"），完整阶段不重新
     计算，直接记录同样的原因（没有可复现的计数）。
 11. 把一个模型的模拟分块会在最后几位改变 B ε_s（BLAS 的分块），所以两个阶段以相同方式分块（VHAT：先 1,000 次，再每块 500 次；
     其他各组：从 s = 0 起每块 500 次）；计数的比较是精确的。
@@ -831,11 +834,12 @@ R2-RE-D 的 `TIE_D` 相同）。
     不会起作用。
 13. 功效记录必须与完整阶段相符（闸门 1 审查，2026-11-21）：功效记录是"not run"占位记录或不是功效阶段的记录，或者
     `g_seed_base`、`g_host_seed_base`、`g_inner_seed`、`g_n_sims`、`g_n_inner`、`g_power_min`、`g_z_curve`、`g_taus_rep`、
-    `g_max_minutes`、`g_min_sims`、`n5584_host` 与线程设置中任何一项与功效记录不同时，完整阶段以错误停止（不是规则 (1) 的结果）。
+    `g_max_minutes`、`g_min_sims`、`n5584_host` 与线程设置中任何一项与功效记录不同时，完整阶段以错误停止（不是规则 (1) 的结果）
+    （第 2 轮：环境变量严格比较，线程池只比较两份记录中都有的库）。
 14. 线程设置（闸门 1 审查）：两份记录都保存 `settings.threads`（环境变量 `OMP_NUM_THREADS`、`MKL_NUM_THREADS`、
     `OPENBLAS_NUM_THREADS` 以及 `threadpoolctl` 看到的 BLAS 线程池），两个阶段必须以相同设置运行（第 13 条），因为计数的比较是精确的。
-15. `g_check = false` 的研究完整运行（闸门 1 审查）只在不存在 R2-RE-G 文件的地方写"not run"记录，所以绝不覆盖正式结果，
-    `summary.json` 的 `R2_RE_G` 取自已有的 `r2_re_g.json`。
+15. R2-RE-G 部分不运行的研究完整运行（`g_check = false`，或 `g_check = true` 但 R2-RE 或宿主步骤不可评估；闸门 1 审查，两轮）
+    只在不存在 R2-RE-G 文件的地方写出它的记录，所以绝不覆盖正式结果，`summary.json` 的 `R2_RE_G` 取自已有的 `r2_re_g.json`。
 
 ## 3. 数据（附大小估计）
 
@@ -1316,12 +1320,12 @@ R4 以及宿主识别精确复现了 2026-11-14 的数字）。数字：
 | `re_check`、`re_tau_max`、`re_grid_step` | 运行 R2-RE；τ 搜索范围与网格步长（mag） | true/false；0.3–1.0；0.005–0.02 | 只用缓存 |
 | `sel_check`、`sel_seed_base`、`sel_n_tau`、`sel_n_spread`、`sel_n_subsets`、`sel_max_failed` | 运行 R2-RE-SEL（含选择的零假设（selection-aware null），2026-11-19 增补；需要 `n5584_check`）；ε_s 的种子基数、τ 部分与弥散部分的模拟次数、每次弥散所用子集数、允许失败的 REML 拟合数 | true/false；20,000（预注册值；与 10,000–11,999 重叠的种子会重复 ROB 的模拟）；400 与 2,000 是预注册的次数（较小的值只用于快速查看，每次 τ 模拟约 20 s）；1,000（必须等于 `rob_n_subsets`：否则本部分在任何模拟之前以配置状态停止，这是实现上的保护，不是增补中的规则）；20 | 只用缓存 |
 | `d_check`、`d_seed_base`、`d_n_sims`、`d_taus`、`d_host_seed_base`、`d_kde_boot`、`d_only` | 运行 R2-RE-D（一个离群宿主还是分散的宿主离散，2026-11-21 增补；模块 `onehost.py`）；ε_s 的种子基数（八个模型共用）、每个模型的模拟次数、分散模型 V(τ) 的 τ（mag）、O_any 偏移宿主的种子基数、KDE 比值的自助法（bootstrap）重抽样次数、独立模式 | true/false（默认 true：完整运行或不带 `d_only` 的完整对话探索会多出约 1.5 小时；`--set d_check=false` 跳过本部分）；100,000 与 200,000（预注册值；不得与 0、10,000–11,999、20,000–21,999 或 50,000–50,999 重叠）；10,000（预注册值；J 的 A/B 两半是偶数与奇数编号的模拟，所以用偶数；本部分约 1.5 小时，其中约 68 分钟用于构建缩减系统，所以用 `--set d_n_sims=200` 快速查看仍要将近一小时）；[0.05, 0.077, 0.105]（预注册值；解读的措辞写的是这三个值）；200；`d_only=true` 只运行本部分（只用缓存，约 1.5 小时）：写出 `r2_re_d.json`、八个 `r2_re_d_sims_<model>.json`、`provenance_d.json`、`run_info_d.json` 与 `summary.json` 的 `R2_RE_D` 键（其他键逐字节不变；没有现成的 `summary.json` 时拒绝运行，对话探索除外，那时只写含该键的摘要）。本部分需要 `n5584_check`（它为 false 时完整运行把本部分记为"未运行"），使用 `rob_n_subsets` 个子集与 `n5584_host`；索引流短于 `rob_n_subsets` 时整个部分为"不可评估"（实现上的保护，2026-11-21 在任何运行之前加入；完整运行中 R4 至少保留 2,000 次抽样，所以不会触发）；已记录的值（离散、准则 S、δ̂、τ̂_N）与容差是 `onehost.py` 中的常量 | 只用缓存 |
-| `g_check`、`g_seed_base`、`g_host_seed_base`、`g_inner_seed`、`g_n_sims`、`g_n_inner`、`g_power_min`、`g_z_curve`、`g_taus_rep`、`g_max_minutes`、`g_min_sims`、`g_only`、`g_stage` | 运行 R2-RE-G（复合形状检验 G = max_j z_j²/Σ_j z_j²，2026-11-21 增补，T-055；模块 `shape.py`）；ε_s 的种子基数（13 组共用）、O_any 偏移宿主的种子基数与固定内层矩阵的种子；每组的外层模拟次数（含运行时间保护的下限）、每个 p_boot 的内层抽样次数、功效门槛、功效曲线的 z_alt、τ̂_obs 之外检查的两个 τ（mag）、保护的上限（分钟）与下限、独立模式及其阶段 | `g_check` 为 false（正式阶段之前的默认值；为 true 时运行本部分，完整运行或完整的对话探索也会运行，多出约 35 分钟）；400,000、500,000 与 600,000（预注册值；不得与 0、10,000–11,999、20,000–21,999、50,000–50,999、100,000–109,999、200,000–209,999 或 300,000–300,199 重叠）；10,000（预注册值；下限 5,000；每次模拟每组约 4 ms，所以用 `--set g_check=true g_only=true g_stage=power g_n_sims=200` 的对话探索约 7 分钟，大部分时间花在逐点检查上）；20,000（属于检验本身：不要改）；0.8；[2.5, 3.0, 4.0, 4.5, 5.0]；[0.05, 0.105]；120；5,000；`g_only=true` 配 `g_stage="power"` 只写出 `r2_re_g_power.json`（以及 `provenance_gp.json`、`run_info_gp.json`），配 `g_stage="full"` 时需要该文件，重新计算它，并写出 `r2_re_g.json`、八个 `r2_re_g_sims_<model>.json`、`provenance_g.json`、`run_info_g.json` 与 `summary.json` 中仅 `R2_RE_G` 一个键（其他键逐字节不变）；在正式的 `r2_re_g.json` 提交之前，对话探索只能运行功效阶段（`g_only=true`、`g_stage="power"`；完整阶段或 `g_check=true` 的完整研究对话探索会被拒绝），此后对话探索的完整阶段运行两个阶段。两个阶段必须以相同的线程设置（`OMP_NUM_THREADS`、`MKL_NUM_THREADS`、`OPENBLAS_NUM_THREADS`）与相同的 `g_*` 取值运行，否则完整阶段以错误停止。已记录的 τ̂_obs、δ̂、σ_δ、z_obs、τ̂_N 与各容差是 `shape.py` 中的常量；REML 网格取自 `results/r2_re.json` | 只用缓存 |
+| `g_check`、`g_seed_base`、`g_host_seed_base`、`g_inner_seed`、`g_n_sims`、`g_n_inner`、`g_power_min`、`g_z_curve`、`g_taus_rep`、`g_max_minutes`、`g_min_sims`、`g_only`、`g_stage` | 运行 R2-RE-G（复合形状检验 G = max_j z_j²/Σ_j z_j²，2026-11-21 增补，T-055；模块 `shape.py`）；ε_s 的种子基数（13 组共用）、O_any 偏移宿主的种子基数与固定内层矩阵的种子；每组的外层模拟次数（含运行时间保护的下限）、每个 p_boot 的内层抽样次数、功效门槛、功效曲线的 z_alt、τ̂_obs 之外检查的两个 τ（mag）、保护的上限（分钟）与下限、独立模式及其阶段 | `g_check` 为 false（正式阶段之前的默认值；正式的两阶段运行之前 `g_check=true` 只能与 `g_only=true` 一起使用，之后在完整运行中也会运行本部分，多出约 35 分钟）；400,000、500,000 与 600,000（预注册值；不得与 0、10,000–11,999、20,000–21,999、50,000–50,999、100,000–109,999、200,000–209,999 或 300,000–300,199 重叠）；10,000（预注册值；下限 5,000；每次模拟每组约 4 ms，所以用 `--set g_check=true g_only=true g_stage=power g_n_sims=200` 的对话探索约 7 分钟，大部分时间花在逐点检查上）；20,000（属于检验本身：不要改）；0.8；[2.5, 3.0, 4.0, 4.5, 5.0]；[0.05, 0.105]；120；5,000；`g_only=true` 配 `g_stage="power"` 只写出 `r2_re_g_power.json`（以及 `provenance_gp.json`、`run_info_gp.json`），配 `g_stage="full"` 时需要该文件，重新计算它，并写出 `r2_re_g.json`、八个 `r2_re_g_sims_<model>.json`、`provenance_g.json`、`run_info_g.json` 与 `summary.json` 中仅 `R2_RE_G` 一个键（其他键逐字节不变）；在正式的 `r2_re_g.json` 提交之前，对话探索只能运行功效阶段（`g_only=true`、`g_stage="power"`；完整阶段或 `g_check=true` 的完整研究对话探索会被拒绝），对话探索脚本也不得在数据上计算 G、Σz² 或其他宿主的 z_j；此后对话探索的完整阶段运行两个阶段。两个阶段必须以相同的线程设置（`OMP_NUM_THREADS`、`MKL_NUM_THREADS`、`OPENBLAS_NUM_THREADS`）与相同的 `g_*` 取值运行，否则完整阶段以错误停止。已记录的 τ̂_obs、δ̂、σ_δ、z_obs、τ̂_N 与各容差是 `shape.py` 中的常量；REML 网格取自 `results/r2_re.json` | 只用缓存 |
 
 - 带覆盖值重跑：`python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --set KEY=VALUE`
   （输出在 `explore/<date>-<topic>/`，不入库；使用默认的 R4 和 R2-RE 约 28 分钟；
   `--set r4_draws=1000` 需要几分钟；`--set re_check=false` 跳过 R2-RE）。
-- R2-RE-G 的正式运行分两个阶段（README 第 2 节，2026-11-21 增补）：(1) 把 `g_check` 与 `g_only` 设为 true、`g_stage` 设为 "power"，运行 `python -m astrolab run 003-m02-hubble-tension-distance-ladder`（只用缓存，约 17 分钟）：它写出 `r2_re_g_power.json`，并在日志中写一行功效、检验水平与功效曲线（`shape.power_log_line`）；其中没有任何内容用到数据上的 G。(2) 把这一行写进 log.md 并在分支上提交。(3) 把 `g_stage` 设为 "full" 再运行一次（约 18 分钟），线程环境与 `g_*` 取值与第 (1) 步相同：它重新计算功效阶段（计数必须与功效记录相同，否则为规则 (1)），然后计算 G_obs、p_G 与解读。(4) 把 `g_only` 改回 false、`g_stage` 改回 "full"，并在 log.md 中写明日期。
+- R2-RE-G 的正式运行分两个阶段（README 第 2 节，2026-11-21 增补）：(1) 把 `g_check` 与 `g_only` 设为 true、`g_stage` 设为 "power"，运行 `python -m astrolab run 003-m02-hubble-tension-distance-ladder`（只用缓存，约 17 分钟）：它写出 `r2_re_g_power.json`，并在日志中写一行功效、检验水平与功效曲线（`shape.power_log_line`）；其中没有任何内容用到数据上的 G。(2) 把这一行写进 log.md 并在分支上提交。(3) 把 `g_stage` 设为 "full" 再运行一次（约 18 分钟），线程环境与 `g_*` 取值与第 (1) 步相同；第 (1) 步的功效行不在 log.md 中时它拒绝启动。它重新计算功效阶段（计数必须与功效记录相同，否则为规则 (1)），然后计算 G_obs、p_G 与解读。(4) 把 `g_only` 改回 false、`g_stage` 改回 "full"，并在 log.md 中写明日期。
 - `run.py` 未涵盖的分析：写一个带 `def main(ctx)` 的脚本 `explore/<name>.py`，用
   `python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --script explore/<name>.py` 运行。
   已有：`explore/diag_hosts.py`（哪些检查把 L 的哪一列与哪个宿主联系起来）。

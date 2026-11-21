@@ -697,19 +697,26 @@ def recorded_reml_grid():
     return json.loads(path.read_text(encoding="utf-8"))["reml"]["grid_m2l"]
 
 
-def formal_g_done():
-    """True once the formal full stage's results/r2_re_g.json (not a "not run" stub) is committed next to this
-    file. Until then an exploration may run only the power stage (README amendment 2026-11-21, gate 1)."""
-    path = Path(__file__).parent / "results" / "r2_re_g.json"
+def formal_g_done(path=None):
+    """True once the formal full stage's results/r2_re_g.json is committed next to this file: status "evaluated"
+    or an `observed` record (G on the data computed). Until then only the two standalone stages may run (README
+    amendment 2026-11-21, gate 1)."""
+    path = Path(__file__).parent / "results" / "r2_re_g.json" if path is None else Path(path)
     if not path.exists():
         return False
-    st = str(json.loads(path.read_text(encoding="utf-8")).get("status", ""))
-    return not st.startswith("not run")
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    return rec.get("status") == "evaluated" or "observed" in rec
+
+
+def study_log_text():
+    """The study's committed log.md (the power line must be there before the formal full stage)."""
+    path = Path(__file__).parent / "log.md"
+    return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
 def save_g_stubs(ctx, P, status):
-    """A full study run with g_check = false: write the "not run" records only where no R2-RE-G file exists, so a
-    formal result is never overwritten; returns the record whose summary goes into summary.json (the existing
+    """A full study run whose R2-RE-G block does not run (g_check = false, or R2-RE / the host step not evaluable):
+    write its records only where no R2-RE-G file exists, so a formal result is never overwritten; returns the record whose summary goes into summary.json (the existing
     r2_re_g.json when there is one)."""
     p_out, _ = g_not_run(P, status, "power")
     g_out, sims = g_not_run(P, status, "full")
@@ -778,14 +785,22 @@ def main(ctx):
                 onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_G", None)
             elif getattr(ctx, "max_save_bytes", None) is None:
                 raise RuntimeError("g_only updates summary.json's R2_RE_G key: run the full study first")
-            if (not (ctx.results / "r2_re_g_power.json").exists()
-                    and getattr(ctx, "max_save_bytes", None) is None):
-                raise RuntimeError("the full stage needs results/r2_re_g_power.json: run g_stage = 'power' first "
-                                   "and commit its power to log.md")
-    if (P["g_check"] and not g_only and not d_only and getattr(ctx, "max_save_bytes", None) is not None
-            and not formal_g_done()):
-        raise RuntimeError("an exploration with g_check = true would compute G on the data before the formal R2-RE-G "
-                           "full stage: use g_only = true with g_stage = 'power', or g_check = false (README section 8)")
+            pw_path = ctx.results / "r2_re_g_power.json"
+            if getattr(ctx, "max_save_bytes", None) is None:
+                if not pw_path.exists():
+                    raise RuntimeError("the full stage needs results/r2_re_g_power.json: run g_stage = 'power' "
+                                       "first and commit its power to log.md")
+                power_rec = json.loads(pw_path.read_text(encoding="utf-8"))
+                bad = shape.power_record_problems(power_rec, shape.stage_settings(P))
+                if bad:
+                    raise RuntimeError("R2-RE-G full stage refused: " + "; ".join(bad))
+                if shape.power_log_line(power_rec) not in study_log_text():
+                    raise RuntimeError("R2-RE-G full stage refused: the power stage's line (shape.power_log_line) "
+                                       "is not in log.md; commit it first (README section 8)")
+    if P["g_check"] and not g_only and not d_only and not formal_g_done():
+        raise RuntimeError("g_check = true outside g_only would compute G on the data before the formal two-stage "
+                           "R2-RE-G run: run g_only = true with g_stage = 'power', then 'full', or set g_check = false "
+                           "(README section 8)")
     if d_only:
         # standalone R2-RE-D (README section 2, addendum 2026-11-21): its own provenance_d/run_info_d, no
         # other results file written; summary.json must exist and re-serialise to itself (checked first)
@@ -1209,10 +1224,7 @@ def main(ctx):
     if not P["g_check"]:
         g_out = save_g_stubs(ctx, P, "not run (PARAMS)")
     elif not (P["re_check"] and ident["host_step_evaluable"]) or re.get("status") != "evaluated":
-        st = "not evaluable (R2-RE not run or host step not evaluable)"
-        p_out, _ = g_not_run(P, st, "power")
-        g_out, sims_g = g_not_run(P, st, "full")
-        ctx.save("r2_re_g_power", p_out)
+        g_out = save_g_stubs(ctx, P, "not evaluable (R2-RE not run or host step not evaluable)")
     else:
         g_out, sims_g = run_g_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, re["reml"]["grid_m2l"],
                                    "R2-RE's REML grid of the same run (r2_re.json reml.grid_m2l)",
