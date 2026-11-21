@@ -690,9 +690,11 @@ the fit under C (as in ROB and SEL), K_M the lower Cholesky factor of the model 
   0.105, rounded). T-048 named 0.05 and 0.077; 0.105 is added because D grows with τ, so a diffuse model
   can only be called excluded if the upper end is excluded too.
 - O(δ̂) (decisive): y_C,s + δ̂ h, h the indicator of N5584's calibrator rows (`calib_groups[26]`, the four
-  rows above), δ̂ the GLS coefficient of h fitted with L under C on `rows_a` (recorded 0.33633686472064284, the full value of the fit made while drafting (amendment 2026-11-21: first
-  recorded rounded to 0.33634, which a relative 10⁻⁶ check cannot meet); the run
-  refits and must reproduce it to a relative 10⁻⁶; a mismatch is rule (1), the whole block). The offset is on the calibrator SN rows only, where R2-RE puts the random effect and R2-RE-T
+  rows above), δ̂ the GLS coefficient of h fitted with L under C on `rows_a` (recorded 0.33634; the run
+  refits and must reproduce it to an absolute 5 × 10⁻⁶, the precision at which it was recorded (amendment
+  2026-11-21, before any simulation on the data: first written as a relative 10⁻⁶, which a 5-digit value cannot
+  meet; the full value 0.33633686472064284 seen since came from the code's own cache-only reproduction run, so
+  it is not used as the reference); a mismatch is rule (1), the whole block). The offset is on the calibrator SN rows only, where R2-RE puts the random effect and R2-RE-T
   the heavy tail; whether it belongs to the SN or the Cepheid distance the data cannot tell (section 7).
 - Reported, not decisive: O(δ̂ − σ_δ) (δ = 0.2438, one standard error towards zero, the analogue of
   τ = 0.05); O(δ̂) + V(τ̂_N) (N5584 offset and τ̂_N = 0.0314 on all 37 hosts, the "one outlier plus a
@@ -728,7 +730,7 @@ detected") stays the headline; the R2 (2026-11-14), R2-RE, R2-RE-ROB, R2-RE-N558
 labels and readings stay as recorded.
 - (1) Not evaluable: the observed values differ from the recorded ones (spread_37,obs = 1.3070929081086322
   and spread_36,obs = 1.0325254787240916 to a relative 10⁻⁹, criterion S selecting N5584 with spread_excl
-  within 0.001 of 1.027, δ̂ = 0.33633686472064284 to a relative 10⁻⁶) → the whole block (code or data change,
+  within 0.001 of 1.027, δ̂ = 0.33634 to an absolute 5 × 10⁻⁶) → the whole block (code or data change,
   investigated first); a fit failure while building the 37-host shift rows or the rows of the reduced
   system without N5584 → the whole block; an empty index stream (R4's or R4-N's) → the whole block; a fit
   failure while building the rows for another dropped host d → every model with at least one simulation
@@ -776,7 +778,8 @@ per part. Per-simulation values are saved so that every label can be re-derived:
 `results/r2_re_d_sims_<model>.json` (model keys `C`, `V050`, `V077`, `V105`, `O`, `Olo`, `OVN`, `Oany`),
 holding the 10,000 (spread_37, spread_36) pairs rounded to 4 decimals, d' per simulation, and for each
 half-B simulation the integer count of half-A simulations in its quadrant, plus that count at the observed
-point (about 180 KB each, every file below 1 MB). The test recomputes k_J exactly from the saved integer
+point (about 400–450 KB each as pretty-printed JSON, about 3.3 MB in all, every file below 1 MB; amended
+2026-11-21 from "about 180 KB", which did not count the JSON layout). The test recomputes k_J exactly from the saved integer
 counts, checks those counts against the pairs only away from rounding ties (pairs within 5 × 10⁻⁵ of each
 other in either coordinate are skipped), and recomputes k_D from the pairs except within 1.5 × 10⁻⁴ of D_obs
 (the largest rounding error of a difference of two rounded values is 10⁻⁴).
@@ -827,7 +830,8 @@ import `run`), results in `results/r2_re_d.json`, a short summary in `summary.js
 with p_J ≤ 0.05 must not exceed the upper end of the 99% Clopper–Pearson interval of 0.05 for the calibrated
 statistic (amendment 2026-11-21, before any simulation on the data: one-sided, since a valid test may be
 conservative and counting ties towards larger p makes it so at the toy size; the two-sided version failed
-at correlation 0.8, share 0.0365), and
+at correlation 0.8, share 0.0365; with a lower guard so that a J that always returns large p fails: the share
+of p_J ≤ 0.05 at least 0.02 and the share of p_J ≤ 0.5 within [0.45, 0.55] at both correlations), and
 outside it for the raw quadrant probability at correlation 0.8; labels re-derived from saved k and n and from the per-simulation files), conclusion assertions in
 `test_conclusions.py`, a web section, section 8 knobs. None of this exists yet.
 
@@ -1378,7 +1382,7 @@ How a coding agent answers "what if" questions about this study without touching
 | `trgb_tip_sys` | NGC 4258 TRGB tip uncertainty in the R3 covariance (mag) | 0–0.05 | cache only |
 | `re_check`, `re_tau_max`, `re_grid_step` | run R2-RE; τ search range and grid step (mag) | true/false; 0.3–1.0; 0.005–0.02 | cache only |
 | `sel_check`, `sel_seed_base`, `sel_n_tau`, `sel_n_spread`, `sel_n_subsets`, `sel_max_failed` | run R2-RE-SEL (selection-aware null, addendum 2026-11-19; needs `n5584_check`); seed base of ε_s, simulations in the τ part and the spread parts, subsets per spread, failed REML fits allowed | true/false; 20,000 (pre-registered; seeds overlapping 10,000–11,999 would repeat ROB's simulations); 400 and 2,000 are the pre-registered counts (smaller values only for a quick look, about 20 s per τ simulation); 1,000 (must equal `rob_n_subsets`: otherwise the block stops before any simulation with a configuration status, an implementation guard, not one of the addendum's rules); 20 | cache only |
-| `d_check`, `d_seed_base`, `d_n_sims`, `d_taus`, `d_host_seed_base`, `d_kde_boot`, `d_only` | run R2-RE-D (one outlying host or diffuse host scatter, addendum 2026-11-21; module `onehost.py`); seed base of ε_s (common to all eight models), simulations per model, the τ of the diffuse models V(τ) (mag), seed base of O_any's offset host, bootstrap resamples of the KDE ratios, standalone mode | true/false; 100,000 and 200,000 (pre-registered; must not overlap 0, 10,000–11,999, 20,000–21,999 or 50,000–50,999); 10,000 (pre-registered; J's halves A/B are the even/odd simulations, so use an even number; about 1.5 h for the block, of which about 68 min build the reduced systems, so a quick look with `--set d_n_sims=200` still takes most of an hour); [0.05, 0.077, 0.105] (pre-registered; the reading's wording names the three values); 200; `d_only=true` runs only this block (cache only, about 1.5 h): it writes `r2_re_d.json`, the eight `r2_re_d_sims_<model>.json`, `provenance_d.json`, `run_info_d.json` and the `R2_RE_D` key of `summary.json` (every other key kept byte-identical; it refuses to run without an existing `summary.json`, except in an exploration, where it writes a summary with that key only). The block uses `rob_n_subsets` subsets and `n5584_host`; the recorded values (spreads, criterion S, δ̂, τ̂_N) and tolerances are constants in `onehost.py` | cache only |
+| `d_check`, `d_seed_base`, `d_n_sims`, `d_taus`, `d_host_seed_base`, `d_kde_boot`, `d_only` | run R2-RE-D (one outlying host or diffuse host scatter, addendum 2026-11-21; module `onehost.py`); seed base of ε_s (common to all eight models), simulations per model, the τ of the diffuse models V(τ) (mag), seed base of O_any's offset host, bootstrap resamples of the KDE ratios, standalone mode | true/false (default true: a full run, or a full exploration without `d_only`, adds about 1.5 h; `--set d_check=false` skips the block); 100,000 and 200,000 (pre-registered; must not overlap 0, 10,000–11,999, 20,000–21,999 or 50,000–50,999); 10,000 (pre-registered; J's halves A/B are the even/odd simulations, so use an even number; about 1.5 h for the block, of which about 68 min build the reduced systems, so a quick look with `--set d_n_sims=200` still takes most of an hour); [0.05, 0.077, 0.105] (pre-registered; the reading's wording names the three values); 200; `d_only=true` runs only this block (cache only, about 1.5 h): it writes `r2_re_d.json`, the eight `r2_re_d_sims_<model>.json`, `provenance_d.json`, `run_info_d.json` and the `R2_RE_D` key of `summary.json` (every other key kept byte-identical; it refuses to run without an existing `summary.json`, except in an exploration, where it writes a summary with that key only). The block uses `rob_n_subsets` subsets and `n5584_host`; the recorded values (spreads, criterion S, δ̂, τ̂_N) and tolerances are constants in `onehost.py` | cache only |
 
 - Rerun with an override: `python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --set KEY=VALUE`
   (outputs in `explore/<date>-<topic>/`, not committed; about 28 min with the default R4 and R2-RE;

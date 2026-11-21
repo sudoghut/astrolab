@@ -34,8 +34,8 @@ RECORDED_SPREAD_36 = sel.RECORDED_SPREAD_OBS   # 1.0325254787240916, B-N spread_
 SPREAD_RTOL = 1e-9
 CRIT_S_EXPECTED = sel.CRIT_S_EXPECTED          # 1.027
 CRIT_S_TOL = sel.CRIT_S_TOL                    # 0.001
-RECORDED_DELTA = 0.33633686472064284           # delta_hat, GLS coefficient of h under C on rows_a (full value, amendment 2026-11-21)
-DELTA_RTOL = 1e-6
+RECORDED_DELTA = 0.33634                       # delta_hat, GLS coefficient of h under C on rows_a (as registered)
+DELTA_ATOL = 5e-6                              # absolute: the precision at which delta_hat was recorded
 RECORDED_TAU_N = sel.RECORDED_TAU_N            # 0.03137144323410943
 TAU_N_RTOL = 1e-6
 KDE_SEED_BASE = 300_000                        # bootstrap resample b: default_rng(300_000 + b)
@@ -135,11 +135,13 @@ def section5_action(read):
 
 def observed_mismatches(obs, rec):
     """Rule (1)'s observed-value checks: spread_37 and spread_36 (relative 1e-9), criterion S selecting the
-    host with spread_excl within 0.001 of the expected value, delta_hat (relative 1e-6)."""
+    host with spread_excl within 0.001 of the expected value, delta_hat (absolute 5e-6, its recorded precision)."""
     bad = []
-    for key, rtol in (("spread_37", SPREAD_RTOL), ("spread_36", SPREAD_RTOL), ("delta_hat", DELTA_RTOL)):
-        if not abs(obs[key] - rec[key]) <= rtol * abs(rec[key]):
-            bad.append(f"{key} {obs[key]!r} vs recorded {rec[key]!r} (relative {rtol:g})")
+    for key in ("spread_37", "spread_36"):
+        if not abs(obs[key] - rec[key]) <= SPREAD_RTOL * abs(rec[key]):
+            bad.append(f"{key} {obs[key]!r} vs recorded {rec[key]!r} (relative {SPREAD_RTOL:g})")
+    if not abs(obs["delta_hat"] - rec["delta_hat"]) <= DELTA_ATOL:
+        bad.append(f"delta_hat {obs['delta_hat']!r} vs recorded {rec['delta_hat']!r} (absolute {DELTA_ATOL:g})")
     if not obs["crit_s_selects_host"]:
         bad.append(f"criterion S selects {obs['crit_s_selected']}, not {obs['host']}")
     if not abs(obs["crit_s_host_value"] - rec["crit_s"]) <= CRIT_S_TOL:
@@ -340,6 +342,8 @@ def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, P, fns, log
         return stop("not evaluable (empty index stream: R4 has no draws)")
     if not stream:
         return stop("not evaluable (empty index stream: R4-N)")
+    if len(picks) < n_sub or len(stream) < n_sub:
+        return stop("not evaluable (index stream shorter than rob_n_subsets)")
     use = picks[:n_sub]
 
     # ---- fit under C on rows_a, delta_hat, the 37-host shift rows (criterion S)

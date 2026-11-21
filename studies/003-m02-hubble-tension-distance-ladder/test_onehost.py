@@ -6,7 +6,6 @@ re-derivation from the saved files (test_conclusions.test_r2_re_d_labels)."""
 import importlib.util
 import json
 import sys
-import time
 from pathlib import Path
 
 import numpy as np
@@ -124,7 +123,8 @@ def test_params_and_constants():
     assert onehost.decisive_keys(P["d_taus"]) == ["V050", "V077", "V105", "O"]
     assert onehost.RECORDED_SPREAD_37 == 1.3070929081086322
     assert onehost.RECORDED_SPREAD_36 == 1.0325254787240916
-    assert (onehost.RECORDED_DELTA, onehost.DELTA_RTOL, onehost.SPREAD_RTOL) == (0.33633686472064284, 1e-6, 1e-9)
+    assert (onehost.RECORDED_DELTA, onehost.DELTA_ATOL, onehost.SPREAD_RTOL) == (0.33634, 5e-6, 1e-9)
+    assert abs(0.33633686472064284 - onehost.RECORDED_DELTA) <= onehost.DELTA_ATOL   # the cache-only reproduction
     assert (onehost.CRIT_S_EXPECTED, onehost.CRIT_S_TOL) == (1.027, 0.001)
     assert onehost.RECORDED_TAU_N == 0.03137144323410943 and onehost.KDE_SEED_BASE == 300_000
     tc = _load("tc003_d_consts", "test_conclusions.py")
@@ -292,7 +292,6 @@ def test_j_calibration_toys():
     towards larger p); at correlation 0.8 the raw quadrant probability's share lies above it."""
     n_rep, n_sim = 2000, 2000
     lo, hi = rob._cp(100, n_rep, level=0.99)
-    t0 = time.perf_counter()
     res = {}
     for rho in (0.0, 0.8):
         rng = np.random.default_rng(48)
@@ -305,10 +304,11 @@ def test_j_calibration_toys():
             js = onehost.j_stat(sims, obs)
             pj[r] = (1 + js["k"]) / (1 + js["n_B"])
             praw[r] = np.mean((sims[:, 0] >= obs[0]) & (sims[:, 1] <= obs[1]))
-        res[rho] = (float(np.mean(pj <= 0.05)), float(np.mean(praw <= 0.05)))
-    assert time.perf_counter() - t0 < 120
-    for rho, (sj, _) in res.items():
-        assert sj <= hi, (rho, sj, lo, hi)
+        res[rho] = (float(np.mean(pj <= 0.05)), float(np.mean(praw <= 0.05)), float(np.mean(pj <= 0.5)))
+    for rho, (sj, _, half) in res.items():
+        assert sj <= hi, (rho, sj, lo, hi)            # one-sided (amendment 2026-11-21): a valid test may be conservative
+        assert sj >= 0.02, (rho, sj)                  # lower guard: a J that always returns large p fails
+        assert 0.45 <= half <= 0.55, (rho, half)
     assert not (lo <= res[0.8][1] <= hi), res
     assert res[0.8][1] > hi                       # the raw quadrant probability is anti-conservative
 
@@ -386,11 +386,12 @@ def test_section5_actions():
 
 def test_observed_value_tolerances():
     rec = {"spread_37": 1.3, "spread_36": 1.0, "crit_s": 1.027, "delta_hat": 0.33634}
-    ob = {"spread_37": 1.3 * (1 + 9e-10), "spread_36": 1.0 * (1 - 9e-10), "delta_hat": 0.33634 * (1 + 9e-7),
+    ob = {"spread_37": 1.3 * (1 + 9e-10), "spread_36": 1.0 * (1 - 9e-10), "delta_hat": 0.33634 - 4.9e-6,
           "crit_s_selects_host": True, "crit_s_selected": "N5584", "host": "N5584", "crit_s_host_value": 1.0279}
     assert onehost.observed_mismatches(ob, rec) == []
     for key, val in (("spread_37", 1.3 * (1 + 2e-9)), ("spread_36", 1.0 * (1 + 2e-9)),
-                     ("delta_hat", 0.33634 * (1 + 2e-6)), ("crit_s_host_value", 1.0281)):
+                     ("delta_hat", 0.33634 + 5.1e-6), ("delta_hat", 0.33634 - 5.1e-6),
+                     ("crit_s_host_value", 1.0281)):
         assert len(onehost.observed_mismatches(dict(ob, **{key: val}), rec)) == 1, key
     assert len(onehost.observed_mismatches(dict(ob, crit_s_selects_host=False, crit_s_selected="H01"), rec)) == 1
 
@@ -447,9 +448,10 @@ def test_tau_n_from_the_same_run_and_not_reproduced(lad):
 
 
 # ---------------------------------------------------------------- not-evaluable rules
-@pytest.mark.parametrize("key,factor", [("spread_37", 1 + 2e-9), ("spread_36", 1 - 2e-9), ("delta_hat", 1 + 2e-6)])
-def test_observed_mismatch_stops_the_block(lad, key, factor):
-    out, sims = _block(lad, P=_small(lad), recorded={key: lad["recorded"][key] * factor})
+@pytest.mark.parametrize("key,factor,shift", [("spread_37", 1 + 2e-9, 0.0), ("spread_36", 1 - 2e-9, 0.0),
+                                               ("delta_hat", 1.0, 6e-6)])
+def test_observed_mismatch_stops_the_block(lad, key, factor, shift):
+    out, sims = _block(lad, P=_small(lad), recorded={key: lad["recorded"][key] * factor + shift})
     assert out["status"] == onehost.BLOCK_NE_OBSERVED and out["reading"] == "not evaluable"
     assert "models" not in out and all(v["status"] == onehost.BLOCK_NE_OBSERVED for v in sims.values())
     assert len(out["observed"]["mismatches"]) == 1
@@ -476,6 +478,13 @@ def test_empty_index_stream(lad):
     out, sims = _block(lad, P=_small(lad), picks=[])
     assert out["status"] == "not evaluable (empty index stream: R4 has no draws)" and out["reading"] == "not evaluable"
     assert set(sims) == set(onehost.model_keys(TAUS))
+
+
+def test_short_index_stream_is_not_truncated(lad):
+    out, sims = _block(lad, P=_small(lad), picks=lad["picks"][:N_SUB - 1])
+    assert out["status"] == "not evaluable (index stream shorter than rob_n_subsets)"
+    assert out["reading"] == "not evaluable" and "models" not in out
+    assert all(v["status"] == out["status"] for v in sims.values())
 
 
 def test_fit_failure_building_the_37_host_rows_or_the_host_rows(lad):
@@ -571,3 +580,85 @@ def test_summary_update_keeps_other_keys_byte_identical():
         onehost.summary_with_key(text.replace("\n", "\r\n"), "R2_RE_D", {})
     with pytest.raises(RuntimeError):
         onehost.summary_with_key(json.dumps(old), "R2_RE_D", {})
+
+
+# ---------------------------------------------------------------- run.main in the standalone mode
+class _Ctx:
+    """A stand-in for astrolab's Context: results folder, record_suffix, save into memory, log."""
+    max_save_bytes = None
+
+    def __init__(self, results):
+        self.results = results
+        self.record_suffix = ""
+        self.saved = {}
+
+    def save(self, name, obj):
+        self.saved[name] = obj
+
+    def log(self, msg):
+        pass
+
+
+def _main_d(tmp_path, monkeypatch, name, stub=None, summary=True):
+    run = _load(name, "run.py")
+    tn = _load("tn003_" + name, "test_n5584.py")
+    L, y, C = tn._synthetic(run, tau=TAU, outlier=OUTLIER)
+    # an LMC row and two Milky Way rows, as anchor_rows expects; then the shapes run.main checks
+    for c, val in ((run.C_LMC, 0.0), (run.C_MH, -5.85), (run.C_MH, -5.80)):
+        r = np.zeros(run.N_PAR)
+        r[c] = 1.0
+        L = np.vstack([L, r])
+        y = np.append(y, val)
+        C = np.pad(C, ((0, 1), (0, 1)))
+        C[-1, -1] = 0.03 ** 2
+    monkeypatch.setattr(run, "N_ROWS", len(y))
+    monkeypatch.setattr(run, "load", lambda ctx: (C, L, y, np.zeros((run.N_PAR, 2))))
+    monkeypatch.setitem(run.PARAMS, "d_only", True)
+    if stub is not None:
+        monkeypatch.setattr(run, "run_d", stub)
+    from astrolab.results import write_json
+    old = {"params": {"a": 1}, "R2_RE_SEL": {"reading": "τ̂ x"}, "runtime_s": 1.5}
+    if summary:
+        write_json(tmp_path / "summary.json", old)
+    ctx = _Ctx(tmp_path)
+    return run, ctx, old
+
+
+def test_main_d_only_refuses_without_summary(tmp_path, monkeypatch):
+    run, ctx, _ = _main_d(tmp_path, monkeypatch, "run003_donly_a", summary=False)
+    with pytest.raises(RuntimeError, match="run the full study first"):
+        run.main(ctx)
+    assert ctx.saved == {} and ctx.record_suffix == "_d"
+
+
+def test_main_d_only_writes_only_its_files(tmp_path, monkeypatch):
+    """d_only: provenance_d / run_info_d suffix, r2_re_d.json, the eight sims files and summary.json with only
+    R2_RE_D added; nothing else saved (r1 and host_identification computed but not saved)."""
+    keys = onehost.model_keys(TAUS)
+    seen = {}
+
+    def stub(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, n_pick, picks=None, tau_n=None,
+             rob_spread_obs=None):
+        seen.update(n_pick=n_pick, picks=picks, tau_n=tau_n, n_rows=len(rows_a), n=len(y))
+        out = {"status": "evaluated", "reading": "undetermined", "models": {k: {"status": "not run (stub)"} for k in keys}}
+        return out, {k: {"model": k, "status": "not run (stub)"} for k in keys}
+    run, ctx, old = _main_d(tmp_path, monkeypatch, "run003_donly_b", stub=stub)
+    ret = run.main(ctx)
+    assert ctx.record_suffix == "_d"
+    assert set(ctx.saved) == {"r2_re_d", "summary"} | {f"r2_re_d_sims_{k}" for k in keys}
+    assert seen["picks"] is None and seen["tau_n"] is None and seen["n_rows"] == seen["n"] - 3
+    s = ctx.saved["summary"]
+    assert list(s) == ["params", "R2_RE_SEL", "R2_RE_D", "runtime_s"] and ret == s
+    assert all(s[k] == old[k] for k in old)
+    assert s["R2_RE_D"] == onehost.summary(ctx.saved["r2_re_d"])
+
+
+def test_main_d_only_real_wiring(tmp_path, monkeypatch):
+    """Without the stub: the synthetic columns do not match R22's hosts, so the host step is not evaluable and
+    the block is recorded as such; still only the R2-RE-D files and summary.json are saved."""
+    run, ctx, old = _main_d(tmp_path, monkeypatch, "run003_donly_c")
+    run.main(ctx)
+    keys = onehost.model_keys(TAUS)
+    assert set(ctx.saved) == {"r2_re_d", "summary"} | {f"r2_re_d_sims_{k}" for k in keys}
+    assert ctx.saved["r2_re_d"]["status"] == "not evaluable (host step not evaluable)"
+    assert ctx.saved["summary"]["R2_RE_D"]["reading"] == "not evaluable"
