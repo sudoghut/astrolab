@@ -129,6 +129,9 @@ with uninterpreted atoms "needed" means "used by this encoding".}}
 
 ### Part 3 · What astrolab can test or explore
 
+**Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/{{NNN-slug}}/web/) (results, figures and tables;
+English/Chinese switch; updated when the site is republished). (Add once the study has a page.)
+
 {{Retrofitted article only: "Written after implementation (post hoc); not a pre-registration."}}
 
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
@@ -241,6 +244,8 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 5. 局限：Lean 检查的是在我们的编码下的逻辑结构，不检查每个前提内部的物理；原子命题不加解释时，"必要"指"本编码用到了它"。}}
 
 ### 第三部分 · 本项目可检验或探索的环节
+
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/{{NNN-slug}}/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。（研究有网页后加上。）
 
 {{仅限补写的文章："实现后补写（事后，post hoc），不是预注册。"}}
 

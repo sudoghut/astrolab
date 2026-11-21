@@ -214,6 +214,9 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 ### Part 3 · What astrolab can test or explore
 
+**Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/007-m10-gwtc4-bbh-mass-35msun/web/) (results, figures and tables;
+English/Chinese switch; updated when the site is republished).
+
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
 | A: the 153-event sample (R1) | testable now | rebuild from GWOSC lists (GWTC-4.0, GWTC-1/2.1/3) with P26's cuts (FAR < 1/yr, 90% lower bound as a proxy for the 1% bound, exclusions); compare with the O4a list on Zenodo | GWOSC JSON (~0.25 MB + < 1 MB each), O4a list 10 kB | "reproduced" if the O4a events match P26's list and the counts are 84 and 69, with only pre-declared, direction-known differences; downgraded to "described" if the meaning of GWOSC's `far` cannot be confirmed (the `far` definition and the allowed number of discrepant events are fixed in the pre-registration before R1 runs) | **not reproduced** as registered: O4a 84/84 exact; O1–O3 59 of 69 ± 2 (null FARs on the GWTC-2.1 rows of the ten O1/O2 BBHs); 69 and 153 post hoc |
@@ -224,7 +227,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 **Results (added after the run, 2026-11-15; the table above keeps the pre-registered design).**
 Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main/studies/007-m10-gwtc4-bbh-mass-35msun/README.md#5-results); page:
-[`web/index.html`](https://github.com/sudoghut/astrolab/blob/main/studies/007-m10-gwtc4-bbh-mass-35msun/web/index.html).
+[web page (online)](https://sudoghut.github.io/astrolab/studies/007-m10-gwtc4-bbh-mass-35msun/web/).
 
 - **R1 is "not reproduced" by the frozen rule, and the reason is mundane.** The O4a half matches
   P26 exactly: 84 events, none missing and none extra. The O1–O3 half gives 59 instead of 69.
@@ -415,6 +418,8 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 ### 第三部分 · 本项目可检验或探索的环节
 
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/007-m10-gwtc4-bbh-mass-35msun/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。
+
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
 | A：153 个事件的样本（R1） | 现在可检验 | 按 P26 的条件（FAR < 1/yr、以 90% 下限近似 1% 下限、排除项）由 GWOSC 列表（GWTC-4.0、GWTC-1/2.1/3）重建；与 Zenodo 上的 O4a 列表比较 | GWOSC JSON（约 0.25 MB，其余各 < 1 MB），O4a 列表 10 kB | O4a 事件与 P26 列表一致、计数为 84 与 69，只允许预先声明且方向已知的差别 → "复现"；若不能确认 GWOSC `far` 的含义则降为"描述"（`far` 的定义与允许的不一致事件数在 R1 运行前的预注册中写定） | 按预注册规则**未复现**：O4a 84/84 完全一致；O1–O3 为 59，目标 69 ± 2（十个 O1/O2 双黑洞的 GWTC-2.1 行没有 FAR）；事后为 69 与 153 |
@@ -424,7 +429,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 | `gap_sel`、`gap_syst`、群体推断 | 不在范围内 | 需要后验样本与注入（数百 MB 到数十 GB；AGENTS.md 1.5） | – | – | – |
 
 **结果（运行后补写，2026-11-15；上表保留预注册时的设计）。** 细节见
-[研究 README 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/007-m10-gwtc4-bbh-mass-35msun/README.md#5-results)；网页：[`web/index.html`](https://github.com/sudoghut/astrolab/blob/main/studies/007-m10-gwtc4-bbh-mass-35msun/web/index.html)。
+[研究 README 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/007-m10-gwtc4-bbh-mass-35msun/README.md#5-results)；网页：[在线版](https://sudoghut.github.io/astrolab/studies/007-m10-gwtc4-bbh-mass-35msun/web/)。
 
 - **按冻结的规则，R1 为"未复现"，原因很平常。** O4a 一半与 P26 完全一致：84 个事件，不缺不多。O1–O3 一半得到 59 个而不是 69 个。
   - 按我们预注册的优先级（较新的星表优先），十个 O1/O2 双黑洞取自重新分析过质量的 GWTC-2.1。

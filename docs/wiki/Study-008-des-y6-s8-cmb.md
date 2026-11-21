@@ -288,6 +288,9 @@ here:
 
 ### Part 3 · What astrolab can test or explore
 
+**Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/) (results, figures and tables;
+English/Chinese switch; updated when the site is republished).
+
 The fiducial DES 3x2pt chain is 144 MB, above this project's 50 MB per-download limit; the user
 approved a one-off download of this single file (2026-11-15). The CMB chain (11.8 MB) and the
 cosmic-shear chain (14.9 MB) are under the limit. Other probes enter only as published summaries.
@@ -305,7 +308,7 @@ cosmic-shear chain (14.9 MB) are under the limit. Other probes enter only as pub
 | DES systematics, blinding, the flow estimator itself | out of scope | needs the data vectors, simulations and the analysis pipeline | – | – | – |
 
 **Results (added after the run, 2026-11-15; the table above keeps the pre-registered design).**
-Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/README.md#5-results); page: [`web/index.html`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/index.html).
+Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/README.md#5-results); page: [web page (online)](https://sudoghut.github.io/astrolab/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/).
 
 - **The numbers behind D26's conclusion are reproduced from the public chains.** S8 means: CMB
   0.8357, DES 3x2pt 0.7893, DES cosmic shear 0.7834, each within 0.001 of the published values. The
@@ -608,6 +611,8 @@ theorem final : ∀ v, Premises v → Conclusion v := by
 
 ### 第三部分 · 本项目可检验或探索的环节
 
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。
+
 DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的上限；用户同意为这一个文件破例一次（2026-11-15）。CMB 链（11.8 MB）与宇宙剪切链（14.9 MB）在上限之内。其他探针只用已发表的汇总值。
 
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
@@ -622,7 +627,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 | `gap_conv`（低于 3σ 是否等于"没有证据"） | 不在范围内 | 是关于证据的判断，不是计算；研究报告它所作用的数字，以及阈值在哪里改变分类（R4） | – | – | – |
 | DES 的系统误差、盲化与流估计器本身 | 不在范围内 | 需要数据向量、模拟与分析流程 | – | – | – |
 
-**结果（运行后补写，2026-11-15；上表保留预注册时的设计）。** 细节见 [研究 README 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/README.md#5-results)；网页：[`web/index.html`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/index.html)。
+**结果（运行后补写，2026-11-15；上表保留预注册时的设计）。** 细节见 [研究 README 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/README.md#5-results)；网页：[在线版](https://sudoghut.github.io/astrolab/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/)。
 
 - **D26 结论所依据的数字由公开链复现。** S8 均值：CMB 0.8357，DES 3x2pt 0.7893，DES 宇宙剪切 0.7834，与发表值之差都在 0.001 以内。直接按 D26 的式 17–19、用校准过的分箱密度估计（binned density estimate）计算参数差异：**S8 上 2.67σ ± 0.03**（D26：2.6σ），**S8–Ωm 上 2.18σ ± 0.03**（D26：2.2σ），都在预注册容差内（不确定度来自审稿后补做的、对链的行的自助法（bootstrap）重抽样）。先验支撑（Ωm、A_s）检验通过。比 2.6 略高的 0.07σ 约为一个自助法标准差。
 - **离 3σ 多近取决于投影效应。** 按 D26 自己的模拟偏差（+0.17σ）平移 DES 得 2.55σ；以 MAP 为中心得 2.44σ。所以 S8 的数字在约 2.4σ 到 2.7σ 之间：每种变体都低于非正式的 3σ 线，但只差 0.3–0.6σ。这算不算"没有实质证据"，正是第二部分的缺口 `gap_conv`。

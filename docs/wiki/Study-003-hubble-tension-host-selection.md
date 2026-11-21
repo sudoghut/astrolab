@@ -203,6 +203,9 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 ### Part 3 · What astrolab can test or explore
 
+**Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/003-m02-hubble-tension-distance-ladder/web/) (results, figures and tables;
+English/Chinese switch; updated when the site is republished).
+
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
 | R1 · the SH0ES baseline | testable now | GLS fit of R22's y, L, C | C 46.5 MiB (Git LFS FITS), L 0.66 MB, y 17 kB, lstsq 0.7 kB; total about 47.2 MiB (below the 200 MB study budget) | primary: reproduce the authors' `lstsq_results.txt` (47 parameters); secondary: 73.04 ± 1.01 (tolerances in README §2) | not reproduced against the file (it is a different fit, about 73.3); our fit matches the printed baseline, 73.04, χ²/dof 1.031 |
@@ -215,7 +218,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 #### 3.1 Results (after implementation)
 
 The table above keeps the plan as written before implementation; the "Result" column and this
-section were added after the run (study README section 5; [web page](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder/web)).
+section were added after the run (study README section 5; [web page](https://sudoghut.github.io/astrolab/studies/003-m02-hubble-tension-distance-ladder/web/)).
 
 - **The public matrices reproduce R22's printed fit** (H0 = 73.04, χ²/dof 1.031). The authors'
   `lstsq_results.txt`, our pre-registered primary target, is a different fit (about 73.3).
@@ -438,6 +441,8 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 ### 第三部分 · astrolab 能检验或探索的环节
 
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/003-m02-hubble-tension-distance-ladder/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。
+
 | 环节 / 论断 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
 | R1 · SH0ES 的基线 | 现在可检验 | 对 R22 的 y、L、C 做广义最小二乘（GLS, generalised least squares）拟合 | C 46.5 MiB（Git LFS 的 FITS），L 0.66 MB，y 17 kB，lstsq 0.7 kB；合计约 47.2 MiB（低于研究预算 200 MB） | 主要：复现作者的 `lstsq_results.txt`（47 个参数）；次要：73.04 ± 1.01（容差见 README 第 2 节） | 对作者文件未复现（那是另一个拟合，约 73.3）；我们的拟合与印出的基线一致，73.04，χ²/自由度 1.031 |
@@ -449,7 +454,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 #### 3.1 结果（实现之后）
 
-上表保留实现之前写下的计划；"结果"一栏与本节在运行之后加入（研究 README 第 5 节；[网页](https://github.com/sudoghut/astrolab/tree/main/studies/003-m02-hubble-tension-distance-ladder/web)）。
+上表保留实现之前写下的计划；"结果"一栏与本节在运行之后加入（研究 README 第 5 节；[网页](https://sudoghut.github.io/astrolab/studies/003-m02-hubble-tension-distance-ladder/web/)）。
 
 - **公开矩阵复现了 R22 印出的拟合**（H0 = 73.04，χ²/自由度 1.031）。我们预注册的主要目标，即作者的 `lstsq_results.txt`，是另一个拟合（约 73.3）。
 - **偏离预注册。** 公开的方程矩阵的列不是按 R22 宿主表的顺序排列的，所以预注册的宿主识别失败，宿主一步（R2）、R3 与 R4 按预注册为*不可评估*。第一次运行之后，我们只用超新星星等、造父变星数目与宿主距离重新标注各列；这样 CCHP 宿主集合是唯一确定的。下面的结果都依赖这一数据之后的标注。

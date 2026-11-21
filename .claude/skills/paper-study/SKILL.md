@@ -124,6 +124,9 @@ new data), example questions, results keys. An agent answering a "what if" quest
 
 ## 6. Feed back into the wiki and keep it in sync
 
+- Part 3 starts (in both languages) with a clickable link to the study's online page,
+  https://sudoghut.github.io/astrolab/studies/<id>/web/ (template line "Interactive page"); results
+  text links to that page, not to `web/index.html` on GitHub.
 - Extend part 3: fill the Result column and add "what we found" with numbers and links to the
   results files. The interactive page runs locally (`python -m astrolab serve`); add a static
   figure if wiki readers need to see it.

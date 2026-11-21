@@ -225,6 +225,9 @@ These steps are not encoded in Lean because one file has one conclusion; they ar
 
 ### Part 3 · What astrolab can test or explore
 
+**Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/009-m06-mw-outer-rotation-curve-decline/web/) (results, figures and tables;
+English/Chinese switch; updated when the site is republished).
+
 All inputs are small tables transcribed from the papers (J23 Tables 3 and 4 and the baryon
 parameters; O24 Table 1; Eilers et al. 2019 Table 1), checked by two independent transcriptions;
 nothing is downloaded. J23 gives no per-bin statistical errors, so (rule E0 of plan 018) R1 uses
@@ -240,7 +243,7 @@ Table 3's total errors as J23's power-law test does, and R2 is a descriptive fit
 | `gap_jeans` itself (non-equilibrium dynamics) | out of scope | needs 6-D stellar data and dynamical modelling beyond the Jeans equation | – | – | – |
 
 **Results (added after the run, 2026-11-15; the table above keeps the pre-registered design).**
-Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main/studies/009-m06-mw-outer-rotation-curve-decline/README.md#5-results); page: [`web/index.html`](https://github.com/sudoghut/astrolab/blob/main/studies/009-m06-mw-outer-rotation-curve-decline/web/index.html).
+Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main/studies/009-m06-mw-outer-rotation-curve-decline/README.md#5-results); page: [web page (online)](https://sudoghut.github.io/astrolab/studies/009-m06-mw-outer-rotation-curve-decline/web/).
 
 - **J23's numbers follow from its table, under its prior.** The power law beyond 19 kpc gives
   γ = −0.466 and S = 3.15 with a flat prior on the amplitude at a 1 kpc pivot, matching J23. With the
@@ -439,6 +442,8 @@ J23 的质量并不来自下降检验。它来自用球对称爱纳斯托晕（�
 
 ### 第三部分 · 本项目可检验或探索的环节
 
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/009-m06-mw-outer-rotation-curve-decline/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。
+
 所有输入都是由论文抄录的小表格（J23 表 3、表 4 与重子参数；O24 表 1；Eilers 等 2019 表 1），经两次独立抄录核对；不下载任何文件。J23 没有给出各箱的统计误差，所以（计划 018 的规则 E0）R1 像 J23 的幂律检验那样用表 3 的总误差，R2 是描述性拟合而不是复现。
 
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
@@ -450,7 +455,7 @@ J23 的质量并不来自下降检验。它来自用球对称爱纳斯托晕（�
 | 环节 C：外推（R5） | 可探索（描述） | 数据约束的 M(<26.5 kpc) 对外推的 M(<32.4)、M(<100)、M_vir；拟合类似 NFW 的晕作对比；星流质量作跨模型的量级比较 | 同上 | 无——描述 | 爱纳斯托：99.8% 的 M_vir 在 26.5 kpc 以内（1.97 × 10¹¹）；NFW（Navarro–Frenk–White）：7.05 × 10¹¹，较差（Δχ² ≈ 20）但未被排除，与星流质量接近 |
 | `gap_jeans` 本身（非平衡动力学） | 不在范围内 | 需要六维恒星数据与超出金斯方程的动力学建模 | – | – | – |
 
-**结果（运行后补写，2026-11-15；上表保留预注册时的设计）。** 细节见 [研究 README 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/009-m06-mw-outer-rotation-curve-decline/README.md#5-results)；网页：[`web/index.html`](https://github.com/sudoghut/astrolab/blob/main/studies/009-m06-mw-outer-rotation-curve-decline/web/index.html)。
+**结果（运行后补写，2026-11-15；上表保留预注册时的设计）。** 细节见 [研究 README 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/009-m06-mw-outer-rotation-curve-decline/README.md#5-results)；网页：[在线版](https://sudoghut.github.io/astrolab/studies/009-m06-mw-outer-rotation-curve-decline/web/)。
 
 - **J23 的数字可由它的表格在它的先验下推出。** 19 kpc 以外的幂律在以 1 kpc 为支点、对振幅取平坦先验时给出 γ = −0.466、S = 3.15，与 J23 一致。只用似然（或对数均匀的振幅，或以数据本身为支点）时，平坦曲线约以 2.7σ 被拒绝："3σ"中约 0.45σ 来自先验。
 - **误差棒不可能是独立的。** 最佳拟合好得离谱（爱纳斯托模型 χ² = 1.3，15 个自由度；幂律 0.47，6 个自由度）。表 3 的误差含平滑、相关的系统误差，所以凡是把它们当作独立误差的显著性（包括 J23 的 3σ）都标度不对。外区箱上升到 6%（小于误差棒）的偏差就能使统计量降到 2 以下。

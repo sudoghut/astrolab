@@ -237,6 +237,9 @@ and it is the one encoded.
 
 ### Part 3 · What astrolab can test or explore
 
+**Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/010-m05-thick-disc-subgiant-ages/web/) (results, figures and tables;
+English/Chinese switch; updated when the site is republished).
+
 The catalogue (VizieR J/other/Nat/603.599/table1, 247,104 rows) is fetched once through the guarded
 `ctx.http` channel from the CfA VizieR mirror (the CDS TAP host is unreachable from this machine),
 only the needed columns (Id, Age, e_Age, [Fe/H], e_[Fe/H], [alpha/Fe], e_[alpha/Fe], JPHI, MKcomb):
@@ -268,7 +271,7 @@ decided either, because our deconvolution's selection term for the 15% error cut
 under both mocked error mechanisms (found by the independent referee; post hoc); read informally,
 the span (about 6 Gyr) agrees and the scatter of the α-selected sample (2.4–2.7 Gyr) is about three
 times XR22's 0.82 Gyr, likely not a like-for-like comparison. A re-test is registered (T-031).
-Numbers and page: the study README section 5 and `web/index.html`.
+Numbers and page: the study README section 5 and the [web page (online)](https://sudoghut.github.io/astrolab/studies/010-m05-thick-disc-subgiant-ages/web/).
 
 **Re-test with a consistent selection term (T-031, 2026-11-20).** A new pre-registration (README
 section 2.5) replaced the selection term with the pass fraction measured on the catalogue as a
@@ -453,6 +456,8 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 ### 第三部分 · 本项目可检验或探索的环节
 
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/010-m05-thick-disc-subgiant-ages/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。
+
 星表（VizieR J/other/Nat/603.599/table1，247,104 行）经受守卫的 `ctx.http` 通道从 CfA 的 VizieR 镜像取一次（本机连不上 CDS 的 TAP 主机），只取所需的列（Id、Age、e_Age、[Fe/H]、e_[Fe/H]、[alpha/Fe]、e_[alpha/Fe]、JPHI、MKcomb）：5 行试取实测每行 65 字节，合计约 16 MB。设计见 [`design/019-plan_*`](https://github.com/sudoghut/astrolab/blob/main/design/019-plan_m05-thick-disc-early-formation-subgiant-age-metallicity-sequence.md)；判决规则在完整取数之前冻结于研究 README 第 2–4 节。所有年龄拟合用同一个观测模型（M0）：潜在年龄在 YY 网格 [0, 20] Gyr 上，每颗星的测量年龄以真实年龄为中心、宽度为其 e_Age 的高斯并截断到网格，在 15% 精度的样本 S15 上用以入选为条件的似然。
 
 | 环节 / 结论 | 能否检验或探索 | 怎么做 | 数据（大小） | 判据 | 结果 |
@@ -466,7 +471,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 | 11 Gyr / GSE（R6） | 可描述，不能检验 | 低 J_φ 老盘星年龄的 5% 与 10% 分位数；未做体积改正的年龄峰 | 星表 | 无，体积改正未公开 | 观测年龄峰 11.1 Gyr（J_φ > 500） |
 | `gap_onset` 本身（幸存者、迁移） | 不在范围内 | 需要化学演化与迁移模型 | – | – | – |
 
-**我们的发现（2026-11-16）。** 在已发表的星表上，最老盘箱的 13 Gyr 均值在星表自己的年龄标尺上复现（12.93 Gyr），但它随等年龄线与 α 标尺变化约 1 Gyr、随去卷积变化 0.3–0.7 Gyr，而距大爆炸只有 0.87 Gyr 的余量，所以 `gap_scale` 是关键的一步。8 Gyr 分界无法判定：在数据能分辨的箱里，潜在年龄密度在两个阶段之间下凹，但没有到"几乎不相交"（而且功效模型（power model）的下限使一个富金属箱按构造无法分辨）。老盘序列也无法判定，因为我们去卷积中 15% 误差截断的选择项（selection term）在两种模拟误差机制下都设定错误（独立审稿（referee）发现，事后（post hoc））；非正式地看，跨度（约 6 Gyr）一致，α 选择样本的离散（2.4–2.7 Gyr）约为 XR22 的 0.82 Gyr 的三倍，可能不是同类比较。已登记重新检验（T-031）。数字与网页见研究 README 第 5 节与 `web/index.html`。
+**我们的发现（2026-11-16）。** 在已发表的星表上，最老盘箱的 13 Gyr 均值在星表自己的年龄标尺上复现（12.93 Gyr），但它随等年龄线与 α 标尺变化约 1 Gyr、随去卷积变化 0.3–0.7 Gyr，而距大爆炸只有 0.87 Gyr 的余量，所以 `gap_scale` 是关键的一步。8 Gyr 分界无法判定：在数据能分辨的箱里，潜在年龄密度在两个阶段之间下凹，但没有到"几乎不相交"（而且功效模型（power model）的下限使一个富金属箱按构造无法分辨）。老盘序列也无法判定，因为我们去卷积中 15% 误差截断的选择项（selection term）在两种模拟误差机制下都设定错误（独立审稿（referee）发现，事后（post hoc））；非正式地看，跨度（约 6 Gyr）一致，α 选择样本的离散（2.4–2.7 Gyr）约为 XR22 的 0.82 Gyr 的三倍，可能不是同类比较。已登记重新检验（T-031）。数字与网页见研究 README 第 5 节与[网页（在线版）](https://sudoghut.github.io/astrolab/studies/010-m05-thick-disc-subgiant-ages/web/)。
 
 **用一致的选择项重新检验（T-031，2026-11-20）。** 新的预注册（README 第 2.5 节）把选择项换成在星表上按观测年龄测得的通过比例，模拟的误差也按数据中对年龄的依赖抽取。上面的原标签作为预注册的结果保持不变；重新检验的标签是当前的解读。
 

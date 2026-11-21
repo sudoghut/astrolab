@@ -250,6 +250,9 @@ MOND; only the size of the preference is at stake. This repo tests it directly w
 
 ### Part 3 · What astrolab can test or explore
 
+**Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/004-m07-wide-binaries-gravity-test/web/) (results, figures and tables;
+English/Chinese switch; updated when the site is republished).
+
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
 | R1 · the sample and the median profile (stages B–C) | testable now | rebuild C26's sample with Gaia DR3 server-side self-joins (no 1.8 GB El-Badry catalogue), same cuts, median ṽ in six bins | candidate pairs and per-star neighbour counts, provisionally 10–40 MB (counts first; plan 013) | N within ±20% of 1421 / 1216; per-bin comparison with Fig. 8 diagnostic only (including which error formula reproduces Fig. 8's error bars, about ±0.013 at N = 368); overall median vs 0.489 | **different sample**: N = 639 vs 1421 (per x bin 3, 215, 232, 109, 56, 24 vs 368, 228, 144, 99, 33, 28); A = 0.499 vs 0.489 |
@@ -269,8 +272,7 @@ errors (the formula C26 states) the same medians give L = 1.7 × 10⁻⁵ (MOND)
 outcome, the numerical form of `gap_err`. After the independent referee (post hoc): with the r_sky
 floor at 300 AU the sample (1250 pairs) matches C26's bins much better, and the likelihood ratio swings
 by orders of magnitude with the HR cut and the degrouping (196 Newton to 4.5 × 10⁻⁴ MOND). A
-pre-registered re-test is registered (T-034). Numbers and page: the study README section 5 and
-`web/index.html`.
+pre-registered re-test is registered (T-034). Numbers and page: the study README section 5 and the [web page (online)](https://sudoghut.github.io/astrolab/studies/004-m07-wide-binaries-gravity-test/web/).
 
 **Update 2026-11-18, R5 (T-034, pre-registered): not run.** The enlarged design (d < 250 pc, r_sky ≥
 300 AU) had a velocity-free power gate (G1b) applied before any velocity was fetched. It failed:
@@ -471,6 +473,8 @@ exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) l
 
 ### 第三部分 · astrolab 能检验或探索的环节
 
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/004-m07-wide-binaries-gravity-test/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。
+
 | 环节 / 论断 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
 | R1 · 样本与中位数曲线（环节 B–C） | 现在可检验 | 用 Gaia DR3 服务器端自连接（self-join）重建 C26 的样本（不下载 1.8 GB 的 El-Badry 星表），同样的切割，六个箱的中位数 ṽ | 候选对与逐星的邻居计数，暂估 10–40 MB（先计数；计划 013） | N 在 1421 / 1216 的 ±20% 以内；逐箱与图 8 的比较只作诊断（包括哪个误差公式能复现图 8 的误差棒，N = 368 时约 ±0.013）；总体中位数对 0.489 | **样本不同**：N = 639，C26 为 1421（各 x 箱 3、215、232、109、56、24 对 368、228、144、99、33、28）；A = 0.499，C26 为 0.489 |
@@ -480,7 +484,7 @@ exact p .mod_rule (p .stat_flat) (p .mod_step) (p .stat_pure) (p .mod_notrend) l
 
 Gaia 档案 2026-11-25 至 12-02 下线，所以在此之前取数并缓存；速度列只在研究的预注册提交之后才取（计划 013）。
 
-**我们的发现（2026-11-16）。** 服务器端重建得到 639 对，不到 C26 的 1421 的一半；与 C26 图 8 的计数相比，不足几乎全在 C26 最低的 x 箱，而 C26 所说的 1 kAU 下限填不满这个箱。按预注册的自助法（bootstrap）误差，检验无法区分牛顿与 MOND（L = 0.49），但独立审稿事后发现检验本身没有功效（power）：无噪声的牛顿数据也只给出 L = 6.2。用 C26 的 MAD/√N 误差时，同样的中位数给出 L = 1.7 × 10⁻⁵（偏向 MOND），所以在我们的样本上结果取决于误差约定——这正是 `gap_err` 的数值形式。独立审稿之后（事后，post hoc）：把 r_sky 下限降到 300 AU，样本（1250 对）与 C26 各箱更接近，而似然比随赫罗图截断与去群相差几个数量级（从偏向牛顿的 196 到偏向 MOND 的 4.5 × 10⁻⁴）。已登记预注册的重新检验（T-034）。数字与网页见研究 README 第 5 节与 `web/index.html`。
+**我们的发现（2026-11-16）。** 服务器端重建得到 639 对，不到 C26 的 1421 的一半；与 C26 图 8 的计数相比，不足几乎全在 C26 最低的 x 箱，而 C26 所说的 1 kAU 下限填不满这个箱。按预注册的自助法（bootstrap）误差，检验无法区分牛顿与 MOND（L = 0.49），但独立审稿事后发现检验本身没有功效（power）：无噪声的牛顿数据也只给出 L = 6.2。用 C26 的 MAD/√N 误差时，同样的中位数给出 L = 1.7 × 10⁻⁵（偏向 MOND），所以在我们的样本上结果取决于误差约定——这正是 `gap_err` 的数值形式。独立审稿之后（事后，post hoc）：把 r_sky 下限降到 300 AU，样本（1250 对）与 C26 各箱更接近，而似然比随赫罗图截断与去群相差几个数量级（从偏向牛顿的 196 到偏向 MOND 的 4.5 × 10⁻⁴）。已登记预注册的重新检验（T-034）。数字与网页见研究 README 第 5 节与[网页（在线版）](https://sudoghut.github.io/astrolab/studies/004-m07-wide-binaries-gravity-test/web/)。
 
 **2026-11-18 更新，R5（T-034，预注册）：未运行。** 扩大样本的设计（d < 250 pc，r_sky ≥ 300 AU）在获取任何速度之前先用不含速度的功效门槛（G1b）检查。结果不通过：经过不用速度的截断后，计数只有设计预测的 53%，牛顿真值下预测的似然比为 68（要求 ≥ 100），MOND 真值下为 0.028（要求 ≤ 0.01），所以速度从未获取，R5 不给判决。独立审稿（事后，我们已复核）把不足追溯到去群：C26 的宽松邻居规则在 130 pc 保留 44% 的星对，在 250 pc 只保留 23%；300–1,000 AU 的星对在 150–250 pc 只存活 11%，而且越靠近银道面存活率越低（|b| < 10° 时降到 2%）。定义"邻居"的视差窗口随距离加深，所以这指向偶然邻居而不是真正的三合星（推断，直接检验为 T-043）。这一规则很可能在约 130–150 pc 以外不再适用；已发表的更大样本（Banik et al. 2024，arXiv:2311.03436；El-Badry et al. 2021，arXiv:2101.05282）是对污染建模或估计。已登记偶然邻居率的测量（T-043）。数字见 [`results/r5.json`](https://github.com/sudoghut/astrolab/blob/main/studies/004-m07-wide-binaries-gravity-test/results/r5.json)。
 

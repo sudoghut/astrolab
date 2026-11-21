@@ -319,6 +319,9 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 ### Part 3 · What astrolab can test or explore
 
+**Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/002-m01-desi-bao-evolving-dark-energy/web/) (results, figures and tables;
+English/Chinese switch; updated when the site is republished).
+
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
 | R1 · Stage A input: BAO alone in ΛCDM | testable now | fit Ωm and h·r_d to the DR2 means and covariance | DESI DR2 BAO ALL, ~3 kB | reproduced if Ωm and h·r_d agree with 0.2975 ± 0.0086 and 101.54 ± 0.73 Mpc within the tolerance pre-registered in README §2 | reproduced: Ωm = 0.2979 ± 0.0086, h·r_d = 101.52 ± 0.73 Mpc |
@@ -611,6 +614,8 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 6. **局限**：Lean 检查的是我们编码下的逻辑结构，不是每个前提内部的物理。
 
 ### 第三部分 · astrolab 能检验或探索的环节
+
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/002-m01-desi-bao-evolving-dark-energy/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。
 
 | 环节 / 论断 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
