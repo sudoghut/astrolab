@@ -475,7 +475,70 @@ def test_mcmc_checkpoint_is_compact_resumable_and_removed(tmp_path):
     assert not (tmp_path / "k1").exists() and "removed" in ctx.msgs[-1]
 
 
-def test_checkpoint_size_of_a_formal_chain_is_small():
-    """Kept arrays of one formal chain (48 walkers, 15 parameters, 4000 post-burn steps thinned by 10)."""
-    kept = np.zeros((4000 // 10, 48, 15), np.float32).nbytes + np.zeros((4000 // 10, 48), np.float32).nbytes
-    assert kept < 1.5 * 1024 ** 2
+def test_checkpoint_size_of_a_formal_chain_is_small(tmp_path):
+    """The real storage code at the formal size (48 walkers, 15 parameters, 6000 steps, burn 2000), on a
+    cheap Gaussian posterior: the running state and the final summary each stay near 1-2 MB."""
+    class G15(_Gauss):
+        class setup:
+            free = tuple(f"p{i}" for i in range(15))
+
+        def scales(self):
+            return np.ones(15)
+
+    store = F.Store(tmp_path, "formal")
+    sizes = []
+    orig_put = store.put
+
+    def put(name, obj):
+        orig_put(name, obj)
+        sizes.append(store.size_bytes())
+    store.put = put
+    res = F.run_mcmc(G15(), np.zeros(15), seed=1, n_walkers=48, n_steps=6000, n_burn=2000, store=store, name="c",
+                     chunk=500, log=lambda m: None, min_tau_mult=0.0, thin_keep=10)
+    assert res["samples"].shape == (400 * 48, 15)
+    assert max(sizes) < 4 * 1024 ** 2                 # state and final summary together, at their largest
+    assert store.size_bytes() < 2 * 1024 ** 2         # after the chain: only the final summary
+    assert not store.has("c_a_state")
+
+
+def test_replace_with_retry(tmp_path, monkeypatch):
+    import os as _os
+    src, dst = tmp_path / "a", tmp_path / "b"
+    src.write_text("x")
+    calls = {"n": 0}
+    real = _os.replace
+
+    def flaky(a, b):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise PermissionError("locked")
+        real(a, b)
+    monkeypatch.setattr(F.os, "replace", flaky)
+    F.replace_with_retry(src, dst, tries=5, wait=0.0)
+    assert dst.read_text() == "x" and calls["n"] == 3
+
+
+def test_exploration_checkpoints_are_separate(tmp_path):
+    class Ctx:
+        max_save_bytes = None
+        results = run.HERE / "results"
+    P = dict(run.PARAMS)
+    assert run.is_formal_run(Ctx())
+    assert run.checkpoint_root(tmp_path, P, Ctx()) == tmp_path / P["checkpoint_subdir"]
+
+    class Ex:
+        max_save_bytes = 1024 ** 2
+        results = run.HERE / "explore" / "2026-11-21-topic"
+    assert not run.is_formal_run(Ex())
+    assert run.checkpoint_root(tmp_path, P, Ex()) == tmp_path / P["checkpoint_subdir"] / "explore" / "2026-11-21-topic"
+
+
+def test_t5_select_uses_positions_only():
+    g = W.Grid()
+    cur = F.t5_curve(W.k24_vector(3), g)
+    d = F.synthetic_clusters(g, 60, np.random.default_rng(4))
+    j, end, keep = F.t5_select(cur, d.cx, d.cy, d.cz, cut=math.sqrt(3) * 47)
+    j2, end2, keep2 = F.t5_select(cur, d.cx, d.cy, d.cz, cut=math.sqrt(3) * 47)
+    assert np.array_equal(keep, keep2) and keep.sum() > 30 and not np.any(keep & end)
+    r = F.t5_analyse(cur, d.cx, d.cy, d.cz, d.cvz + 100.0, d.csig, cut=math.sqrt(3) * 47, bandwidth=100.0)
+    assert np.array_equal(r["kept_mask"], keep)             # velocities never change the selection
