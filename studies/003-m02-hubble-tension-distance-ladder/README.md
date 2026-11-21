@@ -878,7 +878,7 @@ pulled up by the outlier, which widens the null it is tested against. So the pow
 expected to be modest, roughly 0.2–0.6, and **"undetermined (underpowered)" is the most likely reading**; the
 reported power curve then says how large a single offset these 37 hosts could separate from diffuse scatter. If the
 power reaches 0.8, we do not rank "preferred" against "not excluded". The size of the plug-in bootstrap test under
-V(τ) for τ in [0.05, 0.105] is expected near or below 0.05 (G's null distribution changes slowly with τ, and the label requires the whole
+V(τ) at the three checked values τ = 0.05, τ̂_obs ≈ 0.077 and 0.105 is expected near or below 0.05 (G's null distribution changes slowly with τ, and the label requires the whole
 Clopper–Pearson interval below 0.05).
 
 *Question.* With τ refitted in every simulation and the outlying host chosen inside the statistic, are the
@@ -924,7 +924,8 @@ rank-deficient or near-singular M gives finite values; every M_jj must be positi
   null distribution depends on τ. This is handled by drawing the null exactly at the refitted τ̂ (no pivotality is
   assumed), by measuring the size of the whole procedure with τ refitted, decisively under VHAT, V050 and V105
   (rule (1)) and reported under C, and by the double-bootstrap p_dbl (reported). The composite-null claim is therefore
-  calibrated over τ in [0.05, 0.105] only (R2-RE's 68% interval, τ̂_obs inside it), not over all τ.
+  calibrated at the three checked values τ = 0.05, τ̂_obs ≈ 0.077 and 0.105 only (the ends of R2-RE's 68% interval and
+  τ̂_obs); interior values are not checked and no monotonicity of the size in τ is assumed.
 
 *The test applied to one data vector (real or simulated).* For a data vector with statistic G and refitted τ̂:
 k = #{i: G_i^in(τ̂) ≥ G} over N_in = 20,000 inner draws, **p_boot = (1 + k)/(1 + N_in)**, and the label
@@ -942,8 +943,8 @@ computed as z_s = B ε_s (+ the offset's term) with B = W K (37 × 3,489, once p
 exactly. In each simulation: z_s, G_s, ĵ_s, u_s → τ̂_s (refitted), then p_boot,s, k_s and the label at τ̂_s.
 - **VHAT (decisive null):** V(τ̂_obs). Its rejection rate is the size at τ̂_obs.
 - **V050 and V105 (decisive for the size):** V(0.05) and V(0.105), the ends of R2-RE's 68% interval (0.048 and 0.105,
-  rounded as in R2-RE-D), the null in each simulation still V(τ̂_s) refitted. Their rejection rates are the size at the
-  ends of the registered null range (Codex review, before any run, 2026-11-21: first registered with VHAT's size only).
+  rounded as in R2-RE-D), the null in each simulation still V(τ̂_s) refitted. Their rejection rates are the size at these
+  two checked values (Codex review, before any run, 2026-11-21: first registered with VHAT's size only; round 2: claim restricted to the checked values).
 - **OANY (decisive alternative):** C plus an offset on one host k_s drawn uniformly from the 37
   (`numpy.random.default_rng(500_000 + s).integers(0, 37)`), **σ-matched**: δ_k = z_obs · σ_δ,k on host k's calibrator
   SN rows, with z_obs = δ̂/σ_δ of N5584 from the run (recorded 3.6354437025541553), so the offset host's expected z is
@@ -968,7 +969,7 @@ exactly. In each simulation: z_s, G_s, ĵ_s, u_s → τ̂_s (refitted), then p_b
   does not re-time. N_in never changes.
 
 *Power, size and their order (fixed before the data value is read).* For a model m, R_m = #{s: label_s =
-"excluded"}/n, with its Clopper–Pearson interval. **Power = min(R_OANY, R_OANYVN)** (point estimates) and the **size** = max(R_VHAT, R_V050, R_V105), over the registered null range τ in [0.05, 0.105]. Neither
+"excluded"}/n, with its Clopper–Pearson interval. **Power = min(R_OANY, R_OANYVN)** (point estimates) and the **size** = max(R_VHAT, R_V050, R_V105), at the three checked values τ = 0.05, τ̂_obs and 0.105 only. Neither
 depends on G_obs: power uses only the design (L, C, the host groups), z_obs and the recorded τ̂_N; size also uses τ̂_obs. The block runs
 in two stages. **Power stage** (`g_stage = "power"`): the reproduction checks that use no data value beyond those
 recorded here (τ̂_obs, the REML grid, δ̂, σ_δ and z_obs of N5584), then all outer simulations; it writes
@@ -989,7 +990,7 @@ labels and readings stay as recorded.
   `reml_tau` on `reml_m2l` within 2 × 10⁻⁵); τ̂_obs at the upper bound; some M_jj ≤ 0; the Cholesky factor of C, V(τ̂_obs), V(0.05), V(0.105) or V(τ̂_N) fails;
   the full stage does not reproduce the power stage's counts; the runtime guard's floor is not met ("not evaluated
   (runtime)"); or the test is anti-conservative: the 95% Clopper–Pearson interval of the rejection rate lies entirely above 0.05
-  under any of VHAT, V050 or V105 → "not evaluable (anti-conservative at τ = <list>)" (Codex review, before any run, 2026-11-21: first registered with VHAT's size only). A reported model whose factor fails is "not evaluable" alone and enters no rule.
+  under any of VHAT, V050 or V105 → "not evaluable (anti-conservative at τ = <list>)" (Codex review, before any run, 2026-11-21: first registered with VHAT's size only; round 2: claim restricted to the checked values). A reported model whose factor fails is "not evaluable" alone and enters no rule.
 - (2) Power < 0.8 → **"undetermined (underpowered)"**, whatever p_G is (p_G and its label are still reported).
   This is a conservative choice (a rejection by a size-checked test would remain valid at low power): with power below
   0.8 no outcome of G is read as deciding between the two pictures. When p_G's label is "excluded", the sub-label
@@ -1001,7 +1002,7 @@ labels and readings stay as recorded.
 - Notes. 0.8 is compared with the smaller of the two point estimates (n = 10,000, standard error about 0.004; exactly 0.8 counts as
   powered). Rules (3)–(5) use the same three-way Clopper–Pearson label as each simulation, so R_OANY and R_OANYVN are the
   probabilities, under each alternative, that the whole procedure (τ refitted, bootstrap, label) reads "excluded". "Preferred" in (3)
-  means that diffuse scatter of the fitted size is excluded (the size checked over τ in [0.05, 0.105] only) by a concentration statistic that was powered against one
+  means that diffuse scatter of the fitted size is excluded (the size checked at τ = 0.05, τ̂_obs ≈ 0.077 and 0.105 only) by a concentration statistic that was powered against one
   offset host; it does not say that the offset is a data defect, nor whether it sits on the SN or the Cepheid side.
 
 *What changes in section 5 (the text, not any earlier label).* A new subsection "R2-RE-G". Reading (3) → section 5
@@ -1009,7 +1010,7 @@ states that, with τ refitted in every simulation and the host chosen inside the
 calibrator offsets in one host is unusual under diffuse host scatter of the fitted size; R2-RE-D's reading stays
 recorded, glossed "a powered composite shape test prefers one offset host (R2-RE-G)", with the caveats that G's form
 was proposed after the data were seen and that C is taken as correct. Reading (4) → section 5 states that G does not
-exclude diffuse scatter (τ in [0.05, 0.105]) with a test that would have found a σ-matched single outlier in at least 80% of cases, both on C and on V(τ̂_N); R2-RE-D's
+exclude diffuse scatter with τ = 0.05, 0.077 or 0.105, with a test that would have found a σ-matched single outlier in at least 80% of cases, both on C and on V(τ̂_N); R2-RE-D's
 gloss "not distinguished" becomes "diffuse scatter not excluded by a powered shape test", with the reverse check next to
 it. Reading (2), (5) or "not evaluable" → section 5 states that no powered shape test separates the two pictures on
 these data, quoting the power, the size and the smallest curve z with power ≥ 0.8 (if any); R2-RE-D's reading and gloss
