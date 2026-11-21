@@ -524,6 +524,7 @@ def test_cholesky_failure_makes_that_model_not_evaluable(lad):
     for k in ("C", "V050", "V077", "O", "Olo", "OVN", "Oany"):
         assert out["models"][k]["status"] == "evaluated"
     assert out["reading"] == "not evaluable"
+    assert out["status"] == "not evaluable (a decisive model is not evaluable)"    # block status follows rule (1)
 
 
 def test_fit_failure_for_another_dropped_host(lad, base):
