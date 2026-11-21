@@ -734,7 +734,9 @@ labels and readings stay as recorded.
   whose d' = d is not evaluable (as `sel.spread_part` does); a failed Cholesky factor of a model → that
   model not evaluable; any decisive model not evaluable → reading "not evaluable".
 - (2) Every V(τ) (0.05, 0.077, 0.105) "excluded (J)", and O(δ̂) "not excluded (J)" and "not excluded
-  (D)" → **"one outlying host favoured over diffuse host scatter (τ = 0.05–0.105)"**, with the qualifier
+  (D)" → **"diffuse host scatter (τ = 0.05–0.105) excluded by J; one offset host not excluded"**
+  (this does not establish that the one-offset-host model is preferred: O(δ̂) is fitted to the same data,
+  so its non-exclusion is a consistency check), with the qualifier
   "(both statistics)" if every V(τ) is also "excluded (D)", else "(joint statistic only; D does not exclude
   τ = <list>)".
 - (3) Any V(τ) "not excluded (J)" → **"diffuse host scatter not excluded (τ = <list>)"**.
@@ -772,7 +774,8 @@ holding the 10,000 (spread_37, spread_36) pairs rounded to 4 decimals, d' per si
 half-B simulation the integer count of half-A simulations in its quadrant, plus that count at the observed
 point (about 180 KB each, every file below 1 MB). The test recomputes k_J exactly from the saved integer
 counts, checks those counts against the pairs only away from rounding ties (pairs within 5 × 10⁻⁵ of each
-other in either coordinate are skipped), and recomputes k_D from the pairs except within 5 × 10⁻⁵ of D_obs.
+other in either coordinate are skipped), and recomputes k_D from the pairs except within 1.5 × 10⁻⁴ of D_obs
+(the largest rounding error of a difference of two rounded values is 10⁻⁴).
 
 *Runtime (from measured times).* Recorded in `r2_re_sel.json`: criterion S's 37-host rows 109 s
 (`criterion_s_rows`); the 37 reduced systems' rows 100–115 s each, 4,067 s in all
