@@ -128,8 +128,8 @@ new data), example questions, results keys. An agent answering a "what if" quest
   https://sudoghut.github.io/astrolab/studies/<id>/web/ (template line "Interactive page"); results
   text links to that page, not to `web/index.html` on GitHub.
 - Extend part 3: fill the Result column and add "what we found" with numbers and links to the
-  results files. The interactive page runs locally (`python -m astrolab serve`); add a static
-  figure if wiki readers need to see it.
+  results files. The interactive page is online (link above; locally `python -m astrolab serve`); add a
+  static figure if wiki readers need to see a result without opening it.
 - If results change the analysis (a `NUM` binding fails, a `GAP` turns out to matter), update
   part 2 and `Argument.lean` too.
 - Every later change to the study: wiki changelog entry and updated sections in the same PR; when
