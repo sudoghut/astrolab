@@ -514,7 +514,7 @@ def _sel_cp(k, n):
 
 # R2-RE-D values recorded before the addendum (README section 2, addendum 2026-11-21, rule (1))
 D_RECORDED = {"spread_37": 1.3070929081086322, "spread_36": 1.0325254787240916, "crit_s": 1.027,
-              "delta_hat": 0.33633686472064284}
+              "delta_hat": 0.33634}
 D_TAUS = (0.05, 0.077, 0.105)
 
 
@@ -541,8 +541,9 @@ def test_r2_re_d_labels():
     assert out["host"] == "N5584"
     ob = out["observed"]
     assert ob["mismatches"] == []
-    for key, rtol in (("spread_37", 1e-9), ("spread_36", 1e-9), ("delta_hat", 1e-6)):
-        assert abs(ob[key] - D_RECORDED[key]) <= rtol * abs(D_RECORDED[key]), key
+    for key in ("spread_37", "spread_36"):
+        assert abs(ob[key] - D_RECORDED[key]) <= 1e-9 * abs(D_RECORDED[key]), key
+    assert abs(ob["delta_hat"] - D_RECORDED["delta_hat"]) <= 5e-6     # absolute: its recorded precision
     assert ob["crit_s_selected"] == "N5584" and abs(ob["crit_s_host_value"] - D_RECORDED["crit_s"]) <= 0.001
     assert abs(ob["D"] - (ob["spread_37"] - ob["spread_36"])) < 1e-12
     assert abs(ob["D_proxy"] - (ob["spread_37"] - ob["crit_s_min"])) < 1e-12

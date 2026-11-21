@@ -1049,11 +1049,14 @@ def main(ctx):
     ctx.save("r2_re_sel", sel_out)
 
     # ---- R2-RE-D (README section 2, addendum 2026-11-21, T-048): runs after the R2-RE-SEL block, under the
-    # condition of the R2-RE-N5584 block (R2-RE run and the host step evaluable); tau_hat_N from that block
-    # when it was evaluated, else computed in the block
+    # condition of the R2-RE-N5584 block (that block run, R2-RE run and the host step evaluable); tau_hat_N
+    # from that block when it was evaluated, else computed in the block
     keys_d = onehost.model_keys([float(t) for t in P["d_taus"]])
     if not P["d_check"]:
         st = "not run (PARAMS)"
+        d_out, sims_d = {"status": st}, {k: {"model": k, "status": st} for k in keys_d}
+    elif not P["n5584_check"]:
+        st = "not run (the R2-RE-N5584 block is not run)"
         d_out, sims_d = {"status": st}, {k: {"model": k, "status": st} for k in keys_d}
     elif not (P["re_check"] and ident["host_step_evaluable"]):
         st = "not evaluable (R2-RE not run or host step not evaluable)"
