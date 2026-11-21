@@ -30,9 +30,12 @@ stars therefore formed early, before much enrichment had happened.
 
 Where in the Milky Way should the oldest stars be? Cosmological simulations of galaxies like ours
 predict that the first stars formed in the several dense clumps that merged early into the
-"proto-Galaxy", the Milky Way's progenitor before it had a disc. Those stars should now sit in the
-deepest part of the potential well, close to the Galactic Centre, on hot (randomly oriented, not
-orderly rotating) orbits. R22's abstract puts it as an expectation for massive disc galaxies: they
+"proto-Galaxy", the Milky Way's progenitor before it had a disc. Many of those stars are
+expected to sit today in the deepest part of the potential well, close to the Galactic Centre, on hot
+(randomly oriented, not orderly rotating) orbits. R22's introduction expects the oldest, most
+metal-poor stars there to be a mix: stars from the early proto-Galactic overdensities and stars from
+satellites that merged later, and it notes that the distinction between the two can blur at early
+times. R22's abstract puts it as an expectation for massive disc galaxies: they
 "should host an ancient, metal-poor, and centrally concentrated stellar population".
 
 Before 2022 this population was hard to see. The inner Galaxy is crowded and heavily obscured by
@@ -153,7 +156,8 @@ metallicity floor" or reflects that "the APOGEE training set for XGBoost only ex
 [M/H]=−2.5" needs follow-up. The abstract's lower bound
 −2.7 is not explained in the text (not verified where it comes from).
 
-*Back-of-envelope check.* If d log n/d[M/H] = 1 exactly, the number below a metallicity grows by a
+*Back-of-envelope check.* Assume (our assumption) that d log n/d[M/H] = 1 holds exactly across the
+whole interval we extrapolate over, −2 to −1. Then the number below a metallicity grows by a
 factor 10^0.5 ≈ 3.2 for every 0.5 dex. From 18,000 below −1.5 this predicts about 5,700 below −2 and
 about 57,000 below −1. The ">4,000" below −2 fits a steeper fall-off below −2, as stated; "∼70,000"
 below −1 is close to the power law, while "almost 100,000" would need a rise by a factor of about 5.5
@@ -189,10 +193,11 @@ suggesting M* ≳ 10⁸ M☉.
 *Back-of-envelope check.* 18,000–20,000 giants × 800 M☉ = 1.4–1.6×10⁷ M☉, rounded to 2×10⁷ (the
 sample counts include stars fainter than M_G = 0.5, down to a colour-corrected (approximately
 dereddened, our reading) M_G ≈ 0.9, so the template does not match
-the sample cut exactly). The per-giant mass itself does not follow from the numbers quoted: if half of
-M4's mass lies beyond its half-mass radius, 35 giants there mean about 3.5×10⁴/35 ≈ 1,000 M☉ per
-giant (7×10⁴/35 = 2,000 if the whole mass is used), not 800. The steps between are not given (our
-arithmetic; not verified against the PDF or the journal version).
+the sample cut exactly). We could not reproduce the per-giant mass from the figures quoted: assuming half of M4's mass
+lies beyond its half-mass radius, 35 giants there give about 3.5×10⁴/35 ≈ 1,000 M☉ per giant
+(7×10⁴/35 = 2,000 if the whole mass is used), not 800. R22 do not give the intermediate steps, so this
+is an unresolved mismatch in the quoted figures, not evidence that the conversion is wrong (our
+arithmetic and assumption; the PDF and journal version not checked).
 
 **Step 5 · How do they move?** (Section III.3, Figs. 5, 6). Most metal-poor stars have hot, eccentric
 orbits (eccentricities spread nearly flat from about 0.1 to 0.8) that stay in the inner Galaxy (mean
@@ -264,7 +269,8 @@ Points of our reading to carry into part 2:
 - **Table 1 vs text**: the adopted configuration's row (0.049 dex, 0.107 dex) is the best in Table 1,
   but Appendix A.1 says "this final configuration has slightly worse performance than the best configuration" and that its RMS error suggests "a few more outliers".
 - **The mass** is ≳5×10⁷ M☉ in the abstract and ≳10⁸ M☉ in the summary, and its per-giant
-  conversion (800 M☉) does not follow from the quoted M4 numbers by simple arithmetic.
+  conversion (800 M☉) could not be reproduced from the quoted M4 figures (an unresolved mismatch
+  under our assumption of half the mass outside the half-mass radius; not evidence that it is wrong).
 - **σ ≈ 2.7 kpc has no uncertainty**, rests on a spherical Gaussian (no flattening), on parallaxes
   with median precision ∼5, and on a model that does not include dust or crowding.
 - **"Predate the oldest disk" is an inference, not an age measurement**: no star in the sample has an
@@ -348,6 +354,9 @@ To be written next.
 
 Newest first.
 
+- 2026-11-21: part 1 gate-2 (Codex): no serious issues; three wording minors (R22's expected mix of
+  proto-Galactic and accreted stars, the slope assumption of the count check, the 800 M☉ point as an
+  unresolved mismatch).
 - 2026-11-21: part 1 gate-1 review: exact parallax/luminosity query cut (colour-corrected G); Table 1
   vs text and Section II.4's 1.5 million added to the inconsistencies; section attributions of quotes
   and caveats; R22's "This does not necessarily imply that these mergers did not occur"; angle and
@@ -377,7 +386,7 @@ Newest first.
 
 恒星保存着它出生时气体的化学记录。最早的恒星几乎由纯氢和氦形成；此后每一代爆发的恒星都加入更重的元素（天文学家统称为"金属"）。恒星的**金属丰度**（metallicity）[M/H] 是其金属与氢之比相对于太阳的对数：[M/H] = 0 为太阳值，−1 为十分之一，−2 为百分之一。所以极贫金属的恒星形成得很早，那时增丰还没有进行多少。
 
-银河系最老的恒星应该在哪里？类银河系星系的宇宙学模拟（cosmological simulations）预言：最早的恒星形成于几个很早就并合成"原银河系"（proto-Galaxy，即银河系还没有盘之前的前身）的致密团块之中。这些恒星现在应当位于引力势（gravitational potential）阱最深处，靠近银心，处在热的（取向随机、不作有序转动的）轨道上。R22 摘要把这写成对大质量盘星系的预期：它们"should host an ancient, metal-poor, and centrally concentrated stellar population"（应当拥有一个古老、贫金属、向中心集中的恒星族群）。
+银河系最老的恒星应该在哪里？类银河系星系的宇宙学模拟（cosmological simulations）预言：最早的恒星形成于几个很早就并合成"原银河系"（proto-Galaxy，即银河系还没有盘之前的前身）的致密团块之中。预计其中许多恒星今天位于引力势（gravitational potential）阱最深处，靠近银心，处在热的（取向随机、不作有序转动的）轨道上。R22 的引言预期那里最老、最贫金属的恒星是混合的：既有来自早期原银河系高密度团块（overdensities）的星，也有来自较晚并合的卫星星系的星，并指出两者的区分在早期可能变得模糊。R22 摘要把这写成对大质量盘星系的预期：它们"should host an ancient, metal-poor, and centrally concentrated stellar population"（应当拥有一个古老、贫金属、向中心集中的恒星族群）。
 
 2022 年之前这个族群很难看到。内银河系拥挤，被尘埃严重遮挡，而贫金属星在那里只占极小的少数（大多数核球星是富金属的）。早先的工作用窄带测光预选找到了这类恒星（例如 Arentsen 等的原初内银河系巡天（Pristine Inner Galaxy Survey, PIGS）），Belokurov 与 Kravtsov 2022 在太阳附近识别出一个古老、运动学上热、化学上独特的原位（in situ，在银河系内诞生的）族群，命名为**曙光**（Aurora），盘就从它当中演化出来。缺的是内银河系几千秒差距（千秒差距 kpc；1 kpc ≈ 3,260 光年）内一个大而均匀、带金属丰度与轨道的贫金属星样本。2022 年 6 月发布的 Gaia 第三次数据发布（Data Release 3, DR3）使之成为可能。
 
@@ -424,7 +433,7 @@ Newest first.
 
 （引言与第 II.4 节写 150 万（"estimates for 1.5 million stars towards the Galactic center"，其中 125 万颗有轨道），Zenodo 说明也是 150 万；查询返回 210 万。）分布的形状：对数数密度随金属丰度上升，在约 −2 到 −1 之间 d log n/d[M/H] ≈ 1，在 −2 以下以及 −1 到 −0.6 之间更陡，在 [M/H] ≈ −0.6 附近达到峰值。尾巴止于 [M/H] ≈ −2.5 附近；R22 写道（第 IV 节），这是"genuine metallicity floor"（真实的金属丰度下限），还是反映了"the APOGEE training set for XGBoost only extended to [M/H]=−2.5"（XGBoost 的 APOGEE 训练集只延伸到 [M/H] = −2.5），需要后续工作。摘要的下界 −2.7 在正文中没有解释（来源未核实）。
 
-*粗略验算。* 如果 d log n/d[M/H] 恰好为 1，那么每 0.5 dex，低于某金属丰度的星数增大 10^0.5 ≈ 3.2 倍。从 −1.5 以下的 18,000 颗出发，预计 −2 以下约 5,700 颗，−1 以下约 57,000 颗。−2 以下的">4,000"符合文中所说 −2 以下更陡的下降；−1 以下的"∼70,000"接近幂律，而"近 100,000"需要从 −1.5 到 −1 增大约 5.5 倍，比 R22 对该区间描述的斜率更陡。这是我们的算术，不是 R22 的。
+*粗略验算。* 假设（我们的假设）d log n/d[M/H] = 1 在我们外推的整个区间（−2 到 −1）都严格成立，那么每 0.5 dex，低于某金属丰度的星数增大 10^0.5 ≈ 3.2 倍。从 −1.5 以下的 18,000 颗出发，预计 −2 以下约 5,700 颗，−1 以下约 57,000 颗。−2 以下的">4,000"符合文中所说 −2 以下更陡的下降；−1 以下的"∼70,000"接近幂律，而"近 100,000"需要从 −1.5 到 −1 增大约 5.5 倍，比 R22 对该区间描述的斜率更陡。这是我们的算术，不是 R22 的。
 
 **第 3 步 · 它们在哪里？空间尺度**（第 III.1 节、图 2、3）。贫金属星太远，单颗星的距离不好：它们视差精度的中位数"only ϖ/σ_ϖ∼5"（只有约 5；全样本约 12；全样本中 1% 的视差为负）。所以 R22 没有逐颗把视差换成距离，而是假设一个模型（式 1）：恒星按银心距 R_GC 服从宽度为 σ_RGC 的**球对称高斯分布**（spherical Gaussian），每个方向、每个视差区间中预期的星数为 n(ϖ) = dΩ dϖ ϖ⁻⁴ ρ_Gauss(R(ϖ, l, b), σ_RGC)（ϖ⁻⁴ 把距离 1/ϖ 处的体积元换成视差区间）。用最大似然（maximum likelihood）拟合观测视差（含误差与 0.02 mas 的视差零点改正），对 [M/H] < −1.5 的星得到"an extent of σ_RGC∼2.7 kpc"（约 2.7 kpc 的尺度）。没有给出不确定度，没有尝试扁平形状，论文把尘埃、拥挤与视差误差的建模留作后续工作。
 
@@ -432,7 +441,7 @@ Newest first.
 
 **第 4 步 · 质量多大？**（第 III.2 节）。计数的只是高光度巨星；它们代表多少恒星质量需要一个模板族群。R22 用球状星团（globular cluster）M4（一个古老、贫金属的星团）：其半质量半径（half-mass radius）6′ 以外约有 35 颗 M_G < 0.5 的巨星，总质量 7×10⁴ M☉，这"implies one giant (at M_G<0.5) per 800 M☉ of total stellar population mass"（意味着每 800 M☉ 的恒星总质量有一颗 M_G < 0.5 的巨星）。照此计算，[M/H] < −1.5 的星代表 M_tot ∼ 2×10⁷ M☉。拥挤与尘埃会遮住恒星，所以 R22 乘上"a conservative estimate"（保守估计）2.5 倍，给出下限 M_tot ≳ 5×10⁷ M☉（摘要与第 III.2 节）。总结更进一步："manifest dust obscuration implies a large correction"（明显的尘埃遮挡意味着很大的改正），提示 M* ≳ 10⁸ M☉。
 
-*粗略验算。* 18,000–20,000 颗巨星 × 800 M☉ = 1.4–1.6×10⁷ M☉，取整为 2×10⁷（样本计数包括比 M_G = 0.5 暗、直到经颜色改正（近似消红化，我们的解读）的 M_G ≈ 0.9 的星，所以模板与样本截断并不完全一致）。每颗巨星对应的质量本身并不能从所引的数字推出：如果 M4 一半的质量在半质量半径以外，那里的 35 颗巨星意味着每颗约 3.5×10⁴/35 ≈ 1,000 M☉（若用全部质量则 7×10⁴/35 = 2,000），不是 800。中间步骤没有给出（我们的算术；未对照 PDF 或期刊版核实）。
+*粗略验算。* 18,000–20,000 颗巨星 × 800 M☉ = 1.4–1.6×10⁷ M☉，取整为 2×10⁷（样本计数包括比 M_G = 0.5 暗、直到经颜色改正（近似消红化，我们的解读）的 M_G ≈ 0.9 的星，所以模板与样本截断并不完全一致）。我们无法用所引的数字复现每颗巨星对应的质量：假设 M4 一半的质量在半质量半径以外，那里的 35 颗巨星给出每颗约 3.5×10⁴/35 ≈ 1,000 M☉（若用全部质量则 7×10⁴/35 = 2,000），不是 800。R22 没有给出中间步骤，所以这是所引数字之间一个尚未解决的不符，而不是换算有误的证据（我们的算术与假设；未核对 PDF 与期刊版）。
 
 **第 5 步 · 它们怎样运动？**（第 III.3 节、图 5、6）。大多数贫金属星处在热的偏心轨道上（偏心率（eccentricity）从约 0.1 到 0.8 几乎均匀分布），并留在内银河系（平均远心距（apocentre）⟨R_apo⟩ ≈ 4 kpc，第 III.3 节；总结第 IV 节："most stars have apocenters of less than 5 kpc"，大多数星的远心距小于 5 kpc）。另有一群 e ≥ 0.75、R_apo ≳ 10 kpc 的星被认定为正经过近心点（pericentre）的盖亚–香肠–恩克拉多斯（Gaia-Sausage-Enceladus, GSE）并合碎片；R22 没有定量估计这种混入。转动量 J_φ/J_tot 随金属丰度上升：摘要说"Stars with [M/H]<−2 show no net rotation"（[M/H] < −2 的星没有净转动），"those with [M/H]∼−1 are rotation dominated"（[M/H] ∼ −1 的星以转动为主）；第 III.3 节更谨慎（"starting already at [M/H]<−2 there is some, albeit small, net" rotation，即从 [M/H] < −2 开始就已有一些虽小的净转动），给出 [M/H] = −1.3 时 J_φ/J_tot ≈ 0.3，并在 −0.7 附近趋平；总结给出 [M/H] = −1.5 时 0.25、−0.8 时 ≈0.9。
 
@@ -460,7 +469,7 @@ Newest first.
 
 - **计数内部不一致**（第 2 步的表）：−1.5 以下 ∼18,000 与 ∼20,000；−2 以下 >4,000 与 ∼5,000；−1 以下近 100,000 与 ∼70,000；样本量取决于看哪里，是 150 万（引言、第 II.4 节）、170 万（图 4）、200 万（摘要、II.2、IV）或 210 万（查询）（部分可能反映不同的子样本，例如截断前后，但论文没有说明）。
 - **表 1 与正文**：所采用配置的一行（0.049 dex、0.107 dex）在表 1 中是最好的，但附录 A.1 说"this final configuration has slightly worse performance than the best configuration"（这一最终配置的表现比最好的配置略差），且其 RMS 误差提示"a few more outliers"（多一些离群值）。
-- **质量**在摘要中为 ≳5×10⁷ M☉，在总结中为 ≳10⁸ M☉；每颗巨星的换算（800 M☉）不能由所引的 M4 数字简单算出。
+- **质量**在摘要中为 ≳5×10⁷ M☉，在总结中为 ≳10⁸ M☉；每颗巨星的换算（800 M☉）无法由所引的 M4 数字复现（在一半质量位于半质量半径以外的假设下，这是一个尚未解决的不符，不是换算有误的证据）。
 - **σ ≈ 2.7 kpc 没有不确定度**，依赖球对称高斯（无扁平）、中位精度约 5 的视差，以及一个不含尘埃与拥挤的模型。
 - **"早于最老的盘"是推断，不是年龄测量**：样本中没有一颗星有年龄。它需要年轻银河系各处都有单调的年龄—金属丰度关系，而 12.5 Gyr 的盘年龄本身来自 Xiang & Rix 2022，有其绝对标尺的不确定性（见研究 010 的文章）。
 - **低 [M/H] 处的金属丰度系统误差**：在极贫金属星很少的 APOGEE 上训练的 XGBoost 不能给出低于训练范围的值，而且像一般的回归模型一样，预计会把极端值拉向主体（一般性质，R22 没有测量）；[M/H] < −2 处的验证很薄弱（GSP-Spec 达不到那里；APOGEE 检验用的是训练星）。如果尾巴被金属丰度被估低的富金属星污染（样本中每颗 [M/H] < −1.5 的星对应约 100 颗更富金属的星：约 200 万颗中的 ∼18,000 颗），会抬高计数、质量，也许还有测得的尺度。
@@ -506,6 +515,7 @@ Newest first.
 
 按时间倒序。
 
+- 2026-11-21：第一部分闸门 2（Codex）：没有严重问题；三处措辞小问题（R22 预期的原银河系星与吸积星的混合、计数验算的斜率假设、800 M☉ 一点作为尚未解决的不符）。
 - 2026-11-21：第一部分闸门 1 审查：给出视差/光度查询截断的精确表达式（经颜色改正的 G）；表 1 与正文的矛盾、第 II.4 节的 150 万加入不一致清单；引文与注意事项注明所在章节；加上 R22 的"This does not necessarily imply that these mergers did not occur"；张角与红移验算改为精确值；Zenodo 作者与 DOI；Chen 等的措辞；中文术语括注英文；第二轮：附录 A.1 的精确引文（"slightly worse performance"、"a few more outliers"）、"predates"、消红化标为"我们的解读"、第 IV 节关于训练范围（−2.5）的引文、引文标点。
 - 2026-11-21：起草第一部分（科普详解；数字取自 arXiv v1，后续文献据摘要）。计划 `design/028-plan_*`。
 
