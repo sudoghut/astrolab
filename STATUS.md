@@ -86,6 +86,7 @@
 | `008-m03-s8-des-y6-cmb-parameter-difference` | L0 | reproduced | DES Y6 与 CMB 的参数差异复现（S8 2.67σ，S8–Ωm 2.18σ）；结论取决于"低于 3σ 即没有证据"的用法；归一化流（normalizing flow）给出的完整 6 维差异（1.70σ）只作描述（训练离散超过预注册上限，R6 无判定），主要来自 Σmν 方向（不含 Σmν 时 0.52σ，T-040）以及 Σmν 与其他 DES 参数的相关（T-044） |
 | `009-m06-mw-outer-rotation-curve-decline` | L3 | reproduced | J23 的幂律与质量在其假设下复现；3σ 部分来自先验、误差不独立，总质量由晕的形状决定；R6-COV（T-028）：在相关误差下（只在高 f 协方差下；平方指数核）下降约 3–5σ、开普勒式无法区分、NFW 不被看好 |
 | `010-m05-thick-disc-subgiant-ages` | L3 | concluded | 13 Gyr 均值复现（12.93 Gyr）；一致选择项下（R-SEL，T-031）老盘跨度复现（6.09 Gyr）、弥散未复现（2.55 Gyr），两者都对选择项敏感（原判定"无法确定"保留）；内禀离散确认但不稳健（0.748 Gyr）；8 Gyr 分界：R1-SEL 记录为无法判定；改进模拟拟合的预注册重跑 R1-SEL-FIT（T-049）为"未复现（稳健；选择项稳健）"，前提是星表给出的年龄误差与理想化的分界模型（T-054） |
+| `012-m12-poor-old-heart` | L3 | planned | 论文研究（Rix 等 2022）：Wiki 与预注册之前；数据为两个 Zenodo 文件（213.8 MB），2026-11-21 用户同意破例（T-021） |
 | `001-m04-gaia-dormant-black-holes` | L4 | reproduced（DR3） | BH1、BH2 只用 DR3 复现成立；服务器端筛选与否决规则已在正样本上验证；按数据发布参数化，DR4 判据已预注册（计划 008），发布日按技能 `gaia-dr4-release-day` 运行 |
 
 ## 时间点

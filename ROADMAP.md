@@ -41,7 +41,7 @@ DR4 的内容：
 
 候选里程碑：
 - M11：Radcliffe 波（Radcliffe Wave）的振荡（Konietzka et al. 2024, Nature 628, 62 [V]）。细节为 [U]。
-- M12：Gaia XP 光谱金属丰度（metallicity），以及银河系"贫而老的核心（poor old heart）"。全部为 [U]。
+- M12：Gaia XP 光谱金属丰度（metallicity），以及银河系"贫而老的核心（poor old heart）"（Rix et al. 2022, ApJ 941, 45, arXiv:2209.02722 [V]）。细节已按 arXiv v1 核实 [V]（2026-11-21，计划 028），期刊版差异未核实；研究 012（T-021）。
 
 ---
 
