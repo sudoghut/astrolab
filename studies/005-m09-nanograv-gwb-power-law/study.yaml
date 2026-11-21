@@ -21,32 +21,32 @@ footprint:
       - {name: "PSR J0023+0923", ra: 5.8203, dec: 9.39}
       - {name: "PSR J0030+0451", ra: 7.6143, dec: 4.861}
       - {name: "PSR J0340+4130", ra: 55.097, dec: 41.5126}
-      - {name: "PSR J0406+3039", ra: 61.5, dec: 30.65}  # position from the truncated J2000 name (a few arcmin)
+      - {name: "PSR J0406+3039", ra: 61.5, dec: 30.65}  # position from the truncated J2000 name (up to ~8 arcmin)
       - {name: "PSR J0437-4715", ra: 69.3163, dec: -47.2525}
-      - {name: "PSR J0509+0856", ra: 77.25, dec: 8.9333}  # position from the truncated J2000 name (a few arcmin)
-      - {name: "PSR J0557+1551", ra: 89.25, dec: 15.85}  # position from the truncated J2000 name (a few arcmin)
-      - {name: "PSR J0605+3757", ra: 91.25, dec: 37.95}  # position from the truncated J2000 name (a few arcmin)
+      - {name: "PSR J0509+0856", ra: 77.25, dec: 8.9333}  # position from the truncated J2000 name (up to ~8 arcmin)
+      - {name: "PSR J0557+1551", ra: 89.25, dec: 15.85}  # position from the truncated J2000 name (up to ~8 arcmin)
+      - {name: "PSR J0605+3757", ra: 91.25, dec: 37.95}  # position from the truncated J2000 name (up to ~8 arcmin)
       - {name: "PSR J0610-2100", ra: 92.5566, dec: -21.0078}
       - {name: "PSR J0613-0200", ra: 93.4333, dec: -2.0131}
-      - {name: "PSR J0636+5128", ra: 99.0, dec: 51.4667}  # position from the truncated J2000 name (a few arcmin)
+      - {name: "PSR J0636+5128", ra: 99.0, dec: 51.4667}  # position from the truncated J2000 name (up to ~8 arcmin)
       - {name: "PSR J0645+5158", ra: 101.4962, dec: 51.9708}
-      - {name: "PSR J0709+0458", ra: 107.25, dec: 4.9667}  # position from the truncated J2000 name (a few arcmin)
-      - {name: "PSR J0740+6620", ra: 115.0, dec: 66.3333}  # position from the truncated J2000 name (a few arcmin)
+      - {name: "PSR J0709+0458", ra: 107.25, dec: 4.9667}  # position from the truncated J2000 name (up to ~8 arcmin)
+      - {name: "PSR J0740+6620", ra: 115.0, dec: 66.3333}  # position from the truncated J2000 name (up to ~8 arcmin)
       - {name: "PSR J0931-1902", ra: 142.8297, dec: -19.0486}
       - {name: "PSR J1012+5307", ra: 153.1393, dec: 53.1174}
       - {name: "PSR J1012-4235", ra: 153.0292, dec: -42.5833}  # coarse catalogue position (to ~10 arcmin)
       - {name: "PSR J1022+1001", ra: 155.7417, dec: 10.0313}
       - {name: "PSR J1024-0719", ra: 156.1612, dec: -7.3221}
-      - {name: "PSR J1125+7819", ra: 171.25, dec: 78.3167}  # position from the truncated J2000 name (a few arcmin)
+      - {name: "PSR J1125+7819", ra: 171.25, dec: 78.3167}  # position from the truncated J2000 name (up to ~8 arcmin)
       - {name: "PSR J1312+0051", ra: 198.0, dec: 0.85}  # coarse catalogue position (to ~10 arcmin)
       - {name: "PSR J1453+1902", ra: 223.4405, dec: 19.0367}
       - {name: "PSR J1455-3330", ra: 223.9499, dec: -33.5129}
       - {name: "PSR J1600-3053", ra: 240.2162, dec: -30.8971}
       - {name: "PSR J1614-2230", ra: 243.6521, dec: -22.5087}
-      - {name: "PSR J1630+3734", ra: 247.5, dec: 37.5667}  # position from the truncated J2000 name (a few arcmin)
+      - {name: "PSR J1630+3734", ra: 247.5, dec: 37.5667}  # position from the truncated J2000 name (up to ~8 arcmin)
       - {name: "PSR J1640+2224", ra: 250.0698, dec: 22.4024}
       - {name: "PSR J1643-1224", ra: 250.909, dec: -12.4163}
-      - {name: "PSR J1705-1903", ra: 256.25, dec: -19.05}  # position from the truncated J2000 name (a few arcmin)
+      - {name: "PSR J1705-1903", ra: 256.25, dec: -19.05}  # position from the truncated J2000 name (up to ~8 arcmin)
       - {name: "PSR J1713+0747", ra: 258.4564, dec: 7.7938}
       - {name: "PSR J1719-1438", ra: 259.792, dec: -14.6336}
       - {name: "PSR J1730-2304", ra: 262.5903, dec: -23.0753}
@@ -80,8 +80,8 @@ footprint:
       - {name: "PSR J2145-0750", ra: 326.4602, dec: -7.8385}
       - {name: "PSR J2214+3000", ra: 333.6619, dec: 30.0106}
       - {name: "PSR J2229+2643", ra: 337.462, dec: 26.7327}
-      - {name: "PSR J2234+0611", ra: 338.5, dec: 6.1833}  # position from the truncated J2000 name (a few arcmin)
-      - {name: "PSR J2234+0944", ra: 338.5, dec: 9.7333}  # position from the truncated J2000 name (a few arcmin)
+      - {name: "PSR J2234+0611", ra: 338.5, dec: 6.1833}  # position from the truncated J2000 name (up to ~8 arcmin)
+      - {name: "PSR J2234+0944", ra: 338.5, dec: 9.7333}  # position from the truncated J2000 name (up to ~8 arcmin)
       - {name: "PSR J2302+4442", ra: 345.6958, dec: 44.7061}
       - {name: "PSR J2317+1439", ra: 349.2885, dec: 14.6587}
       - {name: "PSR J2322+2057", ra: 350.5932, dec: 20.9508}

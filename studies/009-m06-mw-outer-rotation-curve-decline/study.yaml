@@ -13,8 +13,8 @@ wiki: Study-009-mw-rotation-curve-decline                  # paper studies: wiki
 
 # Where this study sits on the Atlas (schema in design plan 011; T-051).
 footprint:
-  scale: {min_pc: 5.3e+3, max_pc: 2.73e+4, note: "Galactocentric radii (not distances from the Sun) of the published rotation-curve bins (E19, O24, J23), 5.3-27.3 kpc; the virial radius (~110-120 kpc) is only extrapolated"}
+  scale: {min_pc: 100.0, max_pc: 3.5e+4, note: "distance from the Sun (the Atlas axis) implied by the published rotation-curve bins at Galactocentric radii 5.3-27.3 kpc (E19, O24, J23) with R0 ~ 8.2 kpc: bins span the solar circle, so the lower end is nominal (0.1 kpc), and the far side reaches at most R + R0 ~ 35 kpc; the virial radius (~110-120 kpc) is only extrapolated"}
   sky:
     mode: survey
     survey: {name: "Gaia DR3 (+APOGEE)", note: "published rotation-curve tables built from Gaia DR3 disc stars (J23, O24) and APOGEE + Gaia (E19); no sky data fetched here"}
-  data: ["J23 Tables 3 and 4 (arXiv:2309.00048)", "O24 Table 1 (arXiv:2303.12838)", "E19 Table 1 (arXiv:1810.09466)"]
+  data: ["J23 Tables 3 and 4 (arXiv:2309.00048)", "O24 Table 1 (arXiv:2303.12838)", "E19 Table 1 (arXiv:1810.09466)", "J23 baryon-model parameters (Tables 1-2 and section 3.1)"]
