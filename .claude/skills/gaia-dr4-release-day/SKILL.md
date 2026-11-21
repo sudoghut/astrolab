@@ -124,7 +124,8 @@ No discovery claim comes out of this run. `persists` means "still a candidate".
   step 1 with their sources, counts, verdicts).
 - `study.yaml` `footprint.data`: add the DR4 tables; `status` only changes if DR4 settles the questions.
 - `atlas/claims/gaia-dormant-black-holes.yaml`: `ours` for BH3 if R3 is evaluable; `python -m astrolab claims check`.
-- `STATUS.md`; `python -m pytest` (DR3 criteria read `results/dr3/`, DR4 ones `results/`);
+- `STATUS.md` and the study 001 row of the root `README.md` status tables (English and Chinese);
+  `python -m pytest` (DR3 criteria read `results/dr3/`, DR4 ones `results/`);
   `python -m astrolab atlas`; the study page shows a DR4/DR3 switch.
 - Referee the DR4 run (`referee` skill) before calling anything reproduced.
 - Move `T-002` to `DONE.md` (PR number and a one-line result, AGENTS.md section 2).

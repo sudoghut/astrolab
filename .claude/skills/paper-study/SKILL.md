@@ -129,7 +129,9 @@ new data), example questions, results keys. An agent answering a "what if" quest
   figure if wiki readers need to see it.
 - If results change the analysis (a `NUM` binding fails, a `GAP` turns out to matter), update
   part 2 and `Argument.lean` too.
-- Every later change to the study: wiki changelog entry and updated sections in the same PR.
+- Every later change to the study: wiki changelog entry and updated sections in the same PR, and
+  the study's row in the root `README.md` status tables (English and Chinese) and in the
+  `STATUS.md` study table (AGENTS.md section 2, "总表保持同步").
 - The PR that first adds the article also links it from `docs/wiki/Home.md` under "Paper studies"
   in both languages, the Chinese link with the `#中文` anchor (remove "None yet." / "暂无。").
 - Publishing, after the PR merges (outside Dropbox, e.g. in the scratchpad):
@@ -141,5 +143,5 @@ new data), example questions, results keys. An agent answering a "what if" quest
 
 Referee (`referee` skill; for paper studies also give the referee the quote / kind / Lean-body
 table printed by the Lean test and ask whether each `[stated]` body is no stronger than its quote
-and each `GAP` is honestly labelled), the AGENTS.md section 5 checklist (includes the wiki sync and the Lean
-check), then move the TODO item to `DONE.md`.
+and each `GAP` is honestly labelled), the AGENTS.md section 5 checklist (includes the wiki sync, the Lean
+check and the study's row in the root `README.md` and `STATUS.md` tables), then move the TODO item to `DONE.md`.
