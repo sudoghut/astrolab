@@ -510,7 +510,7 @@ spread_excl = 1.0267；p = 0.244、0.241、0.137；被去掉宿主的频数；P(
   0.077 是 R2-RE 的 τ̂，0.05 与 0.105 是其 68% 区间的两端（0.048 与 0.105，取整）。T-048 指定的是 0.05 与 0.077；加入 0.105
   是因为 D 随 τ 增大，所以只有上端也被排除时，才能说分散模型被排除。
 - O(δ̂)（起决定作用）：y_C,s + δ̂ h，h 为 N5584 校准行（`calib_groups[26]`，即上面的四行）的指示变量，δ̂ 为在 C 下与 L 一起
-  在 `rows_a` 上拟合的 h 的 GLS 系数（已记录 0.33634；运行时重新拟合，必须以相对 10⁻⁶ 复现；不一致即为规则 (1)，整个部分）。偏移只加在校准超新星行上，R2-RE 的随机效应与 R2-RE-T 的重尾也都放在这些行上；它属于超新星还是造父变星距离，
+  在 `rows_a` 上拟合的 h 的 GLS 系数（已记录 0.33633686472064284，即起草时那次拟合的完整值（2026-11-21 修订：起初记为四舍五入的 0.33634，相对 10⁻⁶ 的检查无法满足）；运行时重新拟合，必须以相对 10⁻⁶ 复现；不一致即为规则 (1)，整个部分）。偏移只加在校准超新星行上，R2-RE 的随机效应与 R2-RE-T 的重尾也都放在这些行上；它属于超新星还是造父变星距离，
   数据无法区分（第 7 节）。
 - 报告但不起决定作用：O(δ̂ − σ_δ)（δ = 0.2438，向零移动一个标准误，相当于 τ = 0.05 的对应物）；O(δ̂) + V(τ̂_N)（N5584 的偏移
   加上全部 37 个宿主上的 τ̂_N = 0.0314，即 R2-RE-N5584 的"一个离群者加一个小的分散项"解读；τ̂_N 取自同一次运行）；O_any(δ̂)：
@@ -538,7 +538,7 @@ O_any 变体显示"未排除"在多大程度上取决于代入值与宿主的身
 *判定规则与标签（现在固定，按此顺序）。* R2-RE 的判定行（"未检出宿主选择效应"）仍是标题判定；R2（2026-11-14）、R2-RE、
 R2-RE-ROB、R2-RE-N5584 与 R2-RE-SEL 的判定、标签与解读按原记录保留。
 - (1) 不可评估：观测值与已记录的值不同（spread_37,obs = 1.3070929081086322 与 spread_36,obs = 1.0325254787240916 以相对 10⁻⁹，
-  准则 S 选出 N5584 且 spread_excl 与 1.027 相差在 0.001 以内，δ̂ = 0.33634 以相对 10⁻⁶）→ 整个部分（代码或数据有变化，先查明
+  准则 S 选出 N5584 且 spread_excl 与 1.027 相差在 0.001 以内，δ̂ = 0.33633686472064284 以相对 10⁻⁶）→ 整个部分（代码或数据有变化，先查明
   原因）；构建 37 宿主移动行或不含 N5584 的缩减系统的移动行时拟合失败 → 整个部分；索引流（R4 或 R4-N 的）为空 → 整个部分；
   为另一个被去掉宿主 d 构建移动行时拟合失败 → 至少有一次模拟的 d' = d 的每个模型都不可评估（与 `sel.spread_part` 的做法相同）；
   某个模型的 Cholesky 因子分解失败 → 该模型不可评估；任一起决定作用的模型不可评估 → 解读为"不可评估"。
@@ -598,7 +598,7 @@ false，并在 log.md 中写明日期）；偏移宿主为 `PARAMS["n5584_host"]
 必须以相对 10⁻⁶ 复现已记录的 0.03137，否则该报告变体为"未运行"）；在完整运行中，它在 R2-RE-SEL 部分之后运行，条件与
 R2-RE-N5584 部分相同。计划的模块 `onehost.py`（接收 `run.py` 的函数，复用 `rob.shift_rows`、`rob._cp`、`rob.three_way`、
 `sel.reduced_system`、`sel.index_stream`、`sel.crit_s_values`、`sel.pick_min`；不导入 `run`），结果写入 `results/r2_re_d.json`，
-`summary.json` 中写简短摘要（`R2_RE_D`），测试 `test_onehost.py`（合成数据检查，包括在一个玩具模型上对 J 的校准，在相关系数为 0 与 0.8 的两个二元正态玩具模型上（固定种子，2,000 个玩具重复，每个 2,000 次模拟），校准统计量下 p_J ≤ 0.05 的比例必须落在 0.05 的 99% Clopper–Pearson 区间内，而相关系数 0.8 时原始象限概率的比例必须落在区间外；由保存的 k 与 n 以及每次
+`summary.json` 中写简短摘要（`R2_RE_D`），测试 `test_onehost.py`（合成数据检查，包括在一个玩具模型上对 J 的校准，在相关系数为 0 与 0.8 的两个二元正态玩具模型上（固定种子，2,000 个玩具重复，每个 2,000 次模拟），校准统计量下 p_J ≤ 0.05 的比例不得超过 0.05 的 99% Clopper–Pearson 区间上限（2026-11-21 修订，在任何数据模拟之前：改为单侧，因为有效检验可以偏保守，而把并列计入较大 p 一侧在玩具规模下正会如此；双侧版本在相关系数 0.8 时未通过，比例 0.0365），而相关系数 0.8 时原始象限概率的比例必须落在区间外；由保存的 k 与 n 以及每次
 模拟的文件重新推出标签），
 `test_conclusions.py` 中的结论断言，一个网页部分，第 8 节的可调项。这些目前都不存在。
 
@@ -1027,6 +1027,7 @@ R4 以及宿主识别精确复现了 2026-11-14 的数字）。数字：
 | `trgb_tip_sys` | R3 协方差中 NGC 4258 TRGB 顶端的不确定度（mag） | 0–0.05 | 只用缓存 |
 | `re_check`、`re_tau_max`、`re_grid_step` | 运行 R2-RE；τ 搜索范围与网格步长（mag） | true/false；0.3–1.0；0.005–0.02 | 只用缓存 |
 | `sel_check`、`sel_seed_base`、`sel_n_tau`、`sel_n_spread`、`sel_n_subsets`、`sel_max_failed` | 运行 R2-RE-SEL（含选择的零假设（selection-aware null），2026-11-19 增补；需要 `n5584_check`）；ε_s 的种子基数、τ 部分与弥散部分的模拟次数、每次弥散所用子集数、允许失败的 REML 拟合数 | true/false；20,000（预注册值；与 10,000–11,999 重叠的种子会重复 ROB 的模拟）；400 与 2,000 是预注册的次数（较小的值只用于快速查看，每次 τ 模拟约 20 s）；1,000（必须等于 `rob_n_subsets`：否则本部分在任何模拟之前以配置状态停止，这是实现上的保护，不是增补中的规则）；20 | 只用缓存 |
+| `d_check`、`d_seed_base`、`d_n_sims`、`d_taus`、`d_host_seed_base`、`d_kde_boot`、`d_only` | 运行 R2-RE-D（一个离群宿主还是分散的宿主离散，2026-11-21 增补；模块 `onehost.py`）；ε_s 的种子基数（八个模型共用）、每个模型的模拟次数、分散模型 V(τ) 的 τ（mag）、O_any 偏移宿主的种子基数、KDE 比值的自助法（bootstrap）重抽样次数、独立模式 | true/false；100,000 与 200,000（预注册值；不得与 0、10,000–11,999、20,000–21,999 或 50,000–50,999 重叠）；10,000（预注册值；J 的 A/B 两半是偶数与奇数编号的模拟，所以用偶数；本部分约 1.5 小时，其中约 68 分钟用于构建缩减系统，所以用 `--set d_n_sims=200` 快速查看仍要将近一小时）；[0.05, 0.077, 0.105]（预注册值；解读的措辞写的是这三个值）；200；`d_only=true` 只运行本部分（只用缓存，约 1.5 小时）：写出 `r2_re_d.json`、八个 `r2_re_d_sims_<model>.json`、`provenance_d.json`、`run_info_d.json` 与 `summary.json` 的 `R2_RE_D` 键（其他键逐字节不变；没有现成的 `summary.json` 时拒绝运行，对话探索除外，那时只写含该键的摘要）。本部分使用 `rob_n_subsets` 个子集与 `n5584_host`；已记录的值（离散、准则 S、δ̂、τ̂_N）与容差是 `onehost.py` 中的常量 | 只用缓存 |
 
 - 带覆盖值重跑：`python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --set KEY=VALUE`
   （输出在 `explore/<date>-<topic>/`，不入库；使用默认的 R4 和 R2-RE 约 28 分钟；
@@ -1041,6 +1042,13 @@ R4 以及宿主识别精确复现了 2026-11-14 的数字）。数字：
   `.preregistered_verdict`），`r2_re.json`（`tau_hat`、`interval_68`、`reml`、`host_step`、`verdict`、
   `sensitivity_cepheid_rows`、`r4_under_v`、`loo_chi2`），`r2_re_sel.json`（`tau`、`spread_X`、`spread_S`、
   `reading`、`selection`、`extremeness`、`checks`；摘要键 `R2_RE_SEL`），
+  `r2_re_d.json`（`observed`，含 `spread_37`、`spread_36`、`D`、`D_proxy`、`delta_hat`、`sigma_delta`、
+  `mismatches`；`tau_hat_N`；`models.<key>`，键为 `C`、`V050`、`V077`、`V105`、`O`、`Olo`、`OVN`、`Oany`，含
+  `status`、`decisive`、`D`（`k`、`n`、`p`、`ci95`、`label`）、`J`（`k`、`n_B`、`count_obs`、`t_obs`、`p`、`ci95`、
+  `label`）、`Q_raw`、`quantiles_5_50_95`、`P_spread_37_ge_obs`、`P_spread_36_le_obs`、`D_proxy`、`selected`；
+  `kde`；`reading`；`section5`；`checks`；`seconds`；摘要键 `R2_RE_D`），`r2_re_d_sims_<key>.json`（逐次模拟：
+  四舍五入到 4 位小数的 `pairs`（spread_37，spread_36）、`dropped`（d'）、`half_b_counts`、`count_obs`，`Oany`
+  另有 `offset_host`），
   `r3.json`（`cchp_side_h0`、`d`、`sigma_d`、`per_host`），`r4.json`（`percentile`、`quantiles`、
   histogram、`z_quantiles`、`z_std`、`z_percentile`、`cchp_z`），`host_identification.json`（`column_labels`、`relabelled`、`per_column_under_labels`），
   `cross_paper.json`。

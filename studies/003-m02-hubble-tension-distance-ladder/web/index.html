@@ -64,6 +64,7 @@ const f = (x, n = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '�
 const h0 = q => Math.pow(10, q / 5);
 const dh0 = (q, s) => h0(q) * Math.log(10) / 5 * s;
 const files = ['summary', 'r1', 'r2', 'r3', 'r4', 'cross_paper', 'host_identification', 'r2_re', 'r2_re_rob', 'r2_re_n5584', 'r2_re_sel'];
+const optional = ['r2_re_d'];   // R2-RE-D (addendum 2026-11-21): shown once results/r2_re_d.json exists
 let D = null;
 
 function cls(v) {
@@ -110,11 +111,31 @@ const VT = {
   'undetermined': ['undetermined', '无法判定'],
   'not evaluable': ['not evaluable', '不可评估'],
   'τ excess remains after removing the most extreme host, selection included': ['τ excess remains after removing the most extreme host, selection included', '计入选择后，去掉最极端宿主后 τ 仍偏大'],
+  'excluded (D)': ['excluded (D)', '排除（D）'],
+  'not excluded (D)': ['not excluded (D)', '未排除（D）'],
+  'excluded (J)': ['excluded (J)', '排除（J）'],
+  'not excluded (J)': ['not excluded (J)', '未排除（J）'],
+  'neither one offset host nor diffuse scatter reproduces the observed spreads': ['neither one offset host nor diffuse scatter reproduces the observed spreads', '一个偏移宿主与分散离散都不能复现观测到的离散'],
   'R2-RE verdict robust to a heavy-tailed host effect': ['R2-RE verdict robust to a heavy-tailed host effect', 'R2-RE 的判定对重尾宿主效应稳健'],
   'the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips': ['the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips', '无论去掉还是降权 N5584，零结果都成立；只有 R2-RE-ROB A 的混合 τ 路径会翻转'],
 };
+// R2-RE-D readings with a variable part (rules (2) and (3))
+function vtD(v) {
+  let m = String(v).match(/^the (\w+) tested diffuse models (.*) excluded by J; one offset host not excluded \((.*)\)$/);
+  if (m) {
+    const q = m[3] === 'both statistics' ? ['(both statistics)', '（两个统计量）']
+      : [`(${m[3]})`, '（只用联合统计量；D 不排除 τ = ' + m[3].replace(/^joint statistic only; D does not exclude τ = /, '').replace(/, /g, '、') + '）'];
+    return L(`the ${m[1]} tested diffuse models ${m[2]} excluded by J; one offset host not excluded ${q[0]} <span class="note">(not evidence that the one-offset-host model is preferred: δ̂ is fitted to the same data, so its non-exclusion is a consistency check)</span>`,
+      `J 排除了所检验的分散模型 ${m[2].replace(/, /g, '、')}；单个偏移宿主未被排除${q[1]} <span class="note">（并不说明单宿主偏移模型更受偏好：δ̂ 是对同一数据拟合的，它未被排除只是一致性检查）</span>`);
+  }
+  m = String(v).match(/^tested diffuse model\(s\) not excluded \(τ = (.*)\)$/);
+  if (m) return L(v, `所检验的分散模型未被排除（τ = ${m[1].replace(/, /g, '、')}）`);
+  return null;
+}
 const vt = v => {
   if (!v) return '—';
+  const d = vtD(v);
+  if (d) return d;
   const m = String(v).match(/^(.*?) \[(.*)\]$/);
   if (m && VT[m[1]]) {
     const R4 = D && D.r4;
@@ -125,6 +146,35 @@ const vt = v => {
 };
 const plotLayout = (extra) => Object.assign({margin: {t: 10, r: 10, b: 50, l: 60}, paper_bgcolor: 'rgba(0,0,0,0)',
   plot_bgcolor: 'rgba(0,0,0,0)', font: {color: getComputedStyle(document.body).color}, showlegend: false}, extra);
+
+// R2-RE-D rows (README section 2, addendum 2026-11-21): one row per model with D and J, then the reading
+function dRows() {
+  const z = D.r2_re_d;
+  if (!z) return [];
+  if (z.status !== 'evaluated') return [['R2-RE-D', L('One outlying host or diffuse host scatter', '一个离群宿主还是分散的宿主离散'), '', '', z.status]];
+  const o = z.observed, M = z.models;
+  const name = k => {
+    const m = M[k], dec = m.decisive ? L('decisive', '起决定作用') : L('reported', '只报告');
+    if (k === 'C') return L(`C, no excess scatter (${dec})`, `C，无额外离散（${dec}）`);
+    if (k[0] === 'V') return L(`V(τ = ${m.tau} mag), host-level scatter on all 37 hosts (${dec})`, `V(τ = ${m.tau} mag)，37 个宿主上都有宿主级离散（${dec}）`);
+    if (k === 'O') return L(`O(δ̂ = ${f(m.delta, 3)} mag), N5584 offset (${dec})`, `O(δ̂ = ${f(m.delta, 3)} mag)，N5584 偏移（${dec}）`);
+    if (k === 'Olo') return L(`O(δ̂ − σ_δ = ${f(m.delta, 3)} mag) (${dec})`, `O(δ̂ − σ_δ = ${f(m.delta, 3)} mag)（${dec}）`);
+    if (k === 'OVN') return L(`O(δ̂) + V(τ̂_N${m.tau !== null && m.tau !== undefined ? ' = ' + f(m.tau, 4) : ''}) (${dec})`, `O(δ̂) + V(τ̂_N${m.tau !== null && m.tau !== undefined ? ' = ' + f(m.tau, 4) : ''})（${dec}）`);
+    if (k === 'Oany') return L(`O_any(δ̂): offset on a random host (${dec})`, `O_any(δ̂)：偏移在随机选取的宿主上（${dec}）`);
+    return k;
+  };
+  const rows = [['R2-RE-D', L(`Observed: spread_37 ${f(o.spread_37, 4)}, spread_36 ${f(o.spread_36, 4)} (criterion S drops ${o.crit_s_selected}); D = ${f(o.D, 4)} (proxy ${f(o.D_proxy, 4)}); δ̂ = ${f(o.delta_hat, 3)} ± ${f(o.sigma_delta, 3)} mag`,
+    `观测值：spread_37 ${f(o.spread_37, 4)}，spread_36 ${f(o.spread_36, 4)}（准则 S 去掉 ${o.crit_s_selected}）；D = ${f(o.D, 4)}（代理量 ${f(o.D_proxy, 4)}）；δ̂ = ${f(o.delta_hat, 3)} ± ${f(o.sigma_delta, 3)} mag`), '', '', null]];
+  for (const k of z.model_keys) {
+    const m = M[k];
+    if (m.status !== 'evaluated') { rows.push(['', name(k), '', '', m.status]); continue; }
+    rows.push(['', name(k),
+      `D: p = ${f(m.D.p, 4)} (${m.D.k}/${m.D.n}); J: p = ${f(m.J.p, 4)} (${m.J.k}/${m.J.n_B})`, '0.05',
+      `${vt(m.D.label)}; ${vt(m.J.label)}`, /undetermined/.test(m.D.label + m.J.label) ? 'undetermined' : 'ok']);
+  }
+  rows.push(['', L('Reading (R2-RE-D; diffuse = these three fixed τ only, no range-level claim)', '解读（R2-RE-D；"分散"只指这三个固定的 τ，不对 τ 的范围下结论）'), '', '', z.reading]);
+  return rows;
+}
 
 function render() {
   if (!D) return;
@@ -174,6 +224,7 @@ function render() {
         part(z.spread_S, 'Same, 36-host spread (criterion S: smallest spread without the host)', '同上，36 个宿主的离散（准则 S：不含该宿主时离散最小）'),
         ['', L('Reading (R2-RE-SEL)', '解读（R2-RE-SEL）'), '', '', z.reading]].map((r, i) => i === 0 ? ['R2-RE-SEL', ...r.slice(1)] : r);
     })() : (D.r2_re_sel ? [['R2-RE-SEL', L('Selection-aware null', '考虑选择的零假设'), '', '', D.r2_re_sel.status]] : [])),
+    ...dRows(),
     ['', L('Host step, pre-registered labelling', '宿主一步，预注册的标注'), '', '', H.preregistered_verdict],
     ['R3', L('CCHP-side H0 on the same 10 hosts vs CCHP\'s 69.29', '同样 10 个宿主上 CCHP 一侧的 H0 对 CCHP 的 69.29'), `${f(R3.cchp_side_h0, 2)} (Δ ${f(R3.cchp_diff_mag, 4)} mag)`, '69.29 ± 0.02 mag', R3.cchp_match],
     ['', L('d = SH0ES − CCHP on the same hosts (descriptive)', 'd = 同宿主上 SH0ES − CCHP（只作描述）'), `${f(R3.d, 4)} ± ${f(R3.sigma_d, 4)} mag`, '—', null],
@@ -234,8 +285,10 @@ function render() {
   document.getElementById('details').innerHTML = det.join('');
 }
 
-Promise.all(files.map(n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`results/${n}.json: HTTP ${r.status}`); return r.json(); })))
-  .then(arr => { D = Object.fromEntries(files.map((n, i) => [n, arr[i]])); render(); })
+const opt = n => fetch(`../results/${n}.json`).then(r => r.ok ? r.json() : null).catch(() => null);
+Promise.all([...files.map(n => fetch(`../results/${n}.json`).then(r => { if (!r.ok) throw new Error(`results/${n}.json: HTTP ${r.status}`); return r.json(); })),
+             ...optional.map(opt)])
+  .then(arr => { D = Object.fromEntries([...files, ...optional].map((n, i) => [n, arr[i]])); render(); })
   .catch(e => {
     const msg = String(e).replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
     document.getElementById('criteria').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + msg;

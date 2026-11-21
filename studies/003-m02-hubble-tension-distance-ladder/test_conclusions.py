@@ -510,3 +510,126 @@ def _sel_cp(k, n):
     lo = 0.0 if k == 0 else float(stats.beta.ppf(0.025, k, n - k + 1))
     hi = 1.0 if k == n else float(stats.beta.ppf(0.975, k + 1, n - k))
     return lo, hi
+
+
+# R2-RE-D values recorded before the addendum (README section 2, addendum 2026-11-21, rule (1))
+D_RECORDED = {"spread_37": 1.3070929081086322, "spread_36": 1.0325254787240916, "crit_s": 1.027,
+              "delta_hat": 0.33633686472064284}
+D_TAUS = (0.05, 0.077, 0.105)
+
+
+def test_r2_re_d_labels():
+    """README section 2, addendum 2026-11-21 (R2-RE-D): re-derive every model's D and J labels from the saved
+    counts and per-simulation files, and the reading (rules (1)-(5) in order). Skips until the block has run."""
+    import numpy as np
+    from collections import Counter
+
+    path = RESULTS / "r2_re_d.json"
+    if not path.exists():
+        pytest.skip("r2_re_d.json missing; the R2-RE-D block has not run")
+    out = load("r2_re_d")
+    assert path.stat().st_size < 1_000_000
+    s = load("summary")["R2_RE_D"]
+    assert s["status"] == out["status"]
+    ne_obs = "not evaluable (observed values differ from the recorded ones: code or data change)"
+    if out["status"] == ne_obs:
+        assert out["observed"]["mismatches"] and out["reading"] == s["reading"] == "not evaluable"
+        return
+    if out["status"] != "evaluated":
+        assert out.get("reading", "not evaluable") == "not evaluable"
+        pytest.skip(out["status"])
+    assert out["host"] == "N5584"
+    ob = out["observed"]
+    assert ob["mismatches"] == []
+    for key, rtol in (("spread_37", 1e-9), ("spread_36", 1e-9), ("delta_hat", 1e-6)):
+        assert abs(ob[key] - D_RECORDED[key]) <= rtol * abs(D_RECORDED[key]), key
+    assert ob["crit_s_selected"] == "N5584" and abs(ob["crit_s_host_value"] - D_RECORDED["crit_s"]) <= 0.001
+    assert abs(ob["D"] - (ob["spread_37"] - ob["spread_36"])) < 1e-12
+    assert abs(ob["D_proxy"] - (ob["spread_37"] - ob["crit_s_min"])) < 1e-12
+    taus = [float(t) for t in out["settings"]["d_taus"]]
+    vk = ["V%03d" % int(round(t * 1000)) for t in taus]
+    assert out["model_keys"] == ["C"] + vk + ["O", "Olo", "OVN", "Oany"]
+    assert out["decisive"] == vk + ["O"]
+    host_of = {r["column"]: r["host"] for r in out["real_spread_excl"]}
+    t5 = 5e-5 + 1e-12
+
+    def label(k, n, stat):
+        lo, hi = _sel_cp(k, n)
+        return (f"excluded ({stat})" if hi < 0.05 else f"not excluded ({stat})" if lo > 0.05
+                else "undetermined (Monte Carlo)")
+
+    for k in out["model_keys"]:
+        m = out["models"][k]
+        sp = RESULTS / f"r2_re_d_sims_{k}.json"
+        assert sp.exists() and sp.stat().st_size < 1_000_000, k
+        sims = load(f"r2_re_d_sims_{k}")
+        assert sims["model"] == k and sims["status"] == m["status"]
+        if m["status"] != "evaluated":
+            assert not m["decisive"] or out["reading"] == "not evaluable"
+            continue
+        n = sims["n"]
+        assert n == out["settings"]["d_n_sims"] and len(sims["pairs"]) == len(sims["dropped"]) == n
+        pr = np.array(sims["pairs"], dtype=float)
+        a_obs, b_obs = sims["obs"]
+        assert (a_obs, b_obs) == (ob["spread_37"], ob["spread_36"])
+        # J: k_J exactly from the saved integer counts
+        cb, c_obs = np.array(sims["half_b_counts"]), sims["count_obs"]
+        A, B = pr[0::2], pr[1::2]
+        assert sims["n_A"] == len(A) == m["J"]["n_A"] and sims["n_B"] == len(B) == len(cb) == m["J"]["n_B"]
+        kj = int(np.sum(cb <= c_obs))
+        assert kj == m["J"]["k"] and c_obs == m["J"]["count_obs"]
+        assert abs(m["J"]["p"] - (1 + kj) / (1 + len(B))) < 1e-12
+        assert abs(m["J"]["t_obs"] - c_obs / len(A)) < 1e-12
+        assert m["J"]["label"] == label(kj, len(B), "J")
+        assert all(abs(x - y_) < 1e-9 for x, y_ in zip(m["J"]["ci95"], _sel_cp(kj, len(B))))
+        # the counts against the rounded pairs, away from rounding ties (bounds: certain vs possible members)
+        sure_o = int(np.sum((A[:, 0] - a_obs > t5) & (b_obs - A[:, 1] > t5)))
+        poss_o = int(np.sum((A[:, 0] - a_obs >= -t5) & (b_obs - A[:, 1] >= -t5)))
+        assert sure_o <= c_obs <= poss_o, k
+        for i0 in range(0, len(B), 500):
+            x = B[i0:i0 + 500]
+            d0 = A[None, :, 0] - x[:, None, 0]
+            d1 = x[:, None, 1] - A[None, :, 1]
+            sure = np.sum((d0 > t5) & (d1 > t5), axis=1)
+            poss = np.sum((d0 >= -t5) & (d1 >= -t5), axis=1)
+            assert np.all(sure <= cb[i0:i0 + 500]) and np.all(cb[i0:i0 + 500] <= poss), k
+        # D: k_D recounted from the pairs except within 1.5e-4 of D_obs (rounding of a difference)
+        dd = pr[:, 0] - pr[:, 1]
+        near = int(np.sum(np.abs(dd - ob["D"]) <= 1.5e-4))
+        assert abs(m["D"]["k"] - int(np.sum(dd >= ob["D"]))) <= near, k
+        assert m["D"]["n"] == n and abs(m["D"]["p"] - (1 + m["D"]["k"]) / (1 + n)) < 1e-12
+        assert m["D"]["label"] == label(m["D"]["k"], n, "D")
+        assert all(abs(x - y_) < 1e-9 for x, y_ in zip(m["D"]["ci95"], _sel_cp(m["D"]["k"], n)))
+        # raw quadrant probability (descriptive), bounded the same way
+        sure_q = int(np.sum((pr[:, 0] - a_obs > t5) & (b_obs - pr[:, 1] > t5)))
+        poss_q = int(np.sum((pr[:, 0] - a_obs >= -t5) & (b_obs - pr[:, 1] >= -t5)))
+        assert sure_q <= m["Q_raw"]["k"] <= poss_q and m["Q_raw"]["n"] == n
+        # dropped-host frequencies
+        dr = sims["dropped"]
+        assert m["selected"]["frequency"] == {host_of[j]: c for j, c in sorted(Counter(dr).items())}
+        assert m["selected"]["n_host"] == sum(1 for j in dr if host_of[j] == "N5584")
+        if k == "Oany":
+            assert m["selected"]["n_offset_host"] == sum(1 for a_, b_ in zip(dr, sims["offset_host"]) if a_ == b_)
+        assert s["models"][k] == {"D": m["D"]["label"], "p_D": m["D"]["p"], "J": m["J"]["label"],
+                                  "p_J": m["J"]["p"]}
+    # reading, rules (1)-(5) in order
+    M = out["models"]
+    ft = lambda ts: ", ".join(f"{t:g}" for t in ts)
+    if not all(M[k]["status"] == "evaluated" for k in vk + ["O"]):
+        exp = "not evaluable"
+    else:
+        vj = all(M[k]["J"]["label"] == "excluded (J)" for k in vk)
+        if vj and M["O"]["J"]["label"] == "not excluded (J)" and M["O"]["D"]["label"] == "not excluded (D)":
+            nd = [t for t, k in zip(taus, vk) if M[k]["D"]["label"] != "excluded (D)"]
+            exp = ("the three tested diffuse models V(0.05), V(0.077), V(0.105) excluded by J; one offset host "
+                   "not excluded " + ("(both statistics)" if not nd else
+                                      f"(joint statistic only; D does not exclude τ = {ft(nd)})"))
+            assert tuple(taus) == D_TAUS
+        elif any(M[k]["J"]["label"] == "not excluded (J)" for k in vk):
+            exp = "tested diffuse model(s) not excluded (τ = " + ft(
+                [t for t, k in zip(taus, vk) if M[k]["J"]["label"] == "not excluded (J)"]) + ")"
+        elif vj and (M["O"]["J"]["label"] == "excluded (J)" or M["O"]["D"]["label"] == "excluded (D)"):
+            exp = "neither one offset host nor diffuse scatter reproduces the observed spreads"
+        else:
+            exp = "undetermined"
+    assert out["reading"] == exp == s["reading"]

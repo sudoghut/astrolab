@@ -19,6 +19,7 @@ from scipy import linalg, optimize
 from astrolab import infer
 
 import n5584
+import onehost
 import rob
 import sel
 
@@ -48,6 +49,10 @@ PARAMS = {
     # R2-RE-SEL (README section 2, addendum 2026-11-19, T-042): selection-aware null for dropping N5584
     "sel_check": True, "sel_seed_base": 20_000, "sel_n_tau": 400, "sel_n_spread": 2000,
     "sel_n_subsets": 1000, "sel_max_failed": 20,
+    # R2-RE-D (README section 2, addendum 2026-11-21, T-048): one outlying host or diffuse host scatter.
+    # d_only: standalone mode (only this block; writes r2_re_d*.json and summary.json's R2_RE_D key)
+    "d_check": True, "d_seed_base": 100_000, "d_n_sims": 10_000, "d_taus": [0.05, 0.077, 0.105],
+    "d_host_seed_base": 200_000, "d_kde_boot": 200, "d_only": False,
 }
 
 DR = "PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/"
@@ -640,9 +645,49 @@ def n5584_summary(n_out):
 
 
 # ---------------------------------------------------------------- main
+def save_d(ctx, d_out, sims):
+    """R2-RE-D's files: r2_re_d.json and one r2_re_d_sims_<model>.json per model (always all of them, so no
+    stale file survives)."""
+    ctx.save("r2_re_d", d_out)
+    for k, v in sims.items():
+        ctx.save(f"r2_re_d_sims_{k}", v)
+
+
+def run_d(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, n_pick, picks=None, tau_n=None, rob_spread_obs=None):
+    """The R2-RE-D block (README section 2, addendum 2026-11-21). picks None: R4's draws regenerated from
+    R4's index stream (standalone mode; R4's loop draws rng.choice(37, 10) from default_rng(r4_seed) in order)."""
+    keys = onehost.model_keys([float(t) for t in P["d_taus"]])
+    if not ident["host_step_evaluable"]:
+        st = "not evaluable (host step not evaluable)"
+        return {"status": st, "reading": "not evaluable"}, {k: {"model": k, "status": st} for k in keys}
+    calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]
+    host_rows = [np.flatnonzero(nz[:, j]) for j in range(NH)]
+    if picks is None:
+        picks = sel.index_stream(int(P["rob_n_subsets"]), P["r4_seed"], NH, n_pick)
+    fns_d = {"reml_tau": reml_tau, "reml_m2l": reml_m2l, "fit": fit, "shift_vector": shift_vector,
+             "with_re": with_re, "is_fit_failure": is_fit_failure, "C_H0": C_H0}
+    return onehost.run_block(L, y, C, nz, rows_a, calib_groups, col_host[:NH], host_rows, picks, P, fns_d,
+                             ctx.log, n_pick=n_pick, tau_n=tau_n,
+                             expected_col=N5584_COLUMN if P["n5584_host"] == "N5584" else None,
+                             rob_spread_obs=rob_spread_obs)
+
+
 def main(ctx):
     P = dict(PARAMS)
     t0 = time.perf_counter()
+    d_only = bool(P["d_only"])
+    if d_only:
+        # standalone R2-RE-D (README section 2, addendum 2026-11-21): its own provenance_d/run_info_d, no
+        # other results file written; summary.json must exist and re-serialise to itself (checked first)
+        if not P["d_check"]:
+            raise ValueError("d_only needs d_check = true")
+        ctx.record_suffix = "_d"
+        sum_path = ctx.results / "summary.json"
+        if sum_path.exists():
+            onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_D", None)
+        elif getattr(ctx, "max_save_bytes", None) is None:      # an exploration starts from an empty folder
+            raise RuntimeError("d_only updates summary.json's R2_RE_D key: run the full study first")
+    save = (lambda name, obj: None) if d_only else ctx.save
     C, L, y, lsq = load(ctx)
     hosts = [h for h, *_ in TABLE6]
     hosts = list(dict.fromkeys(hosts))
@@ -678,7 +723,7 @@ def main(ctx):
     }
     ctx.log(f"R1: {r1['verdict']} (max |dq| {r1['max_abs_dq']:.2e}, worst {r1['worst_param']}); "
             f"5logH0 {q46:.5f} -> H0 {r1['h0']:.2f}")
-    ctx.save("r1", r1)
+    save("r1", r1)
 
     # ---- host identification (checks i-v)
     mu_fit = base["q"][:NH]
@@ -755,15 +800,26 @@ def main(ctx):
              "ceph_rows": int(ncep[j]), "table3_fit": TABLE3_FIT[col_host[j]]} for j in range(NH)]
     ctx.log(f"host identification: pre-registered ok={id_ok}; mode={mode}; matching={match is not None}; "
             f"alternatives={len(alts)}, changes CCHP set={changes_set}")
-    ctx.save("host_identification", ident)
+    save("host_identification", ident)
     for i_, prm in enumerate(r1["params"][:NH]):
         prm["column_label"] = col_host[i_]
     r1["worst_param_label"] = col_host[worst] if worst < NH else par_names[worst]
     r1["note"] = ("params[].name is the Table 6-order name of the column; column_label is the host "
                   "it holds (host_identification.json)")
-    ctx.save("r1", r1)
+    save("r1", r1)
     validity["host_identification_ok"] = id_ok
     validity["host_labelling_mode"] = mode
+
+    if d_only:              # standalone R2-RE-D: rows_a, the R4 / R4-N index streams, the block
+        rows_a, _ = anchor_rows(nz, cls, y)
+        d_out, sims = run_d(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident,
+                            n_pick=len([j for j in range(NH) if col_host[j] in P["cchp_hosts"]]))
+        save_d(ctx, d_out, sims)
+        sum_path = ctx.results / "summary.json"
+        new = (onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_D", onehost.summary(d_out))
+               if sum_path.exists() else {"R2_RE_D": onehost.summary(d_out)})
+        ctx.save("summary", new)
+        return new
 
     # ---- R2 anchor step
     rows_a, achk = anchor_rows(nz, cls, y)
@@ -992,6 +1048,23 @@ def main(ctx):
         ctx.log(f"R2-RE-SEL: {sel_out.get('reading', sel_out['status'])}")
     ctx.save("r2_re_sel", sel_out)
 
+    # ---- R2-RE-D (README section 2, addendum 2026-11-21, T-048): runs after the R2-RE-SEL block, under the
+    # condition of the R2-RE-N5584 block (R2-RE run and the host step evaluable); tau_hat_N from that block
+    # when it was evaluated, else computed in the block
+    keys_d = onehost.model_keys([float(t) for t in P["d_taus"]])
+    if not P["d_check"]:
+        st = "not run (PARAMS)"
+        d_out, sims_d = {"status": st}, {k: {"model": k, "status": st} for k in keys_d}
+    elif not (P["re_check"] and ident["host_step_evaluable"]):
+        st = "not evaluable (R2-RE not run or host step not evaluable)"
+        d_out, sims_d = {"status": st, "reading": "not evaluable"}, {k: {"model": k, "status": st} for k in keys_d}
+    else:
+        rn = n_out.get("drop", {}).get("r2_re", {}) if n_out.get("status") == "evaluated" else {}
+        d_out, sims_d = run_d(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, n_pick=len(cset), picks=picks,
+                              tau_n=rn.get("tau_hat") if rn.get("status") == "evaluated" else None,
+                              rob_spread_obs=rob_out.get("B", {}).get("spread", {}).get("spread_obs"))
+    save_d(ctx, d_out, sims_d)
+
     # One canonical qualified verdict for the host step (gate-2 review): states the labelling mode
     # and, when R4 ran, the empirical (random-subset) scale next to the C-propagated significance.
     qual = []
@@ -1057,6 +1130,7 @@ def main(ctx):
         "R4_percentile": r4.get("percentile"), "R4_verdict": r4.get("verdict", r4["status"]),
         "R2_RE_N5584": n5584_summary(n_out),
         "R2_RE_SEL": sel.summary(sel_out),
+        "R2_RE_D": onehost.summary(d_out),
         "runtime_s": time.perf_counter() - t0,
     }
     ctx.save("summary", summary)
