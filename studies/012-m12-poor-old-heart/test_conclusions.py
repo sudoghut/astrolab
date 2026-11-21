@@ -73,10 +73,11 @@ def test_t2a():
     summary()
     a = _t2()["t2a"]
     si, fi = a["fits"]["i"]["sigma"], a["fits"]["i"]["at_bound"]
-    want = "not reproduced" if fi else ("reproduced" if 2.4 <= si <= 3.0 else "not reproduced")
+    want = GRID if not a["grid_converged"]["i"] else (
+        "not reproduced" if fi else ("reproduced" if 2.4 <= si <= 3.0 else "not reproduced"))
     assert a["reproduction_label"] == want
     lo, hi = a["intervals"]["ii"]
-    if not a["grid_converged"]:
+    if not a["grid_converged"]["ii"]:
         want = GRID
     elif a["fits"]["ii"]["at_bound"]:
         want = "undetermined (fit at bound)"
@@ -111,7 +112,7 @@ def test_t2b():
     for name, c in b["checks"].items():
         assert c["pass"] == (c["passed_mocks"] >= 0.8 * c["n"])
     fp = all(c["pass"] for n, c in b["checks"].items() if n.startswith("fp"))
-    if not t2["t2a"]["grid_converged"]:
+    if not t2["t2a"]["grid_converged"]["ii"]:
         assert b["shape_label"] == GRID
     elif not (fp and b["checks"]["power"]["pass"]):
         assert b["shape_label"].startswith("undetermined") and b["f5_model"] == "sph"
@@ -227,4 +228,5 @@ def test_readings():
     assert s["reading_reproduction"]["pending_amendment"] == pend == s["reading_robustness"]["pending_amendment"]
     t2 = load("t2")
     if "grid_check" in t2:
-        assert pend == (not t2["grid_check"]["passed"])
+        assert s["pending_amendment"] == [f"grid_not_converged_{v}" for v in ("i", "ii")
+                                          if not t2["grid_check"]["converged"][v]]

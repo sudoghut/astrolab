@@ -188,7 +188,11 @@ def test_grid_not_converged(tmp_path, monkeypatch):
     g = "undetermined (grid not converged)"
     assert lab["T2a_population"] == g and lab["T2b_shape"] == g and lab["T2b_f5"] == g
     t4 = json.loads((ctx.results / "t4.json").read_text(encoding="utf-8"))
-    assert t4["sigma_condition"] == g and lab["T4"] in (g, "sensitive")
+    assert t4["sigma_condition"] == g
+    assert not any(q == "sigma" for _, q in t4["broken"])
+    assert lab["T4"] == ("sensitive" if t4["broken"] else g)
+    assert lab["T2a_reproduction"] == g          # version (i) cannot converge either at tol < 0
+    assert s["pending_amendment"] == ["grid_not_converged_i", "grid_not_converged_ii"]
     assert s["pending_amendment"] and s["reading_reproduction"]["pending_amendment"]
     assert s["reading_robustness"]["pending_amendment"]
     tc = _import("test_conclusions")

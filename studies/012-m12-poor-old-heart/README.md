@@ -386,9 +386,11 @@ run: None yet.")
    The integrals are trapezoid sums in parallax over the log-spaced nodes; version (i) has its own 300 nodes
    log-spaced over 1–30 kpc, version (ii) 300 over 0.2–30 kpc. The node-doubling check is applied to both
    versions and stops at 1,200 nodes (memory: about 0.4 GB per likelihood at 20,000 stars); if it has not
-   converged there, `t2.json: grid_check.passed` is false: T2a's σ of the population, T2b's shape and f₅ and
-   T4's σ condition are "undetermined (grid not converged)" (T4 is then that label unless another condition
-   makes it "sensitive"), both readings carry `pending_amendment`, and they wait for a dated amendment. The
+   converged there, `t2.json: grid_check.passed` is false. Convergence is recorded per version
+   (`grid_check.converged`): if version (i) has not converged, T2a's reproduction label is "undetermined (grid
+   not converged)"; if version (ii) has not, T2a's σ of the population, T2b's shape and f₅ and T4's σ condition
+   are (T4 is then that label unless another condition makes it "sensitive"). Either way both readings carry
+   `pending_amendment` (with the reason codes `grid_not_converged_i` / `_ii`) and wait for a dated amendment. The
    mocks are fitted at 300 nodes before the data fit (section 4.10 order); if the check adopts more nodes,
    every mock is regenerated from its seed and refitted at the adopted number. The parallax Gaussian of each
    star is stored relative to its largest node (its logarithm kept separately), so a parallax outlier does not

@@ -37,9 +37,11 @@ def median_with_se(x, rng, n_boot=1000):
 # ---------------------------------------------------------------------------------------------
 # T2a
 
-def t2a_reproduction(missing, sigma_i, at_bound_i, lo=2.4, hi=3.0):
+def t2a_reproduction(missing, sigma_i, at_bound_i, lo=2.4, hi=3.0, grid_ok=True):
     if missing:
         return MISSING
+    if not grid_ok:
+        return GRID
     if at_bound_i:
         return "not reproduced"
     return "reproduced" if lo <= sigma_i <= hi else "not reproduced"

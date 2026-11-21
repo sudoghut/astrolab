@@ -352,11 +352,11 @@ def grid_check(P, arr, ctx):
         diff = max(abs(a[v] - b[v]) for v in a)
         hist.append({"nodes": k, "sigma": a, "sigma_doubled": b, "max_change": diff})
         if diff < P["grid_check_tol_kpc"] or 2 * k >= P["grid_max_nodes"]:
-            ok = diff < P["grid_check_tol_kpc"]
+            conv = {v: bool(abs(a[v] - b[v]) < P["grid_check_tol_kpc"]) for v in a}
             break
         k *= 2
-    ctx.log(f"grid check: {k} nodes (max change {diff:.4f} kpc)")
-    return {"nodes": k, "passed": ok, "history": hist}
+    ctx.log(f"grid check: {k} nodes (max change {diff:.4f} kpc; converged {conv})")
+    return {"nodes": k, "passed": all(conv.values()), "converged": conv, "history": hist}
 
 
 def run_t2(P, store, ctx, mh, load, before_data=None):
@@ -405,7 +405,7 @@ def run_t2(P, store, ctx, mh, load, before_data=None):
 
     # --- T2a on the data
     gc = store.cached("grid_check", lambda: grid_check(P, arr, ctx))
-    grid_ok = bool(gc["passed"])
+    grid_i, grid_ok = bool(gc["converged"]["i"]), bool(gc["converged"]["ii"])   # per version (README 4.12 item 4)
     k = gc["nodes"]
     out["grid_check"] = gc
     bnd = tuple(P["sigma_bounds_kpc"])
@@ -439,10 +439,11 @@ def run_t2(P, store, ctx, mh, load, before_data=None):
     t2a = {"fits": fits, "intervals": iv, "boot_sigma_quantiles": {v: np.percentile(boot[v], [2.5, 16, 50, 84, 97.5]).tolist() for v in boot},
            "mock_bias": bias, "ii_minus_i": fits["ii"]["sigma"] - fits["i"]["sigma"],
            "unmodelled_selection": unmodelled,
-           "reproduction_label": S.t2a_reproduction(missing, fits["i"]["sigma"], fits["i"]["at_bound"]),
+           "reproduction_label": S.t2a_reproduction(missing, fits["i"]["sigma"], fits["i"]["at_bound"],
+                                                     grid_ok=grid_i),
            "population_label": S.t2a_population(missing, fits["ii"]["at_bound"], bias["ii"]["bias"], unmodelled,
                                                 iv["ii"], bias_max=P["t2a_bias_max_kpc"], grid_ok=grid_ok),
-           "grid_converged": grid_ok}
+           "grid_converged": {"i": grid_i, "ii": grid_ok}}
     # reference fits (README 4.3)
     refs = {}
     for lo_r, hi_r in P["ref_bins"]:
@@ -890,7 +891,8 @@ def pipeline(ctx, P, parts, store, mh, joined, load, t2_ok):
     files["t5"] = t5
     fb = f_bright(mh, P) if t2_ok else None
     files["t6"] = run_t6(P, counts, t5, fb)
-    grid_ok = not (t2_ok and "grid_check" in t2) or bool(t2["grid_check"]["passed"])
+    conv = t2["grid_check"]["converged"] if (t2_ok and "grid_check" in t2) else {"i": True, "ii": True}
+    grid_ok = bool(conv["ii"])        # version (ii) drives T2a's population label, T2b and T4's sigma
     t4 = None
     if "t4" in parts:
         base = {"counts": counts, "mass": mass_r22(counts["lt_m1p5"], P),
@@ -900,7 +902,8 @@ def pipeline(ctx, P, parts, store, mh, joined, load, t2_ok):
         k = t2["grid_check"]["nodes"] if t2_ok else int(P["grid_nodes"])
         t4 = run_t4(P, store, ctx, mh, joined, base, t2_ok, k, grid_ok=grid_ok)
         files["t4"] = t4
-    pending = [] if grid_ok else ["T2 grid not converged (README 4.12 item 4): readings wait for a dated amendment"]
+    # reason codes (README 4.12 item 4); the web page maps them to English and Chinese text
+    pending = [f"grid_not_converged_{v}" for v in ("i", "ii") if not conv[v]]
     rep = S.reading_reproduction(t1["summary"], t2["t2a"]["reproduction_label"],
                                  t3["a_label"] if t3 else "undetermined", t3["b_label"] if t3 else "undetermined")
     rob = S.reading_robustness(t2["t2a"]["population_label"], t2["t2b"]["f5_label"],

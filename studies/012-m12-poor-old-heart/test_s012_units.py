@@ -367,10 +367,23 @@ def test_readings():
 # gate-1 fixes
 
 def test_parallax_outlier_does_not_underflow():
-    l, b, plx, err = np.array([5.0, 5.0]), np.array([10.0, 10.0]), np.array([0.12, 0.9]), np.array([0.01, 0.01])
-    lik = M.Lik(l, b, plx, err, np.array([12.0, 12.0]), np.array([1.5, 1.5]), version="ii", k=300)
+    """8 mas (error 0.01) lies ~300 sigma beyond the grid's largest parallax (5 mas at 0.2 kpc): the stored
+    single-precision Gaussian would underflow without the per-star scaling. Compare with float64 log-space."""
+    from scipy.special import logsumexp, ndtr
+    l, b, plx, err = np.array([5.0, 5.0]), np.array([10.0, 10.0]), np.array([0.12, 8.0]), np.array([0.01, 0.01])
+    g, c = np.array([12.0, 12.0]), np.array([1.5, 1.5])
+    lik = M.Lik(l, b, plx, err, g, c, version="ii", k=300)
     ps = lik.per_star("sph", (2.7,))
-    assert np.all(np.isfinite(ps)) and ps[1] > -1e4    # 0.9 mas is about 40 sigma from 1/30 kpc..
+    d, p, w = M.dist_grid(0.2, 30.0, 300)
+    r2, _ = M.gc_r2_z2(l[1], b[1], d, 8.2)
+    lr = -r2 / (2 * 2.7 ** 2)
+    base = np.log(w) - 4 * np.log(p)
+    lnum = logsumexp(base + lr - 0.5 * ((plx[1] + 0.02 - p) / err[1]) ** 2 - np.log(np.sqrt(2 * np.pi) * err[1]))
+    cut = min(1.0, float(M.lum_cut(g[1], c[1])))
+    lden = logsumexp(base + lr + np.log(np.maximum(ndtr((cut - p + 0.02) / err[1]), 1e-300)))
+    ref = lnum - lden
+    assert ref == pytest.approx(-45618, abs=5)
+    assert np.isfinite(ps[0]) and ps[1] == pytest.approx(ref, abs=1e-3)
 
 
 def test_two_dlnl_uses_profile_maximum():

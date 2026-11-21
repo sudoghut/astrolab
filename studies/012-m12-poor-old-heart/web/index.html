@@ -131,7 +131,13 @@
     if (S.status !== 'complete') { st.innerHTML = L(`Run status: ${esc(S.status)}`, `运行状态：${esc(S.status)}`); return; }
     st.innerHTML = L(`Complete run (parts: ${esc(S.parts.join(', '))}).`, `完整运行（parts：${esc(S.parts.join(', '))}）。`);
     const R = S.reading_reproduction, B = S.reading_robustness;
-    const pend = (S.pending_amendment || []).length ? `<p class="lab bad">${L('Pending amendment: ' + esc(S.pending_amendment.join('; ')), '等待修订：T2 的网格未收敛（README 第 4.12 节第 4 项），解读等待带日期的修订')}</p>` : '';
+    const REASONS = {
+      grid_not_converged_i: ['the T2 grid did not converge for version (i) (README 4.12 item 4)', 'T2 版本（i）的网格未收敛（README 第 4.12 节第 4 项）'],
+      grid_not_converged_ii: ['the T2 grid did not converge for version (ii) (README 4.12 item 4)', 'T2 版本（ii）的网格未收敛（README 第 4.12 节第 4 项）'],
+    };
+    const pr = (S.pending_amendment || []).map(c => REASONS[c] || [c, c]);
+    const pend = pr.length ? `<p class="lab bad">${L('Pending amendment: ' + pr.map(r => esc(r[0])).join('; ') + '. The readings wait for a dated amendment.',
+                                                     '等待修订：' + pr.map(r => esc(r[1])).join('；') + '。解读等待带日期的修订。')}</p>` : '';
     document.getElementById('readings').innerHTML = pend +
       `<p>${L('Reproduction', '复现')}: ${lab(R.label)} ${R.tests.length ? '(' + esc(R.tests.join(', ')) + ')' : ''}</p>` +
       `<p>${L("Robustness of R22's picture", 'R22 图景的稳健性')}: ${lab(B.label)} ${B.tests.length ? '(' + esc(B.tests.join(', ')) + ')' : ''}</p>`;
