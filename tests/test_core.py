@@ -695,3 +695,16 @@ def test_run_record_suffix_keeps_other_mode_records(tmp_path, monkeypatch):
                                    encoding="utf-8")
     with pytest.raises(ValueError):
         study.run(s)
+
+
+def test_http_sends_generic_user_agent(tmp_cache, monkeypatch):
+    """T-020: requests carry a generic client name (Dataverse refuses python-requests with 403)."""
+    import requests
+    seen = []
+    _fake_http(monkeypatch, b"ok")
+    get, head = requests.get, requests.head
+    monkeypatch.setattr(requests, "head", lambda *a, **k: seen.append(k.get("headers")) or head(*a, **k))
+    monkeypatch.setattr(requests, "get", lambda *a, **k: seen.append(k.get("headers")) or get(*a, **k))
+    fetch.http("http://example.invalid/ua.txt")
+    assert len(seen) == 2 and all(h and h["User-Agent"].startswith("astrolab/") for h in seen)
+    assert "@" not in fetch.HTTP_HEADERS["User-Agent"]
