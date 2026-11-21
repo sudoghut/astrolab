@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-21T09:11:26+00:00",
+ "generated_at": "2026-11-21T09:25:21+00:00",
  "levels": [
   "L0",
   "L1",
@@ -972,8 +972,8 @@
        "dec": -0.3867,
        "l": 345.1163989459661,
        "b": 54.85612815122885,
-       "note": "The outlying host (one supernova, SN 2007af): it carries the excess calibrator scatter. Without it the scatter is consistent with the covariance, also when the choice of the most extreme host is simulated; the host-selection result stays 'not detected'.",
-       "note_zh": "离群宿主（一颗超新星 SN 2007af）：多出的定标星离散来自它。去掉它后离散与协方差相符，把\"选出最极端宿主\"放进模拟后也是如此；宿主选择的结论仍是\"未检出\"。"
+       "note": "The outlying host (one supernova, SN 2007af): the excess calibrator scatter is consistent with this one host (low power against scatter spread over all hosts; whether its SN or Cepheid distance is off is not identified). Without it the scatter is consistent with the covariance, also when the choice of the most extreme host is simulated; the host-selection result stays 'not detected'.",
+       "note_zh": "离群宿主（一颗超新星 SN 2007af）：多出的定标星离散与这一个宿主相容（对分散在所有宿主上的离散功效低；是它的超新星还是造父变星距离有偏，数据无法确定）。去掉它后离散与协方差相符，把\"选出最极端宿主\"放进模拟后也是如此；宿主选择的结论仍是\"未检出\"。"
       },
       {
        "name": "NGC 5643 (CCHP host)",

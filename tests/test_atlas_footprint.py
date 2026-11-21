@@ -233,7 +233,7 @@ def test_wiki_first_mentions_link_to_the_sky():
                 names.append({"NGC": "N", "UGC": "U", "Mrk": "M"}[m.group(1)] + m.group(2).zfill(4))
             for part in (body_en, body_zh):
                 hit = _wiki_first_mentions(part, names)
-                if hit is None:
+                if hit is None:          # the target is not mentioned in this language: nothing to link
                     continue
                 line, m = hit
                 after = line[m.end():]
