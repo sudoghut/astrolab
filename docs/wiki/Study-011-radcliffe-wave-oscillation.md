@@ -312,8 +312,8 @@ should show.
     ±20 pc, posterior ±11–18 pc). The γ result in particular may be largely prior-driven. The r₀ prior
     N(3659, 500) pc is as wide as its column-(7) posterior 3563 (+514/−500) pc, so r₀ there is
     prior-driven. The δ prior exp(6.5) ≈ 665 ± 67 pc sits ~2σ below the clouds-only posterior 798 pc.
-    The ω₀ prior ln(ω₀/(km s⁻¹ pc⁻¹)) ~ N(−2.4, 0.17) is ω₀ ≈ 91 km s⁻¹ kpc⁻¹ ± 17%, centred ~1.7σ
-    (in ln) above both the adopted 74 and the posterior 68. Only the μ₀ prior ln(μ₀ pc) ~
+    The ω₀ prior ln(ω₀/(km s⁻¹ pc⁻¹)) ~ N(−2.4, 0.17) is ω₀ ≈ 91 km s⁻¹ kpc⁻¹ ~± 17%, centred ~1.2σ
+    above the adopted 74 and ~1.7σ above the posterior 68 (in ln). Only the μ₀ prior ln(μ₀ pc) ~
     N(−1.346, 0.25), i.e. 0.26 pc⁻¹, cannot be interpreted as printed (our reading).
   - The fitted vertical frequency ω(s) comes from a potential fitted to an existing Milky Way model;
     the v_z prediction is therefore not independent of the potential used to weigh the disc (step 8
@@ -508,7 +508,7 @@ Newest first.
 - **我们读出的、要带进第二部分的要点**（K24 并未把它们当作问题提出）：
   - 正文的"强烈偏好"与方法部分的 ΔlnZ ≈ 1、"两个模型拟合得同样好"之间的差别。贝叶斯因子比较的是 B = 1 与 B 自由，而不是行波与驻波；驻波是由相位论证以及后验 B = 0.84 (+0.07/−0.06) 高出 0.5 约 5σ 排除的。另外，若 ΔlnZ = ln Z₂ − ln Z₁ ≈ +1 且 Z₂ 是 B 自由的模型，所说的"B = 1 固定略受偏好"符号似乎相反（除非下标互换）。K24 报告的证据比（B = 1 对 B 自由；固定对放开引力势）都只有 ΔlnZ ≈ 1，并用它们来论证取 B = 1、称几个引力势等价。后验中位数 B = 0.84 不能读作反对 B = 1 的约 2σ 证据，因为先验在 1 处截断（后验以 1 为界时，即使 B = 1，中位数也会低于 1）；相关的比较是 B = 1 对 B 自由的证据比 ΔlnZ ≈ 1。B = 1 的拟合同时固定了 ω₀t = 0。
   - 离群判据 tanh(x²) > tanh(3) 按单个分量是 |x| > √3 σ ≈ 1.7σ，而 K24 称之为 3σ 半径。
-  - 先验是"依据初步拟合"（用同样的数据）设定的，有些与后验差不多一样窄（γ：ln γ 先验宽 0.07，即 γ 约 ±0.10，后验 ±0.07–0.09；A：先验 ±20 pc，后验 ±11–18 pc）。尤其是 γ 的结果可能主要由先验决定。r₀ 的先验 N(3659, 500) pc 与第 (7) 列的后验 3563 (+514/−500) pc 一样宽，所以那里的 r₀ 由先验决定。δ 的先验 exp(6.5) ≈ 665 ± 67 pc 比只用云的后验 798 pc 低约 2σ。ω₀ 的先验 ln(ω₀/(km s⁻¹ pc⁻¹)) ~ N(−2.4, 0.17) 即 ω₀ ≈ 91 km s⁻¹ kpc⁻¹ ± 17%，中心比采用值 74 与后验 68 都高约 1.7σ（按对数）。只有 μ₀ 的先验 ln(μ₀ pc) ~ N(−1.346, 0.25)，即 0.26 pc⁻¹，按印刷的形式无法解释（我们的理解）。
+  - 先验是"依据初步拟合"（用同样的数据）设定的，有些与后验差不多一样窄（γ：ln γ 先验宽 0.07，即 γ 约 ±0.10，后验 ±0.07–0.09；A：先验 ±20 pc，后验 ±11–18 pc）。尤其是 γ 的结果可能主要由先验决定。r₀ 的先验 N(3659, 500) pc 与第 (7) 列的后验 3563 (+514/−500) pc 一样宽，所以那里的 r₀ 由先验决定。δ 的先验 exp(6.5) ≈ 665 ± 67 pc 比只用云的后验 798 pc 低约 2σ。ω₀ 的先验 ln(ω₀/(km s⁻¹ pc⁻¹)) ~ N(−2.4, 0.17) 即 ω₀ ≈ 91 km s⁻¹ kpc⁻¹ 约 ± 17%，中心比采用值 74 高约 1.2σ、比后验 68 高约 1.7σ（按对数）。只有 μ₀ 的先验 ln(μ₀ pc) ~ N(−1.346, 0.25)，即 0.26 pc⁻¹，按印刷的形式无法解释（我们的理解）。
   - 拟合用的竖直频率 ω(s) 来自对现有银河系模型拟合的引力势；因此 v_z 的预言并不独立于用来称量银盘的引力势（第 8 步用同样的数据把它放开）。
   - CO 的一致与星团的一致都以图示给出，没有拟合优度数值。
 - **作者若是错的，需要什么成立：**
