@@ -734,18 +734,21 @@ labels and readings stay as recorded.
   whose d' = d is not evaluable (as `sel.spread_part` does); a failed Cholesky factor of a model → that
   model not evaluable; any decisive model not evaluable → reading "not evaluable".
 - (2) Every V(τ) (0.05, 0.077, 0.105) "excluded (J)", and O(δ̂) "not excluded (J)" and "not excluded
-  (D)" → **"diffuse host scatter (τ = 0.05–0.105) excluded by J; one offset host not excluded"**
+  (D)" → **"the three tested diffuse models V(0.05), V(0.077), V(0.105) excluded by J; one offset host not excluded"**
   (this does not establish that the one-offset-host model is preferred: O(δ̂) is fitted to the same data,
   so its non-exclusion is a consistency check), with the qualifier
   "(both statistics)" if every V(τ) is also "excluded (D)", else "(joint statistic only; D does not exclude
   τ = <list>)".
-- (3) Any V(τ) "not excluded (J)" → **"diffuse host scatter not excluded (τ = <list>)"**.
+- (3) Any V(τ) "not excluded (J)" → **"tested diffuse model(s) not excluded (τ = <list>)"**.
 - (4) Every V(τ) "excluded (J)" and O(δ̂) "excluded (J)" or "excluded (D)" → **"neither one offset host
   nor diffuse scatter reproduces the observed spreads"**.
 - (5) Otherwise → **"undetermined"**.
 - C's labels are reported next to them (expected "excluded" by D; ROB found P(spread_37 ≥ 1.307) =
   0.021 under C, but the calibrated p_J need not be as small); they enter no rule.
-- "Diffuse" means V at these three τ values, not a test over all τ; the conjunction in (2) needs three
+- "Diffuse" means V at these three fixed τ values only, not a test over a range of τ: the values were
+  chosen after seeing the data (R2-RE's τ̂ and its 68% interval on these data), the calibration treats
+  each as fixed and does not account for that choice or for the uncertainty of τ, so no range-level claim
+  is made; the conjunction in (2) needs three
   intervals below 0.05; the union in (3) is not corrected for three looks; the labels share ε_s and are
   correlated.
 
@@ -787,7 +790,7 @@ model as the T-048 note assumed. Per simulation, pass 1 (K ε, spread_37, criter
 at a time) about the same: 80,000 × about 15 ms ≈ 20 min. Five Cholesky factors (C, the three V(τ) and
 V(τ̂_N)), 5 × 0.23 s, each 3,489 × 3,489 in float64 (97 MB), about 0.5 GB held at once (plus one
 1,000 × 3,489 shift-row matrix, 28 MB, at a time); the calibration of J (5,000 quadrant counts over 5,000
-points per model) and the KDE bootstrap a minute or two. Block ≈ 1.5 h (1.2–1.8 h); the reported variant O(δ̂) + V(τ̂_N) needs one REML fit for
+points per model) and the KDE bootstrap a minute or two. Block ≈ 1.5 h (1.2–1.8 h; an estimate until the implementation is timed); the reported variant O(δ̂) + V(τ̂_N) needs one REML fit for
 τ̂_N (about a minute). Run in a standalone mode (`PARAMS["d_only"] = true`): it recomputes only what the
 block needs (the fit under C on `rows_a`, the R4 and R4-N index streams, the reduced system for N5584 and
 its REML τ̂_N, the checks above; host identification and R1 are computed internally but not saved with
