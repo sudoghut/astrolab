@@ -4,19 +4,210 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>M11 Radcliffe Wave: is the young-cluster wave oscillating?</title>
-<!-- Bilingual rule (AGENTS.md): keep this script, write text as <span class="en">…</span><span class="zh">…</span>,
-     use i18n.L(en, zh) for generated HTML and i18n.t(en, zh) + i18n.onLangChange for plain text / charts. -->
 <script src="../../../atlas/web/i18n.js"></script>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
+<style>
+  main { max-width: 1040px; margin: 0 auto; padding: 16px; }
+  section { margin: 18px 0; }
+  .labels td:first-child { white-space: nowrap; font-weight: 600; }
+  .lab { font-weight: 600; }
+  .lab.good { color: var(--established); } .lab.bad { color: var(--refuted); } .lab.mid { color: var(--hint); }
+  .plots { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 860px) { .plots { grid-template-columns: 1fr 1fr; } }
+  svg.plot { width: 100%; height: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+  svg.plot text { fill: var(--muted); font: 11px var(--sans); }
+  .legend { font-size: 13px; color: var(--muted); }
+  .num { font-family: var(--mono); font-size: 13px; }
+  details { margin: 8px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .wrap { overflow-x: auto; }
+</style>
 </head>
 <body>
 <main>
   <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 011-m11-radcliffe-wave-oscillation</p>
   <h1><span class="en">M11 Radcliffe Wave: is the young-cluster wave oscillating?</span><span class="zh">M11 Radcliffe 波：年轻星团组成的波在振荡吗？</span></h1>
-  <p><span class="en">Planned paper study (Konietzka et al. 2024, Nature 628, 62; arXiv:2402.12596). The wiki article comes first; this page will show the refitted damped wave, the phase relation between the clusters' heights and vertical velocities, and the travelling-versus-standing comparison once the study has been pre-registered and run.</span><span class="zh">计划中的论文研究（Konietzka 等 2024，Nature 628, 62；arXiv:2402.12596）。先写 Wiki 文章；完成预注册并运行后，本页将显示重新拟合的阻尼波、星团高度与竖直速度之间的相位关系，以及行波与驻波的比较。</span></p>
-  <p><a href="https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-011-radcliffe-wave-oscillation.md"><span class="en">Wiki article (in preparation)</span><span class="zh">Wiki 文章（撰写中）</span></a></p>
+  <p><span class="en">A paper study of Konietzka et al. 2024 (Nature 628, 62; arXiv:2402.12596, "K24"). Using only K24's two public tables (125 young clusters, 79 clouds with ¹²CO velocities) we refit their damped-wave model and ask how firmly the data prefer a travelling over a standing wave, with tests fixed before any fit (pre-registration, README sections 1–4).</span><span class="zh">对 Konietzka 等 2024（Nature 628, 62；arXiv:2402.12596，"K24"）的论文研究。只用 K24 公开的两张表（125 个年轻星团，79 个带 ¹²CO 速度的云），重新拟合他们的阻尼波模型，并用在任何拟合之前就固定的检验（预注册，README 第 1–4 节）回答：数据对行波（travelling wave）相对驻波（standing wave）的偏好有多强。</span></p>
+  <p><a href="https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-011-radcliffe-wave-oscillation.md"><span class="en">Wiki article</span><span class="zh">Wiki 文章</span></a> ·
+     <a href="https://github.com/sudoghut/astrolab/blob/main/studies/011-m11-radcliffe-wave-oscillation/README.md"><span class="en">Pre-registration (README)</span><span class="zh">预注册（README）</span></a></p>
+
+  <section id="status" class="card"><span class="en">loading…</span><span class="zh">加载中……</span></section>
+
+  <section id="labels-sec" hidden>
+    <h2><span class="en">Labels of the pre-registered tests</span><span class="zh">预注册检验的标签</span></h2>
+    <div class="wrap"><table class="labels"><tbody id="labels"></tbody></table></div>
+  </section>
+
+  <section id="plots-sec" hidden>
+    <h2><span class="en">Height and vertical velocity along the Wave</span><span class="zh">沿波的高度与竖直速度</span></h2>
+    <p class="legend"><span class="en">Points: K24's young clusters at their closest point on our column-(6) fit (filled: inliers of that fit; hollow: outliers). Solid line: our column-(6) posterior-median model (B = 1). Dashed: our B-free (column-(5) setup) posterior median. s is the distance along the Wave's baseline from its start near CMa OB1.</span><span class="zh">点：K24 的年轻星团，放在我们第 (6) 列拟合曲线上的最近点处（实心：该拟合的内点（inlier）；空心：离群点（outlier））。实线：我们第 (6) 列后验中位数模型（B = 1）。虚线：B 自由（第 (5) 列设置）的后验中位数模型。s 是从 CMa OB1 附近起点沿波基线的距离。</span></p>
+    <div class="plots"><div id="plot-z"></div><div id="plot-vz"></div></div>
+  </section>
+
+  <section id="details-sec" hidden>
+    <h2><span class="en">Details</span><span class="zh">细节</span></h2>
+    <div id="details"></div>
+  </section>
+
   <section id="skylinks" class="card" hidden></section>
 </main>
 <script src="../../../atlas/web/skylinks.js"></script>
+<script>
+(function () {
+  const L = (en, zh) => i18n.L(en, zh);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+  const f = (x, d = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '–' :
+    (typeof x === 'number' ? (Math.abs(x) > 0 && Math.abs(x) < 1e-3 ? x.toExponential(2) : x.toFixed(d)) : esc(x));
+  const iv = (a, d = 3) => a ? `[${f(a[0], d)}, ${f(a[1], d)}]` : '–';
+  const GOOD = ["reproduced", "standing excluded", "standing excluded strongly", "standing excluded by the phases",
+    "travelling component in K24's direction dominates", "robust", "consistent", "data-driven",
+    "CO prefers the travelling wave", "K24's travelling-wave reading is supported by these data"];
+  const BAD = ["not reproduced", "standing not excluded", "standing not excluded by the phases",
+    "no travelling dominance in K24's direction", "fragile", "different", "prior-driven", "not supported"];
+  const ZH = {
+    "reproduced": "已复现", "partly reproduced": "部分复现", "not reproduced": "未复现",
+    "standing excluded strongly": "强烈排除驻波", "standing excluded": "排除驻波", "standing not excluded": "不排除驻波",
+    "pure travelling (B = 1) disfavoured": "纯行波（B = 1）受到否定", "pure travelling (B = 1) not disfavoured": "纯行波（B = 1）未受否定",
+    "standing excluded by the phases": "相位排除驻波", "standing not excluded by the phases": "相位不排除驻波",
+    "undetermined": "未定", "not evaluable": "无法评估", "consistent": "一致", "different": "不同",
+    "travelling component in K24's direction dominates": "沿 K24 方向的行波分量占主导",
+    "no travelling dominance in K24's direction": "沿 K24 方向的行波分量不占主导",
+    "not applicable (wavelengths differ)": "不适用（波长不同）", "robust": "稳健", "fragile": "脆弱",
+    "CO prefers the travelling wave": "CO 偏好行波", "CO does not distinguish": "CO 无法区分",
+    "data-driven": "由数据决定", "partly data-driven": "部分由数据决定", "prior-driven": "由先验决定",
+    "K24's travelling-wave reading is supported by these data": "这些数据支持 K24 的行波解读",
+    "not supported": "不支持", "mixed": "结论混合",
+  };
+  const lab = s => {
+    const cls = GOOD.includes(s) ? 'good' : (BAD.includes(s) ? 'bad' : 'mid');
+    return `<span class="lab ${cls}">${L(esc(s), esc(ZH[s] || s))}</span>`;
+  };
+  async function get(name) {
+    const r = await fetch(`../results/${name}.json`);
+    if (!r.ok) throw new Error(`${name}.json: HTTP ${r.status}`);
+    return r.json();
+  }
+  async function opt(name) { try { return await get(name); } catch (e) { return null; } }
+
+  function plot(el, pts, key, curves, yl) {
+    const W = 480, H = 300, m = {l: 50, r: 12, t: 14, b: 36};
+    const xs = pts.s.concat(...curves.map(c => c.d.s)), ys = pts[key].concat(...curves.map(c => c.d[key]));
+    const x0 = Math.min(...xs), x1 = Math.max(...xs);
+    let y0 = Math.min(...ys), y1 = Math.max(...ys); const pad = 0.06 * (y1 - y0); y0 -= pad; y1 += pad;
+    const X = v => m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r), Y = v => H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b);
+    let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(yl)}">`;
+    s += `<line x1="${m.l}" y1="${Y(0)}" x2="${W - m.r}" y2="${Y(0)}" stroke="var(--line)"/>`;
+    for (let i = 0; i <= 4; i++) {
+      const xv = x0 + i * (x1 - x0) / 4, yv = y0 + i * (y1 - y0) / 4;
+      s += `<text x="${X(xv)}" y="${H - m.b + 16}" text-anchor="middle">${xv.toFixed(0)}</text>`;
+      s += `<text x="${m.l - 6}" y="${Y(yv) + 4}" text-anchor="end">${yv.toFixed(key === 'z' ? 0 : 1)}</text>`;
+    }
+    s += `<text x="${(W + m.l) / 2}" y="${H - 4}" text-anchor="middle">s (pc)</text>`;
+    s += `<text x="12" y="${(H - m.b) / 2}" transform="rotate(-90 12 ${(H - m.b) / 2})" text-anchor="middle">${esc(yl)}</text>`;
+    curves.forEach(c => {
+      const d = c.d.s.map((v, i) => `${i ? 'L' : 'M'}${X(v).toFixed(1)},${Y(c.d[key][i]).toFixed(1)}`).join('');
+      s += `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" ${c.dash ? 'stroke-dasharray="5 4" opacity="0.8"' : ''}/>`;
+    });
+    pts.s.forEach((v, i) => {
+      const inl = pts.inlier[i] === 1;
+      s += `<circle cx="${X(v).toFixed(1)}" cy="${Y(pts[key][i]).toFixed(1)}" r="3.2" fill="${inl ? 'var(--tension)' : 'none'}" stroke="var(--tension)"><title>${esc(pts.name[i])}: s = ${v}, ${key} = ${pts[key][i]}</title></circle>`;
+    });
+    el.innerHTML = s + '</svg>';
+  }
+
+  function row(test, en, zh, labels, nums) {
+    return `<tr><td>${test}</td><td>${L(en, zh)}</td><td>${labels}</td><td class="num">${nums || ''}</td></tr>`;
+  }
+
+  function render(s, t12, t3, t4, t5, t6, t7, t8) {
+    const st = document.getElementById('status');
+    const ov = s.overall || {};
+    st.innerHTML = `<h2 style="margin-top:0">${L('Overall reading', '总体解读')}</h2><p>${lab(ov.reading || '–')}` +
+      (ov.qualifier ? ` <em>${L('(' + esc(ov.qualifier) + ')', '（基于我们的复现，它与 K24 的拟合不一致）')}</em>` : '') + '</p>' +
+      (ov.support ? `<p class="muted">${L('Support', '支持')}: ${ov.support.join(', ') || '–'} · ${L('do not support', '不支持')}: ${ov.do_not_support.join(', ') || '–'} · ${L('undetermined or not evaluable', '未定或无法评估')}: ${ov.undetermined_or_not_evaluable.join(', ') || '–'}</p>` : '') +
+      `<p class="muted">${L('T7 and T8 are reported separately and do not enter the overall reading.', 'T7 与 T8 单独报告，不进入总体解读。')}` +
+      (s.chain_short && s.chain_short.length ? ' ' + L('Chains flagged short: ', '被标为过短的链：') + esc(s.chain_short.join(', ')) : '') + '</p>';
+    let rows = '';
+    if (s.T1) rows += row('T1', 'reproduce K24 (col. 4 / col. 6)', '复现 K24（第 4 / 6 列）', lab(s.T1.col4) + ' / ' + lab(s.T1.col6),
+      t12 ? `${t12.t1.col4.n_inside_of_6}/6, ${t12.t1.col6.n_inside_of_6}/6 ${i18n.t('inside K24 1σ', '落在 K24 1σ 内')}` : '');
+    if (s.T2) rows += row('T2', 'B free (no label)', 'B 自由（无标签）', '–',
+      `B = ${f(s.T2.B_median, 2)} [${f(s.T2.B_p16, 2)}, ${f(s.T2.B_p84, 2)}]; P(B>0.95) = ${f(s.T2.P_B_gt_0p95, 2)}; P(B<0.5) = ${f(s.T2.P_B_lt_0p5, 2)}`);
+    if (s.T3) rows += row('T3', 'nested likelihood ratios', '嵌套似然比', lab(s.T3.standing) + '<br>' + lab(s.T3.pure_travelling),
+      `2ΔlnL = ${f(s.T3.two_dlnL_standing, 2)} (p_cal ${f(s.T3.p_cal_standing)}, p_boot ${f(s.T3.p_boot_standing)}); ${f(s.T3.two_dlnL_travelling, 2)} (p_cal ${f(s.T3.p_cal_travelling)}, p_boot ${f(s.T3.p_boot_travelling)})`);
+    if (s.T4) rows += row('T4', 'phase spread', '相位离散', lab(s.T4.label), `R = ${f(s.T4.R_obs)}, p = ${f(s.T4.p)}, ${i18n.t('power', '功效')} = ${f(s.T4.power_B1, 2)}`);
+    if (s.T5) rows += row('T5', 'z and v_z without their relation', '不假设两者关系的 z 与 v_z',
+      lab(s.T5.wavelengths) + '<br>' + lab(s.T5.bhat),
+      `b̂ = ${f(s.T5.bhat_value, 2)} ${iv(s.T5.bhat_interval, 2)}; k_z/k_vz ${iv(s.T5.k_ratio_interval, 2)}; ${i18n.t('known-answer check', '已知答案检验')}: ${s.T5.known_answer_passed ? i18n.t('pass', '通过') : i18n.t('fail', '未通过')}`);
+    if (s.T6) rows += row('T6', 'robustness (15 variants)', '稳健性（15 个变体）', lab(s.T6.label),
+      s.T6.changes.length ? s.T6.changes.map(c => esc(`${c.variant}: ${c.label}`)).join('<br>') : '');
+    if (s.T7) rows += row('T7', '¹²CO velocities', '¹²CO 速度', lab(s.T7.label), `−2lnL (a, b, c) = ${s.T7.m2lnL.map(x => f(x, 1)).join(', ')}`);
+    if (s.T8) rows += row('T8', 'potential set by the data?', '引力势由数据决定吗？', lab(s.T8.label),
+      `ω₀ = ${f(s.T8.omega0_k24.median, 1)} (K24 ${i18n.t('priors', '先验')}), ${f(s.T8.omega0_broad.median, 1)} (${i18n.t('broad', '宽先验')}) km s⁻¹ kpc⁻¹`);
+    document.getElementById('labels').innerHTML = rows;
+    document.getElementById('labels-sec').hidden = false;
+
+    if (t12 && t12.plot) {
+      const p = t12.plot, pts = p.clusters_col6;
+      const curves = [{d: p.col6_median}, {d: p.col5_median, dash: true}];
+      const draw = () => {
+        plot(document.getElementById('plot-z'), pts, 'z', curves, i18n.t('z (pc)', 'z（pc）'));
+        plot(document.getElementById('plot-vz'), pts, 'vz', curves, i18n.t('v_z (km/s)', 'v_z（km/s）'));
+      };
+      draw(); i18n.onLangChange(draw);
+      document.getElementById('plots-sec').hidden = false;
+    }
+
+    let det = '';
+    if (t12) {
+      const tr = (c) => Object.entries(t12.t1[c].parameters).map(([k, r]) =>
+        `<tr><td>${esc(k)}</td><td class="num">${f(r.ours.median, 2)} +${f(r.ours.plus, 2)}/−${f(r.ours.minus, 2)}</td><td class="num">${f(r.k24.median, 2)} +${f(r.k24.plus, 2)}/−${f(r.k24.minus, 2)}</td><td>${r.inside_k24_1sigma ? '✓' : ''}</td><td class="num">${f(r.sigma_scaled_difference, 2)}</td></tr>`).join('');
+      ['col4', 'col6'].forEach(c => {
+        const o = t12.t1[c].inliers_vs_table_flag;
+        det += `<details><summary>T1 ${L('column', '第')} ${c.slice(3)}${L('', ' 列')}: ${lab(t12.t1[c].label)}</summary><div class="wrap"><table><tr><th>${L('parameter', '参数')}</th><th>${L('ours', '我们')}</th><th>K24</th><th>${L('inside', '在内')}</th><th>${L('Δ/σ', 'Δ/σ')}</th></tr>${tr(c)}</table></div>` +
+          `<p class="muted">${L('Inliers vs the table flag', '内点与表中标记对比')}: ${L('both', '都是')} ${o.both}, ${L('ours only', '仅我们')} ${o.first_only}, ${L('table only', '仅表')} ${o.second_only}, ${L('neither', '都不是')} ${o.neither}</p></details>`;
+      });
+    }
+    if (t3) det += `<details><summary>T3: ${lab(t3.standing)} · ${lab(t3.pure_travelling)}</summary><p class="num">` +
+      ['standing_stat', 'travelling_stat'].map(k => { const x = t3[k]; return `${k}: 2ΔlnL ${f(x.two_dlnL, 3)}, d ${x.d}, m ${f(x.m, 3)} ± ${f(x.se_m, 3)}, p_raw ${f(x.p_raw)}, p_cal ${f(x.p_cal)}, p_boot ${f(x.p_boot)} (k = ${x.k_mocks_at_least_obs})`; }).join('<br>') +
+      (t3.residual_resampling_variant ? `<br>${L('residual-resampling variant', '残差重抽样变体')}: ${lab(t3.residual_resampling_variant.standing)} · ${lab(t3.residual_resampling_variant.pure_travelling)}` : '') + '</p></details>';
+    if (t4) det += `<details><summary>T4: ${lab(t4.label)}</summary><p class="num">N = ${t4.n_clusters}, R_obs = ${f(t4.R_obs)}, p = ${f(t4.gauss.p)} ± ${f(t4.gauss.p_mcse)}, ${L('power (B = 1)', '功效（B = 1）')} = ${f(t4.gauss.power_B1, 3)}, ${L('power (B free)', '功效（B 自由）')} = ${f(t4.gauss.power_Bfree, 3)}` +
+      (t4.resid ? `<br>${L('residual resampling', '残差重抽样')}: p = ${f(t4.resid.p)}, ${L('power', '功效')} = ${f(t4.resid.power_B1, 3)} → ${lab(t4.resid.label)}` : '') + '</p></details>';
+    if (t5) {
+      const ka = t5.known_answer;
+      det += `<details><summary>T5: ${lab(t5.wavelengths_label)} · ${lab(t5.bhat_label)}</summary><p class="num">` +
+        `${L('clusters kept', '保留的星团')} ${t5.n_kept} / ${t5.n_in} (${L('end of grid', '网格端点')} ${t5.n_end_of_grid_dropped}); b̂ = ${f(t5.bhat)} ${iv(t5.bhat_interval)}; k_z/k_vz = ${f(t5.k_ratio)} ${iv(t5.k_ratio_interval)}; Δ = ${f(t5.Delta)} ${iv(t5.Delta_interval)} rad; ρ = ${f(t5.rho)} ${iv(t5.rho_interval)}` +
+        (t5.sensitivity_omega0 ? `<br>${L('with ω₀ = 68 in ω(s)', 'ω(s) 中取 ω₀ = 68')}: b̂ = ${f(t5.sensitivity_omega0.bhat)} ${iv(t5.sensitivity_omega0.bhat_interval)}` : '') +
+        `<br>${L('known-answer check', '已知答案检验')}: ${ka.passed ? L('pass', '通过') : L('fail', '未通过')} — ` +
+        Object.entries(ka.injections).map(([B, r]) => `B = ${B}: ${f(r.median_mock_bhat, 2)} ${iv(r.median_mock_interval, 2)} ${r.pass ? '✓' : '✗'}`).join('; ') + '</p></details>';
+    }
+    if (t6) det += `<details><summary>T6: ${lab(t6.label)}</summary><div class="wrap"><table><tr><th>${L('variant', '变体')}</th><th>T3</th><th>T4</th><th>T5</th><th>${L('changed', '变化')}</th></tr>` +
+      t6.variants.map(v => `<tr><td>${esc(v.variant)}</td><td>${lab(v.labels['T3 standing'])}<br>${lab(v.labels['T3 pure travelling'])}</td><td>${lab(v.labels['T4'])}</td><td>${lab(v.labels['T5 wavelengths'])}<br>${lab(v.labels['T5 bhat'])}</td><td>${esc(v.changed.join(', '))}</td></tr>`).join('') + '</table></div></details>';
+    if (t7) det += `<details><summary>T7: ${lab(t7.label)}</summary><p class="num">(a) ${f(t7.a_col6_B1.m2lnL, 2)} σ_int ${f(t7.a_col6_B1.sigma_int, 2)}; (b) ${f(t7.b_vz_zero.m2lnL, 2)} σ_int ${f(t7.b_vz_zero.sigma_int, 2)}; (c) ${f(t7.c_B0p5.m2lnL, 2)} σ_int ${f(t7.c_B0p5.sigma_int, 2)} km/s; Θ₂ = (${f(t7.theta2_a[0], 2)}, ${f(t7.theta2_a[1], 2)}) km/s</p></details>`;
+    if (t8) {
+      const pr = (o, k) => `${f(o[k].median, 3)} +${f(o[k].plus, 3)}/−${f(o[k].minus, 3)}`;
+      det += `<details><summary>T8: ${lab(t8.label)}</summary><p class="num">` +
+        [['k24_priors', L("K24's priors", 'K24 的先验')], ['broad_priors', L('broad priors', '宽先验')], ['variant_divisor_fixed', L('divisor fixed at 74', '除数固定为 74')]].map(([k, nm]) =>
+          `${nm}: ω₀ ${pr(t8[k], 'omega0_kms_kpc')} km s⁻¹ kpc⁻¹; ρ₀ ${pr(t8[k], 'rho0_msun_pc3')} M☉ pc⁻³; ${L("Sun's period", '太阳周期')} ${pr(t8[k], 'sun_period_myr')} Myr`).join('<br>') +
+        `<br>${L('half-width (broad, ln ω₀)', '半宽（宽先验，ln ω₀）')} ${f(t8.halfwidth_broad)} vs 0.085; ${L('median shift', '中位数移动')} ${f(t8.median_shift_in_sigma_broad, 2)}σ</p></details>`;
+    }
+    document.getElementById('details').innerHTML = det;
+    document.getElementById('details-sec').hidden = false;
+  }
+
+  get('summary').then(async s => {
+    if (s.status !== 'complete') {
+      document.getElementById('status').innerHTML = L('The run has not completed: ', '运行尚未完成：') + esc(s.status);
+      return;
+    }
+    const [t12, t3, t4, t5, t6, t7, t8] = await Promise.all(['t1_t2', 't3', 't4', 't5', 't6', 't7', 't8'].map(opt));
+    render(s, t12, t3, t4, t5, t6, t7, t8);
+  }).catch(e => {
+    document.getElementById('status').innerHTML =
+      L('Not yet run. The pre-registration (README sections 1–4) is fixed; results will appear here after the formal run. ',
+        '尚未运行。预注册（README 第 1–4 节）已固定；正式运行后结果将显示在这里。') +
+      `<span class="muted">(${esc(e.message || e)})</span>`;
+  });
+})();
+</script>
 </body>
 </html>
