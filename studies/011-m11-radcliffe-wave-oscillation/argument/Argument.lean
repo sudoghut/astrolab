@@ -63,7 +63,7 @@ structure Vocab where
   Coherent : Prop
   /-- The vertical forces on the Wave are modelled by gravity alone. -/
   GravOnly : Prop
-  /-- The adopted potential parameters (omega0 = 74 km/s/kpc, r0 = 3.7 kpc, mu0 = 1.3 per kpc) reproduce an existing Milky Way model (Allen and Santillan 1991 with the parameters of Irrgang et al. 2013) at 7-10 kpc and up to 300 pc. -/
+  /-- The adopted potential parameters (omega0 = 74 km/s/kpc, r0 = 3.7 kpc, mu0 = 1.3 per kpc) are chi-square fitted to an existing Milky Way model (Allen and Santillan 1991 with the parameters of Irrgang et al. 2013) at 7-10 kpc and up to 300 pc. -/
   PotParams : Prop
   /-- The vertical potential is the anharmonic oscillator of K24 eq. 1 with the adopted parameters. -/
   PotKnown : Prop
@@ -132,7 +132,7 @@ inductive Field where
   | stat_twfit
   /-- STAT [stated: "In contrast, we find that the phases φk change over the whole range of -π/2 to π/2, such that B = 0.5 is inconsistent with the data."] Methods (wave model; no statistic is given for the spread) -/
   | stat_phase
-  /-- MOD [stated: "From equations (4) and (5) we conclude that the phases φk should be roughly constant"] Methods (the preceding sentence assumes B = 0.5, a standing wave; model phases vary at most by about 0.03 pi); encoded for observed phases, with PhaseNotNoise as antecedent (weaker than the quote) -/
+  /-- MOD [stated: "From equations (4) and (5) we conclude that the phases φk should be roughly constant"] Methods (the preceding sentence assumes B = 0.5, a standing wave; model phases vary at most by about 0.03 pi); encoded for observed phases, with PhaseNotNoise as antecedent: the quote concerns the noiseless model, and the body applies it to observed phases, which is why PhaseNotNoise is needed -/
   | mod_standing
   /-- GAP [reconstructed] the observed phase spread exceeds what measurement errors and the Wave's 47 pc scatter would give for a B = 0.5 wave: near a standing wave's nodes both z and v_z tend to zero, so the phases there are set by noise; K24 states the noiseless model expectation and gives no statistic for the observed spread -/
   | gap_phase_noise

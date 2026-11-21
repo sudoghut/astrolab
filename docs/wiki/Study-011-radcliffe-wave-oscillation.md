@@ -482,7 +482,7 @@ they come from a χ² fit of eq. 1 to an existing Milky Way model. The B = 1 fit
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
 | `mod_grav`: only gravity acts on the Wave vertically | MOD | stated: "We therefore model the forces acting on the Wave solely by gravity." | Methods (density contrast 10⁴ with the surrounding medium) |
-| `lit_pot`: the adopted ω₀ = 74, r₀ = 3.7, μ₀ = 1.3 reproduce an existing Milky Way model | LIT | stated: "These parameters are adopted by comparing equation (1) with an existing model of the Galactic potential including its updated parameters" | Methods; Allen & Santillán 1991 with the parameters of Irrgang et al. 2013 (arXiv:1211.4353) |
+| `lit_pot`: the adopted ω₀ = 74, r₀ = 3.7, μ₀ = 1.3 are chi-square fitted to an existing Milky Way model | LIT | stated: "These parameters are adopted by comparing equation (1) with an existing model of the Galactic potential including its updated parameters" | Methods; Allen & Santillán 1991 with the parameters of Irrgang et al. 2013 (arXiv:1211.4353) |
 | `mod_pot`: the vertical potential is the anharmonic oscillator of eq. 1 with those parameters | MOD | stated: "Since the Radcliffe Wave's amplitude is on the order of the Galaxy's vertical scale height, the vertical gravitational potential Φ resulting in this acceleration can be represented by an anharmonic oscillator." | Methods, eq. 1 |
 | `mod_stationary`: the potential is stationary | MOD | stated: "Note that, consistent with the literature, we treat the underlying Gravitational potential as stationary." | Methods |
 | `mod_shape`: gravity + known stationary potential ⇒ for a travelling wave the shape fixes v_z | MOD | stated: "For a traveling wave, the wave's spatial shape fully determines vertical velocities, assuming a gravitational potential" | main text p. 2 |
@@ -687,7 +687,7 @@ can test it.
    wave is an adequate description despite shear (`gap_shear`; questioned by Li et al. 2024); and
    the potential fit is data-driven rather than prior-driven (`gap_prior`).
 2. **Where the gaps sit: every part of the conclusion depends on gaps.** (2), travelling rather
-   than standing, needs `gap_phase_noise` and `gap_vz`, because both of its routes (the phase
+   than standing, needs `gap_phase_noise` and `gap_vz`, because both of its inputs (the phase
    spread and the B posterior) use the same cluster velocities and the same fit. (1), oscillation,
    comes after (2) — the Figure 1 fit is the B = 1 realisation, adopted only after the mixture
    fit — so it inherits those two gaps and adds `gap_shear`. (3), weighing the disc, uses the
@@ -954,7 +954,7 @@ have c : v.Coherent :=
 | 前提（Lean 构造子） | 标注 | 出处性质 | 论文出处 |
 |---|---|---|---|
 | `mod_grav`：竖直方向只有引力作用于波 | MOD | stated: "We therefore model the forces acting on the Wave solely by gravity." | 方法（与周围介质的密度比 10⁴） |
-| `lit_pot`：采用的 ω₀ = 74、r₀ = 3.7、μ₀ = 1.3 重现现有的银河系模型 | LIT | stated: "These parameters are adopted by comparing equation (1) with an existing model of the Galactic potential including its updated parameters" | 方法；Allen & Santillán 1991，参数取自 Irrgang 等 2013（arXiv:1211.4353） |
+| `lit_pot`：采用的 ω₀ = 74、r₀ = 3.7、μ₀ = 1.3 由对现有银河系模型的 χ² 拟合得出 | LIT | stated: "These parameters are adopted by comparing equation (1) with an existing model of the Galactic potential including its updated parameters" | 方法；Allen & Santillán 1991，参数取自 Irrgang 等 2013（arXiv:1211.4353） |
 | `mod_pot`：竖直引力势是取这些参数的式 1 非谐振子 | MOD | stated: "Since the Radcliffe Wave's amplitude is on the order of the Galaxy's vertical scale height, the vertical gravitational potential Φ resulting in this acceleration can be represented by an anharmonic oscillator." | 方法，式 1 |
 | `mod_stationary`：引力势是定常的（stationary） | MOD | stated: "Note that, consistent with the literature, we treat the underlying Gravitational potential as stationary." | 方法 |
 | `mod_shape`：引力 + 已知定常引力势 ⇒ 对行波而言形状决定 v_z | MOD | stated: "For a traveling wave, the wave's spatial shape fully determines vertical velocities, assuming a gravitational potential" | 正文第 2 页 |
@@ -1084,7 +1084,7 @@ K24 在扣除银河系自转后拟合一个刚体的盘面内速度：v_x,plane 
 #### 2.7 Lean 检查发现的问题
 
 1. **主要结果：`explicit_insufficient`，四个缺口。** 没有 `[implied]` 前提：凡不是缺口的前提都是 K24 明说的（引力势参数作为明说的 `LIT` 前提进入），所以 `stated_insufficient` 与 `explicit_insufficient` 用的是同一个反例模型。缺口是：z–v_z 图样属于波本身，而不是星团样本、其离群处理与太阳运动零点（`gap_vz`；Zhu 等 2024 发现 v_z 振荡与竖直坐标不同步，Bobylev 等 2025 也提出疑问）；对驻波而言，观测到的相位分布超过了噪声所能造成的（`gap_phase_noise`）；尽管有剪切，一列连贯的行波仍是恰当的描述（`gap_shear`；Li 等 2024 对此提出质疑）；引力势的拟合由数据而不是先验决定（`gap_prior`）。
-2. **缺口的位置：结论的每一部分都依赖缺口。** (2) 是行波而不是驻波，需要 `gap_phase_noise` 与 `gap_vz`，因为它的两条路径（相位分布与 B 的后验）用的是同样的星团速度与同一个拟合。(1) 振荡在 (2) 之后——图 1 的拟合是 B = 1 的实现，在混合模型拟合之后才采用——所以继承这两个缺口，并加上 `gap_shear`。(3) 称量银盘用到振荡，并加上 `gap_prior`。"强烈偏好"在 K24 中没有定量支持（唯一的证据比是 B = 1 对 B 自由的 ΔlnZ ≈ 1；B 的后验受先验在 1 处截断）。
+2. **缺口的位置：结论的每一部分都依赖缺口。** (2) 是行波而不是驻波，需要 `gap_phase_noise` 与 `gap_vz`，因为它的两项依据（相位分布与 B 的后验）用的是同样的星团速度与同一个拟合。(1) 振荡在 (2) 之后——图 1 的拟合是 B = 1 的实现，在混合模型拟合之后才采用——所以继承这两个缺口，并加上 `gap_shear`。(3) 称量银盘用到振荡，并加上 `gap_prior`。"强烈偏好"在 K24 中没有定量支持（唯一的证据比是 B = 1 对 B 自由的 ΔlnZ ≈ 1；B 的后验受先验在 1 处截断）。
 3. **各缺口影响什么。** `gap_vz` 影响全部三部分。`gap_phase_noise` 关系到排除驻波的唯一路径。`gap_shear` 对行波解读与漂移的影响大于对局部上下运动的影响。`gap_prior` 既影响 ω₀、ρ₀、暗物质密度与太阳周期的中心值（先验把 ω₀ 往上拉），也影响它们的误差棒。
 4. **在这种编码下 27 个前提都是必要的**，没有多余的（每个前提都在单一链条上；K24 通向"连贯"的第二条路径，即只用云、只用星团与联合拟合的一致性，没有编码；B = 0.84 编码为数据偏好行波的证据，而不是排除驻波的第二条路径）。
 5. **相容性**（`consistent`）在这里有一点分量：`mod_standing` 是否定形式，模型需要波不是驻波。
