@@ -1210,7 +1210,8 @@ results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_
   aligned with τ̂ than "smallest τ̂_j" (not feasible: 37 REML fits per simulation), so its p is
   expected to be higher than under an aligned criterion; the τ label supports the reading only as far
   as the spread labels do. The pre-registered label of R2-RE-N5584 (a), "attributable to N5584", stays
-  recorded as the outcome under the unselected null.
+  recorded as the outcome under the unselected null. *Gloss since 2026-11-21 (R2-RE-D, rule (3), next
+  subsection):* consistent with C after removing one host, and not distinguished from diffuse scatter.
 - **As expected, in direction.** The selection lowered every p value relative to B-N (τ 0.339 → 0.244;
   spread 0.359 → 0.241 under X and → 0.137 under S), and criterion S, the one aligned with the spread,
   lowered it most; no part has p at or above B-N's (descriptive rule: none). The X values fall in the
@@ -1247,13 +1248,132 @@ results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_
   single-host offset model, is registered as T-048. Two further points: the three labels are not
   independent (τ̂_s and the criterion-X spread correlate at 0.81 over the first 400 simulations), and
   criterion X barely conditions the τ part (p = 0.26 in the 37 simulations where X drops N5584, 0.24 in
-  the other 363), as the section 2 caveat said.
+  the other 363), as the section 2 caveat said. *Outcome of T-048 (2026-11-21, R2-RE-D, next
+  subsection):* reading (3), "tested diffuse model(s) not excluded (τ = 0.077, 0.105)"; this bullet stays
+  as written (the addendum replaces it only under reading (2)).
 - **Status of R2.** Unchanged, as fixed in section 2: the R2-RE headline row ("no host-selection
   effect detected"), the R2-RE-ROB and R2-RE-N5584 labels, `summary.json` `R2_host` and the claim's
   verdict stay as recorded.
 - **Runtime.** The block took 12,258 s: τ part 8,015 s (about 20 s per REML fit), spread parts 3,975 s
   (rows for the other 36 dropped hosts, about 110 s each; N5584's were built before the τ part); the whole run 9.3 h, within the 8.5–10 h estimate. No
   data downloaded.
+
+### R2-RE-D (addendum 2026-11-21, T-048)
+
+Run of 2026-11-21 in the standalone mode (`PARAMS["d_only"]` set to true for the run and back to false
+afterwards; `python -m astrolab run 003`, 3,962.6 s, of which this block 3,961.4 s; cache only, no data
+downloaded). It wrote only `results/r2_re_d.json`, the eight `results/r2_re_d_sims_<model>.json`,
+`provenance_d.json`, `run_info_d.json` and the `R2_RE_D` key of `summary.json`. Numbers:
+`results/r2_re_d.json` (keys in brackets below are under `models.<key>`).
+
+**Checks (rule (1)).** All passed (`observed.mismatches` empty): spread_37 = 1.3070929 and spread_36 =
+1.0325255 reproduce the recorded values to a relative 1.9 × 10⁻¹⁴ and 7.2 × 10⁻¹⁴ (tolerance 10⁻⁹);
+criterion S selects N5584 on the real data with spread_excl 1.02668 (within 0.00032 of 1.027, tolerance
+0.001; next lowest N1365 1.2066); δ̂ = 0.3363369 mag, 3.1 × 10⁻⁶ from the recorded 0.33634 (tolerance
+5 × 10⁻⁶), σ_δ = 0.09252 (δ̂/σ_δ = 3.64); τ̂_N = 0.0313714 reproduces the recorded value to a relative
+7 × 10⁻¹⁰ (tolerance 10⁻⁶), so the reported variant O(δ̂) + V(τ̂_N) was run. The rows of all 37
+reduced systems were built (89–114 s each), none failed; every model's Cholesky factor succeeded and all
+eight models are "evaluated".
+
+**Observed statistics** (`observed`): spread_37 = 1.30709, spread_36 = 1.03253 (N5584 removed), D =
+spread_37 − spread_36 = 0.27457; the proxy D_proxy = 0.28041 (for comparison with the referee only).
+
+| Model | D: k / 10,000, p_D, 95% interval | Label (D) | J: k_J / 5,000 (count at the observed point of 5,000 half-A), p_J, 95% interval | Label (J) | Q_raw (descriptive) |
+|---|---|---|---|---|---|
+| C (reported) | 56, 0.0057, 0.0042–0.0073 | excluded (D) | 86 (3; t_obs 0.0006), 0.0174, 0.0138–0.0212 | excluded (J) | 0.0006 |
+| **V(0.05)** | 156, 0.0157, 0.0133–0.0182 | **excluded (D)** | 192 (10; 0.0020), 0.0386, 0.0332–0.0441 | **excluded (J)** | 0.0025 |
+| **V(0.077)** | 338, 0.0339, 0.0303–0.0375 | **excluded (D)** | 399 (26; 0.0052), 0.0800, 0.0724–0.0877 | **not excluded (J)** | 0.0048 |
+| **V(0.105)** | 763, 0.0764, 0.0712–0.0817 | **not excluded (D)** | 339 (23; 0.0046), 0.0680, 0.0610–0.0751 | **not excluded (J)** | 0.0044 |
+| **O(δ̂)**, δ̂ = 0.3363 | 5,193, 0.519, 0.509–0.529 | **not excluded (D)** | 3,377 (979; 0.1958), 0.675, 0.662–0.688 | **not excluded (J)** | 0.193 |
+| O(δ̂ − σ_δ), δ = 0.2438 (reported) | 1,873, 0.187, 0.180–0.195 | not excluded (D) | 1,484 (233; 0.0466), 0.297, 0.284–0.310 | not excluded (J) | 0.044 |
+| O(δ̂) + V(τ̂_N), τ̂_N = 0.0314 (reported) | 4,957, 0.496, 0.486–0.506 | not excluded (D) | 3,271 (897; 0.1794), 0.654, 0.641–0.667 | not excluded (J) | 0.175 |
+| O_any(δ̂) (reported) | 1,318, 0.132, 0.125–0.139 | not excluded (D) | 1,478 (227; 0.0454), 0.296, 0.283–0.308 | not excluded (J) | 0.044 |
+| Reading | – | – | – | **tested diffuse model(s) not excluded (τ = 0.077, 0.105)** (rule 3) | – |
+
+Bold rows are the decisive models. p_D = (1 + k)/(1 + 10,000) [`D.p`], p_J = (1 + k_J)/(1 + 5,000)
+[`J.p`]; intervals are the Clopper–Pearson intervals of k/n [`ci95`]; Q_raw is the raw quadrant share
+over all 10,000 simulations [`Q_raw.share`], not a p value.
+
+- **Reading (pre-registered, rule 3).** Rule (1) does not apply (all checks passed, all models
+  evaluated). Rule (2) needs every V(τ) "excluded (J)"; V(0.077) and V(0.105) are "not excluded (J)", so
+  rule (2) fails, and rule (3) applies: **"tested diffuse model(s) not excluded (τ = 0.077, 0.105)"**
+  (`reading`; `summary.json` `R2_RE_D.reading`). Rules (4) and (5) are not reached. The reading is formed
+  by the rules fixed in section 2 before any simulation; nothing was chosen after the run.
+- **What "not excluded" means.** A model is "not excluded" by a statistic when the whole 95% interval of
+  its Monte Carlo p value lies above 0.05: the model produces data as extreme as observed (as
+  "one-outlier-like" for J, as large a drop for D) often enough to be consistent with the data at the 5%
+  level. It is not evidence for that model, and "not excluded" for the diffuse models is not evidence
+  against a single outlying host: the one-host model O(δ̂) is not excluded either. Neither picture is
+  rejected; the test does not decide between them. The referee (post hoc, below and section 6) found
+  that the comparison has only about 50% power against its own one-host alternative, so this "not
+  excluded" is an underpowered null result, not evidence for diffuse scatter.
+- **Section-5 action (fixed by the addendum for reading (3)).** These data do not distinguish one
+  outlying host from host-level scatter of R2-RE's size (τ = 0.077–0.105 mag). R2-RE-SEL's reading stays,
+  glossed "consistent with C after removing one host, and not distinguished from diffuse scatter" (added
+  to its reading bullet above); its post-hoc referee bullet stays as written. The R2-RE headline row
+  ("no host-selection effect detected"), `summary.json` `R2_host` and the claim's verdict do not change;
+  no earlier label changes.
+- **The smallest diffuse model is excluded.** V(0.05) is excluded by both statistics (D 0.016, J 0.039):
+  host scatter as small as the lower end of R2-RE's 68% interval, spread over all hosts, rarely produces
+  the observed pattern. D also excludes V(0.077) (0.034), but D is not the deciding statistic for rule
+  (3), which uses J. The J exclusion of V(0.05) is not firm: it depends on which half calibrates J
+  (post hoc, below).
+- **The one-host models.** O(δ̂) is not excluded (D 0.52, J 0.68), largely by construction (δ̂ is fitted
+  to these data and N5584 was singled out by them): a consistency check, not evidence. The reported
+  variants are not excluded either: with the offset reduced by one standard error (O(δ̂ − σ_δ): D 0.19,
+  J 0.30), with a small diffuse term added (O(δ̂) + V(τ̂_N): 0.50, 0.65), and with the offset on a host
+  drawn at random instead of N5584 (O_any: 0.13, 0.30; criterion S picks the offset host in 4,358 of
+  10,000 simulations, `Oany.selected.n_offset_host`). Under O(δ̂) criterion S picks N5584 in 9,318 of
+  10,000 simulations (7,213 under O(δ̂ − σ_δ), 9,077 under O(δ̂) + V(τ̂_N)); under C 696, under V(0.05),
+  V(0.077), V(0.105) 738, 779, 823 [`selected.n_host`].
+- **C (reported, enters no rule).** Excluded by both statistics (D 0.0057, J 0.017); the observed
+  pattern is rare without any excess scatter, as ROB found (here P(spread_37 ≥ obs) = 132 of 10,000
+  under C, against ROB's 42 of 2,000 on other seeds with ROB's p = 0.021).
+- **Marginals (reported, `P_spread_37_ge_obs`, `P_spread_36_le_obs`).** The two coordinates pull in
+  opposite directions as τ grows: P(spread_37 ≥ 1.307) is 0.013 (C), 0.077, 0.267, 0.576 (V(0.05),
+  V(0.077), V(0.105)) and 0.431 (O(δ̂)); P(spread_36 ≤ 1.033) is 0.863, 0.661, 0.395, 0.150 and 0.657.
+  A large τ makes the 37-host spread ordinary but the post-removal spread low; only the one-host models
+  have both near the middle. Quantiles (5/50/95%) of D: C 0.018/0.079/0.182; V(0.05) 0.023/0.091/0.212;
+  V(0.077) 0.028/0.106/0.253; V(0.105) 0.036/0.126/0.304; O(δ̂) 0.088/0.282/0.572 [`quantiles_5_50_95`].
+- **KDE density ratios at the observed point (reported, not decisive; `kde`).** O(δ̂) over V(0.05):
+  8.2 in two dimensions (68% bootstrap interval 7.0–10.0; 7.3 with half the bandwidth), 10.2 in D alone;
+  over V(0.077): 4.8 (4.3–5.4; 4.8), 4.2; over V(0.105): 5.4 (5.0–5.9; 5.6), 2.4; over C: 21 (17–32;
+  12.4), 15.5. The observed point is more probable under the one-host model by factors of about 2–10
+  against the diffuse models, but O(δ̂) has its offset fitted to these data, which favours it in any such
+  ratio, the tail densities depend on the bandwidth, and no rule uses these ratios.
+- **Against the expectation stated in section 2.** As expected: the calibrated p_J is much larger than
+  the raw quadrant probability (V(0.05): 0.039 against 0.0025; V(0.077): 0.080 against 0.0048), and it
+  stays below 0.05 for V(0.05) and lies above 0.05 for V(0.105); D excludes V(0.05) and not V(0.105); O(δ̂)
+  is excluded by neither. Section 2 thought "undetermined" or "not excluded" as likely as "excluded" for
+  D under V(0.077); the outcome is "excluded (D)" (interval 0.030–0.038). Section 2 thought rule (3) most
+  likely through τ = 0.105; it holds through both 0.077 and 0.105. The direction of p_J in τ was left
+  open: p_J is not monotone (0.039, 0.080, 0.068 for τ = 0.05, 0.077, 0.105).
+- **Proxy comparison with the referee (reported).** P(D_proxy ≥ 0.2804) = 0.0056 under C, 0.0166 under
+  V(0.05), 0.0363 under V(0.077) (`D_proxy.share`), against the referee's 0.006, 0.019 and 0.036 on other
+  seeds: agreement within Monte Carlo error. The referee's joint-event 0.002 under both V corresponds to
+  Q_raw 0.0025 and 0.0048 here; once calibrated (p_J), V(0.077) is not excluded.
+- **Caveats (from the addendum).** δ̂ is fitted on the same data and N5584 was identified post hoc; J's
+  quadrant is anchored at a point chosen after seeing the data (calibrated, but chosen post hoc); the
+  three τ values were also chosen from these data (R2-RE's τ̂ and its 68% interval) and each is treated
+  as fixed, so no statement is made about a range of τ; the union in rule (3) is not corrected for three
+  looks (a correction would only make exclusion harder); the labels share ε_s and are correlated; every
+  model takes the public C as correct (R2-RE-SEL referee, point 5).
+- **Post hoc (referee, 2026-11-21; section 6, points 1, 2 and 4; recounts from the saved per-simulation
+  files, no new simulation).** (i) *Halves swapped.* J's interval holds half A fixed; calibrating on the
+  odd simulations and testing the even ones gives p_J = 0.061 for V(0.05) (recorded 0.039), 0.077 for
+  V(0.077) (0.080), 0.070 for V(0.105) (0.068) and 0.016 for C (0.017). The reading turns on V(0.077)
+  and V(0.105), which are stable under the swap; V(0.05)'s exclusion by J is not. (ii) *Power.* With
+  each V's own calibration at α = 0.05, if O(δ̂) is true J excludes V(0.077) in 54% and V(0.105) in 57%
+  of simulations (D: 57% and 45%); if O_any is true, in only 20–30%. The comparison is therefore
+  underpowered (about 50%) against its own one-host alternative: "not excluded" is a null result that
+  carries little information, not evidence for diffuse scatter. (iii) *What J measures.* J is not
+  specific to one outlier: under C, P(spread_37 ≥ obs) = 0.013 against p_J = 0.017, so part of J's
+  exclusion of V(0.05) is "too much total scatter". D is the sharper shape statistic. Next to the
+  reading, which is unchanged: V(0.05) is excluded by both statistics and V(0.077) by D. The labels and
+  the reading stay as pre-registered; these points change only how they are read.
+- **Runtime.** Block 3,961 s (66 min), below the 1.2–1.8 h estimate: 37-host rows 112 s, observed
+  values and N5584's reduced system 103 s, τ̂_N 22 s, five Cholesky factors 1.9 s, pass 1 52 s, pass 2
+  (with the other 36 reduced systems) 3,668 s, statistics and KDE 2 s (`seconds`).
 
 ## 6. Referee notes
 
@@ -1339,6 +1459,26 @@ reran that script and the τ split ourselves and reproduced every number quoted 
 | 7 | No goalpost moved: every label and the reading re-derive from the saved counts; the outcome under S ("consistent", p = 0.137) is less extreme than section 2 thought plausible | yes | None; stated in section 5. |
 | 8 | Literature: Feeney, Mortlock & Dalmasso 2018 (arXiv:1707.00007; abstract checked by the referee) model ladder outliers with non-Gaussian populations instead of cutting them (H0 72.72 → 73.15); Wojtak & Hjorth 2022 (arXiv:2206.08160, unverified by the referee) as a diffuse-scatter alternative; Efstathiou 2020 (arXiv:2007.10716) marginal | partly | Context only; not used in any label. |
 
+### Referee, R2-RE-D (independent subagent, 2026-11-21)
+
+The referee saw README section 2's R2-RE-D addendum and the earlier definitions it relies on, `onehost.py`,
+the `d_*` paths of `run.py` and the results (`r2_re_d.json`, the per-model simulation files), not sections
+5–7 or the log; it ran only short single-threaded checks on the saved files. We recounted point 1 (halves
+swapped) from the saved pairs and reproduced it (0.016, 0.061, 0.077, 0.070). Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | J's Clopper–Pearson interval holds half A fixed; swapping halves (calibrate on odd, test on even) gives p_J V(0.05) 0.061 (recorded 0.039), V(0.077) 0.077 (0.080), V(0.105) 0.070 (0.068), C 0.016 (0.017) | yes (post hoc recount from the saved simulations) | **Accepted**: V(0.05)'s J exclusion depends on the split and is not firm; the reading turns on V(0.077) and V(0.105), which are stable; reported in the results subsection (post hoc) |
+| 2 | Low power both ways (post hoc, from the saved pairs, each V's own calibration, α = 0.05): if O(δ̂) is true, J excludes V(0.077) in 54% and V(0.105) in 57% of simulations (D: 57%, 45%); if O_any is true only 20–30%; so "not excluded" carries little information | yes (post hoc recount) | **Accepted**: the results subsection and the headline places say the comparison is underpowered (about 50%) against its own alternative; it is a null result, not evidence for diffuse scatter |
+| 3 | Plug-in parameters from the same data: δ̂ is the offset of the host already selected as most extreme (winner's curse), so O(δ̂) is nearly guaranteed not to be excluded; under O_any criterion S finds the offset host in 44% (4,358 of 10,000); τ̂ = 0.077 was fitted with N5584 included | yes | Accepted limitation (stated in the addendum's caveats); a composite test refitting δ or τ in each simulation is the clean fix |
+| 4 | J is not specific to one outlier: under C, P(spread_37 ≥ obs) = 0.013 against p_J 0.017; part of J's exclusion of V(0.05) is "too much total scatter". D is the sharper shape statistic and excludes V(0.077) at 0.034 | yes | **Accepted**: next to the reading (unchanged), the results subsection reports that V(0.05) is excluded by both statistics and V(0.077) by D |
+| 5 | Three fixed τ values are not a model family; the labels are correlated (shared ε_s) | – | Accepted; no statement about τ in general |
+| 6 | C is taken as correct: an overall misscaling of the SN calibrator errors acts like V | – | Accepted limitation |
+| 7 | O_any uses δ = 0.336 for hosts with different σ_δ: a weaker comparator than O, not matched in significance | yes | Noted |
+| 8 | Monte Carlo precision adequate; tie handling immaterial (strict / mid-p: V(0.077) 0.0784 / 0.0792, V(0.105) 0.0652 / 0.0666) | yes | No action |
+| 9 | Literature: Riess et al. 2023, JWST "Crowded No More" (arXiv:2307.15806: Cepheids in NGC 5584 agree with HST) bears on whether an N5584 offset is Cepheid crowding; Feeney, Mortlock & Dalmasso 2018 (arXiv:1707.00007, Student-t outlier likelihoods) is the natural intermediate model; others (Efstathiou 2020, Freedman et al. 2024, Uddin et al. 2023) | unverified (identifiers from the referee) | Noted |
+| 10 | Most important additional test: a composite shape test with the statistic G = max_j z_j²/Σ_j z_j² (host-offset z-scores from the GLS under C), calibrated under V(τ) with τ refitted in each simulation and under O_any with σ-matched δ, with its power reported before the data are read | – | Registered as T-055 (new pre-registration) |
+
 ## 7. Open questions
 
 - Why the public `lstsq_results.txt` differs from the printed baseline (a later or variant fit).
@@ -1351,7 +1491,8 @@ reran that script and the τ split ourselves and reproduced every number quoted 
   term is unchecked. Robustness of τ̂ to single hosts and its null distribution: T-032 (answered:
   the excess is consistent with one outlying host, N5584; R2-RE-N5584, T-039; also with the selection
   of the most extreme host simulated, R2-RE-SEL, T-042, a test with little power against diffuse host
-  scatter; T-048).
+  scatter; T-048: these data do not distinguish one outlying host from diffuse host scatter of
+  R2-RE's size, a comparison with about 50% power, R2-RE-D, 2026-11-21).
 - Is N5584's offset (effective scatter 0.12 mag under the heavy-tailed model) from its single SN,
   2007af, or from its Cepheid distance? The data cannot tell (section 6); the literature favours the SN
   (an independent Cepheid reanalysis agrees with SH0ES). A published per-host TRGB or JAGB distance for
@@ -1363,6 +1504,15 @@ reran that script and the τ split ourselves and reproduced every number quoted 
   criterion. The test has little power against diffuse host scatter (referee, post hoc); is the excess
   one outlying host or scatter spread over all hosts? A post-hoc spread-drop statistic points towards
   one host but no single-outlier model was simulated; a pre-registered comparison is T-048.
+  Answered by R2-RE-D (2026-11-21, T-048): **not distinguished**. Diffuse host scatter with τ = 0.077
+  and 0.105 mag is not excluded by the calibrated joint statistic J (p_J = 0.080, 0.068), nor is one
+  host (N5584) offset by δ̂ = 0.34 mag (p_J = 0.68, by construction); only the smallest diffuse model,
+  τ = 0.05, is excluded (p_J = 0.039, not firm under a swap of J's halves; p_D = 0.016). Reading
+  "tested diffuse model(s) not excluded (τ = 0.077, 0.105)", an underpowered null: the comparison
+  has about 50% power against its own one-host alternative (referee, post hoc). Open: a composite shape
+  test (G = max_j z_j²/Σ_j z_j², τ refitted in each simulation, σ-matched O_any, power fixed before the
+  data are read; T-055); outside the spreads, an independent distance to N5584 (previous question) would
+  show whether its offset is real.
 - Is the calibrator SN block of C globally under-scaled? Every null in this study takes C as given
   (R2-RE-SEL referee, point 5).
 - A Cepheid-only per-host comparison for R3 (μ from fits without each host's SN rows).
