@@ -64,7 +64,7 @@ const f = (x, n = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '�
 const h0 = q => Math.pow(10, q / 5);
 const dh0 = (q, s) => h0(q) * Math.log(10) / 5 * s;
 const files = ['summary', 'r1', 'r2', 'r3', 'r4', 'cross_paper', 'host_identification', 'r2_re', 'r2_re_rob', 'r2_re_n5584', 'r2_re_sel'];
-const optional = ['r2_re_d'];   // R2-RE-D (addendum 2026-11-21): shown once results/r2_re_d.json exists
+const optional = ['r2_re_d', 'r2_re_g_power', 'r2_re_g'];   // R2-RE-D and R2-RE-G (addenda 2026-11-21): shown once their results exist
 let D = null;
 
 function cls(v) {
@@ -116,6 +116,14 @@ const VT = {
   'excluded (J)': ['excluded (J)', '排除（J）'],
   'not excluded (J)': ['not excluded (J)', '未排除（J）'],
   'neither one offset host nor diffuse scatter reproduces the observed spreads': ['neither one offset host nor diffuse scatter reproduces the observed spreads', '一个偏移宿主与分散离散都不能复现观测到的离散'],
+  'undetermined (underpowered)': ['undetermined (underpowered)', '无法判定（功效不足）'],
+  'one offset host preferred over diffuse scatter': ['one offset host preferred over diffuse scatter', '一个偏移宿主比分散的宿主离散更受支持'],
+  'diffuse scatter not excluded': ['diffuse scatter not excluded', '分散的宿主离散未被排除'],
+  'excluded': ['excluded', '排除'],
+  'not excluded': ['not excluded', '未排除'],
+  'not evaluated (runtime)': ['not evaluated (runtime)', '未评估（运行时间）'],
+  'not run (PARAMS)': ['not run (PARAMS)', '未运行（PARAMS）'],
+  'not yet run': ['not yet run', '尚未运行'],
   'R2-RE verdict robust to a heavy-tailed host effect': ['R2-RE verdict robust to a heavy-tailed host effect', 'R2-RE 的判定对重尾宿主效应稳健'],
   'the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips': ['the null result holds under both removal and down-weighting of N5584; only the hybrid τ route of R2-RE-ROB A flips', '无论去掉还是降权 N5584，零结果都成立；只有 R2-RE-ROB A 的混合 τ 路径会翻转'],
 };
@@ -178,6 +186,47 @@ function dRows() {
   return rows;
 }
 
+// R2-RE-G rows (README section 2, addendum 2026-11-21, T-055): composite shape test G = max_j z_j² / Σ_j z_j²,
+// τ refitted in every simulation; power and size first (power stage), then G_obs, p_G and the reading (full stage)
+function gRows() {
+  const g = D.r2_re_g, p = D.r2_re_g_power;
+  const title = L('Composite shape test: G = max z² / Σ z² over the 37 hosts, τ refitted in every simulation', '复合形状检验：G = 37 个宿主上的 max z² / Σ z²，每次模拟都重新拟合 τ');
+  const rec = (g && g.models) ? g : (p && p.models) ? p : null;
+  if (!rec) {
+    const st = g ? g.status : p ? p.status : 'not yet run';
+    return [['R2-RE-G', title, '', '', st, /not run|not yet/.test(st) ? 'undetermined' : null]];
+  }
+  const M = rec.models, pc = x => `${f(100 * x, 1)}%`;
+  const ci = m => `[${f(100 * m.ci95[0], 1)}, ${f(100 * m.ci95[1], 1)}]%`;
+  const rows = [['R2-RE-G', title + (g && g.models ? '' : ` <span class="note">${L('(power stage only: G on the data not yet computed)', '（只完成功效阶段：尚未计算数据上的 G）')}</span>`), '', '', null]];
+  const sizeName = k => k === 'VHAT' ? L(`size under V(τ̂_obs = ${f(M[k].tau, 4)})`, `V(τ̂_obs = ${f(M[k].tau, 4)}) 下的检验水平`) : L(`size under V(${M[k].tau})`, `V(${M[k].tau}) 下的检验水平`);
+  for (const k of ['VHAT', 'V050', 'V105']) {
+    const m = M[k];
+    if (!m) continue;
+    rows.push(['', sizeName(k) + ` (${L('decisive', '起决定作用')})`, m.status === 'evaluated' ? `${pc(m.rate)} ${ci(m)}` : '', '≤ 5%', m.status === 'evaluated' ? null : m.status]);
+  }
+  if (M.C && M.C.status === 'evaluated') rows.push(['', L('rejection rate under C (reported)', 'C 下的拒绝率（只报告）'), `${pc(M.C.rate)} ${ci(M.C)}`, '—', null]);
+  const altName = {OANY: L(`power: one σ-matched offset host on C (z = ${f(M.OANY && M.OANY.z_alt, 2)}; decisive)`, `功效：C 上一个 σ 匹配的偏移宿主（z = ${f(M.OANY && M.OANY.z_alt, 2)}；起决定作用）`),
+    OANYVN: L('power: the same on V(τ̂_N) (decisive)', '功效：同上，在 V(τ̂_N) 上（起决定作用）'),
+    OANYLO: L(`power with z_obs − 1 = ${f(M.OANYLO && M.OANYLO.z_alt, 2)} (reported)`, `z_obs − 1 = ${f(M.OANYLO && M.OANYLO.z_alt, 2)} 时的功效（只报告）`),
+    O: L('rejection rate under O(δ̂) on N5584 (reported)', 'O(δ̂)（N5584 上的偏移）下的拒绝率（只报告）')};
+  for (const k of ['OANY', 'OANYVN', 'OANYLO', 'O']) {
+    const m = M[k];
+    if (!m) continue;
+    rows.push(['', altName[k], m.status === 'evaluated' ? `${pc(m.rate)} ${ci(m)}` : '', k === 'OANY' || k === 'OANYVN' ? '≥ 80%' : '—', m.status === 'evaluated' ? null : m.status]);
+  }
+  if (rec.power) rows.push(['', L('power = min(R_OANY, R_OANYVN); size = max over the three checked τ', '功效 = min(R_OANY, R_OANYVN)；检验水平 = 三个检查的 τ 上的最大值'), `${pc(rec.power.power)}; ${pc(rec.size.size)}`, '0.8', rec.power.powered ? L('powered', '功效足够') : L('underpowered', '功效不足'), rec.power.powered ? 'ok' : 'undetermined']);
+  if (rec.curve) rows.push(['', L('power curve (O_any on C, by z_alt)', '功效曲线（C 上的 O_any，按 z_alt）'), rec.curve.map(c => `z ${c.z_alt}: ${c.rate === null ? '—' : pc(c.rate)}`).join('; '), '—', null]);
+  if (g && g.p_G) {
+    const o = g.observed;
+    rows.push(['', L(`G on the data (largest: ${o.host_j_hat}, z = ${f(o.z_j_hat, 2)}; Σz² = ${f(o.sum_z2, 1)})`, `数据上的 G（最大者：${o.host_j_hat}，z = ${f(o.z_j_hat, 2)}；Σz² = ${f(o.sum_z2, 1)}）`), f(o.G_obs, 4), '—', null]);
+    rows.push(['', L(`p_G under V(τ̂_obs), ${g.p_G.n_inner} inner draws (p_dbl ${f(g.p_dbl.p, 3)}; reverse check under O_any p_rev ${f(g.p_rev.OANY.p, 3)})`, `V(τ̂_obs) 下的 p_G，${g.p_G.n_inner} 次内层抽样（p_dbl ${f(g.p_dbl.p, 3)}；O_any 下的反向检查 p_rev ${f(g.p_rev.OANY.p, 3)}）`), `${f(g.p_G.p, 4)} (${g.p_G.k}/${g.p_G.n_inner})`, '0.05', g.p_G.label]);
+  }
+  if (g && g.models) rows.push(['', L('Reading (R2-RE-G; size checked at τ = 0.05, τ̂_obs, 0.105 only)', '解读（R2-RE-G；检验水平只在 τ = 0.05、τ̂_obs、0.105 处检查）') + (g.sub_label ? ` <span class="note">[${L(g.sub_label, '排除了分散离散；但检验对 σ 匹配的备择功效不足')}]</span>` : ''), '', '', g.reading]);
+  else rows.push(['', L('Reading', '解读'), '', '', rec.status === 'evaluated' ? 'not yet run' : rec.status, 'undetermined']);
+  return rows;
+}
+
 function render() {
   if (!D) return;
   const S = D.summary, R1 = D.r1, A = D.r2.anchor_step, H = D.r2.host_step, R3 = D.r3, R4 = D.r4, X = D.cross_paper, I = D.host_identification;
@@ -227,6 +276,7 @@ function render() {
         ['', L('Reading (R2-RE-SEL)', '解读（R2-RE-SEL）'), '', '', z.reading]].map((r, i) => i === 0 ? ['R2-RE-SEL', ...r.slice(1)] : r);
     })() : (D.r2_re_sel ? [['R2-RE-SEL', L('Selection-aware null', '考虑选择的零假设'), '', '', D.r2_re_sel.status]] : [])),
     ...dRows(),
+    ...gRows(),
     ['', L('Host step, pre-registered labelling', '宿主一步，预注册的标注'), '', '', H.preregistered_verdict],
     ['R3', L('CCHP-side H0 on the same 10 hosts vs CCHP\'s 69.29', '同样 10 个宿主上 CCHP 一侧的 H0 对 CCHP 的 69.29'), `${f(R3.cchp_side_h0, 2)} (Δ ${f(R3.cchp_diff_mag, 4)} mag)`, '69.29 ± 0.02 mag', R3.cchp_match],
     ['', L('d = SH0ES − CCHP on the same hosts (descriptive)', 'd = 同宿主上 SH0ES − CCHP（只作描述）'), `${f(R3.d, 4)} ± ${f(R3.sigma_d, 4)} mag`, '—', null],

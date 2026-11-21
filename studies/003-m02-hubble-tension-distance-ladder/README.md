@@ -1071,6 +1071,52 @@ import `run`), results as above, a short summary in `summary.json` (`R2_RE_G`), 
 checks above; labels, power and size re-derived from the saved files; every file below 1 MB), conclusion assertions in
 `test_conclusions.py`, a web section, section 8 knobs. None of this exists yet.
 
+*Amendments before any R2-RE-G simulation (2026-11-21).* Implementation choices made while writing the code (`shape.py`,
+`test_shape.py`, `run.py`'s `g_*` knobs), before any simulation on the real design and before any z_j other than
+N5584's, Σz², G, power or size was computed on the real data (the code was run on synthetic systems only); the text above
+is unchanged.
+1. `g_check` defaults to false in `run.py` until the formal stages (the "(true)" above is its value in the formal runs):
+   a full study run before the power record is in log.md would compute G_obs in the same process. For the formal stages
+   it is set to true with `g_only = true`, first with `g_stage = "power"`, then `"full"`; whether it stays true
+   afterwards is recorded in log.md.
+2. The conclusion check is one function, `test_conclusions.check_r2_re_g`, used by `test_r2_re_g_labels` on the saved
+   files and by `test_shape.py` on synthetic output.
+3. REML grid source: in the standalone mode the committed `results/r2_re.json` (`reml.grid_m2l`, read next to
+   `run.py`, also in an exploration); in a full study run R2-RE's grid of the same run (the values that run saves). The
+   source is recorded in `settings.reml_grid_source`.
+4. The full stage recomputes everything the power stage computes, including the pointwise checks, also in a full study
+   run (the power stage's arrays are not reused), so a full run does the simulations twice.
+5. Rule (1): several reasons are joined as "not evaluable (<reason>; <reason>)", and the guard's floor gives "not
+   evaluated (runtime)"; τ values in "anti-conservative at τ = <list>" are printed to 4 significant digits. A rule-(1)
+   condition found before the simulations (a reproduction check, τ̂_obs at the bound, some M_jj ≤ 0, a Cholesky
+   factor, a pointwise check) stops the stage there; a count mismatch stops the full stage before G_obs is formed; when
+   only the anti-conservative condition holds, the full stage still computes and reports G_obs, p_G and the other
+   reported numbers, and the reading is rule (1)'s.
+6. A negative eigenvalue of M below −10⁻¹⁰ · max λ (impossible for the positive semi-definite M up to rounding) stops
+   the run with an error (a bug), not a rule-(1) outcome.
+7. Runtime guard: the projection is the mean time of the first 1,000 VHAT simulations (drawing ε_s, B ε_s, the refit
+   and the inner draws) times n times the number of sets that run (13); setup and checks are not included. When n is
+   reduced, the first 1,000 VHAT simulations are kept.
+8. The smallest z_alt with power ≥ 0.8 is taken over the five curve points only; OANYLO and OANY are listed next to the
+   curve (`curve_with_oany`) but do not enter it. For O, "how often ĵ_s is the offset host" counts ĵ_s = N5584.
+9. Reported in addition (not decisive): the SHA-256 of each set's k_s in both stages (`k_sha256`; the full stage
+   reports whether they match, the counts decide), σ_δ,j = M_jj^(−1/2) for every host, max |W X| and the joint rank
+   p + rank(M) (design only, both stages), and Clopper–Pearson intervals of p_dbl's and p_rev's counts over n.
+10. A full stage without `results/r2_re_g_power.json` refuses to run in the standalone mode (an error before any
+    computation), except in an exploration (whose folder starts empty), where both stages run in one process and the
+    power record is saved first. When the power record stopped before its simulations (rule (1), or "not evaluated
+    (runtime)"), the full stage records the same reasons without recomputing (there are no counts to reproduce).
+11. Splitting a model's simulations into blocks changes B ε_s in the last bits (BLAS blocking), so the stages split them
+    identically (VHAT: the first 1,000, then blocks of 500; every other set: blocks of 500 from s = 0); the count
+    comparison is exact.
+12. Measured (synthetic system of the real size: 3,489 rows, 37 hosts, 47 columns, dense C; single thread while another
+    study run used the machine): one outer simulation 4.0 ms (inner draws 3.3 ms, τ refit through `reml_tau` 0.4 ms,
+    ε_s 0.04 ms), the design 1.1 s, four more Cholesky factors and the five B products 1.6 s, one one-column GLS fit
+    0.6 s, one REML fit with `reml_m2l` 30 s. Projected per stage: simulations 130,000 × 4 ms ≈ 9 min, pointwise checks
+    6 × (37 fits + 1 REML fit) ≈ 5 min, setup, data loading and host identification about 2–3 min; power stage about
+    17 min, full stage about 18 min (with the 37 fits on the real data and the joint fit), about 35 min in all, up to
+    twice that with a shared CPU. The runtime guard (120 min) does not bind at this speed.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
@@ -1772,10 +1818,12 @@ How a coding agent answers "what if" questions about this study without touching
 | `re_check`, `re_tau_max`, `re_grid_step` | run R2-RE; τ search range and grid step (mag) | true/false; 0.3–1.0; 0.005–0.02 | cache only |
 | `sel_check`, `sel_seed_base`, `sel_n_tau`, `sel_n_spread`, `sel_n_subsets`, `sel_max_failed` | run R2-RE-SEL (selection-aware null, addendum 2026-11-19; needs `n5584_check`); seed base of ε_s, simulations in the τ part and the spread parts, subsets per spread, failed REML fits allowed | true/false; 20,000 (pre-registered; seeds overlapping 10,000–11,999 would repeat ROB's simulations); 400 and 2,000 are the pre-registered counts (smaller values only for a quick look, about 20 s per τ simulation); 1,000 (must equal `rob_n_subsets`: otherwise the block stops before any simulation with a configuration status, an implementation guard, not one of the addendum's rules); 20 | cache only |
 | `d_check`, `d_seed_base`, `d_n_sims`, `d_taus`, `d_host_seed_base`, `d_kde_boot`, `d_only` | run R2-RE-D (one outlying host or diffuse host scatter, addendum 2026-11-21; module `onehost.py`); seed base of ε_s (common to all eight models), simulations per model, the τ of the diffuse models V(τ) (mag), seed base of O_any's offset host, bootstrap resamples of the KDE ratios, standalone mode | true/false (default true: a full run, or a full exploration without `d_only`, adds about 1.5 h; `--set d_check=false` skips the block); 100,000 and 200,000 (pre-registered; must not overlap 0, 10,000–11,999, 20,000–21,999 or 50,000–50,999); 10,000 (pre-registered; J's halves A/B are the even/odd simulations, so use an even number; about 1.5 h for the block, of which about 68 min build the reduced systems, so a quick look with `--set d_n_sims=200` still takes most of an hour); [0.05, 0.077, 0.105] (pre-registered; the reading's wording names the three values); 200; `d_only=true` runs only this block (cache only, about 1.5 h): it writes `r2_re_d.json`, the eight `r2_re_d_sims_<model>.json`, `provenance_d.json`, `run_info_d.json` and the `R2_RE_D` key of `summary.json` (every other key kept byte-identical; it refuses to run without an existing `summary.json`, except in an exploration, where it writes a summary with that key only). The block needs `n5584_check` (with it false, a full run records the block as "not run") and uses `rob_n_subsets` subsets and `n5584_host`; an index stream shorter than `rob_n_subsets` makes the whole block "not evaluable" (an implementation guard, added 2026-11-21 before any run; it cannot fire in a full run, where R4 keeps at least 2,000 draws); the recorded values (spreads, criterion S, δ̂, τ̂_N) and tolerances are constants in `onehost.py` | cache only |
+| `g_check`, `g_seed_base`, `g_host_seed_base`, `g_inner_seed`, `g_n_sims`, `g_n_inner`, `g_power_min`, `g_z_curve`, `g_taus_rep`, `g_max_minutes`, `g_min_sims`, `g_only`, `g_stage` | run R2-RE-G (composite shape test G = max_j z_j²/Σ_j z_j², addendum 2026-11-21, T-055; module `shape.py`); seed bases of ε_s (common to all 13 sets), of O_any's offset host and of the fixed inner matrix; outer simulations per set (with the runtime guard's floor), inner draws per p_boot, the power threshold, the power curve's z_alt, the two checked τ besides τ̂_obs (mag), the guard's limit (min) and floor, standalone mode and its stage | `g_check` false (default until the formal stages; true runs the block, also in a full run or a full exploration, adding about 35 min); 400,000, 500,000 and 600,000 (pre-registered; must not overlap 0, 10,000–11,999, 20,000–21,999, 50,000–50,999, 100,000–109,999, 200,000–209,999 or 300,000–300,199); 10,000 (pre-registered; floor 5,000; about 4 ms per simulation and set, so an exploration with `--set g_check=true g_only=true g_n_sims=200` runs both stages in about 15 min, most of it the pointwise checks); 20,000 (part of the test: do not change); 0.8; [2.5, 3.0, 4.0, 4.5, 5.0]; [0.05, 0.105]; 120; 5,000; `g_only=true` with `g_stage="power"` writes only `r2_re_g_power.json` (with `provenance_gp.json`, `run_info_gp.json`), with `g_stage="full"` it needs that file, recomputes it and writes `r2_re_g.json`, the eight `r2_re_g_sims_<model>.json`, `provenance_g.json`, `run_info_g.json` and only the `R2_RE_G` key of `summary.json` (every other key byte-identical); in an exploration (empty folder) the full stage runs both stages. The recorded τ̂_obs, δ̂, σ_δ, z_obs, τ̂_N and the tolerances are constants in `shape.py`; the REML grid comes from `results/r2_re.json` | cache only |
 
 - Rerun with an override: `python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --set KEY=VALUE`
   (outputs in `explore/<date>-<topic>/`, not committed; about 28 min with the default R4 and R2-RE;
   `--set r4_draws=1000` takes a few minutes; `--set re_check=false` skips R2-RE).
+- R2-RE-G's formal run, in two stages (README section 2, addendum 2026-11-21): (1) set `g_check` and `g_only` to true and `g_stage` to "power" and run `python -m astrolab run 003-m02-hubble-tension-distance-ladder` (cache only, about 17 min): it writes `r2_re_g_power.json` and logs one line with the power, the size and the curve (`shape.power_log_line`); nothing in it uses G on the data. (2) Write that line into log.md and commit it on the branch. (3) Set `g_stage` to "full" and run again (about 18 min): it recomputes the power stage (its counts must equal the power record's, else rule (1)), then computes G_obs, p_G and the reading. (4) Set `g_only` back to false and `g_stage` to "full", with dated notes in log.md.
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --script explore/<name>.py`.
   Existing: `explore/diag_hosts.py` (which checks link each L column to which host).
@@ -1793,6 +1841,7 @@ How a coding agent answers "what if" questions about this study without touching
   `kde`; `reading`; `section5`; `checks`; `seconds`; summary key `R2_RE_D`), `r2_re_d_sims_<key>.json` (per
   simulation: `pairs` (spread_37, spread_36) rounded to 4 decimals, `dropped` (d'), `half_b_counts`,
   `count_obs`, and for `Oany` `offset_host`),
+  `r2_re_g_power.json` (power stage: `status`, `rule1`, `n_sims`, `runtime_guard`, `design` (`rank_M`, `sigma_delta_j`, `joint_rank`), `checks` (`reproduction`, `pointwise`), `models.<key>` for `VHAT`, `V050`, `V105`, `C`, `OANY`, `OANYLO`, `OANYVN`, `O`, `Z250`–`Z500` with `n_excluded`, `rate`, `ci95`, `quantiles_5_50_95` of G_s and τ̂_s, `n_tau_zero`, `n_tau_bound`, `n_jhat_is_offset_host`, `k_sha256`; `power`, `size`, `curve`, `curve_with_oany`, `smallest_z_alt_power_08`, `seconds`), `r2_re_g.json` (the same recomputed, plus `checks.power_stage_counts_reproduced`, `observed` (`G_obs`, `j_hat_obs`, `host_j_hat`, `sum_z2`, `hosts_observed` with every z_j, δ̂_j, σ_δ,j), `p_G` (`k`, `n_inner`, `p`, `ci95`, `label`), `p_G_fixed`, `p_dbl`, `p_rev`, `joint_fit`, `reading`, `sub_label`, `section5`; summary key `R2_RE_G`), `r2_re_g_sims_<key>.json` (per simulation: `G` (5 decimals), `tau_hat` (6 decimals), `k`, `j_hat`, and for the OANY models `offset_host`),
   `r3.json` (`cchp_side_h0`, `d`, `sigma_d`, `per_host`), `r4.json` (`percentile`, `quantiles`,
   histogram, `z_quantiles`, `z_std`, `z_percentile`, `cchp_z`), `host_identification.json` (`column_labels`, `relabelled`, `per_column_under_labels`),
   `cross_paper.json`.

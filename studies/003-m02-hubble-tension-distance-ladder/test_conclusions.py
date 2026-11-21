@@ -634,3 +634,146 @@ def test_r2_re_d_labels():
         else:
             exp = "undetermined"
     assert out["reading"] == exp == s["reading"]
+
+
+# R2-RE-G (README section 2, addendum 2026-11-21, T-055)
+G_TIE = 1e-5                      # |G_s - G_obs| <= 1e-5: a rounding tie of the 5-decimal G_s
+
+
+def _three_way_thresholds(n):
+    """For k successes in n: the largest k whose 95% Clopper-Pearson interval lies entirely below 0.05 and the
+    smallest k whose interval lies entirely above 0.05 (both monotone in k; bisection on _sel_cp)."""
+    lo_k, hi_k = -1, n                      # hi(k) < 0.05 holds for k <= k_ex (k_ex may be -1)
+    while hi_k - lo_k > 1:
+        mid = (lo_k + hi_k) // 2
+        if _sel_cp(mid, n)[1] < 0.05:
+            lo_k = mid
+        else:
+            hi_k = mid
+    k_ex = lo_k
+    lo_k, hi_k = -1, n + 1                  # lo(k) > 0.05 holds for k >= k_ne
+    while hi_k - lo_k > 1:
+        mid = (lo_k + hi_k) // 2
+        if _sel_cp(mid, n)[0] > 0.05:
+            hi_k = mid
+        else:
+            lo_k = mid
+    return k_ex, hi_k
+
+
+def _g_label(k, n):
+    lo, hi = _sel_cp(k, n)
+    return "excluded" if hi < 0.05 else "not excluded" if lo > 0.05 else "undetermined (Monte Carlo)"
+
+
+def check_r2_re_g(out, sims, s, sizes=None, power_rec=None):
+    """Re-derive R2-RE-G's counts, power, size, p values and reading from the saved files (also used by
+    test_shape.py on synthetic output). sims: model key -> per-simulation record; s: summary.json's R2_RE_G;
+    sizes: file name -> bytes (each below 1 MB); power_rec: r2_re_g_power.json when present."""
+    import hashlib
+    import numpy as np
+
+    for name, size in (sizes or {}).items():
+        assert size < 1_000_000, name
+    assert s["status"] == out["status"] and s.get("reading") == out.get("reading")
+    if "models" not in out:
+        assert out["status"].startswith(("not evaluable", "not evaluated", "not run"))
+        return
+    n, n_in = out["n_sims"], out["settings"]["g_n_inner"]
+    k_ex, k_ne = _three_way_thresholds(n_in)
+    M = out["models"]
+    assert out["sim_keys"] == ["VHAT", "V050", "V105", "C", "OANY", "OANYLO", "OANYVN", "O"]
+    assert out["set_keys"] == out["sim_keys"] + ["Z250", "Z300", "Z400", "Z450", "Z500"]
+    for k in out["set_keys"]:
+        m = M[k]
+        if m["status"] != "evaluated":
+            assert not m["decisive"] or out["status"] != "evaluated"
+            continue
+        if k in out["sim_keys"]:
+            sm = sims[k]
+            assert sm["model"] == k and sm["n"] == n == m["n"] and len(sm["k"]) == len(sm["G"]) == n
+            kk = np.array(sm["k"], dtype=np.int64)
+            assert hashlib.sha256(kk.astype("<i8").tobytes()).hexdigest() == m["k_sha256"], k
+            n_ex, n_ne = int(np.sum(kk <= k_ex)), int(np.sum(kk >= k_ne))
+            assert (n_ex, n_ne) == (m["n_excluded"], m["n_not_excluded"]), k
+            g5, t6 = np.array(sm["G"]), np.array(sm["tau_hat"])
+            assert all(abs(a - b) <= 1e-5 + 1e-12 for a, b in zip(np.percentile(g5, [5, 50, 95]),
+                                                                  m["quantiles_5_50_95"]["G"])), k
+            assert all(abs(a - b) <= 1e-6 + 1e-12 for a, b in zip(np.percentile(t6, [5, 50, 95]),
+                                                                  m["quantiles_5_50_95"]["tau_hat"])), k
+            if "offset_host" in sm:
+                assert m["n_jhat_is_offset_host"] == sum(1 for a, b in zip(sm["j_hat"], sm["offset_host"]) if a == b)
+            elif m["offset"] is not None:
+                assert m["n_jhat_is_offset_host"] == sum(1 for a in sm["j_hat"] if a == m["offset"])
+        assert m["n"] == n and abs(m["rate"] - m["n_excluded"] / n) < 1e-15
+        assert all(abs(a - b) < 1e-9 for a, b in zip(m["ci95"], _sel_cp(m["n_excluded"], n))), k
+    if power_rec is not None and "models" in power_rec:
+        assert power_rec["n_sims"] == n
+        assert {k: power_rec["models"][k].get("n_excluded") for k in out["set_keys"]} == \
+            {k: M[k].get("n_excluded") for k in out["set_keys"]}
+    # power, size, curve
+    pw = min(M["OANY"]["rate"], M["OANYVN"]["rate"])
+    assert out["power"]["power"] == pw and out["power"]["powered"] == (pw >= out["settings"]["g_power_min"])
+    sz = [M[k]["rate"] for k in ("VHAT", "V050", "V105")]
+    assert out["size"]["size"] == max(sz)
+    curve = {c["key"]: c for c in out["curve"]}
+    for k in ("Z250", "Z300", "Z400", "Z450", "Z500"):
+        assert curve[k]["rate"] == M[k]["rate"]
+    ok = [c["z_alt"] for c in out["curve"] if c["rate"] >= out["settings"]["g_power_min"]]
+    assert out["smallest_z_alt_power_08"] == (min(ok) if ok else None)
+    ac = [M[k]["tau"] for k in ("VHAT", "V050", "V105") if _sel_cp(M[k]["n_excluded"], n)[0] > 0.05]
+    assert any(r.startswith("anti-conservative") for r in out["rule1"]) == bool(ac)
+    if "p_G" not in out:
+        assert out["rule1"] and out["reading"] == out["status"]
+        return
+    # p values from the saved integers and the 5-decimal G_s
+    ob, pg = out["observed"], out["p_G"]
+    assert pg["n_inner"] == n_in and abs(pg["p"] - (1 + pg["k"]) / (1 + n_in)) < 1e-15
+    assert pg["label"] == _g_label(pg["k"], n_in)
+    kv = np.array(sims["VHAT"]["k"])
+    assert out["p_dbl"]["count"] == int(np.sum(kv <= pg["k"]))
+    assert abs(out["p_dbl"]["p"] - (1 + out["p_dbl"]["count"]) / (1 + n)) < 1e-15
+    for key in ("OANY", "O"):
+        g5 = np.array(sims[key]["G"])
+        sure = int(np.sum(g5 < ob["G_obs"] - G_TIE))
+        ties = int(np.sum(np.abs(g5 - ob["G_obs"]) <= G_TIE))
+        c = out["p_rev"][key]["count"]
+        assert sure <= c <= sure + ties, key
+        assert abs(out["p_rev"][key]["p"] - (1 + c) / (1 + n)) < 1e-15
+    z = [h["z"] for h in ob["hosts_observed"]]
+    z2 = [v * v for v in z]
+    assert abs(ob["sum_z2"] - sum(z2)) <= 1e-9 * sum(z2)
+    assert ob["j_hat_obs"] == int(np.argmax(z2)) and abs(ob["G_obs"] - max(z2) / sum(z2)) < 1e-12
+    assert all(abs(h["z"] - h["z_fit"]) <= 1e-8 for h in ob["hosts_observed"])
+    # reading: rules (1)-(5) in order
+    if out["rule1"]:
+        exp, sub = out["status"], None
+    elif pw < out["settings"]["g_power_min"]:
+        exp = "undetermined (underpowered)"
+        sub = ("diffuse excluded; test underpowered against the σ-matched alternative"
+               if pg["label"] == "excluded" else None)
+    else:
+        exp = {"excluded": "one offset host preferred over diffuse scatter",
+               "not excluded": "diffuse scatter not excluded"}.get(pg["label"], "undetermined (Monte Carlo)")
+        sub = None
+    assert out["reading"] == exp and out["sub_label"] == sub
+    assert s.get("p_G") == pg["p"] and s.get("power") == pw
+
+
+def test_r2_re_g_labels():
+    """README section 2, addendum 2026-11-21 (R2-RE-G): re-derive counts, power, size, p values and the reading
+    from the saved files. Skips until the full stage has run."""
+    path = RESULTS / "r2_re_g.json"
+    if not path.exists():
+        pytest.skip("r2_re_g.json missing; the R2-RE-G block has not run")
+    out = load("r2_re_g")
+    keys = out.get("sim_keys", ["VHAT", "V050", "V105", "C", "OANY", "OANYLO", "OANYVN", "O"])
+    sims, sizes = {}, {"r2_re_g.json": path.stat().st_size}
+    for k in keys:
+        sp = RESULTS / f"r2_re_g_sims_{k}.json"
+        assert sp.exists(), k
+        sizes[sp.name] = sp.stat().st_size
+        sims[k] = load(f"r2_re_g_sims_{k}")
+    pw = RESULTS / "r2_re_g_power.json"
+    check_r2_re_g(out, sims, load("summary")["R2_RE_G"], sizes,
+                  load("r2_re_g_power") if pw.exists() else None)
