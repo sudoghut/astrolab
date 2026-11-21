@@ -1,0 +1,20 @@
+title: "M11 Radcliffe Wave: is the young-cluster wave oscillating?"
+title_zh: "M11 Radcliffe 波：年轻星团组成的波在振荡吗？"
+id: "011-m11-radcliffe-wave-oscillation"
+level: L3              # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
+status: planned               # planned | active | reproduced | concluded | paused | abandoned
+created: 2026-11-21
+question: "Does the public young-cluster table of Konietzka et al. 2024 reproduce the damped-wave fit and the vertical oscillation (positions and vertical velocities 90 degrees out of phase) that they report for the Radcliffe Wave, and how firmly do the data prefer a travelling over a standing wave?"
+question_zh: "用 Konietzka 等 2024 公开的年轻星团表，能否复现他们对 Radcliffe 波给出的阻尼波拟合与竖直振荡（位置与竖直速度相差 90°），数据对行波相对驻波的偏好有多强？"
+claims: []                    # claim ids in atlas/claims/ this study reproduces or tests
+milestone: M11               # roadmap milestone id, e.g. M1
+papers: ["2402.12596"]
+wiki: Study-011-radcliffe-wave-oscillation
+
+# Where this study sits on the Atlas (schema in design plan 011).
+footprint:
+  scale: {min_pc: 100.0, max_pc: 1.6e+3, note: "young clusters along the Radcliffe Wave, a ~2.7 kpc long structure whose closest point is within ~300 pc of the Sun (Konietzka et al. 2024); range approximate until the cluster table is read"}
+  sky:
+    mode: survey
+    survey: {name: "Gaia DR3 young clusters (< 30 Myr) along the Radcliffe Wave", note: "cluster positions and velocities from Konietzka et al. 2024 (Harvard Dataverse doi:10.7910/DVN/XSCB9N), built on Gaia DR3 members and APOGEE radial velocities"}
+  data: ["Konietzka et al. 2024 stellar cluster table (Harvard Dataverse doi:10.7910/DVN/XSCB9N, ~11 KB)", "Konietzka et al. 2024 12CO cloud velocity table (doi:10.7910/DVN/Q7F4PC, ~5 KB)"]
