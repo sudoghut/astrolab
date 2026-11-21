@@ -328,15 +328,20 @@ lowest metallicities; gradual spin-up) and its possible accreted component.
 
 #### 2.0 Map of the argument
 
-The encoded conclusion has four parts, all in the abstract and the summary (Section IV): (1) the
+The encoded conclusion has four parts: (1) the
 metal-poor stars ([M/H] < −1.5) in the inner Galaxy amount to at least about 5×10⁷ M☉; (2) they are
 centrally concentrated, most of them within 5 kpc of the Galactic Centre; (3) much of the population
-formed before the oldest disc, at least 12.5 Gyr ago (z ≳ 5); (4) they are the most ancient proto-Galactic (in-situ)
-component of the Milky Way. We quote the abstract, "This sample reveals an extensive, ancient, and
-metal-poor population", for the whole; part (3) is hedged in the abstract ("most likely predate the
-oldest part of the disk") and part (4) in Section IV ("All of this information fits a picture in
+formed before the oldest disc, at least 12.5 Gyr ago (z ≳ 5); (4) they are the most ancient
+proto-Galactic component of the Milky Way, formed in or with the early-coalescing main pieces of the
+Galaxy, not debris of a later-accreted low-mass satellite. Parts (1)–(3) are in the abstract and the
+summary (Section IV); we quote the abstract, "This sample reveals an extensive, ancient, and
+metal-poor population", and part (3) is hedged there ("most likely predate the oldest part of the
+disk"). Part (4)'s wording is from Section IV, hedged ("All of this information fits a picture in
 which this metal-poor heart of the Milky Way constitutes the most ancient proto-Galactic component of
-our Galaxy").
+our Galaxy"); the abstract says only that the stars formed at z ≳ 5, "forging the proto-Milky Way".
+R22's proto-Galaxy includes the major pieces that coalesced early and does not single out an in-situ
+part (Section I: early in-situ and accreted origins may be "operationally impossible" to tell
+apart), so the encoded conclusion makes no in-situ claim.
 
 A. The XP metallicities are precise to about 0.1 dex; [gap] the metal-poor tail is not dominated by
    metal-richer stars with underestimated [M/H]; a precise and pure selection is genuine (standard)
@@ -355,7 +360,8 @@ E. The old disc's metallicity distribution drops sharply below [M/H] = −1; [ga
    ≈12.5 Gyr old ⇒ **formed ≳12.5 Gyr ago, z ≳ 5**.
 F. Confinement argues against a once-distant satellite; α-enhancement argues for rapid enrichment in
    a deep potential well; [gap] together with mass, age and the rotation trend, this makes the
-   population **the proto-Galaxy's in-situ core** rather than debris of an accreted galaxy.
+   population **the most ancient proto-Galactic component**, not debris of a later-accreted
+   low-mass satellite.
 
 How we check it: the argument is written in Lean 4
 ([`studies/012-m12-poor-old-heart/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/012-m12-poor-old-heart/argument/Argument.lean)).
@@ -594,7 +600,7 @@ statistical ("much of"), so it survives some such stars, but how many is exactly
 The 12.5 Gyr also carries the absolute-age uncertainty of the subgiant ages it comes from, and
 "z ≳ 5" rounds z ≈ 4.6 up.
 
-#### 2.6 Stage F · A proto-Galactic, in-situ core
+#### 2.6 Stage F · The most ancient proto-Galactic component
 
 *Overview.* Two arguments of Section IV and the kinematic trend lead to the interpretation. The
 population is confined within the solar circle, tightly bound ("arguing against an origin through
@@ -602,7 +608,10 @@ accretion from a once-distant satellite"). The vast majority of its stars are α
 for rapid enrichment in a deep potential well"), and such a mass of α-enhanced stars at such low
 metallicity is "most likely" found "at the center of a (eventually) quite massive halo, not at a
 low-mass satellite". With the age (stage E) and the rotation trend, "All of this information fits a
-picture" of the most ancient proto-Galactic component.
+picture" of the most ancient proto-Galactic component. R22's proto-Galaxy is the set of pieces that
+coalesced early into the main progenitor; R22 do not distinguish in-situ stars from stars of
+early-accreted pieces (Section I), and neither does our encoding: `ProtoGal` means formed in or with
+those early-coalescing main pieces, as opposed to debris of a later-accreted low-mass satellite.
 
 **Premises.**
 
@@ -610,16 +619,16 @@ picture" of the most ancient proto-Galactic component.
 |---|---|---|---|
 | `mod_confined`: central + small apocentres ⇒ a once-distant satellite is disfavoured | MOD | stated: "arguing against an origin through accretion from a once-distant satellite" | Section IV |
 | `mod_deepwell`: α-enhanced ⇒ rapid enrichment in a deep well is favoured | MOD | stated: "are distinctly α-enhanced, arguing for rapid enrichment in a deep potential well" | Section IV |
-| `gap_proto`: mass + age + confinement + deep well + rotation trend ⇒ the proto-Galaxy's in-situ core | GAP | reconstructed | R22 hedges ("most likely", "fits a picture"); Heracles/Kraken/Koala "virtually indistinguishable" (III.4); Ardern-Arentsen et al. 2024 |
+| `gap_proto`: mass + age + confinement + deep well + rotation trend ⇒ the most ancient proto-Galactic component (not later-accreted low-mass debris) | GAP | reconstructed | R22 hedges ("most likely", "fits a picture"); Heracles/Kraken/Koala "virtually indistinguishable" (III.4); Ardern-Arentsen et al. 2024 |
 
 **Rival explanations.**
 
 | Alternative | Excluded by premise | Excluded explicitly by the paper? |
 |---|---|---|
 | Debris of a once-distant satellite (e.g. GSE) | `mod_confined` | yes (argued against); high-eccentricity GSE stars set aside |
-| Debris of an early, massive accreted galaxy that sank to the centre (Heracles / Kraken / Koala) | `gap_proto` | no: chemically "virtually indistinguishable"; R22's picture "appears to obviate the need" for it, but "This does not necessarily imply that these mergers did not occur" |
-| A mix: a concentrated, faster-rotating in-situ component plus a more extended, more metal-poor, slower component from smaller galaxies | `gap_proto` | no; proposed tentatively by Ardern-Arentsen et al. 2024 |
-| In situ and early accreted are not separable at all | `gap_proto` | stated by R22 as a possibility (Section I: "it may be operationally impossible ...") |
+| Debris of an early, massive accreted galaxy that sank to the centre (Heracles / Kraken / Koala) | `gap_proto` (as a separate, distinct merger rather than one of the early-coalescing pieces) | no: chemically "virtually indistinguishable"; R22's picture "appears to obviate the need" for it, but "This does not necessarily imply that these mergers did not occur" |
+| A mix: a concentrated, faster-rotating component (pre-disc in situ or large building blocks) plus a more extended, more metal-poor, slower component from smaller galaxies | `gap_proto` | no; proposed tentatively by Ardern-Arentsen et al. 2024 |
+| The heart formed in situ rather than in early-accreted pieces (or the reverse) | not encoded: the conclusion makes no in-situ claim | R22 do not decide (Section I: "it may be operationally impossible ...") |
 
 **Inference (Lean excerpt).**
 
@@ -634,9 +643,12 @@ exact ⟨m, c, a, pg⟩
 **Critique.** The interpretation is a plausibility argument and R22 present it as one ("fits a
 picture"). Confinement excludes a satellite that fell in from far away; it does not exclude one that
 merged early and sank by dynamical friction, which is what Heracles/Kraken/Koala is proposed to be,
-and R22 grant that the chemistry cannot tell the two apart. Part of the issue is definitional: if
-the proto-Galaxy is built from "comparable-mass pieces" coalescing early (R22's introduction), the
-line between an in-situ core and an early massive merger is a matter of mass ratio and timing. What
+and R22 grant that the chemistry cannot tell the two apart. Part of the issue is definitional: R22's
+proto-Galaxy is built from "comparable-mass pieces" coalescing early (Section I), and R22 do not say
+which of them, if any, is in situ; an early massive merger can count as one of those pieces, and the
+line is a matter of mass ratio and timing. What `gap_proto` must carry is therefore narrower than
+"in situ": that the stars are not mostly debris of later-accreted low-mass satellites (the extended,
+more metal-poor component of Ardern-Arentsen et al. 2024 would be such debris). What
 the data support firmly is that the population is old (in the chemical sense of stage E), centrally
 concentrated, α-enhanced and kinematically hot; "proto-Galactic" is the interpretation of that
 combination, and it rests on `gap_proto`.
@@ -660,7 +672,7 @@ combination, and it rests on `gap_proto`.
    (`mod_tail`, `mod_amr`), the conclusion does not follow without: the purity of the metal-poor tail
    (`gap_pure`), the applicability of the M4 conversion (`gap_template`), the absence of distortion by
    the unmodelled selection (`gap_sel`), one chemically connected system for the age ordering
-   (`gap_onezone`) and the in-situ interpretation (`gap_proto`).
+   (`gap_onezone`) and the proto-Galactic interpretation (`gap_proto`).
 2. **`stated_insufficient`**: what R22 write is not enough even before the gaps. The argument also
    uses two standard rules it does not write out: a precise and pure selection gives genuine
    members (`mod_tail`), and in one system metallicity rises with time (`mod_amr`).
@@ -718,6 +730,11 @@ To be written next.
 
 Newest first.
 
+- 2026-11-21: part 2 gate-2 (Codex) round 1: part (4) of the conclusion no longer claims an in-situ
+  origin; it is R22's proto-Galaxy (formed in or with the early-coalescing main pieces, not debris of
+  a later-accreted low-mass satellite), and stage F says R22 do not distinguish in-situ from
+  early-accreted pieces; the sources of the four parts are attributed separately (part (4)'s wording
+  from Section IV; the abstract's "forging the proto-Milky Way").
 - 2026-11-21: part 2 gate-1 review: the old-disc metallicity floor retagged `LIT` (`lit_discfloor`,
   with Hayden et al. 2015 and Xiang & Rix 2022); "much of" in part (3) of the conclusion; the
   sphere as R22's assumption, with the flattened/power-law rival under `mod_sph`; GSE stars in the
@@ -863,14 +880,14 @@ Newest first.
 
 #### 2.0 论证地图
 
-编码的结论有四部分，摘要与总结（第 IV 节）都写到了：（1）内银河系中的贫金属星（[M/H] < −1.5）合计至少约 5×10⁷ M☉；（2）它们向中心集中，大多数在离银心 5 kpc 以内；（3）这个族群的大部分（much of）形成于最老的盘之前，至少 12.5 Gyr 以前（z ≳ 5）；（4）它们是银河系最古老的原银河系（原位，in situ）成分。整体引用摘要："This sample reveals an extensive, ancient, and metal-poor population"（这个样本揭示了一个延展、古老、贫金属的族群）；第（3）部分在摘要中有保留措辞（"most likely predate the oldest part of the disk"，很可能早于盘最老的部分），第（4）部分在第 IV 节中有保留措辞（"All of this information fits a picture in which this metal-poor heart of the Milky Way constitutes the most ancient proto-Galactic component of our Galaxy"，所有这些信息符合这样一幅图景：银河系这个贫金属的核心构成我们银河系最古老的原银河系成分）。
+编码的结论有四部分：（1）内银河系中的贫金属星（[M/H] < −1.5）合计至少约 5×10⁷ M☉；（2）它们向中心集中，大多数在离银心 5 kpc 以内；（3）这个族群的大部分（much of）形成于最老的盘之前，至少 12.5 Gyr 以前（z ≳ 5）；（4）它们是银河系最古老的原银河系成分，形成于银河系很早并合的主要团块之中或与之一同形成，而不是较晚被吸积的低质量卫星星系的碎片。第（1）–（3）部分在摘要与总结（第 IV 节）中都写到了；我们引用摘要："This sample reveals an extensive, ancient, and metal-poor population"（这个样本揭示了一个延展、古老、贫金属的族群），第（3）部分在那里有保留措辞（"most likely predate the oldest part of the disk"，很可能早于盘最老的部分）。第（4）部分的措辞来自第 IV 节，有保留（"All of this information fits a picture in which this metal-poor heart of the Milky Way constitutes the most ancient proto-Galactic component of our Galaxy"，所有这些信息符合这样一幅图景：银河系这个贫金属的核心构成我们银河系最古老的原银河系成分）；摘要只说这些星形成于 z ≳ 5，"forging the proto-Milky Way"（锻造了原银河系）。R22 的原银河系包括很早并合的主要团块，并不单独指出一个原位部分（第 I 节：早期原位与吸积的起源可能"operationally impossible"区分），所以编码的结论不作原位的断言。
 
 A. XP 金属丰度精确到约 0.1 dex；[缺口] 贫金属尾巴没有被 [M/H] 被低估的较富金属星主导；精确而纯净的选择是真实的（标准知识）⇒ 计数的贫金属星是真实的。
 B. 约 18,000 颗这样的星；球状星团 M4 给出每 800 M☉ 一颗巨星；[缺口] 这一换算适用于本样本 ⇒ 照此计算约 2×10⁷ M☉；拥挤与尘埃使样本不完整，乘以"保守的"2.5 倍 ⇒ **至少约 5×10⁷ M☉**。
 C. 用球对称高斯拟合视差得到 σ_RGC ≈ 2.7 kpc；[缺口] 拟合没有被它未建模的选择（尘埃、拥挤、视场边界、星等截断）扭曲 ⇒ **大多数星在离银心 5 kpc 以内**。
 D. 供环节 F 使用的数据：[M/H] = −2 以下没有净转动，−1 附近以转动为主；大多数远心距小于 5 kpc；绝大多数 α 增丰。
 E. 老盘的金属丰度分布在 [M/H] = −1 以下急剧下降；[缺口] 贫金属星与老盘属于同一个化学上相连的系统；在这样一个系统中金属丰度随时间上升（标准知识）⇒ 贫金属族群的大部分早于最老的盘；最老的盘星约 12.5 Gyr ⇒ **形成于 ≳12.5 Gyr 以前，z ≳ 5**。
-F. 局限在中心不支持来自曾经遥远的卫星星系；α 增丰支持在深引力势阱中快速增丰；[缺口] 再加上质量、年龄与转动趋势，这使该族群成为**原银河系的原位核心**，而不是被吸积星系的碎片。
+F. 局限在中心不支持来自曾经遥远的卫星星系；α 增丰支持在深引力势阱中快速增丰；[缺口] 再加上质量、年龄与转动趋势，这使该族群成为**最古老的原银河系成分**，而不是较晚被吸积的低质量卫星星系的碎片。
 
 检查方式：论证用 Lean 4 写成（[`studies/012-m12-poor-old-heart/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/012-m12-poor-old-heart/argument/Argument.lean)）。每个前提是 `Field` 的一个构造子（不用公理），标注类型与出处性质：
 
@@ -1036,9 +1053,9 @@ have a : v.Ancient := p .mod_ancient pd (p .lit_discage)
 
 **评析。** "早于最老的盘"是推断，不是年龄测量，它需要一个增丰单调的、化学上相连的系统。对单个混合均匀的气体库这是标准的，但早期银河系并不是一个：R22 自己的引言预期最老的贫金属星混有早期原银河系团块与较晚并合的卫星星系，而一个增丰缓慢的矮星系可以在 −1 处最老的盘星形成之后才形成 −1.5 以下的星。论证是统计性的（"much of"，大部分），所以容许一些这样的星，但有多少正是未知的。12.5 Gyr 还带着其来源亚巨星年龄的绝对年龄不确定性，"z ≳ 5"把 z ≈ 4.6 向上取整。
 
-#### 2.6 环节 F · 原银河系的原位核心
+#### 2.6 环节 F · 最古老的原银河系成分
 
-*概述。* 第 IV 节的两个论证与运动学趋势导向这一解释。族群局限在太阳圆以内、束缚很紧（"arguing against an origin through accretion from a once-distant satellite"，不支持来自曾经遥远的卫星星系的吸积起源）。其绝大多数星 α 增丰（"arguing for rapid enrichment in a deep potential well"，支持在深引力势阱中快速增丰），而在如此低的金属丰度下有如此多 α 增丰恒星的质量，"most likely"（最可能）出现在"at the center of a (eventually) quite massive halo, not at a low-mass satellite"（一个（最终）相当大质量的晕的中心，而不是低质量卫星星系中）。加上年龄（环节 E）与转动趋势，"All of this information fits a picture"（所有这些信息符合这样一幅图景）：最古老的原银河系成分。
+*概述。* 第 IV 节的两个论证与运动学趋势导向这一解释。族群局限在太阳圆以内、束缚很紧（"arguing against an origin through accretion from a once-distant satellite"，不支持来自曾经遥远的卫星星系的吸积起源）。其绝大多数星 α 增丰（"arguing for rapid enrichment in a deep potential well"，支持在深引力势阱中快速增丰），而在如此低的金属丰度下有如此多 α 增丰恒星的质量，"most likely"（最可能）出现在"at the center of a (eventually) quite massive halo, not at a low-mass satellite"（一个（最终）相当大质量的晕的中心，而不是低质量卫星星系中）。加上年龄（环节 E）与转动趋势，"All of this information fits a picture"（所有这些信息符合这样一幅图景）：最古老的原银河系成分。R22 的原银河系是很早并合成主前身的那些团块；R22 不区分原位恒星与早期被吸积团块中的恒星（第 I 节），我们的编码也不区分：`ProtoGal` 的意思是形成于这些很早并合的主要团块之中或与之一同形成，而不是较晚被吸积的低质量卫星星系的碎片。
 
 **前提。**
 
@@ -1046,16 +1063,16 @@ have a : v.Ancient := p .mod_ancient pd (p .lit_discage)
 |---|---|---|---|
 | `mod_confined`：向中心集中 + 远心距小 ⇒ 曾经遥远的卫星星系不被支持 | MOD | stated: "arguing against an origin through accretion from a once-distant satellite" | 第 IV 节 |
 | `mod_deepwell`：α 增丰 ⇒ 支持在深势阱中快速增丰 | MOD | stated: "are distinctly α-enhanced, arguing for rapid enrichment in a deep potential well" | 第 IV 节 |
-| `gap_proto`：质量 + 年龄 + 局限在中心 + 深势阱 + 转动趋势 ⇒ 原银河系的原位核心 | GAP | reconstructed | R22 有保留（"most likely"、"fits a picture"）；Heracles/Kraken/Koala "virtually indistinguishable"（III.4）；Ardern-Arentsen 等 2024 |
+| `gap_proto`：质量 + 年龄 + 局限在中心 + 深势阱 + 转动趋势 ⇒ 最古老的原银河系成分（不是较晚吸积的低质量碎片） | GAP | reconstructed | R22 有保留（"most likely"、"fits a picture"）；Heracles/Kraken/Koala "virtually indistinguishable"（III.4）；Ardern-Arentsen 等 2024 |
 
 **竞争解释。**
 
 | 替代解释 | 由哪个前提排除 | 论文是否明确排除？ |
 |---|---|---|
 | 曾经遥远的卫星星系的碎片（例如 GSE） | `mod_confined` | 是（论证不支持）；高偏心率的 GSE 星被单独处理 |
-| 一个早期大质量被吸积星系沉入中心的碎片（Heracles / Kraken / Koala） | `gap_proto` | 否：化学上"virtually indistinguishable"（几乎无法区分）；R22 的图景"appears to obviate the need"（似乎无需）它，但"This does not necessarily imply that these mergers did not occur"（这并不一定意味着这些并合没有发生） |
-| 混合：一个集中、转得较快的原位成分，加一个更延展、更贫金属、转得更慢、来自较小星系的成分 | `gap_proto` | 否；Ardern-Arentsen 等 2024 初步提出 |
-| 原位与早期吸积根本无法区分 | `gap_proto` | R22 作为一种可能写明（第 I 节："it may be operationally impossible ..."） |
+| 一个早期大质量被吸积星系沉入中心的碎片（Heracles / Kraken / Koala） | `gap_proto`（作为一次独立的并合，而不是很早并合的团块之一） | 否：化学上"virtually indistinguishable"（几乎无法区分）；R22 的图景"appears to obviate the need"（似乎无需）它，但"This does not necessarily imply that these mergers did not occur"（这并不一定意味着这些并合没有发生） |
+| 混合：一个集中、转得较快的成分（盘形成之前的原位星或大的构建块），加一个更延展、更贫金属、转得更慢、来自较小星系的成分 | `gap_proto` | 否；Ardern-Arentsen 等 2024 初步提出 |
+| 核心形成于原位而不是早期被吸积的团块（或相反） | 未编码：结论不作原位的断言 | R22 不作判断（第 I 节："it may be operationally impossible ..."） |
 
 **推理（Lean 摘录）。**
 
@@ -1067,7 +1084,7 @@ have pg : v.ProtoGal :=
 exact ⟨m, c, a, pg⟩
 ```
 
-**评析。** 这一解释是合理性论证，R22 也是这样呈现的（"fits a picture"）。局限在中心排除了从远处落入的卫星星系；它不排除一个很早并合、通过动力学摩擦（dynamical friction）沉入中心的星系，而这正是 Heracles/Kraken/Koala 被提出的样子，R22 也承认化学无法区分两者。部分问题在于定义：如果原银河系由很早并合的"comparable-mass pieces"（质量相当的团块）构成（R22 引言），那么原位核心与早期大质量并合之间的界线取决于质量比与时间。数据确实支持的是：这个族群是老的（在环节 E 的化学意义上）、向中心集中、α 增丰、运动学上热；"原银河系"是对这一组合的解释，依赖 `gap_proto`。
+**评析。** 这一解释是合理性论证，R22 也是这样呈现的（"fits a picture"）。局限在中心排除了从远处落入的卫星星系；它不排除一个很早并合、通过动力学摩擦（dynamical friction）沉入中心的星系，而这正是 Heracles/Kraken/Koala 被提出的样子，R22 也承认化学无法区分两者。部分问题在于定义：R22 的原银河系由很早并合的"comparable-mass pieces"（质量相当的团块）构成（第 I 节），R22 没有说其中哪一块（如果有的话）是原位的；一次早期大质量并合可以算作这些团块之一，界线取决于质量比与时间。因此 `gap_proto` 需要承载的比"原位"窄：这些星大多不是较晚被吸积的低质量卫星星系的碎片（Ardern-Arentsen 等 2024 那个更延展、更贫金属的成分就会是这样的碎片）。数据确实支持的是：这个族群是老的（在环节 E 的化学意义上）、向中心集中、α 增丰、运动学上热；"原银河系"是对这一组合的解释，依赖 `gap_proto`。
 
 #### 2.7 讨论但未编码的结论
 
@@ -1078,7 +1095,7 @@ exact ⟨m, c, a, pg⟩
 
 #### 2.8 Lean 检查发现的问题
 
-1. **核心结论：`explicit_insufficient`，有五个缺口。** 即使加上两条标准规则（`mod_tail`、`mod_amr`），没有以下各条结论仍推不出：贫金属尾巴的纯度（`gap_pure`）、M4 换算的适用性（`gap_template`）、未建模的选择没有造成扭曲（`gap_sel`）、年龄排序所需的同一个化学上相连的系统（`gap_onezone`）以及原位解释（`gap_proto`）。
+1. **核心结论：`explicit_insufficient`，有五个缺口。** 即使加上两条标准规则（`mod_tail`、`mod_amr`），没有以下各条结论仍推不出：贫金属尾巴的纯度（`gap_pure`）、M4 换算的适用性（`gap_template`）、未建模的选择没有造成扭曲（`gap_sel`）、年龄排序所需的同一个化学上相连的系统（`gap_onezone`）以及原银河系解释（`gap_proto`）。
 2. **`stated_insufficient`**：即使不计缺口，R22 写出的内容也不够。论证还用到两条它没有写出的标准规则：精确而纯净的选择给出真实成员（`mod_tail`），以及在一个系统中金属丰度随时间上升（`mod_amr`）。
 3. **缺口在哪里。** `gap_pure` 影响全部四部分（质量、集中度与年龄都用到真实的尾巴；解释用到这三者）。第（1）部分质量加上 `gap_template`；第（2）部分集中度加上 `gap_sel`；第（3）部分年龄加上 `gap_onezone`；第（4）部分原银河系加上 `gap_proto` 并继承其他所有缺口。其中两个缺口（`gap_onezone`、`gap_proto`）是 R22 自己有保留的步骤（"most likely"、"fits a picture"）；另外三个是 R22 未加评论就采用的步骤（`gap_template`）或标为后续工作的步骤（`gap_pure`、`gap_sel`）。
 4. **排序。** `gap_pure` 最重要（影响一切，论文没有给出任何数字）；其次是 `gap_onezone`（年龄是论文的标题结论）；`gap_proto` 主要是解释性的；`gap_sel` 对 σ ≈ 2.7 kpc 这个数字的影响大于对定性集中度的影响；`gap_template` 影响质量最多约 2 倍。
@@ -1113,6 +1130,7 @@ exact ⟨m, c, a, pg⟩
 
 按时间倒序。
 
+- 2026-11-21：第二部分闸门 2（Codex）第 1 轮：结论第（4）部分不再断言原位起源，而是 R22 的原银河系（形成于很早并合的主要团块之中或与之一同形成，而不是较晚被吸积的低质量卫星星系的碎片）；环节 F 写明 R22 不区分原位与早期被吸积的团块；四个部分的出处分别注明（第（4）部分的措辞来自第 IV 节；摘要的"forging the proto-Milky Way"）。
 - 2026-11-21：第二部分闸门 1 审查：老盘金属丰度下限改标 `LIT`（`lit_discfloor`，附 Hayden 等 2015 与 Xiang & Rix 2022）；结论第（3）部分加上"much of"（大部分）；球形改为 R22 的假设，扁平/幂律的竞争解释归于 `mod_sph`；计数中的 GSE 星（`gap_template`，最多约 2 倍）；子样本说明；R22 的"not a pure cross-validation"；`mod_confined` 的措辞；选择规则的文献码；摘要的"forging the proto-Milky Way"。
 - 2026-11-21：起草第二部分（六个环节的论证逻辑；`Argument.lean`：25 个前提、5 个缺口、2 条标准知识；`stated_insufficient` 与 `explicit_insufficient`）。
 - 2026-11-21：第一部分闸门 2（Codex）：没有严重问题；三处措辞小问题（R22 预期的原银河系星与吸积星的混合、计数验算的斜率假设、800 M☉ 一点作为尚未解决的不符）。
