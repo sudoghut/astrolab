@@ -1343,7 +1343,9 @@ over all 10,000 simulations [`Q_raw.share`], not a p value.
   ratio, the tail densities depend on the bandwidth, and no rule uses these ratios.
 - **Against the expectation stated in section 2.** As expected: the calibrated p_J is much larger than
   the raw quadrant probability (V(0.05): 0.039 against 0.0025; V(0.077): 0.080 against 0.0048), and it
-  stays below 0.05 for V(0.05) and lies above 0.05 for V(0.105); D excludes V(0.05) and not V(0.105); O(δ̂)
+  lies above 0.05 for V(0.105). Section 2 said p_J "may stay below 0.05 for V(0.05) and V(0.077)": it did
+  for V(0.05) (0.039) but not for V(0.077), which came out above (0.080, interval 0.072–0.088), and this
+  is what makes the reading rule (3) rather than rule (2); D excludes V(0.05) and not V(0.105); O(δ̂)
   is excluded by neither. Section 2 thought "undetermined" or "not excluded" as likely as "excluded" for
   D under V(0.077); the outcome is "excluded (D)" (interval 0.030–0.038). Section 2 thought rule (3) most
   likely through τ = 0.105; it holds through both 0.077 and 0.105. The direction of p_J in τ was left
@@ -1364,7 +1366,7 @@ over all 10,000 simulations [`Q_raw.share`], not a p value.
   V(0.077) (0.080), 0.070 for V(0.105) (0.068) and 0.016 for C (0.017). The reading turns on V(0.077)
   and V(0.105), which are stable under the swap; V(0.05)'s exclusion by J is not. (ii) *Power.* With
   each V's own calibration at α = 0.05, if O(δ̂) is true J excludes V(0.077) in 54% and V(0.105) in 57%
-  of simulations (D: 57% and 45%); if O_any is true, in only 20–30%. The comparison is therefore
+  of simulations (D: 57% and 45%); if O_any is true, in only 20–30% (J; D 10–15%). The comparison is therefore
   underpowered (about 50%) against its own one-host alternative: "not excluded" is a null result that
   carries little information, not evidence for diffuse scatter. (iii) *What J measures.* J is not
   specific to one outlier: under C, P(spread_37 ≥ obs) = 0.013 against p_J = 0.017, so part of J's
@@ -1463,13 +1465,14 @@ reran that script and the τ split ourselves and reproduced every number quoted 
 
 The referee saw README section 2's R2-RE-D addendum and the earlier definitions it relies on, `onehost.py`,
 the `d_*` paths of `run.py` and the results (`r2_re_d.json`, the per-model simulation files), not sections
-5–7 or the log; it ran only short single-threaded checks on the saved files. We recounted point 1 (halves
+5–7 or the log; it ran only short single-threaded checks on the saved files. It found no bug that
+changes a statistic or a label. We recounted point 1 (halves
 swapped) from the saved pairs and reproduced it (0.016, 0.061, 0.077, 0.070). Triage:
 
 | # | Point | Verified | Action |
 |---|---|---|---|
 | 1 | J's Clopper–Pearson interval holds half A fixed; swapping halves (calibrate on odd, test on even) gives p_J V(0.05) 0.061 (recorded 0.039), V(0.077) 0.077 (0.080), V(0.105) 0.070 (0.068), C 0.016 (0.017) | yes (post hoc recount from the saved simulations) | **Accepted**: V(0.05)'s J exclusion depends on the split and is not firm; the reading turns on V(0.077) and V(0.105), which are stable; reported in the results subsection (post hoc) |
-| 2 | Low power both ways (post hoc, from the saved pairs, each V's own calibration, α = 0.05): if O(δ̂) is true, J excludes V(0.077) in 54% and V(0.105) in 57% of simulations (D: 57%, 45%); if O_any is true only 20–30%; so "not excluded" carries little information | yes (post hoc recount) | **Accepted**: the results subsection and the headline places say the comparison is underpowered (about 50%) against its own alternative; it is a null result, not evidence for diffuse scatter |
+| 2 | Low power both ways (post hoc, from the saved pairs, each V's own calibration, α = 0.05): if O(δ̂) is true, J excludes V(0.077) in 54% and V(0.105) in 57% of simulations (D: 57%, 45%); if O_any is true only 20–30% for J (D: 15% for V(0.077), 10% for V(0.105)); so "not excluded" carries little information | yes (post hoc recount) | **Accepted**: the results subsection and the headline places say the comparison is underpowered (about 50%) against its own alternative; it is a null result, not evidence for diffuse scatter |
 | 3 | Plug-in parameters from the same data: δ̂ is the offset of the host already selected as most extreme (winner's curse), so O(δ̂) is nearly guaranteed not to be excluded; under O_any criterion S finds the offset host in 44% (4,358 of 10,000); τ̂ = 0.077 was fitted with N5584 included | yes | Accepted limitation (stated in the addendum's caveats); a composite test refitting δ or τ in each simulation is the clean fix |
 | 4 | J is not specific to one outlier: under C, P(spread_37 ≥ obs) = 0.013 against p_J 0.017; part of J's exclusion of V(0.05) is "too much total scatter". D is the sharper shape statistic and excludes V(0.077) at 0.034 | yes | **Accepted**: next to the reading (unchanged), the results subsection reports that V(0.05) is excluded by both statistics and V(0.077) by D |
 | 5 | Three fixed τ values are not a model family; the labels are correlated (shared ε_s) | – | Accepted; no statement about τ in general |
