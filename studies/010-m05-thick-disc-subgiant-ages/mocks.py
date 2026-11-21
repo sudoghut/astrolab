@@ -61,9 +61,12 @@ def latent_power(mu_old, s_old, w_old, edge, n, rng, lo=1.5, tmax=20.0):
     return out
 
 
-def observe(tau, r, mech, rng, tmax=20.0):
+def observe(tau, r, mech, rng, tmax=20.0, *, f=1.0):
     """Observed ages and catalogue errors: mech 'rtau' (e = r tau) or 'rA' (e = r A). Draws are
-    repeated for a star until its observed age lies in (0, tmax)."""
+    repeated for a star until its observed age lies in (0, tmax). f (README 2.7, R1-ERR) scales only
+    the deviate z, so the true errors are f times the catalogue errors: A = tau + f r tau z under rtau,
+    A = tau / (1 - f r z) under rA; e is unchanged (r tau or r A). At f = 1 the draws are the original
+    ones, bit for bit (1.0 * x == x)."""
     tau = np.asarray(tau, float)
     r = np.asarray(r, float)
     A = np.full(len(tau), np.nan)
@@ -73,9 +76,9 @@ def observe(tau, r, mech, rng, tmax=20.0):
             break
         z = rng.standard_normal(len(todo))
         if mech == "rtau":
-            a = tau[todo] + r[todo] * tau[todo] * z
+            a = tau[todo] + (f * r[todo]) * tau[todo] * z
         else:
-            den = 1.0 - r[todo] * z
+            den = 1.0 - (f * r[todo]) * z
             a = np.where(den > 0, tau[todo] / np.where(den > 0, den, 1.0), np.nan)
         ok = np.isfinite(a) & (a > 0) & (a < tmax)
         A[todo[ok]] = a[ok]
@@ -139,22 +142,31 @@ def draw_r_keyed(tau, sl, edges, pools, rng):
     return r
 
 
-def catalogue_sel(draw_rows, n_target, mech, rng, *, s15, cut=0.15, tmax=20.0, batch=None):
+def catalogue_sel(draw_rows, n_target, mech, rng, *, s15, cut=0.15, tmax=20.0, batch=None, f=1.0,
+                  stats=None):
     """SEL-2 generator. draw_rows(m) returns a dict with 'tau', 'r' and optionally other per-star
     arrays (e.g. 'feh', 'sl'). Every drawn star whose observed age lies in (0, tmax) is kept in draw
     order (mocks.observe redraws the deviate until it does). For s15 the mock parent is that
     sequence up to and including the star that completes n_target stars with e / A < cut; later
     draws are discarded. Without s15 the first n_target kept stars are the sample (no parent).
     Returns (sample, parent): dicts of arrays 'A', 'e', 'tau', 'r' and the other keys; parent also
-    has 'pass' (None without s15)."""
+    has 'pass' (None without s15). f scales the deviate (observe; README 2.7). stats: an optional dict
+    that receives 'drawn' and 'dropped' (stars drawn, and stars dropped by observe's redraw limit,
+    over every draw of this call, including draws later discarded); it changes no draw."""
     out = {}
     have = 0
+    if stats is not None:
+        stats["drawn"] = 0
+        stats["dropped"] = 0
     for _ in range(MAX_ROUNDS):
         if have >= n_target:
             break
         m = batch or max(2 * (n_target - have), 1024)
         rows = draw_rows(m)
-        A, e, keep = observe(rows["tau"], rows["r"], mech, rng, tmax)
+        A, e, keep = observe(rows["tau"], rows["r"], mech, rng, tmax, f=f)
+        if stats is not None:
+            stats["drawn"] += int(len(keep))
+            stats["dropped"] += int((~keep).sum())
         new = {"A": A, "e": e}
         for k, v in rows.items():
             new[k] = np.asarray(v)[keep]

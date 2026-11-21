@@ -837,6 +837,32 @@ on XR22's claim.
     (which equals f·r·z) passes a Kolmogorov–Smirnov test against N(0, (f·r)²); (iii) at f = 1 `observe` and
     `catalogue_sel` return exactly the arrays of the current code for the same stream.
 
+- **Amendments before any R1-ERR mock (2026-11-21)** (implementation choices, T-054; no rule above changes):
+  1. *Generator failure.* A `RuntimeError` raised inside the mock's `mocks.catalogue_sel` call (which
+     includes the latent sampler and the keyed r draw) is a generator failure; the mock is checkpointed
+     with `gen_fail` and no d. A `RuntimeError` of the fits is not a generator failure and stops the run,
+     as in R1-SEL-FIT. After a failure in an S15 term E set, no further mock of that set or of any set at
+     that f or a larger one is run (mocks such sets ran before the failure are kept and reported); those
+     sets leave the runtime projection. A failure in a term N or Full set does not stop that set.
+  2. *Reported labels of S15 term N and Full.* An f at which the variant had a generator failure is left
+     out of that variant's rules (as an infeasible f is) and named in the qualifier "not evaluable at
+     f = …"; the "ladder ends" qualifier follows the primary ladder.
+  3. *Label text.* f is written as `str(float(f))` (1.0, 1.2, 1.5, 2.0, 2.81); bins as "[-0.3, -0.1)".
+     The bins named after "one bin explainable from f = Z:" are all bins explainable at any feasible f
+     with E(f) = 1, in bin order. "All three bins explainable from f = W3" is a separate field.
+  4. *Reported items.* The d percentiles are over all mocks of a set (a mock without a valley has d = 1),
+     as in R1-SEL-FIT's `per_set`, and also over the mocks with a valley. Stars dropped by the redraw
+     limit are counted over every draw of the mock's catalogue call, including draws discarded after the
+     parent closes. The f = 1 row counts n_reach in each variant from `r1_selfit.json`'s per-mock d with
+     the same 3-of-50 rule. The 2.1 verdict "R1 would read at f" takes, for the three R1-ERR bins,
+     resolvable = power at 0.25 ≥ 0.80 under both mechanisms and a valid power model, and takes the data
+     d, the almost-disjoint flags and the two metal-rich bins (not run) from R1-SEL-FIT. The median rule
+     uses the same "at least one mechanism" structure with n_reach ≥ 25.
+  5. *Order and records.* Check (b) runs before the checkpoint folder is opened and its 18 mocks are
+     not checkpointed; the 36 companion refits run after the 72 sets, are not checkpointed and are not
+     in the projection; their stream uses the literal 50 as written above. With `err_n_mock` ≠ 50 (an
+     exploration) no label is given, as in 2.6. The committed `PARAMS["parts"]` is `["err"]`.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
@@ -1350,8 +1376,11 @@ How a coding agent answers "what if" questions about this study without touching
 | `r2_feh`, `r2_jphi` | R2 sample window and J_φ cut | ±0.1 dex around −1; 0–1000 | cache only |
 | `f_min` | error-scale sensitivity value | 0.6–1.0 | cache only |
 | `grid_step` | latent grid step (Gyr) | 0.02–0.1 | cache only |
-| `parts` | which pipeline runs: `["orig"]` (sections 2.0–2.4; `r1/r2/r34/r56/r7/summary.json`) and/or `["sel"]` (section 2.5 R-SEL; `r1_sel/r34_sel/sel.json`), or `["selfit"]` alone (section 2.6 R1-SEL-FIT; `r1_selfit.json`, records `provenance_selfit.json`, `run_info_selfit.json`; reads `r1_sel.json`); the committed value is `["selfit"]` (T-049) | either or both of orig/sel; selfit alone | cache only |
+| `parts` | which pipeline runs: `["orig"]` (sections 2.0–2.4; `r1/r2/r34/r56/r7/summary.json`) and/or `["sel"]` (section 2.5 R-SEL; `r1_sel/r34_sel/sel.json`), or `["selfit"]` alone (section 2.6 R1-SEL-FIT; `r1_selfit.json`, records `provenance_selfit.json`, `run_info_selfit.json`; reads `r1_sel.json`), or `["err"]` alone (section 2.7 R1-ERR; `r1_err.json`, records `provenance_err.json`, `run_info_err.json`; reads `r1_sel.json` and `r1_selfit.json`); the committed value is `["err"]` (T-054) | either or both of orig/sel; selfit alone; err alone | cache only |
 | `selfit_seed_tag`, `selfit_nstart`, `selfit_stop_h` | R1-SEL-FIT: stream tag of the data-independent starts, starts per K, stop limit (h) | 45 and 8 are pre-registered; 12 h | cache only |
+| `err_f`, `err_bins`, `err_n_mock` | R1-ERR (section 2.7): error-scale ladder, R1 bins run, mocks per set | pre-registered [1.2, 1.5, 2.0, 2.81], [0, 1, 2], 50 (2 for a quick run; the label needs 50) | cache only |
+| `err_reach_frac`, `err_min_bins` | R1-ERR: fraction of mocks reaching the data d that makes a bin explainable; bins needed for "sensitive" | 0.05 and 2 are pre-registered | cache only |
+| `err_seed_tag`, `err_seed_tag_indep`, `err_stop_h` | R1-ERR: stream tags of the catalogue and fit (o), and of fit (i); stop limit (h) | 54 and 154 are pre-registered; 16 h | cache only |
 | `sel_n_mock` | R-SEL mocks per set (verdicts need 50) | 2–50 | cache only |
 | `sel_power_floor`, `sel_power_floor_sens` | R1-SEL power-model floor and its sensitivity value | 0.10–0.30 | cache only |
 | `sel_pass_width`, `sel_n_min` | pass-bin width (Gyr) and minimum parent count per pass bin (SEL-0) | 0.5–2; 100–500 | cache only |
@@ -1397,6 +1426,18 @@ How a coding agent answers "what if" questions about this study without touching
   5.29 h of mock fit time, 3.53 s per mock, and 5.30 h of elapsed time with one stop and a resume
   (section 5.2). Its 12 h stop rule fired after the first set, whose mocks are the slowest (10.9 s each),
   so a rerun needs either a higher `selfit_stop_h` or a resume with consent.
+  R1-ERR: `r1_err.json` (`status`; `label` (S15 term E: `label`, `case`, `X`, `Y`, `Z`, `Z_bins`,
+  `F_end`, `W3`, `all_bins_explainable_from`) and `label_median_rule`; `checks` (`data_fit_mismatches`,
+  `generator_f1`); `ladder`, `bins`, `data_d`, `cut_f`, `feasible`; `f1_row` (n_reach at f = 1 from
+  `r1_selfit.json`); `variants.<S15E|S15N|Full>` with `label`, `label_median_rule` and `per_f.<f>`
+  (`status`, `E`, `explainable_bins`, per-bin `n_reach`, `n_novalley`, `power_at_d_cap`,
+  `r1_verdict_at_f`); `per_set` (per-mock `d` and `valley`, `n_reach` with `n_reach_cp95`, `n_novalley`,
+  `n_d_ge_data_incl_novalley`, d percentiles over all mocks and over mocks with a valley, power at 0.25,
+  K chosen, use of (i), NLL rising with K, pass rate, observed-age percentiles against the data's, stars
+  dropped by the redraw limit, generator failures, time per mock); `companion_refits.<variant>.<f>`;
+  `mocks` with the projections). The R1-ERR run (the committed default) is estimated at 4–5 h on an
+  otherwise idle machine (section 2.7); its checkpoints are in the cache folder `s010_err_mocks`, and a
+  quick look runs with `--set err_n_mock=2` (no label).
 - Example questions: "Does the R1 valley survive a stricter error cut?" → `--set cut=0.10`.
   "Is the 13 Gyr mean sensitive to the J_φ cut?" → `--set r2_jphi=300` (R2 also reports 300 and 700).
   "What if the selection term conditioned on relative error instead of e?" → an `explore/` script

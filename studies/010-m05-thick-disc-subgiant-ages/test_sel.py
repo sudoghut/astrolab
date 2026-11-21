@@ -369,7 +369,7 @@ def test_mock_store_stop_and_consent(tmp_path):
 def test_checkpoint_key_ignores_stop_limit_and_parts():
     text = (HERE / "run.py").read_text(encoding="utf-8")
     assert '"sel_stop_h": 16.0' in text
-    edited = text.replace('"sel_stop_h": 16.0', '"sel_stop_h": 24.0').replace('"parts": ["selfit"]', '"parts": ["orig", "sel"]')
+    edited = text.replace('"sel_stop_h": 16.0', '"sel_stop_h": 24.0').replace('"parts": ["err"]', '"parts": ["orig", "sel"]')
     assert selaux.strip_params(edited) == selaux.strip_params(text)
     assert selaux.strip_params(text.replace("def main_sel(", "def main_sel_x(")) != selaux.strip_params(text)
     P = dict(run.PARAMS)
@@ -658,3 +658,369 @@ def test_selfit_mock_through_run_mock_sets(tmp_path):
                                       make_rng, 12.0, log=lambda m: None)
     st2.release()
     assert res2[4][0] == r
+
+
+# ---------------------------------------------------------------------------------------------
+# R1-ERR (README 2.7, T-054)
+# ---------------------------------------------------------------------------------------------
+from scipy.stats import kstest  # noqa: E402
+
+
+def _observe_ref(tau, r, mech, rng, tmax=20.0):
+    """mocks.observe as it was before R1-ERR (commit f0a8455), for the f = 1 identity test."""
+    tau = np.asarray(tau, float)
+    r = np.asarray(r, float)
+    A = np.full(len(tau), np.nan)
+    todo = np.arange(len(tau))
+    for _ in range(200):
+        if len(todo) == 0:
+            break
+        z = rng.standard_normal(len(todo))
+        if mech == "rtau":
+            a = tau[todo] + r[todo] * tau[todo] * z
+        else:
+            den = 1.0 - r[todo] * z
+            a = np.where(den > 0, tau[todo] / np.where(den > 0, den, 1.0), np.nan)
+        ok = np.isfinite(a) & (a > 0) & (a < tmax)
+        A[todo[ok]] = a[ok]
+        todo = todo[~ok]
+    keep = np.isfinite(A)
+    tau, r, A = tau[keep], r[keep], A[keep]
+    e = r * tau if mech == "rtau" else r * A
+    return A, e, keep
+
+
+def _catalogue_sel_ref(draw_rows, n_target, mech, rng, *, s15, cut=0.15, tmax=20.0, batch=None):
+    """mocks.catalogue_sel as it was before R1-ERR (commit f0a8455)."""
+    out = {}
+    have = 0
+    for _ in range(mocks.MAX_ROUNDS):
+        if have >= n_target:
+            break
+        m = batch or max(2 * (n_target - have), 1024)
+        rows = draw_rows(m)
+        A, e, keep = _observe_ref(rows["tau"], rows["r"], mech, rng, tmax)
+        new = {"A": A, "e": e}
+        for k, v in rows.items():
+            new[k] = np.asarray(v)[keep]
+        new["pass"] = (e / A < cut) if s15 else np.ones(len(A), bool)
+        for k, v in new.items():
+            out[k] = np.concatenate([out[k], v]) if k in out else v
+        have = int(out["pass"].sum())
+    if have < n_target:
+        raise RuntimeError("selection rate too low")
+    last = int(np.flatnonzero(out["pass"])[n_target - 1])
+    parent = {k: v[:last + 1] for k, v in out.items()}
+    sample = {k: v[parent["pass"]] for k, v in parent.items() if k != "pass"}
+    return sample, (parent if s15 else None)
+
+
+@pytest.mark.parametrize("f", [1.2, 2.0, 2.81])
+def test_observe_f_scales_the_deviate_under_rtau(f):
+    """README 2.7 test (i): e = r tau, no truncation in effect: std of (A - tau) / e is f."""
+    n, tau, r = 200_000, 10.0, 0.05                   # f r tau <= 1.4 Gyr: 0 and 20 are >= 7 sigma away
+    A, e, keep = mocks.observe(np.full(n, tau), np.full(n, r), "rtau", np.random.default_rng(1), f=f)
+    assert keep.all()
+    x = (A - tau) / e
+    assert np.all(e == r * tau)                       # the catalogue error is unchanged
+    assert abs(x.std() - f) < 4 * f / np.sqrt(2 * n)
+    assert abs(x.mean()) < 4 * f / np.sqrt(n)
+
+
+@pytest.mark.parametrize("f", [1.2, 1.5, 2.81])
+def test_observe_f_scales_the_deviate_under_rA(f):
+    """README 2.7 test (ii): e = r A, at fixed tau: 1 - tau / A = f r z passes a KS test against N(0, (f r)^2)."""
+    n, tau, r = 100_000, 10.0, 0.04                  # A < 20 needs f r z < 0.5: z < 4.4 at f = 2.81
+    A, e, keep = mocks.observe(np.full(n, tau), np.full(n, r), "rA", np.random.default_rng(2), f=f)
+    assert keep.all() and np.allclose(e, r * A, rtol=0, atol=0)
+    assert kstest(1 - tau / A, "norm", args=(0.0, f * r)).pvalue > 0.01
+    # a wrong scale is rejected (the test has power)
+    assert kstest(1 - tau / A, "norm", args=(0.0, r)).pvalue < 1e-6
+
+
+@pytest.mark.parametrize("mech", ["rtau", "rA"])
+def test_f1_generator_is_bit_identical(mech):
+    """README 2.7 test (iii): at f = 1, observe and catalogue_sel return exactly the arrays of the code
+    before R1-ERR for the same stream (default f and an explicit f = 1.0)."""
+    rng0 = np.random.default_rng(3)
+    tau = np.concatenate([rng0.uniform(0.3, 19.0, 3000), [0.05, 19.9, 19.99]])   # some stars need redraws
+    r = rng0.uniform(0.02, 0.6, len(tau))
+    ref = _observe_ref(tau, r, mech, np.random.default_rng(4))
+    for kw in ({}, {"f": 1.0}, {"f": 1}):
+        new = mocks.observe(tau, r, mech, np.random.default_rng(4), **kw)
+        for a, b in zip(ref, new):
+            assert np.array_equal(a, b)
+
+    def make_draw(rng):
+        def draw(m):
+            t = mocks.latent_power(11.0, 0.82, 0.3, 7.0, m, rng)
+            return {"tau": t, "r": rng.uniform(0.02, 0.3, m), "sl": np.zeros(m, np.int64)}
+        return draw
+    for s15 in (True, False):
+        g1, g2 = np.random.default_rng(5), np.random.default_rng(5)
+        sa, pa = _catalogue_sel_ref(make_draw(g1), 2000, mech, g1, s15=s15)
+        stats = {}
+        sb, pb = mocks.catalogue_sel(make_draw(g2), 2000, mech, g2, s15=s15, f=1.0, stats=stats)
+        assert set(sa) == set(sb)
+        assert all(np.array_equal(sa[k], sb[k]) for k in sa)
+        assert (pa is None) == (pb is None)
+        if pa is not None:
+            assert all(np.array_equal(pa[k], pb[k]) for k in pa)
+        assert g1.random() == g2.random()            # same stream position afterwards
+        assert stats["drawn"] >= len(sb["A"]) and stats["dropped"] >= 0
+
+
+def test_redraw_limit_drops_are_counted():
+    """Stars that do not reach (0, tmax) in 200 draws are dropped by observe; catalogue_sel counts them
+    over all its draws (README 2.7, reported per set)."""
+    def draw(m):
+        return {"tau": np.full(m, 19.999), "r": np.full(m, 1000.0)}   # a draw lands in (0, 20) with p ~ 1e-3
+    stats = {}
+    sample, parent = mocks.catalogue_sel(draw, 50, "rtau", np.random.default_rng(8), s15=False, stats=stats)
+    assert parent is None and len(sample["A"]) == 50
+    assert stats["dropped"] > 0 and stats["drawn"] - stats["dropped"] >= 50
+    _, _, keep = mocks.observe(np.full(2000, 19.999), np.full(2000, 1000.0), "rtau", np.random.default_rng(9))
+    assert 0 < (~keep).sum() < 2000
+
+
+def test_err_params_sets_and_key():
+    P = run.PARAMS
+    assert P["err_f"] == [1.2, 1.5, 2.0, 2.81] and P["err_bins"] == [0, 1, 2] and P["err_n_mock"] == 50
+    assert P["err_reach_frac"] == 0.05 and P["err_min_bins"] == 2
+    assert P["err_seed_tag"] == 54 and P["err_seed_tag_indep"] == 154 and P["err_stop_h"] == 16.0
+    assert "err_stop_h" in selaux.NO_KEY_PARAMS and "parts" in selaux.NO_KEY_PARAMS
+    sets = selaux.err_sets(P["err_f"], P["err_bins"], P["mechs"])
+    assert len(sets) == 72 and [s["k"] for s in sets] == list(range(72))
+    nest = [(f, v, b, m) for f in P["err_f"] for v in ("S15E", "S15N", "Full") for b in (0, 1, 2) for m in ("rtau", "rA")]
+    assert [(s["f"], s["variant"], s["bin"], s["mech"]) for s in sets] == nest
+    assert len({s["group"] for s in sets}) == 12                     # (variant, f) projection groups
+    assert all(s["kind"] == "power" and s["floor"] == "primary" for s in sets)
+    src = {"run.py": "x"}
+    k0 = selaux.checkpoint_key(dict(P), src, b"d")
+    assert selaux.checkpoint_key({**P, "err_stop_h": 30.0, "parts": ["orig"]}, src, b"d") == k0
+    assert selaux.checkpoint_key({**P, "err_f": [1.2]}, src, b"d") != k0
+    text = (HERE / "run.py").read_text(encoding="utf-8")
+    assert selaux.strip_params(text.replace('"err_stop_h": 16.0', '"err_stop_h": 20.0')) == selaux.strip_params(text)
+
+
+def test_err_parts_validation(monkeypatch):
+    for bad in (["err", "selfit"], ["orig", "err"], ["sel", "err"]):
+        monkeypatch.setitem(run.PARAMS, "parts", bad)
+        with pytest.raises(ValueError):
+            run.main(None)
+
+
+def test_clopper_pearson_and_counts():
+    lo, hi = selaux.clopper_pearson(0, 50)
+    assert lo == 0.0 and hi == pytest.approx(0.0711, abs=5e-4)
+    lo, hi = selaux.clopper_pearson(3, 50)
+    assert lo == pytest.approx(0.0125, abs=5e-4) and hi == pytest.approx(0.1655, abs=5e-4)
+    assert selaux.clopper_pearson(50, 50)[1] == 1.0
+    # a mock without a valley (d = 1 sentinel) is never in n_reach
+    assert selaux.err_counts([1.0, 0.5, 0.3, None], [False, True, True, None], 0.4) == (1, 1)
+    assert selaux.err_counts([0.4], [True], 0.4) == (1, 0)                    # d >= data d counts
+    assert not selaux.err_explainable({"rtau": 2, "rA": 2}, 50, 0.05)
+    assert selaux.err_explainable({"rtau": 0, "rA": 3}, 50, 0.05)              # one mechanism suffices
+    assert not selaux.err_explainable({"rtau": 24, "rA": 0}, 50, 0.5)
+    assert selaux.err_explainable({"rtau": 25, "rA": 0}, 50, 0.5)
+
+
+LAD = [1.2, 1.5, 2.0, 2.81]
+NAMES = {f: [] for f in LAD}
+
+
+@pytest.mark.parametrize("E, cut_f, kw, want", [
+    # 1-3: the "not evaluable" cases, in order of precedence
+    ({f: 0 for f in LAD}, None, {"reproduction_ok": False, "nonfinite": True}, "not evaluable (reproduction)"),
+    ({f: 0 for f in LAD}, 1.2, {"nonfinite": True}, "not evaluable (non-finite)"),
+    ({1.2: None, 1.5: None, 2.0: None, 2.81: None}, 1.2, {}, "not evaluable (infeasible)"),
+    # 4: sensitive at the smallest feasible f with E >= 2
+    ({1.2: 0, 1.5: 0, 2.0: 2, 2.81: 3}, None, {}, "sensitive at f = 2.0"),
+    ({1.2: 1, 1.5: 2, 2.0: 1, 2.81: 3}, None, {}, "sensitive at f = 1.5"),
+    ({1.2: 0, 1.5: 2, 2.0: None, 2.81: None}, 2.0, {}, "sensitive at f = 1.5"),   # no ladder-end qualifier
+    # 5: robust, with the qualifiers
+    ({f: 0 for f in LAD}, None, {}, "robust up to f = 2.81"),
+    ({1.2: 0, 1.5: 0, 2.0: 1, 2.81: 1}, None, {}, "robust up to f = 1.5 (one bin explainable from f = 2.0: [-0.3, -0.1))"),
+    ({1.2: 1, 1.5: 0, 2.0: 0, 2.81: 1}, None, {}, "robust up to f = 1.0 (one bin explainable from f = 1.2: [-0.3, -0.1))"),
+    ({1.2: 0, 1.5: 0, 2.0: None, 2.81: None}, 2.0, {}, "robust up to f = 1.5 (ladder ends at f = 1.5)"),
+    ({1.2: 0, 1.5: 1, 2.0: None, 2.81: None}, 2.0, {},
+     "robust up to f = 1.2 (one bin explainable from f = 1.5: [-0.3, -0.1); ladder ends at f = 1.5)"),
+    ({1.2: 0, 1.5: 0, 2.0: 0, 2.81: None}, 2.81, {}, "robust up to f = 2.0 (ladder ends at f = 2.0)"),
+])
+def test_err_label_cases(E, cut_f, kw, want):
+    names = {f: (["[-0.3, -0.1)"] if E.get(f) == 1 else []) for f in LAD}
+    lab = selaux.err_label(LAD, E, cut_f, names, **kw)
+    assert lab["label"] == want
+
+
+def test_err_label_details():
+    lab = selaux.err_label(LAD, {1.2: 0, 1.5: 1, 2.0: 2, 2.81: 3}, None, {1.5: ["a"], 2.0: ["a", "b"]})
+    assert lab["case"] == 4 and lab["Y"] == 2.0 and lab["W3"] == 2.81
+    assert lab["all_bins_explainable_from"] == "all three bins explainable from f = 2.81"
+    lab = selaux.err_label(LAD, {1.2: 0, 1.5: 1, 2.0: 1, 2.81: 1}, None, {1.5: ["a"], 2.0: ["b"], 2.81: ["a"]})
+    assert lab["case"] == 5 and lab["X"] == 1.2 and lab["Z"] == 1.5 and lab["Z_bins"] == ["a", "b"] and lab["W3"] is None
+    # variant labels (S15 term N / Full): an f with a generator failure is named and skipped
+    lab = selaux.err_label(LAD, {1.2: 0, 1.5: None, 2.0: 0, 2.81: 0}, None, NAMES, not_evaluable=[1.5])
+    assert lab["label"] == "robust up to f = 2.81 (not evaluable at f = 1.5)"
+    lab = selaux.err_label(LAD, {1.2: None, 1.5: 2, 2.0: 0, 2.81: 0}, None, NAMES, not_evaluable=[1.2])
+    assert lab["label"] == "sensitive at f = 1.5 (not evaluable at f = 1.2)"
+
+
+def _fake_rfit(nbins=5, d_data=(0.41, 0.58, 0.50, 1.0, 1.0)):
+    def mk(k):
+        return {"k": k, "d": [0.01] * 50, "valley": [True] * 50}
+    out = {"variants": {}}
+    for i, v in enumerate(selaux.R1_VARIANTS):
+        out["variants"][v] = {"bins": [{"d": d_data[b], "resolvable": b < 3, "almost_disjoint": False, "edge": None,
+                                        "power_model": {"valid": True},
+                                        "mocks": {"power_rtau": mk(30 * i + 6 * b + 4), "power_rA": mk(30 * i + 6 * b + 5)}}
+                                       for b in range(nbins)]}
+    return out
+
+
+def _fake_results(sets, reach, fail=None, nmock=50):
+    """reach(s) -> number of mocks with a valley and d = 0.9 (>= every data d); the rest have a valley and
+    d = 0.01, except 5 without a valley. fail(s) -> index of the mock with a generator failure, or None."""
+    res = {}
+    for s in sets:
+        n = reach(s)
+        rr = []
+        for j in range(nmock):
+            if fail is not None and fail(s) == j:
+                rr.append({"gen_fail": True, "d": None, "valley": None, "k": None, "pass_rate": None,
+                           "dropped": 0, "drawn": 10})
+                continue
+            d, v = (0.9, True) if j < n else ((1.0, False) if j >= nmock - 5 else (0.01, True))
+            rr.append({"gen_fail": False, "d": d, "valley": v, "k": 3, "pass_rate": 0.9, "dropped": 0, "drawn": 4000,
+                       "i_used_k1": False, "i_used_k2": True, "i_used_k3": False, "i_used_k4": False, "i_used_k5": -1,
+                       "nonmonotone": 0, "o_nonmonotone": 1, "age_p5": 5.0, "age_p50": 9.0, "age_p95": 13.0})
+        res[s["k"]] = rr
+    return res
+
+
+def _evaluate(reach, fail=None, cut_from=None):
+    P = dict(run.PARAMS)
+    sets = selaux.err_sets(P["err_f"], P["err_bins"], P["mechs"])
+    res = _fake_results(sets, reach, fail)
+    if cut_from is not None:                           # sets the runner would not have finished
+        for s in sets:
+            if s["f"] >= cut_from[0] and s["k"] > cut_from[1]:
+                res[s["k"]] = []
+    times = {s["k"]: [1.0] * len(res[s["k"]]) for s in sets}
+    return run.err_evaluate(P, sets, res, times, _fake_rfit(), {}, {"R1_0": 0.8, "R1_1": 0.8, "R1_2": 0.8})
+
+
+def test_err_evaluate_robust_and_sensitive():
+    out = _evaluate(lambda s: 0)
+    assert out["label"]["label"] == "robust up to f = 2.81" and out["cut_f"] is None
+    assert out["f1_row"]["S15E"]["E"] == 0
+    ps = out["per_set"][0]
+    assert ps["n_reach"] == 0 and ps["n_novalley"] == 5 and ps["n_d_ge_data_incl_novalley"] == 5
+    assert ps["frac_valley"] == 0.9 and ps["power_at_d_cap"] == 0.9 and ps["k_chosen"]["3"] == 50
+    assert ps["d_pct_5_50_80_95"][1] == 0.01 and ps["mean_pass_rate"] == 0.9 and ps["data_pass_frac"] == 0.8
+    assert out["variants"]["S15E"]["per_f"]["1.2"]["r1_verdict_at_f"] == "not reproduced"
+    # 3 of 50 under one mechanism in bins 1 and 2 from f = 2.0 on: sensitive at 2.0
+    out = _evaluate(lambda s: 3 if (s["f"] >= 2.0 and s["bin"] > 0 and s["mech"] == "rA") else 2)
+    assert out["label"]["label"] == "sensitive at f = 2.0"
+    assert out["variants"]["S15E"]["per_f"]["2.0"]["explainable_bins"] == ["[-0.5, -0.3)", "[-0.3, -0.1)"]
+    assert out["label_median_rule"]["label"] == "robust up to f = 2.81"
+    # median rule: 25 of 50 needed
+    out = _evaluate(lambda s: 25 if (s["f"] >= 1.5 and s["bin"] == 2) else 0)
+    assert out["label"]["label"].startswith("robust up to f = 1.2 (one bin explainable from f = 1.5: [-0.3, -0.1)")
+    assert out["label_median_rule"]["label"] == out["label"]["label"]
+    # a power below 0.8 under one mechanism makes the bin not resolvable in the R1 verdict at f
+    out = _evaluate(lambda s: 45 if s["bin"] == 0 and s["mech"] == "rA" else 0)
+    assert out["variants"]["S15E"]["per_f"]["1.2"]["r1_verdict_at_f"] == "undetermined"
+
+
+def test_err_evaluate_feasibility():
+    # a generator failure in an S15E set at f = 2.0 cuts the ladder there
+    fail = lambda s: 7 if (s["variant"] == "S15E" and s["f"] == 2.0 and s["bin"] == 1 and s["mech"] == "rtau") else None
+    out = _evaluate(lambda s: 0, fail, cut_from=(2.0, 39))
+    assert out["cut_f"] == 2.0 and out["feasible"] == {"1.2": True, "1.5": True, "2.0": False, "2.81": False}
+    assert out["label"]["label"] == "robust up to f = 1.5 (ladder ends at f = 1.5)"
+    assert out["variants"]["S15N"]["per_f"]["2.0"]["status"] == "not feasible"
+    # a failure at f = 1.2 in S15E: not evaluable (infeasible)
+    out = _evaluate(lambda s: 0, lambda s: 0 if s["k"] == 0 else None, cut_from=(1.2, 0))
+    assert out["label"]["label"] == "not evaluable (infeasible)"
+    # a failure in a term N set does not cut: that variant is not evaluable at f, the primary is unchanged
+    out = _evaluate(lambda s: 0, lambda s: 3 if (s["variant"] == "S15N" and s["f"] == 1.5 and s["k"] % 6 == 0) else None)
+    assert out["cut_f"] is None and out["label"]["label"] == "robust up to f = 2.81"
+    assert out["variants"]["S15N"]["per_f"]["1.5"]["status"] == "not evaluable at f"
+    assert out["variants"]["S15N"]["label"]["label"] == "robust up to f = 2.81 (not evaluable at f = 1.5)"
+    # an incomplete set at a feasible f is an error, not a label
+    with pytest.raises(RuntimeError):
+        _evaluate(lambda s: 0, cut_from=(2.81, 70))
+    # non-finite results in a set used for the label
+    P = dict(run.PARAMS)
+    sets = selaux.err_sets(P["err_f"], P["err_bins"], P["mechs"])
+    res = _fake_results(sets, lambda s: 0)
+    res[3][4]["d"] = float("nan")
+    out = run.err_evaluate(P, sets, res, {}, _fake_rfit(), {}, {})
+    assert out["label"]["label"] == "not evaluable (non-finite)"
+
+
+def test_run_mock_sets_cut_stops_larger_f(tmp_path):
+    """README 2.7 feasibility: after a generator failure in an S15E set, no set at that f or a larger one
+    is run; earlier sets are complete; a replay from the checkpoints makes the same cut."""
+    sets = selaux.err_sets([1.2, 1.5, 2.0], [0], ["rtau"])         # 9 sets: k = 3 is S15E at f = 1.5
+    calls = []
+
+    def run_one(s, rng):
+        calls.append(s["k"])
+        j = len([c for c in calls if c == s["k"]]) - 1
+        if s["k"] == 3 and j == 2:
+            return {"gen_fail": True, "d": None, "valley": None, "k": None, "pass_rate": None}
+        return {"gen_fail": False, "d": 0.01, "valley": True, "k": 3, "pass_rate": None}
+    mk = lambda k, j: selaux.mock_rng(0, 54, k, j)
+    st = selaux.MockStore(tmp_path, "cut")
+    res, state, log = selaux.run_mock_sets(sets, 5, st, run_one, mk, 16.0, log=lambda m: None, cut=run.err_cut)
+    st.release()
+    assert [len(res[k]) for k in range(9)] == [5, 5, 5, 3, 1, 1, 1, 1, 1]
+    assert log[-1]["mocks_left"] == 0
+    st2 = selaux.MockStore(tmp_path, "cut")
+    res2, _, _ = selaux.run_mock_sets(sets, 5, st2, lambda s, g: (_ for _ in ()).throw(AssertionError("recomputed")),
+                                      mk, 16.0, log=lambda m: None, cut=run.err_cut)
+    st2.release()
+    assert res2 == res
+    # a failure in a term N set does not cut
+    calls.clear()
+
+    def run_n(s, rng):
+        calls.append(s["k"])
+        return {"gen_fail": s["k"] == 4, "d": None if s["k"] == 4 else 0.01, "valley": None, "k": None, "pass_rate": None}
+    st3 = selaux.MockStore(tmp_path, "cut2")
+    res3, _, _ = selaux.run_mock_sets(sets, 3, st3, run_n, mk, 16.0, log=lambda m: None, cut=run.err_cut)
+    st3.release()
+    assert all(len(res3[k]) == 3 for k in range(9))
+
+
+def test_r1_mock_err_f1_equals_selfit_and_generator_failure(monkeypatch):
+    C = run.Ctx(dict(run.PARAMS))
+    D, pools = _synthetic_D(C)
+    ref = run.r1_mock_selfit(C, D, "power", "rtau", "primary", (np.random.default_rng(5), np.random.default_rng(6)), pools, 8)
+    new = run.r1_mock_err(C, D, "rtau", (np.random.default_rng(5), np.random.default_rng(6)), pools, 8, 1.0)
+    assert {k: new[k] for k in ref} == ref and new["gen_fail"] is False
+    assert new["drawn"] >= D["_n"] and new["dropped"] >= 0 and new["age_p5"] < new["age_p50"] < new["age_p95"]
+    assert selaux._jsonable_result(new) == new and not selaux.nonfinite(new)
+    big = run.r1_mock_err(C, D, "rA", (np.random.default_rng(5), np.random.default_rng(6)), pools, 8, 2.81)
+    assert big["gen_fail"] is False and big["age_p95"] - big["age_p5"] > 0
+
+    def boom(*a, **k):
+        raise RuntimeError("catalogue_sel: selection rate too low")
+    monkeypatch.setattr(run.mocks, "catalogue_sel", boom)
+    bad = run.r1_mock_err(C, D, "rtau", (np.random.default_rng(5), np.random.default_rng(6)), pools, 8, 2.0)
+    assert bad["gen_fail"] is True and bad["d"] is None and selaux._jsonable_result(bad) == bad
+
+
+def test_err_generator_check_flags_differences():
+    P = dict(run.PARAMS)
+    rfit = _fake_rfit()
+    rec = lambda v, b, mech, k: {"d": 0.01, "valley": True, "gen_fail": False}
+    g = run.err_generator_check(P, rfit, rec)
+    assert g["n"] == 18 and g["mismatches"] == []
+    assert [r["k"] for r in g["rows"][:2]] == [4, 5]               # R1-SEL-FIT set numbers (SEL-8)
+    off = lambda v, b, mech, k: {"d": 0.01 + (2e-9 if (v, b, mech) == ("Full", 2, "rA") else 0), "valley": True}
+    assert run.err_generator_check(P, rfit, off)["mismatches"] == [["Full", 2, "rA"]]
+    gf = lambda v, b, mech, k: {"gen_fail": True, "d": None, "valley": None}
+    assert len(run.err_generator_check(P, rfit, gf)["mismatches"]) == 18
