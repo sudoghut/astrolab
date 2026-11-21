@@ -265,8 +265,10 @@ def test_singular_m_jj_is_rule_1():
     lad = _build("run003_g_mjj", no_ceph_host=3)
     des, problem = shape.design(lad["L"], lad["y"], lad["C"], lad["rows_a"], lad["groups"], lad["fns"])
     assert des is None and problem.startswith("some M_jj ≤ 0")
-    out, sims = _stage(lad, "full", power_rec={"status": "evaluated", "n_sims": N_SIMS})
-    assert out["status"].startswith("not evaluable (some M_jj ≤ 0") and out["reading"] == out["status"]
+    p, _ = _stage(lad, "power")
+    assert p["status"].startswith("not evaluable (some M_jj ≤ 0")
+    out, sims = _stage(lad, "full", power_rec=json.loads(json.dumps(_jsonable(p))))
+    assert out["status"] == p["status"] and out["reading"] == out["status"]
     assert set(sims) == set(SIM_KEYS) and "G_obs" not in json.dumps(_jsonable(out))
 
 
@@ -428,8 +430,13 @@ def test_power_and_full_stage(lad, stages):
     jf = g["joint_fit"]
     assert jf["attempt"].startswith("not fitted") and jf["rank"] == jf["n_columns"] - 1
     assert set(sims) == set(SIM_KEYS)
-    # the synthetic N5584 offset (0.8 mag) is far out: G picks it, every OANY model is powered here
-    assert g["reading"] in (shape.READ_PREFERRED, shape.READ_UNDERPOWERED)
+    # the synthetic N5584 offset (0.8 mag, z = 11.7) is far out: every σ-matched OANY simulation is rejected (power
+    # 1.0), G picks N5584 and p_G is 1/20,001, so rule (3) applies
+    assert g["power"]["power"] == p["power"]["power"] == 1.0 and g["p_G"]["k"] == 0
+    assert g["reading"] == shape.READ_PREFERRED and g["sub_label"] is None
+    tc0 = _load("tc003_g_power", "test_conclusions.py")
+    tc0.check_r2_re_g_power(stages["power_json"], len(json.dumps(stages["power_json"], indent=1).encode("utf-8")))
+    assert tc0.G_FORBIDDEN_POWER_KEYS == shape.FORBIDDEN_POWER_KEYS
     # every per-model number re-derived from the saved files (the test_conclusions check)
     tc = _load("tc003_g_check", "test_conclusions.py")
     gj = json.loads(json.dumps(_jsonable(g)))
@@ -488,6 +495,27 @@ def test_full_stage_after_a_power_stage_stopped_by_rule_1(lad):
     g, sims = _stage(lad, "full", power_rec=json.loads(json.dumps(_jsonable(p))))
     assert g["status"] == p["status"] == g["reading"] and "observed" not in g and "models" not in g
     assert set(sims) == set(SIM_KEYS)
+
+
+def test_full_stage_refuses_a_stub_or_different_settings(lad, stages, monkeypatch):
+    """M1/M3 (gate 1): a "not run" stub, another stage's record, different settings or different thread settings
+    are an error, not rule (1)."""
+    run = lad["run"]
+    stub, _ = run.g_not_run(lad["P"], "not run (PARAMS)", "power")
+    for rec in (stub, dict(stages["power_json"], stage="full")):
+        with pytest.raises(RuntimeError, match="stub or not a power-stage record"):
+            _stage(lad, "full", power_rec=json.loads(json.dumps(rec)))
+    for key, val in (("g_seed_base", 1), ("g_n_inner", 10), ("g_taus_rep", [0.05]), ("g_z_curve", [3.0]),
+                     ("g_power_min", 0.9), ("g_host_seed_base", 7)):
+        rec = json.loads(json.dumps(stages["power_json"]))
+        rec["settings"][key] = val
+        with pytest.raises(RuntimeError, match=key):
+            _stage(lad, "full", power_rec=rec)
+    real = shape.thread_settings
+    monkeypatch.setattr(shape, "thread_settings", lambda: dict(real(), env={"OMP_NUM_THREADS": "7"}))
+    with pytest.raises(RuntimeError, match="threads"):
+        _stage(lad, "full", power_rec=stages["power_json"])
+    assert stages["power"]["settings"]["threads"] == real()
 
 
 def test_runtime_guard_floor(lad):
@@ -676,10 +704,57 @@ def test_main_g_only_refusals(tmp_path, monkeypatch, lad):
         run.main(ctx)
 
 
+def test_exploration_cannot_reach_g_obs_before_the_formal_full_stage(tmp_path, monkeypatch, lad):
+    """S1 (gate 1): until the formal results/r2_re_g.json is committed, an exploration may run only the power stage;
+    a g_only full stage and a full-study exploration with g_check = true are refused before any data is loaded."""
+    run, ctx, _ = _main_g(tmp_path, monkeypatch, "run003_gonly_x1", lad, "full", summary=False)
+    monkeypatch.setattr(run, "formal_g_done", lambda: False)
+    monkeypatch.setattr(run, "load", lambda ctx: pytest.fail("data loaded"))
+    ctx.max_save_bytes = 1024 ** 2
+    with pytest.raises(RuntimeError, match="only g_stage = 'power'"):
+        run.main(ctx)
+    monkeypatch.setitem(run.PARAMS, "g_only", False)
+    with pytest.raises(RuntimeError, match="would compute G on the data"):
+        run.main(ctx)
+    assert ctx.saved == {}
+    # the power stage is allowed in an exploration
+    (tmp_path / "p").mkdir()
+    run2, ctx2, _ = _main_g(tmp_path / "p", monkeypatch, "run003_gonly_x2", lad, "power", summary=False)
+    monkeypatch.setattr(run2, "formal_g_done", lambda: False)
+    ctx2.max_save_bytes = 1024 ** 2
+    run2.main(ctx2)
+    assert set(ctx2.saved) == {"r2_re_g_power"}
+    # formal_g_done: absent, a "not run" stub, a formal record
+    run3 = _load("run003_g_done", "run.py")
+    res = HERE / "results" / "r2_re_g.json"
+    exp = res.exists() and not json.loads(res.read_text(encoding="utf-8"))["status"].startswith("not run")
+    assert run3.formal_g_done() == exp
+
+
+def test_g_check_false_full_run_keeps_formal_files(tmp_path):
+    """M2 (gate 1): with g_check = false a full study run writes the "not run" records only where no R2-RE-G file
+    exists and takes the summary from an existing r2_re_g.json."""
+    run = _load("run003_g_stubs", "run.py")
+    from astrolab.results import write_json
+    formal = {"stage": "full", "status": "evaluated", "reading": "diffuse scatter not excluded"}
+    write_json(tmp_path / "r2_re_g.json", formal)
+    write_json(tmp_path / "r2_re_g_sims_VHAT.json", {"model": "VHAT", "status": "evaluated"})
+    ctx = _Ctx(tmp_path)
+    g = run.save_g_stubs(ctx, run.PARAMS, "not run (PARAMS)")
+    assert g == formal and "r2_re_g" not in ctx.saved and "r2_re_g_sims_VHAT" not in ctx.saved
+    assert set(ctx.saved) == {"r2_re_g_power"} | {f"r2_re_g_sims_{k}" for k in SIM_KEYS if k != "VHAT"}
+    assert json.loads((tmp_path / "r2_re_g.json").read_text(encoding="utf-8")) == formal
+    (tmp_path / "e").mkdir()
+    ctx2 = _Ctx(tmp_path / "e")
+    g2 = run.save_g_stubs(ctx2, run.PARAMS, "not run (PARAMS)")
+    assert g2["status"] == "not run (PARAMS)" and len(ctx2.saved) == 10
+
+
 def test_main_g_only_exploration_runs_both_stages(tmp_path, monkeypatch, lad):
-    """In an exploration (empty folder, no power record) both stages run in one process, the power record saved
-    first."""
+    """In an exploration (empty folder, no power record) after the formal full stage, both stages run in one
+    process, the power record saved first."""
     run, ctx, _ = _main_g(tmp_path, monkeypatch, "run003_gonly_e", lad, "full", summary=False)
+    monkeypatch.setattr(run, "formal_g_done", lambda: True)
     ctx.max_save_bytes = 1024 ** 2
     run.main(ctx)
     assert list(ctx.saved)[0] == "r2_re_g_power"
