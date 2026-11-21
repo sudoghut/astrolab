@@ -129,8 +129,9 @@ function vtD(v) {
       `J 排除了所检验的分散模型 ${m[2].replace(/, /g, '、')}；单个偏移宿主未被排除${q[1]} <span class="note">（并不说明单宿主偏移模型更受偏好：δ̂ 是对同一数据拟合的，它未被排除只是一致性检查）</span>`);
   }
   m = String(v).match(/^tested diffuse model\(s\) not excluded \(τ = (.*)\)$/);
-  if (m) return L(`${v} <span class="note">(post hoc, referee of 2026-11-21: the comparison has about 50% power against a single offset host, so "not excluded" is an underpowered null, not evidence for diffuse scatter; V(0.05)'s exclusion by J is not firm under a swap of J's halves, while D excludes it at p_D = 0.016)</span>`,
-    `所检验的分散模型未被排除（τ = ${m[1].replace(/, /g, '、')}） <span class="note">（事后，2026-11-21 的独立审稿：这一比较对单个偏移宿主只有约 50% 的功效，所以"未排除"是功效不足的零结果，不是支持分散离散的证据；交换 J 的两半后，J 对 V(0.05) 的排除不牢靠，而 D 以 p_D = 0.016 排除它）</span>`);
+  if (m && m[1] !== '0.077, 0.105') return L(v, `所检验的分散模型未被排除（τ = ${m[1].replace(/, /g, '、')}）`);   // the dated note below describes the recorded run only
+  if (m) return L(`${v} <span class="note">(post hoc, referee of 2026-11-21: the comparison has about 50% power against the fitted N5584 offset (lower for an offset at a random host), so "not excluded" is an underpowered null, not evidence for diffuse scatter; V(0.05)'s exclusion by J is not firm under a swap of J's halves, while D excludes it at p_D = 0.016)</span>`,
+    `所检验的分散模型未被排除（τ = ${m[1].replace(/, /g, '、')}） <span class="note">（事后，2026-11-21 的独立审稿：这一比较对拟合的 N5584 偏移只有约 50% 的功效（偏移在随机宿主上时更低），所以"未排除"是功效不足的零结果，不是支持分散离散的证据；交换 J 的两半后，J 对 V(0.05) 的排除不牢靠，而 D 以 p_D = 0.016 排除它）</span>`);
   return null;
 }
 const vt = v => {
