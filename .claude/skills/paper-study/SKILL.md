@@ -129,9 +129,12 @@ new data), example questions, results keys. An agent answering a "what if" quest
   figure if wiki readers need to see it.
 - If results change the analysis (a `NUM` binding fails, a `GAP` turns out to matter), update
   part 2 and `Argument.lean` too.
-- Every later change to the study: wiki changelog entry and updated sections in the same PR, and
-  the study's row in the root `README.md` status tables (English and Chinese) and in the
-  `STATUS.md` study table (AGENTS.md section 2, "总表保持同步").
+- Every later change to the study: wiki changelog entry and updated sections in the same PR; when
+  its results, verdicts or status change, also the study's row in the root `README.md` status
+  tables (English and Chinese) and in the `STATUS.md` study table (AGENTS.md section 2, "总表保持同步").
+- The wiki article's header links the study's online page (https://sudoghut.github.io/astrolab/studies/<id>/web/);
+  after a merge that changes the page or its results, the site updates only when the Pages workflow runs
+  again (AGENTS.md section 3; ask the user first).
 - The PR that first adds the article also links it from `docs/wiki/Home.md` under "Paper studies"
   in both languages, the Chinese link with the `#中文` anchor (remove "None yet." / "暂无。").
 - Publishing, after the PR merges (outside Dropbox, e.g. in the scratchpad):

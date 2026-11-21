@@ -9,6 +9,8 @@ agent-driven astronomy research on a personal laptop. The project's operating do
 (README, ROADMAP, STATUS, AGENTS) live in the main repository; this wiki holds longer
 explanatory articles.
 
+The Atlas and every study's interactive page are online at [sudoghut.github.io/astrolab](https://sudoghut.github.io/astrolab/).
+
 - [Five Years of Astronomy (2021–2026): A Plain-Language Review](Five-Years-of-Astronomy-2021-2026)
 
 **Paper studies.** One article per study that starts from one or more papers: a plain-language
@@ -32,6 +34,8 @@ before being published here.
 ## 中文
 
 这里是 [astrolab](https://github.com/sudoghut/astrolab) 的背景阅读材料。astrolab 是一个在个人电脑上、由编程智能体（coding agent）驱动的天文学研究实验。项目的操作文档（README、ROADMAP、STATUS、AGENTS）放在主仓库；本 Wiki 存放篇幅较长的科普与说明文章。
+
+Atlas 与每个研究的交互网页在线发布于 [sudoghut.github.io/astrolab](https://sudoghut.github.io/astrolab/)。
 
 - [近五年天文学（2021–2026）：科普综述](Five-Years-of-Astronomy-2021-2026#中文)
 

@@ -5,11 +5,11 @@
 *Paper(s): El-Badry et al. 2023a, MNRAS 518, 1057, arXiv:2209.06833 (Gaia BH1); El-Badry et al. 2023b,
 MNRAS 521, 4323, arXiv:2302.07880 (Gaia BH2); Gaia Collaboration, Panuzzo et al. 2024, A&A 686, L2,
 arXiv:2404.10486 (Gaia BH3); El-Badry et al. 2024, OJAp 7, arXiv:2405.00089 (neutron-star candidates).
-Study: [`studies/001-m04-gaia-dormant-black-holes`](https://github.com/sudoghut/astrolab/tree/main/studies/001-m04-gaia-dormant-black-holes).
+Study: [`studies/001-m04-gaia-dormant-black-holes`](https://github.com/sudoghut/astrolab/tree/main/studies/001-m04-gaia-dormant-black-holes) (web page: [online](https://sudoghut.github.io/astrolab/studies/001-m04-gaia-dormant-black-holes/web/)).
 Status: reproduced (Gaia DR3). Last updated: 2026-11-14 (see the changelog at the end). The source of this
 page lives in the main repository at [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：Gaia 天体测量轨道中的休眠黑洞。状态：已复现（Gaia DR3）。论文：El-Badry 等 2023a, MNRAS 518, 1057, arXiv:2209.06833（Gaia BH1）；El-Badry 等 2023b, MNRAS 521, 4323, arXiv:2302.07880（Gaia BH2）；Gaia 合作组 Panuzzo 等 2024, A&A 686, L2, arXiv:2404.10486（Gaia BH3）；El-Badry 等 2024, OJAp 7, arXiv:2405.00089（中子星候选）。研究：[`studies/001-m04-gaia-dormant-black-holes`](https://github.com/sudoghut/astrolab/tree/main/studies/001-m04-gaia-dormant-black-holes)。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：Gaia 天体测量轨道中的休眠黑洞。状态：已复现（Gaia DR3）。论文：El-Badry 等 2023a, MNRAS 518, 1057, arXiv:2209.06833（Gaia BH1）；El-Badry 等 2023b, MNRAS 521, 4323, arXiv:2302.07880（Gaia BH2）；Gaia 合作组 Panuzzo 等 2024, A&A 686, L2, arXiv:2404.10486（Gaia BH3）；El-Badry 等 2024, OJAp 7, arXiv:2405.00089（中子星候选）。研究：[`studies/001-m04-gaia-dormant-black-holes`](https://github.com/sudoghut/astrolab/tree/main/studies/001-m04-gaia-dormant-black-holes)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/001-m04-gaia-dormant-black-holes/web/)）。最后更新：2026-11-14（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 

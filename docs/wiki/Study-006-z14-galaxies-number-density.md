@@ -3,12 +3,12 @@
 [English](#english) · [中文](#中文)
 
 *Paper(s): Naidu et al. 2026, OJAp 9, arXiv:2505.11263 (main paper, "N26"); Carniani et al. 2024, Nature 633, 318, arXiv:2405.18485 ("C24"); Harikane et al. 2025, ApJ 980, 138, arXiv:2406.18352 ("H25"); Shen et al. 2023, MNRAS 525, 3254, arXiv:2305.05679 ("S23"). Study:
-[`studies/006-m08-z14-galaxies-number-density`](https://github.com/sudoghut/astrolab/tree/main/studies/006-m08-z14-galaxies-number-density).
+[`studies/006-m08-z14-galaxies-number-density`](https://github.com/sudoghut/astrolab/tree/main/studies/006-m08-z14-galaxies-number-density) (web page: [online](https://sudoghut.github.io/astrolab/studies/006-m08-z14-galaxies-number-density/web/)).
 Status: reproduced. Last updated: 2026-11-18 (see the
 changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：z ≈ 14 的星系：太多、太亮、太早？状态：已复现。论文：Naidu 等 2026, OJAp 9, arXiv:2505.11263（主论文，"N26"）；Carniani 等 2024, Nature 633, 318, arXiv:2405.18485（"C24"）；Harikane 等 2025, ApJ 980, 138, arXiv:2406.18352（"H25"）；Shen 等 2023, MNRAS 525, 3254, arXiv:2305.05679（"S23"）。研究：[`studies/006-m08-z14-galaxies-number-density`](https://github.com/sudoghut/astrolab/tree/main/studies/006-m08-z14-galaxies-number-density)。最后更新：2026-11-18（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：z ≈ 14 的星系：太多、太亮、太早？状态：已复现。论文：Naidu 等 2026, OJAp 9, arXiv:2505.11263（主论文，"N26"）；Carniani 等 2024, Nature 633, 318, arXiv:2405.18485（"C24"）；Harikane 等 2025, ApJ 980, 138, arXiv:2406.18352（"H25"）；Shen 等 2023, MNRAS 525, 3254, arXiv:2305.05679（"S23"）。研究：[`studies/006-m08-z14-galaxies-number-density`](https://github.com/sudoghut/astrolab/tree/main/studies/006-m08-z14-galaxies-number-density)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/006-m08-z14-galaxies-number-density/web/)）。最后更新：2026-11-18（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 

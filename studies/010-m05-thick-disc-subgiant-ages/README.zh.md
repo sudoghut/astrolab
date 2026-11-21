@@ -1,6 +1,6 @@
 # M5 银河系厚盘：由亚巨星年龄看早期形成
 
-> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。
+> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。 网页在线版：[https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)。
 
 > 第 1–4 节须在写 run.py 之前完成（预注册，pre-registration）。之后只能附上带日期、说明理由的注记来修改。
 

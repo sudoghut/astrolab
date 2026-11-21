@@ -3,12 +3,12 @@
 [English](#english) · [中文](#中文)
 
 *Paper(s): {{Author et al. YEAR, Journal Vol, page, arXiv:XXXX.XXXXX}}. Study:
-[`studies/{{NNN-slug}}`](https://github.com/sudoghut/astrolab/tree/main/studies/{{NNN-slug}}).
+[`studies/{{NNN-slug}}`](https://github.com/sudoghut/astrolab/tree/main/studies/{{NNN-slug}}) (web page: [online](https://sudoghut.github.io/astrolab/studies/{{NNN-slug}}/web/)).
 Status: {{planned / active / reproduced / concluded / paused / abandoned}}. Last updated: {{YYYY-MM-DD}} (see the
 changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：{{中文标题}}。状态：{{计划中 / 进行中 / 已复现 / 已完成 / 暂停 / 放弃}}。论文：{{作者 等 年份, 期刊 卷, 页, arXiv:XXXX.XXXXX}}。研究：[`studies/{{NNN-slug}}`](https://github.com/sudoghut/astrolab/tree/main/studies/{{NNN-slug}})。最后更新：{{YYYY-MM-DD}}（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：{{中文标题}}。状态：{{计划中 / 进行中 / 已复现 / 已完成 / 暂停 / 放弃}}。论文：{{作者 等 年份, 期刊 卷, 页, arXiv:XXXX.XXXXX}}。研究：[`studies/{{NNN-slug}}`](https://github.com/sudoghut/astrolab/tree/main/studies/{{NNN-slug}})（网页：[在线版](https://sudoghut.github.io/astrolab/studies/{{NNN-slug}}/web/)）。最后更新：{{YYYY-MM-DD}}（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 <!--
 Template notes (delete this comment in a real article):

@@ -3,12 +3,12 @@
 [English](#english) · [中文](#中文)
 
 *Paper(s): Agazie et al. 2023, ApJL 951, L8, arXiv:2306.16213 (main paper, "L8"); Agazie et al. 2023, ApJL 952, L37, arXiv:2306.16220, erratum ApJL 1006, L67 (2026) (the SMBHB companion, "L37"); Lamb, Taylor & van Haasteren 2023, PRD 108, 103019, arXiv:2303.15442 (the refitting method); Afzal et al. 2023, ApJL 951, L11, arXiv:2306.16219 (new-physics context). Study:
-[`studies/005-m09-nanograv-gwb-power-law`](https://github.com/sudoghut/astrolab/tree/main/studies/005-m09-nanograv-gwb-power-law).
+[`studies/005-m09-nanograv-gwb-power-law`](https://github.com/sudoghut/astrolab/tree/main/studies/005-m09-nanograv-gwb-power-law) (web page: [online](https://sudoghut.github.io/astrolab/studies/005-m09-nanograv-gwb-power-law/web/)).
 Status: reproduced. Last updated: 2026-11-15 (see the
 changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：NANOGrav 15 年：引力波背景有多强？这是黑洞双星所预言的吗？状态：已复现。论文：Agazie 等 2023, ApJL 951, L8, arXiv:2306.16213（主论文，"L8"）；Agazie 等 2023, ApJL 952, L37, arXiv:2306.16220，勘误 ApJL 1006, L67（2026）（SMBHB 姊妹论文，"L37"）；Lamb, Taylor & van Haasteren 2023, PRD 108, 103019, arXiv:2303.15442（重拟方法）；Afzal 等 2023, ApJL 951, L11, arXiv:2306.16219（新物理背景）。研究：[`studies/005-m09-nanograv-gwb-power-law`](https://github.com/sudoghut/astrolab/tree/main/studies/005-m09-nanograv-gwb-power-law)。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：NANOGrav 15 年：引力波背景有多强？这是黑洞双星所预言的吗？状态：已复现。论文：Agazie 等 2023, ApJL 951, L8, arXiv:2306.16213（主论文，"L8"）；Agazie 等 2023, ApJL 952, L37, arXiv:2306.16220，勘误 ApJL 1006, L67（2026）（SMBHB 姊妹论文，"L37"）；Lamb, Taylor & van Haasteren 2023, PRD 108, 103019, arXiv:2303.15442（重拟方法）；Afzal 等 2023, ApJL 951, L11, arXiv:2306.16219（新物理背景）。研究：[`studies/005-m09-nanograv-gwb-power-law`](https://github.com/sudoghut/astrolab/tree/main/studies/005-m09-nanograv-gwb-power-law)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/005-m09-nanograv-gwb-power-law/web/)）。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 

@@ -7,12 +7,12 @@ Framework for Testing Gravity with Wide Binaries: No Evidence for MOND", MNRAS, 
 (C26); context: Banik et al. 2024, MNRAS 527, 4573, arXiv:2311.03436 (B24); Chae 2023, ApJ 952,
 128, arXiv:2305.04613 (C23); Cookson 2024, MNRAS 533, 110, doi:10.1093/mnras/stae1820,
 arXiv:2408.13618 (C24). Study:
-[`studies/004-m07-wide-binaries-gravity-test`](https://github.com/sudoghut/astrolab/tree/main/studies/004-m07-wide-binaries-gravity-test).
+[`studies/004-m07-wide-binaries-gravity-test`](https://github.com/sudoghut/astrolab/tree/main/studies/004-m07-wide-binaries-gravity-test) (web page: [online](https://sudoghut.github.io/astrolab/studies/004-m07-wide-binaries-gravity-test/web/)).
 Status: concluded (2026-11-16). Last updated: 2026-11-20 (see the changelog at the end). The source of this page
 lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：宽双星：低加速度下是牛顿引力还是 MOND？状态：已结束（2026-11-16）。论文：Cookson、Banik、El-Badry 等 2026（C26），arXiv:2602.24035（MNRAS）；背景：Banik 等 2024（B24），MNRAS 527, 4573，arXiv:2311.03436；Chae 2023（C23），ApJ 952, 128，arXiv:2305.04613；Cookson 2024（C24），MNRAS 533, 110，arXiv:2408.13618。研究：[`studies/004-m07-wide-binaries-gravity-test`](https://github.com/sudoghut/astrolab/tree/main/studies/004-m07-wide-binaries-gravity-test)。最后更新：2026-11-20（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：宽双星：低加速度下是牛顿引力还是 MOND？状态：已结束（2026-11-16）。论文：Cookson、Banik、El-Badry 等 2026（C26），arXiv:2602.24035（MNRAS）；背景：Banik 等 2024（B24），MNRAS 527, 4573，arXiv:2311.03436；Chae 2023（C23），ApJ 952, 128，arXiv:2305.04613；Cookson 2024（C24），MNRAS 533, 110，arXiv:2408.13618。研究：[`studies/004-m07-wide-binaries-gravity-test`](https://github.com/sudoghut/astrolab/tree/main/studies/004-m07-wide-binaries-gravity-test)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/004-m07-wide-binaries-gravity-test/web/)）。最后更新：2026-11-20（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 

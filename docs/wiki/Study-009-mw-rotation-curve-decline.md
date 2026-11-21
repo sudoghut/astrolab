@@ -3,11 +3,11 @@
 [English](#english) · [中文](#中文)
 
 *Paper: Jiao, Hammer, Wang et al. 2023, "Detection of the Keplerian decline in the Milky Way rotation curve", A&A 678, A208, arXiv:2309.00048. Study:
-[`studies/009-m06-mw-outer-rotation-curve-decline`](https://github.com/sudoghut/astrolab/tree/main/studies/009-m06-mw-outer-rotation-curve-decline).
+[`studies/009-m06-mw-outer-rotation-curve-decline`](https://github.com/sudoghut/astrolab/tree/main/studies/009-m06-mw-outer-rotation-curve-decline) (web page: [online](https://sudoghut.github.io/astrolab/studies/009-m06-mw-outer-rotation-curve-decline/web/)).
 Status: reproduced. Last updated: 2026-11-18 (see the changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：银河系很轻吗？其旋转曲线的开普勒式下降。状态：已复现。论文：Jiao, Hammer, Wang 等 2023，A&A 678, A208，arXiv:2309.00048。研究：[`studies/009-m06-mw-outer-rotation-curve-decline`](https://github.com/sudoghut/astrolab/tree/main/studies/009-m06-mw-outer-rotation-curve-decline)。最后更新：2026-11-18（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：银河系很轻吗？其旋转曲线的开普勒式下降。状态：已复现。论文：Jiao, Hammer, Wang 等 2023，A&A 678, A208，arXiv:2309.00048。研究：[`studies/009-m06-mw-outer-rotation-curve-decline`](https://github.com/sudoghut/astrolab/tree/main/studies/009-m06-mw-outer-rotation-curve-decline)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/009-m06-mw-outer-rotation-curve-decline/web/)）。最后更新：2026-11-18（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 

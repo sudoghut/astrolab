@@ -1,6 +1,6 @@
 # 冒烟测试：Gaia DR3 的 10 pc 邻域普查
 
-> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。
+> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。 网页在线版：[https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)。
 
 ## 1. 问题
 
