@@ -542,3 +542,36 @@ def test_t5_select_uses_positions_only():
     assert np.array_equal(keep, keep2) and keep.sum() > 30 and not np.any(keep & end)
     r = F.t5_analyse(cur, d.cx, d.cy, d.cz, d.cvz + 100.0, d.csig, cut=math.sqrt(3) * 47, bandwidth=100.0)
     assert np.array_equal(r["kept_mask"], keep)             # velocities never change the selection
+
+
+def test_completed_formal_run_cleans_up(tmp_path):
+    root = tmp_path / "s011_checkpoints"
+    key, stale = "a" * 20, "b" * 20
+    store = F.Store(root, key)
+    store.put("x", np.zeros(10))
+    (root / stale).mkdir()
+    (root / stale / "y.pkl").write_bytes(b"0" * 100)
+    (root / "explore" / "2026-11-21-t" / ("c" * 20)).mkdir(parents=True)
+    (root / "notakey").mkdir()
+
+    class Ctx:
+        msgs = []
+        results = tmp_path / "results"
+
+        def log(self, m):
+            self.msgs.append(m)
+    ctx = Ctx()
+    assert run.finish_checkpoints(store, ctx)
+    assert not (root / key).exists() and not (root / stale).exists()
+    assert (root / "explore" / "2026-11-21-t" / ("c" * 20)).exists() and (root / "notakey").exists()
+    assert any(stale in m for m in ctx.msgs)
+    ctx.results.mkdir()
+    for n in ("provenance_paused.json", "run_info_paused.json", "provenance.json"):
+        (ctx.results / n).write_text("{}")
+    assert run.remove_paused_records(ctx) == ["provenance_paused.json", "run_info_paused.json"]
+    assert (ctx.results / "provenance.json").exists() and not (ctx.results / "run_info_paused.json").exists()
+
+
+def test_power_count():
+    st = np.linspace(0.5, 1.0, 999)
+    assert S.power_count([0.1, 0.99, 0.2], st, 0.01) == (2, 3)

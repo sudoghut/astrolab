@@ -92,12 +92,18 @@ def test_t3_labels():
     assert t3["pure_travelling"] == want
 
 
+def _t4_thresholds():
+    P = load("t4")["params"]
+    return P["t4_p_excl"], P["t4_p_not"], P["t4_power_min"]
+
+
 def _t4_want(p, power):
-    if power < 0.8:
+    p_excl, p_not, power_min = _t4_thresholds()
+    if power < power_min:
         return "undetermined"
-    if p < 0.01:
+    if p < p_excl:
         return "standing excluded by the phases"
-    if p > 0.05:
+    if p > p_not:
         return "standing not excluded by the phases"
     return "undetermined"
 
@@ -121,7 +127,7 @@ def test_t4_label():
         n_low = 0
         for r in g["R_power_B1"]:
             kk = sum(x <= r for x in st)
-            n_low += _p_boot(kk, len(st)) < 0.01
+            n_low += _p_boot(kk, len(st)) < _t4_thresholds()[0]
         assert n_low == g["k_power_B1_p_below"]
 
 

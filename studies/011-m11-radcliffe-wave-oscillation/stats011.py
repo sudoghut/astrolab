@@ -225,11 +225,17 @@ def p_low(r_obs, r_mocks) -> tuple[float, int]:
     return p_boot(k, len(r)), k
 
 
-def power(r_power, r_standing, p_thr=0.01) -> float:
+def power_count(r_power, r_standing, p_thr=0.01) -> tuple[int, int]:
+    """Number of power mocks whose p_boot against the standing mocks is below p_thr, and their number."""
     rs = np.sort(np.asarray(r_standing, float))
     k = np.searchsorted(rs, np.asarray(r_power, float), side="right")   # number of standing R <= R_j
     p = (1.0 + k) / (1.0 + len(rs))
-    return float(np.mean(p < p_thr))
+    return int(np.sum(p < p_thr)), int(len(p))
+
+
+def power(r_power, r_standing, p_thr=0.01) -> float:
+    k, n = power_count(r_power, r_standing, p_thr)
+    return k / n if n else float("nan")
 
 
 # ---------------------------------------------------------------------------------------------
