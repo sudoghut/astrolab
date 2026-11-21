@@ -50,10 +50,10 @@ in the adopted Galactic potential (B near 1), not a standing wave (B = 0.5).
 |---|---|---|
 | **T1** reproduce | our posterior medians of A, p, δ, s₀, γ, φ, for column (4) (clusters, B = 1) and column (6) (clouds + clusters, B = 1) | per column: **reproduced** if at least 5 of the 6 medians fall inside K24's 16–84% interval; **partly reproduced** if 3–4; **not reproduced** if at most 2. Also reported: the anchor points, σ-scaled differences, and the overlap of our inlier set with the table's `inlier` flag |
 | **T2** B free | posterior of B (column (5) setup, ω₀t free), on [0, 1], unfolded | reported, no label: median and 16–84%, compared with 0.84 (+0.07/−0.06); P(B > 0.95); P(B < 0.5) |
-| **T3** nested likelihood ratios | 2ΔlnL between the B-free maximum and the profile at B = 0.5 (reference χ²₁), and at B = 1 with ω₀t = 0, where ω₀t merges into φ (reference χ²₂). Each is calibrated by N mocks from the null fit (section 4.3). The calibrated p is the χ² p-value of 2ΔlnL × (d / m), where d is the reference degrees of freedom and m the mean 2ΔlnL of the mocks (a Bartlett-type rescaling). We also report p_raw (uncalibrated χ²) and p_boot | **standing excluded strongly** if the calibrated p and p_raw are both below 0.001 and no mock reaches the observed 2ΔlnL. **standing excluded** if not "strongly", the calibrated p is below 0.05 and p_boot is below 0.05. **standing not excluded** otherwise. **pure travelling (B = 1) disfavoured** if its calibrated p is below 0.05 and its p_boot is below 0.05; **not disfavoured** otherwise |
+| **T3** nested likelihood ratios | 2ΔlnL between the B-free maximum and the profile at B = 0.5 (reference χ²₁), and at B = 1 with ω₀t = 0, where ω₀t merges into φ (reference χ²₂). Each is calibrated by N mocks from the null fit (section 4.3). The calibrated p is the χ² p-value of 2ΔlnL × (d / m), where d is the reference degrees of freedom and m the mean 2ΔlnL of the mocks (a Bartlett-type rescaling). We also report p_raw (uncalibrated χ²), p_boot, and the inlier sets of all fits with their overlaps | **standing excluded strongly** if the calibrated p and p_raw are both below 0.001 and no mock reaches the observed 2ΔlnL. **standing excluded** if not "strongly", the calibrated p is below 0.05 and p_boot is below 0.05. **standing not excluded** otherwise. **pure travelling (B = 1) disfavoured** if its calibrated p is below 0.05 and its p_boot is below 0.05; **not disfavoured** otherwise |
 | **T4** phase spread | R = \|mean of exp(2iφ_k)\| over the inliers of the B = 0.5 fit. p = p_boot over N₄ standing mocks with R ≤ R_obs. Power = fraction of N₄ mocks drawn from the B = 1 fit with p < 0.01; the same is reported for mocks from the B-free fit | **standing excluded by the phases** if p < 0.01 and power ≥ 0.8; **not excluded** if p > 0.05 and power ≥ 0.8; **undetermined** otherwise (including power < 0.8) |
-| **T5** z and v_z without assuming their relation | b̂ (estimate of 2B − 1, sign = K24's direction of travel), from the shared-k fit. k_z/k_vz, from the free-k fit. Both with 95% bootstrap intervals | **Wavelengths:** **consistent** if the k_z/k_vz interval lies inside [0.8, 1.25]; **different** if it lies entirely outside; **undetermined** otherwise. **b̂** (b_T = 0.4, i.e. B = 0.7): **travelling component in K24's direction dominates** if the interval is entirely above 0.4; **no travelling dominance in K24's direction** if entirely below 0.4; **undetermined** otherwise. An interval entirely below −0.4 is also reported as travelling the opposite way. b̂ is **not applicable** if the wavelengths are "different". **Known-answer check** (section 4.4): it passes if, at each injection, the mock with the median b̂ has an interval covering 0 at B = 0.5, covering 0.68 at B = 0.84, and lying entirely above 0.4 at B = 1. If it fails, the b̂ label is **undetermined** and the bias is reported. Coverage over all mocks is reported as well |
-| **T6** robustness | labels of T3 (standing), T4 and T5 (b̂) under each variant of section 4.6, computed as specified there | **robust** if no variant changes any of the three labels; **fragile** otherwise, naming the variants and labels that change. A change into or out of "undetermined" or "not evaluable" counts as a change |
+| **T5** z and v_z without assuming their relation | b̂ (estimate of 2B − 1, sign = K24's direction of travel), from the shared-k fit. k_z/k_vz, from the free-k fit. Both with 95% bootstrap intervals | **Wavelengths:** **consistent** if the k_z/k_vz interval lies inside [0.8, 1.25]; **different** if it lies entirely outside; **undetermined** otherwise. **b̂** (b_T = 0.4, i.e. B = 0.7): **travelling component in K24's direction dominates** if the interval is entirely above 0.4; **no travelling dominance in K24's direction** if entirely below 0.4; **undetermined** otherwise. An interval entirely below −0.4 is also reported as travelling the opposite way. b̂ is **not applicable** if the wavelengths are "different"; when they are "undetermined", b̂ is reported with that caveat. Also reported: Δ = ψ_v − ψ_z, ρ = A_v/A_z, and whether the b̂ interval contains 0 (standing) and 0.68 (K24). **Known-answer check** (section 4.4): it passes if, at each injection, the median mock (the 10th of the 20 when ranked by b̂) has an interval covering 0 at B = 0.5, covering 0.68 at B = 0.84, and lying entirely above 0.4 at B = 1. If it fails, the b̂ label is **undetermined** and the bias is reported. Coverage over all mocks is reported as well |
+| **T6** robustness | five labels under each variant of section 4.6, computed as specified there: T3 standing, T3 pure travelling, T4, T5 wavelengths, T5 b̂. Each variant label is compared with the main run's label computed by the same rule (section 4.6); the main run's full-rule labels are reported separately. Each change is reported with the Monte Carlo standard error of the p-value or interval end that crossed a threshold | **robust** if no variant changes any of the five labels; **fragile** otherwise, naming the variants and labels that change. A change into or out of "undetermined" or "not evaluable" counts as a change |
 | **T7** CO | −2 ln L_max of the ¹²CO velocities for three versions, each with its own fitted intrinsic dispersion (the likelihood includes the Σ ln(e² + σ_int²) term): (a) the column-(6) B = 1 model; (b) the same with v_z = 0; (c) a column-(6)-setup fit with B = 0.5 and ω₀t free | **CO prefers the travelling wave** if (a)'s −2 ln L_max is lower than both (b) and (c) by at least 9; **CO does not distinguish** otherwise. v_z contributes at most ~3 km/s to v_LSR, so "does not distinguish" is likely |
 | **T8** potential | ω₀ posterior with ω₀, μ₀ and r₀ free (column (7) setup), under K24's priors and under broad uniform priors (ω₀ 30–150 km s⁻¹ kpc⁻¹, μ₀ 0.3–3 kpc⁻¹, r₀ 1–10 kpc). All widths and shifts are in ln ω₀ | **data-driven** if, under the broad priors, the posterior 16–84% half-width is below half of K24's prior σ (0.085), and the medians under the two priors differ by less than 0.5σ (σ: half the 16–84% width of the broad-prior posterior). **prior-driven** if neither holds; **partly data-driven** otherwise. Reported under both priors: ρ₀ = ω₀²/(4πG) and the Sun's vertical period. Reported as a variant: the v_z/ω₀ divisor fixed at 74 |
 
@@ -65,7 +65,7 @@ in the adopted Galactic potential (B near 1), not a standing wave (B = 0.5).
   - T5 gives travelling component dominates;
   - T6 is robust.
 - **"not supported"** if T3 gives standing not excluded and T5 gives no travelling dominance.
-- **"mixed"** otherwise, listing which tests support and which do not.
+- **"mixed"** otherwise, listing which tests support, which do not, and which are undetermined or not evaluable.
 
 T7 and T8 are reported separately and do not enter the overall reading.
 
@@ -159,7 +159,8 @@ dated amendment.
   1. Load check.
   2. Column (3).
   3. T5 known-answer check (needs only K24's published values and the clouds-only posterior; no
-     cluster has been fitted yet).
+     cluster has been fitted yet). The load check has already read the clusters' v_z, a known
+     departure from wiki Part 3's "before the data are read"; it fits nothing.
   4. All other fits.
 
 ### 4.3 T3 and T4
@@ -172,7 +173,8 @@ dated amendment.
     cluster's measurement errors (`sigmax`, `sigmay`, `sigmaz`, `sigmavz`) added in quadrature.
   - The null fit's outliers keep their observed values.
   - Both models are refitted on every mock, using 3 starts: the generating parameters, the data's best
-    fit, and one prior draw.
+    fit, and one prior draw. The B-free refit always also starts from the refitted null optimum, so
+    that 2ΔlnL ≥ 0; any negative value is clipped to 0 and counted.
   - N = 100 mocks per null. A reported variant draws the noise by resampling the null fit's residual
     vectors.
 - **T4 mocks.** These use the same clusters: the inliers of the B = 0.5 fit, identified by index; the
@@ -207,7 +209,8 @@ dated amendment.
 - **Known-answer check.**
   - The mocks are generated on K24's column-(6) model: Extended Data Table 2 medians, with
     ω₀t = −0.38 (column (5)), at the selected clusters' positions, and with the noise of T3.
-  - They are analysed exactly as the data, using the clouds-only posterior.
+  - They are analysed exactly as the data, using the clouds-only posterior, including the √3 × 47 pc
+    position cut.
   - 20 mocks per injection, at B = 0.5, 0.84 and 1.
 
 ### 4.5 T7
@@ -224,11 +227,17 @@ dated amendment.
 ### 4.6 Robustness variants (T6)
 
 **How labels are computed in each variant.**
-- *T3:* the variant's maximum-likelihood fits, calibrated with the main run's rescaling factor d/m.
-  No new mocks are drawn, so "excluded strongly" uses the calibrated and raw p only, and "excluded"
-  uses the calibrated p only.
-- *T4:* 1000 new mocks.
-- *T5:* 1000 bootstrap resamples. The T5 known-answer check is not repeated.
+- *T3, variants 1 and 2 (the likelihood changes):* new mocks, 2 nulls × 100, and the full rule of
+  section 2. Compared with the main run's full-rule labels.
+- *T3, variants 3–10 (same likelihood, reweighted or subset data, or a different curve):* the
+  variant's maximum-likelihood fits, calibrated with the main run's rescaling factor d/m. No new mocks
+  are drawn, so a reduced rule applies: "excluded strongly" uses the calibrated p and p_raw only, and
+  "excluded" (and B = 1 "disfavoured") uses the calibrated p only. Compared with the main run's labels
+  recomputed by the same reduced rule.
+- *T4:* 1000 new mocks. Under variant 2 there is no inlier set, so T4 uses all clusters kept after the
+  end-of-grid cut.
+- *T5:* 1000 bootstrap resamples. The T5 known-answer check is not repeated. Under variant 10, the
+  clouds-only posterior is refitted with the new u₁.
 
 **Variants.**
 1. Outlier rule at 3σ per component instead of √3σ. In T5, the position-only cut at 3σ.
@@ -255,7 +264,8 @@ dated amendment.
   - T5: 1000 least-squares bootstrap fits, plus the known-answer check (60 mocks × 1000 resamples
     each).
 - **Work in T6.** 15 variants (9 single-change variants, the 6 leave-outs counted separately). Each
-  variant needs about 3 maximum-likelihood fits plus T4 and T5 at the counts above.
+  variant needs about 3 maximum-likelihood fits plus T4 and T5 at the counts above. Variants 1 and 2
+  also need 2 × 100 T3 mocks with refits; variant 10 also needs one clouds-only MCMC.
 - **Expected run time.** A rough estimate is 4–10 hours on one core; a short timing run measures it
   before the formal run.
 - **Floors.** These counts are minimums and will not be reduced: 100 mocks per T3 null, 1000 T4 mocks,
