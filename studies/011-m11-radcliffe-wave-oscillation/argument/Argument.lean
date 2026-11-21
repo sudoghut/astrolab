@@ -120,8 +120,8 @@ inductive Field where
   | mod_transfer
   /-- MOD [stated: "We therefore model the forces acting on the Wave solely by gravity."] Methods, Full Spatial and Kinematic Model (density ratio of 10^4 to the surrounding medium) -/
   | mod_grav
-  /-- LIT [stated: "These parameters are adopted by comparing equation (1) with an existing model of the Galactic potential including its updated parameters"] Methods; the model is Allen and Santillan 1991 (Rev. Mex. Astron. Astrofis. 22, 255) with the updated parameters of Irrgang et al. 2013 (arXiv:1211.4353, A and A 549, A137); chi-square fit over 7-10 kpc and 0-300 pc -/
-  | lit_pot
+  /-- MOD [stated: "These parameters are adopted by comparing equation (1) with an existing model of the Galactic potential including its updated parameters"] Methods; the model is Allen and Santillan 1991 (Rev. Mex. Astron. Astrofis. 22, 255) with the updated parameters of Irrgang et al. 2013 (arXiv:1211.4353, A and A 549, A137); chi-square fit over 7-10 kpc and 0-300 pc; typed MOD because it encodes K24 own adoption step, not a result of the cited papers -/
+  | mod_potpar
   /-- MOD [stated: "Since the Radcliffe Wave's amplitude is on the order of the Galaxy's vertical scale height, the vertical gravitational potential Φ resulting in this acceleration can be represented by an anharmonic oscillator."] Methods, eq. 1; encoded with the parameter source as antecedent -/
   | mod_pot
   /-- MOD [stated: "Note that, consistent with the literature, we treat the underlying Gravitational potential as stationary."] Methods, after eq. 3 -/
@@ -168,7 +168,7 @@ def prov : Field → Prov
   | .stat_co => .stated
   | .mod_transfer => .stated
   | .mod_grav => .stated
-  | .lit_pot => .stated
+  | .mod_potpar => .stated
   | .mod_pot => .stated
   | .mod_stationary => .stated
   | .mod_shape => .stated
@@ -196,7 +196,7 @@ def prem : Field → Vocab → Prop
   | .stat_co, v => v.COMatch
   | .mod_transfer, v => v.Tracer → v.COMatch → v.Coherent
   | .mod_grav, v => v.GravOnly
-  | .lit_pot, v => v.PotParams
+  | .mod_potpar, v => v.PotParams
   | .mod_pot, v => v.PotParams → v.PotKnown
   | .mod_stationary, v => v.Stationary
   | .mod_shape, v => v.GravOnly → v.PotKnown → v.Stationary → v.VzFixed
@@ -243,7 +243,7 @@ theorem final : ∀ v, Premises v → Conclusion v := by
     p .mod_transfer (p .mod_age (p .gap_born (p .obs_coloc) (p .mod_xy))) (p .stat_co)
   -- Stage B: the model and the fit (main text p. 2; Methods)
   have z : v.VzFixed :=
-    p .mod_shape (p .mod_grav) (p .mod_pot (p .lit_pot)) (p .mod_stationary)
+    p .mod_shape (p .mod_grav) (p .mod_pot (p .mod_potpar)) (p .mod_stationary)
   -- Stage C: travelling, not standing; B = 1 adopted (Methods)
   have hb : v.b_x100 = 84 := p .stat_b
   have ns : ¬ v.Standing := fun s => p .mod_standing s (p .gap_phase_noise) (p .stat_phase)  -- GAP
@@ -298,7 +298,7 @@ theorem mod_grav_needed : ¬ ∀ v, Without .mod_grav v → Conclusion v := fun 
   (h { full with GravOnly := False, VzFixed := False, Oscillating := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).1
 
-theorem lit_pot_needed : ¬ ∀ v, Without .lit_pot v → Conclusion v := fun h =>
+theorem mod_potpar_needed : ¬ ∀ v, Without .mod_potpar v → Conclusion v := fun h =>
   (h { full with PotParams := False, PotKnown := False, VzFixed := False, Oscillating := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).1
 
