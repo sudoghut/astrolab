@@ -362,7 +362,12 @@ def http(
     refresh: bool = False,
     note: str | None = None,
     cap_consent: str | None = None,
+    cache_only: bool = False,
 ) -> Fetched:
+    # cache_only: return the stored, verified copy or raise ValueError before any request (a file
+    # whose re-download needs the user's consent again, e.g. study.Context.http budget_consent).
+    if cache_only and refresh:
+        raise ValueError("cache_only and refresh exclude each other")
     # A caller may lower the per-download cap. Raising it needs the user's explicit consent for that
     # file (AGENTS.md section 1.6), passed as `cap_consent` (where the consent is recorded, at least
     # 20 characters); the consent is written into the provenance note (T-038).
@@ -403,6 +408,9 @@ def http(
 
     if not refresh and (ok := _consistent(cache.read(key, suffix, _verified))):
         return Fetched(ok[0], _with_exception(ok[1]), True)
+    if cache_only:
+        raise ValueError(f"{url} is not in the cache (or its stored bytes do not match their "
+                         "provenance) and this call may not download it")
     if not refresh and cache.get(key, suffix) is not None:
         refresh = True                       # stored bytes do not match their provenance
 

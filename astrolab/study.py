@@ -15,6 +15,7 @@ Layout of a study folder::
 """
 from __future__ import annotations
 
+import copy
 import dataclasses
 import datetime as _dt
 import importlib.util
@@ -155,7 +156,7 @@ class Context:
         return res.data
 
     def http(self, url: str, *, label: str | None = None, budget_consent: str | None = None,
-             allow_refetch: bool = False, **kw) -> Path:
+             allow_download: bool = False, **kw) -> Path:
         """Fetch ``url`` through ``fetch.http`` (cached, capped, provenance-logged) and charge its
         bytes to the run's study budget (``config.STUDY_BUDGET_BYTES``).
 
@@ -167,22 +168,34 @@ class Context:
         recorded (e.g. "user consent 2026-11-21, TODO.md T-021 and log.md"). That file's bytes are
         not charged to the budget; the fetch is listed in ``self.budget_exempt`` (url, bytes,
         consent), written to the run's ``run_info``, and the consent is appended to the fetch's
-        provenance note. The budget itself is unchanged and still applies to every other fetch.
+        provenance note. The exemption is per call: the same URL fetched without a consent is
+        charged. The budget itself is unchanged and still applies to every other fetch. Exempt
+        bytes are bounded only by the per-download cap (or the cap raised with ``cap_consent``).
 
-        Such a file is never re-downloaded by a refresh run: with ``self.refresh`` set, the call
-        raises ValueError unless ``allow_refetch=True`` is passed with a consent that names the
-        user's fresh agreement to download it again.
+        Download once: with ``budget_consent`` the file is read from the cache only, and a missing
+        or invalid cache entry raises ValueError before any request. ``allow_download=True`` permits
+        the one download the user agreed to; pass it only for that recorded download and remove it
+        from run.py afterwards. A download after cache eviction needs the user's fresh consent. A
+        refresh run (``--refresh``) reaching such a call without ``allow_download`` raises.
         """
-        if budget_consent is not None or allow_refetch:
+        if budget_consent is not None or allow_download:
             if not isinstance(budget_consent, str) or len(budget_consent.strip()) < 20:
                 raise ValueError("budget_consent must name where the user's consent for this file is "
                                  "recorded (at least 20 characters; AGENTS.md 1.6)"
-                                 + ("; allow_refetch needs it too" if allow_refetch else ""))
-            if self.refresh and not allow_refetch:
+                                 + ("; allow_download needs it too" if allow_download else ""))
+            if self.refresh and not allow_download:
                 raise ValueError(f"refresh would re-download {url}, a file exempted from the study budget; "
                                  "a new download needs the user's fresh consent: pass a budget_consent "
-                                 "naming it and allow_refetch=True, or run without --refresh")
-        res = fetch.http(url, refresh=self.refresh, **kw)
+                                 "naming it and allow_download=True, or run without --refresh")
+        cache_only = budget_consent is not None and not allow_download
+        try:
+            res = fetch.http(url, refresh=self.refresh, cache_only=cache_only, **kw)
+        except ValueError as e:
+            if cache_only and "not in the cache" in str(e):
+                raise ValueError(f"{e}. It is exempted from the study budget and downloaded only "
+                                 "once: a (re-)download needs the user's consent, then "
+                                 "allow_download=True for that one run (AGENTS.md 1.6)") from None
+            raise
         prov = res.provenance
         if budget_consent is not None:
             exception = f"budget exception: {budget_consent.strip()}"
@@ -202,7 +215,8 @@ class Context:
     def budget_record(self) -> dict[str, Any]:
         """Charged and exempted input bytes of this run, for run_info."""
         return {"bytes_charged": self.bytes_in, "budget_bytes": config.STUDY_BUDGET_BYTES,
-                "budget_exempt": list(self.budget_exempt)}
+                "bytes_exempt": sum(e["bytes"] for e in self.budget_exempt),
+                "budget_exempt": copy.deepcopy(self.budget_exempt)}
 
     def save(self, name: str, obj: Any) -> Path:
         if not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_.-]*", name) or ".." in name:
