@@ -137,7 +137,8 @@ def test_footprint_required_for_studies():
     assert claims.footprint_required_errors({})                                   # missing
     assert claims.footprint_required_errors({"footprint": {"scale": {"min_pc": 1, "max_pc": 10}}})
     assert claims.footprint_required_errors({"footprint": {"sky": {"mode": "none"}}})
-    ok = {"footprint": {"scale": {"min_pc": 1, "max_pc": 10}, "sky": {"mode": "none"}}}
+    assert claims.footprint_required_errors({"footprint": {"scale": {"min_pc": 1, "max_pc": 10}, "sky": {"mode": "none"}}})
+    ok = {"footprint": {"scale": {"min_pc": 1, "max_pc": 10}, "sky": {"mode": "none"}, "data": ["x"]}}
     assert claims.footprint_required_errors(ok) == []
 
 

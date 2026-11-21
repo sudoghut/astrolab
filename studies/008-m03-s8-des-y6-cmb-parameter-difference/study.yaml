@@ -13,7 +13,7 @@ wiki: Study-008-des-y6-s8-cmb                  # paper studies: wiki page name w
 
 # Where this study sits on the Atlas (schema in design plan 011; T-051).
 footprint:
-  scale: {min_pc: 8.4e+8, max_pc: 1.39e+10, note: "DES Y6 lens and source galaxies (mean bin redshifts 0.31-1.16; comoving ~0.8-4.5 Gpc) and, separately, the CMB (~13.9 Gpc); a combined, not contiguous, range"}
+  scale: {min_pc: 1.27e+9, max_pc: 1.39e+10, note: "DES Y6 lens and source galaxies (mean bin redshifts 0.31-1.16; comoving ~1.3-3.8 Gpc, Planck18; the redshift distributions extend beyond the bin means) and, separately, the CMB (~13.9 Gpc); a combined, not contiguous, range"}
   sky:
     mode: survey + all-sky
     survey: {name: "DES Y6", note: "about 5,000 square degrees of the southern sky; the CMB comparison (Planck 2018 + ACT DR6 + SPT-3G) is all-sky (Planck) with partial ACT/SPT coverage"}

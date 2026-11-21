@@ -13,7 +13,7 @@ wiki: Study-007-gwtc4-bbh-mass-35msun            # paper studies: wiki page name
 
 # Where this study sits on the Atlas (schema in design plan 011; T-051).
 footprint:
-  scale: {min_pc: 2.7e+8, max_pc: 3.5e+9, note: "comoving distances (Planck18) of the binary black holes, z 0.06-1.06; luminosity distances (posterior medians) 0.29-7.3 Gpc"}
+  scale: {min_pc: 2.6e+8, max_pc: 3.5e+9, note: "comoving distances (Planck18) of the binary black holes, z 0.06-1.06; luminosity distances (posterior medians) 0.29-7.3 Gpc"}
   sky:
     mode: all-sky
   data: ["GWOSC event lists (GWTC-4.0; GWTC-1, 2.1 and 3 confident and marginal)", "Zenodo 16911563 o4a_event_list"]

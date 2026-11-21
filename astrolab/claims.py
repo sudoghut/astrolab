@@ -131,6 +131,8 @@ def footprint_required_errors(meta: dict[str, Any]) -> list[str]:
         errs.append("footprint.scale missing")
     if not isinstance(fp.get("sky"), dict) or not fp["sky"].get("mode"):
         errs.append("footprint.sky.mode missing (use 'none' if the study has no sky footprint)")
+    if not isinstance(fp.get("data"), list) or not fp["data"]:
+        errs.append("footprint.data missing: list the study's inputs")
     return errs
 
 

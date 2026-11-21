@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-21T08:38:35+00:00",
+ "generated_at": "2026-11-21T08:47:28+00:00",
  "levels": [
   "L0",
   "L1",
@@ -1035,7 +1035,7 @@
     "scale": {
      "log10_min": 2.2041199826559246,
      "log10_max": 3.8095597146352675,
-     "note": "pulsar-Earth distances of the NANOGrav 15-yr pulsars, 0.16-6.45 kpc (ATNF best estimates, DM-based by default, for 55 of the 67; the 12 newer pulsars are not in the VizieR copy); the background's sources (supermassive black hole binaries) are cosmological",
+     "note": "pulsar-Earth distances of the NANOGrav 15-yr pulsars, 0.16-6.45 kpc (best estimates of the VizieR B/psr snapshot of the ATNF catalogue, 2017, 2,536 pulsars, defaulting to TC93 DM-based distances, for 55 of the 67; the 12 newer pulsars are not in that snapshot); the background's sources (supermassive black hole binaries) are cosmological",
      "default": false
     },
     "sky": {
@@ -1577,7 +1577,7 @@
    "last_run": true,
    "footprint": {
     "scale": {
-     "log10_min": 8.431363764158988,
+     "log10_min": 8.414973347970818,
      "log10_max": 9.544068044350276,
      "note": "comoving distances (Planck18) of the binary black holes, z 0.06-1.06; luminosity distances (posterior medians) 0.29-7.3 Gpc",
      "default": false
@@ -1606,9 +1606,9 @@
    "last_run": true,
    "footprint": {
     "scale": {
-     "log10_min": 8.924279286061882,
+     "log10_min": 9.103803720955957,
      "log10_max": 10.143014800254095,
-     "note": "DES Y6 lens and source galaxies (mean bin redshifts 0.31-1.16; comoving ~0.8-4.5 Gpc) and, separately, the CMB (~13.9 Gpc); a combined, not contiguous, range",
+     "note": "DES Y6 lens and source galaxies (mean bin redshifts 0.31-1.16; comoving ~1.3-3.8 Gpc, Planck18; the redshift distributions extend beyond the bin means) and, separately, the CMB (~13.9 Gpc); a combined, not contiguous, range",
      "default": false
     },
     "sky": {
@@ -1672,8 +1672,8 @@
    "footprint": {
     "scale": {
      "log10_min": 2.0,
-     "log10_max": 3.845098040014257,
-     "note": "LAMOST/Gaia subgiants at Galactocentric 6 < R < 14 kpc and -4 < Z < 6 kpc, most within ~2.5 kpc of the Sun; XR22 state no lower distance, the 0.1 kpc start is nominal",
+     "log10_max": 3.9542425094393248,
+     "note": "LAMOST/Gaia subgiants at Galactocentric 6 < R < 14 kpc and -4 < Z < 6 kpc (90% within 7.2 < R < 10.4 kpc and -1.2 < Z < 2 kpc); no heliocentric range is given, the far corner of that volume is ~8-9 kpc from the Sun; XR22 state no lower distance, the 0.1 kpc start is nominal",
      "default": false
     },
     "sky": {
