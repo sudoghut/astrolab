@@ -835,6 +835,219 @@ of p_J ≤ 0.05 at least 0.02 and the share of p_J ≤ 0.5 within [0.45, 0.55] a
 outside it for the raw quadrant probability at correlation 0.8; labels re-derived from saved k and n and from the per-simulation files), conclusion assertions in
 `test_conclusions.py`, a web section, section 8 knobs. None of this exists yet.
 
+### Addendum 2026-11-21: R2-RE-G, a composite shape test of one offset host against diffuse host scatter (T-055), pre-registered before any of these simulations
+
+*Why.* R2-RE-D (T-048) read "tested diffuse model(s) not excluded (τ = 0.077, 0.105)", and its referee (section 6,
+R2-RE-D points 2–4) found three weaknesses: the comparison has only about 50% power against its own one-host
+alternative; both alternatives use plug-in values fitted to the same data (δ̂ is the offset of the host already
+selected as most extreme, τ̂ = 0.077 is fitted with N5584 included); and the statistics are not specific to one
+outlier (part of J's exclusion is "too much total scatter"). The referee's point 10 proposed the test registered
+here: a shape statistic G, the share of the summed squared host-offset z-scores carried by the largest one,
+calibrated under diffuse host scatter with τ refitted in each simulation (a composite null, not a plug-in at fixed
+τ), with its power against a single offset host on a random host, σ-matched to the observed outlier, fixed and
+reported before the data value of G is computed. The maximum over the 37 hosts puts the choice of the outlier
+inside the statistic, so N5584's identity is not used. This block attaches a label to R2-RE-D's reading; it changes
+no earlier label or the headline.
+
+*Seen before this addendum.* Everything in sections 5–7 and log.md, in particular: R2-RE τ̂ = 0.07669875579792439
+(68% interval 0.0477–0.1050; Δ(−2ℓ_R) = 3.50 at τ = 0) and its saved REML grid (`r2_re.json` `reml.grid_m2l`, 51
+values, used below as a reproduction check); R2-RE-ROB part B (null τ̂ zero in 230 of 400 simulations); R2-RE-N5584
+(τ̂_N = 0.0314 without N5584; ν = 4 weights, N5584 ω̂ = 0.392, next N1365 0.804, N3982 0.879); R2-RE-SEL (all of
+section 5); R2-RE-D: N5584's one-column offset δ̂ = 0.3363369 mag, σ_δ = 0.0925160, **z = δ̂/σ_δ = 3.6354** (so the
+numerator of the observed G, z² = 13.22, is known if N5584 is the largest), every model's p_D and p_J (C 0.0057 and
+0.017; V(0.05) 0.016 and 0.039; V(0.077) 0.034 and 0.080; V(0.105) 0.076 and 0.068; O(δ̂) 0.52 and 0.68; O_any 0.13
+and 0.30), the reading (rule (3)), criterion S finding the offset host in 4,358 of 10,000 O_any simulations; the
+R2-RE-D referee's post-hoc figures (halves swapped: p_J 0.061, 0.077, 0.070, 0.016 for V(0.05), V(0.077), V(0.105),
+C; power of J against V(0.077) and V(0.105) 54% and 57% if O(δ̂) is true, 20–30% if O_any is true; D 57%, 45% and
+10–15%; under C, P(spread_37 ≥ obs) = 0.013 against p_J = 0.017). The per-host leave-one-out χ² terms under C
+(`r2_re.json` `loo_chi2.C`: 64.9 in all on 77 rows; N5584 12.48 on 4 rows, N2525 5.84, N1015 5.39, N3982 4.25 on 1 row)
+are related to the z_j² of this addendum (for a one-row host they measure the same residual, up to the
+cross-covariance the leave-one-out statistic ignores; for a multi-row host z_j² is the one-degree-of-freedom part
+along the host indicator), so the denominator of the observed G can be guessed; we have not computed it. While
+drafting (no data, no simulation): the algebra below (the reduced REML form, z = W y, Cov(u) = M + τ²M²) was checked
+on a random synthetic system (60 rows, agreement to 10⁻¹³), and the per-simulation costs were timed on random
+synthetic matrices of the real sizes (single thread). Not yet computed: z_j for any host other than N5584, Σ_j z_j²,
+G on the data or in any simulation, the matrix M, any τ̂ refitted in a simulation, any power or size; no code for
+this addendum exists.
+
+*Expected outcome (stated now).* A rough guess from the recorded numbers (not a calculation of this test): the
+observed G is about 0.2–0.35 (13.2 over a sum of about 40–55). Under C the largest of 37 one-degree-of-freedom z²
+exceeds about 10 in 5% of draws (independent terms), more under V(τ) because the z_j of precisely measured hosts
+are inflated most; under O_any σ-matched to z = 3.64 the outlier's z² is about 13 on average, while its own τ̂_s is
+pulled up by the outlier, which widens the null it is tested against. So the power against O_any at z_obs is
+expected to be modest, roughly 0.2–0.6, and **"undetermined (underpowered)" is the most likely reading**; the
+reported power curve then says how large a single offset these 37 hosts could separate from diffuse scatter. If the
+power reaches 0.8, we do not rank "preferred" against "not excluded". The size of the plug-in bootstrap test under
+V(τ̂) is expected near or below 0.05 (G's null distribution changes slowly with τ, and the label requires the whole
+Clopper–Pearson interval below 0.05).
+
+*Question.* With τ refitted in every simulation and the outlying host chosen inside the statistic, are the
+calibrator host offsets more concentrated in one host than host-level scatter spread over all 37 hosts (V(τ))
+produces, by a test whose power against one σ-matched offset host is fixed before the data value is read?
+
+*Statistic (the same on data and simulations).* On the NGC 4258-only system (`rows_a`, 3,489 rows, 37 hosts, the
+amended host labelling): X = the columns of L fitted on `rows_a` (`infer.gls`'s `kept`, as in R2-RE's REML); C_a = C
+on `rows_a`; P = C_a⁻¹ − C_a⁻¹X(XᵀC_a⁻¹X)⁻¹XᵀC_a⁻¹ (the GLS residual projector under C); Z = (h_1, …, h_37), h_j the
+indicator of host j's calibrator SN rows (`calib_groups[j]`, as in R2-RE and R2-RE-D); M = ZᵀPZ (37 × 37); u = ZᵀPy.
+- **Host-offset z-scores, one host at a time:** z_j = u_j / √M_jj. This is δ̂_j/σ_δ,j, where δ̂_j is the GLS
+  coefficient of the single extra column h_j added to L and fitted under C on `rows_a`, and σ_δ,j = M_jj^(−1/2) its
+  standard error (the Frisch–Waugh–Lovell identity for GLS); for N5584 it is R2-RE-D's `fit_delta`, z = 3.6354.
+- **G = max_j z_j² / Σ_j z_j²** over the 37 hosts (between 1/37 and 1; scale-free); ĵ = the argmax (ties to the lowest
+  column), reported.
+- **One matrix–vector product per simulation:** z = W y with W = diag(M_jj^(−1/2)) ZᵀP (37 × 3,489, computed once
+  from one Cholesky factor of C_a). WX = 0, so ŷ = L q̂ and any L q drop out, as in R2-RE-D.
+- *Why one host at a time, not a joint fit.* The joint fit with all 37 offsets is expected to be rank-deficient: their
+  sum is the calibrator part of the M⁰_B column, and the calibrators are what separates M⁰_B from 5 log H0 (the code
+  attempts the joint fit once and reports its rank; it is not used either way). The one-at-a-time z_j is the standard
+  mean-shift outlier statistic, is exactly the matrix–vector product the referee asked for, and reproduces the recorded
+  N5584 value.
+
+*The diffuse null, with τ refitted in each simulation.* V(τ) = C + τ²ZZᵀ, R2-RE's model. Exact facts used (standard
+identities for V = C + ZGZᵀ; PC_aP = P): under V(τ), u ~ N(0, M + τ²M²); an offset δ on host k's calibrator rows
+adds δ M e_k to the mean of u. R2-RE's restricted likelihood, −2ℓ_R(τ) = log det V + log det XᵀV⁻¹X + rᵀV⁻¹r,
+equals, up to a constant that does not depend on τ, **f(τ; u) = Σ_i [log(1 + τ²λ_i) − τ² v_i² / (1 + τ²λ_i)]**,
+with M = Q diag(λ) Qᵀ and v = Qᵀu. So τ̂ depends on the data only through u, and one evaluation costs O(37).
+- **Estimator:** R2-RE's procedure applied to f, `reml_tau(f, 0.5, 0.01, interval=False)`: grid τ = 0, 0.01, …, 0.50
+  mag, then `minimize_scalar` (bounded, xatol 10⁻⁵) on the grid interval around the grid's global minimum, the
+  better of the refined and the grid minimum (the grid minimum if the refinement fails); τ̂ < 10⁻³ counts as zero
+  (V = C); τ̂ > 0.5 − 10⁻³ is "at the upper bound": in a simulation it is kept as its value (counted and reported,
+  as in ROB), on the real data it is rule (1).
+- **Refit in every simulation, not on a grid:** the reduced form makes a refit cost about 0.1–1 ms (synthetic timing),
+  so τ̂_s is refitted exactly in each of the 130,000 outer simulations; a fixed τ grid is not needed.
+- **Reproduction on the real data (rule (1)):** f(τ_i; u_obs) − f(0; u_obs) equals R2-RE's saved grid_m2l_i − grid_m2l_0
+  at all 51 grid points within 10⁻⁵ (absolute), and τ̂_obs reproduces 0.07669875579792439 within 2 × 10⁻⁵ (absolute;
+  twice the optimiser's xatol, since its path can differ in the last digits). τ̂_obs (full precision from the run)
+  defines the null V(τ̂_obs).
+
+*The test applied to one data vector (real or simulated).* For a data vector with statistic G and refitted τ̂:
+k = #{i: G_i^in(τ̂) ≥ G} over N_in = 20,000 inner draws, **p_boot = (1 + k)/(1 + N_in)**, and the label
+`rob.three_way(k, N_in)`: the two-sided 95% Clopper–Pearson interval of k/N_in entirely below 0.05 → "excluded",
+entirely above → "not excluded", containing 0.05 → "undetermined (Monte Carlo)". The inner draws are exact draws of u
+from N(0, M + τ̂²M²): z_i = diag(M_jj^(−1/2)) Q diag(√(λ(1 + τ̂²λ))) e_i, with e_i the rows of one fixed matrix
+E_in = `numpy.random.default_rng(600_000).standard_normal((20_000, 37))`, the same for every evaluation (common random
+numbers). On the real data: **p_G = p_boot(G_obs, τ̂_obs)** with its interval and label.
+
+*Models (outer simulations).* Each outer simulation is a full data vector y_s = ŷ + K ε_s (+ offset) on `rows_a`, as in
+R2-RE-D, with ε_s = `numpy.random.default_rng(400_000 + s).standard_normal(3489)`, s = 0, …, 9,999, the same ε_s for
+every model (common random numbers), and K the lower Cholesky factor of the model covariance on `rows_a`. It is
+computed as z_s = B ε_s (+ the offset's term) with B = W K (37 × 3,489, once per covariance), which equals W y_s
+exactly. In each simulation: z_s, G_s, ĵ_s, u_s → τ̂_s (refitted), then p_boot,s, k_s and the label at τ̂_s.
+- **VHAT (decisive null):** V(τ̂_obs). Its rejection rate is the **size** of the test.
+- **OANY (decisive alternative):** C plus an offset on one host k_s drawn uniformly from the 37
+  (`numpy.random.default_rng(500_000 + s).integers(0, 37)`), **σ-matched**: δ_k = z_obs · σ_δ,k on host k's calibrator
+  SN rows, with z_obs = δ̂/σ_δ of N5584 from the run (recorded 3.6354437025541553), so the offset host's expected z is
+  z_obs whatever its σ_δ (R2-RE-D referee point 7). Its rejection rate is the **power**. Its τ̂_s is refitted with the
+  outlier inside, as τ̂_obs is fitted with N5584 inside, so the power includes the widening of the null that an outlier
+  causes.
+- Reported, not decisive: **C** (size when there is no excess); **V050** and **V105** (size when the true τ is an end of
+  R2-RE's 68% interval, the null still V(τ̂_s)); **OANYLO** (OANY with z_obs − 1 = 2.635, one standard error towards
+  zero, against the winner's curse of z_obs being the largest of 37); **OANYVN** (OANY on V(τ̂_N) instead of C, τ̂_N =
+  `sel.RECORDED_TAU_N` = 0.0314, "one outlier plus a small diffuse term"); **O** (R2-RE-D's O(δ̂): δ̂ on N5584 itself,
+  on C); and a **power curve**, OANY with z_alt = 2.5, 3.0, 4.0, 4.5 and 5.0 (counts only).
+- Seeds 400,000–409,999, 500,000–509,999 and 600,000 collide with none of R4/R4-N (0), ROB and B-N (10,000–11,999), SEL
+  (20,000–21,999), the referee's V runs (50,000–50,999), R2-RE-D (100,000–109,999, 200,000–209,999) or its KDE bootstrap
+  (300,000–300,199). All OANY variants share the host draws.
+- **Counts:** n = 10,000 outer simulations per model and per curve point (13 sets, 130,000 simulations); N_in = 20,000
+  inner draws (fixed: it is part of the test). **Runtime guard:** the first 1,000 VHAT simulations are timed; if the
+  projection for all sets exceeds `g_max_minutes` = 120 min, n drops to the largest multiple of 1,000 that fits, with a
+  floor of 5,000 (recorded in the results); if even 5,000 does not fit, the block is "not evaluated (runtime)".
+  N_in never changes.
+
+*Power, size and their order (fixed before the data value is read).* For a model m, R_m = #{s: label_s =
+"excluded"}/n, with its Clopper–Pearson interval. **Power = R_OANY** (point estimate) and **size = R_VHAT**. Neither
+depends on G_obs: power uses only the design (L, C, the host groups) and z_obs; size also uses τ̂_obs. The block runs
+in two stages. **Power stage** (`g_stage = "power"`): the reproduction checks that use no data value beyond those
+recorded here (τ̂_obs, the REML grid, δ̂, σ_δ and z_obs of N5584), then all outer simulations; it writes
+`results/r2_re_g_power.json` (counts, power, size, curve, τ̂_s summaries, checks) and never computes, saves or logs
+G_obs, Σz² or the z_j of any host but N5584. Its power, size and curve are written into log.md and committed on the
+branch **before** the full stage is started. **Full stage** (`g_stage = "full"`): recomputes the power stage (its
+counts must equal those of `r2_re_g_power.json` exactly), then computes G_obs, p_G and the reading. In a full study
+run both stages run in this order in one process, the power record saved and logged before G_obs is computed.
+
+*Decision rules and labels, fixed now (in this order; exactly one applies).* R2-RE's row ("no host-selection effect
+detected") stays the headline; the R2 (2026-11-14), R2-RE, R2-RE-ROB, R2-RE-N5584, R2-RE-SEL and R2-RE-D verdicts,
+labels and readings stay as recorded.
+- (1) **Not evaluable** (with the reason), when any of these holds: a reproduction check fails (the REML grid
+  differences, τ̂_obs, δ̂ = 0.33634 within 5 × 10⁻⁶ absolute, σ_δ = 0.09251604267299487 and z_obs =
+  3.6354437025541553 within a relative 10⁻⁶; in the full stage also W y on the real data against the 37 one-column GLS
+  fits, |Δz_j| ≤ 10⁻⁸ for every host); a pointwise check fails (for the first three simulations of VHAT and of OANY,
+  y_s built in full, the 37 one-column GLS z against B ε_s within 10⁻⁸, and τ̂_s from the reduced form against
+  `reml_tau` on `reml_m2l` within 2 × 10⁻⁵); τ̂_obs at the upper bound; the Cholesky factor of C or of V(τ̂_obs) fails;
+  the full stage does not reproduce the power stage's counts; the runtime guard's floor is not met ("not evaluated
+  (runtime)"); or the test is anti-conservative: the 95% Clopper–Pearson interval of the size R_VHAT lies entirely above
+  0.05. A reported model whose factor fails is "not evaluable" alone and enters no rule.
+- (2) Power < 0.8 → **"undetermined (underpowered)"**, whatever p_G is (p_G and its label are still reported).
+- (3) Power ≥ 0.8 and p_G's interval entirely below 0.05 → **"one offset host preferred over diffuse scatter"**.
+- (4) Power ≥ 0.8 and p_G's interval entirely above 0.05 → **"diffuse scatter not excluded"**.
+- (5) Power ≥ 0.8 and p_G's interval containing 0.05 → **"undetermined (Monte Carlo)"**.
+- Notes. 0.8 is compared with the point estimate (n = 10,000, standard error about 0.004; exactly 0.8 counts as
+  powered). Rules (3)–(5) use the same three-way Clopper–Pearson label as each simulation, so the power is the
+  probability, under OANY, that the whole procedure (τ refitted, bootstrap, label) reads "excluded". "Preferred" in (3)
+  means that diffuse scatter of the fitted size is excluded by a concentration statistic that was powered against one
+  offset host; it does not say that the offset is a data defect, nor whether it sits on the SN or the Cepheid side.
+
+*What changes in section 5 (the text, not any earlier label).* A new subsection "R2-RE-G". Reading (3) → section 5
+states that, with τ refitted in every simulation and the host chosen inside the statistic, the concentration of the
+calibrator offsets in one host is unusual under diffuse host scatter of the fitted size; R2-RE-D's reading stays
+recorded, glossed "a powered composite shape test prefers one offset host (R2-RE-G)", with the caveats that G's form
+was proposed after the data were seen and that C is taken as correct. Reading (4) → section 5 states that G does not
+exclude diffuse scatter with a test that would have found a σ-matched single outlier in at least 80% of cases; R2-RE-D's
+gloss "not distinguished" becomes "diffuse scatter not excluded by a powered shape test", with the reverse check next to
+it. Reading (2), (5) or "not evaluable" → section 5 states that no powered shape test separates the two pictures on
+these data, quoting the power, the size and the smallest curve z with power ≥ 0.8 (if any); R2-RE-D's reading and gloss
+stay. Section 7's open question is answered accordingly. In no case do the R2-RE headline row, `summary.json`
+`R2_host` or the claim's verdict change.
+
+*Reported (not decisive).* G_obs, ĵ_obs and its z, Σ_j z_j², all 37 z_j, δ̂_j and σ_δ,j on the real data (full stage);
+p_G with k, N_in, interval and label; p_G of the data under fixed V(0.05), V(0.105) and C (inner draws at those τ, same
+E_in); the double-bootstrap (prepivoted) p, p_dbl = (1 + #{s in VHAT: p_boot,s ≤ p_G})/(1 + n), which calibrates the
+plug-in p_G with τ refitted; the reverse check for OANY and O, p_rev = (1 + #{s: G_s ≤ G_obs})/(1 + n) with its
+interval (a small value says the observed offsets are less concentrated than one such offset host typically makes them);
+per model: the rejection rate with its interval, quantiles (5/50/95%) of G_s and τ̂_s, the number of τ̂_s at zero and
+at the bound, and for OANY-type models how often ĵ_s is the offset host; the power curve and the smallest z_alt with
+power ≥ 0.8; the joint-fit rank; checks and seconds per part. Per-simulation values, so that every count can be
+re-derived: `results/r2_re_g_sims_<model>.json` for `VHAT`, `V050`, `V105`, `C`, `OANY`, `OANYLO`, `OANYVN`, `O`, holding
+G_s (5 decimals), τ̂_s (6 decimals), k_s, ĵ_s and, for the OANY models, the offset host (about 400–550 KB each as
+pretty-printed JSON, every file below 1 MB, about 4 MB in all); `results/r2_re_g.json` (full stage) and
+`results/r2_re_g_power.json` (power stage), each well below 1 MB. The tests re-derive power, size and every rejection
+rate from the saved k_s and the label from the saved k.
+
+*Runtime (from measured times and the synthetic timing).* Recorded: one-column GLS fit 1.17 s (`r2_re_d.json`
+`seconds.delta_fit`); five Cholesky factors of 3,489 × 3,489 covariances 1.9 s; one REML fit with `reml_m2l` about
+20 s (R2-RE-SEL). Synthetic, single thread, on matrices of the real sizes: one inner p_boot at N_in = 10,000 3.2 ms
+(so about 6.5 ms at 20,000); one τ refit with the reduced form 0.14 ms vectorised (about 0.5–1 ms through `reml_tau`'s
+scalar calls, estimated); one outer draw (3,489 normals and a 37 × 3,489 product) 0.06 ms. Per outer simulation about
+7–8 ms, so 130,000 simulations about 16–18 min. Setup (C's factor, P and W, four more factors and the B products) under
+a minute; checks: the 37 one-column fits on the real data about 45 s (full stage only), the pointwise checks 6 × 37 fits
+and 6 REML fits about 7 min. Power stage about 25 min, full stage about 30 min, both about 1 h; up to about twice that if
+another run shares the CPU. Memory: one 97 MB factor at a time, E_in 6 MB. Standalone mode (`PARAMS["g_only"] = true`,
+like `d_only`): it recomputes only what the block needs (the fit under C on `rows_a`, the host groups, the checks); the
+power stage writes only `r2_re_g_power.json` (records `provenance_gp.json`, `run_info_gp.json`); the full stage writes
+`r2_re_g.json`, the eight `r2_re_g_sims_<model>.json` and only the `R2_RE_G` key of `summary.json` (every other key
+byte-identical, `onehost.summary_with_key`) with `ctx.record_suffix = "_g"`; no other results file is touched. No data
+downloaded (cache only); the formal stages wait until no other study run uses the machine. More simulations after the
+run would need a new pre-registration.
+
+*Code checks before the formal run.* Synthetic data only (the 2026-11-17 smoke-run lesson, log.md): the reduced REML
+form against `reml_m2l` differences and `reml_tau`; z = W y against one-column GLS fits; Cov(u) = M + τ²M²; G and ĵ;
+the offset only on the chosen host's calibrator rows and its σ-matching; common ε_s and E_in; the size of the bootstrap
+test on a synthetic system at a known τ (rejection rate not above the upper end of the 99% Clopper–Pearson interval of
+0.05); the rule order (1)–(5); the power stage never computing G_obs. On the real data before the formal run only the
+reproduction checks that use recorded values (the REML grid differences, τ̂_obs, δ̂, σ_δ, z_obs); no simulation on the
+real design, no z_j of another host, no G, power, p value or label.
+
+*Switch and code.* `PARAMS["g_check"]` (true), with `"g_seed_base": 400_000`, `"g_host_seed_base": 500_000`,
+`"g_inner_seed": 600_000`, `"g_n_sims": 10_000`, `"g_n_inner": 20_000`, `"g_power_min": 0.8`, `"g_z_curve": [2.5,
+3.0, 4.0, 4.5, 5.0]`, `"g_taus_rep": [0.05, 0.105]`, `"g_max_minutes": 120`, `"g_min_sims": 5_000`, `"g_only": false`
+and `"g_stage": "full"` (set to true and to "power", then "full", only for the formal runs, back afterwards, with dated
+notes in log.md); the recorded τ̂_obs, REML grid source, δ̂, σ_δ, z_obs and tolerances are module constants, as in
+`onehost.py`. In a full study run the block runs after the R2-RE-D block under the same condition (R2-RE run and the
+host step evaluable). Planned module `shape.py` (receives `run.py`'s functions, among them `reml_tau`, `reml_m2l`,
+`fit` and `with_re`; reuses `rob._cp`, `rob.three_way`, `onehost.fit_delta` and `onehost.summary_with_key`; does not
+import `run`), results as above, a short summary in `summary.json` (`R2_RE_G`), a test `test_shape.py` (the synthetic
+checks above; labels, power and size re-derived from the saved files; every file below 1 MB), conclusion assertions in
+`test_conclusions.py`, a web section, section 8 knobs. None of this exists yet.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
