@@ -814,10 +814,10 @@ def main(ctx):
         rows_a, _ = anchor_rows(nz, cls, y)
         d_out, sims = run_d(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident,
                             n_pick=len([j for j in range(NH) if col_host[j] in P["cchp_hosts"]]))
-        save_d(ctx, d_out, sims)
         sum_path = ctx.results / "summary.json"
         new = (onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_D", onehost.summary(d_out))
                if sum_path.exists() else {"R2_RE_D": onehost.summary(d_out)})
+        save_d(ctx, d_out, sims)       # only after the summary check passed: no half-written result
         ctx.save("summary", new)
         return new
 
