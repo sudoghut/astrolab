@@ -181,9 +181,24 @@ def footprint_errors(meta: dict[str, Any]) -> list[str]:
                     errs.append(f"footprint target {t.get('name')}: give both ra and dec or neither")
                 elif "ra" in t and not _coord_ok(t):
                     errs.append(f"footprint target {t.get('name')}: ra in [0, 360) and dec in [-90, 90] degrees")
+                errs += _note_errors(t, "note", f"footprint target {t.get('name')}")
         elif tg:
             errs.append("footprint.sky.targets given but mode does not include targets")
+        errs += _note_errors(sky, "target_note", "footprint.sky")
     return errs
+
+
+def _note_errors(obj: dict, key: str, where: str) -> list[str]:
+    """Optional one-line summary shown when a sky target is hovered (T-053): `key` and `key`_zh are
+    both given (bilingual rule) or both left out, and both are non-empty text."""
+    en, zh = obj.get(key), obj.get(key + "_zh")
+    if en is None and zh is None:
+        return []
+    if not (isinstance(en, str) and en.strip() and isinstance(zh, str) and zh.strip()):
+        return [f"{where}: give both {key} and {key}_zh as non-empty text"]
+    if not re.search(r"[\u4e00-\u9fff]", zh):
+        return [f"{where}: {key}_zh must be Chinese"]
+    return []
 
 
 def resolve_footprint(study_path: Path, meta: dict[str, Any]) -> dict[str, Any]:
@@ -219,7 +234,9 @@ def resolve_footprint(study_path: Path, meta: dict[str, Any]) -> dict[str, Any]:
             ra, dec = float(t["ra"]), float(t["dec"])
         else:
             ra, dec = known.get(t.get("name"), (None, None))
-        entry = {"name": t.get("name"), "ra": ra, "dec": dec, "l": None, "b": None}
+        entry = {"name": t.get("name"), "ra": ra, "dec": dec, "l": None, "b": None,
+                 "note": t.get("note") or sky.get("target_note"),
+                 "note_zh": t.get("note_zh") or sky.get("target_note_zh")}
         if ra is not None and dec is not None:
             entry["l"], entry["b"] = _galactic(ra, dec)
         targets.append(entry)

@@ -147,3 +147,20 @@ def test_every_study_has_a_footprint():
     from astrolab import study
     for s in study.discover():
         assert claims.footprint_required_errors(s.meta) + claims.footprint_errors(s.meta) == [], s.id
+
+
+def test_target_notes_bilingual_and_resolved(tmp_path):
+    base = {"scale": {"min_pc": 1, "max_pc": 10}, "data": ["x"]}
+    ok = {"footprint": {**base, "sky": {"mode": "targets", "target_note": "a study default", "target_note_zh": "研究默认说明",
+                                        "targets": [{"name": "A", "ra": 10.0, "dec": 5.0, "note": "own", "note_zh": "自己的"},
+                                                    {"name": "B", "ra": 20.0, "dec": -5.0}]}}}
+    assert claims.footprint_errors(ok) == []
+    bad_one = {"footprint": {**base, "sky": {"mode": "targets", "targets": [{"name": "A", "ra": 1.0, "dec": 1.0, "note": "x"}]}}}
+    assert claims.footprint_errors(bad_one)                                    # note without note_zh
+    bad_zh = {"footprint": {**base, "sky": {"mode": "targets", "target_note": "x", "target_note_zh": "not chinese",
+                                            "targets": [{"name": "A", "ra": 1.0, "dec": 1.0}]}}}
+    assert claims.footprint_errors(bad_zh)
+    fp = claims.resolve_footprint(tmp_path, ok)
+    a, b = fp["sky"]["targets"]
+    assert (a["note"], a["note_zh"]) == ("own", "自己的")                     # own note wins
+    assert (b["note"], b["note_zh"]) == ("a study default", "研究默认说明")     # study default

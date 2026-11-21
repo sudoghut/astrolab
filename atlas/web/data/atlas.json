@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-21T08:51:59+00:00",
+ "generated_at": "2026-11-21T09:11:26+00:00",
  "levels": [
   "L0",
   "L1",
@@ -643,21 +643,27 @@
        "ra": 262.17120727595824,
        "dec": -0.5810919626714084,
        "l": 22.625647844176562,
-       "b": 18.045809422866643
+       "b": 18.045809422866643,
+       "note": "Dormant black hole orbiting a Sun-like star. From DR3 astrometry alone the study finds a companion of 13.3 (+2.9/-2.3) Msun, against 9.62 +/- 0.18 published (R1 passes, with low power).",
+       "note_zh": "绕一颗类太阳恒星运动的休眠黑洞。只用 DR3 天体测量，本研究得到伴星质量 13.3（+2.9/−2.3）M☉，论文值 9.62 ± 0.18（R1 通过，功效低）。"
       },
       {
        "name": "Gaia BH2",
        "ra": 207.56971494177265,
        "dec": -59.23900523844159,
        "l": 310.4031103240916,
-       "b": 2.7765375359746165
+       "b": 2.7765375359746165,
+       "note": "Dormant black hole orbiting a red giant. From DR3 astrometry alone the study finds 8.52 (+0.61/-0.56) Msun, against 8.9 +/- 0.3 published (R2 passes).",
+       "note_zh": "绕一颗红巨星运动的休眠黑洞。只用 DR3 天体测量，本研究得到 8.52（+0.61/−0.56）M☉，论文值 8.9 ± 0.3（R2 通过）。"
       },
       {
        "name": "Gaia BH3",
        "ra": 294.82786250815144,
        "dec": 14.930979608612361,
        "l": 51.67172841061906,
-       "b": -3.4880659519427772
+       "b": -3.4880659519427772,
+       "note": "Dormant black hole of about 33 Msun announced from Gaia DR4 pre-release data; it has no DR3 orbit, so the study tests it on DR4 release day (R3, 2026-12-02).",
+       "note_zh": "由 Gaia DR4 预发布数据宣布的约 33 M☉ 休眠黑洞；DR3 中没有它的轨道解，所以本研究在 DR4 发布日检验它（R3，2026-12-02）。"
       }
      ]
     }
@@ -731,259 +737,333 @@
        "ra": 210.8025,
        "dec": 54.3487,
        "l": 102.03686946568175,
-       "b": 59.771432237720646
+       "b": 59.771432237720646,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "Mrk 1337",
        "ra": 193.1449,
        "dec": -9.7761,
        "l": 303.40033746652887,
-       "b": 53.09460922330934
+       "b": 53.09460922330934,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 691",
        "ra": 27.674,
        "dec": 21.7597,
        "l": 140.73849058436298,
-       "b": -39.05434503655792
+       "b": -39.05434503655792,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 1015",
        "ra": 39.5486,
        "dec": -1.3178,
        "l": 172.18802952539914,
-       "b": -53.65297789964797
+       "b": -53.65297789964797,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 105",
        "ra": 6.3212,
        "dec": 12.885,
        "l": 113.09369990074507,
-       "b": -49.486509159799745
+       "b": -49.486509159799745,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 1309",
        "ra": 50.5278,
        "dec": -15.4005,
        "l": 202.20288956838476,
-       "b": -53.15663068639037
+       "b": -53.15663068639037,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 1365 (CCHP host)",
        "ra": 53.4027,
        "dec": -36.138,
        "l": 237.95188445240666,
-       "b": -54.59728966078118
+       "b": -54.59728966078118,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 1448",
        "ra": 56.1336,
        "dec": -44.6438,
        "l": 251.52056366502623,
-       "b": -51.39376268866424
+       "b": -51.39376268866424,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 1559",
        "ra": 64.406,
        "dec": -62.7844,
        "l": 274.5098260421535,
-       "b": -41.19504371511421
+       "b": -41.19504371511421,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 2442 (CCHP host)",
        "ra": 114.0996,
        "dec": -69.5306,
        "l": 281.2992429556624,
-       "b": -21.501540764517454
+       "b": -21.501540764517454,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 2525",
        "ra": 121.409,
        "dec": -11.4281,
        "l": 231.85232138473324,
-       "b": 10.787426328744901
+       "b": 10.787426328744901,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 2608",
        "ra": 128.8211,
        "dec": 28.4742,
        "l": 195.45461861122638,
-       "b": 34.047161623841134
+       "b": 34.047161623841134,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 3021",
        "ra": 147.739,
        "dec": 33.5545,
        "l": 192.17652479234454,
-       "b": 50.83945438257031
+       "b": 50.83945438257031,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 3147",
        "ra": 154.2218,
        "dec": 73.4012,
        "l": 136.29000942863044,
-       "b": 39.46248098678764
+       "b": 39.46248098678764,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 3254",
        "ra": 157.3336,
        "dec": 29.4912,
        "l": 200.11029360165955,
-       "b": 58.75384458793282
+       "b": 58.75384458793282,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 3370",
        "ra": 161.7657,
        "dec": 17.2739,
        "l": 225.34959759289677,
-       "b": 59.67130745003044
+       "b": 59.67130745003044,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 3447",
        "ra": 163.3478,
        "dec": 16.7734,
        "l": 227.55990884564196,
-       "b": 60.82737556249412
+       "b": 60.82737556249412,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 3583",
        "ra": 168.5482,
        "dec": 48.3201,
        "l": 158.11134725115494,
-       "b": 61.6296424415415
+       "b": 61.6296424415415,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 3972 (CCHP host)",
        "ra": 178.9424,
        "dec": 55.3187,
        "l": 138.8451379009498,
-       "b": 60.05630993918453
+       "b": 60.05630993918453,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 3982",
        "ra": 179.1174,
        "dec": 55.1248,
        "l": 138.83042404242906,
-       "b": 60.274272431390244
+       "b": 60.274272431390244,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 4038 (CCHP host)",
        "ra": 180.4707,
        "dec": -18.865,
        "l": 286.9575668635807,
-       "b": 42.46442727103169
+       "b": 42.46442727103169,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 4424 (CCHP host)",
        "ra": 186.7982,
        "dec": 9.4209,
        "l": 283.8801970419951,
-       "b": 71.39024950202325
+       "b": 71.39024950202325,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 4536 (CCHP host)",
        "ra": 188.6124,
        "dec": 2.1886,
        "l": 292.9486341735976,
-       "b": 64.73054574013555
+       "b": 64.73054574013555,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 4639 (CCHP host)",
        "ra": 190.7195,
        "dec": 13.2584,
        "l": 294.29948421292613,
-       "b": 75.98647685933899
+       "b": 75.98647685933899,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 4680",
        "ra": 191.7287,
        "dec": -11.6364,
        "l": 301.1634743874924,
-       "b": 51.219815839059024
+       "b": 51.219815839059024,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 5468",
        "ra": 211.6458,
        "dec": -5.4536,
        "l": 334.86762622473987,
-       "b": 52.69537304402233
+       "b": 52.69537304402233,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 5584",
        "ra": 215.5999,
        "dec": -0.3867,
        "l": 345.1163989459661,
-       "b": 54.85612815122885
+       "b": 54.85612815122885,
+       "note": "The outlying host (one supernova, SN 2007af): it carries the excess calibrator scatter. Without it the scatter is consistent with the covariance, also when the choice of the most extreme host is simulated; the host-selection result stays 'not detected'.",
+       "note_zh": "离群宿主（一颗超新星 SN 2007af）：多出的定标星离散来自它。去掉它后离散与协方差相符，把\"选出最极端宿主\"放进模拟后也是如此；宿主选择的结论仍是\"未检出\"。"
       },
       {
        "name": "NGC 5643 (CCHP host)",
        "ra": 218.1729,
        "dec": -44.1734,
        "l": 321.44539396825377,
-       "b": 15.02822088322614
+       "b": 15.02822088322614,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 5728",
        "ra": 220.6008,
        "dec": -17.2534,
        "l": 337.32557542749873,
-       "b": 38.097601791291716
+       "b": 38.097601791291716,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 5861",
        "ra": 227.317,
        "dec": -11.3214,
        "l": 348.5270167975687,
-       "b": 39.05317021182289
+       "b": 39.05317021182289,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 5917",
        "ra": 230.3862,
        "dec": -7.3781,
        "l": 354.875629883714,
-       "b": 39.897966001455146
+       "b": 39.897966001455146,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 7250 (CCHP host)",
        "ra": 334.5737,
        "dec": 40.5625,
        "l": 93.9744288941621,
-       "b": -13.544010364130212
+       "b": -13.544010364130212,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 7329",
        "ra": 340.0984,
        "dec": -66.4788,
        "l": 320.97385779725755,
-       "b": -45.78956215328541
+       "b": -45.78956215328541,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 7541",
        "ra": 348.6799,
        "dec": 4.5344,
        "l": 82.84043910809919,
-       "b": -50.65258401835339
+       "b": -50.65258401835339,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 7678",
        "ra": 352.1174,
        "dec": 22.4228,
        "l": 98.88391640696767,
-       "b": -36.54445296977249
+       "b": -36.54445296977249,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "NGC 976",
        "ra": 38.4986,
        "dec": 20.9766,
        "l": 152.83807928617733,
-       "b": -35.86988022075637
+       "b": -35.86988022075637,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       },
       {
        "name": "UGC 9391",
        "ra": 218.6504,
        "dec": 59.3334,
        "l": 101.17800206473652,
-       "b": 53.21882980834205
+       "b": 53.21882980834205,
+       "note": "SH0ES Cepheid host of a calibrator type Ia supernova (R22 data). Hosts marked CCHP form the 10-host subset whose ladder gives about 2 km/s/Mpc lower H0; that shift is not significant once a host-level random effect is modelled.",
+       "note_zh": "SH0ES 的造父变星宿主，含一颗定标用的 Ia 型超新星（R22 数据）。标注 CCHP 的是 10 个宿主的子集，用它们的阶梯得到的 H0 低约 2 km/s/Mpc；加入宿主级随机效应后，这一移动不显著。"
       }
      ]
     }
@@ -1050,469 +1130,603 @@
        "ra": 5.8203,
        "dec": 9.39,
        "l": 111.38305463433478,
-       "b": -52.84922028656691
+       "b": -52.84922028656691,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0030+0451",
        "ra": 7.6143,
        "dec": 4.861,
        "l": 113.14118512434472,
-       "b": -57.61136292312084
+       "b": -57.61136292312084,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0340+4130",
        "ra": 55.097,
        "dec": 41.5126,
        "l": 153.78333978951588,
-       "b": -11.021858367576264
+       "b": -11.021858367576264,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0406+3039",
        "ra": 61.5,
        "dec": 30.65,
        "l": 165.10029159050646,
-       "b": -15.871036688280212
+       "b": -15.871036688280212,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0437-4715",
        "ra": 69.3163,
        "dec": -47.2525,
        "l": 253.39441389070822,
-       "b": -41.96335424314918
+       "b": -41.96335424314918,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0509+0856",
        "ra": 77.25,
        "dec": 8.9333,
        "l": 192.44107392212135,
-       "b": -18.011650838241206
+       "b": -18.011650838241206,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0557+1551",
        "ra": 89.25,
        "dec": 15.85,
        "l": 192.60860895251417,
-       "b": -4.4113489792611915
+       "b": -4.4113489792611915,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0605+3757",
        "ra": 91.25,
        "dec": 37.95,
        "l": 174.19325412203065,
-       "b": 8.000872494185632
+       "b": 8.000872494185632,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0610-2100",
        "ra": 92.5566,
        "dec": -21.0078,
        "l": 227.74655161678157,
-       "b": -18.18363662545276
+       "b": -18.18363662545276,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0613-0200",
        "ra": 93.4333,
        "dec": -2.0131,
        "l": 210.41306728831412,
-       "b": -9.304837835697944
+       "b": -9.304837835697944,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0636+5128",
        "ra": 99.0,
        "dec": 51.4667,
        "l": 163.92038156704194,
-       "b": 18.62499627047991
+       "b": 18.62499627047991,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0645+5158",
        "ra": 101.4962,
        "dec": 51.9708,
        "l": 163.96296061096726,
-       "b": 20.250940140435745
+       "b": 20.250940140435745,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0709+0458",
        "ra": 107.25,
        "dec": 4.9667,
        "l": 210.49487929208215,
-       "b": 6.162807647870878
+       "b": 6.162807647870878,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0740+6620",
        "ra": 115.0,
        "dec": 66.3333,
        "l": 149.73943972816483,
-       "b": 29.522683315606308
+       "b": 29.522683315606308,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J0931-1902",
        "ra": 142.8297,
        "dec": -19.0486,
        "l": 250.99921836206497,
-       "b": 23.053675207289718
+       "b": 23.053675207289718,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1012+5307",
        "ra": 153.1393,
        "dec": 53.1174,
        "l": 160.347022196401,
-       "b": 50.85778255799287
+       "b": 50.85778255799287,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1012-4235",
        "ra": 153.0292,
        "dec": -42.5833,
        "l": 274.1937609778121,
-       "b": 11.226181392207208
+       "b": 11.226181392207208,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1022+1001",
        "ra": 155.7417,
        "dec": 10.0313,
        "l": 231.79458857845532,
-       "b": 51.10068630666103
+       "b": 51.10068630666103,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1024-0719",
        "ra": 156.1612,
        "dec": -7.3221,
        "l": 251.70165284294228,
-       "b": 40.51550814897056
+       "b": 40.51550814897056,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1125+7819",
        "ra": 171.25,
        "dec": 78.3167,
        "l": 128.35406997822332,
-       "b": 37.886116537782335
+       "b": 37.886116537782335,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1312+0051",
        "ra": 198.0,
        "dec": 0.85,
        "l": 314.41786499684474,
-       "b": 63.262275443920664
+       "b": 63.262275443920664,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1453+1902",
        "ra": 223.4405,
        "dec": 19.0367,
        "l": 23.3947450100596,
-       "b": 60.81226427000745
+       "b": 60.81226427000745,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1455-3330",
        "ra": 223.9499,
        "dec": -33.5129,
        "l": 330.72177717829686,
-       "b": 22.562232348969573
+       "b": 22.562232348969573,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1600-3053",
        "ra": 240.2162,
        "dec": -30.8971,
        "l": 344.0903598884135,
-       "b": 16.45138128181469
+       "b": 16.45138128181469,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1614-2230",
        "ra": 243.6521,
        "dec": -22.5087,
        "l": 352.63569310992494,
-       "b": 20.192101436116282
+       "b": 20.192101436116282,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1630+3734",
        "ra": 247.5,
        "dec": 37.5667,
        "l": 60.218018200807876,
-       "b": 43.33397898753536
+       "b": 43.33397898753536,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1640+2224",
        "ra": 250.0698,
        "dec": 22.4024,
        "l": 41.050954518184405,
-       "b": 38.2711443665057
+       "b": 38.2711443665057,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1643-1224",
        "ra": 250.909,
        "dec": -12.4163,
        "l": 5.669486505011396,
-       "b": 21.217624399607065
+       "b": 21.217624399607065,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1705-1903",
        "ra": 256.25,
        "dec": -19.05,
        "l": 3.1555628637500455,
-       "b": 13.177613260010613
+       "b": 13.177613260010613,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1713+0747",
        "ra": 258.4564,
        "dec": 7.7938,
        "l": 28.75061474657708,
-       "b": 25.222851608056118
+       "b": 25.222851608056118,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1719-1438",
        "ra": 259.792,
        "dec": -14.6336,
        "l": 8.858518844432416,
-       "b": 12.83831608766924
+       "b": 12.83831608766924,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1730-2304",
        "ra": 262.5903,
        "dec": -23.0753,
        "l": 3.137224609710433,
-       "b": 6.023277261936262
+       "b": 6.023277261936262,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1738+0333",
        "ra": 264.7249,
        "dec": 3.553,
        "l": 27.721285064794436,
-       "b": 17.7421913684131
+       "b": 17.7421913684131,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1741+1351",
        "ra": 265.3798,
        "dec": 13.8622,
        "l": 37.88514316870158,
-       "b": 21.640747333014595
+       "b": 21.640747333014595,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1744-1134",
        "ra": 266.1225,
        "dec": -11.5819,
        "l": 14.79382647455908,
-       "b": 9.179722863715034
+       "b": 9.179722863715034,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1745+1017",
        "ra": 266.391,
        "dec": 10.2979,
        "l": 34.86929658332657,
-       "b": 19.253666677974604
+       "b": 19.253666677974604,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1747-4036",
        "ra": 266.953,
        "dec": -40.6152,
        "l": 350.2077539745377,
-       "b": -6.412003635456577
+       "b": -6.412003635456577,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1751-2857",
        "ra": 267.8863,
        "dec": -28.9629,
        "l": 0.6456157036639301,
-       "b": -1.1243233157600883
+       "b": -1.1243233157600883,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1802-2124",
        "ra": 270.5223,
        "dec": -21.401,
        "l": 8.382134277875624,
-       "b": 0.6108896529486005
+       "b": 0.6108896529486005,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1811-2405",
        "ra": 272.8327,
        "dec": -24.0884,
        "l": 7.073004889568671,
-       "b": -2.5589531305490136
+       "b": -2.5589531305490136,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1832-0836",
        "ra": 278.115,
        "dec": -8.6153,
        "l": 23.10856768400089,
-       "b": 0.2564641912489214
+       "b": 0.2564641912489214,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1843-1113",
        "ra": 280.9219,
        "dec": -11.2253,
        "l": 22.05468036943185,
-       "b": -3.396752700366048
+       "b": -3.396752700366048,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1853+1303",
        "ra": 283.4888,
        "dec": 13.0623,
        "l": 44.874572146365196,
-       "b": 5.366995201827784
+       "b": 5.366995201827784,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1857+0943",
        "ra": 284.4016,
        "dec": 9.7214,
        "l": 42.290246757434055,
-       "b": 3.0604191670076255
+       "b": 3.0604191670076255,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1903+0327",
        "ra": 285.7741,
        "dec": 3.4553,
        "l": 37.336294661387484,
-       "b": -1.0135936231013907
+       "b": -1.0135936231013907,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1909-3744",
        "ra": 287.4476,
        "dec": -37.7374,
        "l": 359.7307373813236,
-       "b": -19.59579142106099
+       "b": -19.59579142106099,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1910+1256",
        "ra": 287.5404,
        "dec": 12.9404,
        "l": 46.56384433141848,
-       "b": 1.7952210378095599
+       "b": 1.7952210378095599,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1911+1347",
        "ra": 287.98,
        "dec": 13.7929,
        "l": 47.51798174934027,
-       "b": 1.8091670827133521
+       "b": 1.8091670827133521,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1918-0642",
        "ra": 289.7001,
        "dec": -6.7097,
        "l": 30.02652431893807,
-       "b": -9.123047370462185
+       "b": -9.123047370462185,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1923+2515",
        "ra": 290.8437,
        "dec": 25.2613,
        "l": 58.945564871478545,
-       "b": 4.749051211149292
+       "b": 4.749051211149292,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1939+2134",
        "ra": 294.9107,
        "dec": 21.5831,
        "l": 57.50891392163285,
-       "b": -0.28961813705383527
+       "b": -0.28961813705383527,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1944+0907",
        "ra": 296.0389,
        "dec": 9.1231,
        "l": 47.160227760549034,
-       "b": -7.357061133329019
+       "b": -7.357061133329019,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1946+3417",
        "ra": 296.6047,
        "dec": 34.2874,
        "l": 69.29431187962224,
-       "b": 4.712641874921957
+       "b": 4.712641874921957,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J1955+2908",
        "ra": 298.8662,
        "dec": 29.1454,
        "l": 65.8393006021782,
-       "b": 0.4431938562060309
+       "b": 0.4431938562060309,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2010-1323",
        "ra": 302.6913,
        "dec": -13.3989,
        "l": 29.44560750985664,
-       "b": -23.539666770863967
+       "b": -23.539666770863967,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2017+0603",
        "ra": 304.3446,
        "dec": 6.0516,
        "l": 48.62080204407895,
-       "b": -16.026297060549254
+       "b": -16.026297060549254,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2033+1734",
        "ra": 308.3647,
        "dec": 17.5829,
        "l": 60.856641266708394,
-       "b": -13.154229471528689
+       "b": -13.154229471528689,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2043+1711",
        "ra": 310.837,
        "dec": 17.1914,
        "l": 61.918847294848476,
-       "b": -15.312864234378875
+       "b": -15.312864234378875,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2124-3358",
        "ra": 321.1827,
        "dec": -33.9791,
        "l": 10.925059201807347,
-       "b": -45.437540743812505
+       "b": -45.437540743812505,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2145-0750",
        "ra": 326.4602,
        "dec": -7.8385,
        "l": 47.7766483855989,
-       "b": -42.08360030094043
+       "b": -42.08360030094043,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2214+3000",
        "ra": 333.6619,
        "dec": 30.0106,
        "l": 86.85536362259336,
-       "b": -21.665181062801377
+       "b": -21.665181062801377,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2229+2643",
        "ra": 337.462,
        "dec": 26.7327,
        "l": 87.69304382614243,
-       "b": -26.283904902361336
+       "b": -26.283904902361336,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2234+0611",
        "ra": 338.5,
        "dec": 6.1833,
        "l": 72.88828124461844,
-       "b": -42.94598636665626
+       "b": -42.94598636665626,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2234+0944",
        "ra": 338.5,
        "dec": 9.7333,
        "l": 76.08280332239426,
-       "b": -40.318144762783284
+       "b": -40.318144762783284,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2302+4442",
        "ra": 345.6958,
        "dec": 44.7061,
        "l": 103.39526839914495,
-       "b": -14.004630069486412
+       "b": -14.004630069486412,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2317+1439",
        "ra": 349.2885,
        "dec": 14.6587,
        "l": 91.36077477112832,
-       "b": -42.36017672394269
+       "b": -42.36017672394269,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       },
       {
        "name": "PSR J2322+2057",
        "ra": 350.5932,
        "dec": 20.9508,
        "l": 96.51481239331589,
-       "b": -37.31007409155517
+       "b": -37.31007409155517,
+       "note": "One of the 67 NANOGrav 15-yr pulsars used for the gravitational-wave background. The study fits the background's amplitude and spectral index from the combined free spectrum, not pulsar by pulsar.",
+       "note_zh": "NANOGrav 15 年数据中用于引力波背景的 67 颗脉冲星之一。本研究从合并的自由谱拟合背景的振幅与谱指数，不是逐颗脉冲星分析。"
       }
      ]
     }
@@ -1549,14 +1763,18 @@
        "ra": 150.0933255,
        "dec": 2.2731627,
        "l": 236.72809181312945,
-       "b": 42.13964241737201
+       "b": 42.13964241737201,
+       "note": "Spectroscopically confirmed galaxy at z = 14.44, one of the two galaxies behind N26's number density at z = 14-15, which the study reproduces.",
+       "note_zh": "光谱确认的 z = 14.44 星系，是 N26 在 z = 14–15 的数密度所依据的两个星系之一；本研究复现了这一数密度。"
       },
       {
        "name": "JADES-GS-z14-0",
        "ra": 53.0829375,
        "dec": -27.8556306,
        "l": 223.6460346281118,
-       "b": -54.47393087710956
+       "b": -54.47393087710956,
+       "note": "Spectroscopically confirmed galaxy at z of about 14.2-14.3, the other galaxy in N26's z = 14-15 count, and the only one in the Harikane et al. 2025 z ~ 14 bin (context, R4).",
+       "note_zh": "光谱确认的星系，z 约 14.2–14.3，是 N26 在 z = 14–15 计数中的另一个星系，也是 Harikane 等 2025 z ≈ 14 箱中唯一的星系（背景，R4）。"
       }
      ]
     }
