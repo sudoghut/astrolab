@@ -1,0 +1,20 @@
+title: "M12 Poor old heart: Gaia XP metallicities of the oldest Milky Way stars"
+title_zh: "M12 贫而老的核心：Gaia XP 金属丰度与银河系最老的恒星"
+id: "012-m12-poor-old-heart"
+level: L3              # L0 cosmology | L1 LSS/high-z | L2 local universe | L3 Milky Way | L4 stars/planets | X cross-cutting
+status: planned               # planned | active | reproduced | concluded | paused | abandoned
+created: 2026-11-21
+question: "Does the public Gaia XP metallicity sample of Rix et al. 2022 reproduce their numbers for the metal-poor stars near the Galactic Centre (about 18,000 stars with -2.7 < [M/H] < -1.5, a Gaussian extent of about 2.7 kpc, no net rotation below [M/H] = -2 and rotation-dominated orbits near -1), and how sensitive are these numbers to the sample choices and metallicity errors?"
+question_zh: "用 Rix 等 2022 公开的 Gaia XP 金属丰度样本，能否复现他们对银心附近贫金属星给出的数字（约 18,000 颗 −2.7 < [M/H] < −1.5 的星、约 2.7 kpc 的高斯尺度、[M/H] < −2 时无净转动而 [M/H] 约 −1 时以转动为主），这些数字对样本选择与金属丰度误差有多敏感？"
+claims: []                    # claim ids in atlas/claims/ this study reproduces or tests
+milestone: M12               # roadmap milestone id, e.g. M1
+papers: ["2209.02722"]
+wiki: Study-012-poor-old-heart
+
+# Where this study sits on the Atlas (schema in design plan 011).
+footprint:
+  scale: {min_pc: 1.0e+3, max_pc: 1.5e+4, note: "bright giants within 30 degrees of the Galactic Centre (parallax < 1 mas); the metal-poor population has a Gaussian extent of about 2.7 kpc around the Centre (Rix et al. 2022); range approximate until the table is read"}
+  sky:
+    mode: survey
+    survey: {name: "Gaia DR3 XP giants towards the Galactic Centre (|b| < 30 deg, l < 30 or > 330 deg, BP < 15.5)", note: "sample and XGBoost metallicities of Rix et al. 2022 (Zenodo 10.5281/zenodo.7035809)"}
+  data: ["Rix et al. 2022 Zenodo record 7035809: xp_gc_mh.csv (98.5 MB) and xp_gc_kinematics.csv (115.3 MB), downloaded once under the user's exception of 2026-11-21"]
