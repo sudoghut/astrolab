@@ -77,6 +77,9 @@ three example questions. Exploration never edits `results/`.
   id), `reproduction.quantities[].ours` and `reproduction.status` (vocabulary in `astrolab/claims.py`) plus the Chinese fields; the
   study's own `status` in `study.yaml` (a different vocabulary); `python -m astrolab claims check`;
   `python -m astrolab atlas` and commit `atlas/web/data/atlas.json` (`serve` also rewrites it).
+- The study's row in the root `README.md` status tables (English "Status" and Chinese "进展") and
+  in the `STATUS.md` study table: added in the PR that creates the study, and updated in every later
+  PR that changes its results, verdicts or status (AGENTS.md section 2, "总表保持同步").
 - `python -m pytest` passes; `STATUS.md` updated; move the TODO item to `DONE.md` with the PR
   number; if the plan uses staged review, a final `dual-gate-review` of the whole diff; mark the
   PR ready and rebase-merge.
