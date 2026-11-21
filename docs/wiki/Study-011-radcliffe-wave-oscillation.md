@@ -356,8 +356,295 @@ should show.
 
 ### Part 2 · The logic of the argument
 
-*To be written next (stages, premises, Lean 4 decomposition in
-[`studies/011-m11-radcliffe-wave-oscillation/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/011-m11-radcliffe-wave-oscillation/argument/Argument.lean)).*
+#### 2.0 Map of the argument
+
+The encoded conclusion has three parts, taken from the abstract and the main text: (1) the Wave
+oscillates through the Galactic plane like a travelling wave driven by the Galactic potential; (2) a
+travelling wave is preferred over a standing wave; (3) treated as a coherent oscillator, the Wave
+measures the local vertical potential (midplane density) and the Sun's vertical period. The radial
+drift and the Local Bubble link are discussed, not encoded (2.5).
+
+A. Young clusters and clouds are co-located, with no height cut; so the clusters were born in the
+   Wave; being younger than 30 Myr, they still move with their clouds; the model also explains the
+   ¹²CO velocities ⇒ the clusters' kinematics are the Wave's.
+B. Only gravity acts, in a known, stationary anharmonic potential ⇒ for a travelling wave the shape
+   fixes v_z. The travelling-wave model fits z and v_z with a 90° offset; [gap] that pattern belongs
+   to the Wave, not to the sample; [gap] one coherent travelling wave is an adequate description
+   despite Galactic shear ⇒ **the Wave oscillates like a travelling wave**.
+C. The cluster phases sweep −π/2 to π/2, which a standing wave forbids; B = 0.84 is closer to 1
+   ⇒ **a travelling wave is preferred over a standing wave**.
+D. B = 1 and B free fit equivalently well, so B = 1 is adopted; with the potential freed the fit
+   gives ω₀ = 68 km s⁻¹ kpc⁻¹; the isothermal sheet turns it into a density; [gap] that posterior is
+   set by the data, not by priors from initial fits ⇒ **the Wave weighs the local disc and gives
+   the Sun's period**.
+
+How we check it: the argument is written in Lean 4
+([`studies/011-m11-radcliffe-wave-oscillation/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/011-m11-radcliffe-wave-oscillation/argument/Argument.lean)).
+Each premise is one constructor of `Field` (no axioms), labelled with its kind and its
+provenance:
+
+| Tag | Kind of premise |
+|---|---|
+| `OBS` | observation or measurement (with table / figure) |
+| `MOD` | modelling assumption, or an inference rule the paper states |
+| `STAT` | statistical inference (fit quality, posterior, model comparison) |
+| `NUM` | numerical result, re-computed by this repo's `run.py` (none yet: the study has no results) |
+| `LIT` | result taken from other literature |
+| `GAP` | premise the inference needs that neither the paper nor standard knowledge supplies |
+
+Provenance: `[stated: "quote"]` (the paper says it, quoted from the arXiv v1 text),
+`[implied]` (standard knowledge the paper relies on without writing it out, with a source),
+`[reconstructed]` (our addition; exactly the `GAP` premises; literature published after K24 enters
+here, because K24 cannot rely on it).
+
+What Lean checks: that the conclusion follows from these premises (`final`) and is not trivially
+true (`final_nontrivial`); that the premises can hold together (`consistent`); that no single
+premise gives the conclusion alone (`alone_insufficient`); for each premise, whether it is needed
+(a countermodel without it) or redundant; whether the premises the paper actually states are
+enough (`stated_*`), and whether they are enough once standard knowledge is added (`explicit_*`;
+`explicit_insufficient` means a real gap). What Lean does not check: the physics and statistics
+inside each premise — that is what parts 1 and 3 and the study are for.
+
+Three K24 sentences are inference rules ("the fit indicates that the Wave oscillates", "we can
+transfer our results ... including the gas", "by treating the Wave as a coherently oscillating
+structure, we can ... directly measure ..."). We encode each as an implication and, where our
+analysis says the step needs more, add the missing conditions as extra antecedents; an implication
+with more antecedents is weaker than the quote, so the `[stated]` label stays honest, and the
+missing conditions appear as separate `GAP` premises.
+
+#### 2.1 Stage A · The young clusters trace the Wave
+
+*Overview.* The Wave was found in gas (3D dust maps); its velocities come from young clusters. The
+link is: clusters and clouds are in the same place although the cluster selection had no height
+cut, so the clusters were born in the Wave; they are young, so they have not yet drifted away from
+their clouds; and the model fitted to the clusters (with the clouds) also reproduces the gas's
+line-of-sight velocities.
+
+**Premises.**
+
+| Premise (Lean constructor) | Tag | Provenance | Source in paper |
+|---|---|---|---|
+| `obs_coloc`: young clusters and clouds are co-located in 3D | OBS | stated: "As expected, the young clusters and star-forming molecular clouds are co-located in three dimensions." | main text p. 1, Fig. 1a |
+| `mod_born`: co-location (with no height cut) ⇒ the clusters were born in the Wave | MOD | stated: "The clusters were selected from a top-down view of the Galaxy, without an a priori selection criterion for height off the Galactic plane (see Methods), suggesting that the clusters' stars were born in the molecular clouds along the Radcliffe Wave." | main text p. 1 |
+| `mod_age`: born in the Wave and < 30 Myr ⇒ still moving with the natal clouds | MOD | stated: "We restrict our analysis to only the youngest clusters (ages smaller than 30 Myr), guaranteeing that these associations are still tracing the velocities of the molecular clouds that served as their birthplaces." | Methods, Stellar Cluster Catalog |
+| `obs_co`: the best-fit model explains the ¹²CO line-of-sight velocities | OBS | stated: "We show in Extended Data Figure 3a that our model explains the 12CO observations" | Methods, Line-of-sight Gas Velocities |
+| `mod_transfer`: tracers + CO match ⇒ clouds and clusters are one kinematically coherent structure | MOD | stated: "As a consequence, we can transfer our results from the full phase-space study of the stars to all components of the Radcliffe Wave, including the gas" | Methods, Line-of-sight Gas Velocities |
+
+**Rival explanations.**
+
+| Alternative | Excluded by premise | Excluded explicitly by the paper? |
+|---|---|---|
+| The vertical pattern of the clusters is built in by the selection | `mod_born` (no height cut) | yes: selection on the x–y plane only, ±5 Wave radii from the dust model |
+| The clusters were not born in the Wave but lie in front of or behind it | `obs_coloc`, `mod_born` | yes (co-location in 3D); "suggesting" is a hedge, encoded as an implication |
+| Clusters up to 30 Myr old have drifted away from their gas, so their v_z is not the gas's v_z | `mod_age`, `obs_co` | partly: the age cut is said to "guarantee" tracing, and the CO check is graphical and probes v_z only through the line of sight |
+| Perseus, Taurus and Lacerta do not move with the Wave | (not encoded: they are removed) | yes: Lacerta excluded beforehand; all Perseus and Taurus clusters come out as outliers and are attributed to feedback bubbles |
+
+**Inference (Lean excerpt).**
+
+```lean
+have c : v.Coherent := p .mod_transfer (p .mod_age (p .mod_born (p .obs_coloc))) (p .obs_co)
+```
+
+**Critique.** Each link is plausible, but two are qualitative. "Guaranteeing" is strong: 30 Myr is
+about a third of the vertical period (~90 Myr), enough for stars and gas to separate if the gas is
+pushed by feedback (which is exactly what K24 invokes for Perseus and Taurus). The CO check is the
+only test with the gas, and it is a figure without a goodness-of-fit number; because each line of
+sight mixes v_x, v_y and v_z, agreement in v_LSR does not by itself show that the gas has the
+clusters' v_z. K24 also states that fits to clouds only, clusters only and both are consistent
+(Methods, "confirming that the Radcliffe Wave is a spatially and kinematically coherent
+structure"); we do not encode this as a second route, because the clouds-only fit has no
+velocities.
+
+#### 2.2 Stage B · Positions and velocities fit a travelling wave in the Galactic potential
+
+*Overview.* This is the core. If only gravity acts and the vertical potential is known, each piece
+of the Wave oscillates with a known frequency ω(s); for a travelling wave the spatial shape then
+fixes the vertical velocities (amplitude ζ(s)ω(s), a quarter wavelength out of step with z), with
+no free velocity amplitude. The fit to the clusters' (x, y, z, v_z/ω₀) is "excellent", with the
+90° offset. K24 reads this as oscillation.
+
+**Premises.**
+
+| Premise (Lean constructor) | Tag | Provenance | Source in paper |
+|---|---|---|---|
+| `mod_grav`: only gravity acts on the Wave vertically | MOD | stated: "We therefore model the forces acting on the Wave solely by gravity." | Methods (density contrast 10⁴ with the surrounding medium) |
+| `mod_pot`: the vertical potential is the anharmonic oscillator of eq. 1 | MOD | stated: "Since the Radcliffe Wave's amplitude is on the order of the Galaxy's vertical scale height, the vertical gravitational potential Φ resulting in this acceleration can be represented by an anharmonic oscillator." | Methods, eq. 1 (ω₀ = 74, r₀ = 3.7, μ₀ = 1.3 from an existing Milky Way model) |
+| `mod_stationary`: the potential is stationary | MOD | stated: "Note that, consistent with the literature, we treat the underlying Gravitational potential as stationary." | Methods |
+| `mod_shape`: gravity + known stationary potential ⇒ for a travelling wave the shape fixes v_z | MOD | stated: "For a traveling wave, the wave's spatial shape fully determines vertical velocities, assuming a gravitational potential" | main text p. 2 |
+| `stat_twfit`: the travelling-wave model fits z and v_z, with a 90° offset | STAT | stated: "While a traveling wave provides an excellent fit to the observations, with a 90° phase offset between position (z) and velocity (vz), as evident in Figure 1" | main text p. 2, Extended Data Table 2 |
+| `gap_vz`: the fitted z–v_z relation is a property of the Wave, not of the sample, its radial-velocity coverage or the outlier and weighting choices | GAP | reconstructed | Zhu et al. 2024, arXiv:2402.15346; Bobylev et al. 2025, arXiv:2503.21019 |
+| `gap_shear`: one coherent travelling wave (one phase law Λ(s), one solid-body drift) adequately describes the Wave over the time its tracers span | GAP | reconstructed | Li, Zhou & Chen 2024, arXiv:2410.14603 |
+| `mod_osc`: coherent tracers + v_z fixed by the shape + good fit (+ the two gaps) ⇒ the Wave oscillates like a travelling wave | MOD | stated: "The fit shown as a solid black line in Figure 1 (cf. Supplementary Figure 1, Methods) indicates that the Radcliffe Wave oscillates through the Galactic plane like a traveling wave" | main text p. 2 |
+
+**Rival explanations.**
+
+| Alternative | Excluded by premise | Excluded explicitly by the paper? |
+|---|---|---|
+| A static corrugation (a frozen ripple with no vertical motion) | `stat_twfit` (v_z pattern of ~14 km/s with the predicted amplitude) | implicitly: Fig. 1b shows the v_z wave; also, under `mod_grav`, a structure 220 pc from the plane with no support cannot stay at rest |
+| Non-gravitational forcing (feedback bubbles, gas pressure, magnetic fields) drives the vertical motions | `mod_grav` | partly: density contrast 10⁴; the feedback-dominated Perseus and Taurus clusters are outliers |
+| A non-stationary potential (warp, tilt, radial vertical waves near the Sun) | `mod_stationary`, `mod_pot` | yes: tilt fitted (no effect), warp on longer timescales, radial waves argued negligible, three potentials tried |
+| Vertical velocities not synchronous with the positions (a v_z gradient along the Wave, different wavelengths in z and v_z) | `gap_vz` | no (Zhu et al. 2024 appeared on arXiv the same week as K24; Bobylev et al. 2025 later) |
+| The 90° relation is driven by the outlier model (all Perseus and Taurus dropped, soft cut at √3σ per component), the kernel weights or a few Orion and Cepheus clusters | `gap_vz` | partly: Sun's height, tilt, potentials and a second cluster catalogue checked; outlier threshold and weights not varied |
+| Galactic shear stretches the Wave (to almost twice its length in ~45 Myr, half an oscillation cycle), so a single phase law and a solid-body drift are an oversimplification | `gap_shear` | partly: K24 notes cloud destruction and phase mixing on "several tens of Myr" and that its time-independent approximation reaches the noise after about 40 Myr, but fits a single coherent wave |
+
+**Inference (Lean excerpt).**
+
+```lean
+have z : v.VzFixed := p .mod_shape (p .mod_grav) (p .mod_pot) (p .mod_stationary)
+have o : v.Oscillating := p .mod_osc c z (p .stat_twfit) (p .gap_vz) (p .gap_shear)  -- two GAPs
+```
+
+**Critique.** The empirical content of "oscillating" is narrower than it sounds. Under
+`mod_grav`, any parcel 220 pc from the plane must be moving vertically; what the data add is that
+the measured v_z have the size (~14 km/s) and the quarter-wavelength shift that the known potential
+predicts. That is a real test, because in the travelling-wave fit the velocity amplitude is not
+free. Two things it needs are not shown in K24. (i) The v_z pattern must belong to the Wave rather
+than to the sample: the cluster v_z rest on Gaia proper motions plus radial velocities that are
+sparse for some clusters (K24 removes clusters above 50 km/s as anomalies), and the soft outlier
+model removes whole regions. Zhu et al. 2024, using APOGEE-2 stars and, separately, cloud radial
+velocities with YSO proper motions, find v_z oscillations "not synchronous with the vertical
+coordinate" (a ~5 km s⁻¹ kpc⁻¹ gradient), and Bobylev et al. 2025 find different wavelengths in z
+and v_z. (ii) A single coherent travelling wave is an idealisation: K24 itself says the Wave is
+likely affected by phase mixing on several tens of Myr, and Li et al. 2024 argue that shear makes a
+solid-body description an oversimplification over half a period. The snapshot fit can still show
+that pieces of the Wave move up and down as gravity predicts; what (ii) threatens is the
+"travelling wave" reading, the phase velocities and the solid-body drift. Both points are later
+literature or our analysis, so they are `GAP`s.
+
+#### 2.3 Stage C · Travelling, not standing
+
+*Overview.* K24 lets the data choose between travelling (B = 1), standing (B = 0.5) and mixtures.
+Two arguments exclude a standing wave: in a standing wave the cluster phases φ_k = arctan(z_k ω_k /
+v_z,k) would be almost constant along the Wave, but they sweep the whole range −π/2 to π/2; and the
+mixture fit gives B = 0.84 (+0.07/−0.06), much closer to 1 than to 0.5.
+
+**Premises.**
+
+| Premise (Lean constructor) | Tag | Provenance | Source in paper |
+|---|---|---|---|
+| `stat_phase`: the phases φ_k sweep −π/2 to π/2 | STAT | stated: "In contrast, we find that the phases φk change over the whole range of -π/2 to π/2, such that B = 0.5 is inconsistent with the data." | Methods (wave model) |
+| `mod_standing`: standing wave ⇒ phases roughly constant (not sweeping) | MOD | stated: "From equations (4) and (5) we conclude that the phases φk should be roughly constant" | Methods (the preceding sentence assumes B = 0.5) |
+| `stat_b`: best-fit B = 0.84 (encoded as 84 hundredths) | STAT | stated: "We find a best fit value for B = 0.84." | Methods; Extended Data Table 2 column (5) |
+| `mod_bnear1`: B closer to 1 (encoded: above 0.75) ⇒ the data favour a travelling wave | MOD | stated: "The value of B closer to 1 indicates that data favors a traveling wave." | Methods |
+| `mod_prefer`: favoured travelling + standing excluded ⇒ travelling preferred over standing | MOD | stated: "When fitting a mixture model that allows for superpositions of a traveling and a standing wave, we find that a traveling wave is strongly preferred over a standing wave (see Methods)." | main text p. 2 |
+
+**Rival explanations.**
+
+| Alternative | Excluded by premise | Excluded explicitly by the paper? |
+|---|---|---|
+| A standing wave (fixed nodes, z and v_z in phase) | `stat_phase` + `mod_standing`; `stat_b` + `mod_bnear1` | yes, by the phase argument and the B posterior |
+| An intermediate mixture (0.5 < B < 1) | not excluded, and not needed: the encoded claim is "preferred over a standing wave" | partly: B = 1 is adopted afterwards because B = 1 and B free fit "equivalently" (stage D) |
+
+**Inference (Lean excerpt).**
+
+```lean
+have hb : v.b_x100 = 84 := p .stat_b
+have ft : v.FavorTW := p .mod_bnear1 (by omega)
+have ns : ¬ v.Standing := fun s => p .mod_standing s (p .stat_phase)
+have pt : v.PreferTW := p .mod_prefer ft ns
+```
+
+**Critique.** This stage closes from what K24 states, with no gap. Two remarks on strength. The
+main-text "strongly preferred" sits next to the only evidence ratio K24 reports for B, ΔlnZ ≈ 1,
+but that ratio compares B = 1 with B free, not travelling with standing; the exclusion of B = 0.5
+rests on the phase spread (no statistic is given for it) and on the posterior of B, whose interval
+lies well above 0.5 (we do not convert the separation into a significance: the posterior is
+bounded). And the phases φ_k use ω_k from the adopted potential, so this test inherits stage B's
+assumptions. The B threshold 0.75 is our reading of "closer to 1"; any threshold between 0.5 and
+0.84 gives the same result.
+
+#### 2.4 Stage D · Weighing the disc with the Wave
+
+*Overview.* With B = 1 adopted, K24 frees the three potential parameters (ω₀, μ₀, r₀) and fits
+them to the Wave alone: ω₀ = 68 (+8/−7) km s⁻¹ kpc⁻¹, consistent with the adopted 74. The
+isothermal sheet turns ω₀ into a midplane density, ρ₀ = ω₀²/(4πG) = 0.085 M☉ pc⁻³; subtracting
+the baryons gives a dark-matter density consistent with zero; the same potential gives the Sun's
+vertical period, 95 Myr.
+
+**Premises.**
+
+| Premise (Lean constructor) | Tag | Provenance | Source in paper |
+|---|---|---|---|
+| `stat_bequiv`: B = 1 and B free fit equivalently well | STAT | stated: "Thus, both models are an equivalently good fit to the data, while the realization with fixed B = 1 is slightly preferred." | Methods (ΔlnZ = ln Z₂ − ln Z₁ ≈ 1) |
+| `mod_b1`: so B = 1 can be adopted | MOD | stated: "We therefore conclude that the Wave's motion is of first order consistent with a traveling wave, implying that we can set B = 1 in all further performed calculations" | Methods |
+| `stat_omega`: with the potential freed, ω₀ = 68 (+8/−7), μ₀ = 1.4, r₀ = 3.6 kpc, consistent with the adopted values | STAT | stated: "These values are consistent with the previously adopted values for ω0, μ0, and r0 within the 1σ error." | Methods; Extended Data Table 2 column (7) |
+| `mod_sheet`: ρ₀ = ω₀²/(4πG) (isothermal sheet) | MOD | stated: "Following the vertical density model of an isothermal sheet based on a Maxwellian vertical velocity distribution, we calculate the parameters defining the Galactic mass distribution" | Methods |
+| `gap_prior`: the ω₀ posterior (and so ρ₀, the dark-matter density and the Sun's period, with their errors) is set by the Wave's data, not by priors based on initial fits to the same data | GAP | reconstructed | — |
+| `mod_weigh`: oscillating + B = 1 + fitted ω₀ + isothermal sheet (+ the gap) ⇒ the Wave measures the local potential and the Sun's period | MOD | stated: "By treating the Radcliffe Wave as a coherently oscillating structure, we can derive its motion independently of the local Galactic mass distribution, and directly measure local properties of the Galactic potential as well as the Sun's vertical oscillation period." | Abstract |
+
+**Rival explanations.**
+
+| Alternative | Excluded by premise | Excluded explicitly by the paper? |
+|---|---|---|
+| The fitted ω₀ reflects the prior, not the Wave | `gap_prior` | partly: K24 says it fits "without prior knowledge about the vertical gravitational potential", but its priors are "based on initial fits" |
+| The data cannot distinguish the adopted potential from the fitted one | (shapes the error bars; not a separate premise) | stated: fixed and free potentials are "an equivalently good fit" (ΔlnZ ≈ 1) |
+| The Wave's vertical motion is not a free oscillation (stage B fails) | `mod_weigh` needs `Oscillating` | — (inherits stage B's gaps) |
+
+**Inference (Lean excerpt).**
+
+```lean
+have w : v.Weighs :=
+  p .mod_weigh o (p .mod_b1 (p .stat_bequiv)) (p .stat_omega) (p .mod_sheet) (p .gap_prior)  -- GAP
+exact ⟨o, pt, w⟩
+```
+
+**Critique.** The measurement rests on the whole of stages A and B (it uses `Oscillating`), so
+both of their gaps carry over. Its own weak point is the prior. The ω₀ prior, ln(ω₀/(km s⁻¹ pc⁻¹))
+~ N(−2.4, 0.17), is centred near 91 km s⁻¹ kpc⁻¹ with a width of ~17%, while the posterior has a
+width of ~11% and sits ~1.7σ (in ln) below the prior centre: the data pull ω₀ down, and the prior
+pulls it up, so the result is a compromise and its error bar is not the data's alone. The priors
+were set "based on initial fits", presumably to the same data, which would count the data twice
+and make the posteriors too narrow (r₀ is entirely prior-driven: posterior width = prior width).
+The fixed (74) and free (68) potentials fit "equivalently" (ΔlnZ ≈ 1), so the data do not
+distinguish a 10% change in ω₀; this is consistent with the quoted ±11%, but it means the Wave
+confirms the standard potential rather than replacing it. The dark-matter density (0.001 +0.024/−0.021
+M☉ pc⁻³) is a difference of two nearly equal numbers (0.085 total and 0.084 baryons) and is
+consistent with both zero and the conventional ~0.013; the Sun's period (95 Myr) is computed in the
+same fitted potential and inherits its prior. Besides, the encoded B = 1 step uses an evidence
+ratio whose printed sign disagrees with the stated preference (part 1.4); either way the ratio is
+≈ 1, so "equivalently good" holds and the step stands.
+
+#### 2.5 The radial drift and the Local Bubble (discussed, not encoded)
+
+K24 fits a solid-body in-plane velocity after removing Galactic rotation: v_x,plane = −3.9
+(+2.6/−2.7) and v_y,plane = 3.1 (+2.7/−2.6) km/s, i.e. ~5 km/s radially away from the Galactic
+Centre ("we find evidence that the Radcliffe Wave is drifting radially outward from the Galactic
+Center with a velocity of 5 km s-1"). Each component is only ~1.2–1.5σ from zero, so "evidence" is
+modest; the drift assumes the solid-body motion that `gap_shear` questions; and the link to the
+Upper Centaurus Lupus and Lower Centaurus Crux clusters is a direction, not a traceback (K24: an
+exact traceback "is beyond the scope of this work"). Bobylev et al. 2025 find ~10 km/s. Since one
+file has one conclusion and this claim does not feed the oscillation, it is not encoded; part 3
+can test it.
+
+#### 2.6 What the Lean check found
+
+1. **Headline: `explicit_insufficient`, with three gaps.** No premise is `[implied]`: everything
+   that is not a gap is stated by K24, so `stated_insufficient` and `explicit_insufficient` rest on
+   the same countermodel. The gaps are: the z–v_z pattern belongs to the Wave, not to the cluster
+   sample and its outlier treatment (`gap_vz`; contradicted in part by Zhu et al. 2024 and Bobylev
+   et al. 2025); one coherent travelling wave is an adequate description despite shear (`gap_shear`;
+   questioned by Li et al. 2024); and the potential fit is data-driven rather than prior-driven
+   (`gap_prior`).
+2. **Where the gaps sit.** Parts (1) and (3) of the conclusion depend on gaps; part (2), travelling
+   rather than standing, follows from what K24 states. The weighing of the disc inherits all three
+   gaps, because it uses the oscillation.
+3. **Ranking.** `gap_vz` matters most: an independent analysis with other velocity data reports
+   the opposite of the 90° synchrony, and the whole argument rests on that relation. `gap_shear`
+   affects the travelling-wave reading and the drift more than the local up-and-down motion.
+   `gap_prior` affects the size of the error bars on ρ₀, the dark-matter density and the Sun's
+   period more than their central values.
+4. **All 24 premises are needed** in this encoding; none is redundant (each sits on a single chain;
+   K24's second route to coherence, the consistency of the clouds-only, clusters-only and joint
+   fits, is not encoded).
+5. **Consistency** (`consistent`) has a little weight here: `mod_standing` is negative, and the
+   model needs the Wave not to be standing.
+6. **Weakenings we made.** Three stated inference rules (`mod_transfer`, `mod_osc`, `mod_weigh`) and
+   `mod_shape` are encoded with extra antecedents (the gaps or the potential's assumptions), so they
+   are weaker than their quotes; hedges ("suggesting", "indicates") are encoded as implications; the
+   threshold "B closer to 1" is our reading (above 0.75).
+7. **Limits.** Lean checks the logical structure under our encoding, not the dynamics or the
+   statistics inside each premise; fit quality ("excellent fit") and the CO agreement are figures
+   in K24 and enter as atoms.
 
 ### Part 3 · What astrolab can test or explore
 
@@ -382,6 +669,7 @@ should show.
 
 Newest first.
 
+- 2026-11-21: part 2 drafted: four stages, 24 premises checked in Lean 4; `explicit_insufficient` with three gaps (the z–v_z pattern versus Zhu et al. 2024; one coherent wave versus shear, Li et al. 2024; prior-driven potential fit); travelling versus standing closes from stated premises.
 - 2026-11-21: gate-1 review: the B posterior is no longer read as evidence against a pure travelling wave (prior truncated at 1); outlier rule, priors, axes, the Sun's period estimate, the Orion outlier fraction and Zhu et al.'s data routes corrected.
 - 2026-11-21: part 1 drafted (parts 2 and 3 to follow).
 
@@ -523,7 +811,178 @@ Newest first.
 
 ### 第二部分 · 论证逻辑
 
-*待写（环节、前提，以及 [`studies/011-m11-radcliffe-wave-oscillation/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/011-m11-radcliffe-wave-oscillation/argument/Argument.lean) 中的 Lean 4 拆解）。*
+#### 2.0 论证地图
+
+编码的结论有三部分，取自摘要与正文：(1) 波像一列由银河系引力势驱动的行波那样穿越银道面振荡；(2) 行波相对驻波受到偏好；(3) 把波当作连贯的振子，它测得本地竖直引力势（银道面中央密度）与太阳的竖直周期。径向漂移与本地泡的联系只讨论，不编码（2.5）。
+
+A. 年轻星团与云同处一地，且选样没有高度截断；所以星团诞生于波中；年龄小于 30 Myr，仍随母云运动；模型还解释了 ¹²CO 速度 ⇒ 星团的运动学就是波的运动学。
+B. 只有引力作用，引力势是已知、定常的非谐势 ⇒ 对行波而言形状决定 v_z。行波模型拟合 z 与 v_z，两者相差 90°；[缺口] 这一图样属于波本身，而不是样本；[缺口] 尽管有银河系的剪切，一列连贯的行波仍是恰当的描述 ⇒ **波像行波那样振荡**。
+C. 星团相位覆盖 −π/2 到 π/2，驻波不允许这样；B = 0.84 更接近 1 ⇒ **行波相对驻波受到偏好**。
+D. B = 1 与 B 自由拟合得同样好，于是取 B = 1；放开引力势后拟合给出 ω₀ = 68 km s⁻¹ kpc⁻¹；等温层把它换算成密度；[缺口] 这一后验由数据而不是由初步拟合定出的先验决定 ⇒ **波称量了本地银盘，并给出太阳的周期**。
+
+检查方法：论证用 Lean 4 写成（[`studies/011-m11-radcliffe-wave-oscillation/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/011-m11-radcliffe-wave-oscillation/argument/Argument.lean)）。每个前提是 `Field` 的一个构造子（constructor，不用公理），标注类型与出处性质：
+
+| 标注 | 前提类型 |
+|---|---|
+| `OBS` | 观测或测量（注明表或图） |
+| `MOD` | 模型假设，或论文明说的推理规则 |
+| `STAT` | 统计推断（拟合优度、后验、模型比较） |
+| `NUM` | 数值结果，由本仓库的 `run.py` 复算（暂无：研究还没有结果） |
+| `LIT` | 取自其他文献的结果 |
+| `GAP` | 推理需要、但论文与标准知识都没有提供的前提（隐含前提，gap premise） |
+
+出处性质：`[stated: "引文"]`（论文明说，引文取自 arXiv v1 原文）、`[implied]`（论文依赖但没写出的标准知识，注明来源）、`[reconstructed]`（我们补上的，恰好是 `GAP` 前提；K24 之后发表的文献也归入此类，因为 K24 不可能依赖它）。
+
+Lean 检查的内容：结论由这些前提推出（`final`）且不是恒真（`final_nontrivial`）；前提可以同时成立（`consistent`）；任何单个前提都推不出结论（`alone_insufficient`）；每个前提是必要的（有不含它的反例模型，countermodel）还是多余的；论文明说的前提是否足够（`stated_*`），加上标准知识后是否足够（`explicit_*`；`explicit_insufficient` 表示真正的缺口）。Lean 不检查每个前提内部的物理与统计——那是第一、三部分和研究本身的任务。
+
+K24 有三句话是推理规则（"拟合表明波在振荡"、"我们可以把结果……推广到包括气体在内的所有成分"、"把波当作连贯振荡的结构，我们可以……直接测量……"）。我们把每一句编码为蕴涵式，并在我们的分析认为这一步还需要更多条件时，把缺少的条件作为额外的前件加进去；前件更多的蕴涵式比引文更弱，所以 `[stated]` 标注仍然如实，缺少的条件则作为单独的 `GAP` 前提出现。
+
+#### 2.1 环节 A · 年轻星团示踪波
+
+*概述。* 波是在气体（三维尘埃图）中发现的；它的速度来自年轻星团。两者的联系是：尽管星团选样没有高度截断，星团与云仍在同一位置，所以星团诞生于波中；它们很年轻，还没有离开母云；而且对星团（与云一起）拟合的模型也重现了气体的视线速度。
+
+**前提。**
+
+| 前提（Lean 构造子） | 标注 | 出处性质 | 论文出处 |
+|---|---|---|---|
+| `obs_coloc`：年轻星团与云在三维中同处一地 | OBS | stated: "As expected, the young clusters and star-forming molecular clouds are co-located in three dimensions." | 正文第 1 页，图 1a |
+| `mod_born`：同处一地（且没有高度截断）⇒ 星团诞生于波中 | MOD | stated: "The clusters were selected from a top-down view of the Galaxy, without an a priori selection criterion for height off the Galactic plane (see Methods), suggesting that the clusters' stars were born in the molecular clouds along the Radcliffe Wave." | 正文第 1 页 |
+| `mod_age`：诞生于波中且小于 30 Myr ⇒ 仍随母云运动 | MOD | stated: "We restrict our analysis to only the youngest clusters (ages smaller than 30 Myr), guaranteeing that these associations are still tracing the velocities of the molecular clouds that served as their birthplaces." | 方法，Stellar Cluster Catalog |
+| `obs_co`：最佳拟合模型解释了 ¹²CO 视线速度 | OBS | stated: "We show in Extended Data Figure 3a that our model explains the 12CO observations" | 方法，Line-of-sight Gas Velocities |
+| `mod_transfer`：示踪 + CO 相符 ⇒ 云与星团是运动学上连贯的同一结构 | MOD | stated: "As a consequence, we can transfer our results from the full phase-space study of the stars to all components of the Radcliffe Wave, including the gas" | 方法，Line-of-sight Gas Velocities |
+
+**其他解释。**
+
+| 其他可能 | 由哪个前提排除 | 论文是否明确排除 |
+|---|---|---|
+| 星团的竖直图样是选样造成的 | `mod_born`（没有高度截断） | 是：只在 x–y 平面上选样，取尘埃模型两侧 ±5 倍波半径 |
+| 星团并非诞生于波中，只是在它前方或后方 | `obs_coloc`、`mod_born` | 是（三维同处一地）；"suggesting" 是保留措辞，编码为蕴涵式 |
+| 年龄达 30 Myr 的星团已离开其气体，其 v_z 不是气体的 v_z | `mod_age`、`obs_co` | 部分：年龄截断被说成"保证"示踪，CO 核对只有图示，且只通过视线方向探测 v_z |
+| 英仙座、金牛座与蝎虎座（Lacerta）不随波运动 | （不编码：已被剔除） | 是：Lacerta 事先排除；英仙座与金牛座的星团全部成为离群点，归因于反馈泡 |
+
+**推理（Lean 摘录）。**
+
+```lean
+have c : v.Coherent := p .mod_transfer (p .mod_age (p .mod_born (p .obs_coloc))) (p .obs_co)
+```
+
+**评述。** 每一环都说得通，但有两环是定性的。"保证"一词很强：30 Myr 约为竖直周期（约 90 Myr）的三分之一，如果气体受反馈推动（K24 正是用反馈解释英仙座与金牛座），这段时间足以让恒星与气体分开。CO 核对是唯一针对气体的检验，而它是没有拟合优度数值的图；由于每条视线都混合了 v_x、v_y 与 v_z，v_LSR 相符本身并不能说明气体具有星团的 v_z。K24 还指出只用云、只用星团与两者合用的拟合相互一致（方法："confirming that the Radcliffe Wave is a spatially and kinematically coherent structure"）；我们没有把它编码为第二条路径，因为只用云的拟合没有速度信息。
+
+#### 2.2 环节 B · 位置与速度拟合银河系引力势中的行波
+
+*概述。* 这是核心。如果只有引力作用且竖直引力势已知，波的每一段都以已知频率 ω(s) 振荡；对行波而言，空间形状就决定了竖直速度（幅度 ζ(s)ω(s)，与 z 错开四分之一波长），没有自由的速度幅度。对星团 (x, y, z, v_z/ω₀) 的拟合"极好"，并有 90° 相位差。K24 把这解读为振荡。
+
+**前提。**
+
+| 前提（Lean 构造子） | 标注 | 出处性质 | 论文出处 |
+|---|---|---|---|
+| `mod_grav`：竖直方向只有引力作用于波 | MOD | stated: "We therefore model the forces acting on the Wave solely by gravity." | 方法（与周围介质的密度比 10⁴） |
+| `mod_pot`：竖直引力势是式 1 的非谐振子 | MOD | stated: "Since the Radcliffe Wave's amplitude is on the order of the Galaxy's vertical scale height, the vertical gravitational potential Φ resulting in this acceleration can be represented by an anharmonic oscillator." | 方法，式 1（ω₀ = 74、r₀ = 3.7、μ₀ = 1.3，取自现有银河系模型） |
+| `mod_stationary`：引力势是定常的（stationary） | MOD | stated: "Note that, consistent with the literature, we treat the underlying Gravitational potential as stationary." | 方法 |
+| `mod_shape`：引力 + 已知定常引力势 ⇒ 对行波而言形状决定 v_z | MOD | stated: "For a traveling wave, the wave's spatial shape fully determines vertical velocities, assuming a gravitational potential" | 正文第 2 页 |
+| `stat_twfit`：行波模型拟合 z 与 v_z，相差 90° | STAT | stated: "While a traveling wave provides an excellent fit to the observations, with a 90° phase offset between position (z) and velocity (vz), as evident in Figure 1" | 正文第 2 页，扩展数据表 2 |
+| `gap_vz`：拟合出的 z–v_z 关系属于波本身，而不是样本、其视向速度覆盖或离群与加权的选择 | GAP | reconstructed | Zhu 等 2024，arXiv:2402.15346；Bobylev 等 2025，arXiv:2503.21019 |
+| `gap_shear`：在示踪天体覆盖的时间内，一列连贯的行波（一条相位规律 Λ(s)、一个刚体漂移）是恰当的描述 | GAP | reconstructed | Li、Zhou & Chen 2024，arXiv:2410.14603 |
+| `mod_osc`：连贯的示踪天体 + 形状决定 v_z + 拟合良好（+ 两个缺口）⇒ 波像行波那样振荡 | MOD | stated: "The fit shown as a solid black line in Figure 1 (cf. Supplementary Figure 1, Methods) indicates that the Radcliffe Wave oscillates through the Galactic plane like a traveling wave" | 正文第 2 页 |
+
+**其他解释。**
+
+| 其他可能 | 由哪个前提排除 | 论文是否明确排除 |
+|---|---|---|
+| 静态褶皱（static corrugation，没有竖直运动的冻结起伏） | `stat_twfit`（约 14 km/s、幅度符合预言的 v_z 图样） | 隐含地：图 1b 显示了 v_z 波；而且在 `mod_grav` 之下，离银道面 220 pc 又没有支撑的结构不可能静止 |
+| 非引力的驱动（反馈泡、气体压力、磁场）造成竖直运动 | `mod_grav` | 部分：密度比 10⁴；受反馈主导的英仙座与金牛座星团是离群点 |
+| 非定常的引力势（翘曲、倾斜、太阳附近的径向竖直波） | `mod_stationary`、`mod_pot` | 是：拟合了倾斜（无影响），翘曲的时标更长，论证径向波可忽略，试了三个引力势 |
+| 竖直速度与位置不同步（沿波的 v_z 梯度，z 与 v_z 的波长不同） | `gap_vz` | 否（Zhu 等 2024 与 K24 在同一周出现在 arXiv；Bobylev 等 2025 更晚） |
+| 90° 关系由离群模型（剔除全部英仙座与金牛座、按分量 √3σ 的软截断）、核密度权重或少数猎户座与仙王座星团造成 | `gap_vz` | 部分：检查了太阳高度、倾斜、引力势与另一个星团星表；没有改变离群阈值与权重 |
+| 银河系的剪切把波拉长（约 45 Myr 内拉长到几乎两倍，即半个振荡周期），单一相位规律与刚体漂移是过度简化 | `gap_shear` | 部分：K24 提到在"几千万年"上云的瓦解与相混合，并指出其时间无关近似在约 40 Myr 后达到噪声水平，但仍拟合单一的连贯波 |
+
+**推理（Lean 摘录）。**
+
+```lean
+have z : v.VzFixed := p .mod_shape (p .mod_grav) (p .mod_pot) (p .mod_stationary)
+have o : v.Oscillating := p .mod_osc c z (p .stat_twfit) (p .gap_vz) (p .gap_shear)  -- two GAPs
+```
+
+**评述。** "振荡"的经验内容比听起来窄。在 `mod_grav` 之下，离银道面 220 pc 的任何一团物质都必然在竖直方向运动；数据增加的信息是：测得的 v_z 具有已知引力势所预言的大小（约 14 km/s）与四分之一波长的错位。这是真正的检验，因为在行波拟合中速度幅度不是自由参数。它需要的两件事 K24 没有表明。(i) v_z 图样必须属于波本身而不是样本：星团的 v_z 依赖 Gaia 自行加上视向速度，而有些星团的视向速度很稀少（K24 把超过 50 km/s 的星团当作异常剔除），软离群模型又会整片剔除某些区域。Zhu 等 2024 用 APOGEE-2 恒星、以及另外用云的视向速度配合 YSO 自行，发现 v_z 振荡"与竖直坐标不同步"（约 5 km s⁻¹ kpc⁻¹ 的梯度）；Bobylev 等 2025 发现 z 与 v_z 的波长不同。(ii) 单一的连贯行波是理想化：K24 自己说波在几千万年上很可能受相混合影响，Li 等 2024 认为剪切使刚体描述在半个周期上成为过度简化。快照拟合仍然可以表明波的各段按引力的预言上下运动；(ii) 威胁的是"行波"的解读、相速度与刚体漂移。两点都来自后来的文献或我们的分析，所以是 `GAP`。
+
+#### 2.3 环节 C · 是行波而不是驻波
+
+*概述。* K24 让数据在行波（B = 1）、驻波（B = 0.5）与混合之间选择。有两个论证排除驻波：在驻波中，星团相位 φ_k = arctan(z_k ω_k / v_z,k) 沿波应几乎不变，但实际覆盖了 −π/2 到 π/2 的整个范围；混合模型拟合给出 B = 0.84 (+0.07/−0.06)，离 1 比离 0.5 近得多。
+
+**前提。**
+
+| 前提（Lean 构造子） | 标注 | 出处性质 | 论文出处 |
+|---|---|---|---|
+| `stat_phase`：相位 φ_k 覆盖 −π/2 到 π/2 | STAT | stated: "In contrast, we find that the phases φk change over the whole range of -π/2 to π/2, such that B = 0.5 is inconsistent with the data." | 方法（波模型） |
+| `mod_standing`：驻波 ⇒ 相位大致不变（不会覆盖整个范围） | MOD | stated: "From equations (4) and (5) we conclude that the phases φk should be roughly constant" | 方法（前一句假设 B = 0.5） |
+| `stat_b`：最佳拟合 B = 0.84（编码为 84 个百分之一） | STAT | stated: "We find a best fit value for B = 0.84." | 方法；扩展数据表 2 第 (5) 列 |
+| `mod_bnear1`：B 更接近 1（编码：大于 0.75）⇒ 数据偏好行波 | MOD | stated: "The value of B closer to 1 indicates that data favors a traveling wave." | 方法 |
+| `mod_prefer`：偏好行波 + 排除驻波 ⇒ 行波相对驻波受到偏好 | MOD | stated: "When fitting a mixture model that allows for superpositions of a traveling and a standing wave, we find that a traveling wave is strongly preferred over a standing wave (see Methods)." | 正文第 2 页 |
+
+**其他解释。**
+
+| 其他可能 | 由哪个前提排除 | 论文是否明确排除 |
+|---|---|---|
+| 驻波（波节固定，z 与 v_z 同相） | `stat_phase` + `mod_standing`；`stat_b` + `mod_bnear1` | 是，由相位论证与 B 的后验 |
+| 中间的混合（0.5 < B < 1） | 没有排除，也不需要：编码的说法是"相对驻波受到偏好" | 部分：之后取 B = 1，理由是 B = 1 与 B 自由拟合得"同样好"（环节 D） |
+
+**推理（Lean 摘录）。**
+
+```lean
+have hb : v.b_x100 = 84 := p .stat_b
+have ft : v.FavorTW := p .mod_bnear1 (by omega)
+have ns : ¬ v.Standing := fun s => p .mod_standing s (p .stat_phase)
+have pt : v.PreferTW := p .mod_prefer ft ns
+```
+
+**评述。** 这一环节由 K24 明说的前提即可推出，没有缺口。关于强度有两点说明。正文的"强烈偏好"旁边，K24 对 B 报告的唯一证据比是 ΔlnZ ≈ 1，但它比较的是 B = 1 与 B 自由，而不是行波与驻波；排除 B = 0.5 依靠的是相位的分布（没有给出统计量）以及 B 的后验，其区间远高于 0.5（我们不把这一距离换算成显著性：后验有界）。此外，相位 φ_k 用的是采用的引力势给出的 ω_k，所以这一检验继承了环节 B 的假设。B 的阈值 0.75 是我们对"更接近 1"的理解；0.5 与 0.84 之间的任何阈值都给出同样的结果。
+
+#### 2.4 环节 D · 用波称量银盘
+
+*概述。* 取 B = 1 后，K24 放开三个引力势参数（ω₀、μ₀、r₀），只用波来拟合：ω₀ = 68 (+8/−7) km s⁻¹ kpc⁻¹，与采用值 74 一致。等温层（isothermal sheet）把 ω₀ 换算成银道面中央密度 ρ₀ = ω₀²/(4πG) = 0.085 M☉ pc⁻³；减去重子得到与零相容的暗物质密度；同一引力势给出太阳的竖直周期 95 Myr。
+
+**前提。**
+
+| 前提（Lean 构造子） | 标注 | 出处性质 | 论文出处 |
+|---|---|---|---|
+| `stat_bequiv`：B = 1 与 B 自由拟合得同样好 | STAT | stated: "Thus, both models are an equivalently good fit to the data, while the realization with fixed B = 1 is slightly preferred." | 方法（ΔlnZ = ln Z₂ − ln Z₁ ≈ 1） |
+| `mod_b1`：所以可以取 B = 1 | MOD | stated: "We therefore conclude that the Wave's motion is of first order consistent with a traveling wave, implying that we can set B = 1 in all further performed calculations" | 方法 |
+| `stat_omega`：放开引力势后 ω₀ = 68 (+8/−7)、μ₀ = 1.4、r₀ = 3.6 kpc，与采用值一致 | STAT | stated: "These values are consistent with the previously adopted values for ω0, μ0, and r0 within the 1σ error." | 方法；扩展数据表 2 第 (7) 列 |
+| `mod_sheet`：ρ₀ = ω₀²/(4πG)（等温层） | MOD | stated: "Following the vertical density model of an isothermal sheet based on a Maxwellian vertical velocity distribution, we calculate the parameters defining the Galactic mass distribution" | 方法 |
+| `gap_prior`：ω₀ 的后验（以及由此得到的 ρ₀、暗物质密度与太阳周期及其误差）由波的数据决定，而不是由依据同一数据的初步拟合设定的先验决定 | GAP | reconstructed | — |
+| `mod_weigh`：振荡 + B = 1 + 拟合的 ω₀ + 等温层（+ 缺口）⇒ 波测得本地引力势与太阳的周期 | MOD | stated: "By treating the Radcliffe Wave as a coherently oscillating structure, we can derive its motion independently of the local Galactic mass distribution, and directly measure local properties of the Galactic potential as well as the Sun's vertical oscillation period." | 摘要 |
+
+**其他解释。**
+
+| 其他可能 | 由哪个前提排除 | 论文是否明确排除 |
+|---|---|---|
+| 拟合的 ω₀ 反映的是先验而不是波 | `gap_prior` | 部分：K24 说拟合"without prior knowledge about the vertical gravitational potential"，但其先验是"based on initial fits" |
+| 数据无法区分采用的引力势与拟合的引力势 | （影响误差棒；不是单独的前提） | 明说：固定与放开的引力势"同样好"（ΔlnZ ≈ 1） |
+| 波的竖直运动不是自由振荡（环节 B 不成立） | `mod_weigh` 需要 `Oscillating` | ——（继承环节 B 的缺口） |
+
+**推理（Lean 摘录）。**
+
+```lean
+have w : v.Weighs :=
+  p .mod_weigh o (p .mod_b1 (p .stat_bequiv)) (p .stat_omega) (p .mod_sheet) (p .gap_prior)  -- GAP
+exact ⟨o, pt, w⟩
+```
+
+**评述。** 这一测量依赖环节 A 与 B 的全部内容（它用到 `Oscillating`），所以那两个缺口都会传递过来。它自身的弱点是先验。ω₀ 的先验 ln(ω₀/(km s⁻¹ pc⁻¹)) ~ N(−2.4, 0.17) 中心约为 91 km s⁻¹ kpc⁻¹，宽约 17%，而后验宽约 11%，比先验中心低约 1.7σ（按对数）：数据把 ω₀ 往下拉，先验往上拉，结果是两者的折中，其误差棒不只来自数据。先验是"依据初步拟合"设定的，大概用的是同样的数据，这会把数据算两次、使后验过窄（r₀ 完全由先验决定：后验宽度等于先验宽度）。固定（74）与放开（68）的引力势拟合得"同样好"（ΔlnZ ≈ 1），所以数据分辨不出 ω₀ 10% 的变化；这与给出的 ±11% 相符，但这意味着波是在确认标准引力势，而不是取代它。暗物质密度（0.001 +0.024/−0.021 M☉ pc⁻³）是两个几乎相等的数之差（总量 0.085 与重子 0.084），既与零相容，也与常规的约 0.013 相容；太阳周期（95 Myr）在同一个拟合的引力势中算出，继承了它的先验。另外，编码中取 B = 1 的一步用到的证据比，其印出的符号与所述的偏好不一致（第一部分 1.4）；无论哪个正确，该比值都约为 1，"同样好"成立，这一步站得住。
+
+#### 2.5 径向漂移与本地泡（只讨论，不编码）
+
+K24 在扣除银河系自转后拟合一个刚体的盘面内速度：v_x,plane = −3.9 (+2.6/−2.7)、v_y,plane = 3.1 (+2.7/−2.6) km/s，即约 5 km/s 沿径向远离银心（"we find evidence that the Radcliffe Wave is drifting radially outward from the Galactic Center with a velocity of 5 km s-1"）。每个分量离零只有约 1.2–1.5σ，所以"证据"并不强；漂移假设了 `gap_shear` 所质疑的刚体运动；与 Upper Centaurus Lupus 和 Lower Centaurus Crux 星团的联系只是方向，不是回溯（K24：精确的回溯"is beyond the scope of this work"）。Bobylev 等 2025 得到约 10 km/s。由于一个文件只有一个结论，而这一说法不影响振荡的论证，所以不编码；第三部分可以检验它。
+
+#### 2.6 Lean 检查发现的问题
+
+1. **主要结果：`explicit_insufficient`，三个缺口。** 没有 `[implied]` 前提：凡不是缺口的前提都是 K24 明说的，所以 `stated_insufficient` 与 `explicit_insufficient` 用的是同一个反例模型。缺口是：z–v_z 图样属于波本身，而不是星团样本及其离群处理（`gap_vz`；Zhu 等 2024 与 Bobylev 等 2025 部分地与之矛盾）；尽管有剪切，一列连贯的行波仍是恰当的描述（`gap_shear`；Li 等 2024 对此提出质疑）；引力势的拟合由数据而不是先验决定（`gap_prior`）。
+2. **缺口的位置。** 结论的 (1) 与 (3) 依赖缺口；(2) 是行波而不是驻波，由 K24 明说的前提即可推出。称量银盘一步继承了全部三个缺口，因为它用到振荡。
+3. **重要性排序。** `gap_vz` 最重要：一项用其他速度数据的独立分析报告了与 90° 同步相反的结果，而整个论证都建立在这一关系之上。`gap_shear` 对行波解读与漂移的影响大于对局部上下运动的影响。`gap_prior` 主要影响 ρ₀、暗物质密度与太阳周期误差棒的大小，而不是它们的中心值。
+4. **在这种编码下 24 个前提都是必要的**，没有多余的（每个前提都在单一链条上；K24 通向"连贯"的第二条路径，即只用云、只用星团与联合拟合的一致性，没有编码）。
+5. **相容性**（`consistent`）在这里有一点分量：`mod_standing` 是否定形式，模型需要波不是驻波。
+6. **我们做的弱化。** 三条明说的推理规则（`mod_transfer`、`mod_osc`、`mod_weigh`）与 `mod_shape` 编码时加了额外的前件（缺口或引力势的假设），所以比引文弱；保留措辞（"suggesting"、"indicates"）编码为蕴涵式；"B 更接近 1"的阈值是我们的理解（大于 0.75）。
+7. **局限。** Lean 检查的是我们编码下的逻辑结构，不是每个前提内部的动力学或统计；拟合优度（"excellent fit"）与 CO 的一致在 K24 中只是图，作为原子命题进入。
 
 ### 第三部分 · 本项目可检验或探索的环节
 
@@ -548,6 +1007,7 @@ Newest first.
 
 按时间倒序。
 
+- 2026-11-21：第二部分初稿：四个环节，24 个前提用 Lean 4 检查；`explicit_insufficient`，三个缺口（z–v_z 图样与 Zhu 等 2024 的矛盾；单一连贯的波与剪切，Li 等 2024；引力势拟合受先验影响）；行波相对驻波由明说的前提即可推出。
 - 2026-11-21：闸门 1 审查：B 的后验不再读作反对纯行波的证据（先验在 1 处截断）；改正离群判据、先验、坐标轴、太阳周期的估算、猎户座离群比例与 Zhu 等的数据来源；补充术语英文。
 - 2026-11-21：第一部分初稿（第二、三部分随后）。
 
