@@ -1,23 +1,1008 @@
 """M11 Radcliffe Wave: is the young-cluster wave oscillating?
 
+Implements the pre-registration of README sections 1-4 (T1-T8, overall reading).
+
 Run with:      python -m astrolab run 011-m11-radcliffe-wave-oscillation
 Explore with:  python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --set KEY=VALUE
+
+The formal run takes many hours on one core (README 4.7). It writes checkpoints outside the project
+folder (astrolab cache dir / PARAMS["checkpoint_subdir"] / <key>), so an interrupted or paused run
+(PARAMS["stop_after_hours"]) continues where it stopped when it is started again with the same PARAMS
+and code. Results are written only when every requested part has finished.
 """
+import hashlib
+import math
+import time
+import zlib
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+from scipy.optimize import minimize_scalar
+
+import fit011 as F
+import stats011 as S
+import wave011 as W
+
+CLUSTERS_URL = "https://dataverse.harvard.edu/api/access/datafile/7211931"
+CLOUDS_URL = "https://dataverse.harvard.edu/api/access/datafile/7211929"
+HERE = Path(__file__).resolve().parent
 
 # Tunable knobs (AGENTS.md section 2). Read them inside main() at call time, never into
 # module-level constants, and pass values to helper modules as arguments (a helper that does
 # `import run` gets a fresh copy without the override): `astrolab explore --set` overrides
-# this dict in memory.
+# this dict in memory. The defaults are the pre-registered values (README sections 2-4); changing
+# one in the committed file is a change to the pre-registration.
 PARAMS = {
-    "example_limit": 10,
+    "seed": 20261121,
+    # model (README 4.1)
+    "sigma_pc": 47.0,
+    "bandwidth_pc": 100.0,
+    "grid_n": 2000,
+    "u_min": -0.2,
+    "u_max": 1.4,
+    # sampler and optimiser (README 4.2)
+    "mcmc_walkers": 48,
+    "mcmc_steps": 6000,
+    "mcmc_burn": 2000,
+    "mcmc_min_tau_mult": 50.0,
+    "mcmc_chunk": 250,
+    "mcmc_thin_keep": 10,
+    "ml_starts": 20,
+    "ml_nm_maxfev": 6000,
+    "ml_lbfgs_maxfun": 3000,
+    # T3 / T4 (README 4.3)
+    "t3_mocks": 100,
+    "t3_resid_variant": True,
+    "t3_strong": 0.001,
+    "alpha": 0.05,
+    "t4_mocks": 1000,
+    "t4_p_excl": 0.01,
+    "t4_p_not": 0.05,
+    "t4_power_min": 0.8,
+    # T5 (README 4.4)
+    "t5_boot": 1000,
+    "t5_ka_mocks": 20,
+    "t5_ka_B": [0.5, 0.84, 1.0],
+    "t5_ka_w0t": -0.38,
+    "t5_b_t": 0.4,
+    "t5_band": [0.8, 1.25],
+    "t5_k_min": 0.3,
+    "t5_k_max": 3.0,
+    "t5_k_step": 0.01,
+    "t5_cut_sigma": 1.7320508075688772,       # sqrt(3) x 47 pc
+    "t5_omega0_sens_kms_kpc": 68.0,
+    # T6 (README 4.6)
+    "variants": ["v1_outlier_3sigma", "v2_no_outlier_model", "v3_no_weights", "v4_bandwidth_50",
+                 "v5_bandwidth_200", "v6_wsun_7p25", "v7_no_orion", "v8_leave_out_reference",
+                 "v9_low_sigmavz", "v10_chord_u1"],
+    "v4_bandwidth_pc": 50.0,
+    "v5_bandwidth_pc": 200.0,
+    "v1_cut_sigma": 3.0,
+    "v6_dvz_kms": -0.55,
+    "v7_orion_l_deg": [180.0, 220.0],
+    "v7_orion_b_deg": [-25.0, -5.0],
+    # T7 (README 4.5)
+    "t7_vc_kms": 242.0,
+    "t7_margin": 9.0,
+    # T8 (README section 2)
+    "t8_broad_omega0_kms_kpc": [30.0, 150.0],
+    "t8_broad_mu0_kpc": [0.3, 3.0],
+    "t8_broad_r0_pc": [1000.0, 10000.0],
+    "t8_prior_sigma_ln_omega0": 0.17,
+    "t8_width_frac": 0.5,
+    "t8_shift_max": 0.5,
+    "t8_divisor_variant_kms_kpc": 74.0,
+    "t8_draws": 2000,
+    "sun_vz_kms": 7.8,
+    # load check (README 3)
+    "load_check_max_abs_vz": 3.0,
+    # running
+    "parts": ["t1t2", "t3", "t4", "t5", "t6", "t7", "t8"],
+    "timing_evals": 100,
+    "stop_after_hours": 10.0,                 # pause (checkpointed) after this long; 0 = no limit
+    "checkpoint_subdir": "s011_checkpoints",
 }
 
+# keys that do not change any result (excluded from the checkpoint key)
+_RUN_ONLY = ("stop_after_hours", "timing_evals", "parts", "checkpoint_subdir")
+SHAPE = W.SHAPE_NAMES
+T1_KEYS = ("A", "p", "delta", "s0", "gamma", "phi")
+ANCHORS = ("x0", "y0", "x1", "y1", "x2", "y2")
+
+
+def rng_for(seed, name):
+    return np.random.default_rng([int(seed) % (2 ** 32), zlib.crc32(name.encode())])
+
+
+# =============================================================================================
+# Data
+
+def load_tables(ctx):
+    pc = ctx.http(CLUSTERS_URL, label="K24 young-cluster table (Dataverse doi:10.7910/DVN/XSCB9N, file 7211931)")
+    po = ctx.http(CLOUDS_URL, label="K24 12CO cloud table (Dataverse doi:10.7910/DVN/Q7F4PC, file 7211929)")
+    cl = pd.read_csv(pc, sep="\t")
+    co = pd.read_csv(po, sep="\t")
+    shas = [hashlib.sha256(Path(pc).read_bytes()).hexdigest(), hashlib.sha256(Path(po).read_bytes()).hexdigest()]
+    return cl, co, shas
+
+
+def check_columns(cl, co):
+    need_cl = ["name", "reference", "x", "sigmax", "y", "sigmay", "z", "sigmaz", "vx", "sigmavx", "vy",
+               "sigmavy", "vz", "sigmavz", "age", "inlier"]
+    need_co = ["name", "x", "y", "z", "l", "b", "d", "vr", "vr16", "vr84"]
+    miss = [c for c in need_cl if c not in cl.columns] + [c for c in need_co if c not in co.columns]
+    if miss:
+        raise ValueError(f"missing columns: {miss}")
+
+
+def make_data(cl, co, vz_shift=0.0):
+    return W.Data(cx=cl["x"].to_numpy(float), cy=cl["y"].to_numpy(float), cz=cl["z"].to_numpy(float),
+                  cvz=cl["vz"].to_numpy(float) + vz_shift,
+                  csig=cl[["sigmax", "sigmay", "sigmaz", "sigmavz"]].to_numpy(float),
+                  ox=co["x"].to_numpy(float), oy=co["y"].to_numpy(float), oz=co["z"].to_numpy(float))
+
+
+def load_check(vz, weights, max_abs):
+    """README 3: |weighted mean v_z| < 3 km/s. Weighted = the fixed kernel weights of the likelihood
+    (inverse-variance weights are undefined: some sigmavz are 0.0 in the table)."""
+    vz = np.asarray(vz, float)
+    wmean = float(np.sum(weights * vz) / np.sum(weights))
+    return {"weighted_mean_vz": wmean, "unweighted_mean_vz": float(np.mean(vz)),
+            "weights": "kernel weights of README 4.1 (K24 column-(6) medians, bandwidth from PARAMS)",
+            "threshold": max_abs, "passed": bool(abs(wmean) < max_abs)}
+
+
+def galactic_lb(x, y, z):
+    l = np.degrees(np.arctan2(y, x)) % 360.0
+    b = np.degrees(np.arctan2(z, np.hypot(x, y)))
+    return l, b
+
+
+# =============================================================================================
+# Setups
+
+def setups(P, outlier="k24", u1_mode="half"):
+    sig = P["sigma_pc"]
+    broad = {"omega0": tuple(v / 1000.0 for v in P["t8_broad_omega0_kms_kpc"]),
+             "mu0_kpc": tuple(P["t8_broad_mu0_kpc"]), "r0": tuple(P["t8_broad_r0_pc"])}
+    common = dict(sigma=sig, outlier=outlier, u1_mode=u1_mode)
+    return {
+        "col3": W.Setup(free=SHAPE, clusters=False, clouds=True, **common),
+        "col4": W.Setup(free=SHAPE, **common),
+        "col5": W.Setup(free=SHAPE + ("w0t", "B"), **common),
+        "b05": W.Setup(free=SHAPE + ("w0t",), fixed={"B": 0.5}, **common),
+        "col6": W.Setup(free=SHAPE, clouds=True, **common),
+        "t7c": W.Setup(free=SHAPE + ("w0t",), fixed={"B": 0.5}, clouds=True, **common),
+        "col7": W.Setup(free=SHAPE + ("ln_omega0", "ln_mu0", "r0"), clouds=True, divisor=None, prior="k24",
+                        **common),
+        "col7_broad": W.Setup(free=SHAPE + ("ln_omega0", "ln_mu0", "r0"), clouds=True, divisor=None,
+                              prior="broad", broad=broad, **common),
+        "col7_div": W.Setup(free=SHAPE + ("ln_omega0", "ln_mu0", "r0"), clouds=True,
+                            divisor=P["t8_divisor_variant_kms_kpc"] / 1000.0, prior="k24", **common),
+    }
+
+
+def models_for(P, data, grid, bandwidth, outlier="k24", u1_mode="half"):
+    wc, wo = W.fixed_weights(data, grid, bandwidth, u1_mode)
+    st = setups(P, outlier, u1_mode)
+    return {k: W.Model(s, data, grid, wc, wo) for k, s in st.items()}, wc, wo
+
+
+# =============================================================================================
+# Timing (logged early, README 4.7)
+
+def timing_estimate(P, models, data, grid, ctx):
+    n = max(int(P["timing_evals"]), 5)
+    t = {}
+    for key in ("col3", "col4", "col6"):
+        m = models[key]
+        th = m.theta_of(W.k24_vector(6))
+        m.loglike(th)
+        t0 = time.perf_counter()
+        for _ in range(n):
+            m.loglike(th)
+        t[key] = (time.perf_counter() - t0) / n
+    cur = F.t5_curve(W.k24_vector(3), grid)
+    t0 = time.perf_counter()
+    for _ in range(20):
+        F.t5_analyse(cur, data.cx, data.cy, data.cz, data.cvz, data.csig, cut=P["t5_cut_sigma"] * P["sigma_pc"],
+                     bandwidth=P["bandwidth_pc"])
+    t5 = (time.perf_counter() - t0) / 20
+    mc = P["mcmc_walkers"] * P["mcmc_steps"]
+    start_ml = P["ml_nm_maxfev"] + 0.5 * P["ml_lbfgs_maxfun"]   # NM budget plus a typical L-BFGS-B polish
+    ml = P["ml_starts"] * start_ml
+    sec = {
+        "mcmc": mc * (t["col3"] + 2 * t["col4"] + 4 * t["col6"]),
+        "ml_main": ml * (3 * t["col4"] + 2 * t["col6"]) + 5 * start_ml * t["col4"],
+        "t3_mocks": P["t3_mocks"] * 2 * (2 + 4) * start_ml * t["col4"] * (2 if P["t3_resid_variant"] else 1),
+        "t4": 3 * P["t4_mocks"] * 0.002 * 2,
+        "t5": (P["t5_boot"] * 2 + len(P["t5_ka_B"]) * P["t5_ka_mocks"] * (P["t5_boot"] + 1)) * t5,
+    }
+    nv = len(variant_list(P, None))
+    sec["t6"] = (nv * (3 * ml * t["col4"] + 2 * P["t4_mocks"] * 0.002 + P["t5_boot"] * t5)
+                 + 2 * P["t3_mocks"] * 2 * 6 * start_ml * t["col4"] + mc * t["col3"])
+    tot = sum(sec.values())
+    out = {"seconds_per_loglike": {k: round(v * 1e3, 3) for k, v in t.items()}, "unit": "ms",
+           "seconds_per_t5_analysis_ms": round(t5 * 1e3, 3),
+           "projected_hours": {k: round(v / 3600, 2) for k, v in sec.items()},
+           "projected_total_hours": round(tot / 3600, 2),
+           "note": "MCMC at the pre-registered length (reruns with doubled steps not included); ML fits "
+                   "at the full Nelder-Mead budget per start (upper end)"}
+    ctx.log(f"timing: loglike {out['seconds_per_loglike']} ms; T5 analysis {out['seconds_per_t5_analysis_ms']} ms; "
+            f"projected {out['projected_total_hours']} h ({out['projected_hours']})")
+    return out
+
+
+# =============================================================================================
+# Fits
+
+def mcmc(P, store, name, model, center_vec, ctx):
+    ctx.log(f"MCMC {name} ({len(model.setup.free)} parameters)")
+    return F.run_mcmc(model, center_vec, seed=int(rng_for(P["seed"], "mcmc_" + name).integers(2 ** 31)),
+                      n_walkers=P["mcmc_walkers"], n_steps=P["mcmc_steps"], n_burn=P["mcmc_burn"], store=store,
+                      name="mcmc_" + name, chunk=P["mcmc_chunk"], log=ctx.log,
+                      min_tau_mult=P["mcmc_min_tau_mult"], thin_keep=P["mcmc_thin_keep"])
+
+
+def ml(P, store, name, model, first_starts, ctx, extra_starts=()):
+    """Best of ml_starts starts: the given first start(s) plus prior draws (README 4.2)."""
+    def go():
+        rng = rng_for(P["seed"], "ml_" + name)
+        starts = [np.asarray(s, float) for s in first_starts]
+        while len(starts) < P["ml_starts"]:
+            starts.append(model.prior_draw(rng))
+        starts += [np.asarray(s, float) for s in extra_starts]
+        t0 = time.time()
+        r = F.ml_fit(model, starts, nm_maxfev=P["ml_nm_maxfev"], lbfgs_maxfun=P["ml_lbfgs_maxfun"])
+        ctx.log(f"ML {name}: lnL = {r['lnL']:.3f} ({len(starts)} starts, {time.time() - t0:.0f} s)")
+        return r
+    return store.cached("ml_" + name, go)
+
+
+def chain_summary(model, res, names):
+    sam = res["samples"]
+    out = {}
+    for n in names:
+        if n in ("delta", "gamma"):
+            x = np.exp(sam[:, model.setup.free.index("ln_" + n)])
+        elif n == "omega0":
+            x = 1000.0 * np.exp(sam[:, model.setup.free.index("ln_omega0")])
+        elif n == "mu0_kpc":
+            x = np.exp(sam[:, model.setup.free.index("ln_mu0")])
+        else:
+            x = sam[:, model.setup.free.index(n)]
+        out[n] = S.percentiles(x)
+    return out
+
+
+def chain_meta(res):
+    return {k: res[k] for k in ("n_walkers", "n_steps", "n_burn", "acceptance", "tau_max", "long_enough",
+                                "rerun", "chain_short")} | {"tau": [round(t, 1) for t in res["tau"]],
+                                                            "free": res["free"]}
+
+
+def inlier_overlap(a, b):
+    a, b = np.asarray(a, bool), np.asarray(b, bool)
+    return {"both": int(np.sum(a & b)), "first_only": int(np.sum(a & ~b)), "second_only": int(np.sum(~a & b)),
+            "neither": int(np.sum(~a & ~b)), "n_first": int(a.sum()), "n_second": int(b.sum())}
+
+
+# =============================================================================================
+# T1 / T2
+
+def t1_column(model, res, col):
+    k24 = W.K24_TABLE2[col]
+    summ = chain_summary(model, res, T1_KEYS + ANCHORS)
+    rows, n_in = {}, 0
+    for n in T1_KEYS + ANCHORS:
+        med, plus, minus = k24[n]
+        ours = summ[n]["median"]
+        inside = (med - minus) <= ours <= (med + plus)
+        d = ours - med
+        sig = (d / plus) if d > 0 else (d / minus if minus > 0 else float("nan"))
+        rows[n] = {"ours": summ[n], "k24": {"median": med, "plus": plus, "minus": minus},
+                   "inside_k24_1sigma": bool(inside), "sigma_scaled_difference": sig}
+        if n in T1_KEYS and inside:
+            n_in += 1
+    return {"parameters": rows, "n_inside_of_6": n_in, "label": S.t1_label(n_in)}
+
+
+def model_curve_for_plot(model, v, n=240):
+    wv = W.wave_on_grid(v, model.grid, model.setup.u1_mode)
+    vi = np.flatnonzero(wv["valid"])
+    pick = vi[np.linspace(0, len(vi) - 1, min(n, len(vi))).astype(int)]
+    return {"s": np.round(wv["s"][pick], 1).tolist(), "z": np.round(wv["z"][pick], 2).tolist(),
+            "vz": np.round(wv["vz"][pick], 3).tolist(), "x": np.round(wv["x"][pick], 1).tolist(),
+            "y": np.round(wv["y"][pick], 1).tolist()}
+
+
+def points_for_plot(model, v, cl):
+    ev = model.evaluate(v)
+    s = ev["wave"]["s"][ev["cl_idx"]]
+    return {"name": cl["name"].astype(str).tolist(), "s": np.round(s, 1).tolist(),
+            "z": cl["z"].round(1).tolist(), "vz": cl["vz"].round(2).tolist(),
+            "sigmavz": cl["sigmavz"].round(2).tolist(),
+            "inlier": (~ev["cl_outlier"]).astype(int).tolist(), "table_inlier": cl["inlier"].astype(int).tolist()}
+
+
+# =============================================================================================
+# T3
+
+def t3_ml_three(P, store, prefix, mods, starts, ctx, extra_free_starts=True):
+    """B = 1 (omega0 t = 0), B = 0.5 profile, and the B-free maximum on one data set."""
+    f1 = ml(P, store, prefix + "b1", mods["col4"], starts["b1"], ctx)
+    f05 = ml(P, store, prefix + "b05", mods["b05"], starts["b05"], ctx)
+    extra = []
+    if extra_free_starts:     # nesting: the B-free search also starts from both null optima
+        extra = [F.to_model(mods["col4"], mods["col5"], f1["theta"]), F.to_model(mods["b05"], mods["col5"], f05["theta"])]
+    ff = ml(P, store, prefix + "free", mods["col5"], starts["free"], ctx, extra_starts=extra)
+    return {"b1": f1, "b05": f05, "free": ff}
+
+
+def t3_mocks(P, store, prefix, null_model, null_fit, free_model, free_fit, data, noise, ctx):
+    vals, clipped = [], 0
+    resid = None
+    if noise == "resid":
+        ev = null_model.evaluate(null_fit["vector"])
+        resid = ev["cl_res"][np.asarray(null_fit["inlier"], bool)]
+    for i in range(P["t3_mocks"]):
+        name = f"{prefix}{noise}_{i}"
+
+        def one(i=i, name=name):
+            rng = rng_for(P["seed"], name)
+            x, y, z, vz = F.mock_vectors(null_model, null_fit["vector"], data, null_fit["inlier"], rng,
+                                         noise=noise, sigma=P["sigma_pc"], resid=resid)
+            dm = data.with_clusters(x, y, z, vz)
+            mn, mf = null_model.clone(data=dm), free_model.clone(data=dm)
+            gen_free = F.to_model(null_model, mf, null_fit["theta"])
+            # null refit: the generating parameters (= the data's best null fit) and one prior draw
+            rn = F.ml_fit(mn, [null_fit["theta"], mn.prior_draw(rng)], nm_maxfev=P["ml_nm_maxfev"], lbfgs_maxfun=P["ml_lbfgs_maxfun"], with_map=False)
+            rf = F.ml_fit(mf, [gen_free, free_fit["theta"], mf.prior_draw(rng), F.to_model(mn, mf, rn["theta"])],
+                          nm_maxfev=P["ml_nm_maxfev"], lbfgs_maxfun=P["ml_lbfgs_maxfun"], with_map=False)
+            return 2.0 * (rf["lnL"] - rn["lnL"])
+        v = store.cached(name, one)
+        if v < 0:
+            clipped += 1
+            v = 0.0
+        vals.append(v)
+        if (i + 1) % 20 == 0:
+            ctx.log(f"T3 mocks {prefix}{noise}: {i + 1}/{P['t3_mocks']}")
+    return np.array(vals), clipped
+
+
+def t3_stat(obs, mocks, d, P):
+    pb, k = S.p_boot_ge(obs, mocks)
+    cal = S.calibrated_p(obs, mocks, d)
+    pr = S.p_raw(obs, d)
+    return {"two_dlnL": obs, "d": d, "p_raw": pr, "p_boot": pb, "k_mocks_at_least_obs": k,
+            "p_boot_mcse": S.p_mcse(pb, len(mocks)), **cal,
+            "mocks_two_dlnL": np.asarray(mocks, float).tolist()}
+
+
+def t3_labels(st_s, st_t, P):
+    return {
+        "standing": S.t3_standing_label(st_s.get("p_cal"), st_s["p_raw"], st_s["p_boot"],
+                                        st_s["k_mocks_at_least_obs"], strong=P["t3_strong"], alpha=P["alpha"]),
+        "pure_travelling": S.t3_travel_label(st_t.get("p_cal"), st_t["p_boot"], alpha=P["alpha"]),
+    }
+
+
+def t3_reduced(obs_s, obs_t, factor_s, factor_t, P):
+    pc_s, pc_t = S.p_with_factor(obs_s, factor_s, 1), S.p_with_factor(obs_t, factor_t, 2)
+    pr_s, pr_t = S.p_raw(obs_s, 1), S.p_raw(obs_t, 2)
+    return {"p_cal_standing": pc_s, "p_raw_standing": pr_s, "p_cal_travelling": pc_t, "p_raw_travelling": pr_t,
+            "standing": S.t3_standing_label_reduced(pc_s, pr_s, strong=P["t3_strong"], alpha=P["alpha"]),
+            "pure_travelling": S.t3_travel_label_reduced(pc_t, alpha=P["alpha"])}
+
+
+def fit_record(model, f):
+    rec = {"lnL": f["lnL"], "parameters": W.physical(f["vector"]), "free": list(model.setup.free),
+           "start_lnL": [round(x, 4) for x in f["start_values"]], "n_eval": f["n_eval"]}
+    if "map_vector" in f:
+        rec["map_parameters"] = W.physical(f["map_vector"])
+        rec["map_logpost"] = f["map_logpost"]
+    if f.get("inlier") is not None:
+        rec["n_inliers"] = int(np.sum(f["inlier"]))
+    return rec
+
+
+# =============================================================================================
+# T4
+
+def t4_run(P, store, prefix, mods, fits, data, idx_mask, ctx, with_free_power=True, with_resid=True):
+    """R over the B = 0.5 fit's inliers; standing mocks from the B = 0.5 fit, power mocks from the
+    B = 1 (and B-free) fit; closest points recomputed on the B = 0.5 curve (README 4.3)."""
+    idx = np.flatnonzero(idx_mask)
+    m05 = mods["b05"]
+    v05 = fits["b05"]["vector"]
+    wv05 = W.wave_on_grid(v05, m05.grid, m05.setup.u1_mode)
+    vi = np.flatnonzero(wv05["valid"])
+    div = m05.divisor(v05)
+    M05 = np.column_stack([wv05["x"], wv05["y"], wv05["z"], wv05["vz"] / div])[vi]
+    om05 = wv05["omega"][vi]
+
+    def R_of(x, y, z, vz):
+        j = W.closest(np.column_stack([x, y, z, vz / div]), M05)
+        return S.circular_R(z, om05[j], vz)
+
+    d = data
+    r_obs = R_of(d.cx[idx], d.cy[idx], d.cz[idx], d.cvz[idx])
+    sig_meas = d.csig[idx] / np.array([1.0, 1.0, 1.0, div])
+    sd = np.sqrt(P["sigma_pc"] ** 2 + sig_meas ** 2)
+
+    def gen_points(model, v):
+        ev = model.evaluate(v)
+        dv = model.divisor(v)
+        Mp = model.model_vectors(ev["wave"], v)[ev["cl_idx"]][idx]
+        Dv = model.cluster_vectors(v)[idx]
+        return Mp, Dv - Mp, dv
+
+    def draws(name, model, v, noise):
+        def go():
+            Mp, res, dv = gen_points(model, v)
+            rng = rng_for(P["seed"], name)
+            out = np.empty(P["t4_mocks"])
+            for i in range(P["t4_mocks"]):
+                if noise == "gauss":
+                    new = Mp + rng.standard_normal(Mp.shape) * sd
+                else:
+                    new = Mp + res[rng.integers(0, len(res), len(res))]
+                out[i] = R_of(new[:, 0], new[:, 1], new[:, 2], new[:, 3] * dv)
+            return out
+        return store.cached(name, go)
+
+    out = {"n_clusters": int(len(idx)), "R_obs": r_obs}
+    for noise in (("gauss", "resid") if with_resid else ("gauss",)):
+        st = draws(f"{prefix}t4_stand_{noise}", m05, v05, noise)
+        pw1 = draws(f"{prefix}t4_pow1_{noise}", mods["col4"], fits["b1"]["vector"], noise)
+        p, k = S.p_low(r_obs, st)
+        pow1 = S.power(pw1, st, P["t4_p_excl"])
+        rec = {"p": p, "k_standing_at_or_below": k, "p_mcse": S.p_mcse(p, len(st)), "power_B1": pow1,
+               "power_B1_mcse": S.p_mcse(pow1, len(pw1)),
+               "R_standing_quantiles": np.round(np.quantile(st, [0.001, 0.01, 0.05, 0.5, 0.95]), 4).tolist(),
+               "R_power_B1_quantiles": np.round(np.quantile(pw1, [0.05, 0.5, 0.95]), 4).tolist(),
+               "label": S.t4_label(p, pow1, p_excl=P["t4_p_excl"], p_not=P["t4_p_not"],
+                                   power_min=P["t4_power_min"])}
+        if with_free_power:
+            pwf = draws(f"{prefix}t4_powfree_{noise}", mods["col5"], fits["free"]["vector"], noise)
+            rec["power_Bfree"] = S.power(pwf, st, P["t4_p_excl"])
+            rec["R_power_Bfree_quantiles"] = np.round(np.quantile(pwf, [0.05, 0.5, 0.95]), 4).tolist()
+        out[noise] = rec
+    out["label"] = out["gauss"]["label"]
+    ctx.log(f"T4 {prefix or 'main'}: R_obs = {r_obs:.3f}, p = {out['gauss']['p']:.4f}, "
+            f"power = {out['gauss']['power_B1']:.3f} -> {out['label']}")
+    return out
+
+
+def end_of_grid_mask(model, v):
+    ev = model.evaluate(v)
+    vi = ev["valid_idx"]
+    return (ev["cl_idx"] != vi[0]) & (ev["cl_idx"] != vi[-1])
+
+
+# =============================================================================================
+# T5
+
+def t5_run(P, store, prefix, data, grid, chain_vectors, median_vector, ctx, *, cut_sigma, bandwidth, u1_mode,
+           known_answer=None, sens=True):
+    kr = (P["t5_k_min"], P["t5_k_max"], P["t5_k_step"])
+    cut = None if cut_sigma is None else cut_sigma * P["sigma_pc"]
+    d = data
+
+    def point(omega0):
+        cur = F.t5_curve(median_vector, grid, u1_mode, omega0=omega0)
+        return F.t5_analyse(cur, d.cx, d.cy, d.cz, d.cvz, d.csig, cut=cut, bandwidth=bandwidth, k_range=kr)
+
+    def boot(omega0, tag):
+        def go():
+            rng = rng_for(P["seed"], prefix + "t5boot" + tag)
+            return F.t5_bootstrap(chain_vectors, grid, d.cx, d.cy, d.cz, d.cvz, d.csig, rng, n_boot=P["t5_boot"],
+                                  cut=cut, bandwidth=bandwidth, u1_mode=u1_mode, omega0=omega0, k_range=kr)
+        return store.cached(prefix + "t5boot" + tag, go)
+
+    pt = point(W.OMEGA0_ADOPTED)
+    bt = boot(W.OMEGA0_ADOPTED, "")
+    out = summarise_t5(P, pt, bt, known_answer)
+    if sens:
+        om = P["t5_omega0_sens_kms_kpc"] / 1000.0
+        pt2, bt2 = point(om), boot(om, "_sens")
+        lo, hi = S.interval(bt2["bhat"])
+        out["sensitivity_omega0"] = {"omega0_kms_kpc": P["t5_omega0_sens_kms_kpc"],
+                                     "bhat": pt2["fit"]["bhat"] if pt2["fit"] else None, "bhat_interval": [lo, hi]}
+    ctx.log(f"T5 {prefix or 'main'}: bhat = {out['bhat']}, interval {out['bhat_interval']}, "
+            f"k_z/k_vz interval {out['k_ratio_interval']} -> {out['wavelengths_label']} / {out['bhat_label']}")
+    return out
+
+
+def summarise_t5(P, pt, bt, known_answer):
+    f = pt["fit"]
+    blo, bhi = S.interval(bt["bhat"])
+    klo, khi = S.interval(bt["k_ratio"])
+    rlo, rhi = S.interval(bt["rho"])
+    dlo, dhi = F.circ_interval(bt["Delta"])
+    wl = S.wavelength_label(klo, khi, tuple(P["t5_band"]))
+    ka_pass = True if known_answer is None else bool(known_answer["passed"])
+    bl = S.bhat_label(blo, bhi, b_t=P["t5_b_t"], wavelengths=wl, known_answer_pass=ka_pass)
+    n = len(bt["bhat"])
+    return {
+        "n_in": pt["n_in"], "n_end_of_grid_dropped": pt["n_end"], "n_kept": pt["n_kept"],
+        "fit": f, "bhat": f["bhat"] if f else None, "bhat_interval": [blo, bhi],
+        "bhat_interval_mcse": [S.quantile_mcse(bt["bhat"], 0.025), S.quantile_mcse(bt["bhat"], 0.975)],
+        "k_ratio": f["k_ratio"] if f else None, "k_ratio_interval": [klo, khi],
+        "k_ratio_interval_mcse": [S.quantile_mcse(bt["k_ratio"], 0.025), S.quantile_mcse(bt["k_ratio"], 0.975)],
+        "Delta": f["Delta"] if f else None, "Delta_interval": [dlo, dhi],
+        "rho": f["rho"] if f else None, "rho_interval": [rlo, rhi],
+        "interval_contains_0": bool(blo is not None and blo <= 0.0 <= bhi),
+        "interval_contains_0p68": bool(blo is not None and blo <= 0.68 <= bhi),
+        "n_boot_ok": n, "n_boot_failed": bt["n_fail"],
+        "k_at_bound_fraction": {"k_z": float(np.mean((np.abs(bt["k_z"] - P["t5_k_min"]) < 1e-4) |
+                                                     (np.abs(bt["k_z"] - P["t5_k_max"]) < 1e-4))) if n else None,
+                                "k_vz": float(np.mean((np.abs(bt["k_vz"] - P["t5_k_min"]) < 1e-4) |
+                                                      (np.abs(bt["k_vz"] - P["t5_k_max"]) < 1e-4))) if n else None},
+        "wavelengths_label": wl, "bhat_label": bl["label"], "bhat_opposite_direction": bl["opposite_direction"],
+        "bhat_caveat_wavelengths_undetermined": bl["caveat_wavelengths_undetermined"],
+        "known_answer_passed": ka_pass,
+    }
+
+
+def t5_known_answer(P, store, grid, data, sel_mask, chain_vectors, median_vector, ctx):
+    """README 4.4: mocks on K24's column-(6) medians with omega0 t = -0.38 at B = 0.5, 0.84, 1."""
+    kr = (P["t5_k_min"], P["t5_k_max"], P["t5_k_step"])
+    cut = P["t5_cut_sigma"] * P["sigma_pc"]
+    dsel = data.cluster_subset(sel_mask)
+    m6 = W.Model(W.Setup(free=SHAPE, sigma=P["sigma_pc"]), dsel, grid)
+    cur = F.t5_curve(median_vector, grid)
+    rows = {}
+    passed = True
+    for B in P["t5_ka_B"]:
+        v_inj = W.k24_vector(6, w0t=P["t5_ka_w0t"], B=B)
+        mocks = []
+        for i in range(P["t5_ka_mocks"]):
+            name = f"t5ka_B{B}_{i}"
+
+            def one(name=name):
+                rng = rng_for(P["seed"], name)
+                x, y, z, vz = F.known_answer_vectors(m6, v_inj, dsel, rng, sigma=P["sigma_pc"])
+                pt = F.t5_analyse(cur, x, y, z, vz, dsel.csig, cut=cut, bandwidth=P["bandwidth_pc"], k_range=kr)
+                bt = F.t5_bootstrap(chain_vectors, grid, x, y, z, vz, dsel.csig, rng, n_boot=P["t5_boot"], cut=cut,
+                                    bandwidth=P["bandwidth_pc"], u1_mode="half", k_range=kr)
+                lo, hi = S.interval(bt["bhat"])
+                return {"bhat": pt["fit"]["bhat"] if pt["fit"] else float("nan"), "interval": [lo, hi]}
+            mocks.append(store.cached(name, one))
+        target = 2 * B - 1
+        order = np.argsort([m["bhat"] for m in mocks], kind="stable")
+        med = mocks[order[(len(mocks) // 2) - 1]]          # the 10th of 20 when ranked by bhat
+        lo, hi = med["interval"]
+        if B >= 1.0:
+            ok = lo is not None and lo > P["t5_b_t"]
+            cover = float(np.mean([m["interval"][0] is not None and m["interval"][0] > P["t5_b_t"] for m in mocks]))
+        else:
+            ok = lo is not None and lo <= target <= hi
+            cover = float(np.mean([m["interval"][0] is not None and m["interval"][0] <= target <= m["interval"][1]
+                                   for m in mocks]))
+        passed &= bool(ok)
+        bh = np.array([m["bhat"] for m in mocks])
+        rows[str(B)] = {"target_2B_minus_1": target, "median_mock_bhat": med["bhat"], "median_mock_interval": [lo, hi],
+                        "pass": bool(ok), "coverage_or_above_bT_fraction": cover,
+                        "mean_bhat": float(np.nanmean(bh)), "bias": float(np.nanmean(bh) - target),
+                        "bhat_all": np.round(bh, 4).tolist()}
+        ctx.log(f"T5 known-answer B = {B}: median mock bhat {med['bhat']:.3f} interval {[lo, hi]} -> "
+                f"{'pass' if ok else 'FAIL'}")
+    return {"passed": bool(passed), "injections": rows, "n_selected": int(sel_mask.sum()),
+            "placement": "each selected cluster at the injected model's point closest to its (x, y, z)"}
+
+
+# =============================================================================================
+# T7
+
+def rotation_lsr(x, y, vc):
+    """Flat rotation curve relative to the LSR at heliocentric (x, y); x towards the Galactic Centre."""
+    rx, ry = x - W.R_SUN, y
+    r = np.hypot(rx, ry)
+    return vc * ry / r, vc * (-rx) / r - vc
+
+
+def theta2(cl, inlier, w, vc):
+    vrx, vry = rotation_lsr(cl["x"].to_numpy(float), cl["y"].to_numpy(float), vc)
+    rx = cl["vx"].to_numpy(float) - vrx
+    ry = cl["vy"].to_numpy(float) - vry
+    m = np.asarray(inlier, bool)
+    ww = w[m]
+    return float(np.sum(ww * rx[m]) / ww.sum()), float(np.sum(ww * ry[m]) / ww.sum())
+
+
+def co_m2lnl(model, v, co, th2, vc, vz_zero=False):
+    ev = model.evaluate(v)
+    j = ev["co_idx"]
+    wv = ev["wave"]
+    x, y = wv["x"][j], wv["y"][j]
+    vrx, vry = rotation_lsr(x, y, vc)
+    vx, vy = vrx + th2[0], vry + th2[1]
+    vz = np.zeros_like(x) if vz_zero else wv["vz"][j]
+    l, b = np.radians(co["l"].to_numpy(float)), np.radians(co["b"].to_numpy(float))
+    vm = np.cos(l) * np.cos(b) * vx + np.sin(l) * np.cos(b) * vy + np.sin(b) * vz
+    e = 0.5 * (co["vr84"].to_numpy(float) - co["vr16"].to_numpy(float))
+    r = co["vr"].to_numpy(float) - vm
+
+    def f(s):
+        var = e ** 2 + s ** 2
+        return float(np.sum(r ** 2 / var + np.log(2 * math.pi * var)))
+    opt = minimize_scalar(f, bounds=(0.0, 50.0), method="bounded", options={"xatol": 1e-6})
+    s_best = float(opt.x) if opt.fun < f(0.0) else 0.0
+    return {"m2lnL": f(s_best), "sigma_int": s_best, "max_abs_vz_los": float(np.max(np.abs(np.sin(b) * vz)))}
+
+
+# =============================================================================================
+# T8
+
+def t8_run(P, models, res_k, res_b, res_div):
+    i = models["col7"].setup.free.index("ln_omega0")
+    lk, lb = res_k["samples"][:, i], res_b["samples"][:, i]
+    pk, pb = S.percentiles(lk), S.percentiles(lb)
+    half_b = 0.5 * (pb["p84"] - pb["p16"])
+    shift = (pk["median"] - pb["median"]) / half_b if half_b > 0 else float("inf")
+    label = S.t8_label(half_b, P["t8_prior_sigma_ln_omega0"], shift, width_frac=P["t8_width_frac"],
+                       shift_max=P["t8_shift_max"])
+
+    def derived(res, name):
+        m = models[name]
+        rng = rng_for(P["seed"], "t8draws_" + name)
+        sam = res["samples"][rng.integers(0, len(res["samples"]), P["t8_draws"])]
+        om = np.exp(sam[:, m.setup.free.index("ln_omega0")])
+        mu = np.exp(sam[:, m.setup.free.index("ln_mu0")]) * 1e-3
+        r0 = sam[:, m.setup.free.index("r0")]
+        rho = np.array([W.rho0(o) for o in om])
+        per = np.array([W.sun_period_myr(o, u, r, P["sun_vz_kms"]) for o, u, r in zip(om, mu, r0)])
+        return {"omega0_kms_kpc": S.percentiles(1000 * om), "rho0_msun_pc3": S.percentiles(rho),
+                "sun_period_myr": S.percentiles(per[np.isfinite(per)]), "mu0_kpc": S.percentiles(mu * 1e3),
+                "r0_pc": S.percentiles(r0)}
+    return {"ln_omega0_k24_prior": pk, "ln_omega0_broad_prior": pb, "halfwidth_broad": half_b,
+            "k24_prior_sigma": P["t8_prior_sigma_ln_omega0"], "median_shift_in_sigma_broad": shift,
+            "label": label, "k24_priors": derived(res_k, "col7"), "broad_priors": derived(res_b, "col7_broad"),
+            "variant_divisor_fixed": derived(res_div, "col7_div") | {"divisor_kms_kpc": P["t8_divisor_variant_kms_kpc"]}}
+
+
+# =============================================================================================
+# T6
+
+def variant_list(P, cl):
+    out = []
+    for v in P["variants"]:
+        if v == "v8_leave_out_reference":
+            if cl is None:
+                out += [f"v8_{i}" for i in range(6)]
+                continue
+            counts = cl["reference"].value_counts()
+            singles = sorted(counts[counts == 1].index.tolist())
+            for ref in sorted(counts[counts > 1].index.tolist()):
+                out.append(("v8_leave_out", (ref,)))
+            if singles:
+                out.append(("v8_leave_out", tuple(singles)))
+        else:
+            out.append((v, ()))
+    return out
+
+
+def variant_name(v):
+    name, refs = v
+    return name if not refs else name + ":" + "+".join(refs)
+
+
+def variant_config(P, v, cl):
+    name, refs = v
+    n = len(cl)
+    cfg = {"outlier": "k24", "bandwidth": P["bandwidth_pc"], "mask": np.ones(n, bool), "dvz": 0.0,
+           "u1_mode": "half", "t5_cut_sigma": P["t5_cut_sigma"], "t3_mocks": False}
+    if name == "v1_outlier_3sigma":
+        cfg.update(outlier="3sigma", t5_cut_sigma=P["v1_cut_sigma"], t3_mocks=True)
+    elif name == "v2_no_outlier_model":
+        cfg.update(outlier="gauss", t5_cut_sigma=None, t3_mocks=True)
+    elif name == "v3_no_weights":
+        cfg.update(bandwidth=0.0)
+    elif name == "v4_bandwidth_50":
+        cfg.update(bandwidth=P["v4_bandwidth_pc"])
+    elif name == "v5_bandwidth_200":
+        cfg.update(bandwidth=P["v5_bandwidth_pc"])
+    elif name == "v6_wsun_7p25":
+        cfg.update(dvz=P["v6_dvz_kms"])
+    elif name == "v7_no_orion":
+        l, b = galactic_lb(cl["x"].to_numpy(float), cl["y"].to_numpy(float), cl["z"].to_numpy(float))
+        (l0, l1), (b0, b1) = P["v7_orion_l_deg"], P["v7_orion_b_deg"]
+        cfg["mask"] = ~((l > l0) & (l < l1) & (b > b0) & (b < b1))
+    elif name == "v8_leave_out":
+        cfg["mask"] = ~cl["reference"].isin(refs).to_numpy()
+    elif name == "v9_low_sigmavz":
+        cfg["mask"] = cl["sigmavz"].to_numpy(float) < np.median(cl["sigmavz"].to_numpy(float))
+    elif name == "v10_chord_u1":
+        cfg.update(u1_mode="chord")
+    else:
+        raise ValueError(f"unknown variant {name}")
+    return cfg
+
+
+def run_variant(P, store, v, cl, co, grid, main, ctx):
+    vn = variant_name(v)
+    cfg = variant_config(P, v, cl)
+    prefix = "v_" + hashlib.sha1(vn.encode()).hexdigest()[:10] + "_"
+    data = make_data(cl, co, cfg["dvz"]).cluster_subset(cfg["mask"])
+    mods, wc, wo = models_for(P, data, grid, cfg["bandwidth"], cfg["outlier"], cfg["u1_mode"])
+    mf = main["fits"]
+    starts = {"b1": [mf["b1"]["theta"]], "b05": [mf["b05"]["theta"]], "free": [mf["free"]["theta"]]}
+    fits = t3_ml_three(P, store, prefix, mods, starts, ctx)
+    obs_s = max(2 * (fits["free"]["lnL"] - fits["b05"]["lnL"]), 0.0)
+    obs_t = max(2 * (fits["free"]["lnL"] - fits["b1"]["lnL"]), 0.0)
+    rec = {"variant": vn, "n_clusters": int(data.n_clusters), "two_dlnL_standing": obs_s,
+           "two_dlnL_travelling": obs_t}
+    if cfg["t3_mocks"]:
+        ms, cs = t3_mocks(P, store, prefix + "t3s_", mods["b05"], fits["b05"], mods["col5"], fits["free"], data,
+                          "gauss", ctx)
+        mt, ct = t3_mocks(P, store, prefix + "t3t_", mods["col4"], fits["b1"], mods["col5"], fits["free"], data,
+                          "gauss", ctx)
+        st_s, st_t = t3_stat(obs_s, ms, 1, P), t3_stat(obs_t, mt, 2, P)
+        lab = t3_labels(st_s, st_t, P)
+        rec["t3"] = {"rule": "full", "standing": {k: st_s[k] for k in st_s if k != "mocks_two_dlnL"},
+                     "travelling": {k: st_t[k] for k in st_t if k != "mocks_two_dlnL"},
+                     "clipped": [cs, ct], **lab}
+    else:
+        red = t3_reduced(obs_s, obs_t, main["t3"]["standing_stat"]["factor"], main["t3"]["travelling_stat"]["factor"], P)
+        ms_, mt_ = main["t3"]["standing_stat"], main["t3"]["travelling_stat"]
+        red["p_cal_standing_mcse"] = S.calibrated_p_mcse(obs_s, ms_["m"], ms_["se_m"], 1)
+        red["p_cal_travelling_mcse"] = S.calibrated_p_mcse(obs_t, mt_["m"], mt_["se_m"], 2)
+        rec["t3"] = {"rule": "reduced", **red}
+    if cfg["outlier"] == "gauss":
+        t4_mask = end_of_grid_mask(mods["b05"], fits["b05"]["vector"])
+    else:
+        t4_mask = np.asarray(fits["b05"]["inlier"], bool)
+    rec["t4"] = t4_run(P, store, prefix, mods, fits, data, t4_mask, ctx, with_free_power=False, with_resid=False)
+    if cfg["u1_mode"] == "chord":
+        res3 = mcmc(P, store, "col3_chord", mods["col3"], main["col3_median_vector"], ctx)
+        chain_vec = np.array([mods["col3"].full(s) for s in res3["samples"]])
+        med_vec = F.posterior_median_vector(mods["col3"], res3["samples"])
+        rec["col3_chain"] = chain_meta(res3)
+    else:
+        chain_vec, med_vec = main["col3_chain_vectors"], main["col3_median_vector"]
+    rec["t5"] = t5_run(P, store, prefix, data, grid, chain_vec, med_vec, ctx, cut_sigma=cfg["t5_cut_sigma"],
+                       bandwidth=cfg["bandwidth"], u1_mode=cfg["u1_mode"], known_answer=main["known_answer"],
+                       sens=False)
+    for k in ("fit",):
+        rec["t5"].pop(k, None)
+    return rec
+
+
+def compare_variants(main_labels, main_reduced, variants):
+    changes = []
+    for rec in variants:
+        t3 = rec["t3"]
+        ref = main_labels if t3["rule"] == "full" else main_reduced
+        pairs = {
+            "T3 standing": (ref["standing"], t3["standing"]),
+            "T3 pure travelling": (ref["pure_travelling"], t3["pure_travelling"]),
+            "T4": (main_labels["t4"], rec["t4"]["label"]),
+            "T5 wavelengths": (main_labels["t5_wavelengths"], rec["t5"]["wavelengths_label"]),
+            "T5 bhat": (main_labels["t5_bhat"], rec["t5"]["bhat_label"]),
+        }
+        rec["labels"] = {k: b for k, (a, b) in pairs.items()}
+        rec["changed"] = [k for k, (a, b) in pairs.items() if a != b]
+        for k in rec["changed"]:
+            changes.append({"variant": rec["variant"], "label": k, "main": pairs[k][0], "variant_label": pairs[k][1]})
+    return ("robust" if not changes else "fragile"), changes
+
+
+# =============================================================================================
+# main
 
 def main(ctx):
-    # Fetch (cached, provenance-logged). Keep it MB-scale: filter/aggregate server-side.
-    # df = ctx.tap(f"SELECT TOP {PARAMS['example_limit']} source_id, ra, dec FROM gaiadr3.gaia_source",
-    #              "gaia", label="example", release="Gaia DR3")
+    from astrolab import config
 
-    summary = {"todo": "implement analysis", "params": dict(PARAMS)}
-    ctx.save("summary", summary)
-    return summary
+    P = dict(PARAMS)
+    parts = set(P["parts"])
+    cl, co, shas = load_tables(ctx)
+    check_columns(cl, co)
+    grid = W.Grid(int(P["grid_n"]), float(P["u_min"]), float(P["u_max"]))
+    data = make_data(cl, co)
+    mods, wc, wo = models_for(P, data, grid, P["bandwidth_pc"])
+
+    # 1. load check (README 3)
+    lc = load_check(data.cvz, wc, P["load_check_max_abs_vz"])
+    ctx.log(f"load check: weighted mean v_z = {lc['weighted_mean_vz']:.2f} km/s -> "
+            f"{'pass' if lc['passed'] else 'FAIL'}")
+    if not lc["passed"]:
+        summary = {"status": "stopped: load check failed (README 3); the reading is fixed by a dated amendment",
+                   "load_check": lc, "params": P}
+        ctx.save("summary", summary)
+        return summary
+
+    timing = timing_estimate(P, mods, data, grid, ctx)
+    key = F.checkpoint_key({k: v for k, v in P.items() if k not in _RUN_ONLY},
+                           [HERE / "run.py", HERE / "wave011.py", HERE / "fit011.py", HERE / "stats011.py"], shas)
+    stop = float(P["stop_after_hours"]) * 3600 if P["stop_after_hours"] else None
+    store = F.Store(config.cache_dir() / P["checkpoint_subdir"], key, stop)
+    ctx.log(f"checkpoints: {store.dir}")
+    try:
+        out = pipeline(ctx, P, parts, cl, co, data, grid, mods, wc, store)
+    except F.Paused as e:
+        ctx.log(f"PAUSED: {e}")
+        return {"status": "paused", "reason": str(e), "checkpoints": str(store.dir), "timing": timing}
+    out["summary"]["load_check"] = lc
+    out["summary"]["timing"] = timing
+    out["summary"]["checkpoints"] = str(store.dir)
+    for name, obj in out["files"].items():
+        ctx.save(name, obj | {"params": P})
+    ctx.save("summary", out["summary"] | {"params": P})
+    finish_checkpoints(store, ctx)
+    return out["summary"]
+
+
+def finish_checkpoints(store, ctx):
+    """README 4.9 item 13: once every result is written, the run's checkpoint folder is deleted."""
+    size = store.size_bytes()
+    ok = store.remove_all()
+    ctx.log(f"checkpoints {'removed' if ok else 'could NOT be removed'}: {store.dir} ({size / 1024 ** 2:.1f} MB)")
+    return ok
+
+
+def pipeline(ctx, P, parts, cl, co, data, grid, mods, wc, store):
+    files = {}
+    # 2. column (3), clouds only
+    res3 = mcmc(P, store, "col3", mods["col3"], W.k24_vector(3), ctx)
+    col3_vecs = np.array([mods["col3"].full(s) for s in res3["samples"]])
+    col3_med = F.posterior_median_vector(mods["col3"], res3["samples"])
+
+    # 3. T5 known-answer check (no cluster fitted yet; positions only)
+    cur0 = F.t5_curve(col3_med, grid)
+    sel = F.t5_analyse(cur0, data.cx, data.cy, data.cz, data.cvz, data.csig,
+                       cut=P["t5_cut_sigma"] * P["sigma_pc"], bandwidth=P["bandwidth_pc"],
+                       k_range=(P["t5_k_min"], P["t5_k_max"], P["t5_k_step"]))
+    known = None
+    if "t5" in parts or "t6" in parts:
+        known = t5_known_answer(P, store, grid, data, sel["kept_mask"], col3_vecs, col3_med, ctx)
+
+    # 4. everything else
+    main = {"col3_chain_vectors": col3_vecs, "col3_median_vector": col3_med, "known_answer": known}
+    summary = {"status": "complete", "parts": sorted(parts)}
+    res4 = mcmc(P, store, "col4", mods["col4"], W.k24_vector(4), ctx)
+    res5 = mcmc(P, store, "col5", mods["col5"], W.k24_vector(5), ctx)
+    res6 = mcmc(P, store, "col6", mods["col6"], W.k24_vector(6), ctx)
+    v4 = F.posterior_median_vector(mods["col4"], res4["samples"])
+    v6 = F.posterior_median_vector(mods["col6"], res6["samples"])
+    v5 = F.posterior_median_vector(mods["col5"], res5["samples"])
+    table_inlier = cl["inlier"].to_numpy(int) == 1
+
+    if "t1t2" in parts:
+        t1 = {"col4": t1_column(mods["col4"], res4, 4), "col6": t1_column(mods["col6"], res6, 6)}
+        t1["col3_for_reference"] = t1_column(mods["col3"], res3, 3)
+        for c, m, v in (("col4", mods["col4"], v4), ("col6", mods["col6"], v6)):
+            ours = ~m.evaluate(v)["cl_outlier"]
+            t1[c]["inliers_vs_table_flag"] = inlier_overlap(ours, table_inlier)
+        bi = mods["col5"].setup.free.index("B")
+        Bs = res5["samples"][:, bi]
+        t2 = {"B": S.percentiles(Bs), "k24": {"median": 0.84, "plus": 0.07, "minus": 0.06},
+              "P_B_gt_0p95": float(np.mean(Bs > 0.95)), "P_B_lt_0p5": float(np.mean(Bs < 0.5)),
+              "w0t": S.percentiles(res5["samples"][:, mods["col5"].setup.free.index("w0t")]),
+              "B_histogram": np.histogram(Bs, bins=20, range=(0, 1))[0].tolist()}
+        both_not = t1["col4"]["label"] == "not reproduced" and t1["col6"]["label"] == "not reproduced"
+        files["t1_t2"] = {"t1": t1, "t2": t2, "chains": {k: chain_meta(r) for k, r in
+                                                          (("col3", res3), ("col4", res4), ("col5", res5), ("col6", res6))},
+                          "plot": {"col6_median": model_curve_for_plot(mods["col6"], v6),
+                                   "col4_median": model_curve_for_plot(mods["col4"], v4),
+                                   "col5_median": model_curve_for_plot(mods["col5"], v5),
+                                   "clusters_col6": points_for_plot(mods["col6"], v6, cl)}}
+        summary["T1"] = {"col4": t1["col4"]["label"], "col6": t1["col6"]["label"],
+                         "on_our_reproduction_only": both_not}
+        summary["T2"] = {"B_median": t2["B"]["median"], "B_p16": t2["B"]["p16"], "B_p84": t2["B"]["p84"],
+                         "P_B_gt_0p95": t2["P_B_gt_0p95"], "P_B_lt_0p5": t2["P_B_lt_0p5"]}
+        summary["chain_short"] = [k for k, r in (("col3", res3), ("col4", res4), ("col5", res5), ("col6", res6))
+                                  if r["chain_short"]]
+
+    # T3: nested maximum-likelihood fits and mocks
+    th05 = mods["b05"].theta_of(v5)
+    fits = t3_ml_three(P, store, "main_", mods, {"b1": [mods["col4"].theta_of(v4)], "b05": [th05],
+                                                 "free": [mods["col5"].theta_of(v5)]}, ctx)
+    main["fits"] = fits
+    obs_s = 2 * (fits["free"]["lnL"] - fits["b05"]["lnL"])
+    obs_t = 2 * (fits["free"]["lnL"] - fits["b1"]["lnL"])
+    neg = {"standing": obs_s < 0, "travelling": obs_t < 0}
+    obs_s, obs_t = max(obs_s, 0.0), max(obs_t, 0.0)
+    t3 = None
+    if "t3" in parts or "t6" in parts:
+        ms, cs = t3_mocks(P, store, "t3s_", mods["b05"], fits["b05"], mods["col5"], fits["free"], data, "gauss", ctx)
+        mt, ct = t3_mocks(P, store, "t3t_", mods["col4"], fits["b1"], mods["col5"], fits["free"], data, "gauss", ctx)
+        st_s, st_t = t3_stat(obs_s, ms, 1, P), t3_stat(obs_t, mt, 2, P)
+        lab = t3_labels(st_s, st_t, P)
+        t3 = {"standing_stat": st_s, "travelling_stat": st_t, "clipped": {"standing": cs, "travelling": ct},
+              "data_negative_clipped": neg, **lab,
+              "reduced_rule_main": t3_reduced(obs_s, obs_t, st_s["factor"], st_t["factor"], P),
+              "fits": {k: fit_record(mods[m], fits[k]) for k, m in (("b1", "col4"), ("b05", "b05"), ("free", "col5"))}}
+        inl = {k: np.asarray(fits[k]["inlier"], bool) for k in fits}
+        t3["inlier_overlaps"] = {"b1_vs_b05": inlier_overlap(inl["b1"], inl["b05"]),
+                                 "b1_vs_free": inlier_overlap(inl["b1"], inl["free"]),
+                                 "b05_vs_free": inlier_overlap(inl["b05"], inl["free"]),
+                                 "free_vs_table": inlier_overlap(inl["free"], table_inlier)}
+        if P["t3_resid_variant"]:
+            msr, csr = t3_mocks(P, store, "t3s_", mods["b05"], fits["b05"], mods["col5"], fits["free"], data, "resid", ctx)
+            mtr, ctr = t3_mocks(P, store, "t3t_", mods["col4"], fits["b1"], mods["col5"], fits["free"], data, "resid", ctx)
+            sr, tr = t3_stat(obs_s, msr, 1, P), t3_stat(obs_t, mtr, 2, P)
+            t3["residual_resampling_variant"] = {"standing_stat": sr, "travelling_stat": tr,
+                                                 "clipped": {"standing": csr, "travelling": ctr}, **t3_labels(sr, tr, P)}
+        main["t3"] = t3
+        files["t3"] = t3
+        summary["T3"] = {"standing": t3["standing"], "pure_travelling": t3["pure_travelling"],
+                         "two_dlnL_standing": obs_s, "two_dlnL_travelling": obs_t,
+                         "p_cal_standing": st_s.get("p_cal"), "p_boot_standing": st_s["p_boot"],
+                         "p_cal_travelling": st_t.get("p_cal"), "p_boot_travelling": st_t["p_boot"]}
+
+    # T4
+    t4 = None
+    if "t4" in parts or "t6" in parts:
+        t4 = t4_run(P, store, "main_", mods, fits, data, np.asarray(fits["b05"]["inlier"], bool), ctx)
+        files["t4"] = t4
+        summary["T4"] = {"label": t4["label"], "R_obs": t4["R_obs"], "p": t4["gauss"]["p"],
+                         "power_B1": t4["gauss"]["power_B1"]}
+
+    # T5
+    t5 = None
+    if "t5" in parts or "t6" in parts:
+        t5 = t5_run(P, store, "main_", data, grid, col3_vecs, col3_med, ctx, cut_sigma=P["t5_cut_sigma"],
+                    bandwidth=P["bandwidth_pc"], u1_mode="half", known_answer=known)
+        t5["known_answer"] = known
+        files["t5"] = t5
+        summary["T5"] = {"wavelengths": t5["wavelengths_label"], "bhat": t5["bhat_label"],
+                         "bhat_value": t5["bhat"], "bhat_interval": t5["bhat_interval"],
+                         "k_ratio_interval": t5["k_ratio_interval"], "known_answer_passed": known["passed"]}
+
+    # T6
+    if "t6" in parts:
+        main_labels = {"standing": t3["standing"], "pure_travelling": t3["pure_travelling"], "t4": t4["label"],
+                       "t5_wavelengths": t5["wavelengths_label"], "t5_bhat": t5["bhat_label"]}
+        main_red = dict(main_labels)
+        main_red.update(standing=t3["reduced_rule_main"]["standing"],
+                        pure_travelling=t3["reduced_rule_main"]["pure_travelling"])
+        recs = []
+        for v in variant_list(P, cl):
+            ctx.log(f"T6 variant {variant_name(v)}")
+            recs.append(run_variant(P, store, v, cl, co, grid, main, ctx))
+        label, changes = compare_variants(main_labels, main_red, recs)
+        files["t6"] = {"label": label, "changes": changes, "main_labels_full_rule": main_labels,
+                       "main_labels_reduced_rule": main_red, "variants": recs}
+        summary["T6"] = {"label": label, "changes": changes}
+
+    # T7
+    if "t7" in parts:
+        f6 = ml(P, store, "col6", mods["col6"], [mods["col6"].theta_of(v6)], ctx)
+        fc = ml(P, store, "t7c", mods["t7c"], [mods["t7c"].theta_of(v6)], ctx)
+        vc = P["t7_vc_kms"]
+        th_a = theta2(cl, f6["inlier"], wc, vc)
+        th_c = theta2(cl, fc["inlier"], wc, vc)
+        a = co_m2lnl(mods["col6"], f6["vector"], co, th_a, vc)
+        b = co_m2lnl(mods["col6"], f6["vector"], co, th_a, vc, vz_zero=True)
+        c = co_m2lnl(mods["t7c"], fc["vector"], co, th_c, vc)
+        lab = S.t7_label(a["m2lnL"], b["m2lnL"], c["m2lnL"], P["t7_margin"])
+        files["t7"] = {"a_col6_B1": a, "b_vz_zero": b, "c_B0p5": c, "theta2_a": th_a, "theta2_c": th_c,
+                       "label": lab, "n_clouds": int(len(co)),
+                       "fits": {"col6": fit_record(mods["col6"], f6), "t7c": fit_record(mods["t7c"], fc)}}
+        summary["T7"] = {"label": lab, "m2lnL": [a["m2lnL"], b["m2lnL"], c["m2lnL"]]}
+
+    # T8
+    if "t8" in parts:
+        rk = mcmc(P, store, "col7", mods["col7"], W.k24_vector(7), ctx)
+        rb = mcmc(P, store, "col7_broad", mods["col7_broad"], W.k24_vector(7), ctx)
+        rd = mcmc(P, store, "col7_div", mods["col7_div"], W.k24_vector(7), ctx)
+        t8 = t8_run(P, mods, rk, rb, rd)
+        t8["chains"] = {"col7": chain_meta(rk), "col7_broad": chain_meta(rb), "col7_div": chain_meta(rd)}
+        files["t8"] = t8
+        summary["T8"] = {"label": t8["label"], "omega0_k24": t8["k24_priors"]["omega0_kms_kpc"],
+                         "omega0_broad": t8["broad_priors"]["omega0_kms_kpc"]}
+        summary.setdefault("chain_short", [])
+        summary["chain_short"] += [k for k, r in (("col7", rk), ("col7_broad", rb), ("col7_div", rd)) if r["chain_short"]]
+
+    # overall reading (README section 2)
+    if {"t1t2", "t3", "t4", "t5", "t6"} <= parts:
+        ov = S.overall_reading(summary["T1"]["col4"], t3["standing"], t4["label"], t5["bhat_label"],
+                               summary["T6"]["label"])
+        if summary["T1"]["on_our_reproduction_only"]:
+            ov["qualifier"] = "on our reproduction, which does not match K24's fit"
+        summary["overall"] = ov
+    else:
+        summary["overall"] = {"reading": "not formed (not all of T1, T3-T6 were run)"}
+    return {"files": files, "summary": summary}

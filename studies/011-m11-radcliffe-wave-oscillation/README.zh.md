@@ -87,6 +87,26 @@ Konietzka 等 2024（Nature 628, 62；arXiv:2402.12596；下称 K24）用阻尼�
 
 独立的速度数据（Zhu 等 2024；Bobylev 等 2025）：不在本研究范围内（开放问题）。在 K24 没有写明之处我们的选择（核带宽、曲线参数化、最近点格点、μ₀ 先验的理解）：T6 覆盖前两项。表中的 `inlier` 标记来自 K24 的最终拟合；我们不用它做选择，只用于比较。
 
+### 4.9 拟合之前的修订（2026-11-21）
+
+以下各点是在实现 `run.py` 时、对数据拟合任何模型之前确定的。它们补足第 2–4.8 节留下的选择，没有改动上面任何规则或阈值。每一点都在对数据做任何拟合之前确定。
+
+1. **载入检查的权重**（第 3 节）。加权平均使用第 4.1 节固定的核权重（kernel weights）。逆方差权重（inverse-variance weights）无法定义，因为有三个星团的 `sigmavz` = 0.0。检查载入时得到的三个平均值：核加权 −2.18 km/s（判定所用的值）、不加权 −1.44 km/s、带 0.05 km/s 下限的逆方差加权 +1.19 km/s；三者都通过。在对数据做任何拟合之前确定。
+2. **变体 1 的似然**（第 4.6 节）。每个分量的项改为 c = 3·tanh(x²/3)，于是残差小时似然为高斯形式，离群边界为 |x| > 3。在对数据做任何拟合之前确定。
+3. **T3 重新拟合的起点**（第 4.3 节）。对零假设模型的重新拟合，"生成参数"与"数据的最佳拟合"是同一点，所以只用两个不同的起点（该点与一次先验抽样）。对数据的 B 自由拟合除了 20 个起点，还从两个零假设模型的最优点出发，以保证 2ΔlnL ≥ 0。在对数据做任何拟合之前确定。
+4. **MCMC 拟合的次数**（第 4.2、4.7 节）。共 7 次：第 (3)、(4)、(5)、(6) 列，以及第 (7) 列三次（K24 的先验、宽先验、除数固定为 74），另加变体 10 的一次（第 (3) 列，用弦长 u₁）。T7 的拟合是最大似然拟合。在对数据做任何拟合之前确定。
+5. **链长规则**（第 4.2 节）。用烧入（burn-in）之后的长度与最大自相关时间（autocorrelation time）的 50 倍比较。重跑时步数与烧入长度都加倍。在对数据做任何拟合之前确定。
+6. **T8 的除数 74 变体**（第 2 节 T8）。在 K24 的先验下运行。在对数据做任何拟合之前确定。
+7. **已知答案检验的放置**（第 4.4 节）。每个入选星团放在注入模型上离其三维位置 (x, y, z) 最近的点，不使用任何速度。在对数据做任何拟合之前确定。
+8. **T5 的自助法**（第 4.4 节）。每次重抽样都从全部输入星团中抽取（对数据是全部 125 个；对已知答案模拟是该模拟的星团集），并重新施加网格端点剔除与位置截断。"网格端点"指第一个或最后一个有效格点（p − γs > 0）。在对数据做任何拟合之前确定。
+9. **变体中的核权重**（第 4.1、4.6 节）。对每个变体的数据，在 K24 第 (6) 列中位数下重新计算，包括子集、变体 6 平移后的 v_z 以及变体 10 的弦长曲线。在对数据做任何拟合之前确定。
+10. **点估计。** T7 (a) 使用第 (6) 列的最大似然拟合。Θ₂ 由各版本自己的内点（inlier）计算。T7 使用全部 79 个云。T1 的内点集合来自后验中位数参数。B = 0.5 的最大似然拟合从第 (5) 列 MCMC 中位数出发，并把 B 设为 0.5。在对数据做任何拟合之前确定。
+11. **式 13 的常数项。** 3 ln(2πσ²) 按原文保留，尽管距离矢量有四个分量。σ 固定时它在所有比较中抵消。在对数据做任何拟合之前确定。
+12. **T3 的残差重抽样变体**（第 4.3 节）。保留，并对 2 个零假设 × 100 次模拟完整地重新拟合。它额外需要约 3 小时，第 4.7 节没有计入。在对数据做任何拟合之前确定。
+13. **断点的存储**（第 4.7 节）。断点（checkpoint）放在项目目录之外。MCMC 拟合的断点只保存各游走者（walker）的最后状态，以及烧入之后按 10 抽稀（thinning）的链。自相关时间在抽稀后的链上估计，再乘以 10。一条链完成后删除其运行状态。全部结果写出之后删除本次运行的断点目录。在对数据做任何拟合之前确定。
+14. **开销估计**（第 4.7 节）。在真实规模的合成数据上实测，一次似然计算约 1.2 ms（星团）或 1.9 ms（星团加云）。整个运行的预计上限约为单核 16 小时：T3 模拟 6.2 h，T6 8.6 h，MCMC 0.9 h。正如第 4.7 节已经写明，运行因此在 10 小时处暂停，在之后的空闲时段继续；各次数不变。在对数据做任何拟合之前确定。
+15. **b̂ 的已知性质。** 在合成的已知答案模拟中，b̂ 偏低：B = 0.84 时均值为 0.565（目标 0.68），B = 1 时为 0.785。因此已知答案检验可能不通过，从而使 b̂ 的标签为"未定"。规则不变。在对数据做任何拟合之前发现并记录。
+
 ## 5. 结果
 
 运行后填写。链接 `web/index.html`，并给出 `results/` 中的关键数字。
@@ -103,12 +123,53 @@ Konietzka 等 2024（Nature 628, 62；arXiv:2402.12596；下称 K24）用阻尼�
 
 | 旋钮（`PARAMS`） | 含义 | 安全范围 | 只用缓存，还是需要新数据（大小）？ |
 |---|---|---|---|
-| TODO | | | |
+| `parts` | 运行哪些检验（`t1t2`、`t3`、`t4`、`t5`、`t6`、`t7`、`t8`）；第 (3)–(6) 列的链总会运行 | 任意子集 | 只用缓存（两张表，16 KB） |
+| `variants` | 运行哪些 T6 变体 | 十个名字的任意子集 | 只用缓存 |
+| `bandwidth_pc` | 权重的核带宽（kernel bandwidth，pc） | 30–300 | 只用缓存 |
+| `sigma_pc` | 似然与模拟噪声共用的弥散 σ（pc） | 30–80 | 只用缓存 |
+| `t5_b_t`、`t5_band`、`t5_cut_sigma` | T5 的 b̂ 阈值、波长带、位置截断（以 σ 计） | 0–0.9；[0.8, 1.25] 附近；1–5 | 只用缓存 |
+| `t5_omega0_sens_kms_kpc` | T5 敏感度检查中 ω(s) 所用的 ω₀ | 60–90 | 只用缓存 |
+| `t3_mocks`、`t4_mocks`、`t5_boot`、`t5_ka_mocks` | 模拟与自助法（bootstrap）次数（低于 4.7 节的下限只用于快速查看） | 10 到默认值 | 只用缓存 |
+| `mcmc_steps`、`mcmc_walkers`、`ml_starts`、`ml_nm_maxfev` | 抽样器与优化器的工作量 | 快速查看时调短 | 只用缓存 |
+| `t8_broad_omega0_kms_kpc`、`t8_broad_mu0_kpc`、`t8_broad_r0_pc` | T8 宽先验的范围 | 放宽或收窄 | 只用缓存 |
+| `sun_vz_kms` | 计算太阳周期所用的太阳竖直速度（km/s） | 7–8 | 只用缓存 |
+| `stop_after_hours` | 运行这么久后暂停；再次运行时从断点（checkpoint）继续（0 = 不限） | 任意 | 只用缓存 |
 
 - 带覆盖参数重跑：`python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --set KEY=VALUE`
-  （输出在 `explore/<date>-<topic>/`，不入库；从缓存运行约 N 秒）。
+  （输出在 `explore/<date>-<topic>/`，不入库）。完整运行需要很多小时（README 4.7），快速查看时设置
+  `parts` 与各次数。断点放在 astrolab 缓存目录（`s011_checkpoints/<key>`）。键不包括 `parts`、
+  `stop_after_hours`、`timing_evals` 与 `checkpoint_subdir`，所以只改这些的探索会复用正式运行的链与拟合
+  （例如正式运行之后，`--set parts='["t7"]'` 只需几分钟）。其他任何覆盖都会开新的断点。
 - `run.py` 没有覆盖的分析：在 `explore/<name>.py` 写带 `def main(ctx)` 的脚本，用
   `python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --script explore/<name>.py` 运行。
-- 结果文件与键：TODO（`results/<file>.json`：键——含义）。
-- 示例问题：TODO（问题 -> 智能体会用的旋钮或脚本）。
+  已有：`explore/age_scatter.py`（Wiki 第三部分的探索"年龄与在波中诞生"：按 10 与 20 Myr 分组，给出相对
+  只用星团、B = 1 拟合的 z 与 v_z 残差的均方根（RMS, root mean square）；需要 `results/t3.json`）。
+- 结果文件与键（每个文件也保存 `params`）：
+  - `results/t1_t2.json`：`t1`（`col4`、`col6`、`col3_for_reference`：每个参数的 `ours`、`k24`、
+    `inside_k24_1sigma`、`sigma_scaled_difference`；`n_inside_of_6`；`label`；`inliers_vs_table_flag`），
+    `t2`（`B` 的百分位数、`P_B_gt_0p95`、`P_B_lt_0p5`、`w0t`、`B_histogram`），`chains`（接受率、
+    自相关时间、`chain_short`），`plot`（网页用的模型曲线与星团点）。
+  - `results/t3.json`：`standing_stat`、`travelling_stat`（`two_dlnL`、`d`、`p_raw`、`p_boot`、`m`、
+    `se_m`、`factor`、`p_cal`、`p_cal_mcse`、`mocks_two_dlnL`），`standing`、`pure_travelling`、
+    `reduced_rule_main`、`residual_resampling_variant`、`fits`（B = 1、B = 0.5、B 自由的最大似然与
+    最大后验参数）、`inlier_overlaps`、`clipped`。
+  - `results/t4.json`：`R_obs`、`n_clusters`，`gauss` 与 `resid`（`p`、`p_mcse`、`power_B1`、
+    `power_Bfree`、分位数、`label`），`label`。
+  - `results/t5.json`：`bhat`、`bhat_interval`、`k_ratio`、`k_ratio_interval`，带区间的 `Delta` 与
+    `rho`，`wavelengths_label`、`bhat_label`、`sensitivity_omega0`、`known_answer`（每次注入的
+    `median_mock_bhat`、`median_mock_interval`、`pass`、覆盖率、偏差），保留与剔除的星团数。
+  - `results/t6.json`：`label`、`changes`、`main_labels_full_rule`、`main_labels_reduced_rule`、
+    `variants`（每个变体：T3 的数值与标签、`t4`、`t5`、`labels`、`changed`）。
+  - `results/t7.json`：`a_col6_B1`、`b_vz_zero`、`c_B0p5`（`m2lnL`、`sigma_int`），`theta2_a`、
+    `theta2_c`、`label`。
+  - `results/t8.json`：`ln_omega0_k24_prior`、`ln_omega0_broad_prior`、`halfwidth_broad`、
+    `median_shift_in_sigma_broad`、`label`，以及 `k24_priors`、`broad_priors`、`variant_divisor_fixed`
+    各自的 `omega0_kms_kpc`、`rho0_msun_pc3`、`sun_period_myr`。
+  - `results/summary.json`：全部标签，`overall`（`reading`、`support`、`do_not_support`、
+    `undetermined_or_not_evaluable`、`qualifier`），`load_check`、`timing`、`chain_short`。
+- 示例问题：
+  - "T5 的结论对波长带敏感吗？" → `--set t5_band='[0.7, 1.4]' parts='["t5"]'`。
+  - "如果波的弥散是 35 pc 呢？" → `--set sigma_pc=35`（重新拟合；需数小时）。
+  - "年龄较大的星团弥散更大吗？" → `--script explore/age_scatter.py`。
+  - "太阳周期对其竖直速度有多敏感？" → `--set sun_vz_kms=7.25 parts='["t8"]'`。
 - 改变认识的发现写进 `log.md`（论文研究还要写进 Wiki 文章），照常走分支。

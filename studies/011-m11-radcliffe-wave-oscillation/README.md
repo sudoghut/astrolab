@@ -291,6 +291,60 @@ dated amendment.
 - **The table's `inlier` flag** comes from K24's final fit. We do not use it for selection, only for
   comparison.
 
+### 4.9 Amendments before any fit (2026-11-21)
+
+These points were fixed while implementing `run.py`, before any model was fitted to the data. They
+settle choices that sections 2–4.8 left open; no rule or threshold above is changed. Each was fixed
+before any fit to the data.
+
+1. **Load-check weights** (section 3). The weighted mean uses the fixed kernel weights of section 4.1.
+   Inverse-variance weights are undefined because three clusters have `sigmavz` = 0.0. The three means
+   found while checking the loading: kernel-weighted −2.18 km/s (the decision value), unweighted −1.44 km/s, and
+   inverse-variance with a 0.05 km/s floor +1.19 km/s; all pass. Fixed before any fit to the data.
+2. **Variant 1 likelihood** (section 4.6). Each component's term becomes c = 3·tanh(x²/3), so the
+   likelihood is Gaussian for small residuals and the outlier boundary is |x| > 3. Fixed before any fit
+   to the data.
+3. **T3 refit starts** (section 4.3). For the null refit, "the generating parameters" and "the data's
+   best fit" are the same point, so it uses two distinct starts (that point and one prior draw). The
+   B-free fit to the data also starts from both null optima, in addition to its 20 starts, so that
+   2ΔlnL ≥ 0. Fixed before any fit to the data.
+4. **Number of MCMC fits** (sections 4.2, 4.7). Seven: columns (3), (4), (5), (6), and column (7) three
+   times (K24's priors, broad priors, divisor fixed at 74), plus one for variant 10 (column (3) with the
+   chord-length u₁). The T7 fits are maximum-likelihood fits. Fixed before any fit to the data.
+5. **Chain-length rule** (section 4.2). The post-burn length is compared with 50 times the largest
+   autocorrelation time. A rerun doubles both the steps and the burn-in. Fixed before any fit to the data.
+6. **T8 divisor-74 variant** (section 2, T8). It is run under K24's priors. Fixed before any fit to the
+   data.
+7. **Known-answer placement** (section 4.4). Each selected cluster is placed at the injected model's
+   point closest to its 3-D position (x, y, z), so no velocity is used. Fixed before any fit to the data.
+8. **T5 bootstrap** (section 4.4). Each resample draws from all input clusters (all 125 for the data;
+   the mock set for a known-answer mock) and reapplies the end-of-grid drop and the position cut. "End
+   of the grid" means the first or last valid grid point (p − γs > 0). Fixed before any fit to the data.
+9. **Kernel weights in variants** (sections 4.1, 4.6). They are recomputed for each variant's data under
+   K24's column-(6) medians, including subsets, the shifted v_z of variant 6 and the chord curve of
+   variant 10. Fixed before any fit to the data.
+10. **Point estimates.** T7 (a) uses the column-(6) maximum-likelihood fit. Θ₂ is computed from each
+    version's own inliers. All 79 clouds are used in T7. T1's inlier set comes from the posterior-median
+    parameters. The maximum-likelihood fit at B = 0.5 starts from the column-(5) MCMC median with B set
+    to 0.5. Fixed before any fit to the data.
+11. **Eq. 13 constant.** The term 3 ln(2πσ²) is kept as printed, although the distance vector has four
+    components. With σ fixed it cancels in every comparison. Fixed before any fit to the data.
+12. **Residual-resampling T3 variant** (section 4.3). It is kept, with full refits of 2 nulls × 100
+    mocks. It adds about 3 hours, which section 4.7 did not count. Fixed before any fit to the data.
+13. **Checkpoint storage** (section 4.7). Checkpoints are kept outside the project folder. For an MCMC
+    fit they hold only the walkers' last state and the post-burn chain thinned by 10. The
+    autocorrelation time is estimated on that thinned chain and multiplied by 10. The running state is
+    deleted once a chain is finished. The run's checkpoint folder is deleted after all results are
+    written. Fixed before any fit to the data.
+14. **Cost estimate** (section 4.7). Measured on synthetic data of the real size, one likelihood
+    evaluation takes about 1.2 ms (clusters) or 1.9 ms (clusters and clouds). The projected upper bound
+    for the whole run is about 16 hours on one core: T3 mocks 6.2 h, T6 8.6 h, MCMC 0.9 h. As section
+    4.7 already says, the run therefore pauses at 10 hours and is resumed in a later idle period; the
+    counts are unchanged. Fixed before any fit to the data.
+15. **Known property of b̂.** On synthetic known-answer mocks, b̂ is biased low: its mean is 0.565 at
+    B = 0.84 (target 0.68) and 0.785 at B = 1. The known-answer check may therefore fail, which makes
+    the b̂ label "undetermined". The rule is unchanged. Found and recorded before any fit to the data.
+
 ## 5. Results
 
 Filled after running. Link to `web/index.html` and key numbers in `results/`.
@@ -308,14 +362,56 @@ How a coding agent answers "what if" questions about this study without touching
 
 | Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
 |---|---|---|---|
-| TODO | | | |
+| `parts` | which tests to run (`t1t2`, `t3`, `t4`, `t5`, `t6`, `t7`, `t8`); the column-(3)–(6) chains always run | any subset | cache only (the two tables, 16 KB) |
+| `variants` | T6 variants to run | any subset of the ten names | cache only |
+| `bandwidth_pc` | kernel bandwidth of the weights (pc) | 30–300 | cache only |
+| `sigma_pc` | common scatter σ of the likelihood and the mock noise (pc) | 30–80 | cache only |
+| `t5_b_t`, `t5_band`, `t5_cut_sigma` | T5 b̂ threshold, wavelength band, position cut (in σ) | 0–0.9; around [0.8, 1.25]; 1–5 | cache only |
+| `t5_omega0_sens_kms_kpc` | ω₀ in ω(s) for the T5 sensitivity check | 60–90 | cache only |
+| `t3_mocks`, `t4_mocks`, `t5_boot`, `t5_ka_mocks` | mock and bootstrap counts (below the floors of 4.7 only for quick looks) | 10 up to the defaults | cache only |
+| `mcmc_steps`, `mcmc_walkers`, `ml_starts`, `ml_nm_maxfev` | sampler and optimiser effort | shorter for quick looks | cache only |
+| `t8_broad_omega0_kms_kpc`, `t8_broad_mu0_kpc`, `t8_broad_r0_pc` | T8 broad prior ranges | wider or narrower | cache only |
+| `sun_vz_kms` | the Sun's vertical velocity for its period (km/s) | 7–8 | cache only |
+| `stop_after_hours` | pause after this long; rerunning continues from the checkpoints (0 = no limit) | any | cache only |
 
 - Rerun with an override: `python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --set KEY=VALUE`
-  (outputs in `explore/<date>-<topic>/`, not committed; about N s from cache).
+  (outputs in `explore/<date>-<topic>/`, not committed). A full run takes many hours (README 4.7), so set
+  `parts` and the counts for a quick look. Checkpoints live in the astrolab cache folder
+  (`s011_checkpoints/<key>`). The key leaves out `parts`, `stop_after_hours`, `timing_evals` and
+  `checkpoint_subdir`, so an exploration that changes only those reuses the formal run's chains and fits
+  (for example `--set parts='["t7"]'` takes minutes after the formal run). Any other override starts new
+  checkpoints.
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --script explore/<name>.py`.
-- Results files and keys: TODO (`results/<file>.json`: key - meaning).
-- Example questions: TODO (question -> knob or script an agent would use).
+  Existing: `explore/age_scatter.py` (wiki Part 3 exploration "Age and birth in the Wave": RMS of the z
+  and v_z residuals about the clusters-only B = 1 fit, split at 10 and 20 Myr; needs `results/t3.json`).
+- Results files and keys (every file also stores `params`):
+  - `results/t1_t2.json`: `t1` (`col4`, `col6`, `col3_for_reference`: per parameter `ours`, `k24`,
+    `inside_k24_1sigma`, `sigma_scaled_difference`; `n_inside_of_6`; `label`; `inliers_vs_table_flag`),
+    `t2` (`B` percentiles, `P_B_gt_0p95`, `P_B_lt_0p5`, `w0t`, `B_histogram`), `chains` (acceptance,
+    autocorrelation times, `chain_short`), `plot` (model curves and cluster points for the web page).
+  - `results/t3.json`: `standing_stat`, `travelling_stat` (`two_dlnL`, `d`, `p_raw`, `p_boot`, `m`,
+    `se_m`, `factor`, `p_cal`, `p_cal_mcse`, `mocks_two_dlnL`), `standing`, `pure_travelling`,
+    `reduced_rule_main`, `residual_resampling_variant`, `fits` (ML and MAP parameters of B = 1, B = 0.5,
+    B free), `inlier_overlaps`, `clipped`.
+  - `results/t4.json`: `R_obs`, `n_clusters`, `gauss` and `resid` (`p`, `p_mcse`, `power_B1`,
+    `power_Bfree`, quantiles, `label`), `label`.
+  - `results/t5.json`: `bhat`, `bhat_interval`, `k_ratio`, `k_ratio_interval`, `Delta` and `rho` with
+    intervals, `wavelengths_label`, `bhat_label`, `sensitivity_omega0`, `known_answer` (per injection
+    `median_mock_bhat`, `median_mock_interval`, `pass`, coverage, bias), counts of kept and dropped clusters.
+  - `results/t6.json`: `label`, `changes`, `main_labels_full_rule`, `main_labels_reduced_rule`,
+    `variants` (per variant: T3 numbers and labels, `t4`, `t5`, `labels`, `changed`).
+  - `results/t7.json`: `a_col6_B1`, `b_vz_zero`, `c_B0p5` (`m2lnL`, `sigma_int`), `theta2_a`, `theta2_c`,
+    `label`.
+  - `results/t8.json`: `ln_omega0_k24_prior`, `ln_omega0_broad_prior`, `halfwidth_broad`,
+    `median_shift_in_sigma_broad`, `label`, and for `k24_priors`, `broad_priors`, `variant_divisor_fixed`:
+    `omega0_kms_kpc`, `rho0_msun_pc3`, `sun_period_myr`.
+  - `results/summary.json`: every label, `overall` (`reading`, `support`, `do_not_support`,
+    `undetermined_or_not_evaluable`, `qualifier`), `load_check`, `timing`, `chain_short`.
+- Example questions:
+  - "Is T5's verdict sensitive to the wavelength band?" → `--set t5_band='[0.7, 1.4]' parts='["t5"]'`.
+  - "What if the Wave's scatter were 35 pc?" → `--set sigma_pc=35` (new fits; hours).
+  - "Do older clusters scatter more?" → `--script explore/age_scatter.py`.
+  - "How much does the Sun's period depend on its vertical velocity?" → `--set sun_vz_kms=7.25 parts='["t8"]'`.
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.
-
