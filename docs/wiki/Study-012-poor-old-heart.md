@@ -330,8 +330,8 @@ lowest metallicities; gradual spin-up) and its possible accreted component.
 
 The encoded conclusion has four parts, all in the abstract and the summary (Section IV): (1) the
 metal-poor stars ([M/H] < −1.5) in the inner Galaxy amount to at least about 5×10⁷ M☉; (2) they are
-centrally concentrated, most of them within 5 kpc of the Galactic Centre; (3) they formed before the
-oldest disc, at least 12.5 Gyr ago (z ≳ 5); (4) they are the most ancient proto-Galactic (in-situ)
+centrally concentrated, most of them within 5 kpc of the Galactic Centre; (3) much of the population
+formed before the oldest disc, at least 12.5 Gyr ago (z ≳ 5); (4) they are the most ancient proto-Galactic (in-situ)
 component of the Milky Way. We quote the abstract, "This sample reveals an extensive, ancient, and
 metal-poor population", for the whole; part (3) is hedged in the abstract ("most likely predate the
 oldest part of the disk") and part (4) in Section IV ("All of this information fits a picture in
@@ -351,7 +351,7 @@ D. Data used by stage F: no net rotation below [M/H] = −2, rotation dominated 
    below 5 kpc; the vast majority α-enhanced.
 E. The old disc's metallicity distribution drops sharply below [M/H] = −1; [gap] the metal-poor stars
    and the old disc belong to one chemically connected system; in one such system metallicity rises
-   with time (standard) ⇒ the metal-poor stars predate the oldest disc; the oldest disc stars are
+   with time (standard) ⇒ much of the metal-poor population predates the oldest disc; the oldest disc stars are
    ≈12.5 Gyr old ⇒ **formed ≳12.5 Gyr ago, z ≳ 5**.
 F. Confinement argues against a once-distant satellite; α-enhancement argues for rapid enrichment in
    a deep potential well; [gap] together with mass, age and the rotation trend, this makes the
@@ -408,7 +408,7 @@ an open question.
 |---|---|---|---|
 | `stat_prec`: XP [M/H] agree with APOGEE and other surveys to about 0.1 dex | STAT | stated: "a remarkably precise (≲0.1 in the median)" | Section II.3 (APOGEE stars in the training set); Appendix A.2 |
 | `gap_pure`: the tail below −1.5 is not dominated by metal-richer stars with underestimated [M/H] | GAP | reconstructed | R22 asks "How pure are the XP selected samples in this regime?" (Section IV); Chen et al. 2025, arXiv:2511.18901 |
-| `mod_tail`: precise + pure ⇒ the metal-poor stars are genuine | MOD | implied: standard selection logic (Ivezić et al. 2014, *Statistics, Data Mining, and Machine Learning in Astronomy*) | — |
+| `mod_tail`: precise + pure ⇒ the metal-poor stars are genuine | MOD | implied: standard selection logic (Ivezić et al. 2014, *Statistics, Data Mining, and Machine Learning in Astronomy*, 2014sdmm.book.....I); close to definitional | — |
 
 **Rival explanations.**
 
@@ -424,7 +424,9 @@ an open question.
 have t : v.TailReal := p .mod_tail (p .stat_prec) (p .gap_pure)                     -- GAP
 ```
 
-**Critique.** A median precision of 0.1 dex over the bulk says little about the 1% tail. The sample
+**Critique.** A median precision of 0.1 dex over the bulk says little about the 1% tail, and the
+APOGEE comparison is, in R22's words, "a validation on a small subset of the full training set, not a
+pure cross-validation" (Section II.3). The sample
 has about 100 stars above [M/H] = −1.5 for each one below; a contamination rate of 1% among stars at
 −1.3 to −1 would already be a sizeable fraction of the tail. A tree regressor such as XGBoost cannot
 return values below its training labels, and regression estimators in general pull extreme values
@@ -446,7 +448,7 @@ fields and behind dust, and a "conservative" factor 2.5 gives the lower limit �
 |---|---|---|---|
 | `obs_count`: about 18,000 stars with [M/H] < −1.5 | OBS | stated: "that includes ∼18,000 stars" | Abstract (Section III.2; Fig. 4 and Section IV: ∼20,000) |
 | `mod_m4`: in M4, one giant (M_G < 0.5) per 800 M☉ | MOD | stated: "per 800 M⊙ of total stellar population mass" | Section III.2 |
-| `gap_template`: the M4 conversion applies to this sample | GAP | reconstructed | sample cut at colour-corrected M_G ≈ 0.9, not 0.5; 800 M☉ not reproduced from the quoted M4 numbers |
+| `gap_template`: the M4 conversion applies to this sample | GAP | reconstructed | sample cut at colour-corrected M_G ≈ 0.9, not 0.5; 800 M☉ not reproduced from the quoted M4 numbers; the count includes stars R22 identify as GSE stars passing pericentre, not removed; together a factor of up to about 2 |
 | `mod_face`: genuine tail + count + M4 ratio (+ template) ⇒ about 2×10⁷ M☉ at face value | MOD | stated: "At face value, this implies" | Section III.2 |
 | `obs_incomplete`: XP spectra are missing in crowded fields, dust hides stars | OBS | stated: "But this does not account for the incompleteness of XP spectra in very crowded fields" | Section III.2 |
 | `mod_corr`: face-value mass + incompleteness ⇒ ≳5×10⁷ M☉ | MOD | stated: "A conservative estimate of these effects is a factor of 2.5, leading us to a lower limit on the mass of" | Section III.2 |
@@ -456,6 +458,7 @@ fields and behind dust, and a "conservative" factor 2.5 gives the lower limit �
 | Alternative | Excluded by premise | Excluded explicitly by the paper? |
 |---|---|---|
 | The count is inflated by contamination (stage A) | `mod_face` needs `TailReal` | no |
+| The count includes GSE or outer-halo stars passing through the inner Galaxy | `gap_template` | no: the e ≥ 0.75, R_apo ≳ 10 kpc group is identified (Section III.3) but not removed from the count |
 | The luminosity range or the population (age, mass function) differs from M4 | `gap_template` | no |
 | The incompleteness factor is smaller than 2.5 | `mod_corr` | stated as "conservative", no derivation |
 
@@ -499,7 +502,7 @@ likelihood (eq. 1) and find σ_RGC ≈ 2.7 kpc; the summary turns this into "mos
 |---|---|---|
 | The extent is set by the field (60° × 60° box, edge at 4.7–4.9 kpc) | `mod_sph` (eq. 1 integrates over the observed directions) | yes, in the model |
 | Dust removes stars within 700 pc of the plane and the central kpc; crowding; the BP < 15.5 and luminosity cuts select by distance | `gap_sel` | no: listed as future work |
-| The population is flattened or follows a power law, not a sphere | `gap_sel`, `mod_sph` | no; Kurbatov et al. 2024 find flattening ≈0.5 and an Aurora slope of −4.5 |
+| The population is flattened or follows a power law, not a sphere | `mod_sph` (the assumed shape) | no; Kurbatov et al. 2024 find flattening ≈0.5 and an Aurora slope of −4.5 |
 | Parallax zero-point errors bias σ | `stat_sigma` (0.02 mas correction) | partly |
 
 **Inference (Lean excerpt).**
@@ -560,7 +563,7 @@ lower metallicity to earlier formation is hedged in the abstract ("most likely p
 
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
-| `obs_discfloor`: the old disc's metallicity distribution drops sharply below −1 | OBS | stated: "However, the old α-enhanced disk metallicity distribution function (MDF) is truncated, or at least drops sharply, below" | Section I |
+| `lit_discfloor`: the old disc's metallicity distribution drops sharply below −1 | LIT | stated: "However, the old α-enhanced disk metallicity distribution function (MDF) is truncated, or at least drops sharply, below" | Section I; background from the literature, not measured by R22 (the preceding sentence cites refs. [44], [14], [10], [96], among them Hayden et al. 2015, ApJ 808, 132, 2015ApJ...808..132H, and Xiang & Rix 2022, arXiv:2203.12110) |
 | `gap_onezone`: the metal-poor stars and the old disc belong to one chemically connected system | GAP | reconstructed | R22 hedges ("most likely predate"); R22 Section I expects a mix with later-merged satellites; Ardern-Arentsen et al. 2024, arXiv:2312.03847 |
 | `mod_amr`: in one system, metallicity rises with time ⇒ more metal-poor than the oldest disc means earlier | MOD | implied: one-zone chemical evolution (Tinsley 1980, 1980FCPh....5..287T) | — |
 | `lit_discage`: the oldest disc stars are ≈12.5 Gyr old | LIT | stated: "appear to be ≈12.5 Gyrs old" | Section IV; ref. [96], Xiang & Rix 2022, arXiv:2203.12110 |
@@ -578,7 +581,7 @@ lower metallicity to earlier formation is hedged in the abstract ("most likely p
 **Inference (Lean excerpt).**
 
 ```lean
-have pd : v.Predates := p .mod_amr (p .gap_onezone) t (p .obs_discfloor)           -- GAP
+have pd : v.Predates := p .mod_amr (p .gap_onezone) t (p .lit_discfloor)           -- GAP
 have a : v.Ancient := p .mod_ancient pd (p .lit_discage)
 ```
 
@@ -671,19 +674,23 @@ combination, and it rests on `gap_proto`.
 4. **Ranking.** `gap_pure` matters most (it reaches everything and the paper gives no number for
    it); then `gap_onezone` (the age claim is the paper's headline); `gap_proto` is largely
    interpretive; `gap_sel` affects the number σ ≈ 2.7 kpc more than the qualitative concentration;
-   `gap_template` affects the mass by a factor of order 2.
+   `gap_template` affects the mass by a factor of up to about 2.
 5. **All 25 premises are needed** in this encoding; none is redundant (each sits on a single chain).
    The four stage D facts are needed only through the interpretive steps (`mod_confined`,
    `mod_deepwell`, `gap_proto`).
 6. **Consistency** (`consistent`) is weak here: no premise is negative, so the all-true model
    satisfies them trivially.
-7. **How the encoding departs from the quotes.** `mod_face`, `mod_central`, `mod_confined` and
-   `mod_ancient` carry extra antecedents (weaker than the quotes). `mod_ancient` encodes a conditional
+7. **How the encoding departs from the quotes.** `mod_face`, `mod_central` and `mod_ancient` (with
+   `DiscAge`) carry extra antecedents (weaker than the quotes); `mod_confined` paraphrases its
+   subject ("confined to R_GC < R☉, or tightly bound") with stronger antecedents (central
+   concentration and small apocentres). `mod_ancient` encodes a conditional
    sentence of R22 as the conditional it is. Quotes with "[M/H]" are cut before or after the bracket;
    the text left out is given in each source column. Hedged steps are gaps, not stated implications.
 8. **Limits.** Lean checks the logical structure under our encoding, not the statistics inside each
    premise; the paper's numbers (counts, σ, mass, ages) enter as atoms, and "needed" means "used by
-   this encoding".
+   this encoding". Whether a subsample stands for the whole population (the RVS subsample for the
+   apocentres and rotation, the APOGEE subset for α-enhancement) is absorbed into the `STAT` atoms
+   and is not a separate premise.
 
 ### Part 3 · What astrolab can test or explore
 
@@ -711,6 +718,11 @@ To be written next.
 
 Newest first.
 
+- 2026-11-21: part 2 gate-1 review: the old-disc metallicity floor retagged `LIT` (`lit_discfloor`,
+  with Hayden et al. 2015 and Xiang & Rix 2022); "much of" in part (3) of the conclusion; the
+  sphere as R22's assumption, with the flattened/power-law rival under `mod_sph`; GSE stars in the
+  count (`gap_template`, factor up to about 2); subsample notes; R22's "not a pure cross-validation";
+  `mod_confined` wording; bibcode for the selection rule; the abstract's "forging the proto-Milky Way".
 - 2026-11-21: part 2 drafted (logic of the argument in six stages; `Argument.lean`: 25 premises,
   5 gaps, 2 implied; `stated_insufficient` and `explicit_insufficient`).
 - 2026-11-21: part 1 gate-2 (Codex): no serious issues; three wording minors (R22's expected mix of
@@ -732,6 +744,7 @@ Newest first.
 - Xiang & Rix 2022, Nature 603, 599, arXiv:2203.12110 (oldest disc age, R22's ref. [96]).
 - Tinsley 1980, Fundamentals of Cosmic Physics 5, 287, 1980FCPh....5..287T; Ivezić, Connolly, VanderPlas & Gray 2014, *Statistics, Data Mining, and Machine Learning in Astronomy* (standard background of the two `[implied]` premises in part 2).
 - Chen, Sun & Ye 2025, arXiv:2510.10092 (younger subgiant age scale; via the Study 010 article).
+- Hayden et al. 2015, ApJ 808, 132, 2015ApJ...808..132H (R22's ref. [44], behind the old-disc metallicity floor; reference entry read in R22, paper not re-read).
 - Belokurov & Kravtsov 2022, MNRAS 514, 689, arXiv:2203.04980 (Aurora; cited by R22, not re-read here; journal reference from memory, not verified).
 - Kurbatov et al. 2024, arXiv:2410.22250; Ardern-Arentsen et al. 2024, arXiv:2312.03847; Viswanathan et al. 2025, A&A 703, A183, arXiv:2411.12165; Chen et al. 2025, OJAp, arXiv:2511.18901 (later literature; abstracts read 2026-11-21).
 
@@ -850,13 +863,13 @@ Newest first.
 
 #### 2.0 论证地图
 
-编码的结论有四部分，摘要与总结（第 IV 节）都写到了：（1）内银河系中的贫金属星（[M/H] < −1.5）合计至少约 5×10⁷ M☉；（2）它们向中心集中，大多数在离银心 5 kpc 以内；（3）它们形成于最老的盘之前，至少 12.5 Gyr 以前（z ≳ 5）；（4）它们是银河系最古老的原银河系（原位，in situ）成分。整体引用摘要："This sample reveals an extensive, ancient, and metal-poor population"（这个样本揭示了一个延展、古老、贫金属的族群）；第（3）部分在摘要中有保留措辞（"most likely predate the oldest part of the disk"，很可能早于盘最老的部分），第（4）部分在第 IV 节中有保留措辞（"All of this information fits a picture in which this metal-poor heart of the Milky Way constitutes the most ancient proto-Galactic component of our Galaxy"，所有这些信息符合这样一幅图景：银河系这个贫金属的核心构成我们银河系最古老的原银河系成分）。
+编码的结论有四部分，摘要与总结（第 IV 节）都写到了：（1）内银河系中的贫金属星（[M/H] < −1.5）合计至少约 5×10⁷ M☉；（2）它们向中心集中，大多数在离银心 5 kpc 以内；（3）这个族群的大部分（much of）形成于最老的盘之前，至少 12.5 Gyr 以前（z ≳ 5）；（4）它们是银河系最古老的原银河系（原位，in situ）成分。整体引用摘要："This sample reveals an extensive, ancient, and metal-poor population"（这个样本揭示了一个延展、古老、贫金属的族群）；第（3）部分在摘要中有保留措辞（"most likely predate the oldest part of the disk"，很可能早于盘最老的部分），第（4）部分在第 IV 节中有保留措辞（"All of this information fits a picture in which this metal-poor heart of the Milky Way constitutes the most ancient proto-Galactic component of our Galaxy"，所有这些信息符合这样一幅图景：银河系这个贫金属的核心构成我们银河系最古老的原银河系成分）。
 
 A. XP 金属丰度精确到约 0.1 dex；[缺口] 贫金属尾巴没有被 [M/H] 被低估的较富金属星主导；精确而纯净的选择是真实的（标准知识）⇒ 计数的贫金属星是真实的。
 B. 约 18,000 颗这样的星；球状星团 M4 给出每 800 M☉ 一颗巨星；[缺口] 这一换算适用于本样本 ⇒ 照此计算约 2×10⁷ M☉；拥挤与尘埃使样本不完整，乘以"保守的"2.5 倍 ⇒ **至少约 5×10⁷ M☉**。
 C. 用球对称高斯拟合视差得到 σ_RGC ≈ 2.7 kpc；[缺口] 拟合没有被它未建模的选择（尘埃、拥挤、视场边界、星等截断）扭曲 ⇒ **大多数星在离银心 5 kpc 以内**。
 D. 供环节 F 使用的数据：[M/H] = −2 以下没有净转动，−1 附近以转动为主；大多数远心距小于 5 kpc；绝大多数 α 增丰。
-E. 老盘的金属丰度分布在 [M/H] = −1 以下急剧下降；[缺口] 贫金属星与老盘属于同一个化学上相连的系统；在这样一个系统中金属丰度随时间上升（标准知识）⇒ 贫金属星早于最老的盘；最老的盘星约 12.5 Gyr ⇒ **形成于 ≳12.5 Gyr 以前，z ≳ 5**。
+E. 老盘的金属丰度分布在 [M/H] = −1 以下急剧下降；[缺口] 贫金属星与老盘属于同一个化学上相连的系统；在这样一个系统中金属丰度随时间上升（标准知识）⇒ 贫金属族群的大部分早于最老的盘；最老的盘星约 12.5 Gyr ⇒ **形成于 ≳12.5 Gyr 以前，z ≳ 5**。
 F. 局限在中心不支持来自曾经遥远的卫星星系；α 增丰支持在深引力势阱中快速增丰；[缺口] 再加上质量、年龄与转动趋势，这使该族群成为**原银河系的原位核心**，而不是被吸积星系的碎片。
 
 检查方式：论证用 Lean 4 写成（[`studies/012-m12-poor-old-heart/argument/Argument.lean`](https://github.com/sudoghut/astrolab/blob/main/studies/012-m12-poor-old-heart/argument/Argument.lean)）。每个前提是 `Field` 的一个构造子（不用公理），标注类型与出处性质：
@@ -886,7 +899,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且不是恒�
 |---|---|---|---|
 | `stat_prec`：XP [M/H] 与 APOGEE 及其他巡天符合到约 0.1 dex | STAT | stated: "a remarkably precise (≲0.1 in the median)" | 第 II.3 节（APOGEE 星在训练集中）；附录 A.2 |
 | `gap_pure`：−1.5 以下的尾巴没有被 [M/H] 被低估的较富金属星主导 | GAP | reconstructed | R22 问"How pure are the XP selected samples in this regime?"（第 IV 节）；Chen 等 2025，arXiv:2511.18901 |
-| `mod_tail`：精确 + 纯净 ⇒ 贫金属星是真实的 | MOD | implied：标准的选择逻辑（Ivezić 等 2014，*Statistics, Data Mining, and Machine Learning in Astronomy*） | — |
+| `mod_tail`：精确 + 纯净 ⇒ 贫金属星是真实的 | MOD | implied：标准的选择逻辑（Ivezić 等 2014，*Statistics, Data Mining, and Machine Learning in Astronomy*，2014sdmm.book.....I）；近乎定义 | — |
 
 **竞争解释。**
 
@@ -902,7 +915,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且不是恒�
 have t : v.TailReal := p .mod_tail (p .stat_prec) (p .gap_pure)                     -- GAP
 ```
 
-**评析。** 主体的中位精度 0.1 dex 对占 1% 的尾巴说明不了多少。样本中每颗 [M/H] < −1.5 的星对应约 100 颗更富金属的星；−1.3 到 −1 之间的星只要有 1% 被估错，就已经是尾巴中相当大的一部分。XGBoost 这样的树回归模型不能给出低于训练标签的值，而一般的回归估计会把极端值拉向主体；两种效应以相反的方向塑造尾巴（−2.5 以下的星变少，−1.3 附近的一些星可能出现在 −1.5 以下）。Chen 等 2025 发现十个 XP 金属丰度星表对 [Fe/H] = −2 以下尾巴的斜率看法不一（k ≈ 0.6–2.0）。所以纯度是第一个缺口，结论的每一部分都依赖它。
+**评析。** 主体的中位精度 0.1 dex 对占 1% 的尾巴说明不了多少，而与 APOGEE 的比较用 R22 的话说是"a validation on a small subset of the full training set, not a pure cross-validation"（在全部训练集的一个小子集上的验证，不是纯粹的交叉验证；第 II.3 节）。样本中每颗 [M/H] < −1.5 的星对应约 100 颗更富金属的星；−1.3 到 −1 之间的星只要有 1% 被估错，就已经是尾巴中相当大的一部分。XGBoost 这样的树回归模型不能给出低于训练标签的值，而一般的回归估计会把极端值拉向主体；两种效应以相反的方向塑造尾巴（−2.5 以下的星变少，−1.3 附近的一些星可能出现在 −1.5 以下）。Chen 等 2025 发现十个 XP 金属丰度星表对 [Fe/H] = −2 以下尾巴的斜率看法不一（k ≈ 0.6–2.0）。所以纯度是第一个缺口，结论的每一部分都依赖它。
 
 #### 2.2 环节 B · 多少颗星、多少质量
 
@@ -914,7 +927,7 @@ have t : v.TailReal := p .mod_tail (p .stat_prec) (p .gap_pure)                 
 |---|---|---|---|
 | `obs_count`：约 18,000 颗 [M/H] < −1.5 的星 | OBS | stated: "that includes ∼18,000 stars" | 摘要（第 III.2 节；图 4 与第 IV 节：∼20,000） |
 | `mod_m4`：M4 中每 800 M☉ 一颗巨星（M_G < 0.5） | MOD | stated: "per 800 M⊙ of total stellar population mass" | 第 III.2 节 |
-| `gap_template`：M4 的换算适用于本样本 | GAP | reconstructed | 样本截断在经颜色改正的 M_G ≈ 0.9，不是 0.5；800 M☉ 不能由所引的 M4 数字复现 |
+| `gap_template`：M4 的换算适用于本样本 | GAP | reconstructed | 样本截断在经颜色改正的 M_G ≈ 0.9，不是 0.5；800 M☉ 不能由所引的 M4 数字复现；计数包括 R22 认定为正经过近心点的 GSE 星，没有去除；合计影响最多约 2 倍 |
 | `mod_face`：真实的尾巴 + 计数 + M4 比值（+ 模板）⇒ 照此计算约 2×10⁷ M☉ | MOD | stated: "At face value, this implies" | 第 III.2 节 |
 | `obs_incomplete`：拥挤天区缺少 XP 光谱，尘埃遮住恒星 | OBS | stated: "But this does not account for the incompleteness of XP spectra in very crowded fields" | 第 III.2 节 |
 | `mod_corr`：照此计算的质量 + 不完整 ⇒ ≳5×10⁷ M☉ | MOD | stated: "A conservative estimate of these effects is a factor of 2.5, leading us to a lower limit on the mass of" | 第 III.2 节 |
@@ -924,6 +937,7 @@ have t : v.TailReal := p .mod_tail (p .stat_prec) (p .gap_pure)                 
 | 替代解释 | 由哪个前提排除 | 论文是否明确排除？ |
 |---|---|---|
 | 计数被污染抬高（环节 A） | `mod_face` 需要 `TailReal` | 否 |
+| 计数包括途经内银河系的 GSE 星或外晕星 | `gap_template` | 否：e ≥ 0.75、R_apo ≳ 10 kpc 的一群被认出（第 III.3 节），但没有从计数中去除 |
 | 光度范围或族群（年龄、质量函数）与 M4 不同 | `gap_template` | 否 |
 | 不完整改正因子小于 2.5 | `mod_corr` | 称为"保守"，没有推导 |
 
@@ -955,7 +969,7 @@ have m : v.Massive := p .mod_corr fm (p .obs_incomplete)
 |---|---|---|
 | 尺度由视场决定（60° × 60° 方框，边缘在 4.7–4.9 kpc） | `mod_sph`（式 1 对观测方向积分） | 是，在模型中 |
 | 尘埃去掉了离盘面 700 pc 以内与中心 1 kpc 的星；拥挤；BP < 15.5 与光度截断按距离选择 | `gap_sel` | 否：列为后续工作 |
-| 族群是扁的或服从幂律，不是球形 | `gap_sel`、`mod_sph` | 否；Kurbatov 等 2024 得到扁率 ≈0.5、"曙光"斜率 −4.5 |
+| 族群是扁的或服从幂律，不是球形 | `mod_sph`（假设的形状） | 否；Kurbatov 等 2024 得到扁率 ≈0.5、"曙光"斜率 −4.5 |
 | 视差零点误差使 σ 有偏 | `stat_sigma`（0.02 mas 改正） | 部分 |
 
 **推理（Lean 摘录）。**
@@ -998,7 +1012,7 @@ have c : v.Central := p .mod_central t (p .mod_sph) (p .stat_sigma) (p .gap_sel)
 
 | 前提（Lean 构造子） | 标签 | 出处性质 | 论文出处 |
 |---|---|---|---|
-| `obs_discfloor`：老盘的金属丰度分布在 −1 以下急剧下降 | OBS | stated: "However, the old α-enhanced disk metallicity distribution function (MDF) is truncated, or at least drops sharply, below" | 第 I 节 |
+| `lit_discfloor`：老盘的金属丰度分布在 −1 以下急剧下降 | LIT | stated: "However, the old α-enhanced disk metallicity distribution function (MDF) is truncated, or at least drops sharply, below" | 第 I 节；来自文献的背景，不是 R22 的测量（前一句引用参考文献 [44]、[14]、[10]、[96]，其中有 Hayden 等 2015，ApJ 808, 132，2015ApJ...808..132H，以及 Xiang & Rix 2022，arXiv:2203.12110） |
 | `gap_onezone`：贫金属星与老盘属于同一个化学上相连的系统 | GAP | reconstructed | R22 有保留（"most likely predate"）；R22 第 I 节预期混有较晚并合的卫星星系；Ardern-Arentsen 等 2024，arXiv:2312.03847 |
 | `mod_amr`：在一个系统中金属丰度随时间上升 ⇒ 比最老的盘更贫金属意味着更早 | MOD | implied：单区化学演化（one-zone chemical evolution；Tinsley 1980，1980FCPh....5..287T） | — |
 | `lit_discage`：最老的盘星约 12.5 Gyr | LIT | stated: "appear to be ≈12.5 Gyrs old" | 第 IV 节；参考文献 [96]，Xiang & Rix 2022，arXiv:2203.12110 |
@@ -1016,7 +1030,7 @@ have c : v.Central := p .mod_central t (p .mod_sph) (p .stat_sigma) (p .gap_sel)
 **推理（Lean 摘录）。**
 
 ```lean
-have pd : v.Predates := p .mod_amr (p .gap_onezone) t (p .obs_discfloor)           -- GAP
+have pd : v.Predates := p .mod_amr (p .gap_onezone) t (p .lit_discfloor)           -- GAP
 have a : v.Ancient := p .mod_ancient pd (p .lit_discage)
 ```
 
@@ -1067,11 +1081,11 @@ exact ⟨m, c, a, pg⟩
 1. **核心结论：`explicit_insufficient`，有五个缺口。** 即使加上两条标准规则（`mod_tail`、`mod_amr`），没有以下各条结论仍推不出：贫金属尾巴的纯度（`gap_pure`）、M4 换算的适用性（`gap_template`）、未建模的选择没有造成扭曲（`gap_sel`）、年龄排序所需的同一个化学上相连的系统（`gap_onezone`）以及原位解释（`gap_proto`）。
 2. **`stated_insufficient`**：即使不计缺口，R22 写出的内容也不够。论证还用到两条它没有写出的标准规则：精确而纯净的选择给出真实成员（`mod_tail`），以及在一个系统中金属丰度随时间上升（`mod_amr`）。
 3. **缺口在哪里。** `gap_pure` 影响全部四部分（质量、集中度与年龄都用到真实的尾巴；解释用到这三者）。第（1）部分质量加上 `gap_template`；第（2）部分集中度加上 `gap_sel`；第（3）部分年龄加上 `gap_onezone`；第（4）部分原银河系加上 `gap_proto` 并继承其他所有缺口。其中两个缺口（`gap_onezone`、`gap_proto`）是 R22 自己有保留的步骤（"most likely"、"fits a picture"）；另外三个是 R22 未加评论就采用的步骤（`gap_template`）或标为后续工作的步骤（`gap_pure`、`gap_sel`）。
-4. **排序。** `gap_pure` 最重要（影响一切，论文没有给出任何数字）；其次是 `gap_onezone`（年龄是论文的标题结论）；`gap_proto` 主要是解释性的；`gap_sel` 对 σ ≈ 2.7 kpc 这个数字的影响大于对定性集中度的影响；`gap_template` 影响质量约 2 倍。
+4. **排序。** `gap_pure` 最重要（影响一切，论文没有给出任何数字）；其次是 `gap_onezone`（年龄是论文的标题结论）；`gap_proto` 主要是解释性的；`gap_sel` 对 σ ≈ 2.7 kpc 这个数字的影响大于对定性集中度的影响；`gap_template` 影响质量最多约 2 倍。
 5. **在本编码中 25 个前提都是必要的**，没有多余的（每个都在单一链条上）。环节 D 的四条事实只通过解释性步骤（`mod_confined`、`mod_deepwell`、`gap_proto`）才是必要的。
 6. **相容性**（`consistent`）在这里分量很弱：没有否定形式的前提，全真模型平凡地满足它们。
-7. **编码与引文的差别。** `mod_face`、`mod_central`、`mod_confined` 与 `mod_ancient` 带有额外前件（比引文弱）。`mod_ancient` 把 R22 的一个条件句按条件句编码。含 "[M/H]" 的引文在括号前或后截断，截掉的内容写在各出处栏中。有保留的步骤是缺口，不是写明的蕴含式。
-8. **局限。** Lean 检查的是在我们的编码下论证的逻辑结构，不检查每个前提内部的统计；论文的数字（计数、σ、质量、年龄）以原子进入，"必要"的意思是"本编码用到了它"。
+7. **编码与引文的差别。** `mod_face`、`mod_central` 与 `mod_ancient`（带 `DiscAge`）带有额外前件（比引文弱）；`mod_confined` 转述其主语（"confined to R_GC < R☉, or tightly bound"，局限在太阳圆以内，或束缚很紧），并用更强的前件（向中心集中与远心距小）。`mod_ancient` 把 R22 的一个条件句按条件句编码。含 "[M/H]" 的引文在括号前或后截断，截掉的内容写在各出处栏中。有保留的步骤是缺口，不是写明的蕴含式。
+8. **局限。** Lean 检查的是在我们的编码下论证的逻辑结构，不检查每个前提内部的统计；论文的数字（计数、σ、质量、年龄）以原子进入，"必要"的意思是"本编码用到了它"。子样本能否代表整个族群（远心距与转动用 RVS 子样本，α 增丰用 APOGEE 子集）被吸收进 `STAT` 原子，不是单独的前提。
 
 ### 第三部分 · 本项目可检验或探索的环节
 
@@ -1099,6 +1113,7 @@ exact ⟨m, c, a, pg⟩
 
 按时间倒序。
 
+- 2026-11-21：第二部分闸门 1 审查：老盘金属丰度下限改标 `LIT`（`lit_discfloor`，附 Hayden 等 2015 与 Xiang & Rix 2022）；结论第（3）部分加上"much of"（大部分）；球形改为 R22 的假设，扁平/幂律的竞争解释归于 `mod_sph`；计数中的 GSE 星（`gap_template`，最多约 2 倍）；子样本说明；R22 的"not a pure cross-validation"；`mod_confined` 的措辞；选择规则的文献码；摘要的"forging the proto-Milky Way"。
 - 2026-11-21：起草第二部分（六个环节的论证逻辑；`Argument.lean`：25 个前提、5 个缺口、2 条标准知识；`stated_insufficient` 与 `explicit_insufficient`）。
 - 2026-11-21：第一部分闸门 2（Codex）：没有严重问题；三处措辞小问题（R22 预期的原银河系星与吸积星的混合、计数验算的斜率假设、800 M☉ 一点作为尚未解决的不符）。
 - 2026-11-21：第一部分闸门 1 审查：给出视差/光度查询截断的精确表达式（经颜色改正的 G）；表 1 与正文的矛盾、第 II.4 节的 150 万加入不一致清单；引文与注意事项注明所在章节；加上 R22 的"This does not necessarily imply that these mergers did not occur"；张角与红移验算改为精确值；Zenodo 作者与 DOI；Chen 等的措辞；中文术语括注英文；第二轮：附录 A.1 的精确引文（"slightly worse performance"、"a few more outliers"）、"predates"、消红化标为"我们的解读"、第 IV 节关于训练范围（−2.5）的引文、引文标点。
@@ -1111,5 +1126,6 @@ exact ⟨m, c, a, pg⟩
 - Xiang & Rix 2022，Nature 603, 599，arXiv:2203.12110（最老盘的年龄，R22 的参考文献 [96]）。
 - Tinsley 1980，Fundamentals of Cosmic Physics 5, 287，1980FCPh....5..287T；Ivezić, Connolly, VanderPlas & Gray 2014，*Statistics, Data Mining, and Machine Learning in Astronomy*（第二部分两条 `[implied]` 前提的标准背景）。
 - Chen, Sun & Ye 2025，arXiv:2510.10092（更年轻的亚巨星年龄标尺；经研究 010 的文章）。
+- Hayden 等 2015，ApJ 808, 132，2015ApJ...808..132H（R22 的参考文献 [44]，老盘金属丰度下限的依据；只读了 R22 中的文献条目，未重读原文）。
 - Belokurov & Kravtsov 2022，MNRAS 514, 689，arXiv:2203.04980（曙光；R22 引用，此处未重读；期刊信息凭记忆，未核实）。
 - Kurbatov 等 2024，arXiv:2410.22250；Ardern-Arentsen 等 2024，arXiv:2312.03847；Viswanathan 等 2025，A&A 703, A183，arXiv:2411.12165；Chen 等 2025，OJAp，arXiv:2511.18901（后续文献；2026-11-21 阅读摘要）。
