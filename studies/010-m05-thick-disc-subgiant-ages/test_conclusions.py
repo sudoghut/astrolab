@@ -417,3 +417,107 @@ def test_sel_mock_counts_and_seeds():
     assert sel["params"]["sel_seed_tag"] == 31 and sel["params"]["sel_n_mock"] == NMOCK
     for p in m["projections"]:                       # the run stops before remaining mocks above the limit
         assert p["mocks_left"] == 0 or p["projection_h"] <= p["limit_h"]
+
+
+# ---------------------------------------------------------------------------------------------
+# R1-ERR (README 2.7, T-054): the label re-derived from the per-mock d values in r1_err.json
+# ---------------------------------------------------------------------------------------------
+ERR_LADDER = [1.2, 1.5, 2.0, 2.81]
+ERR_VARIANTS = ("S15E", "S15N", "Full")
+ERR_MECHS = ("rtau", "rA")
+
+
+def _err_label(E, cut_f, names, not_eval=()):
+    """README 2.7 cases 2-5 (case 1 is checked separately), written independently of selaux.err_label."""
+    fs = lambda f: str(float(f))
+    feas = [f for f in ERR_LADDER if (cut_f is None or f < cut_f) and E.get(f) is not None]
+    if cut_f is not None and cut_f <= ERR_LADDER[0]:
+        return "not evaluable (infeasible)"
+    quals = []
+    sens = [f for f in feas if E[f] >= 2]
+    if sens:
+        lab = f"sensitive at f = {fs(sens[0])}"
+    else:
+        x = 1.0
+        for f in feas:
+            if E[f]:
+                break
+            x = f
+        lab = f"robust up to f = {fs(x)}"
+        ones = [f for f in feas if E[f] == 1]
+        if ones:
+            nm = []
+            for f in ones:
+                nm += [n for n in names[f] if n not in nm]
+            quals.append(f"one bin explainable from f = {fs(ones[0])}: {', '.join(nm)}")
+        if cut_f is not None and feas:
+            quals.append(f"ladder ends at f = {fs(feas[-1])}")
+    if not_eval:
+        quals.append("not evaluable at f = " + ", ".join(fs(f) for f in not_eval))
+    return lab + (f" ({'; '.join(quals)})" if quals else "")
+
+
+def test_err_label():
+    """R1-ERR (README 2.7): checks passed, 72 sets numbered in the loop nest, n_reach counts only mocks with
+    a valley, explainable = at least 3 of 50 under one mechanism, and the label (S15 term E) and the
+    reported variant and median-rule labels follow the rules, from the saved per-mock d values."""
+    r = load("r1_err")
+    if r["status"].startswith("not evaluable (reproduction)"):
+        assert r["label"]["label"] == "not evaluable (reproduction)"
+        ch = r["checks"]
+        assert ch["data_fit_mismatches"] or ch["generator_f1"]["mismatches"]
+        return
+    assert r["status"] == "evaluated" and r["n_mock"] == NMOCK
+    assert r["checks"]["data_fit_mismatches"] == [] and r["checks"]["generator_f1"]["mismatches"] == []
+    assert r["checks"]["generator_f1"]["n"] == 18
+    assert r["seed_tags"] == [54, 154] and r["ladder"] == ERR_LADDER and r["bins"] == [0, 1, 2]
+    sets = r["per_set"]
+    nest = [(f, v, b, m) for f in ERR_LADDER for v in ERR_VARIANTS for b in (0, 1, 2) for m in ERR_MECHS]
+    assert [s["k"] for s in sets] == list(range(72))
+    assert [(s["f"], s["variant"], s["bin"], s["mech"]) for s in sets] == nest
+    selfit = load("r1_selfit")
+    data_d = {v: [selfit["variants"][v]["bins"][b]["d"] for b in (0, 1, 2)] for v in ERR_VARIANTS}
+    assert r["data_d"] == data_d
+    fails = [s["f"] for s in sets if s["variant"] == "S15E" and s["gen_fail"]]
+    cut_f = min(fails) if fails else None
+    assert r["cut_f"] == cut_f
+    by = {(s["f"], s["variant"], s["bin"], s["mech"]): s for s in sets}
+    for v in ERR_VARIANTS:
+        E, Em, names, names_m, not_eval, nonfin = {}, {}, {}, {}, [], False
+        for f in ERR_LADDER:
+            ss = [by[(f, v, b, m)] for b in (0, 1, 2) for m in ERR_MECHS]
+            if cut_f is not None and f >= cut_f:
+                E[f] = Em[f] = None
+                continue
+            assert all(len(s["d"]) == NMOCK for s in ss)
+            if any(s["gen_fail"] for s in ss):
+                assert v != "S15E"
+                E[f] = Em[f] = None
+                not_eval.append(f)
+                continue
+            nonfin |= any(d is None or d != d or d in (float("inf"), float("-inf")) for s in ss for d in s["d"])
+            ex, exm = [], []
+            for b in (0, 1, 2):
+                nr = {}
+                for m in ERR_MECHS:
+                    s = by[(f, v, b, m)]
+                    nr[m] = sum(1 for d, val in zip(s["d"], s["valley"]) if val and d >= data_d[v][b])
+                    assert s["n_reach"] == nr[m]
+                    assert s["n_novalley"] == sum(1 for val in s["valley"] if not val)
+                if max(nr.values()) >= 3:
+                    ex.append(s["bin_name"])
+                if max(nr.values()) >= 25:
+                    exm.append(s["bin_name"])
+            E[f], Em[f], names[f], names_m[f] = len(ex), len(exm), ex, exm
+        if nonfin:
+            want, want_m = "not evaluable (non-finite)", "not evaluable (non-finite)"
+        else:
+            want = _err_label(E, cut_f, names, not_eval if v != "S15E" else ())
+            want_m = _err_label(Em, cut_f, names_m, not_eval if v != "S15E" else ())
+        assert r["variants"][v]["label"]["label"] == want
+        assert r["variants"][v]["label_median_rule"]["label"] == want_m
+    assert r["label"]["label"] == r["variants"]["S15E"]["label"]["label"]
+    # f = 1 row from R1-SEL-FIT: no power mock reaches the data d (README 2.7: E(1) = 0)
+    assert r["f1_row"]["S15E"]["E"] == 0
+    for p in r["mocks"]["projections"]:              # the run stops before remaining mocks above the limit
+        assert p["mocks_left"] == 0 or p["projection_h"] <= p["limit_h"]

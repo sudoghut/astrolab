@@ -60,6 +60,19 @@ def selfit_sets(nbins, mechs, sens_bins):
     return [s for s in sel_sets(nbins, mechs, sens_bins) if s["tag"] == "R1"]
 
 
+def err_sets(fs, bins, mechs):
+    """README 2.7 (R1-ERR): the power sets, numbered k = 0, 1, ... in the loop nest f (ladder order) >
+    variant (S15E, S15N, Full) > bin > mechanism. The projection group is the (variant, f) pair."""
+    sets = []
+    for f in fs:
+        for v in R1_VARIANTS:
+            for b in bins:
+                for mech in mechs:
+                    sets.append({"k": len(sets), "tag": "ERR", "f": float(f), "variant": v, "bin": int(b),
+                                 "kind": "power", "mech": mech, "floor": "primary", "group": f"{v}@f={float(f)}"})
+    return sets
+
+
 def better_fit(nll_o, nll_i, tol=0.01):
     """README 2.6: the data-independent fit (i) replaces the original (o) only if its NLL is finite and
     lower by more than tol (the 2.0 start-selection tie rule); returns "i" or "o"."""
@@ -166,7 +179,7 @@ class StopRun(RuntimeError):
     """Raised when the runtime projection exceeds the stop limit (SEL-8)."""
 
 
-NO_KEY_PARAMS = ("parts", "sel_stop_h", "selfit_stop_h")   # change no mock: not in the checkpoint key
+NO_KEY_PARAMS = ("parts", "sel_stop_h", "selfit_stop_h", "err_stop_h")   # change no mock: not in the checkpoint key
 _PARAMS_RE = re.compile(r"^PARAMS = \{\n.*?^\}\n", re.S | re.M)
 
 
@@ -370,7 +383,7 @@ def _jsonable_result(res):
     return out
 
 
-def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print):
+def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print, cut=None):
     """SEL-8 mock loop: the first mock of every set (timing), then each set in k order. Finished mocks
     come from the checkpoints; new ones are computed with make_rng(k, j) and checkpointed. After the
     first-mock pass and after every set, the projection is checked against the stop limit (a limit
@@ -378,8 +391,16 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print):
     Mocks already checkpointed when the run starts count as finished in the projection, with their
     recorded times, even before they are replayed: their time is already in the elapsed total, so
     counting them as remaining would count it twice (T-046). Only mocks without a checkpoint are left.
+    cut (README 2.7 feasibility rule; None for the other parts): a callable (set, result) -> None or a
+    predicate on sets. When it returns a predicate, no further mock of a set for which the predicate is
+    true is run (the set's results stay incomplete), and those sets leave the projection. A replayed
+    checkpoint cuts in the same way, so a resumed run makes the same cuts.
     Returns results (k -> list of dicts in mock order), state (times) and the projection log."""
     results = {s["k"]: [] for s in sets}
+    cuts = []
+
+    def is_cut(s):
+        return any(pred(s) for pred in cuts)
     state = {s["k"]: {"group": s["group"], "times": []} for s in sets}
     proj_log = []
     ckpt = store.checkpointed_seconds(sets, nmock)
@@ -396,12 +417,18 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print):
         results[s["k"]].append(rec["result"])
         state[s["k"]]["times"].append(float(rec["seconds"]))
         replayed[s["k"]].add(j)
+        if cut is not None:
+            pred = cut(s, rec["result"])
+            if pred is not None:
+                cuts.append(pred)
 
     def known_state():
         # replayed mocks in mock order, then the checkpointed ones not yet replayed (j = 0 is always
         # replayed first, so times[0] stays each set's first-mock time)
         out = {}
         for s in sets:
+            if is_cut(s):                  # no more mocks of this set will run
+                continue
             k = s["k"]
             extra = [ckpt[(k, j)] for j in range(nmock) if j not in replayed[k] and (k, j) in ckpt]
             out[k] = {"group": s["group"], "times": state[k]["times"] + extra}
@@ -413,8 +440,9 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print):
         known = known_state()
         proj = projection_h(el, known, nmock)
         done = sum(len(v) for v in results.values())
-        finished = sum(len(v["times"]) for v in known.values())
-        left = len(sets) * nmock - finished
+        finished = (sum(len(v["times"]) for v in known.values())
+                    + sum(len(results[s["k"]]) for s in sets if s["k"] not in known))   # cut sets: what ran
+        left = sum(max(0, nmock - len(v["times"])) for v in known.values())             # cut sets: none left
         proj_log.append({"after": where, "elapsed_h": el / 3600, "projection_h": proj, "mocks_done": done,
                          "mocks_checkpointed_not_replayed": finished - done, "mocks_left": left,
                          "limit_h": limit})
@@ -432,10 +460,15 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print):
                 f"limit) and rerun.")
 
     for s in sets:
-        do(s, 0)
+        if not is_cut(s):
+            do(s, 0)
     check("first mock of every set")
     for s in sets:
+        if is_cut(s):
+            continue
         for j in range(1, nmock):
+            if is_cut(s):
+                break
             do(s, j)
         check(f"set k={s['k']}")
     return results, state, proj_log
@@ -518,3 +551,86 @@ def intrinsic_bare(sigma, se, biases, tol, z, sigma_paper):
     if sigma - z * se >= sigma_paper:
         return "not confirmed"
     return "cannot determine"
+
+
+# --------------------------------------------------------------------------------------------
+# R1-ERR (README 2.7, T-054): error-scale power test of R1-SEL-FIT
+# --------------------------------------------------------------------------------------------
+def clopper_pearson(x, n, alpha=0.05):
+    """Two-sided (1 - alpha) Clopper-Pearson interval of a binomial fraction x / n."""
+    from scipy.stats import beta
+    x, n = int(x), int(n)
+    lo = 0.0 if x == 0 else float(beta.ppf(alpha / 2, x, n - x + 1))
+    hi = 1.0 if x == n else float(beta.ppf(1 - alpha / 2, x + 1, n - x))
+    return [lo, hi]
+
+
+def err_counts(ds, valleys, d_data):
+    """n_reach: mocks with a valley and d >= the data d; n_novalley: mocks without a valley (d = 1 is a
+    sentinel, not a dip). Mocks without a result (generator failure, d None) are in neither."""
+    n_reach = sum(1 for d, v in zip(ds, valleys) if v and d is not None and d >= d_data)
+    n_novalley = sum(1 for d, v in zip(ds, valleys) if d is not None and not v)
+    return n_reach, n_novalley
+
+
+def err_explainable(n_reach_by_mech, nmock, frac):
+    """README 2.7: explainable at f if n_reach / nmock >= frac under at least one mechanism (frac 0.05:
+    at least 3 of 50; the valley-aware median rule uses frac 0.5: at least 25 of 50)."""
+    return any(n >= frac * nmock - 1e-9 for n in n_reach_by_mech.values())
+
+
+def ffmt(f):
+    """f as written in labels: str(float(f)), e.g. 1.0, 1.2, 2.0, 2.81."""
+    return str(float(f))
+
+
+def err_label(ladder, E, cut_f, bins_by_f, *, min_bins=2, n_bins=3, reproduction_ok=True,
+              nonfinite=False, not_evaluable=()):
+    """The R1-ERR label (README 2.7, cases 1-5 in order). ladder: f values in ladder order; E: f -> number
+    of explainable bins (None where the f is not feasible or not evaluable); cut_f: the f where the
+    feasibility rule cut the ladder (None if not cut); bins_by_f: f -> names of the explainable bins;
+    not_evaluable: f values at which a variant's sets had a generator failure (the reported labels of
+    S15 term N and Full only; named as a qualifier)."""
+    ladder = [float(f) for f in ladder]
+    feas = [f for f in ladder if (cut_f is None or f < cut_f) and E.get(f) is not None]
+    w3 = next((f for f in feas if E[f] >= n_bins), None)
+    out = {"case": None, "label": None, "Y": None, "X": None, "Z": None, "Z_bins": [], "F_end": None,
+           "W3": w3, "feasible": feas, "not_evaluable": [float(f) for f in not_evaluable],
+           "all_bins_explainable_from": (f"all three bins explainable from f = {ffmt(w3)}" if w3 is not None else None)}
+    if not reproduction_ok:
+        out.update(case=1, label="not evaluable (reproduction)")
+        return out
+    if nonfinite:
+        out.update(case=2, label="not evaluable (non-finite)")
+        return out
+    if cut_f is not None and cut_f <= ladder[0]:
+        out.update(case=3, label="not evaluable (infeasible)")
+        return out
+    quals = []
+    ys = [f for f in feas if E[f] >= min_bins]
+    if ys:
+        out.update(case=4, Y=ys[0], label=f"sensitive at f = {ffmt(ys[0])}")
+    else:
+        x = 1.0
+        for f in feas:
+            if E[f] != 0:
+                break
+            x = f
+        ones = [f for f in feas if E[f] == 1]
+        if ones:
+            names = []
+            for f in ones:
+                for nme in bins_by_f.get(f, []):
+                    if nme not in names:
+                        names.append(nme)
+            out.update(Z=ones[0], Z_bins=names)
+            quals.append(f"one bin explainable from f = {ffmt(ones[0])}: {', '.join(names)}")
+        if cut_f is not None and feas:
+            out["F_end"] = feas[-1]
+            quals.append(f"ladder ends at f = {ffmt(feas[-1])}")
+        out.update(case=5, X=x, label=f"robust up to f = {ffmt(x)}")
+    if out["not_evaluable"]:
+        quals.append("not evaluable at f = " + ", ".join(ffmt(f) for f in out["not_evaluable"]))
+    if quals:
+        out["label"] += f" ({'; '.join(quals)})"
+    return out

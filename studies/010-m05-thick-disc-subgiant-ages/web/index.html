@@ -64,6 +64,13 @@
   <p id="selfitlab"></p>
   <div class="scroll"><table id="selfit"></table></div>
   <p class="muted" id="selfiterr"></p>
+  <h2><span class="en">R1-ERR · Does R1-SEL-FIT's label depend on the age-error scale? (T-054)</span><span class="zh">R1-ERR · R1-SEL-FIT 的标签是否取决于年龄误差的尺度？（T-054）</span></h2>
+  <p><span class="en">Pre-registered in README 2.7. Power mocks of the three metal-poor bins draw observed ages with true errors f × e_Age (f = 1.2, 1.5, 2.0, 2.81) and are fitted with the quoted errors (f = 1) exactly as in R1-SEL-FIT. A bin is "explainable at f" if at least 3 of 50 mocks, under at least one mechanism, have a valley at least as shallow as the data's (n_reach). The label (S15 term E) is "sensitive at f = Y" if two or more bins are explainable at some f, else "robust up to f = X". It qualifies R1-SEL-FIT's label; it is not a verdict on XR22's claim, and it does not say whether such errors are plausible.</span><span class="zh">预注册见 README 2.7。三个贫金属箱的功效模拟用 f × e_Age 的真实误差抽取观测年龄（f = 1.2、1.5、2.0、2.81），再用给出的误差（f = 1）完全按 R1-SEL-FIT 的方式拟合。若在至少一种机制下 50 次模拟中至少 3 次有谷且谷不比数据的浅（n_reach），该箱"在 f 处可解释"。标签（S15 项 E）：若某个 f 下有两个或更多箱可解释，则为"在 f = Y 处敏感"，否则为"直到 f = X 稳健"。它是 R1-SEL-FIT 标签的限定语，不是对 XR22 结论的判决，也不说明这样的误差是否合理。</span></p>
+  <p id="errlab"></p>
+  <div class="scroll"><table id="errtab"></table></div>
+  <h3><span class="en">Companion data refits at f (reported, not decisive)</span><span class="zh">在 f 下重拟合数据（仅报告，不作判决）</span></h3>
+  <div class="scroll"><table id="errcomp"></table></div>
+  <p class="muted" id="errerr"></p>
 
   <p class="muted" id="err"></p>
   <section id="skylinks" class="card" hidden></section>
@@ -232,6 +239,76 @@ function renderAll() {
   catch (e) { document.getElementById('selerr').innerHTML = L('Could not render the re-test: ', '无法显示重新检验：') + esc(e); }
   try { selfit(); }
   catch (e) { document.getElementById('selfiterr').innerHTML = L('Could not render R1-SEL-FIT: ', '无法显示 R1-SEL-FIT：') + esc(e); }
+  try { errpart(); }
+  catch (e) { document.getElementById('errerr').innerHTML = L('Could not render R1-ERR: ', '无法显示 R1-ERR：') + esc(e); }
+}
+
+// R1-ERR labels in Chinese (README 2.7 wording)
+const errz = v => String(v)
+  .replace(/^not evaluable \(reproduction\)/, '不可评估（重现）').replace(/^not evaluable \(non-finite\)/, '不可评估（非有限值）')
+  .replace(/^not evaluable \(infeasible\)/, '不可评估（不可行）').replace(/^no label \(exploration with (\d+) mocks per set; the label needs 50\)/, '无标签（每组 $1 次模拟的探索；标签需要 50 次）')
+  .replace(/^robust up to f = ([\d.]+)/, '直到 f = $1 稳健').replace(/^sensitive at f = ([\d.]+)/, '在 f = $1 处敏感')
+  .replace(/one bin explainable from f = ([\d.]+): /, '从 f = $1 起一个箱可解释：').replace(/ladder ends at f = ([\d.]+)/, '阶梯止于 f = $1')
+  .replace(/not evaluable at f = ([\d., ]+)/, '在 f = $1 处不可评估').replace(/ \(/, '（').replace(/\)$/, '）').replace(/; /g, '；');
+const errv = v => L(esc(v), esc(errz(v)));
+const ERRST = {'evaluated': '已评估', 'not feasible': '不可行', 'not evaluable at f': '在此 f 不可评估'};
+
+function errpart() {
+  const R = D.err;
+  const lab = document.getElementById('errlab');
+  if (!R) {
+    lab.innerHTML = L('<b>R1-ERR</b>: not yet run (pre-registered; results will appear here as r1_err.json).',
+                      '<b>R1-ERR</b>：尚未运行（已预注册；结果写入 r1_err.json 后显示在这里）。');
+    document.getElementById('errtab').innerHTML = '';
+    document.getElementById('errcomp').innerHTML = '';
+    return;
+  }
+  const lb = R.label && R.label.label ? R.label.label : R.status;
+  let txt = `<b>R1-ERR</b>: ${errv(lb)}`;
+  if (R.label && R.label.all_bins_explainable_from) txt += ' · ' + L(esc(R.label.all_bins_explainable_from), `从 f = ${esc(R.label.W3)} 起三个箱都可解释`);
+  if (R.label_median_rule && R.label_median_rule.label) txt += ' · ' + L('median rule (reported): ', '中位数规则（仅报告）：') + errv(R.label_median_rule.label);
+  if (R.variants) txt += ' · ' + ['S15N', 'Full'].map(v => `${esc(v)}: ${errv(R.variants[v].label.label)}`).join(' · ');
+  txt += ' · ' + L('status: ', '状态：') + L(esc(R.status), esc(ZH[R.status] || R.status));
+  lab.innerHTML = txt;
+  if (!R.variants) { document.getElementById('errtab').innerHTML = ''; document.getElementById('errcomp').innerHTML = ''; return; }
+  const names = R.bin_names;
+  const rr = [];
+  for (const v of ['S15E', 'S15N', 'Full']) {
+    const f1 = R.f1_row[v];
+    rr.push(row([`<b>${esc(v)}</b>`, '1.0', L('R1-SEL-FIT record', 'R1-SEL-FIT 记录'), String(f1.E),
+      f1.bins.map(b => `${b.n_reach.rtau} / ${b.n_reach.rA}`).join(' · '), '–', '–', '–']));
+    for (const fv of R.ladder) {
+      const key = String(fv).includes('.') ? String(fv) : `${fv}.0`;
+      const pf = R.variants[v].per_f[key];
+      if (!pf || pf.status !== 'evaluated') {
+        rr.push(row(['', esc(key), L(esc(pf ? pf.status : '–'), esc(pf ? (ERRST[pf.status] || pf.status) : '–')), '–', '–', '–', '–', '–']));
+        continue;
+      }
+      const ps = R.per_set.filter(s => s.variant === v && s.f === fv);
+      const p95 = names.map((_, i) => ps.filter(s => s.bin === R.bins[i]).map(s => f(s.d_pct_5_50_80_95_valley_only ? s.d_pct_5_50_80_95_valley_only[3] : null, 3)).join(' / ')).join(' · ');
+      const pw = pf.bins.map(b => `${f(b.power_at_d_cap.rtau)} / ${f(b.power_at_d_cap.rA)}`).join(' · ');
+      rr.push(row(['', esc(key), L('evaluated', '已评估'), `${pf.E}${pf.explainable_bins.length ? ' (' + esc(pf.explainable_bins.join(', ')) + ')' : ''}`,
+        pf.bins.map(b => `${b.n_reach.rtau} / ${b.n_reach.rA}`).join(' · '), p95, pw, verdict(pf.r1_verdict_at_f)]));
+    }
+  }
+  const dd = ['S15E', 'S15N', 'Full'].map(v => `${esc(v)} ${R.data_d[v].map(x => f(x, 3)).join(' · ')}`).join('; ');
+  document.getElementById('errtab').innerHTML =
+    head([L('variant', '变体'), 'f', L('status', '状态'), L('E(f): bins explainable', 'E(f)：可解释的箱数'),
+          L(`n_reach r·τ / r·A per bin ${names.map(esc).join(' · ')}`, `各箱 n_reach r·τ / r·A：${names.map(esc).join(' · ')}`),
+          L('95th pct of mock d (mocks with a valley), r·τ / r·A', '模拟 d 的第 95 百分位（有谷的模拟），r·τ / r·A'), L('power at d* = 0.25', 'd* = 0.25 下的功效'),
+          L('R1 verdict at f', '该 f 下的 R1 判决')]) + rr.join('') +
+    `<tr><td colspan="8" class="muted">${L('Data d (R1-SEL-FIT): ', '数据 d（R1-SEL-FIT）：')}${dd}</td></tr>`;
+  const cr = [];
+  if (R.companion_refits) {
+    for (const v of ['S15E', 'S15N', 'Full']) {
+      for (const [key, xs] of Object.entries(R.companion_refits[v])) {
+        cr.push(row([esc(v), esc(key), xs.map(x => `d ${f(x.d, 3)}, K ${x.k}${x.valley ? '' : L(', no valley', '，无谷')}${x.d_lt_d_cap ? ' (d < 0.25)' : ''}`).join(' · ')]));
+      }
+    }
+  }
+  document.getElementById('errcomp').innerHTML = cr.length
+    ? head([L('variant', '变体'), 'f', L(`refit d per bin ${names.map(esc).join(' · ')}`, `各箱重拟合 d：${names.map(esc).join(' · ')}`)]) + cr.join('')
+    : '';
 }
 
 function selfit() {
@@ -256,7 +333,8 @@ function selfit() {
 }
 
 Promise.all(['summary', 'r1', 'r2', 'r34', 'r56', 'r7'].map(getJ)).then(([summary, r1d, r2d, r34d, r56d, r7d]) => {
-  D = {summary, r1: r1d, r2: r2d, r34: r34d, r56: r56d, r7: r7d, sel: null, selfit: null};
+  D = {summary, r1: r1d, r2: r2d, r34: r34d, r56: r56d, r7: r7d, sel: null, selfit: null, err: null};
+  getJ('r1_err').then(x => { D.err = x; renderAll(); }).catch(() => { /* not yet run: errpart() says so */ });
   getJ('r1_selfit').then(x => { D.selfit = x; renderAll(); })
     .catch(e => { document.getElementById('selfiterr').innerHTML = L('R1-SEL-FIT results not available yet: ', '尚无 R1-SEL-FIT 的结果：') + esc(e); });
   Promise.all(['r1_sel', 'r34_sel'].map(getJ)).then(([a, b]) => { D.sel = {r1: a, r34: b}; renderAll(); })
