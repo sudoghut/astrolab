@@ -62,6 +62,7 @@ PARAMS = {
     "g_check": False, "g_seed_base": 400_000, "g_host_seed_base": 500_000, "g_inner_seed": 600_000,
     "g_n_sims": 10_000, "g_n_inner": 20_000, "g_power_min": 0.8, "g_z_curve": [2.5, 3.0, 4.0, 4.5, 5.0],
     "g_taus_rep": [0.05, 0.105], "g_max_minutes": 120, "g_min_sims": 5_000, "g_only": False, "g_stage": "full",
+    "g_rerun_reason": "",       # a g_only full stage after a formal outcome needs a reason, also present in log.md
 }
 
 DR = "PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/"
@@ -698,26 +699,19 @@ def recorded_reml_grid():
 
 
 def formal_g_done(path=None):
-    """True once the formal full stage's results/r2_re_g.json is committed next to this file: status "evaluated"
-    or an `observed` record (G on the data computed). Until then only the two standalone stages may run (README
-    amendment 2026-11-21, gate 1)."""
-    path = Path(__file__).parent / "results" / "r2_re_g.json" if path is None else Path(path)
-    if not path.exists():
-        return False
-    rec = json.loads(path.read_text(encoding="utf-8"))
-    return rec.get("status") == "evaluated" or "observed" in rec
+    """shape.formal_g_done: the formal full stage's results/r2_re_g.json exists (README amendment 2026-11-21)."""
+    return shape.formal_g_done(path)
 
 
 def study_log_text():
-    """The study's committed log.md (the power line must be there before the formal full stage)."""
-    path = Path(__file__).parent / "log.md"
-    return path.read_text(encoding="utf-8") if path.exists() else ""
+    """The study's log.md (shape.study_log_text)."""
+    return shape.study_log_text()
 
 
 def save_g_stubs(ctx, P, status):
-    """A full study run whose R2-RE-G block does not run (g_check = false, or R2-RE / the host step not evaluable):
-    write its records only where no R2-RE-G file exists, so a formal result is never overwritten; returns the record whose summary goes into summary.json (the existing
-    r2_re_g.json when there is one)."""
+    """A full study run whose R2-RE-G block does not run (g_check = false, or R2-RE / the host step not
+    evaluable): write its records only where no R2-RE-G file exists, so a formal result is never overwritten.
+    Returns the record whose summary goes into summary.json (the existing r2_re_g.json when there is one)."""
     p_out, _ = g_not_run(P, status, "power")
     g_out, sims = g_not_run(P, status, "full")
     files = {"r2_re_g_power": p_out, "r2_re_g": g_out, **{f"r2_re_g_sims_{k}": v for k, v in sims.items()}}
@@ -787,6 +781,12 @@ def main(ctx):
                 raise RuntimeError("g_only updates summary.json's R2_RE_G key: run the full study first")
             pw_path = ctx.results / "r2_re_g_power.json"
             if getattr(ctx, "max_save_bytes", None) is None:
+                # the first formal outcome stands: a rerun needs a reason, present in log.md before it starts
+                why = P["g_rerun_reason"]
+                if shape.formal_outcome(ctx.results / "r2_re_g.json") and not (
+                        isinstance(why, str) and why.strip() and why in study_log_text()):
+                    raise RuntimeError("results/r2_re_g.json already holds a formal R2-RE-G outcome: a rerun needs "
+                                       "PARAMS g_rerun_reason, a non-empty text also present in log.md")
                 if not pw_path.exists():
                     raise RuntimeError("the full stage needs results/r2_re_g_power.json: run g_stage = 'power' "
                                        "first and commit its power to log.md")
@@ -796,7 +796,7 @@ def main(ctx):
                     raise RuntimeError("R2-RE-G full stage refused: " + "; ".join(bad))
                 if shape.power_log_line(power_rec) not in study_log_text():
                     raise RuntimeError("R2-RE-G full stage refused: the power stage's line (shape.power_log_line) "
-                                       "is not in log.md; commit it first (README section 8)")
+                                       "is not present in log.md; add it (and commit it) first (README section 8)")
     if P["g_check"] and not g_only and not d_only and not formal_g_done():
         raise RuntimeError("g_check = true outside g_only would compute G on the data before the formal two-stage "
                            "R2-RE-G run: run g_only = true with g_stage = 'power', then 'full', or set g_check = false "
