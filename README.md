@@ -38,6 +38,15 @@ compute) do and advance real astronomical research using public survey data
 |---|---|
 | [000 · smoke test](studies/000-smoke-test_gaia-dr3-10pc-census/) | Gaia DR3 10 pc census; pipeline check |
 | [001 · M4 Gaia dormant black holes](studies/001-m04-gaia-dormant-black-holes/) | Gaia BH1/BH2 masses reproduced from DR3 astrometry alone; server-side screen of all 169,227 DR3 astrometric orbits (~0.5 MB downloaded); referee-reviewed; vetoes validated on 23 positive controls; ready for Gaia DR4 (2026-12-02) |
+| [002 · M1 DESI BAO and evolving dark energy](studies/002-m01-desi-bao-evolving-dark-energy/) | BAO-only and no-CMB combinations reproduced; the compressed-CMB-prior result reproduced conditionally (reading B, which DESI's public chain configuration supports), robust to the θ* calibration and the r_d formula |
+| [003 · M2 Hubble tension: SH0ES ladder and host selection](studies/003-m02-hubble-tension-distance-ladder/) | R22's printed fit reproduced (H0 73.04); restricting the ladder to the CCHP hosts lowers H0 by about 2 km/s/Mpc, not significant once a host-level random effect is modelled; the excess calibrator scatter is consistent with one outlying host (N5584), also with that choice simulated (a test with little power against diffuse scatter); Cepheids and TRGB agree on the same hosts; referee-reviewed |
+| [004 · M7 wide binaries: Newton or MOND](studies/004-m07-wide-binaries-gravity-test/) | C26's sample rebuilt server-side (639 pairs against C26's 1,421; not the same sample); with bootstrap errors the test cannot tell Newton from MOND and has no power (referee); with C26's stated error formula it leans to MOND; a shifted-field check shows the relaxed degrouping loss is mostly chance neighbours |
+| [005 · M9 NANOGrav 15-yr background](studies/005-m09-nanograv-gwb-power-law/) | power-law amplitude within NANOGrav's interval and spectral-index tension of the same size under the DMX noise model; clearly different under the DMGP noise model (post hoc) |
+| [006 · M8 galaxies at z ≈ 14](studies/006-m08-z14-galaxies-number-density/) | number density reproduced; a constant-efficiency model needs a UV scatter of about 1–2 mag; R2 is robust to the z ≈ 8 luminosity-function calibration, R3 depends on it |
+| [007 · M10 GWTC-4.0 binary black hole masses](studies/007-m10-gwtc4-bbh-mass-35msun/) | O4a event sample reproduced (84 of 84), O1–O3 59 of 69 by the rule; the 35 M☉ local peak depends on the selection-function model (exploration) |
+| [008 · M3 S8: DES Y6 against the CMB](studies/008-m03-s8-des-y6-cmb-parameter-difference/) | parameter difference reproduced (S8 2.67σ, S8–Ωm 2.18σ); the full 6-D difference (normalizing flow, 1.70σ) comes mostly from the Σmν direction (0.52σ without it) and from Σmν's correlations with the other DES parameters |
+| [009 · M6 Milky Way outer rotation curve](studies/009-m06-mw-outer-rotation-curve-decline/) | J23's power law and mass reproduced under their assumptions; part of the 3σ comes from the prior and the errors are not independent; with correlated errors the decline is about 3–5σ (high-f covariances only), Keplerian cannot be told apart and NFW is disfavoured |
+| [010 · M5 thick disc from subgiant ages](studies/010-m05-thick-disc-subgiant-ages/) | the 13 Gyr mean reproduced (12.93 Gyr); with a consistent selection term the old-disc span is reproduced (6.09 Gyr) but its scatter is not (2.55 against 0.82 Gyr); the intrinsic scatter is confirmed below 0.82 Gyr but not robust; the 8 Gyr split is undetermined, and a pre-registered rerun with better mock fits is running (T-049) |
 
 See [STATUS.md](STATUS.md), the to-do list [TODO.md](TODO.md) (finished items move to [DONE.md](DONE.md)), and the design documents in [`design/`](design/) (all in Chinese).
 
@@ -118,6 +127,15 @@ python -m astrolab serve           # Atlas and study pages at http://127.0.0.1:8
 |---|---|
 | [000 · 冒烟测试（smoke test）](studies/000-smoke-test_gaia-dr3-10pc-census/) | Gaia DR3 中 10 pc 以内的天体普查；用于检查整条管线（pipeline） |
 | [001 · M4 Gaia 休眠黑洞（dormant black holes）](studies/001-m04-gaia-dormant-black-holes/) | 只用 DR3 天体测量（astrometry）就复现了 Gaia BH1、BH2 的质量；在服务器端筛选了 DR3 全部 169,227 个天体测量轨道解，只下载约 0.5 MB；经过独立审稿；否决规则（veto）在 23 个已知正样本（positive controls）上验证无误；已为 Gaia DR4（2026-12-02 发布）准备就绪 |
+| [002 · M1 DESI 重子声学振荡（BAO）与演化暗能量](studies/002-m01-desi-bao-evolving-dark-energy/) | 只用 BAO 与不含 CMB 的组合已复现；压缩 CMB 先验的结果为有条件复现（解读 B，DESI 公开的链配置支持这一解读），对 θ* 标定与 r_d 公式都稳健 |
+| [003 · M2 哈勃张力：SH0ES 距离阶梯与宿主选择](studies/003-m02-hubble-tension-distance-ladder/) | 复现 R22 印出的拟合（H0 73.04）；把阶梯限于 CCHP 宿主使 H0 降低约 2 km/s/Mpc，加入宿主级随机效应（random effect）后不显著；多出的定标星离散与一个离群宿主（N5584）相容，把这一选择放进模拟后也是如此（该检验对分散的离散功效低）；同宿主上造父变星与 TRGB 一致；经过独立审稿 |
+| [004 · M7 宽双星：牛顿还是 MOND](studies/004-m07-wide-binaries-gravity-test/) | 在服务器端重建 C26 的样本（639 对，C26 为 1,421 对；样本不同）；自助法（bootstrap）误差下检验无法区分牛顿与 MOND，且没有功效（审稿）；用 C26 写明的误差公式时偏向 MOND；平移视场检查表明宽松去群的损失大部分来自偶然邻居 |
+| [005 · M9 NANOGrav 15 年引力波背景](studies/005-m09-nanograv-gwb-power-law/) | DMX 噪声模型下幂律振幅在 NANOGrav 的区间内，谱指数张力为同一量级；DMGP 噪声模型下差别明显（事后） |
+| [006 · M8 z ≈ 14 星系](studies/006-m08-z14-galaxies-number-density/) | 数密度复现；恒定效率模型需要约 1–2 mag 的紫外弥散；R2 对 z ≈ 8 光度函数的校准稳健，R3 依赖校准 |
+| [007 · M10 GWTC-4.0 双黑洞质量](studies/007-m10-gwtc4-bbh-mass-35msun/) | O4a 事件样本复现（84/84），O1–O3 按规则 59/69；35 M☉ 局部峰依赖选择函数模型（探索） |
+| [008 · M3 S8：DES Y6 与 CMB](studies/008-m03-s8-des-y6-cmb-parameter-difference/) | 参数差异复现（S8 2.67σ，S8–Ωm 2.18σ）；完整 6 维差异（归一化流（normalizing flow），1.70σ）主要来自 Σmν 方向（不含 Σmν 时 0.52σ）以及 Σmν 与其他 DES 参数的相关 |
+| [009 · M6 银河系外区旋转曲线](studies/009-m06-mw-outer-rotation-curve-decline/) | 在 J23 的假设下复现其幂律与质量；3σ 部分来自先验，误差也不独立；在相关误差下下降约 3–5σ（只在高 f 协方差下），开普勒式无法区分，NFW 不被看好 |
+| [010 · M5 由亚巨星年龄看厚盘](studies/010-m05-thick-disc-subgiant-ages/) | 复现 13 Gyr 均值（12.93 Gyr）；用一致的选择项后，老盘序列的跨度复现（6.09 Gyr），其弥散未复现（2.55 Gyr，论文 0.82 Gyr）；内禀离散确认低于 0.82 Gyr，但不稳健；8 Gyr 分界无法判定，用更好的模拟拟合做的预注册重跑正在进行（T-049） |
 
 详见 [STATUS.md](STATUS.md)、待办清单（to-do list）[TODO.md](TODO.md)（完成的条目移入 [DONE.md](DONE.md)），以及 [`design/`](design/) 中的设计文献。
 
