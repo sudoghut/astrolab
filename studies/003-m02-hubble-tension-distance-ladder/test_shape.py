@@ -77,6 +77,18 @@ def _build(name, **kw):
                 grid=grid, rec=rec, P=P)
 
 
+REAL_FORMAL_G_DONE = shape.formal_g_done
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _formal_gate_open():
+    """The full stage's own gate (shape.formal_g_done or the power line in log.md) is opened for the synthetic
+    tests; test_full_stage_gate_in_shape closes it."""
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(shape, "formal_g_done", lambda path=None: True)
+        yield
+
+
 @pytest.fixture(scope="module")
 def lad():
     return _build("run003_g")
@@ -696,7 +708,7 @@ def test_main_g_only_full_stage_checks_before_loading(tmp_path, monkeypatch, lad
     run2, ctx2, _ = _main_g(tmp_path, monkeypatch, "run003_gonly_c1", lad, "full", summary=False)
     monkeypatch.setattr(run2, "load", lambda ctx: pytest.fail("data loaded"))
     monkeypatch.setattr(run2, "study_log_text", lambda: "nothing here")
-    with pytest.raises(RuntimeError, match="not in log.md"):
+    with pytest.raises(RuntimeError, match="not present in log.md"):
         run2.main(ctx2)
     monkeypatch.setattr(run2, "study_log_text", lambda: shape.power_log_line(p))
     write_json(tmp_path / "r2_re_g_power.json", dict(p, settings=dict(p["settings"], g_inner_seed=1)))
@@ -707,6 +719,46 @@ def test_main_g_only_full_stage_checks_before_loading(tmp_path, monkeypatch, lad
     with pytest.raises(RuntimeError, match="stub"):
         run2.main(ctx2)
     assert set(ctx2.saved) == set()
+
+
+def test_full_stage_gate_in_shape(lad, stages, monkeypatch, tmp_path):
+    """Gate 1 round 3: shape.run_stage itself refuses a full stage (so an explore/ script cannot bypass the gate)
+    unless the formal r2_re_g.json exists or the power record's line is present in log.md."""
+    monkeypatch.setattr(shape, "formal_g_done", lambda path=None: False)
+    monkeypatch.setattr(shape, "study_log_text", lambda: "no power line")
+    with pytest.raises(RuntimeError, match="not present in log.md"):
+        _stage(lad, "full", power_rec=stages["power_json"])
+    monkeypatch.setattr(shape, "study_log_text", lambda: "x\n" + shape.power_log_line(stages["power_json"]) + "\n")
+    g, _ = _stage(lad, "full", power_rec=stages["power_json"], P=dict(lad["P"]))
+    assert g["status"] == "evaluated"
+    # formal_outcome: a full-stage record with settings (any status), not a "not run" record
+    from astrolab.results import write_json
+    f = tmp_path / "g.json"
+    assert not shape.formal_outcome(f)
+    write_json(f, {"stage": "full", "status": "not run (PARAMS)", "reading": None})
+    assert not shape.formal_outcome(f)
+    write_json(f, {"stage": "full", "status": "not evaluable (x)", "settings": {}})
+    assert shape.formal_outcome(f)
+
+
+def test_g_only_full_rerun_needs_a_reason(tmp_path, monkeypatch, lad):
+    """Gate 1 round 3: a formal g_only full stage over an existing formal outcome needs g_rerun_reason, a non-empty
+    text also present in log.md."""
+    run, ctx, _ = _main_g(tmp_path, monkeypatch, "run003_gonly_rr0", lad, "power")
+    run.main(ctx)
+    p = json.loads((tmp_path / "r2_re_g_power.json").read_text(encoding="utf-8"))
+    from astrolab.results import write_json
+    write_json(tmp_path / "r2_re_g.json", {"stage": "full", "status": "not evaluable (x)", "settings": {}})
+    run2, ctx2, _ = _main_g(tmp_path, monkeypatch, "run003_gonly_rr1", lad, "full", summary=False)
+    monkeypatch.setattr(run2, "load", lambda ctx: pytest.fail("data loaded"))
+    monkeypatch.setattr(run2, "study_log_text", lambda: shape.power_log_line(p) + "\nrerun: fixed a bug in x\n")
+    for why in ("", "   ", "not in the log"):
+        monkeypatch.setitem(run2.PARAMS, "g_rerun_reason", why)
+        with pytest.raises(RuntimeError, match="g_rerun_reason"):
+            run2.main(ctx2)
+    monkeypatch.setitem(run2.PARAMS, "g_rerun_reason", "rerun: fixed a bug in x")
+    with pytest.raises(pytest.fail.Exception, match="data loaded"):     # past the gate: it would load the data
+        run2.main(ctx2)
 
 
 def test_thread_settings_comparison():
@@ -768,6 +820,7 @@ def test_exploration_cannot_reach_g_obs_before_the_formal_full_stage(tmp_path, m
     assert set(ctx2.saved) == {"r2_re_g_power"}
     # formal_g_done (M3, gate 1 round 2): absent, a stub, a not-evaluable record without `observed`, a formal record
     run3 = _load("run003_g_done", "run.py")
+    monkeypatch.setattr(shape, "formal_g_done", REAL_FORMAL_G_DONE)      # run.formal_g_done delegates to it
     from astrolab.results import write_json
     f = tmp_path / "g.json"
     assert not run3.formal_g_done(f)

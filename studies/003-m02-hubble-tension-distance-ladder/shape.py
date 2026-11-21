@@ -20,8 +20,10 @@ and the reading.
 run.py passes its own functions in (`fns`); this module does not import run (AGENTS.md section 2).
 """
 import hashlib
+import json
 import os
 import time
+from pathlib import Path
 
 import numpy as np
 from scipy import linalg
@@ -98,6 +100,35 @@ def thread_settings():
     except ImportError:
         out["threadpools"] = None
     return out
+
+
+STUDY_DIR = Path(__file__).parent
+
+
+def formal_g_done(path=None):
+    """True once the formal full stage's results/r2_re_g.json is committed in the study folder: status "evaluated"
+    or an `observed` record (G on the data computed). Until then only the two standalone stages may run (README
+    amendment 2026-11-21, gate 1)."""
+    path = STUDY_DIR / "results" / "r2_re_g.json" if path is None else Path(path)
+    if not path.exists():
+        return False
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    return rec.get("status") == "evaluated" or "observed" in rec
+
+
+def formal_outcome(path):
+    """True when `path` holds a full-stage outcome (any status, rule (1) included), not a "not run" record."""
+    path = Path(path)
+    if not path.exists():
+        return False
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    return rec.get("stage") == "full" and "settings" in rec
+
+
+def study_log_text():
+    """The study's log.md (the power line must be present there before the formal full stage)."""
+    path = STUDY_DIR / "log.md"
+    return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
 def stage_settings(P):
@@ -533,6 +564,11 @@ def run_stage(stage, L, y, C, rows_a, groups, labels, P, fns, log, grid_m2l, pow
         bad_rec = power_record_problems(power_rec, json_like(out["settings"]))
         if bad_rec:
             raise RuntimeError("R2-RE-G full stage refused: " + "; ".join(bad_rec))
+        # the gate holds for any caller (also an explore/ script): G on the data only after the formal full stage,
+        # or for the formal full stage itself, whose power line must be present in log.md
+        if not (formal_g_done() or power_log_line(power_rec) in study_log_text()):
+            raise RuntimeError("R2-RE-G full stage refused: the power record's line (shape.power_log_line) is not "
+                               "present in log.md and the formal results/r2_re_g.json does not exist yet")
     if stage == "full" and power_rec.get("status") == NE_RUNTIME:
         reasons.append(RUNTIME)
         checks["power_record_status"] = power_rec.get("status")
