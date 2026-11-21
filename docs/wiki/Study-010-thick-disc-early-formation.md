@@ -290,8 +290,8 @@ labels above stand as the pre-registered outcome; the re-test labels are the cur
   data-independent starts every mock finds its valley and the bin's power is 1.00 in all six sets
   (recorded 0.58–0.88). So the bin would be resolvable, and because no bin has an almost disjoint
   valley the reading would be "not reproduced", provided the null mocks and the other bins hold up
-  under the same refit (not tested); the recorded label stays "undetermined" until a pre-registered
-  rerun with better mock fits (T-049).
+  under the same refit (not tested); the recorded label stays "undetermined"; the pre-registered
+  rerun with better mock fits (T-049) is reported below as R1-SEL-FIT.
 - **Variant without a selection term.** It agrees on the intrinsic scatter. It fails the recovery test
   for the sequence under the mocks' error generator, which is why R3/R4 carry "selection-term
   sensitive". Post hoc, the referee's evidence points to that generator as the cause (an
@@ -309,8 +309,11 @@ changed, and the original fits reproduce every recorded mock.
 - **The label is "not reproduced (robust; selection-term robust)"**, the same at the power floor
   0.20, as the pre-registration expected. Every variant has 4 of 5 bins resolvable, but none
   of them has an almost disjoint valley (data d = 0.37–0.58 against 0.25).
-- **What this means.** The data show a dip between an old and a young phase at fixed [Fe/H], but not
-  the near-gap the 8 Gyr split describes.
+- **What this means.** The fits to the data show a dip between an old and a young phase at fixed [Fe/H],
+  but not the near-gap the 8 Gyr split describes. This holds under the catalogue's quoted age errors
+  (the power mocks use them); larger true errors could blur a near-gap into such a dip, which is not
+  tested (independent referee; error-scale test T-054). The power model is the most favourable shape,
+  so the label says the data do not show XR22's idealised split.
 - **R1-SEL's "undetermined" stands** as that block's pre-registered outcome. R1-SEL-FIT is a rerun
   with improved mock fits, not a correction; R1-SEL's line between the two labels was set by the
   mock optimiser.
@@ -349,8 +352,8 @@ Newest first.
 - 2026-11-21: R1-SEL-FIT (T-049, pre-registered README 2.6): R1-SEL rerun with data-independent
   starts in every mock fit (5,400 mocks; all reproduction checks passed). d* stays 0.25; 4 of 5 bins
   resolvable in every variant, none almost disjoint, so "not reproduced (robust; selection-term
-  robust)", also at floor 0.20. R1-SEL's "undetermined" stands as recorded (part 3 updated; the
-  referee of this rerun is pending).
+  robust)", also at floor 0.20. R1-SEL's "undetermined" stands as recorded (part 3 updated). Independent
+  referee: no bug; the result holds under the catalogue's quoted age errors (error-scale test T-054).
 - 2026-11-20: re-test R-SEL (T-031) and its independent referee: R3-SEL reproduced, robust (span
   6.09 Gyr); R4-SEL not reproduced (2.55 Gyr); intrinsic-SEL confirmed, not robust (0.748 Gyr);
   R1-SEL undetermined, hinging on one bin's mock-fit-limited power (T-045); part 3 updated.
@@ -503,7 +506,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 - **老盘跨度复现，且稳健：** 1.5 dex 上 6.09 Gyr（各稳健性拟合中为 5.9–6.3）。
 - **α 选择样本的离散未复现：** 2.55 Gyr，而 XR22 为 0.82。
 - **老序列的内禀离散确认低于 0.82 Gyr：** 在带背景成分的混合模型中为 0.748 Gyr。它不稳健：误差乘以 0.8 后就无法判定。
-- **8 Gyr 分界仍无法判定。** 标签取决于一个贫金属箱，而该箱的功效受限于漏掉谷的模拟拟合（独立审稿，事后）。诊断性重拟合（T-045，探索，事后）说明了原因：漏掉的模拟是模拟拟合的局部最优；用与数据无关的起点时每个模拟都找到谷，该箱六组的功效都是 1.00（记录值 0.58–0.88）。所以这个箱会是可分辨的，而没有一个箱的谷几乎不相交，只要零假设模拟与其他箱在同样的重拟合下保持不变（未检验），结论会是"未复现"；在用更好的模拟拟合做预注册重跑（T-049）之前，记录的标签仍是"无法判定"。
+- **8 Gyr 分界仍无法判定。** 标签取决于一个贫金属箱，而该箱的功效受限于漏掉谷的模拟拟合（独立审稿，事后）。诊断性重拟合（T-045，探索，事后）说明了原因：漏掉的模拟是模拟拟合的局部最优；用与数据无关的起点时每个模拟都找到谷，该箱六组的功效都是 1.00（记录值 0.58–0.88）。所以这个箱会是可分辨的，而没有一个箱的谷几乎不相交，只要零假设模拟与其他箱在同样的重拟合下保持不变（未检验），结论会是"未复现"；记录的标签仍是"无法判定"；用更好的模拟拟合做的预注册重跑（T-049）在下面作为 R1-SEL-FIT 报告。
 - **不加选择项的变体。** 它在内禀离散上给出相同结论；在模拟的误差生成器下，它对序列的回收检验失败，所以 R3/R4 带有"对选择项敏感"。事后看，审稿的证据指向这个生成器是原因（推断：在原生成器下这个变体能够恢复）。
 
 **用更好的模拟拟合重跑 8 Gyr 分界（R1-SEL-FIT，T-049，2026-11-21）。** 又一次预注册（README 第 2.6 节）重跑了 R1-SEL：每个模拟拟合（零假设模拟与功效模拟，所有箱与变体，共 5,400 次，5.3 小时）都对每个混合成分数加入 8 个与数据无关的起点。其余一切不变，原拟合重现了每一次记录的模拟。
@@ -511,7 +514,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 - **零假设模拟没有移动阈值。** 没有零假设模拟的谷通过，所以 d* 仍在上限 0.25。
 - **三个贫金属箱在每个变体中功效都是 1.00**，箱 [−0.1, 0.1) 也变为可分辨（功效 0.84–1.00）。
 - **标签为"未复现（稳健；对选择项稳健）"**，功效下限 0.20 时相同，与预注册的预期一致。每个变体都是 5 个箱中 4 个可分辨，但没有一个箱的谷几乎不相交（数据 d = 0.37–0.58，阈值 0.25）。
-- **这意味着什么。** 数据显示在固定 [Fe/H] 下老、年轻两个阶段之间有下凹，但没有 8 Gyr 分界所说的近乎断开。
+- **这意味着什么。** 对数据的拟合显示在固定 [Fe/H] 下老、年轻两个阶段之间有下凹，但没有 8 Gyr 分界所说的近乎断开。这以星表给出的年龄误差为前提（功效模拟用的就是它们）；更大的真实误差可能把近乎断开抹成这样的下凹，这一点未检验（独立审稿；误差尺度检验 T-054）。功效模型是最有利的形状，所以这个标签说的是数据没有显示 XR22 理想化的分界。
 - **R1-SEL 的"无法判定"保持不变**，作为那一部分预注册的结果。R1-SEL-FIT 是用改进的模拟拟合所做的重跑，不是更正；R1-SEL 在两个标签之间的分界是由模拟优化器决定的。
 - **最富金属的箱 [0.1, 0.3) 仍不可分辨**（功效 0.30–0.70）：混合模型仍会抹平生成模型陡峭的年轻端边缘。
 
@@ -540,7 +543,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 按时间倒序。
 
-- 2026-11-21：R1-SEL-FIT（T-049，预注册见 README 2.6）：在每个模拟拟合中加入与数据无关的起点重跑 R1-SEL（5,400 次模拟；重现检查全部通过）。d* 仍为 0.25；每个变体 5 个箱中 4 个可分辨，没有几乎不相交的箱，所以为"未复现（稳健；对选择项稳健）"，下限 0.20 时相同。R1-SEL 的"无法判定"按记录保持不变（更新第三部分；这次重跑的独立审稿尚在进行）。
+- 2026-11-21：R1-SEL-FIT（T-049，预注册见 README 2.6）：在每个模拟拟合中加入与数据无关的起点重跑 R1-SEL（5,400 次模拟；重现检查全部通过）。d* 仍为 0.25；每个变体 5 个箱中 4 个可分辨，没有几乎不相交的箱，所以为"未复现（稳健；对选择项稳健）"，下限 0.20 时相同。R1-SEL 的"无法判定"按记录保持不变（更新第三部分）。独立审稿：没有错误；结论以星表给出的年龄误差为前提（误差尺度检验 T-054）。
 - 2026-11-20：重新检验 R-SEL（T-031）及其独立审稿：R3-SEL 复现、稳健（跨度 6.09 Gyr）；R4-SEL 未复现（2.55 Gyr）；内禀离散-SEL 确认、不稳健（0.748 Gyr）；R1-SEL 无法判定，取决于一个功效受模拟拟合限制的箱（T-045）；更新第三部分。
 - 2026-11-20：诊断性重拟合（T-045，事后）：关键箱漏掉的模拟是模拟拟合的局部最优；用与数据无关的起点时功效为 1.00，所以如果零假设模拟与其他箱保持不变（未检验），R1-SEL 会读作"未复现"；预注册重跑登记为 T-049（更新第三部分）。
 - 2026-11-16：研究运行与独立审稿：R2 复现（12.93 Gyr）；R1 无法判定；R3/R4 与本征弥散无法判定（M0 的 S15 选择项设定错误，独立审稿发现；重新检验 T-031）；`mod_bin` 改为 `gap_bin`（GAP），因而有三个缺口；补上第三部分的结果。
