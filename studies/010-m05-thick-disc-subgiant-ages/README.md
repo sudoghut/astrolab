@@ -696,7 +696,7 @@ on XR22's claim.
   - *Why this rule and not the median.* The question is whether the data's d is consistent with an
     idealised split blurred by f, not whether it is typical of one. A one-sided 5% tail is the usual
     consistency criterion, and it mirrors the construction of d* (at most 2 of 50 null mocks pass).
-    The median rule (n_reach ≥ 25 of 50: at least half of the mocks have a valley with d ≥ data
+    The valley-aware median rule (n_reach ≥ 25 of 50: at least half of the mocks have a valley with d ≥ data
     d) asks for typicality and would call a bin "not
     explainable" more easily, which favours the recorded label. It is reported (labels computed with
     it by the same structure) but not used. "At least one mechanism" is also the side less favourable
