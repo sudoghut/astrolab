@@ -308,7 +308,7 @@ before any fit to the data.
    best fit" are the same point, so it uses two distinct starts (that point and one prior draw). The
    B-free fit to the data also starts from both null optima, in addition to its 20 starts, so that
    2ΔlnL ≥ 0. Fixed before any fit to the data.
-4. **Number of MCMC fits** (sections 4.2, 4.7). Seven: columns (3), (4), (5), (6), and column (7) three
+4. **Number of MCMC fits** (sections 4.2, 4.7). Eight in a full run: seven in the main run, namely columns (3), (4), (5), (6), and column (7) three
    times (K24's priors, broad priors, divisor fixed at 74), plus one for variant 10 (column (3) with the
    chord-length u₁). The T7 fits are maximum-likelihood fits. Fixed before any fit to the data.
 5. **Chain-length rule** (section 4.2). The post-burn length is compared with 50 times the largest
