@@ -543,8 +543,7 @@ R2-RE-ROB、R2-RE-N5584 与 R2-RE-SEL 的判定、标签与解读按原记录保
   为另一个被去掉宿主 d 构建移动行时拟合失败 → 至少有一次模拟的 d' = d 的每个模型都不可评估（与 `sel.spread_part` 的做法相同）；
   某个模型的 Cholesky 因子分解失败 → 该模型不可评估；任一起决定作用的模型不可评估 → 解读为"不可评估"。
 - (2) 每个 V(τ)（0.05、0.077、0.105）都为"excluded (J)"（排除（J）），且 O(δ̂) 为"not excluded (J)"（未排除（J））与"not
-  excluded (D)"（未排除（D））→ **"one outlying host favoured over diffuse host scatter (τ = 0.05–0.105)"**（一个离群宿主优于分散的
-  宿主离散（τ = 0.05–0.105）），若每个 V(τ) 也都为"excluded (D)"（排除（D）），加限定"(both statistics)"（（两个统计量）），否则
+  excluded (D)"（未排除（D））→ **"diffuse host scatter (τ = 0.05–0.105) excluded by J; one offset host not excluded"**（J 排除了分散的宿主离散（τ = 0.05–0.105）；单个偏移宿主未被排除。这并不说明单宿主偏移模型更受偏好：O(δ̂) 是对同一数据拟合的，它未被排除只是一致性检查）），若每个 V(τ) 也都为"excluded (D)"（排除（D）），加限定"(both statistics)"（（两个统计量）），否则
   加"(joint statistic only; D does not exclude τ = <list>)"（（只用联合统计量；D 不排除 τ = <列表>））。
 - (3) 任一 V(τ) 为"not excluded (J)"（未排除（J））→ **"diffuse host scatter not excluded (τ = <list>)"**（未排除分散的宿主离散
   （τ = <列表>））。
@@ -571,7 +570,7 @@ P(spread_37 ≥ 观测值) 与 P(spread_36 ≤ 观测值)；每个 d' 的频数�
 不同，所以预期但不要求在蒙特卡罗误差内一致）；上述 KDE 比值。各项检查与各部分的秒数。保存每次模拟的数值，使每个标签都能
 重新推出：每个模型一个文件 `results/r2_re_d_sims_<model>.json`（模型键 `C`、`V050`、`V077`、`V105`、`O`、`Olo`、`OVN`、`Oany`），
 内含 10,000 个保留四位小数的 (spread_37, spread_36) 数对、每次模拟的 d'，以及每个 B 半模拟所在象限中 A 半模拟的整数计数和观测点处的该计数（每个约 180 KB，每个文件都低于 1 MB）。
-测试由保存的整数计数精确重算 k_J，只在没有取整并列的地方（任一坐标相差在 5 × 10⁻⁵ 以内的数对跳过）用数对核对这些计数，并由数对重算 k_D（与 D_obs 相差在 5 × 10⁻⁵ 以内的除外）。
+测试由保存的整数计数精确重算 k_J，只在没有取整并列的地方（任一坐标相差在 5 × 10⁻⁵ 以内的数对跳过）用数对核对这些计数，并由数对重算 k_D（与 D_obs 相差在 1.5 × 10⁻⁴ 以内的除外；两个取整值之差的最大取整误差为 10⁻⁴）。
 
 *运行时间（依据实测时间）。* `r2_re_sel.json` 中已记录：准则 S 的 37 宿主移动行 109 s（`criterion_s_rows`）；37 个缩减系统的
 移动行每个 100–115 s，共 4,067 s（`dropped_hosts_built.seconds_build`）；选择环节 2,000 次模拟、两个准则共 14.4 s。移动行
