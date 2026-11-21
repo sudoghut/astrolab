@@ -885,7 +885,8 @@ verdicts above stand (SEL-9).
     (their recorded power mocks reach d = 0.03–0.14; power 1.00 at d* = 0.25); the metal-rich bins'
     power 0, attributed above to the density model, may also be partly optimiser-limited. A pre-registered rerun of R1-SEL with
     data-independent starts in every mock fit is registered as T-049 (done 2026-11-21, section 5.2:
-    the null sets and the other bins held up, and R1-SEL-FIT reads "not reproduced (robust;
+    d* stayed at its cap and the metal-poor bins held up (bin [0.1, 0.3)'s null sets gained 5 valleys,
+    none passing), and R1-SEL-FIT reads "not reproduced (robust;
     selection-term robust)").
 
 ### 5.2 R1-SEL-FIT: R1-SEL rerun with data-independent starts in every mock fit (T-049; run 2026-11-20/21)
@@ -919,7 +920,7 @@ correction of it: R1-SEL's label in section 5.1 stands as that block's pre-regis
 - **Label: R1-SEL-FIT is "not reproduced (robust; selection-term robust)"** (`label`), the outcome 2.6
   stated as expected. Every variant has 4 of 5 bins resolvable and none almost disjoint (data
   d = 0.367–0.580 against d* = 0.25), so the 2.1 rule gives "not reproduced" (`variants.<v>.verdict`).
-  Full gives the same verdict (robust), and so does S15 term N (selection-term robust).
+  Full gives the same verdict (robust), and so does S15 term N (selection-term robust). This holds under the catalogue's quoted age errors: the power mocks are drawn and fitted with them (f = 1), so a nearly disjoint latent split blurred by larger true errors is not excluded (referee, section 6, point 1; error-scale test T-054); and the power model is the most favourable shape, so the label means the data do not show XR22's idealised split (point 2).
 - **Floor 0.20.** The label is the same (`label_floor_sensitivity`), with 4 of 5 bins resolvable in
   each variant (`floor_sensitivity.<v>`).
 - **The verdict does not depend on the metal-rich bins.** The three metal-poor bins have power 1.00 in
@@ -1003,7 +1004,8 @@ same as at floor 0.12.
   - With converged mock fits, the null sets did not move d*, and the metal-poor bins kept or gained
     power. So R1-SEL's line between "undetermined" and "not reproduced" (section 5.1) was set by the
     mock optimiser, as the T-045 diagnostic suggested. With better mock fits all three variants read
-    "not reproduced": the data's valleys (d = 0.37–0.58) are real but far from almost disjoint.
+    "not reproduced": the valleys present in the fits to the data (d = 0.37–0.58) are far from almost
+    disjoint, under the quoted age errors (see the label bullet above).
   - Section 5.1 attributed the metal-rich bins' power 0 to the density model. That was only partly
     right. With better fits, bin [−0.1, 0.1) is resolvable in every variant, at both floors. In bin
     [0.1, 0.3) the power mocks still give median d ≈ 0.23–0.28 against a true 0.038, so its power stays
@@ -1060,10 +1062,10 @@ the label, and found every rule of 2.6 evaluated as written. Triage:
 | 1 | The power mocks draw and fit ages with the catalogue's quoted errors (f = 1, Gaussian kernel). If XR22's true errors are larger or have prior-shaped tails, a nearly disjoint latent distribution would be under-deconvolved and its valley partly filled to the observed d ≈ 0.4–0.6, which the power sets cannot see; 2.6 has no error-scale sensitivity for R1 | yes (`run.py` power-mock generator; 2.0/2.3 vary f only for R3/R4) | **Accepted limitation**: the label reads "not reproduced under the catalogue's quoted age errors"; section 5.2, the root tables and the wiki say so. The test the referee proposes is registered as T-054 |
 | 2 | The power model is the most favourable shape (hard-edged uniform young component plus a narrow old Gaussian, true d ≤ 0.02), and the fitted d of a K ≤ 4 Gaussian mixture is smoothed upward (bins 3–4: true d ≤ 0.04 recovered at ≈ 0.19–0.33); a softer split could fail the 0.25 cap. Data fits sit at K = 4 in every bin | yes (`r1_selfit.json` per-set d quantiles, K counts) | **Accepted limitation**: "not reproduced" means the data do not show XR22's idealised split, not that the phases overlap |
 | 3 | Choosing between fit (o) and the data-independent fit by NLL (tie 0.01) could bias null and power sets differently | yes: the rule is the same in both; bins [−0.7, 0.1) still have 0 valleys in every null set, so d* stays at the pre-registered cap and is not set by the mocks; any false-valley inflation would have lowered d* (towards "undetermined") | **Rejected** as a bias of the obtained label |
-| 4 | Precision of 50 mocks: bin [−0.1, 0.1) term E power 0.84 (rtau) is indistinguishable from 0.80 | yes | **Accepted**; that bin is not needed for the label: bins [−0.7, −0.5), [−0.5, −0.3), [−0.3, −0.1) are 50/50 in all 36 primary power sets with d far below 0.25 |
+| 4 | Precision of 50 mocks: bin [−0.1, 0.1) term E power 0.84 (rtau) is indistinguishable from 0.80 | yes | **Accepted**; that bin is not needed for the label: bins [−0.7, −0.5), [−0.5, −0.3), [−0.3, −0.1) are 50/50 in all 18 primary power sets of the three metal-poor bins (and in the 6 floor-0.20 sets of bin [−0.3, −0.1)) with d far below 0.25 |
 | 5 | The non-monotone count covers K = 1–4 only (T-045 also counted K = 5); one Full null mock (set 87, bin [0.1, 0.3)) is still non-monotone after the better fit, so the new fits are not guaranteed global optima | yes (`run.py`, comment discloses it) | **Accepted**; reported in section 5.2 |
 | 6 | All-star R1 bins mix young α-rich stars, accreted or halo stars and migrators, and subgiant selection multiplies the latent distribution by a smooth function of age | – | **Accepted** as a limit of the 2.1 design (interpretation, not validity of the test) |
-| 7 | The run stopped early by the projection rule (first projection 16.2 h, actual 5.3 h; slow early sets suggest machine contention) and was resumed | yes: consent recorded in `log.md` (2026-11-20) | No action; results are deterministic |
+| 7 | The run stopped early by the projection rule (first projection 16.2 h, actual 5.3 h; slow early sets suggest machine contention) and was resumed | yes: consent recorded in `log.md` (2026-11-21) | No action; results are deterministic |
 | 8 | Literature: Shariat, El-Badry & Bhattacharjee 2025 (arXiv:2510.08675; 11 wide pairs do not exclude f > 1) and Chen, Sun & Ye 2025 (arXiv:2510.10092; age-scale shift) bear on point 1; young α-rich stars (Chiappini et al. 2015, Martig et al. 2015) and Kepler/APOKASC age distributions (Silva Aguirre et al. 2018, Miglio et al. 2021) on point 6 | the two 2025 papers are cited in this README; the others unverified (IDs given by the referee) | Noted; not used |
 | 9 | Most important additional test: an error-scale power test for R1 (mocks drawn with f·e_Age, f ∈ {1.2, 1.5, 2.0, f_max}, fitted with f = 1), or more cheaply refit the data bins at several f | – | Registered as T-054 |
 
