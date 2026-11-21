@@ -439,8 +439,8 @@ def _err_label(E, cut_f, names, not_eval=()):
         lab = f"sensitive at f = {fs(sens[0])}"
     else:
         x = 1.0
-        for f in feas:
-            if E[f]:
+        for f in ERR_LADDER:                          # a not-evaluable f ends X (amendment 2026-11-21)
+            if f not in feas or E[f]:
                 break
             x = f
         lab = f"robust up to f = {fs(x)}"
@@ -481,6 +481,17 @@ def test_err_label():
     fails = [s["f"] for s in sets if s["variant"] == "S15E" and s["gen_fail"]]
     cut_f = min(fails) if fails else None
     assert r["cut_f"] == cut_f
+    if cut_f is not None:                             # the cut was honoured by the runner
+        first = lambda s: next(j for j, d in enumerate(s["d"]) if d is None)
+        cands = [s for s in sets if s["variant"] == "S15E" and s["f"] == cut_f and s["gen_fail"]]
+        fs = min(cands, key=lambda s: (first(s) > 0, s["k"]))     # the earliest failure (first-mock pass first)
+        jf = first(fs)
+        assert len(fs["d"]) == jf + 1                 # nothing after the failing mock
+        for s in sets:
+            if s["f"] >= cut_f:
+                assert len(s["d"]) < NMOCK or s["k"] < fs["k"]
+                if s["k"] > fs["k"]:
+                    assert len(s["d"]) <= (1 if jf > 0 else 0)
     by = {(s["f"], s["variant"], s["bin"], s["mech"]): s for s in sets}
     for v in ERR_VARIANTS:
         E, Em, names, names_m, not_eval, nonfin = {}, {}, {}, {}, [], False
@@ -495,7 +506,14 @@ def test_err_label():
                 E[f] = Em[f] = None
                 not_eval.append(f)
                 continue
+            # the non-finite rule on d, valley, k and pass_rate (README 2.7 case 2)
             nonfin |= any(d is None or d != d or d in (float("inf"), float("-inf")) for s in ss for d in s["d"])
+            nonfin |= any(not isinstance(x, bool) for s in ss for x in s["valley"])
+            for s in ss:
+                assert sum(s["k_chosen"].values()) == NMOCK       # every mock has an integer K
+                mp = s["mean_pass_rate"]
+                assert (mp is None) == (v == "Full")
+                nonfin |= mp is not None and not (mp == mp and abs(mp) != float("inf"))
             ex, exm = [], []
             for b in (0, 1, 2):
                 nr = {}
@@ -517,7 +535,17 @@ def test_err_label():
         assert r["variants"][v]["label"]["label"] == want
         assert r["variants"][v]["label_median_rule"]["label"] == want_m
     assert r["label"]["label"] == r["variants"]["S15E"]["label"]["label"]
-    # f = 1 row from R1-SEL-FIT: no power mock reaches the data d (README 2.7: E(1) = 0)
+    # f = 1 row re-derived from R1-SEL-FIT's per-mock d; no power mock reaches the data d (README 2.7: E(1) = 0)
+    for v in ERR_VARIANTS:
+        row = r["f1_row"][v]
+        ex = 0
+        for b, rb in zip((0, 1, 2), row["bins"]):
+            mk = selfit["variants"][v]["bins"][b]["mocks"]
+            nr = {m: sum(1 for d, val in zip(mk["power_" + m]["d"], mk["power_" + m]["valley"]) if val and d >= data_d[v][b])
+                  for m in ERR_MECHS}
+            assert rb["bin"] == b and rb["n_reach"] == nr and rb["explainable"] == (max(nr.values()) >= 3)
+            ex += rb["explainable"]
+        assert row["E"] == ex
     assert r["f1_row"]["S15E"]["E"] == 0
     for p in r["mocks"]["projections"]:              # the run stops before remaining mocks above the limit
         assert p["mocks_left"] == 0 or p["projection_h"] <= p["limit_h"]

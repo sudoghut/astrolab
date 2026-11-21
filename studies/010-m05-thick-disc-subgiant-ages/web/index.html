@@ -265,7 +265,7 @@ function errpart() {
   }
   const lb = R.label && R.label.label ? R.label.label : R.status;
   let txt = `<b>R1-ERR</b>: ${errv(lb)}`;
-  if (R.label && R.label.all_bins_explainable_from) txt += ' · ' + L(esc(R.label.all_bins_explainable_from), `从 f = ${esc(R.label.W3)} 起三个箱都可解释`);
+  if (R.label && R.label.all_bins_explainable_from) txt += ' · ' + L(esc(R.label.all_bins_explainable_from), `从 f = ${esc(String(R.label.W3).includes('.') ? String(R.label.W3) : R.label.W3 + '.0')} 起三个箱都可解释`);
   if (R.label_median_rule && R.label_median_rule.label) txt += ' · ' + L('median rule (reported): ', '中位数规则（仅报告）：') + errv(R.label_median_rule.label);
   if (R.variants) txt += ' · ' + ['S15N', 'Full'].map(v => `${esc(v)}: ${errv(R.variants[v].label.label)}`).join(' · ');
   txt += ' · ' + L('status: ', '状态：') + L(esc(R.status), esc(ZH[R.status] || R.status));

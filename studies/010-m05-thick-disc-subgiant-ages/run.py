@@ -1886,7 +1886,11 @@ def err_evaluate(P, sets, results, times, rfit, data_age_pct=None, data_frac=Non
         row = {**{k: s[k] for k in ("k", "f", "variant", "bin", "mech")}, "bin_name": names[s["bin"]],
                "n_run": len(rr), "complete": len(rr) == nmock, "gen_fail": sum(1 for r in rr if r.get("gen_fail")),
                "d": ds, "valley": vs, "d_data": dd, "n_reach": n_reach,
-               "n_reach_cp95": selaux.clopper_pearson(n_reach, nmock), "n_novalley": n_nov,
+               # 95% interval of n_reach / 50; for a set the feasibility rule left incomplete, of n_reach over
+               # the mocks it ran (flagged; such a set enters no rule)
+               "n_reach_cp95": (selaux.clopper_pearson(n_reach, nmock) if len(rr) >= nmock
+                                else (selaux.clopper_pearson(n_reach, len(rr)) if rr else None)),
+               "n_reach_cp95_over_completed": len(rr) < nmock, "n_novalley": n_nov,
                "n_d_ge_data_incl_novalley": n_reach + n_nov}
         if ok:
             has_age = all(f"age_p{q}" in r for r in ok for q in ERR_PCT_AGE)
@@ -2005,7 +2009,7 @@ def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
     assert len(df) == P["n_rows"], f"row count {len(df)} != {P['n_rows']}"
     with np.errstate(divide="ignore", invalid="ignore"):
         rel_all = E_all / A_all
-    F = dict(F, s15=F["s15"] & (A_all > 0))       # SEL-0, as main_sel
+    F = dict(F, s15=F["s15"] & (A_all > 0))       # S15 samples without Age <= 0 (README 2.5 SEL-0, kept by 2.7)
     bins = [int(b) for b in P["err_bins"]]
     nmock = int(P["err_n_mock"])
     nstart = int(P["selfit_nstart"])
@@ -2057,7 +2061,7 @@ def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
         return fail("not evaluable (reproduction): the f = 1 generator differs from the recorded R1-SEL-FIT mocks")
     sets = selaux.err_sets(P["err_f"], bins, P["mechs"])
     root = Path(store_root) if store_root else config.cache_dir() / "s010_err_mocks"
-    store = selaux.MockStore(root, _sel_key(P, df))   # refuses a stopped run without consent
+    store = selaux.MockStore(root, _sel_key(P, df), name="R1-ERR", rule="README 2.7")   # refuses a stopped run without consent
     ctx.log(f"R1-ERR checkpoints: {store.dir} ({'resumed with consent' if store.resumed else 'new or continued'})")
 
     def run_one(s, rngs):
@@ -2068,7 +2072,7 @@ def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
                 np.random.default_rng([seed, int(P["err_seed_tag_indep"]), int(k), int(j)]))
     try:                                           # the lock is released on every path; checkpoints stay
         results, state, proj_log = selaux.run_mock_sets(sets, nmock, store, run_one, make_rng, P["err_stop_h"],
-                                                        ctx.log, cut=err_cut)
+                                                        ctx.log, cut=err_cut, name="R1-ERR", rule="README 2.7")
         mock_info = {"n_sets": len(sets), "projections": proj_log, "elapsed_h_total": store.elapsed_s() / 3600,
                      "resumed": store.resumed, "resumes": store.resumes(),
                      "stop_limit_h": store.limit_h if store.limit_h is not None else P["err_stop_h"]}

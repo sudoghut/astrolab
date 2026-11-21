@@ -846,7 +846,9 @@ on XR22's claim.
      sets leave the runtime projection. A failure in a term N or Full set does not stop that set.
   2. *Reported labels of S15 term N and Full.* An f at which the variant had a generator failure is left
      out of that variant's rules (as an infeasible f is) and named in the qualifier "not evaluable at
-     f = …"; the "ladder ends" qualifier follows the primary ladder.
+     f = …"; X ends there, as at a cut (X is the largest f below it with E = 0 at every smaller f), while
+     Y, Z and W3 are taken over the variant's evaluable f values; the "ladder ends" qualifier follows the
+     primary ladder.
   3. *Label text.* f is written as `str(float(f))` (1.0, 1.2, 1.5, 2.0, 2.81); bins as "[-0.3, -0.1)".
      The bins named after "one bin explainable from f = Z:" are all bins explainable at any feasible f
      with E(f) = 1, in bin order. "All three bins explainable from f = W3" is a separate field.
@@ -1436,8 +1438,9 @@ How a coding agent answers "what if" questions about this study without touching
   K chosen, use of (i), NLL rising with K, pass rate, observed-age percentiles against the data's, stars
   dropped by the redraw limit, generator failures, time per mock); `companion_refits.<variant>.<f>`;
   `mocks` with the projections). The R1-ERR run (the committed default) is estimated at 4–5 h on an
-  otherwise idle machine (section 2.7); its checkpoints are in the cache folder `s010_err_mocks`, and a
-  quick look runs with `--set err_n_mock=2` (no label).
+  otherwise idle machine (section 2.7); its checkpoints are in the cache folder `s010_err_mocks`.
+  `--set err_n_mock=2` gives no label and still takes about 1.3 h: the 9 data fits, check (b) and the 36
+  companion data refits run in full, and only the mock sets shrink.
 - Example questions: "Does the R1 valley survive a stricter error cut?" → `--set cut=0.10`.
   "Is the 13 Gyr mean sensitive to the J_φ cut?" → `--set r2_jphi=300` (R2 also reports 300 and 700).
   "What if the selection term conditioned on relative error instead of e?" → an `explore/` script
