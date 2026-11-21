@@ -5,7 +5,7 @@ Fouesneau, Hogg, De Angeli, Naidu, Xiang, Ruz-Mieres 2022, "The Poor Old Heart o
 
 The conclusion encoded has four parts: (1) the metal-poor stars (XP [M/H] below -1.5) in the inner
 Galaxy amount to at least about 5e7 solar masses; (2) they are centrally concentrated, most within
-5 kpc of the Galactic Centre; (3) they formed before the oldest disc, at least 12.5 Gyr ago
+5 kpc of the Galactic Centre; (3) much of it formed before the oldest disc, at least 12.5 Gyr ago
 (z of about 5 or more); (4) they are the most ancient proto-Galactic (in-situ) component of the
 Milky Way. The abstract and the summary (Section IV) state all four; the abstract hedges (3)
 ("most likely predate") and Section IV hedges (4) ("fits a picture in which").
@@ -24,7 +24,7 @@ The chain:
       the vast majority alpha-enhanced (data feeding stage F)
   Stage E: the old disc's metallicity distribution drops sharply below -1; [gap] the metal-poor
       stars and the old disc belong to one chemically connected system; within one such system
-      metallicity rises with time (standard) -> the metal-poor stars predate the oldest disc;
+      metallicity rises with time (standard) -> much of the metal-poor population predates the oldest disc;
       the oldest disc stars are about 12.5 Gyr old -> formed at least 12.5 Gyr ago, z of about 5
       or more
   Stage F: confinement argues against a once-distant satellite; alpha-enhancement argues
@@ -71,7 +71,7 @@ structure Vocab where
   Incomplete : Prop
   /-- The stellar mass of the metal-poor ([M/H] below -1.5) population in the inner Galaxy is at least about 5e7 Msun. -/
   Massive : Prop
-  /-- The 3D distribution of the metal-poor stars is modelled as a spherical Gaussian in Galactocentric radius. -/
+  /-- The 3D distribution of the metal-poor stars is a spherical Gaussian in Galactocentric radius R_GC (the shape R22 assume: no flattening, no power law). -/
   SphGauss : Prop
   /-- The maximum-likelihood fit of that model to the observed parallaxes (with errors) gives sigma_RGC of about 2.7 kpc. -/
   SigmaFit : Prop
@@ -83,19 +83,19 @@ structure Vocab where
   NoRotVMP : Prop
   /-- Stars with [M/H] near -1 are rotation dominated. -/
   RotRich : Prop
-  /-- Most of the metal-poor stars have orbital apocentres below 5 kpc. -/
+  /-- Most of the metal-poor stars have orbital apocentres below 5 kpc (RVS subsample with good parallaxes). -/
   ApoSmall : Prop
-  /-- The vast majority of stars with [M/H] below -1.5 (APOGEE subset) are distinctly alpha-enhanced. -/
+  /-- The vast majority of stars with [M/H] below -1.5 are distinctly alpha-enhanced (APOGEE DR17 subset). -/
   AlphaEnh : Prop
   /-- The metallicity distribution of the old alpha-enhanced disc is truncated, or drops sharply, below [M/H] = -1. -/
   DiscFloor : Prop
   /-- The inner-Galaxy metal-poor stars and the old disc formed in one chemically connected system with a single, monotonic enrichment history (no fragment that enriched more slowly and formed its metal-poor stars later). -/
   OneSystem : Prop
-  /-- The metal-poor stars formed before the oldest part of the disc. -/
+  /-- Much of the metal-poor population formed before the oldest part of the disc. -/
   Predates : Prop
   /-- The oldest alpha-enhanced disc stars (near [M/H] = -1) are about 12.5 Gyr old. -/
   DiscAge : Prop
-  /-- The metal-poor population formed at least 12.5 Gyr ago, at z of about 5 or more. -/
+  /-- Much of the metal-poor population formed at least 12.5 Gyr ago, at z of about 5 or more. -/
   Ancient : Prop
   /-- An origin by accretion from a once-distant satellite is disfavoured. -/
   NotDistant : Prop
@@ -110,13 +110,13 @@ inductive Field where
   | stat_prec
   /-- GAP [reconstructed] the XP-selected tail below [M/H] = -1.5 is pure enough: R22 asks how pure the XP selected samples in this regime are (Section IV) and gives no contamination estimate; the sample has about 100 stars above -1.5 for each one below, the APOGEE training set only extended to -2.5, and Chen et al. 2025 (arXiv:2511.18901) find that ten Gaia XP metallicity catalogues give metal-poor tails with slopes from about 0.6 to 2.0 -/
   | gap_pure
-  /-- MOD [implied] standard selection logic: stars selected by an estimated quantity below a cut are genuine members when the estimator is precise and the contamination is small (Ivezic, Connolly, VanderPlas and Gray 2014, Statistics, Data Mining, and Machine Learning in Astronomy, Princeton University Press) -/
+  /-- MOD [implied] standard selection logic: stars selected by an estimated quantity below a cut are genuine members when the estimator is precise and the contamination is small (Ivezic, Connolly, VanderPlas and Gray 2014, Statistics, Data Mining, and Machine Learning in Astronomy, Princeton University Press, bibcode 2014sdmm.book.....I); close to definitional: it only names what precise and pure jointly give -/
   | mod_tail
   /-- OBS [stated: "that includes ∼18,000 stars"] Abstract (with -2.7 to -1.5 in [M/H]; Section III.2 also about 18,000, Fig. 4 and Section IV about 20,000) -/
   | obs_count
   /-- MOD [stated: "per 800 M⊙ of total stellar population mass"] Section III.2 (about 35 giants with M_G below 0.5 beyond M4 half-mass radius, M4 total mass 7e4 Msun) -/
   | mod_m4
-  /-- GAP [reconstructed] the M4 conversion applies to the sample: the sample cut keeps stars to a colour-corrected M_G of about 0.9, not 0.5; M4 age and mass function stand for the whole population; and the 800 Msun per giant does not follow from the quoted M4 numbers by our arithmetic (35 giants beyond the half-mass radius and half of 7e4 Msun give about 1,000) -/
+  /-- GAP [reconstructed] the M4 conversion applies to the sample: the sample cut keeps stars to a colour-corrected M_G of about 0.9, not 0.5; M4 age and mass function stand for the whole population; and the 800 Msun per giant does not follow from the quoted M4 numbers by our arithmetic (35 giants beyond the half-mass radius and half of 7e4 Msun give about 1,000); the count also includes stars R22 identify as Gaia-Sausage-Enceladus stars passing pericentre (eccentricity 0.75 or more, apocentre 10 kpc or more), not removed; together these change the mass by a factor of up to about 2 -/
   | gap_template
   /-- MOD [stated: "At face value, this implies"] Section III.2 (continues: about 2e7 Msun for [M/H] below -1.5); encoded with the genuine tail and the template as extra antecedents (weaker than the quote) -/
   | mod_face
@@ -140,8 +140,8 @@ inductive Field where
   | stat_apo
   /-- STAT [stated: "are distinctly α-enhanced, arguing for rapid enrichment in a deep potential well"] Section IV (subject: the vast majority of stars with [M/H] below -1.5, APOGEE DR17 subset); the body encodes only the observation, the inference is mod_deepwell -/
   | stat_alpha
-  /-- OBS [stated: "However, the old α-enhanced disk metallicity distribution function (MDF) is truncated, or at least drops sharply, below"] Section I (continues: [M/H] = -1) -/
-  | obs_discfloor
+  /-- LIT [stated: "However, the old α-enhanced disk metallicity distribution function (MDF) is truncated, or at least drops sharply, below"] Section I (continues: [M/H] = -1); background from the literature, not measured by R22: the preceding sentence on the old alpha-enhanced disc cites R22 refs. 44, 14, 10 and 96, among them Hayden et al. 2015, ApJ 808, 132, bibcode 2015ApJ...808..132H, doi 10.1088/0004-637X/808/2/132, and Xiang and Rix 2022, arXiv:2203.12110 -/
+  | lit_discfloor
   /-- GAP [reconstructed] the metal-poor stars and the old disc belong to one chemically connected system with a monotonic enrichment history; R22 itself expects the oldest metal-poor stars to mix early proto-Galactic pieces and later-merged satellites (Section I), and Ardern-Arentsen et al. 2024 (arXiv:2312.03847) propose a more metal-poor, more extended component from smaller accreted galaxies; a slowly enriching fragment can form [M/H] below -1.5 stars after the oldest disc stars at -1. R22 hedges the step: most likely predate (abstract) -/
   | gap_onezone
   /-- MOD [implied] one-zone chemical evolution: within a single well-mixed system metallicity rises monotonically with time, so stars more metal-poor than the oldest disc stars formed earlier (Tinsley 1980, Fundamentals of Cosmic Physics 5, 287, bibcode 1980FCPh....5..287T) -/
@@ -150,7 +150,7 @@ inductive Field where
   | lit_discage
   /-- MOD [stated: "it must have formed at τ≳12.5 Gyrs, corresponding to z≳5"] Section IV (conditional: if much of this metal-poor heart chemically, and therefore temporally, predates the oldest alpha-enhanced disk); encoded with the disc age as antecedent -/
   | mod_ancient
-  /-- MOD [stated: "arguing against an origin through accretion from a once-distant satellite"] Section IV (subject: much of this population is confined within the solar circle, tightly bound); encoded with the central concentration and the small apocentres as antecedents; the atom says disfavoured, as the quote does -/
+  /-- MOD [stated: "arguing against an origin through accretion from a once-distant satellite"] Section IV (subject: much of this population is confined within the solar circle, or tightly bound at the bottom of the Galaxy potential well); the subject is paraphrased and encoded with the central concentration and the small apocentres as antecedents (stronger antecedents than the quoted subject); the atom says disfavoured, as the quote does -/
   | mod_confined
   /-- MOD [stated: "are distinctly α-enhanced, arguing for rapid enrichment in a deep potential well"] Section IV; the atom says favoured, as the quote does -/
   | mod_deepwell
@@ -176,7 +176,7 @@ def prov : Field → Prov
   | .stat_spin => .stated
   | .stat_apo => .stated
   | .stat_alpha => .stated
-  | .obs_discfloor => .stated
+  | .lit_discfloor => .stated
   | .gap_onezone => .reconstructed
   | .mod_amr => .implied
   | .lit_discage => .stated
@@ -203,7 +203,7 @@ def prem : Field → Vocab → Prop
   | .stat_spin, v => v.RotRich
   | .stat_apo, v => v.ApoSmall
   | .stat_alpha, v => v.AlphaEnh
-  | .obs_discfloor, v => v.DiscFloor
+  | .lit_discfloor, v => v.DiscFloor
   | .gap_onezone, v => v.OneSystem
   | .mod_amr, v => v.OneSystem → v.TailReal → v.DiscFloor → v.Predates
   | .lit_discage, v => v.DiscAge
@@ -213,7 +213,7 @@ def prem : Field → Vocab → Prop
   | .gap_proto, v =>
       v.Massive → v.Ancient → v.NotDistant → v.DeepWell → v.NoRotVMP → v.RotRich → v.ProtoGal
 
-/-- [stated: "This sample reveals an extensive, ancient, and metal-poor population"] Abstract (continues: that includes about 18,000 stars, a stellar mass of at least about 5e7 Msun, a Gaussian extent of about 2.7 kpc; these central, metal-poor stars most likely predate the oldest part of the disk, about 12.5 Gyr, so formed at z of about 5 or more); part 4 rests on Section IV: All of this information fits a picture in which this metal-poor heart of the Milky Way constitutes the most ancient proto-Galactic component of our Galaxy -/
+/-- [stated: "This sample reveals an extensive, ancient, and metal-poor population"] Abstract (continues: that includes about 18,000 stars, a stellar mass of at least about 5e7 Msun, a Gaussian extent of about 2.7 kpc; these central, metal-poor stars most likely predate the oldest part of the disk, about 12.5 Gyr, which implies that they formed at z of about 5 or more, forging the proto-Milky Way); part 4 rests on Section IV: All of this information fits a picture in which this metal-poor heart of the Milky Way constitutes the most ancient proto-Galactic component of our Galaxy -/
 def Conclusion (v : Vocab) : Prop := v.Massive ∧ v.Central ∧ v.Ancient ∧ v.ProtoGal
 
 -- FIXED BLOCK B (identical in every study)
@@ -243,7 +243,7 @@ theorem final : ∀ v, Premises v → Conclusion v := by
   -- Stage C: central concentration (Section III.1; Section IV)
   have c : v.Central := p .mod_central t (p .mod_sph) (p .stat_sigma) (p .gap_sel)    -- GAP
   -- Stage E: age; predates the oldest disc, so at least 12.5 Gyr old (Sections I, IV)
-  have pd : v.Predates := p .mod_amr (p .gap_onezone) t (p .obs_discfloor)           -- GAP
+  have pd : v.Predates := p .mod_amr (p .gap_onezone) t (p .lit_discfloor)           -- GAP
   have a : v.Ancient := p .mod_ancient pd (p .lit_discage)
   -- Stage F: origin, with the stage D data (Sections III.3, III.4, IV)
   have nd : v.NotDistant := p .mod_confined c (p .stat_apo)
@@ -340,7 +340,7 @@ theorem stat_alpha_needed : ¬ ∀ v, Without .stat_alpha v → Conclusion v := 
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2.2
 
 -- Stage E: age
-theorem obs_discfloor_needed : ¬ ∀ v, Without .obs_discfloor v → Conclusion v := fun h =>
+theorem lit_discfloor_needed : ¬ ∀ v, Without .lit_discfloor v → Conclusion v := fun h =>
   (h { full with DiscFloor := False, Predates := False, Ancient := False, ProtoGal := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2.1
 
