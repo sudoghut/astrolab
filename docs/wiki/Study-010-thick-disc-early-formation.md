@@ -297,6 +297,26 @@ labels above stand as the pre-registered outcome; the re-test labels are the cur
   sensitive". Post hoc, the referee's evidence points to that generator as the cause (an
   inference: under the original generator the variant recovers).
 
+**Rerun of the 8 Gyr split with better mock fits (R1-SEL-FIT, T-049, 2026-11-21).** A further
+pre-registration (README section 2.6) reran R1-SEL with 8 data-independent starts per mixture size in
+every mock fit. The null mocks and power mocks were included, in all bins and variants: 5,400 mocks, 5.3 h. Nothing else
+changed, and the original fits reproduce every recorded mock.
+
+- **The null mocks did not move the threshold.** No null mock's valley passes, so d* stays at its
+  cap 0.25.
+- **The three metal-poor bins have power 1.00 in every variant**, and the bin [−0.1, 0.1) becomes
+  resolvable too (power 0.84–1.00).
+- **The label is "not reproduced (robust; selection-term robust)"**, the same at the power floor
+  0.20, as the pre-registration expected. Every variant has 4 of 5 bins resolvable, but none
+  of them has an almost disjoint valley (data d = 0.37–0.58 against 0.25).
+- **What this means.** The data show a dip between an old and a young phase at fixed [Fe/H], but not
+  the near-gap the 8 Gyr split describes.
+- **R1-SEL's "undetermined" stands** as that block's pre-registered outcome. R1-SEL-FIT is a rerun
+  with improved mock fits, not a correction; R1-SEL's line between the two labels was set by the
+  mock optimiser.
+- **The metal-richest bin [0.1, 0.3) stays unresolvable** (power 0.30–0.70). Its mixtures still
+  smear the generating model's sharp young edge.
+
 Exploring via chat: `python -m astrolab explore 010 --tag <topic> --set key=value`
 reruns any fit with changed parameters (for example the J_φ cut, the error cut or the high-α
 threshold) without touching the formal results; see the study README section 8.
@@ -326,6 +346,11 @@ threshold) without touching the formal results; see the study README section 8.
 
 Newest first.
 
+- 2026-11-21: R1-SEL-FIT (T-049, pre-registered README 2.6): R1-SEL rerun with data-independent
+  starts in every mock fit (5,400 mocks; all reproduction checks passed). d* stays 0.25; 4 of 5 bins
+  resolvable in every variant, none almost disjoint, so "not reproduced (robust; selection-term
+  robust)", also at floor 0.20. R1-SEL's "undetermined" stands as recorded (part 3 updated; the
+  referee of this rerun is pending).
 - 2026-11-20: re-test R-SEL (T-031) and its independent referee: R3-SEL reproduced, robust (span
   6.09 Gyr); R4-SEL not reproduced (2.55 Gyr); intrinsic-SEL confirmed, not robust (0.748 Gyr);
   R1-SEL undetermined, hinging on one bin's mock-fit-limited power (T-045); part 3 updated.
@@ -481,6 +506,15 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 - **8 Gyr 分界仍无法判定。** 标签取决于一个贫金属箱，而该箱的功效受限于漏掉谷的模拟拟合（独立审稿，事后）。诊断性重拟合（T-045，探索，事后）说明了原因：漏掉的模拟是模拟拟合的局部最优；用与数据无关的起点时每个模拟都找到谷，该箱六组的功效都是 1.00（记录值 0.58–0.88）。所以这个箱会是可分辨的，而没有一个箱的谷几乎不相交，只要零假设模拟与其他箱在同样的重拟合下保持不变（未检验），结论会是"未复现"；在用更好的模拟拟合做预注册重跑（T-049）之前，记录的标签仍是"无法判定"。
 - **不加选择项的变体。** 它在内禀离散上给出相同结论；在模拟的误差生成器下，它对序列的回收检验失败，所以 R3/R4 带有"对选择项敏感"。事后看，审稿的证据指向这个生成器是原因（推断：在原生成器下这个变体能够恢复）。
 
+**用更好的模拟拟合重跑 8 Gyr 分界（R1-SEL-FIT，T-049，2026-11-21）。** 又一次预注册（README 第 2.6 节）重跑了 R1-SEL：每个模拟拟合（零假设模拟与功效模拟，所有箱与变体，共 5,400 次，5.3 小时）都对每个混合成分数加入 8 个与数据无关的起点。其余一切不变，原拟合重现了每一次记录的模拟。
+
+- **零假设模拟没有移动阈值。** 没有零假设模拟的谷通过，所以 d* 仍在上限 0.25。
+- **三个贫金属箱在每个变体中功效都是 1.00**，箱 [−0.1, 0.1) 也变为可分辨（功效 0.84–1.00）。
+- **标签为"未复现（稳健；对选择项稳健）"**，功效下限 0.20 时相同，与预注册的预期一致。每个变体都是 5 个箱中 4 个可分辨，但没有一个箱的谷几乎不相交（数据 d = 0.37–0.58，阈值 0.25）。
+- **这意味着什么。** 数据显示在固定 [Fe/H] 下老、年轻两个阶段之间有下凹，但没有 8 Gyr 分界所说的近乎断开。
+- **R1-SEL 的"无法判定"保持不变**，作为那一部分预注册的结果。R1-SEL-FIT 是用改进的模拟拟合所做的重跑，不是更正；R1-SEL 在两个标签之间的分界是由模拟优化器决定的。
+- **最富金属的箱 [0.1, 0.3) 仍不可分辨**（功效 0.30–0.70）：混合模型仍会抹平生成模型陡峭的年轻端边缘。
+
 对话探索：`python -m astrolab explore 010 --tag <主题> --set 键=值` 可用改变的参数（例如 J_φ 截断、误差截断或高 α 阈值）重跑任一拟合，不影响正式结果；见研究 README 第 8 节。
 
 ### 术语表
@@ -506,6 +540,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 按时间倒序。
 
+- 2026-11-21：R1-SEL-FIT（T-049，预注册见 README 2.6）：在每个模拟拟合中加入与数据无关的起点重跑 R1-SEL（5,400 次模拟；重现检查全部通过）。d* 仍为 0.25；每个变体 5 个箱中 4 个可分辨，没有几乎不相交的箱，所以为"未复现（稳健；对选择项稳健）"，下限 0.20 时相同。R1-SEL 的"无法判定"按记录保持不变（更新第三部分；这次重跑的独立审稿尚在进行）。
 - 2026-11-20：重新检验 R-SEL（T-031）及其独立审稿：R3-SEL 复现、稳健（跨度 6.09 Gyr）；R4-SEL 未复现（2.55 Gyr）；内禀离散-SEL 确认、不稳健（0.748 Gyr）；R1-SEL 无法判定，取决于一个功效受模拟拟合限制的箱（T-045）；更新第三部分。
 - 2026-11-20：诊断性重拟合（T-045，事后）：关键箱漏掉的模拟是模拟拟合的局部最优；用与数据无关的起点时功效为 1.00，所以如果零假设模拟与其他箱保持不变（未检验），R1-SEL 会读作"未复现"；预注册重跑登记为 T-049（更新第三部分）。
 - 2026-11-16：研究运行与独立审稿：R2 复现（12.93 Gyr）；R1 无法判定；R3/R4 与本征弥散无法判定（M0 的 S15 选择项设定错误，独立审稿发现；重新检验 T-031）；`mod_bin` 改为 `gap_bin`（GAP），因而有三个缺口；补上第三部分的结果。
