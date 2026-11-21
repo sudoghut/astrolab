@@ -364,6 +364,81 @@ cannot be tested here).
 
 None yet.
 
+### 4.13 Amendments before any fit (2026-11-21)
+
+Implementation choices fixed on 2026-11-21 while writing `run.py` and its helper modules, before any data
+file was downloaded or read (no fit has been made). Sections 1–4.11 are unchanged; where they leave a
+detail open, it is fixed here.
+
+1. **L2 column names.** A column name is reduced to lower-case letters and digits ("[M/H]" → "mh",
+   "phot_g_mean_mag" → "photgmeanmag") and compared with fixed candidate lists in `data012.py`
+   (`MH_CANDIDATES`, `KIN_CANDIDATES`; for example [M/H]: mh, mhxgboost, mhxgb, xgbmh, xgboostmh, mhpred, mhxp,
+   metallicity, feh; J_φ: jphi, lz, actphi, actionphi, jphikpckms; R_apo: rapo, apo, apocenter, apocentre, rmax).
+   Several matches for one quantity, or no `source_id` or [M/H], stop the run (section 3, L2). T_eff and log g
+   are needed only for T4 variant (iii), which is "not computed" without them.
+2. **Positions.** If the metallicity file has no l, b but has ra, dec, l and b are computed with astropy
+   (ICRS to Galactic). l is used in (−180°, 180°].
+3. **L6 detection.** Histograms run over the populated range inside R22's allowed range, with bin edges at
+   multiples of the bin width. A cut at c is declared where the outermost populated bin on one side has at
+   least 50 stars and every bin beyond it, up to the end of the allowed range, is empty (an empty bin inside
+   the populated range is a hole, not a cut; R22's own limits are range ends, not cuts). L6 uses all stars of
+   the metallicity file and the raw parallax. Every declared cut with a value (including parallax-dependent
+   ones) is applied in the mocks (section 4.3, "any tighter cut declared by L6").
+4. **T2 sample and grid.** Stars with a non-finite l, b, ϖ, σ_ϖ, G or BP − RP, or σ_ϖ ≤ 0, are left out of the
+   T2 likelihoods and counted (`t2.json: sample.n_dropped_nonfinite`). Metallicity bins are lo ≤ [M/H] < hi.
+   The integrals are trapezoid sums in parallax over the log-spaced nodes; version (i) has its own 300 nodes
+   log-spaced over 1–30 kpc, version (ii) 300 over 0.2–30 kpc. The node-doubling check is applied to both
+   versions and stops at 1,200 nodes (memory: about 0.4 GB per likelihood at 20,000 stars); if it has not
+   converged there, `t2.json: grid_check.passed` is false and the reading waits for a dated amendment. The
+   mocks are fitted at 300 nodes before the data fit (section 4.10 order); if the check adopts more nodes,
+   every mock is regenerated from its seed and refitted at the adopted number.
+5. **Luminosity function.** The LF sample's ϖ/σ_ϖ > 10 uses the raw parallax (section 4.1: cuts on the raw ϖ).
+   Each LF star's M′ is turned into an intrinsic M_G0 = M′ + 1.5(BP − RP − 1) − A_G, intrinsic colour
+   BP − RP − E(BP − RP) and intrinsic BP − G, with the extinction model at its own (b, d = 1/ϖ_corr). A mock
+   star at distance d gets G = M_G0 + μ(d) + A_G, BP − RP = colour₀ + E(BP − RP), BP = G + (BP − G)₀ + (A_BP − A_G).
+   This needs BP magnitudes in the file (the mocks apply BP < 15.5); without them the run stops at L2 like the
+   other missing T2 columns (the optional TAP addition of section 3 lists no BP magnitude).
+6. **Extinction coefficients.** Constant ratios A_G : A_BP : A_RP = 0.789 : 1.002 : 0.589 per unit A_V
+   (Wang & Chen 2019, ApJ 877, 116), so A_BP = 1.270 A_G and E(BP − RP) = 0.523 A_G. This simplifies the
+   colour-dependent Gaia DR3 law.
+7. **Extinction grid.** Each grid point simulates one spherical mock at σ = 2.7 kpc with as many stars as the
+   T2 sample, all grid points with the same random seed (common random numbers, so the comparison between
+   grid points is not dominated by mock noise). The |b| bins are [lo, hi).
+8. **Mock parallax errors.** σ_ϖ is resampled from all stars of the metallicity file in the mock star's 0.25 mag
+   G bin (the nearest populated bin if it is empty); the raw parallax is 1/d − 0.02 + N(0, σ_ϖ).
+9. **T2b fits.** Nelder–Mead with bounds (xatol 10⁻⁴, fatol 10⁻⁴, at most 3,000 evaluations per start); σ of the
+   flattened Gaussian on 0.5–10 kpc as in T2a. The power law's first start is r_c = 1 kpc, α = 3.4, q = the
+   flattened fit's q; the four other starts of every model are uniform draws within its ranges. ΔBIC uses the
+   number of stars fitted (the data's |b| ≥ 5° stars, or the mock's size). T2b mocks have as many stars as the
+   data at |b| ≥ 5°. The data's power-law fit is always made and reported; it is labelled only at step 2. The
+   latitude variants (3°, 8°) are point fits of the three models with the q profile, reported only. The
+   bootstrap resamples the |b| ≥ 5° stars.
+10. **Bounds.** σ is "at a bound" within 0.05 kpc of 0.5 or 10 kpc (section 4.3); the logistic s is at a bound
+    within 0.1% of 0.01 or 2 dex.
+11. **T3 bootstrap.** Each resample of the N stars of a T3 sample draws K ~ Binomial(N, n/N) stars uniformly
+    from the n stars with [M/H] < −0.5 (the only ones any T3 statistic uses); this equals resampling all N in
+    distribution. Bins are [c − 0.1, c + 0.1).
+12. **Logistic fit.** Bins without stars or with zero bootstrap variance are left out; fewer than 5 usable bins
+    count as not converged. Starting values: a and b the means of the first and last two bins, m = −1.2, s = 0.1
+    (bounded trust-region least squares, `scipy.optimize.least_squares`).
+13. **w₀ mocks.** Made on the primary sample; mock J_φ/J_tot values are not clipped to [−1, 1]; the all-R_apo
+    variant uses the primary w₀. The per-bin scatter is the standard deviation of the data's J_φ/J_tot in the
+    bin of the star's [M/H].
+14. **v_φ.** From the file's v_φ column, or from Galactocentric x, y, v_x, v_y, with the sign set so that the
+    median of the [M/H] > −0.5 stars is positive. The R0 = 8.0 and 8.4 kpc variants are recomputed with
+    astropy from heliocentric ra, dec, ϖ + 0.02, proper motions and radial velocity when the kinematics file
+    has them (z☉ = 0, solar motion (11.1, 245, 7.3) km/s), otherwise "not computed".
+15. **T4.** Noise is drawn per star of the metallicity file and the joined kinematics stars inherit it. Trimming
+    keeps T_eff and log g within the percentiles (inclusive) of each 0.25 dex bin. The elasticity is reported at
+    the cuts −2, −1.5 and −1. The "dominated by scatter from above" flag uses the median count over the ten
+    0.1 dex realisations, a change by more than a factor 2 either way.
+16. **Running.** Seeds: a base seed 20261121 with a named stream per task, and 12012 for the subsamples. The
+    Zenodo URLs with `?download=1` were confirmed on the record page on 2026-11-21. The two files are fetched
+    with `cap_consent` and `budget_consent` (both citing T-021 and this study's log); `allow_download` is true only
+    when `PARAMS["first_download"]` is set (section 8). A formal run refuses counts below the floors of section
+    4.10. If L2 finds T2 columns missing, the run stops and asks for the user's decision on the optional TAP
+    addition (`PARAMS["t2_missing_ok"]` is set only if the user declines it).
+
 ## 5. Results
 
 Filled after running. Link to `web/index.html` and key numbers in `results/`.
@@ -381,14 +456,47 @@ How a coding agent answers "what if" questions about this study without touching
 
 | Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
 |---|---|---|---|
-| TODO | | | |
+| `parts` | which tests to run (`t1` always; `t2`, `t3`, `t4`, `t5`, `t6`) | any subset; `["t1", "t3", "t5", "t6"]` runs in minutes | cache only |
+| `t2_mh_range` | [M/H] range of the T2 sample (lo ≤ [M/H] < hi) | e.g. `[-2.5, -2.0]`, `[-2.0, -1.5]`, `[-1.5, -1.0]` (σ per bin, section 4.9) | cache only |
+| `t2a_boot`, `t2a_mocks`, `t2b_boot`, `t2b_mocks` | bootstrap resamples and mocks of T2 | an exploration may lower them (a formal run may not) | cache only |
+| `t2b_bmin_deg` | latitude cut of T2b | 3–10 | cache only |
+| `R0_kpc`, `plx_zp_mas` | Galactocentric distance of the Sun; parallax zero point | 8.0–8.4; 0.0–0.04 | cache only |
+| `t3_rapo_kpc`, `t3_bin_centers`, `t3_delta` | T3 apocentre range, bins, equivalence margin | apocentre ranges within 1–15 kpc | cache only |
+| `t4_noise_dex`, `t4_shift_dex` | T4 noise and shift | 0.05–0.3 | cache only |
+| `t6_m_giant`, `t6_f` | T6 mass per giant and factor | any positive | cache only |
+| `stop_after_hours` | pause (checkpointed) after this many hours; 0 = no limit | 0–24 | cache only |
+| `first_download` | allow the one consented download of the two Zenodo files | `false` except in the single formal first run | new data: 213.8 MB, only with the user's recorded consent |
 
+- **The first download.** The two files are downloaded once, under the user's exception of 2026-11-21 (T-021,
+  `log.md`). The formal first run is started with `PARAMS["first_download"] = True` (`allow_download=True` in
+  `ctx.http`); right after that run the value is set back to `False` and the change committed, so every later run
+  and exploration reads the files from the cache only (`budget_consent` without `allow_download`). If the cache
+  has evicted a file, a new download needs the user's agreement again (AGENTS.md 1.6); `--refresh` raises
+  instead of re-downloading.
 - Rerun with an override: `python -m astrolab explore 012-m12-poor-old-heart --tag <topic> --set KEY=VALUE`
-  (outputs in `explore/<date>-<topic>/`, not committed; about N s from cache).
+  (outputs in `explore/<date>-<topic>/`, not committed). Loading and the L1–L7 checks take a few minutes on the
+  1.5 million rows; `parts=["t1","t3","t5","t6"]` then runs in minutes, while T2 needs hours (an evaluation of the
+  likelihood takes about 0.08–0.14 s at 20,000 stars and 300 nodes). Explorations keep their checkpoints in the
+  cache under `s012_checkpoints/explore/<date>-<topic>/` (delete them when done), apart from the formal run's.
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 012-m12-poor-old-heart --tag <topic> --script explore/<name>.py`.
-- Results files and keys: TODO (`results/<file>.json`: key - meaning).
-- Example questions: TODO (question -> knob or script an agent would use).
+- Results files and keys: `load.json` (L1–L7: `L1` checksums, `L2` column mapping and presence, `L3_*`
+  duplicates, `L4` join fraction, `L5` signs and units, `L6` declared cuts, `L7` [M/H] range); `t1.json`
+  (`counts`, `statements` with count and fraction labels, `pairs`, `summary`); `t2.json` (`t2a`: `fits`,
+  `intervals`, `mock_bias`, `reproduction_label`, `population_label`, `reference_fits`; `t2b`: `checks`, `data`
+  with the step-1 fits and q profile, `step2`, `shape_label`, `f5`, `f5_interval`, `f5_label`,
+  `latitude_variants`, `control`; `mocks`: LF, extinction grid; `grid_check`); `t3.json` (`primary`, `all_rapo`
+  with intervals and labels, `w0`, `vphi`); `t4.json` (`label`, `broken`, `variants`, `elasticity`); `t5.json`
+  (`samples` with g and a₅); `t6.json` (`table`, `r22_choices_mass`); `summary.json` (`labels`,
+  `reading_reproduction`, `reading_robustness`, `timing`).
+- Example questions:
+  - "Is the extent different for the most metal-poor stars?" → `--set t2_mh_range=[-2.5,-2.0] --set parts=["t2"]`
+    with fewer mocks (section 4.9, no verdict).
+  - "Does the rotation trend depend on the apocentre range?" → `--set t3_rapo_kpc=[1.0,5.0] --set parts=["t3"]`.
+  - "How does R0 change σ?" → `--set R0_kpc=8.0 --set parts=["t2"]`.
+  - "How steep is the tail below −2?" (Chen et al. 2025) → a script `explore/tail_slope.py` fitting an
+    exponential to the counts below −2.
+  - "Do the GSE-like stars rotate differently?" (section 4.9) → a script splitting the T3 sample by the T5 orbit
+    classes.
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.
-

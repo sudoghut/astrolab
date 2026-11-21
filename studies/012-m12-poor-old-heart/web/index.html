@@ -8,15 +8,178 @@
      use i18n.L(en, zh) for generated HTML and i18n.t(en, zh) + i18n.onLangChange for plain text / charts. -->
 <script src="../../../atlas/web/i18n.js"></script>
 <link rel="stylesheet" href="../../../atlas/web/base.css">
+<style>
+  main { max-width: 1040px; margin: 0 auto; padding: 16px; }
+  section { margin: 18px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td, th { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  .wrap { overflow-x: auto; }
+  .lab { font-weight: 600; }
+  .lab.good { color: var(--established); } .lab.bad { color: var(--refuted); } .lab.mid { color: var(--hint); }
+  .num { font-family: var(--mono); font-size: 13px; }
+  svg.plot { width: 100%; max-width: 640px; height: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+  svg.plot text { fill: var(--muted); font: 11px var(--sans); }
+  .legend { font-size: 13px; color: var(--muted); }
+</style>
 </head>
 <body>
 <main>
   <p class="crumb"><a href="../../../atlas/web/">Atlas</a> / 012-m12-poor-old-heart</p>
   <h1><span class="en">M12 Poor old heart: Gaia XP metallicities of the oldest Milky Way stars</span><span class="zh">M12 贫而老的核心：Gaia XP 金属丰度与银河系最老的恒星</span></h1>
-  <p><span class="en">Planned paper study (Rix et al. 2022, ApJ 941, 45; arXiv:2209.02722). The wiki article comes first; this page will show the metal-poor stars near the Galactic Centre (counts, spatial extent, metallicity–rotation relation) from the paper's public Gaia XP sample once the study has been pre-registered and run.</span><span class="zh">计划中的论文研究（Rix 等 2022，ApJ 941, 45；arXiv:2209.02722）。先写 Wiki 文章；完成预注册并运行后，本页将用论文公开的 Gaia XP 样本显示银心附近的贫金属星（计数、空间尺度、金属丰度与转动的关系）。</span></p>
-  <p><a href="https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-012-poor-old-heart.md"><span class="en">Wiki article (in preparation)</span><span class="zh">Wiki 文章（撰写中）</span></a></p>
+  <p><span class="en">A paper study of Rix et al. 2022 (ApJ 941, 45; arXiv:2209.02722, "R22"). Using only R22's two public files (Zenodo 7035810: XP metallicities of about 1.5 million giants towards the Galactic Centre, and orbits for about 1.2 million of them) we recount the metal-poor stars, refit their spatial extent with the sample's own selection, re-measure the rotation–metallicity relation and test how much these numbers lean on the metallicity scale, with tests fixed before any data were read (pre-registration, README sections 1–4).</span><span class="zh">对 Rix 等 2022（ApJ 941, 45；arXiv:2209.02722，"R22"）的论文研究。只用 R22 公开的两个文件（Zenodo 7035810：银心方向约 150 万颗巨星的 XP 金属丰度，以及其中约 120 万颗的轨道），重新计数贫金属星，在考虑样本自身选择的情况下重新拟合其空间尺度，重新测量转动与金属丰度的关系，并检验这些数字在多大程度上依赖金属丰度标度；所有检验在读取任何数据之前就已固定（预注册，README 第 1–4 节）。</span></p>
+  <p><a href="https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-012-poor-old-heart.md"><span class="en">Wiki article</span><span class="zh">Wiki 文章</span></a> ·
+     <a href="https://github.com/sudoghut/astrolab/blob/main/studies/012-m12-poor-old-heart/README.md"><span class="en">Pre-registration (README)</span><span class="zh">预注册（README）</span></a></p>
+
+  <section id="status" class="card"><span class="en">loading…</span><span class="zh">加载中……</span></section>
+
+  <section id="readings-sec" hidden>
+    <h2><span class="en">Overall readings</span><span class="zh">总体解读</span></h2>
+    <div id="readings"></div>
+  </section>
+
+  <section id="labels-sec" hidden>
+    <h2><span class="en">Labels of the pre-registered tests</span><span class="zh">预注册检验的标签</span></h2>
+    <div class="wrap"><table><tbody id="labels"></tbody></table></div>
+  </section>
+
+  <section id="t1-sec" hidden>
+    <h2><span class="en">T1 · Counts of metal-poor stars against R22's statements</span><span class="zh">T1 · 贫金属星计数与 R22 的说法</span></h2>
+    <div class="wrap"><table id="t1"></table></div>
+  </section>
+
+  <section id="t3-sec" hidden>
+    <h2><span class="en">T3 · Rotation against metallicity</span><span class="zh">T3 · 转动与金属丰度</span></h2>
+    <p class="legend"><span class="en">Mean J_φ/J_tot in 0.2 dex [M/H] bins (primary sample, 3 &lt; R_apo &lt; 7 kpc), with the logistic fit. +1: disc-like circular orbits; 0: no net rotation.</span><span class="zh">在 0.2 dex 的 [M/H] 箱中 J_φ/J_tot 的平均值（主样本，3 &lt; R_apo &lt; 7 kpc），以及逻辑斯蒂拟合。+1：类似盘的圆轨道；0：无净转动。</span></p>
+    <div id="t3plot"></div>
+  </section>
+
+  <section id="details-sec" hidden>
+    <h2><span class="en">Details</span><span class="zh">细节</span></h2>
+    <div id="details"></div>
+  </section>
+
   <section id="skylinks" class="card" hidden></section>
 </main>
 <script src="../../../atlas/web/skylinks.js"></script>
+<script>
+(function () {
+  const L = (en, zh) => i18n.L(en, zh);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+  const f = (x, d = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '–' :
+    (typeof x === 'number' ? (Math.abs(x) >= 1e5 ? x.toExponential(2) : x.toFixed(d)) : esc(x));
+  const iv = (a, d = 3) => a ? `[${f(a[0], d)}, ${f(a[1], d)}]` : '–';
+  const GOOD = ["abstract reproduced", "reproduced", "consistent with 2.7 kpc", "most within 5 kpc confirmed",
+    "no net rotation", "rotation dominated", "robust", "minor", "moderate", "most apocentres below 5 kpc confirmed",
+    "R22's numbers reproduce from the public sample", "holds under our checks", "agrees"];
+  const BAD = ["not reproduced", "different", "not confirmed", "net rotation", "net counter-rotation",
+    "not rotation dominated", "sensitive", "major", "challenged", "disagrees"];
+  const ZH = {
+    "abstract reproduced": "摘要数字已复现", "not reproduced": "未复现", "reproduced": "已复现",
+    "partly reproduced": "部分复现", "R22's numbers reproduce from the public sample": "R22 的数字可由公开样本复现",
+    "consistent with 2.7 kpc": "与 2.7 kpc 一致", "different": "不同", "undetermined": "无法判定",
+    "undetermined (data not in the files)": "无法判定（文件中没有该数据）",
+    "undetermined (fit at bound)": "无法判定（拟合在边界上）", "undetermined (method bias)": "无法判定（方法偏差）",
+    "undetermined (unmodelled selection)": "无法判定（未建模的选择）", "undetermined (fit failed)": "无法判定（拟合失败）",
+    "undetermined (checks failed)": "无法判定（检查未通过）",
+    "spherical adequate": "球对称足够", "prolate preferred": "偏好长椭", "flattened (step 2 undetermined)": "扁平（第 2 步无法判定）",
+    "flattened Gaussian adequate": "扁平高斯足够", "power law preferred": "偏好幂律",
+    "most within 5 kpc confirmed": "确认大多数在 5 kpc 内", "not confirmed": "未确认",
+    "no net rotation": "无净转动", "net rotation": "有净转动", "net counter-rotation": "有净反向转动",
+    "rotation dominated": "以转动为主", "not rotation dominated": "不以转动为主", "sharp": "陡峭", "gradual": "平缓",
+    "robust": "稳健", "sensitive": "敏感", "minor": "少量", "moderate": "中等", "major": "大量",
+    "most apocentres below 5 kpc confirmed": "确认大多数远心距在 5 kpc 以下",
+    "holds under our checks": "经我们的检查仍成立", "challenged": "受到挑战", "agrees": "一致", "disagrees": "不一致",
+    "not run (parts)": "未运行（parts）",
+  };
+  const lab = s => {
+    if (s === null || s === undefined) return '–';
+    const cls = GOOD.includes(s) ? 'good' : BAD.includes(s) ? 'bad' : 'mid';
+    return `<span class="lab ${cls}">${L(esc(s), esc(ZH[s] || s))}</span>`;
+  };
+  async function get(name) {
+    try { const r = await fetch(`../results/${name}.json`, {cache: 'no-store'}); return r.ok ? r.json() : null; }
+    catch (e) { return null; }
+  }
+  function t3plot(t3) {
+    const b = t3.primary.bins, W = 600, H = 300, x0 = 50, x1 = W - 15, y0 = H - 35, y1 = 15;
+    const X = m => x0 + (m + 2.2) / 1.8 * (x1 - x0), Y = v => y0 + (v + 0.2) / 1.2 * (y1 - y0);
+    let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img">`;
+    for (const v of [0, 0.5, 1]) s += `<line x1="${x0}" x2="${x1}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${x0 - 8}" y="${Y(v) + 4}" text-anchor="end">${v}</text>`;
+    for (const m of [-2, -1.5, -1, -0.5]) s += `<text x="${X(m)}" y="${y0 + 18}" text-anchor="middle">${m}</text>`;
+    s += `<text x="${(x0 + x1) / 2}" y="${H - 3}" text-anchor="middle">[M/H]</text>`;
+    const p = t3.primary.logistic && t3.primary.logistic.params;
+    if (p) {
+      let d = '';
+      for (let i = 0; i <= 100; i++) { const m = -2.2 + 1.8 * i / 100; const v = p[0] + (p[1] - p[0]) / (1 + Math.exp(-(m - p[2]) / p[3])); d += `${i ? 'L' : 'M'}${X(m).toFixed(1)},${Y(v).toFixed(1)}`; }
+      s += `<path d="${d}" fill="none" stroke="var(--accent, #4a7)" stroke-width="2"/>`;
+    }
+    b.centers.forEach((c, i) => {
+      const v = b.means[i], e = Math.sqrt(b.boot_var[i] || 0);
+      if (v === null || Number.isNaN(v)) return;
+      s += `<line x1="${X(c)}" x2="${X(c)}" y1="${Y(v - 2 * e)}" y2="${Y(v + 2 * e)}" stroke="var(--fg, #333)"/><circle cx="${X(c)}" cy="${Y(v)}" r="4" fill="var(--fg, #333)"/>`;
+    });
+    return s + '</svg>';
+  }
+  async function draw() {
+    const S = await get('summary');
+    const st = document.getElementById('status');
+    if (!S) {
+      st.innerHTML = L('Not yet run. The pre-registration is fixed (README sections 1–4 and 4.13); the formal run downloads R22\'s two files once under the user\'s exception (T-021) and takes about a day on one core.',
+                       '尚未运行。预注册已固定（README 第 1–4 节与第 4.13 节）；正式运行在用户的例外（T-021）下一次性下载 R22 的两个文件，单核约需一天。');
+      return;
+    }
+    if (S.status !== 'complete') { st.innerHTML = L(`Run status: ${esc(S.status)}`, `运行状态：${esc(S.status)}`); return; }
+    st.innerHTML = L(`Complete run (parts: ${esc(S.parts.join(', '))}).`, `完整运行（parts：${esc(S.parts.join(', '))}）。`);
+    const R = S.reading_reproduction, B = S.reading_robustness;
+    document.getElementById('readings').innerHTML =
+      `<p>${L('Reproduction', '复现')}: ${lab(R.label)} ${R.tests.length ? '(' + esc(R.tests.join(', ')) + ')' : ''}</p>` +
+      `<p>${L("Robustness of R22's picture", 'R22 图景的稳健性')}: ${lab(B.label)} ${B.tests.length ? '(' + esc(B.tests.join(', ')) + ')' : ''}</p>`;
+    document.getElementById('readings-sec').hidden = false;
+    const rows = [
+      ['T1', L('recount (abstract: ∼18,000 with −2.7 &lt; [M/H] &lt; −1.5)', '重新计数（摘要：约 18,000 颗 −2.7 &lt; [M/H] &lt; −1.5）'), S.labels.T1],
+      ['T2a', L('σ_RGC, R22 as written', 'σ_RGC，按 R22 所写'), S.labels.T2a_reproduction],
+      ['T2a', L('σ_RGC with the selection on the observed parallax', '考虑观测视差选择的 σ_RGC'), S.labels.T2a_population],
+      ['T2b', L('shape (reported only)', '形状（只报告）'), S.labels.T2b_shape],
+      ['T2b', L('most stars within 5 kpc', '大多数星在 5 kpc 内'), S.labels.T2b_f5],
+      ['T3 (a)', L('rotation below [M/H] = −2', '[M/H] = −2 以下的转动'), S.labels.T3a],
+      ['T3 (b)', L('rotation near [M/H] = −1', '[M/H] 约 −1 处的转动'), S.labels.T3b],
+      ['T3 (c)', L('sharpness of the transition (reported only)', '转变的陡峭程度（只报告）'), S.labels.T3c],
+      ['T4', L('leverage of the metallicity scale', '金属丰度标度的杠杆'), S.labels.T4],
+      ['T5', L('GSE-like and halo stars passing through (g)', '路过的类 GSE 与晕星（g）'), S.labels.T5_g],
+      ['T5', L('apocentres below 5 kpc (a₅)', '远心距在 5 kpc 以下（a₅）'), S.labels.T5_a5],
+    ];
+    document.getElementById('labels').innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${lab(r[2])}</td></tr>`).join('');
+    document.getElementById('labels-sec').hidden = false;
+    const t1 = await get('t1');
+    if (t1) {
+      const h = `<tr><th>${L('statement', '说法')}</th><th>R22</th><th>${L('ours', '我们')}</th><th>${L('count', '计数')}</th><th>${L('scaled to R22\'s sample', '按 R22 样本缩放')}</th></tr>`;
+      document.getElementById('t1').innerHTML = h + Object.values(t1.statements).map(s =>
+        `<tr><td>${esc(s.source)} · ${esc(s.count_key)}</td><td class="num">${esc(s.kind === 'above' ? '>' : s.kind === 'approx' ? '∼' : '≲')}${f(s.r22, 0)}</td><td class="num">${f(s.ours, 0)}</td><td>${lab(s.count_label)}</td><td>${s.sample ? f(s.scaled, 0) + ' ' + lab(s.fraction_label) : '–'}</td></tr>`).join('');
+      document.getElementById('t1-sec').hidden = false;
+    }
+    const t3 = await get('t3');
+    if (t3 && t3.primary) { document.getElementById('t3plot').innerHTML = t3plot(t3); document.getElementById('t3-sec').hidden = false; }
+    const [t2, t5, t6] = [await get('t2'), await get('t5'), await get('t6')];
+    let d = '';
+    if (t2 && t2.t2a && t2.t2a.fits) {
+      const a = t2.t2a;
+      d += `<h3>T2a</h3><p class="num">σ̂ (i) = ${f(a.fits.i.sigma)} kpc ${iv(a.intervals.i)}; σ̂ (ii) = ${f(a.fits.ii.sigma)} kpc ${iv(a.intervals.ii)}; ${L('mock bias (ii)', '模拟偏差 (ii)')} ${f(a.mock_bias.ii.bias)} ± ${f(a.mock_bias.ii.bias_se)} kpc</p>`;
+      const b = t2.t2b;
+      d += `<h3>T2b</h3><p class="num">2ΔlnL = ${f(b.data.two_dlnl, 2)}; q̂ = ${f(b.data.flat.theta[1])} ${iv([b.data.profile.interval.lo, b.data.profile.interval.hi])}; f₅ = ${f(b.f5)} ${iv(b.f5_interval)} (${esc(b.f5_model)})</p>`;
+    }
+    if (t3 && t3.primary) {
+      d += `<h3>T3</h3><p class="num">(a) ${f(t3.primary.a_mean)} ${iv(t3.primary.a_interval)}; (b) ${f(t3.primary.b_mean)} ${iv(t3.primary.b_interval)}; ${L('width', '宽度')} ${iv(t3.primary.width_interval)} dex, w₀ = ${f(t3.primary.w0)} dex</p>`;
+    }
+    if (t5 && t5.samples) {
+      const p = t5.samples.primary;
+      d += `<h3>T5</h3><p class="num">g = ${f(p.g)} ${iv(p.g_interval)}; a₅ = ${f(p.a5)} ${iv(p.a5_interval)} (N = ${f(p.n, 0)})</p>`;
+    }
+    if (t6) d += `<h3>T6</h3><p class="num">${L("R22's choices with our count", '用 R22 的选择与我们的计数')}: M = ${f(t6.r22_choices_mass)} M☉ (${t6.r22_choices_at_least_5e7 ? '≥' : '<'} 5×10⁷)</p>`;
+    if (d) { document.getElementById('details').innerHTML = d; document.getElementById('details-sec').hidden = false; }
+  }
+  draw();
+  i18n.onLangChange(draw);
+})();
+</script>
 </body>
 </html>

@@ -177,6 +177,27 @@ README 第 8 节的入口，用 `python -m astrolab explore` 运行，不属于�
 
 暂无。
 
+### 4.13 任何拟合之前的修订（2026-11-21）
+
+以下实现选择于 2026-11-21 编写 `run.py` 及其辅助模块时确定，当时尚未下载或读取任何数据文件（也未做任何拟合）。第 1–4.11 节不变；它们没有说定的细节在此确定。
+
+1. **L2 列名。** 列名先化为只含小写字母与数字（"[M/H]" → "mh"，"phot_g_mean_mag" → "photgmeanmag"），再与 `data012.py` 中固定的候选列表（`MH_CANDIDATES`、`KIN_CANDIDATES`）比较；例如 [M/H]：mh、mhxgboost、mhxgb、xgbmh、xgboostmh、mhpred、mhxp、metallicity、feh；J_φ：jphi、lz、actphi、actionphi、jphikpckms；R_apo：rapo、apo、apocenter、apocentre、rmax。一个量匹配到多列，或者没有 `source_id` 或 [M/H]，运行停止（第 3 节 L2）。T_eff 与 log g 只用于 T4 的变体（iii），缺少时该变体为"未计算"。
+2. **位置。** 若金属丰度文件没有 l、b 而有 ra、dec，用 astropy 由 ICRS 换算为银道坐标（Galactic）。l 取 (−180°, 180°]。
+3. **L6 的判定。** 直方图覆盖 R22 允许范围内有星的区间，箱边取箱宽的整数倍。若某一侧最外的有星箱至少有 50 颗星，且其外直到允许范围端点的所有箱都为空，就在该处判定一个截断 c（有星区间内部的空箱是空洞，不是截断；R22 自己的界限是范围端点，不是截断）。L6 使用金属丰度文件的全部星与原始视差。每个带数值的已判定截断（包括依赖视差的）都作用于模拟（第 4.3 节"L6 判定的任何更严截断"）。
+4. **T2 样本与网格。** l、b、ϖ、σ_ϖ、G 或 BP − RP 不是有限值，或 σ_ϖ ≤ 0 的星不进入 T2 似然，并计数（`t2.json: sample.n_dropped_nonfinite`）。金属丰度箱为 lo ≤ [M/H] < hi。积分为对数间隔节点上、以视差为变量的梯形求和；版本（i）有自己的 300 个节点，在 1–30 kpc 上按对数间隔，版本（ii）的 300 个节点在 0.2–30 kpc 上。节点加倍检查对两个版本都做，到 1,200 个节点为止（内存：20,000 颗星时每个似然约 0.4 GB）；到那时仍未收敛，则 `t2.json: grid_check.passed` 为 false，解读等待带日期的修订。模拟在数据拟合之前以 300 个节点拟合（第 4.10 节的顺序）；若检查采用更多节点，每个模拟按其种子重新生成，并以采用的节点数重新拟合。
+5. **光度函数。** 光度函数样本的 ϖ/σ_ϖ > 10 用原始视差（第 4.1 节：截断作用于原始 ϖ）。每颗光度函数星的 M′ 用它自己 (b, d = 1/ϖ_corr) 处的消光模型换成内禀 M_G0 = M′ + 1.5(BP − RP − 1) − A_G、内禀颜色 BP − RP − E(BP − RP) 与内禀 BP − G。距离为 d 的模拟星取 G = M_G0 + μ(d) + A_G、BP − RP = 颜色₀ + E(BP − RP)、BP = G + (BP − G)₀ + (A_BP − A_G)。这需要文件中有 BP 星等（模拟要施加 BP < 15.5）；没有时运行在 L2 停止，与缺少其他 T2 列相同（第 3 节可选的 TAP 补充没有列出 BP 星等）。
+6. **消光系数。** 每单位 A_V 的常数比 A_G : A_BP : A_RP = 0.789 : 1.002 : 0.589（Wang & Chen 2019, ApJ 877, 116），因此 A_BP = 1.270 A_G，E(BP − RP) = 0.523 A_G。这是对依赖颜色的 Gaia DR3 消光律的简化。
+7. **消光网格。** 每个网格点模拟一次 σ = 2.7 kpc 的球对称模型，星数与 T2 样本相同，所有网格点用同一个随机种子（公共随机数（common random numbers），使网格点之间的比较不被模拟噪声主导）。|b| 箱为 [lo, hi)。
+8. **模拟的视差误差。** σ_ϖ 从金属丰度文件中与模拟星同在一个 0.25 mag G 箱的所有星中重采样（该箱为空时用最近的有星箱）；原始视差为 1/d − 0.02 + N(0, σ_ϖ)。
+9. **T2b 拟合。** 带边界的 Nelder–Mead（xatol 10⁻⁴，fatol 10⁻⁴，每个起点至多 3,000 次求值）；扁平高斯的 σ 与 T2a 一样取 0.5–10 kpc。幂律的第一个起点为 r_c = 1 kpc、α = 3.4、q 取扁平拟合的 q；每个模型的另外四个起点在其参数范围内均匀抽取。ΔBIC 用所拟合的星数（数据中 |b| ≥ 5° 的星，或模拟的规模）。T2b 模拟的星数与数据中 |b| ≥ 5° 的星数相同。数据的幂律拟合总是计算并报告，只在第 2 步给出标签。纬度变体（3°、8°）是三个模型的点拟合加 q 的剖面，只报告。自助法对 |b| ≥ 5° 的星重采样。
+10. **边界。** σ 离 0.5 或 10 kpc 不到 0.05 kpc 即"在边界上"（第 4.3 节）；逻辑斯蒂函数的 s 离 0.01 或 2 dex 不到 0.1% 即在边界上。
+11. **T3 的自助法。** 对一个 T3 样本的 N 颗星每次重采样时，抽取 K ~ Binomial(N, n/N) 颗星，均匀地取自 [M/H] < −0.5 的 n 颗星（T3 的统计量只用到这些星）；这与对全部 N 颗星重采样同分布。箱为 [c − 0.1, c + 0.1)。
+12. **逻辑斯蒂拟合。** 没有星或自助方差为零的箱不参加拟合；可用的箱少于 5 个时算作不收敛。初值：a 与 b 取前两个与后两个箱的均值，m = −1.2，s = 0.1（带边界的信赖域最小二乘（trust-region least squares），`scipy.optimize.least_squares`）。
+13. **w₀ 模拟。** 在主样本上进行；模拟的 J_φ/J_tot 不截断到 [−1, 1]；全部 R_apo 的变体用主样本的 w₀。每箱的弥散为数据在该星 [M/H] 所在箱中 J_φ/J_tot 的标准差。
+14. **v_φ。** 取文件的 v_φ 列，或由银心坐标 x、y、v_x、v_y 计算，符号使 [M/H] > −0.5 的星的中位数为正。R0 = 8.0 与 8.4 kpc 的变体在运动学文件有日心观测量时用 astropy 由 ra、dec、ϖ + 0.02、自行与视向速度重新计算（z☉ = 0，太阳运动 (11.1, 245, 7.3) km/s），否则为"未计算"。
+15. **T4。** 噪声按金属丰度文件中的每颗星抽取，连接的运动学星继承之。裁剪在每个 0.25 dex 箱中保留 T_eff 与 log g 位于百分位数之间（含端点）的星。弹性（elasticity）在 −2、−1.5 与 −1 三个截断处报告。"被上方散射主导"的标记用 0.1 dex 十次实现的计数中位数，任一方向变化超过 2 倍即标记。
+16. **运行。** 种子：基础种子 20261121，每项任务一个命名的随机流；子样本用 12012。带 `?download=1` 的 Zenodo 网址已于 2026-11-21 在记录页面上确认。两个文件用 `cap_consent` 与 `budget_consent` 获取（都引用 T-021 与本研究日志）；只有设置 `PARAMS["first_download"]` 时 `allow_download` 才为真（第 8 节）。正式运行拒绝低于第 4.10 节下限的次数。若 L2 发现缺少 T2 所需的列，运行停止，等待用户对可选 TAP 补充的决定（只有用户拒绝该补充时才设置 `PARAMS["t2_missing_ok"]`）。
+
 ## 5. 结果
 
 运行后填写。链接 `web/index.html`，并给出 `results/` 中的关键数字。
@@ -193,12 +214,27 @@ README 第 8 节的入口，用 `python -m astrolab explore` 运行，不属于�
 
 | 旋钮（`PARAMS`） | 含义 | 安全范围 | 只用缓存，还是需要新数据（大小）？ |
 |---|---|---|---|
-| TODO | | | |
+| `parts` | 运行哪些检验（`t1` 总是运行；`t2`、`t3`、`t4`、`t5`、`t6`） | 任意子集；`["t1", "t3", "t5", "t6"]` 几分钟可完成 | 只用缓存 |
+| `t2_mh_range` | T2 样本的 [M/H] 范围（lo ≤ [M/H] < hi） | 例如 `[-2.5, -2.0]`、`[-2.0, -1.5]`、`[-1.5, -1.0]`（逐箱的 σ，第 4.9 节） | 只用缓存 |
+| `t2a_boot`、`t2a_mocks`、`t2b_boot`、`t2b_mocks` | T2 的自助重采样与模拟次数 | 探索可以调低（正式运行不可以） | 只用缓存 |
+| `t2b_bmin_deg` | T2b 的纬度截断 | 3–10 | 只用缓存 |
+| `R0_kpc`、`plx_zp_mas` | 太阳到银心的距离；视差零点 | 8.0–8.4；0.0–0.04 | 只用缓存 |
+| `t3_rapo_kpc`、`t3_bin_centers`、`t3_delta` | T3 的远心距范围、分箱、等价性容差 | 1–15 kpc 内的远心距范围 | 只用缓存 |
+| `t4_noise_dex`、`t4_shift_dex` | T4 的噪声与平移 | 0.05–0.3 | 只用缓存 |
+| `t6_m_giant`、`t6_f` | T6 每颗巨星的质量与因子 | 任意正数 | 只用缓存 |
+| `stop_after_hours` | 运行这么多小时后暂停（有断点）；0 = 不限 | 0–24 | 只用缓存 |
+| `first_download` | 允许两个 Zenodo 文件的那一次经同意的下载 | 除唯一一次正式首次运行外都为 `false` | 新数据：213.8 MB，只在有用户记录在案的同意时 |
 
+- **首次下载。** 两个文件在用户 2026-11-21 的例外下只下载一次（T-021，`log.md`）。正式的首次运行以 `PARAMS["first_download"] = True` 启动（`ctx.http` 中 `allow_download=True`）；该次运行之后立即改回 `False` 并提交，此后的每次运行与探索都只从缓存读取文件（`budget_consent` 而不带 `allow_download`）。若缓存已经清理掉某个文件，再次下载需要再次征得用户同意（AGENTS.md 1.6）；`--refresh` 会报错而不会重新下载。
 - 带覆盖参数重跑：`python -m astrolab explore 012-m12-poor-old-heart --tag <topic> --set KEY=VALUE`
-  （输出在 `explore/<date>-<topic>/`，不入库；从缓存运行约 N 秒）。
+  （输出在 `explore/<date>-<topic>/`，不入库）。读入 150 万行并做 L1–L7 检查需要几分钟；之后 `parts=["t1","t3","t5","t6"]` 几分钟可完成，而 T2 需要数小时（20,000 颗星、300 个节点时一次似然求值约 0.08–0.14 秒）。探索的断点放在缓存的 `s012_checkpoints/explore/<date>-<topic>/` 下（用完即删），与正式运行的断点分开。
 - `run.py` 没有覆盖的分析：在 `explore/<name>.py` 写带 `def main(ctx)` 的脚本，用
   `python -m astrolab explore 012-m12-poor-old-heart --tag <topic> --script explore/<name>.py` 运行。
-- 结果文件与键：TODO（`results/<file>.json`：键——含义）。
-- 示例问题：TODO（问题 -> 智能体会用的旋钮或脚本）。
+- 结果文件与键：`load.json`（L1–L7：`L1` 校验和，`L2` 列映射与是否存在，`L3_*` 重复，`L4` 连接比例，`L5` 符号与单位，`L6` 判定的截断，`L7` [M/H] 范围）；`t1.json`（`counts`，带计数标签与比例标签的 `statements`，`pairs`，`summary`）；`t2.json`（`t2a`：`fits`、`intervals`、`mock_bias`、`reproduction_label`、`population_label`、`reference_fits`；`t2b`：`checks`、含第 1 步拟合与 q 剖面的 `data`、`step2`、`shape_label`、`f5`、`f5_interval`、`f5_label`、`latitude_variants`、`control`；`mocks`：光度函数、消光网格；`grid_check`）；`t3.json`（带区间与标签的 `primary`、`all_rapo`，`w0`，`vphi`）；`t4.json`（`label`、`broken`、`variants`、`elasticity`）；`t5.json`（含 g 与 a₅ 的 `samples`）；`t6.json`（`table`、`r22_choices_mass`）；`summary.json`（`labels`、`reading_reproduction`、`reading_robustness`、`timing`）。
+- 示例问题：
+  - "最贫金属的星尺度不同吗？" → `--set t2_mh_range=[-2.5,-2.0] --set parts=["t2"]`，并减少模拟次数（第 4.9 节，不作判定）。
+  - "转动趋势依赖远心距范围吗？" → `--set t3_rapo_kpc=[1.0,5.0] --set parts=["t3"]`。
+  - "R0 如何改变 σ？" → `--set R0_kpc=8.0 --set parts=["t2"]`。
+  - "−2 以下的尾巴有多陡？"（Chen 等 2025）→ 脚本 `explore/tail_slope.py`，对 −2 以下的计数拟合指数。
+  - "类 GSE 的星转动不同吗？"（第 4.9 节）→ 按 T5 的轨道类别拆分 T3 样本的脚本。
 - 改变认识的发现写进 `log.md`（论文研究还要写进 Wiki 文章），照常走分支。
