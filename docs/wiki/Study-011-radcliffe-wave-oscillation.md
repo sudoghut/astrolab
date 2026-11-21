@@ -748,13 +748,16 @@ No model was fitted.
 **Data and cost.**
 - *Data.* Two tables of 10,888 and 5,286 bytes (Harvard Dataverse, CC0), fetched with `ctx.http`.
   Nothing else is fetched.
-- *Sampler.* The fits use emcee, which is already installed. K24 used dynesty with 1000 live
-  points; we do not install it.
+- *Sampler.* The fits use emcee and a maximum-likelihood optimiser, both already installed. K24 used
+  dynesty with 1000 live points; we do not install it.
 - *Cost.* One likelihood evaluation finds the closest point on the model curve for each of about
-  200 objects. On a grid of about 2000 points along s, that is a vectorised operation of about 10⁵
-  distances. We expect each fit to take minutes, and the full set of fits and mock tests to take at
-  most a few hours on one core. The time will be measured on a short run and stated in the
-  pre-registration.
+  200 objects. On a grid of about 2000 points along s, that is a vectorised operation of about
+  4 × 10⁵ distances.
+  - The tests below need roughly 20–40 fits, because the robustness variants of T6 each refit two
+    or three models, plus the mocks of T3 and T4.
+  - We expect each fit to take minutes, and the whole run a few hours on one core.
+  - The time will be measured on a short run and stated, with the exact number of fits and mocks,
+    in the pre-registration.
 - *Scheduling.* The run waits until no other study is running.
 
 **What we can and cannot reproduce exactly.**
@@ -763,21 +766,27 @@ No model was fitted.
   pre-registration fixes both choices, and the robustness checks vary them.
 - *Taken from K24:* the likelihood of eqs. 10–13, namely
   - the 4-vector (x, y, z, v_z/ω₀) for clusters and the 3-vector for clouds;
-  - kernel weights that sum to the number of objects;
+  - kernel weights that sum to the number of objects (K24: the weights "are set to sum to the number
+    of" clouds, and likewise of clusters);
   - the outlier function C(x) = (Σₙ tanh(xₙ²))^½;
-  - the common scatter σ = 47 pc;
+  - the common scatter σ = 47 pc on all components;
   - the priors of Extended Data Table 1.
+- *Two features of the model that the tests must respect:*
+  - With B = 1, ω₀t enters only through ω₀t + φ, so it is fixed at 0, as K24 does.
+  - With B = 0.5, z = ζ sin(2πΛ + φ) cos ω₀t and v_z = −ζω sin(2πΛ + φ) sin ω₀t, so ω₀t sets the
+    z and v_z amplitudes separately. A standing wave therefore has one more effective parameter
+    than a travelling wave, and the two cannot be compared as if they had equal parameter counts.
 
 | Stage (Part 2) | Premise or gap | Test or exploration | How | Data | Outcome labels (thresholds fixed in the pre-registration) |
 |---|---|---|---|---|---|
-| B, D | `stat_twfit` | **T1 · Reproduce the fit.** Clusters only (column (4)), and clouds plus clusters (column (6)), with B = 1 and K24's likelihood and priors | Fit with emcee. Compare medians and 16–84% intervals with Extended Data Table 2, and our inlier set with the table's flag | 16 KB | reproduced / partly reproduced / not reproduced, by how many of A, p, δ, s₀, γ, φ fall within K24's 1σ |
-| C | `stat_b` | **T2 · B free** (column (5)) | As T1, with B ~ U(0, 1) and ω₀t free | same | B interval compared with 0.84 (+0.07/−0.06); posterior mass above 0.95 reported |
-| C | `mod_prefer`, "strongly" | **T3 · Travelling against standing, directly.** Fit once with B = 1 and once with B = 0.5. Both fits have the same parameter count, with ω₀t free | Difference in maximum log-likelihood, ΔlnL. With equal parameter counts the likelihood ratio needs no evidence calculation | same | travelling strongly preferred / preferred / not distinguished / standing preferred |
-| C | `gap_phase_noise` | **T4 · Is the phase spread more than noise?** | Simulate at least 1000 standing waves (B = 0.5) at the clusters' s, using the B = 0.5 fit of T3, K24's 47 pc scatter and each cluster's v_z error. Compute φ_k = arctan(z_k ω_k / v_z,k) as K24 does, and a spread statistic. p is the fraction of mocks whose spread is at least the observed one | same | standing excluded by the phases / not excluded / undetermined |
-| C, D | `gap_vz` (the part these data can reach) | **T5 · A model-light look at z and v_z.** Fit z(s) and v_z(s) separately, each with its own sinusoid in Λ(s) (the shape of Λ(s) is taken from T1). Compare their phases and wavelengths | Bootstrap over clusters | same | 90° offset supported / not supported; wavelengths consistent / different (Bobylev et al. 2025 report different wavelengths) |
-| C, D | `gap_vz` | **T6 · Robustness of T3 and T5** | Variants: outlier rule (K24's √3σ per component, 3σ, no outlier model); no kernel weights, and two other bandwidths; w☉ = 7.8 against 7.25 km/s; Orion left out; each source catalogue (`reference`) left out in turn; only clusters with σ(v_z) below the median | same | robust (the T3 and T5 labels are unchanged in every variant) / fragile (naming the variants that change them) |
-| A | `stat_co` | **T7 · How much does the CO check say about v_z?** | Project the T1 model onto each cloud's line of sight (eq. 14) and compare with `vr`. Errors come from the 16/84 columns plus an intrinsic dispersion. Repeat with v_z set to 0, and with the B = 0.5 fit | 5 KB | CO prefers the travelling wave / CO does not distinguish (Δχ² between the versions) |
-| E | `gap_prior` | **T8 · Is the potential set by the data?** Free ω₀, μ₀ and r₀ (column (7)), once with K24's priors and once with broad priors (ω₀ uniform over a wide range, and the same for μ₀ and r₀) | Compare the ω₀ posteriors. Derive ρ₀ = ω₀²/(4πG) and the Sun's vertical period | 16 KB | data-driven (posterior narrower than the prior and insensitive to it) / prior-driven / partly |
+| B, D | `stat_twfit` | **T1 · Reproduce the fit.** Clusters only (column (4)), and clouds plus clusters (column (6)), with B = 1, ω₀t = 0, and K24's likelihood and priors | Fit with emcee. Compare medians and 16–84% intervals with Extended Data Table 2, and our inlier set with the table's flag | 16 KB | reproduced / partly reproduced / not reproduced, by how many of A, p, δ, s₀, γ, φ fall within K24's 1σ |
+| C | `stat_b` | **T2 · B free** (column (5)), ω₀t free | As T1. B and 1 − B, with a shift of ω₀t, describe the same wave running the other way, so the B posterior is folded onto [0.5, 1] before it is summarised | same | folded B interval compared with 0.84 (+0.07/−0.06); posterior mass above 0.95 reported |
+| C | `mod_prefer`, "strongly" | **T3 · Travelling against standing, as nested models.** Inside the B-free model of T2, profile the likelihood at B = 0.5 and at B = 1, and compare each with the maximum over B | Maximum-likelihood fits; the priors' support is used as bounds, not their shape, and MAP values are reported alongside. B = 0.5 is an interior point, so 2ΔlnL is referred to χ² with one degree of freedom. B = 1 is a boundary of the folded B, so it is referred to the ½χ²₀ + ½χ²₁ mixture. The B = 0.5 calibration is checked with parametric-bootstrap mocks from the B = 0.5 fit (at least 100, number fixed by the measured run time). The inlier sets of all fits are reported with their overlap | same | standing excluded strongly / excluded / not excluded; and, separately, pure travelling (B = 1) disfavoured / not disfavoured |
+| C | `gap_phase_noise` | **T4 · Is the phase spread more than noise?** | Mocks: at least 1000 standing waves from the B = 0.5 fit of T3, at the observed clusters' s and with the ω_k of that fit (s not refitted). Noise: the 47 pc scatter on all four components (x, y, z and v_z/ω₀, i.e. about 3.5 km/s in v_z) plus each cluster's measurement errors; a variant instead resamples the B = 0.5 fit's own residuals. Clusters: all inliers of the B = 0.5 fit, including those near nodes. Statistic: φ_k = arctan(z_k ω_k / v_z,k) has period π, so we use the circular statistic R = \|mean of e^(2iφ_k)\|. A standing wave has a constant φ_k and R near 1, and spread phases give a low R. p is the fraction of standing mocks with R at or below the observed value. Power: the same statistic on travelling-wave mocks from the B = 1 fit | same | standing excluded by the phases / not excluded / undetermined (when the power at the chosen threshold is below the value fixed in the pre-registration) |
+| C, D | `gap_vz` (the part these data can reach) | **T5 · A look at z and v_z that does not assume their relation.** Take the baseline and Λ(s) from the clouds-only fit (column (3), positions only, no velocities). Give each cluster s by projection onto that baseline in x–y. Fit z(s) and v_z(s) separately, each with its own amplitude, its own phase and its own wavelength scale k (Λ → kΛ) | Bootstrap over clusters, drawing Λ from the clouds-only posterior inside the bootstrap | same | 90° offset supported (interval of the phase difference contains 90° and excludes 0°) / not supported; wavelengths consistent (interval of k_z/k_vz contains 1) / different (Bobylev et al. 2025 report different wavelengths) |
+| C, D | `gap_vz` | **T6 · Robustness of T3, T4 and T5** | Variants: outlier rule (K24's √3σ per component, 3σ, no outlier model); no kernel weights, and two other bandwidths; w☉ = 7.8 against 7.25 km/s; Orion left out; each source catalogue (`reference`) left out in turn; only clusters with σ(v_z) below the median | same | robust (the T3, T4 and T5 labels are unchanged in every variant) / fragile (naming the variants that change them) |
+| A | `stat_co` | **T7 · How much does the CO check say about v_z?** | Project the T1 model onto each cloud's line of sight (eq. 14) and compare with `vr`. The in-plane velocity comes from the clusters' v_x, v_y after removing Galactic rotation with a flat rotation curve (Oort constants). Errors come from the 16/84 columns plus an intrinsic dispersion, fitted separately for each version. Versions: the T1 model, v_z set to 0, and the B = 0.5 fit. Expected sensitivity: \|sin b\| is mostly below 0.2, so v_z contributes at most about 3 km/s to v_LSR, and "does not distinguish" is a likely outcome | 5 KB | CO prefers the travelling wave / CO does not distinguish (Δχ² between the versions) |
+| E | `gap_prior` | **T8 · Is the potential set by the data?** Free ω₀, μ₀ and r₀ (column (7)), once with K24's priors and once with broad uniform priors: ω₀ 30–150 km s⁻¹ kpc⁻¹, μ₀ 0.3–3 kpc⁻¹, r₀ 1–10 kpc | Compare the ω₀ posteriors. Derive ρ₀ = ω₀²/(4πG) and the Sun's vertical period. The v_z/ω₀ divisor of the 4-vector follows the fitted ω₀ (our reading of K24); a variant fixes it at 74 | 16 KB | data-driven (posterior narrower than the prior and insensitive to it) / prior-driven / partly |
 
 **Explorations, with no verdict.** These are the entries for chat exploration (README section 8).
 
@@ -818,7 +827,7 @@ No model was fitted.
 
 Newest first.
 
-- 2026-11-21: part 3 drafted (eight tests T1–T8 and three explorations; the two public tables' columns and row counts read, no fit); w☉ = 7.8 km/s attributed to Kerr & Lynden-Bell 1986 as cited by K24 (was Schönrich et al. 2010).
+- 2026-11-21: part 3 drafted (eight tests T1–T8 and three explorations; the two public tables' columns and row counts read, no fit; gate-1 review: T3 recast as nested profile-likelihood tests, because with ω₀t free a standing wave has one more effective parameter; T4 noise on all four components, a circular statistic on 2φ_k and a power check; T5 takes Λ(s) from the clouds-only fit and frees each wavelength); w☉ = 7.8 km/s attributed to Kerr & Lynden-Bell 1986 as cited by K24 (was Schönrich et al. 2010).
 - 2026-11-21: part 2 gate-2 review: no hedged sentence is encoded as a stated implication any more; the clusters' birth in the Wave (K24: "suggesting") is a new gap, `gap_born`; the oscillation step quotes the Methods' categorical "we find that"; the "B closer to 1 indicates" premise is folded into the stated preference; 26 premises, five gaps.
 - 2026-11-21: part 2 gate-1 review: travelling versus standing now also depends on gaps (the same cluster v_z, and a phase spread that may be noise near a standing wave's nodes: new `gap_phase_noise`); the oscillation claim now comes after the B = 1 adoption (Figure 1 is the B = 1 fit); potential parameters as a `LIT` premise, the x–y selection as a premise, CO agreement tagged `STAT`; 27 premises, four gaps; Chinese term 银盘中平面密度 (midplane density).
 - 2026-11-21: part 2 drafted: four stages, 24 premises checked in Lean 4; `explicit_insufficient` with three gaps (the z–v_z pattern versus Zhu et al. 2024; one coherent wave versus shear, Li et al. 2024; prior-driven potential fit); travelling versus standing closes from stated premises.
@@ -1173,20 +1182,20 @@ K24 在扣除银河系自转后拟合一个刚体的盘面内速度：v_x,plane 
 
 本部分写于任何拟合之前（2026-11-21），是研究预注册（README 第 1–4 节）的来源，具体阈值由预注册确定。写作时我们看过的内容：论文（arXiv v1，含方法部分），以及通过受守卫的取数通道读到的两张公开表的列名、行数与取值范围。星团表有 125 行，列为 `name`、`reference`、`x, y, z, vx, vy, vz` 及其误差（`sigma…`）、`age`（百万年，0–28 的整数）与 `inlier` 标记（89 个内点（inlier），36 个离群点（outlier））；CO 表有 79 个云，列为 `x, y, z` 及其弥散、`l, b, d`，以及 ¹²CO 速度 `vr` 与其第 16/84 百分位。没有拟合任何模型。
 
-**数据与开销。** 两张表，10,888 与 5,286 字节（Harvard Dataverse，CC0），用 `ctx.http` 获取；不取其他数据。拟合用 emcee（已安装；K24 用的是 1000 个活点（live points）的 dynesty，我们不安装它）。一次似然计算要对约 200 个天体分别找模型曲线上最近的点；在沿 s 约 2000 个格点上，这是约 10⁵ 个距离的向量化运算。我们预计每次拟合需要几分钟，全部拟合与模拟检验在单核上最多几小时（在短运行中实测后写进预注册）。运行要等到没有其他研究在运行时进行。
+**数据与开销。** 两张表，10,888 与 5,286 字节（Harvard Dataverse，CC0），用 `ctx.http` 获取；不取其他数据。拟合用 emcee 与最大似然（maximum likelihood）优化器，都已安装（K24 用的是 1000 个活点（live points）的 dynesty，我们不安装它）。一次似然计算要对约 200 个天体分别找模型曲线上最近的点；在沿 s 约 2000 个格点上，这是约 4 × 10⁵ 个距离的向量化运算。下面的检验大约需要 20–40 次拟合（T6 的每个稳健性变体要重新拟合两三个模型），另加 T3 与 T4 的模拟。我们预计每次拟合需要几分钟，整个运行在单核上需要几小时；在短运行中实测后，连同拟合与模拟的确切次数写进预注册。运行要等到没有其他研究在运行时进行。
 
-**哪些能精确复现，哪些不能。** K24 没有给出核密度带宽（"a few percent of the total length of the Wave"），也没有说明平面曲线的参数如何映射为 s；我们在预注册中固定这些选择，并作为稳健性检验加以变化。似然取 K24 的式 10–13：星团用 4 维向量 (x, y, z, v_z/ω₀)，云用 3 维向量；核密度权重之和等于天体数；离群函数 C(x) = (Σₙ tanh(xₙ²))^½；共同弥散 σ = 47 pc；先验取扩展数据表 1。
+**哪些能精确复现，哪些不能。** K24 没有给出核密度带宽（"a few percent of the total length of the Wave"），也没有说明平面曲线的参数如何映射为 s；我们在预注册中固定这些选择，并作为稳健性检验加以变化。似然取 K24 的式 10–13：星团用 4 维向量 (x, y, z, v_z/ω₀)，云用 3 维向量；核密度权重之和等于天体数（K24：权重"are set to sum to the number of"云，星团同样）；离群函数 C(x) = (Σₙ tanh(xₙ²))^½；所有分量共用弥散 σ = 47 pc；先验取扩展数据表 1。检验必须照顾模型的两个特点：B = 1 时 ω₀t 只以 ω₀t + φ 的形式出现，所以像 K24 一样固定为 0；B = 0.5 时 z = ζ sin(2πΛ + φ) cos ω₀t、v_z = −ζω sin(2πΛ + φ) sin ω₀t，ω₀t 分别决定 z 与 v_z 的振幅，所以驻波比行波多一个有效参数，两者不能当作参数个数相同来比较。
 
 | 环节（第二部分） | 前提或缺口 | 检验或探索 | 做法 | 数据 | 结果标签（阈值在预注册中固定） |
 |---|---|---|---|---|---|
-| B、D | `stat_twfit` | **T1 · 复现拟合。** 只用星团（第 (4) 列）与云 + 星团（第 (6) 列），B = 1，K24 的似然与先验 | emcee；把中位数与 16–84% 区间同扩展数据表 2 比较；把我们的内点集合同表中的标记比较 | 16 KB | 复现 / 部分复现 / 未复现，依据 A、p、δ、s₀、γ、φ 中有几个落在 K24 的 1σ 之内 |
-| C | `stat_b` | **T2 · B 自由**（第 (5) 列） | 同 T1，B ~ U(0, 1)，ω₀t 自由 | 同上 | B 的区间与 0.84（+0.07/−0.06）比较；报告 B 大于 0.95 的后验质量 |
-| C | `mod_prefer`、"strongly" | **T3 · 直接比较行波与驻波。** 分别取 B = 1 与 B = 0.5 拟合（参数个数相同，两者 ω₀t 都自由） | 最大对数似然之差 ΔlnL；参数个数相同时，似然比不需要计算证据（evidence） | 同上 | 强烈偏好行波 / 偏好行波 / 无法区分 / 偏好驻波 |
-| C | `gap_phase_noise` | **T4 · 相位的弥散是否超过噪声？** | 在星团的 s 处模拟至少 1000 个驻波（B = 0.5），加上 K24 的 47 pc 弥散与每个星团的 v_z 误差，参数取 T3 中 B = 0.5 的拟合；按 K24 的方法计算 φ_k = arctan(z_k ω_k / v_z,k) 与一个弥散统计量；p = 弥散不小于观测值的模拟所占比例 | 同上 | 相位排除驻波 / 不排除 / 无法判定 |
-| C、D | `gap_vz`（这批数据能触及的部分） | **T5 · 少依赖模型地看 z 与 v_z。** 分别拟合 z(s) 与 v_z(s)，各用一个以 Λ(s) 为自变量的正弦（Λ(s) 的形状取自 T1），比较两者的相位与波长 | 对星团做自助法（bootstrap） | 同上 | 支持 90° 相位差 / 不支持；波长一致 / 不同（Bobylev 等 2025 的说法） |
-| C、D | `gap_vz` | **T6 · T3 与 T5 的稳健性** | 离群规则（K24 的按分量 √3σ、3σ、不用离群模型）；不用核密度权重，以及另外两个带宽；w☉ 取 7.8 与 7.25 km/s；去掉猎户座；每次去掉一个来源星表（`reference`）；只用 σ(v_z) 低于中位数的星团 | 同上 | 稳健（所有变体中 T3 与 T5 的标签都不变）/ 脆弱（列出改变标签的变体） |
-| A | `stat_co` | **T7 · CO 检验对 v_z 能说明多少？** | 把 T1 的模型投影到每个云的视线方向（式 14），与 `vr` 比较（误差取自第 16/84 百分位列，加一个内禀弥散）；再分别令 v_z = 0、改用 B = 0.5 的拟合重复 | 5 KB | CO 偏好行波 / CO 无法区分（各版本之间的 Δχ²） |
-| E | `gap_prior` | **T8 · 引力势是否由数据决定？** 放开 ω₀、μ₀、r₀（第 (7) 列），分别用 K24 的先验与宽先验（ω₀ 在较宽范围内均匀，μ₀ 与 r₀ 同样处理） | 比较 ω₀ 的后验；推导 ρ₀ = ω₀²/(4πG) 与太阳的竖直振荡周期 | 16 KB | 由数据决定（后验比先验窄且对先验不敏感）/ 由先验决定 / 部分由数据决定 |
+| B、D | `stat_twfit` | **T1 · 复现拟合。** 只用星团（第 (4) 列）与云 + 星团（第 (6) 列），B = 1、ω₀t = 0，K24 的似然与先验 | emcee；把中位数与 16–84% 区间同扩展数据表 2 比较；把我们的内点集合同表中的标记比较 | 16 KB | 复现 / 部分复现 / 未复现，依据 A、p、δ、s₀、γ、φ 中有几个落在 K24 的 1σ 之内 |
+| C | `stat_b` | **T2 · B 自由**（第 (5) 列），ω₀t 自由 | 同 T1；B 与 1 − B（配合 ω₀t 的平移）描述向相反方向传播的同一个波，所以先把 B 的后验折叠到 [0.5, 1] 再作概括 | 同上 | 折叠后 B 的区间与 0.84（+0.07/−0.06）比较；报告 B 大于 0.95 的后验质量 |
+| C | `mod_prefer`、"strongly" | **T3 · 把行波与驻波当作嵌套模型比较。** 在 T2 的 B 自由模型中，分别在 B = 0.5 与 B = 1 处求剖面似然（profile likelihood），与对 B 取最大的似然比较 | 最大似然拟合（先验的支撑集只作为边界，不用其形状；同时报告最大后验（MAP）值）；B = 0.5 是内点，2ΔlnL 按 1 个自由度的 χ² 分布；B = 1 是折叠后 B 的边界，按 ½χ²₀ + ½χ²₁ 的混合分布；B = 0.5 处的校准用从 B = 0.5 拟合抽取的参数自助法（parametric bootstrap）模拟检查（至少 100 个，次数按实测运行时间确定）；报告所有拟合的内点集合及其重叠 | 同上 | 强烈排除驻波 / 排除驻波 / 不排除；另外单独给出：纯行波（B = 1）不受偏好 / 未被否定 |
+| C | `gap_phase_noise` | **T4 · 相位的弥散是否超过噪声？** | 模拟：至少 1000 个驻波，取自 T3 中 B = 0.5 的拟合，放在观测星团的 s 处，用该拟合的 ω_k（不重新拟合 s）；噪声：47 pc 的弥散加在全部四个分量上（x、y、z 与 v_z/ω₀，即 v_z 上约 3.5 km/s），再加每个星团的测量误差；一个变体改为对 B = 0.5 拟合本身的残差重抽样；星团：B = 0.5 拟合的全部内点，包括波节附近的；统计量：φ_k = arctan(z_k ω_k / v_z,k) 的周期是 π，所以用圆统计量 R = \|e^(2iφ_k) 的平均\|，驻波的 φ_k 恒定、R 接近 1，相位分散时 R 小；p = R 不大于观测值的驻波模拟所占比例；功效（power）：对取自 B = 1 拟合的行波模拟计算同一统计量 | 同上 | 相位排除驻波 / 不排除 / 无法判定（在所选阈值下的功效低于预注册中固定的数值时） |
+| C、D | `gap_vz`（这批数据能触及的部分） | **T5 · 不预设 z 与 v_z 关系地看两者。** 基线与 Λ(s) 取自只用云的拟合（第 (3) 列，只有位置，没有速度）；每个星团的 s 由在 x–y 平面上向该基线投影得到；分别拟合 z(s) 与 v_z(s)，各有自己的振幅、相位与波长缩放因子 k（Λ → kΛ） | 对星团做自助法（bootstrap），在自助法内部从只用云的拟合的后验中抽取 Λ | 同上 | 支持 90° 相位差（相位差的区间包含 90° 且不包含 0°）/ 不支持；波长一致（k_z/k_vz 的区间包含 1）/ 不同（Bobylev 等 2025 报告了不同的波长） |
+| C、D | `gap_vz` | **T6 · T3、T4 与 T5 的稳健性** | 离群规则（K24 的按分量 √3σ、3σ、不用离群模型）；不用核密度权重，以及另外两个带宽；w☉ 取 7.8 与 7.25 km/s；去掉猎户座；每次去掉一个来源星表（`reference`）；只用 σ(v_z) 低于中位数的星团 | 同上 | 稳健（所有变体中 T3、T4 与 T5 的标签都不变）/ 脆弱（列出改变标签的变体） |
+| A | `stat_co` | **T7 · CO 检验对 v_z 能说明多少？** | 把 T1 的模型投影到每个云的视线方向（式 14），与 `vr` 比较；平面内速度取自星团的 v_x、v_y，用带 Oort 常数的平直自转曲线扣除银河系自转；误差取自第 16/84 百分位列，加一个内禀弥散，对每个版本分别拟合；版本为 T1 的模型、令 v_z = 0、B = 0.5 的拟合；预期灵敏度：\|sin b\| 多数小于 0.2，v_z 对 v_LSR 的贡献最多约 3 km/s，所以"无法区分"是一个很可能的结果 | 5 KB | CO 偏好行波 / CO 无法区分（各版本之间的 Δχ²） |
+| E | `gap_prior` | **T8 · 引力势是否由数据决定？** 放开 ω₀、μ₀、r₀（第 (7) 列），分别用 K24 的先验与宽的均匀先验：ω₀ 30–150 km s⁻¹ kpc⁻¹、μ₀ 0.3–3 kpc⁻¹、r₀ 1–10 kpc | 比较 ω₀ 的后验；推导 ρ₀ = ω₀²/(4πG) 与太阳的竖直振荡周期；4 维向量中 v_z/ω₀ 的除数随拟合的 ω₀ 变化（我们对 K24 的理解），一个变体把它固定为 74 | 16 KB | 由数据决定（后验比先验窄且对先验不敏感）/ 由先验决定 / 部分由数据决定 |
 
 **只做探索、不下判决**（对话探索的入口，见 README 第 8 节）：
 
@@ -1215,7 +1224,7 @@ K24 在扣除银河系自转后拟合一个刚体的盘面内速度：v_x,plane 
 
 按时间倒序。
 
-- 2026-11-21：第三部分初稿（八项检验 T1–T8 与三项探索；读取了两张公开表的列与行数，未做拟合）；w☉ = 7.8 km/s 改为 K24 引用的 Kerr & Lynden-Bell 1986（原误作 Schönrich 等 2010）。
+- 2026-11-21：第三部分初稿（八项检验 T1–T8 与三项探索；读取了两张公开表的列与行数，未做拟合；闸门 1 审查：T3 改为嵌套模型的剖面似然检验，因为 ω₀t 自由时驻波多一个有效参数；T4 的噪声加在全部四个分量上，用 2φ_k 的圆统计量并检查功效；T5 的 Λ(s) 取自只用云的拟合，两个波长各自放开）；w☉ = 7.8 km/s 改为 K24 引用的 Kerr & Lynden-Bell 1986（原误作 Schönrich 等 2010）。
 - 2026-11-21：第二部分闸门 2 审查：不再把带保留措辞的句子编码为明说的蕴涵式；星团诞生于波中（K24："suggesting"）成为新缺口 `gap_born`；振荡一步改引方法部分明确的"we find that"；"B closer to 1 indicates"前提并入明说的偏好；26 个前提、五个缺口。
 - 2026-11-21：第二部分闸门 1 审查：行波相对驻波现在也依赖缺口（同样的星团 v_z，以及在驻波波节附近可能由噪声造成的相位分布：新增 `gap_phase_noise`）；振荡的结论改在取 B = 1 之后（图 1 是 B = 1 的拟合）；引力势参数作为 `LIT` 前提，x–y 选样作为前提，CO 一致改标 `STAT`；27 个前提、四个缺口；中文术语统一为"银盘中平面密度"。
 - 2026-11-21：第二部分初稿：四个环节，24 个前提用 Lean 4 检查；`explicit_insufficient`，三个缺口（z–v_z 图样与 Zhu 等 2024 的矛盾；单一连贯的波与剪切，Li 等 2024；引力势拟合受先验影响）；行波相对驻波由明说的前提即可推出。
