@@ -587,6 +587,200 @@ this exists yet: no module (planned `sel.py`, which, like `rob.py` and `n5584.py
 functions and does not import `run`), no `sel_*` keys in `PARAMS`, no results file, summary key, test or
 web section.
 
+### Addendum 2026-11-21: R2-RE-D, one outlying host or diffuse host scatter (T-048), pre-registered before any of these simulations
+
+*Why.* R2-RE-SEL (2026-11-20, T-042) read the 36-host calibrator scatter as "consistent with one outlying
+host, selection included", but its null is C with no outlier, so the reading only says that the 36
+remaining hosts do not reject C. The R2-RE-SEL referee (section 6, point 1) showed that the test has
+little power against a host-level random effect spread over all 37 hosts (diffuse scatter, V(τ) of
+R2-RE), and proposed, after seeing the data, the drop of the spread when the criterion-S host is removed
+as a statistic that separates the two pictures. This addendum fixes in advance a comparison of three
+data models for the excess calibrator scatter: C (no excess), diffuse host scatter V(τ), and one host
+offset by δ with everything else under C. The statistics are the drop D, computed exactly (36-host
+reference refits, not the referee's proxy), and a joint statistic J on the pair (37-host spread, 36-host
+spread). The labels attach to R2-RE-SEL's reading; they do not change any earlier label or the headline.
+
+*Seen before this addendum.* Everything in sections 5–6, in particular: R2-RE τ̂ = 0.0767 (68% interval
+0.0477–0.1050); R2-RE-ROB part B spread_obs (37 hosts, first 1,000 R4 subsets) = 1.3071, p = 0.021, 42 of
+2,000 null simulations ≥ it; R2-RE-N5584 (a): τ̂_N = 0.0314 (0–0.070), B-N spread_obs (36 hosts, N5584
+removed, 36-host reference fit, first 1,000 R4-N subsets) = 1.0325; R2-RE-T: N5584 ω̂ = 0.392, effective
+scatter 0.120 mag; R2-RE-SEL: all numbers in section 5 (criterion S selects N5584 on the real data with
+spread_excl = 1.0267; p = 0.244, 0.241, 0.137; dropped-host frequencies; P(max χ² ≥ 12.478) = 0.114;
+P(min spread_excl ≤ 1.027) = 0.882; build times of the 37 reduced systems, 100–115 s each, 4,067 s in
+all). The referee's exploratory, post-hoc numbers (cache-only script, reproduced by us, not saved in
+`results/`), all with the **proxy** drop D_proxy = spread_37 − min_j spread_excl_j (37-host reference fit,
+the about 740 of the 1,000 37-host subsets that exclude the host): D_proxy real = 0.280 (1.3071 − 1.0267);
+P(D_proxy ≥ 0.280) = 0.006 under C (2,000 simulations, seeds 20,000–21,999, the R2-RE-SEL seeds; 99th
+percentile 0.251), 0.019 under V(0.05) and 0.036 under V(0.077) (1,000 simulations each, seeds
+50,000–50,999 for both τ); the joint event "spread_37 ≥ 1.307 and min spread_excl ≤ 1.027" 0.002 under
+both V; the criterion-S spread test rejects V at 5% in 21% (τ = 0.05) and 45% (τ = 0.077) of simulations;
+the real post-selection value is reached or undercut in 66% and 39%; P(spread_37 ≥ 1.307) = 25/2,000 under
+C; conditional on a high simulated spread_37 the post-selection spread is ≥ 1.033 in 82–89%. While
+drafting this addendum (cache only, no simulation): (i) by arithmetic on recorded values, the exact
+D_obs = 1.3070929 − 1.0325255 = 0.2746 (0.0058 below the proxy: the proxy keeps N5584 in the reference fit
+and uses about 740 subsets, the exact value refits on 36 hosts and uses 1,000 subsets); (ii) N5584's
+calibrator rows are rows 3178–3181 (one SN, 2007af, four light-curve rows, non-zero in columns 26 and 42,
+√C_ii 0.086–0.148 mag); (iii) one GLS fit under C of `rows_a` with an extra column, the indicator of
+those four rows, gives δ̂ = +0.3363 mag with standard error σ_δ = 0.0925 mag (3.6σ); (iv) timings: the
+Cholesky factor of C on `rows_a` 0.23 s, one K ε plus one 1,000 × 3,489 matrix–vector product 5.7 ms. Not
+yet run: any simulation of the exact D or of J under any model, any simulation of a single-host offset
+model, in code or by hand; no code for this addendum exists. N5584 was identified post hoc (R2-RE-SEL,
+"How N5584 was singled out"), and δ̂ is estimated on the same data that the test uses.
+
+*Expected outcome (stated now).* From the proxy numbers: J should exclude V(0.05) and V(0.077) (proxy
+0.002); V(0.105) is untested, but a larger τ raises the 36-host spread, so J is expected to exclude it
+too. D should exclude V(0.05) (proxy 0.019); for V(0.077) the proxy 0.036 rests on 1,000 simulations
+and the exact D_obs is 0.006 smaller, so "undetermined (Monte Carlo)" or "not excluded" is as likely as
+"excluded"; D is expected not to exclude V(0.105), because a larger τ also makes larger drops. O(δ̂)
+should not be excluded by either statistic, largely by construction (δ̂ is fitted to these data). The
+most likely reading is rule (2) with the qualifier "joint statistic only"; rule (3) through J would be a
+surprise.
+
+*Question.* Is the excess calibrator scatter of the 37-host system better described by one host offset
+(N5584 shifted by δ, all else under C) than by a host-level random effect on all 37 hosts (V(τ), τ =
+0.05, 0.077, 0.105 mag), judged by how often each model produces a 37-host spread as high as observed
+together with a post-selection 36-host spread as low as observed (J), and a drop as large as observed (D)?
+
+*Statistics (the same on data and simulations).* For a data vector y on `rows_a`:
+- spread_37 = `numpy.std` (ddof 0) of Δ_k/σ_k over the first 1,000 R4 subsets on 37 hosts, with the shift
+  rows a_k and σ_k of R2-RE-ROB part B (`rob.shift_rows` with the 37-host reference fit under C). On the
+  real y this is ROB's spread_obs.
+- d' = criterion S of R2-RE-SEL: argmin_j spread_excl_j on the same rows (ties to the lowest column).
+- spread_36 = the R2-RE-SEL spread for dropped host d': `sel.reduced_system` for d', its reference fit
+  under C, the first 1,000 index draws of R4-N's stream (`sel.index_stream(1000, r4_seed, 36, 10)`) mapped
+  onto the 36 other host columns, shift rows and σ_k from `rob.shift_rows`. On the real y (d' = N5584) this
+  is B-N's spread_obs.
+- **D = spread_37 − spread_36** (exact; d' is still chosen by the proxy criterion S, which is only a
+  selection rule, used identically on data and simulations). D_obs = 0.27457 (from the recorded values).
+- **J**: the event spread_37 ≥ spread_37,obs and spread_36 ≤ spread_36,obs (1.30709, 1.03253). J is a
+  rectangle anchored at the observed point (chosen after seeing the data, as the referee's joint event was);
+  its probability under a model is the share of simulations at least as "one-outlier-like" as the data in
+  both coordinates: high with all hosts, ordinary without the selected one.
+- The σ_k and a_k always come from fits under C: the statistic is fixed, only the data model changes.
+  Adding L q to y changes no Δ_k, so ŷ = L q̂ does not affect D or J.
+
+*Models.* All simulate y_M,s = ŷ + K_M ε_s (+ offset) on `rows_a` (3,489 rows, 37 hosts), ŷ = L q̂ from
+the fit under C (as in ROB and SEL), K_M the lower Cholesky factor of the model covariance on `rows_a`.
+- C: K_C from C.
+- V(τ), τ = 0.05, 0.077, 0.105 mag (decisive): K from `with_re(C, calib_groups, τ)` (τ² added on each
+  host's calibrator SN block). 0.077 is R2-RE's τ̂, 0.05 and 0.105 the ends of its 68% interval (0.048 and
+  0.105, rounded). T-048 named 0.05 and 0.077; 0.105 is added because D grows with τ, so a diffuse model
+  can only be called excluded if the upper end is excluded too.
+- O(δ̂) (decisive): y_C,s + δ̂ h, h the indicator of N5584's calibrator rows (`calib_groups[26]`, the four
+  rows above), δ̂ the GLS coefficient of h fitted with L under C on `rows_a` (recorded 0.33634; the run
+  refits and must reproduce it to a relative 10⁻⁶, else "not evaluable (δ̂ differs from the recorded
+  value)"). The offset is on the calibrator SN rows only, where R2-RE puts the random effect and R2-RE-T
+  the heavy tail; whether it belongs to the SN or the Cepheid distance the data cannot tell (section 7).
+- Reported, not decisive: O(δ̂ − σ_δ) (δ = 0.2438, one standard error towards zero, the analogue of
+  τ = 0.05); O(δ̂) + V(τ̂_N) (N5584 offset and τ̂_N = 0.0314 on all 37 hosts, the "one outlier plus a
+  small diffuse term" reading of R2-RE-N5584; τ̂_N from the same run); O_any(δ̂): the offset on a host
+  drawn uniformly from the 37 in each simulation (`numpy.random.default_rng(200_000 + s).integers(0,
+  37)`), the single-outlier model without N5584's identity.
+- Seeds: ε_s = `numpy.random.default_rng(100_000 + s).standard_normal(3489)`, s = 0, …, 9,999, the same
+  ε_s for every model (common random numbers: O(δ̂) is exactly C plus the offset, and model differences
+  are not Monte Carlo noise between independent streams). 100,000–109,999 and 200,000–209,999 collide
+  with none of R4/R4-N (0), ROB and B-N (10,000–11,999), SEL (20,000–21,999) or the referee's exploratory
+  V runs (50,000–50,999). n = 10,000 per model (8 models, 80,000 simulations).
+
+*Why δ̂ is (partly) circular, and what the design does about it.* δ̂ is fitted on the same y and
+N5584 was singled out by these data, so O(δ̂) reproduces the observation largely by construction: "not
+excluded" for O(δ̂) is a consistency check, not evidence. The information in the reading is in whether
+the diffuse models are excluded; their τ values come from the same data too (τ̂ = 0.077 is fitted with
+N5584 included, which inflates it towards larger diffuse scatter), so both alternatives carry one fitted
+parameter. The reported O(δ̂ − σ_δ) and O_any variants show how much "not excluded" depends on the
+plug-in value and on the identity of the host. No composite test (δ refitted in each simulation) is made.
+
+*Comparison.* For each model M and each statistic: k = #{D_s ≥ D_obs} or #{J_s}, p = (1 + k)/(1 + n),
+with the two-sided equal-tailed 95% Clopper–Pearson interval for k/n (`rob._cp`). Per model and
+statistic the label is: interval entirely below 0.05 → **"excluded (<D|J>)"**; entirely above 0.05 →
+**"not excluded (<D|J>)"**; containing 0.05 → **"undetermined (Monte Carlo)"** (`rob.three_way`).
+Reported, not decisive: the density ratio of O(δ̂) to each V(τ) and to C at the observed point, from
+`scipy.stats.gaussian_kde` (Scott bandwidth) in two dimensions (spread_37, spread_36) and in one (D), with
+a 68% interval from 200 bootstrap resamples of the simulations (`default_rng(300_000 + b)`) and the same
+ratio with the bandwidth halved (tail densities depend on the bandwidth, so no label uses them).
+
+*Decision rules and labels, fixed now (in this order).* R2-RE's row ("no host-selection effect
+detected") stays the headline; the R2 (2026-11-14), R2-RE, R2-RE-ROB, R2-RE-N5584 and R2-RE-SEL verdicts,
+labels and readings stay as recorded.
+- (1) Not evaluable: the observed values differ from the recorded ones (spread_37,obs = 1.3070929081086322
+  and spread_36,obs = 1.0325254787240916 to a relative 10⁻⁹, criterion S selecting N5584 with spread_excl
+  within 0.001 of 1.027, δ̂ to 10⁻⁶) → the whole block (code or data change, investigated first); a fit
+  failure while building any shift rows, or a failed Cholesky factor of a decisive model → that model not
+  evaluable; R4 without draws → the whole block; any decisive model not evaluable → reading "not
+  evaluable".
+- (2) Every V(τ) (0.05, 0.077, 0.105) "excluded (J)", and O(δ̂) "not excluded (J)" and "not excluded
+  (D)" → **"one outlying host favoured over diffuse host scatter (τ = 0.05–0.105)"**, with the qualifier
+  "(both statistics)" if every V(τ) is also "excluded (D)", else "(joint statistic only; D does not exclude
+  τ = <list>)".
+- (3) Any V(τ) "not excluded (J)" → **"diffuse host scatter not excluded (τ = <list>)"**.
+- (4) Every V(τ) "excluded (J)" and O(δ̂) "excluded (J)" or "excluded (D)" → **"neither one offset host
+  nor diffuse scatter reproduces the observed spreads"**.
+- (5) Otherwise → **"undetermined"**.
+- C's labels are reported next to them (expected "excluded": C's J probability is bounded by
+  P(spread_37 ≥ 1.307), which ROB found to be 0.021); they enter no rule.
+- "Diffuse" means V at these three τ values, not a test over all τ; the conjunction in (2) needs three
+  intervals below 0.05 (conservative); the union in (3) is not corrected for three looks; the labels
+  share ε_s and are correlated.
+
+*What changes in section 5 (the text, not any earlier label).* A new subsection "R2-RE-D". Reading (2) →
+the R2-RE-SEL post-hoc bullet ("points towards one outlying host but does not show it") is replaced by this
+pre-registered reading, quoted with the caveats: δ̂ fitted on the same data, N5584 identified post hoc, J's
+rectangle anchored at the data, C taken as correct (R2-RE-SEL referee point 5), and, if so labelled, "joint
+statistic only". Reading (3) → section 5 states that the data do not distinguish one outlying host from
+host-level scatter of R2-RE's size; R2-RE-SEL's reading stays, glossed "consistent with C after removing one
+host, and not distinguished from diffuse scatter". Reading (4) → section 5 states that neither model
+reproduces both spreads, and the "one outlying host" gloss is marked unsupported. Reading (5) or "not
+evaluable" → the post-hoc bullet stays as it is, with this outcome next to it. Section 7's open question
+"is the excess one outlying host or scatter spread over all hosts?" is answered accordingly. In no case do
+the R2-RE headline row, `summary.json` `R2_host` or the claim's verdict change.
+
+*Reported (not decisive).* Per model: k, n, p, interval and label for D and J; quantiles (5/50/95%) of
+spread_37, spread_36 and D; P(spread_37 ≥ obs) and P(spread_36 ≤ obs) separately; the frequency of each
+d' and how often d' = N5584 (and, for O_any, how often d' is the offset host); the proxy D_proxy with
+P(D_proxy ≥ 0.280), for comparison with the referee's exploratory numbers (other seeds, so agreement
+within Monte Carlo error is expected, not required); a 2D histogram of (spread_37, spread_36) on a fixed
+0.02 grid; the KDE ratios above. Raw per-simulation values are not saved (80,000 pairs, about 1.1 MB at
+four decimals; `results/` files stay below 1 MB). Checks and seconds per part.
+
+*Runtime (from measured times).* Recorded in `r2_re_sel.json`: criterion S's 37-host rows 109 s
+(`criterion_s_rows`); the 37 reduced systems' rows 100–115 s each, 4,067 s in all
+(`dropped_hosts_built.seconds_build`); the selection pass 14.4 s for 2,000 simulations under both
+criteria. The shift rows do not depend on y or on the data model (the statistic is fixed under C), so they
+are built once and shared by all eight models: at most 37 reduced systems, about 68 min, not 70 min per
+model as the T-048 note assumed. Per simulation, pass 1 (K ε, spread_37, criterion S) is about 7 ms
+(selection pass) and pass 2 (regenerate y, one reduced-system product, grouped by d' so one matrix is held
+at a time) about the same: 80,000 × about 15 ms ≈ 20 min. Cholesky factors 4 × 0.23 s; KDE and bootstrap a
+minute or two. Block ≈ 1.5 h (1.2–1.8 h); the reported variant O(δ̂) + V(τ̂_N) needs one REML fit for
+τ̂_N (about a minute). Run in a standalone mode (`PARAMS["d_only"] = true`): it recomputes only what the
+block needs (the fit under C on `rows_a`, the R4 and R4-N index streams, the reduced system for N5584 and
+its REML τ̂_N, the checks above), writes only `results/r2_re_d.json` with its own records
+(`provenance_d.json`, `run_info_d.json`), and leaves every other results file untouched; it does not rerun
+the ~9.3 h of earlier blocks. No data downloaded (cache only); it waits until no other study run uses the
+machine. 10,000 per
+model gives a Clopper–Pearson half-width of about 0.0045 near p = 0.05 and resolves J probabilities near
+0.002 (about 20 events, interval about 0.0012–0.003). More simulations after the run would need a new
+pre-registration. The τ analogue (τ̂_37 − τ̂_36 under V, about 4 h of REML fits) is not part of this
+addendum.
+
+*Code checks before the formal run.* Synthetic data only (the 2026-11-17 smoke-run lesson, log.md): the
+statistic on a small synthetic system, the offset added only to the chosen host's calibrator rows, the
+common ε_s across models, D and J from known inputs, the rule order (1)–(5) and the qualifier. On the
+real data before the formal run only the reproduction checks (spread_37,obs, spread_36,obs and D_obs =
+0.27457, criterion S selecting N5584 at 1.0267, D_proxy = 0.2804, δ̂ and σ_δ), all reproducing numbers
+recorded here; no simulation on the real ŷ, no p value or label.
+
+*Switch and code.* `PARAMS["d_check"]` (true), with `"d_seed_base": 100_000`, `"d_n_sims": 10_000`,
+`"d_taus": [0.05, 0.077, 0.105]`, `"d_host_seed_base": 200_000`, `"d_kde_boot": 200`, `"d_only": true` for the
+formal run; the offset host is `PARAMS["n5584_host"]`; the recorded δ̂, spreads and tolerances are module
+constants, as in `sel.py`. In the standalone mode the block computes τ̂_N itself (R2-RE's REML on the
+reduced system without N5584, which must reproduce the recorded 0.03137 to a relative 10⁻⁶, else that
+reported variant is "not run"); in a full run it runs after the R2-RE-SEL block under the same condition
+as the R2-RE-N5584 block. Planned module `onehost.py` (receives `run.py`'s functions, reuses `rob.shift_rows`, `rob._cp`,
+`rob.three_way`, `sel.reduced_system`, `sel.index_stream`, `sel.crit_s_values`, `sel.pick_min`; does not
+import `run`), results in `results/r2_re_d.json`, a short summary in `summary.json` (`R2_RE_D`), a test
+`test_onehost.py` (synthetic checks; labels re-derived from saved k and n), conclusion assertions in
+`test_conclusions.py`, a web section, section 8 knobs. None of this exists yet.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
