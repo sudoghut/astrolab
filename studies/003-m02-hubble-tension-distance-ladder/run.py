@@ -697,6 +697,30 @@ def recorded_reml_grid():
     return json.loads(path.read_text(encoding="utf-8"))["reml"]["grid_m2l"]
 
 
+def formal_g_done():
+    """True once the formal full stage's results/r2_re_g.json (not a "not run" stub) is committed next to this
+    file. Until then an exploration may run only the power stage (README amendment 2026-11-21, gate 1)."""
+    path = Path(__file__).parent / "results" / "r2_re_g.json"
+    if not path.exists():
+        return False
+    st = str(json.loads(path.read_text(encoding="utf-8")).get("status", ""))
+    return not st.startswith("not run")
+
+
+def save_g_stubs(ctx, P, status):
+    """A full study run with g_check = false: write the "not run" records only where no R2-RE-G file exists, so a
+    formal result is never overwritten; returns the record whose summary goes into summary.json (the existing
+    r2_re_g.json when there is one)."""
+    p_out, _ = g_not_run(P, status, "power")
+    g_out, sims = g_not_run(P, status, "full")
+    files = {"r2_re_g_power": p_out, "r2_re_g": g_out, **{f"r2_re_g_sims_{k}": v for k, v in sims.items()}}
+    for name, obj in files.items():
+        if not (ctx.results / f"{name}.json").exists():
+            ctx.save(name, obj)
+    path = ctx.results / "r2_re_g.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else g_out
+
+
 def g_not_run(P, status, stage):
     keys = shape.sim_keys([float(t) for t in P["g_taus_rep"]])
     out = {"stage": stage, "status": status}
@@ -745,6 +769,9 @@ def main(ctx):
         if P["g_stage"] not in ("power", "full"):
             raise ValueError(f"g_stage must be 'power' or 'full', not {P['g_stage']!r}")
         ctx.record_suffix = "_gp" if P["g_stage"] == "power" else "_g"
+        if P["g_stage"] == "full" and getattr(ctx, "max_save_bytes", None) is not None and not formal_g_done():
+            raise RuntimeError("an exploration may run only g_stage = 'power' until the formal full stage's "
+                               "results/r2_re_g.json is committed (README section 8)")
         if P["g_stage"] == "full":
             sum_path = ctx.results / "summary.json"
             if sum_path.exists():
@@ -755,6 +782,10 @@ def main(ctx):
                     and getattr(ctx, "max_save_bytes", None) is None):
                 raise RuntimeError("the full stage needs results/r2_re_g_power.json: run g_stage = 'power' first "
                                    "and commit its power to log.md")
+    if (P["g_check"] and not g_only and not d_only and getattr(ctx, "max_save_bytes", None) is not None
+            and not formal_g_done()):
+        raise RuntimeError("an exploration with g_check = true would compute G on the data before the formal R2-RE-G "
+                           "full stage: use g_only = true with g_stage = 'power', or g_check = false (README section 8)")
     if d_only:
         # standalone R2-RE-D (README section 2, addendum 2026-11-21): its own provenance_d/run_info_d, no
         # other results file written; summary.json must exist and re-serialise to itself (checked first)
@@ -1174,11 +1205,9 @@ def main(ctx):
     # ---- R2-RE-G (README section 2, addendum 2026-11-21, T-055): runs after the R2-RE-D block, under the
     # condition R2-RE run and the host step evaluable; both stages in this process, the power record saved and
     # logged before G_obs is computed; R2-RE's REML grid from this run
+    sims_g = None
     if not P["g_check"]:
-        st = "not run (PARAMS)"
-        p_out, _ = g_not_run(P, st, "power")
-        g_out, sims_g = g_not_run(P, st, "full")
-        ctx.save("r2_re_g_power", p_out)
+        g_out = save_g_stubs(ctx, P, "not run (PARAMS)")
     elif not (P["re_check"] and ident["host_step_evaluable"]) or re.get("status") != "evaluated":
         st = "not evaluable (R2-RE not run or host step not evaluable)"
         p_out, _ = g_not_run(P, st, "power")
@@ -1188,7 +1217,8 @@ def main(ctx):
         g_out, sims_g = run_g_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, re["reml"]["grid_m2l"],
                                    "R2-RE's REML grid of the same run (r2_re.json reml.grid_m2l)",
                                    lambda o: ctx.save("r2_re_g_power", o))
-    save_g(ctx, g_out, sims_g)
+    if sims_g is not None:
+        save_g(ctx, g_out, sims_g)
 
     # One canonical qualified verdict for the host step (gate-2 review): states the labelling mode
     # and, when R4 ran, the empirical (random-subset) scale next to the C-propagated significance.

@@ -712,14 +712,16 @@ def check_r2_re_g(out, sims, s, sizes=None, power_rec=None):
         assert {k: power_rec["models"][k].get("n_excluded") for k in out["set_keys"]} == \
             {k: M[k].get("n_excluded") for k in out["set_keys"]}
     # power, size, curve
+    assert M["OANY"].get("rate") is not None and M["OANYVN"].get("rate") is not None
     pw = min(M["OANY"]["rate"], M["OANYVN"]["rate"])
     assert out["power"]["power"] == pw and out["power"]["powered"] == (pw >= out["settings"]["g_power_min"])
-    sz = [M[k]["rate"] for k in ("VHAT", "V050", "V105")]
+    sz = [M[k].get("rate") for k in ("VHAT", "V050", "V105")]
+    assert None not in sz
     assert out["size"]["size"] == max(sz)
     curve = {c["key"]: c for c in out["curve"]}
     for k in ("Z250", "Z300", "Z400", "Z450", "Z500"):
-        assert curve[k]["rate"] == M[k]["rate"]
-    ok = [c["z_alt"] for c in out["curve"] if c["rate"] >= out["settings"]["g_power_min"]]
+        assert curve[k]["rate"] == M[k].get("rate")
+    ok = [c["z_alt"] for c in out["curve"] if c["rate"] is not None and c["rate"] >= out["settings"]["g_power_min"]]
     assert out["smallest_z_alt_power_08"] == (min(ok) if ok else None)
     ac = [M[k]["tau"] for k in ("VHAT", "V050", "V105") if _sel_cp(M[k]["n_excluded"], n)[0] > 0.05]
     assert any(r.startswith("anti-conservative") for r in out["rule1"]) == bool(ac)
@@ -775,5 +777,51 @@ def test_r2_re_g_labels():
         sizes[sp.name] = sp.stat().st_size
         sims[k] = load(f"r2_re_g_sims_{k}")
     pw = RESULTS / "r2_re_g_power.json"
+    if pw.exists():
+        sizes[pw.name] = pw.stat().st_size
     check_r2_re_g(out, sims, load("summary")["R2_RE_G"], sizes,
                   load("r2_re_g_power") if pw.exists() else None)
+
+
+G_FORBIDDEN_POWER_KEYS = ("G_obs", "j_hat_obs", "sum_z2", "hosts_observed", "p_G", "p_G_fixed", "p_dbl", "p_rev",
+                          "reading", "sub_label", "observed")
+
+
+def check_r2_re_g_power(p, size=None):
+    """The power stage's record: no key that needs G on the data, power = min(R_OANY, R_OANYVN), size = max over the
+    three checked tau, below 1 MB (also used by test_shape.py on synthetic output)."""
+    if size is not None:
+        assert size < 1_000_000
+
+    def keys(o):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                yield k
+                yield from keys(v)
+        elif isinstance(o, list):
+            for v in o:
+                yield from keys(v)
+    assert not set(keys(p)) & set(G_FORBIDDEN_POWER_KEYS)
+    assert p["stage"] == "power"
+    if "models" not in p:
+        return
+    M = p["models"]
+    rates = [M[k].get("rate") for k in ("OANY", "OANYVN", "VHAT", "V050", "V105")]
+    assert None not in rates
+    assert p["power"]["power"] == min(M["OANY"]["rate"], M["OANYVN"]["rate"])
+    assert p["power"]["powered"] == (p["power"]["power"] >= p["settings"]["g_power_min"])
+    assert p["size"]["size"] == max(M[k]["rate"] for k in ("VHAT", "V050", "V105"))
+    for k, m in M.items():
+        if m.get("status") == "evaluated":
+            assert abs(m["rate"] - m["n_excluded"] / m["n"]) < 1e-15 and m["n"] == p["n_sims"], k
+
+
+def test_r2_re_g_power_record():
+    """README section 2, addendum 2026-11-21 (R2-RE-G): the power record. Skips until the power stage has run."""
+    path = RESULTS / "r2_re_g_power.json"
+    if not path.exists():
+        pytest.skip("r2_re_g_power.json missing; the R2-RE-G power stage has not run")
+    p = load("r2_re_g_power")
+    if "models" not in p:
+        pytest.skip(f"r2_re_g_power.json has no models ({p.get('status')})")
+    check_r2_re_g_power(p, path.stat().st_size)

@@ -203,7 +203,7 @@ function gRows() {
   for (const k of ['VHAT', 'V050', 'V105']) {
     const m = M[k];
     if (!m) continue;
-    rows.push(['', sizeName(k) + ` (${L('decisive', '起决定作用')})`, m.status === 'evaluated' ? `${pc(m.rate)} ${ci(m)}` : '', '≤ 5%', m.status === 'evaluated' ? null : m.status]);
+    rows.push(['', sizeName(k) + ` (${L('decisive', '起决定作用')})`, m.status === 'evaluated' ? `${pc(m.rate)} ${ci(m)}` : '', L('95% CI not entirely above 5%', '95% 区间不完全高于 5%'), m.status === 'evaluated' ? null : m.status]);
   }
   if (M.C && M.C.status === 'evaluated') rows.push(['', L('rejection rate under C (reported)', 'C 下的拒绝率（只报告）'), `${pc(M.C.rate)} ${ci(M.C)}`, '—', null]);
   const altName = {OANY: L(`power: one σ-matched offset host on C (z = ${f(M.OANY && M.OANY.z_alt, 2)}; decisive)`, `功效：C 上一个 σ 匹配的偏移宿主（z = ${f(M.OANY && M.OANY.z_alt, 2)}；起决定作用）`),

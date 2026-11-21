@@ -20,6 +20,7 @@ and the reading.
 run.py passes its own functions in (`fns`); this module does not import run (AGENTS.md section 2).
 """
 import hashlib
+import os
 import time
 
 import numpy as np
@@ -78,6 +79,35 @@ SECTION5 = {
 # keys the power stage must never write (README: no G_obs, no sum of z^2, no z_j of other hosts)
 FORBIDDEN_POWER_KEYS = ("G_obs", "j_hat_obs", "sum_z2", "hosts_observed", "p_G", "p_G_fixed", "p_dbl", "p_rev",
                         "reading", "sub_label", "observed")
+
+
+# settings the full stage must share with the power stage (g_only and g_stage differ between them by design)
+STAGE_SETTING_KEYS = ("g_seed_base", "g_host_seed_base", "g_inner_seed", "g_n_sims", "g_n_inner", "g_power_min",
+                      "g_z_curve", "g_taus_rep", "g_max_minutes", "g_min_sims", "n5584_host", "threads")
+THREAD_ENV = ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")
+
+
+def thread_settings():
+    """The BLAS / OpenMP thread settings of this process (environment and, when threadpoolctl is available, the
+    loaded thread pools): the full stage must run with the power stage's settings (README amendment 2026-11-21)."""
+    out = {"env": {k: os.environ.get(k) for k in THREAD_ENV}}
+    try:
+        import threadpoolctl
+        out["threadpools"] = sorted([[str(i.get("internal_api")), int(i.get("num_threads"))]
+                                     for i in threadpoolctl.threadpool_info()])
+    except ImportError:
+        out["threadpools"] = None
+    return out
+
+
+def power_record_problems(power_rec, settings):
+    """Why a power record cannot be the basis of a full stage (an error, not rule (1)): a stub ("not run" or
+    not a power-stage record) or settings that differ from this run's."""
+    if not isinstance(power_rec, dict) or power_rec.get("stage") != "power" or "settings" not in power_rec             or str(power_rec.get("status", "")).startswith("not run"):
+        return [f"the power record is a stub or not a power-stage record (status {power_rec.get('status')!r})"]
+    ps = power_rec["settings"]
+    return [f"{k}: power stage {ps.get(k)!r}, now {settings.get(k)!r}" for k in STAGE_SETTING_KEYS
+            if ps.get(k) != settings.get(k)]
 
 
 # ---------------------------------------------------------------- names
@@ -449,6 +479,7 @@ def run_stage(stage, L, y, C, rows_a, groups, labels, P, fns, log, grid_m2l, pow
                         **{k: P[k] for k in ("g_seed_base", "g_host_seed_base", "g_inner_seed", "g_n_sims",
                                              "g_n_inner", "g_power_min", "g_z_curve", "g_taus_rep",
                                              "g_max_minutes", "g_min_sims", "g_only", "g_stage", "n5584_host")},
+                        "threads": thread_settings(),
                         "reml": f"reml_tau(f, {TAU_MAX}, {TAU_STEP}, interval=False); τ̂ < 1e-3 counts as zero",
                         "eig_rtol": EIG_RTOL, "reml_grid_source": grid_source},
            "recorded": rec, "set_keys": keys, "sim_keys": skeys, "decisive": [k for k in keys if k in
@@ -473,6 +504,10 @@ def run_stage(stage, L, y, C, rows_a, groups, labels, P, fns, log, grid_m2l, pow
         out.update(reading=out["status"], sub_label=None, section5=SECTION5["none"])
         return out, {k: {"model": k, "status": out["status"]} for k in skeys}
 
+    if stage == "full":
+        bad_rec = power_record_problems(power_rec, json_like(out["settings"]))
+        if bad_rec:
+            raise RuntimeError("R2-RE-G full stage refused: " + "; ".join(bad_rec))
     if stage == "full" and power_rec.get("status") == NE_RUNTIME:
         reasons.append(RUNTIME)
         checks["power_record_status"] = power_rec.get("status")
@@ -781,6 +816,13 @@ def run_stage(stage, L, y, C, rows_a, groups, labels, P, fns, log, grid_m2l, pow
     log(f"R2-RE-G (full): G_obs {g_obs:.5f} (ĵ {labels[j_obs]}), p_G {p_g['p']:.4f} ({lab}); reading: {read}"
         + (f" [{sub}]" if sub else ""))
     return out, sims
+
+
+def json_like(o):
+    """o as it reads back from JSON (tuples become lists), for comparing settings with a saved record."""
+    import json
+    from astrolab.results import to_jsonable
+    return json.loads(json.dumps(to_jsonable(o)))
 
 
 def summary(g_out):
