@@ -40,7 +40,7 @@ DR4 的内容：
 | 10 | M5 | L3 | 银河系厚盘（thick disk）早期形成（亚巨星年龄，subgiant ages） | established，有后续修正 | ≤ 20 MB（仅取所需列） | 外部星表与 Gaia 的交叉匹配（cross-match） |
 
 候选里程碑：
-- M11：Radcliffe 波（Radcliffe Wave）的振荡（Konietzka et al. 2024, Nature 628, 62 [V]）。细节为 [U]。
+- M11：Radcliffe 波（Radcliffe Wave）的振荡（Konietzka et al. 2024, Nature 628, 62, arXiv:2402.12596 [V]）。细节已按 arXiv v1 核实 [V]（2026-11-21，计划 027），期刊版差异未核实；研究 011（T-020）。
 - M12：Gaia XP 光谱金属丰度（metallicity），以及银河系"贫而老的核心（poor old heart）"。全部为 [U]。
 
 ---
