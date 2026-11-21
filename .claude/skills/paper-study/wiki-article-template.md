@@ -130,7 +130,7 @@ with uninterpreted atoms "needed" means "used by this encoding".}}
 ### Part 3 · What astrolab can test or explore
 
 **Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/{{NNN-slug}}/web/) (results, figures and tables;
-English/Chinese switch; updated when the site is republished). (Add once the study has a page.)
+English/Chinese switch; updated when the site is republished). {{Add once the study has a page.}}
 
 {{Retrofitted article only: "Written after implementation (post hoc); not a pre-registration."}}
 
@@ -141,8 +141,8 @@ English/Chinese switch; updated when the site is republished). (Add once the stu
 {{Keep the table above as first written (it is the source of the pre-registration); fill the
 Result column.
 After implementation, add: what was actually tested, the numbers, what passed or failed, what is
-still open; links to the results files. The study's interactive page runs locally with
-`python -m astrolab serve`; add a static figure here if readers need to see it.}}
+still open; links to the results files. The study's interactive page is online (link at the top of this part;
+locally `python -m astrolab serve`); add a static figure here if readers need to see a result without opening it.}}
 
 ### Glossary
 
@@ -245,7 +245,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 
 ### 第三部分 · 本项目可检验或探索的环节
 
-**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/{{NNN-slug}}/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。（研究有网页后加上。）
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/{{NNN-slug}}/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。{{研究有网页后加上。}}
 
 {{仅限补写的文章："实现后补写（事后，post hoc），不是预注册。"}}
 
@@ -253,7 +253,7 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且并非恒�
 |---|---|---|---|---|---|
 | {{A}} | {{现在可检验 / 待…之后 / 可探索（不能判决） / 不在范围内}} | {{…}} | {{…，约 N MB}} | {{若…则支持；若…则质疑（可探索的行写"无——仅供探索，见 README 第 8 节"）}} | {{…}} |
 
-{{保留最初的表格（即预注册来源），只填写"结果"一列；实现后补充实际检验了什么、数值、哪些通过、哪些失败、哪些仍待解决，并链接结果文件。研究的交互网页在本地用 `python -m astrolab serve` 打开，需要时在这里放静态图。}}
+{{保留最初的表格（即预注册来源），只填写"结果"一列；实现后补充实际检验了什么、数值、哪些通过、哪些失败、哪些仍待解决，并链接结果文件。研究的交互网页已在线（见本部分开头的链接；本地用 `python -m astrolab serve`），需要不打开网页也能看到结果时在这里放静态图。}}
 
 ### 术语表
 
