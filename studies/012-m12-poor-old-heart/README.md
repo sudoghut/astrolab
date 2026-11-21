@@ -57,8 +57,8 @@ sample should reproduce (T1, T2a, T3), and as properties that should survive our
 | Test | Quantity | Labels (decision rules) |
 |---|---|---|
 | **T1** recount | counts in the metallicity file: N([M/H] < −2), N(< −1.5), N(−2.7 < [M/H] < −1.5), N(< −1), total N. R22's statements and their samples: abstract (∼18,000 for −2.7 < [M/H] < −1.5; sample 2 million); Section III.2 (>4,000 below −2; ∼18,000 below −1.5; almost 100,000 below −1; no sample named); Fig. 4 caption (∼5,000; ∼20,000; nearly 100,000; sample ∼1.7 million); Section IV (∼20,000 below −1.5; ∼70,000 below −1; sample ∼2 million) | For each statement, a **count label** (our count against R22's number) and, where a sample is named, a separate **fraction label** (our count / our total × R22's sample size, against R22's number); each **agrees** or **disagrees**. "∼X" agrees if within X ± 5%; "almost/nearly 100,000" agrees if within 90,000–99,999; ">X" agrees if above X. A statement whose named sample differs from our total by more than 5% is also marked **sample differs** (the abstract always will). **Summary:** **abstract reproduced** if the abstract's count label agrees; **not reproduced** otherwise; its fraction label is reported next to it. For each inconsistent pair (18,000/20,000; >4,000/5,000; 100,000/70,000) we report which the file supports by count label: one, both, or neither |
-| **T2a** σ_RGC | maximum-likelihood σ of a spherical Gaussian in Galactocentric radius for the [M/H] < −1.5 stars, in version (i) (R22's eq. 1 as written) and version (ii) (selection on the observed parallax), section 4.3; 200 bootstrap resamples; 100 known-answer mocks at σ = 2.7 kpc | **Reproduction** (version (i)): **not reproduced** if the fit is at a bound (section 4.3); **reproduced** if σ̂ is within 2.4–3.0 kpc; **not reproduced** otherwise. **σ of the population** (version (ii)): **undetermined (fit at bound)** if the data fit is at a bound; **undetermined (method bias)** if the median mock bias of version (ii) exceeds 0.1 kpc in absolute value, whatever the interval; **undetermined (unmodelled selection)** if the load check L6 finds a parallax-dependent cut that is not in the likelihood; otherwise **consistent with 2.7 kpc** if the 95% interval lies within 2.4–3.0 kpc, **different** if it lies entirely outside, **undetermined** otherwise. The bias gate is tested at σ = 2.7 kpc only. Reported next to the labels: the mock bias distribution of both versions (median and its bootstrap standard error), version (ii) − (i), and the reference fits for −1.5 < [M/H] < −1 and −1 < [M/H] < −0.5. If parallaxes are missing from the files and not fetched: both labels **undetermined (data not in the files)** |
-| **T2b** shape and 5 kpc | the section 4.3 version (ii) likelihood on the stars at Galactic latitude 5° or more from the plane: step 1, spherical against flattened Gaussian (q free); step 2, if step 1 prefers flattened, flattened Gaussian against flattened cored power law. Mock checks (100 each): false positive (q = 1 with a completeness falling towards the plane and with distance), power (q = 0.5), step 2 (best flattened Gaussian) | **Step 1:** **flattened preferred** if 2ΔlnL > 10 and the 95% bootstrap interval of q lies entirely below 0.8; **prolate preferred** if 2ΔlnL > 10 and the q interval lies entirely above 1 (reported; f₅ then uses the flattened-Gaussian fit); **spherical adequate** otherwise. **Step 2:** **power law preferred** if ΔBIC > 10 in its favour (N = the number of stars at latitude 5° or more, Δk = 1); **flattened Gaussian adequate** otherwise. **Undetermined** if any applicable check fails: fewer than 80 of 100 false-positive mocks give "spherical adequate", fewer than 80 of 100 power mocks give "flattened preferred", or (when step 2 is reached) fewer than 80 of 100 step-2 mocks give "flattened Gaussian adequate"; the step-2 check applies only when step 2 is reached. Pass counts are reported with their binomial errors (a rough calibration). **5 kpc:** the fraction f₅ of the preferred model's stars within a 3D radius of 5 kpc of the Centre (power law normalised within 18 kpc; the spherical model when the shape is undetermined), with a 95% interval from 200 bootstrap refits of that model: **undetermined** with the same reason when T2a version (ii) is undetermined for fit at bound, method bias, unmodelled selection or missing data (a straddling T2a interval does not propagate); otherwise **most within 5 kpc confirmed** if the interval lies entirely above 0.5, **not confirmed** if entirely below, **undetermined** otherwise. The control population (giants with −1 < [M/H] < −0.5 in the same footprint) is fitted the same way and reported only |
+| **T2a** σ_RGC | maximum-likelihood σ of a spherical Gaussian in Galactocentric radius for the [M/H] < −1.5 stars, in version (i) (R22's eq. 1 as written) and version (ii) (selection on the observed parallax), section 4.3; 200 bootstrap resamples; 100 known-answer mocks at σ = 2.7 kpc | If parallaxes are missing from the files and not fetched, both labels are **undetermined (data not in the files)** and the rules below do not apply. **Reproduction** (version (i)): **not reproduced** if the fit is at a bound (section 4.3); **reproduced** if σ̂ is within 2.4–3.0 kpc; **not reproduced** otherwise. **σ of the population** (version (ii)): **undetermined (fit at bound)** if the data fit is at a bound; **undetermined (method bias)** if the median mock bias of version (ii) exceeds 0.1 kpc in absolute value, whatever the interval; **undetermined (unmodelled selection)** if the load check L6 finds a parallax-dependent cut that is not in the likelihood; otherwise **consistent with 2.7 kpc** if the 95% interval lies within 2.4–3.0 kpc, **different** if it lies entirely outside, **undetermined** otherwise. The bias gate is tested at σ = 2.7 kpc only. Reported next to the labels: the mock bias distribution of both versions (median and its bootstrap standard error), version (ii) − (i), and the reference fits for −1.5 < [M/H] < −1 and −1 < [M/H] < −0.5 |
+| **T2b** shape and 5 kpc | the section 4.3 version (ii) likelihood on the stars at Galactic latitude 5° or more from the plane: step 1, spherical against flattened Gaussian (q free); step 2, if step 1 prefers flattened, flattened Gaussian against flattened cored power law. Mock checks (100 each): false positive (q = 1 with a completeness falling towards the plane and with distance, not modelled in the fit), power (q = 0.5), step 2 (best flattened Gaussian) | **Checks first, overriding the step labels:** **undetermined** if any applicable check fails: fewer than 80 of 100 false-positive mocks give "spherical adequate", fewer than 80 of 100 power mocks give "flattened preferred", or (when step 2 is reached) fewer than 80 of 100 step-2 mocks give "flattened Gaussian adequate". Exception: if step 1 gives "flattened preferred" with the false-positive and power checks passed and only the step-2 check fails, the shape label is **flattened (step 2 undetermined)** and f₅ uses the flattened Gaussian. Pass counts are reported with their binomial errors (a rough calibration). **Step 1:** **flattened preferred** if 2ΔlnL > 10 and the profile-likelihood 95% interval of q (where 2ΔlnL from the maximum reaches 3.84) lies entirely below 0.8; **prolate preferred** if 2ΔlnL > 10 and that interval lies entirely above 1 (reported; f₅ then uses the flattened-Gaussian fit); **spherical adequate** otherwise. The same profile interval is used in the mocks; the bootstrap q interval on the data is reported alongside. **Step 2:** **power law preferred** if ΔBIC > 10 in its favour (N = the number of stars at latitude 5° or more, Δk = 1); **flattened Gaussian adequate** otherwise. **5 kpc:** the fraction f₅ of the chosen model's stars within a 3D radius of 5 kpc of the Centre (power law normalised within 18 kpc; the spherical model when the shape is undetermined), with a 95% interval from 200 bootstrap refits of that model: **undetermined** with the same reason when T2a version (ii) is undetermined for fit at bound, method bias, unmodelled selection or missing data (a straddling T2a interval does not propagate); otherwise **most within 5 kpc confirmed** if the interval lies entirely above 0.5, **not confirmed** if entirely below, **undetermined** otherwise. The control population (giants with −1 < [M/H] < −0.5 in the same footprint) is fitted the same way and reported only |
 | **T3** rotation | J_φ/J_tot from the kinematics file, joined on `source_id`; primary sample 3 < R_apo < 7 kpc; 1000 bootstrap resamples. (a) the mean over all stars with [M/H] < −2; (b) the mean for −1.1 < [M/H] < −0.9; (c) the 10–90% width of a logistic fit to the means in 0.2 dex bins centred on −2.0, −1.8, …, −0.6. Known-answer width w₀ (section 4.5) | **(a)**, in this order, δ = 0.05: **no net rotation** if the 95% interval lies within [−0.05, 0.05] (more conservative than a two one-sided test at 90%); **net rotation** if its lower end is above 0; **net counter-rotation** if its upper end is below 0; **undetermined** otherwise. **(b)** **rotation dominated** if the interval lies entirely above 0.5; **not rotation dominated** if entirely below 0.5; **undetermined** otherwise. **(c)** **undetermined (fit failed)** if the logistic fit does not converge on the data; **sharp** if the width interval lies entirely below w₀ + 0.1 dex; **gradual** if entirely above max(0.4 dex, w₀ + 0.1 dex); **undetermined** otherwise; w₀ is the primary one (from per-star [M/H] errors if the file gives them, otherwise from a 0.1 dex blur), the 0.15 and 0.2 dex variants are reported. The all-R_apo sample is reported as a variant with its own labels |
 | **T4** leverage of the metallicity scale | under variants (i) [M/H] ± 0.1 dex; (ii) added Gaussian noise of 0.1 and 0.2 dex (10 realisations each); (iii) T_eff–log g edge removed within each 0.25 dex [M/H] bin (1st–99th and 5th–95th percentiles): the T2a version (ii) σ (point estimate on the shifted, noisy or trimmed [M/H] < −1.5 sample; version (i) reported), the T3 (a) and (b) labels of the primary sample, and the T6 mass with R22's own choices. Counts: elasticity Δln N per 0.1 dex against the slope-only prediction from the observed metallicity distribution | **robust** if, in every variant, σ changes by less than 0.3 kpc, the T3 (a) and (b) labels are unchanged, and the T6 mass (R22's choices) changes by less than a factor 3; in variant (ii) a label counts as changed if it differs from the baseline in at least 6 of the 10 realisations, and σ and the mass are the medians over the 10; a change into or out of "undetermined" in a downstream label counts as a change; the σ condition is skipped, and this is stated, when T2 is undetermined for missing data in the baseline. **sensitive** otherwise, naming the variants and quantities. Counts carry no label; a count that changes by more than a factor 2 in variant (ii) at 0.1 dex is flagged "dominated by scatter from above" (a heuristic) |
 | **T5** GSE and halo stars | among the kinematics-file stars with [M/H] < −1.5: the fraction g with e ≥ 0.75 and R_apo ≥ 10 kpc, and the fraction a₅ with R_apo < 5 kpc; variants −1.9 < [M/H] < −1.2 and [M/H] < −1.2; 1000 bootstrap resamples | **g:** **minor** if the interval lies entirely below 0.10; **moderate** if it lies within 0.10–0.25; **major** if entirely above 0.25; **undetermined** otherwise. **a₅:** **most apocentres below 5 kpc confirmed** if the interval lies entirely above 0.5; **not confirmed** if entirely below; **undetermined** otherwise |
@@ -70,7 +70,8 @@ sample should reproduce (T1, T2a, T3), and as properties that should survive our
   rotation dominated (a clear contradiction of R22's statement is not "partly"). **"R22's numbers
   reproduce from the public sample"** if T1's abstract is reproduced, T2a's reproduction label is
   reproduced, T3 (a) is no net rotation and T3 (b) is rotation dominated. **"Partly reproduced"**
-  otherwise (an undetermined T3 label), listing the tests.
+  otherwise (an undetermined T3 label, or T2a's reproduction label undetermined for missing data),
+  listing the tests.
 - **Robustness of R22's picture.** **"Holds under our checks"** if T2a's σ of the population is
   consistent with 2.7 kpc, T2b's 5 kpc fraction is confirmed, T4 is robust, T5's g is minor or moderate
   and a₅ is confirmed. **"Challenged"** if T2a's σ is different, T2b's 5 kpc fraction is not confirmed,
@@ -107,8 +108,10 @@ system cache outside the project, and exceed the study budget for these two file
   the provenance, and changes no limit in `astrolab/config.py`. `--refresh`, and explorations run with
   refresh, must not re-download the two files. If the cache evicts a file, a new download needs the
   user's agreement again.
-- The optional TAP addition fits the normal budget once the exception is in place; it is an additional
-  fetch and is made only with the user's agreement (Gaia archive announced offline 2026-11-25 to 12-02).
+- The optional TAP addition fits the normal budget once the named-file exception removes the two files'
+  bytes. It is an additional fetch, made only with the user's agreement, and it must run before
+  2026-11-25 or after the Gaia DR4 release day (the Gaia archive is announced offline from 2026-11-25 to
+  12-02).
 
 **Load-time checks** (before any test; each result is written to `results/load.json`).
 - **L1 checksums.** Both MD5s must match. *Failure:* stop.
@@ -133,7 +136,8 @@ system cache outside the project, and exceed the study budget for these two file
   query (parallax < 1 mas, |b| < 30°, |l| < 30°, BP < 15.5, 1.0 < BP − RP < 3.5, the luminosity cut). A cut
   on quantity X at c is declared if, inside the range R22's query allows, the histogram falls from at
   least 50 stars per bin to 0 at c. For ϖ/σ_ϖ, a cut is also declared if fewer than 0.01% of stars have
-  ϖ/σ_ϖ < 1. A declared parallax-dependent cut (in ϖ or ϖ/σ_ϖ) not in section 4.3's likelihood makes
+  ϖ/σ_ϖ < 1; this rule gives no value c and only feeds "undetermined (unmodelled selection)" or an
+  amendment that adds the cut to the likelihood. A declared parallax-dependent cut (in ϖ or ϖ/σ_ϖ) not in section 4.3's likelihood makes
   T2a version (ii) "undetermined (unmodelled selection)", unless it is added to the likelihood by a dated
   amendment before any fit. Any declared tighter cut on another quantity (l, b, BP, BP − RP) is applied
   in the mocks.
@@ -184,14 +188,17 @@ Direct counts on the metallicity file. Labels as in section 2. The bands are fix
   - *Luminosity function.* The LF sample is the metallicity-file stars with ϖ/σ_ϖ > 10 and [M/H] < −1
     (all metallicities if fewer than 500 such stars). For each LF star, M′ = G − 1.5(BP − RP − 1) +
     5 log10(ϖ_corr/100) and its observed BP − RP are taken; its colour is dereddened with the extinction
-    model below at its own (b, d). Each mock star draws one LF star: its M′ and intrinsic colour.
-    Limitation: the LF sample already passed M′ < 0.9, so stars scattered in from just fainter
-    magnitudes are missing and the bias may be understated.
+    model below at its own (b, d). Each mock star draws one LF star: its M′ and intrinsic colour. We
+    assume that the luminosity function does not depend on distance. Limitation: the LF sample already
+    passed M′ < 0.9, so stars scattered in from just fainter magnitudes are missing and the bias may be
+    understated.
   - *Extinction.* A_G = a·exp(−|b|/b_d)·min(d, 8 kpc)/8 kpc, with A_BP and E(BP − RP) from the Gaia DR3
     extinction coefficients (fixed at implementation, recorded by dated amendment before any fit).
-    (a, b_d) are fitted by least squares to the data's metal-poor median and 90th percentile of observed
-    BP − RP, over a fixed grid (a from 0 to 5 mag in steps of 0.05; b_d from 1° to 20° in steps of 0.5°),
-    keeping the minimum; the LF dereddening and the mocks use the same (a, b_d).
+    (a, b_d) are chosen on a fixed grid (a from 0 to 5 mag in steps of 0.05; b_d from 1° to 20° in steps
+    of 0.5°): at each grid point one mock is simulated (with the LF dereddened by the same (a, b_d)), and
+    the median and 90th percentile of observed BP − RP are compared with the data's metal-poor stars in
+    |b| bins 0–5°, 5–10°, 10–20°, 20–30° (8 statistics for 2 parameters); the grid point with the least
+    sum of squared differences is kept, ties broken by the smallest a, then the smallest b_d.
   - *Observed quantities.* G and BP from M′, the colour and A at the mock distance; parallax errors drawn
     in 0.25 mag bins of G by resampling the data's σ_ϖ within the bin; then every cut (parallax < 1 mas,
     the luminosity cut, BP < 15.5, 1.0 < BP − RP < 3.5, and any tighter cut declared by L6) applied to the
@@ -213,12 +220,15 @@ Direct counts on the metallicity file. Labels as in section 2. The bands are fix
 - **Fits.** Nelder–Mead from 5 starts (the spherical σ̂ with q = 1, and four draws within the parameter
   ranges), the best kept. ΔBIC = 2ΔlnL − Δk·ln N in favour of the more complex model, with N the number
   of stars at |b| ≥ 5° and Δk = 1.
-- **Bootstrap.** 200 resamples of the |b| ≥ 5° stars, each refitting all three models; they give the q
-  interval and the f₅ interval of whichever model is chosen.
+- **Profile interval of q.** q on a grid of step 0.05 over 0.2–1.5 (27 points), σ refitted at each;
+  the 95% interval is where 2[lnL_max − lnL_profile(q)] ≤ 3.84, its ends found by linear interpolation
+  between grid points. Used for the step-1 label on the data and in every mock.
+- **Bootstrap.** 200 resamples of the |b| ≥ 5° stars, each refitting all three models (5 starts each);
+  they give the f₅ interval of whichever model is chosen and the bootstrap q interval reported alongside.
 - **Mocks** (100 each, floors), generated as in section 4.3 and cut at |b| ≥ 5°:
   - false positive: q = 1, σ = 2.7 kpc, with a completeness c(b, d) = 1 − 0.5·exp(−(|b| − 5°)/5°)·
-    min(d, 8 kpc)/8 kpc applied as a random thinning (so it depends on distance, which the
-    direction-conditional likelihood can feel);
+    min(d, 8 kpc)/8 kpc applied as a random thinning. c(b, d) is deliberately not in the fitted
+    likelihood: the check measures robustness to an unmodelled distance-dependent selection;
   - power: q = 0.5, σ = 2.7 kpc;
   - step 2 (only if step 2 is reached, after step 1 on the data): the best-fitting flattened Gaussian.
 - **5 kpc fraction.** f₅ = the model's star fraction within r < 5 kpc of the Centre (3D, all directions;
@@ -289,19 +299,25 @@ cannot be tested here).
 
 ### 4.10 Cost and order
 
-- **Order.** Download (once, under the budget exception) → L1–L7 → the T2a known-answer mocks and the
-  T2b false-positive and power mocks (they use the data's directions, magnitudes, colours and errors, but
-  fit no model to the data's parallaxes) and the T3 w₀ mocks → T1 → T2a → T2b step 1 on the data → T2b
-  step-2 mocks (only if step 2 is reached) → T2b step 2 → T3 → T5 → T6 → T4.
+- **Order.** Download (once, under the budget exception) → L1–L7 → the extinction grid → the T2a
+  known-answer mocks and the T2b false-positive and power mocks (they use the data's directions,
+  magnitudes, colours and errors, but fit no model to the data's parallaxes) and the T3 w₀ mocks → T1 →
+  T2a → T2b step 1 on the data → T2b step-2 mocks (only if step 2 is reached) → T2b step 2 → T3 → T5 →
+  T6 → T4.
 - **Cost.** A likelihood evaluation over about 20,000 stars × 300 nodes takes of order 0.1 s; a
-  one-parameter fit about 25 evaluations, a two- or three-parameter fit about 150–300. T2a: 2 versions ×
-  (1 + 200 bootstrap + 100 mocks) one-parameter fits, about 30 minutes. T2b: 200 bootstrap refits of all
-  three models (about 2.5 hours) and 200–300 mocks × 2–3 models (about 3 hours). T3: two bootstrap passes
-  plus 100–300 w₀ mocks, minutes. T1, T5, T6: minutes. T4: about 8 variants (with 10 realisations in
-  (ii)) × (2 one-parameter fits + T3), about 1 hour. Total about 7–8 hours on one core; a short timing
-  run measures it before the formal run.
+  one-parameter fit about 25 evaluations, a two-parameter fit about 150, a three-parameter fit about 300
+  (each per start).
+  - Extinction grid: 101 × 39 ≈ 3,900 simulated mocks (no likelihood), about 1 hour.
+  - T2a: 2 versions × (1 + 200 bootstrap + 100 mocks) one-parameter fits, about 30 minutes.
+  - T2b bootstrap: 200 × (25 + 5 × 150 + 5 × 300) ≈ 455,000 evaluations, about 12.5 hours.
+  - T2b mocks: per mock, the spherical fit, the flattened fit (5 starts) and the q profile (27 × 25);
+    200 mocks ≈ 300,000 evaluations, about 8.5 hours; step-2 mocks (if reached) add the power-law fit,
+    100 × (5 × 150 + 27 × 25 + 5 × 300) ≈ 290,000 evaluations, about 8 hours.
+  - T3 (two bootstrap passes, 100–300 w₀ mocks), T1, T5, T6: minutes. T4: about 8 variants (10
+    realisations in (ii)) × (2 one-parameter fits + T3), about 1 hour.
+  - Total about 23–31 hours on one core; a short timing run measures it before the formal run.
 - **Floors.** 200 bootstrap resamples (T2a, T2b), 1000 per pass (T3), 1000 (T5); 100 mocks per check
-  (T2a, T2b, T3 w₀). These are not reduced. If the projected time exceeds 12 hours, the run is
+  (T2a, T2b, T3 w₀). These are not reduced. Because the projected time exceeds 12 hours, the run is
   checkpointed and continued in later idle periods; the counts stay.
 - **Scheduling.** The formal run waits until no other study is running.
 - **Results** (`results/`): `load.json`, `t1.json`, `t2.json`, `t3.json`, `t4.json`, `t5.json`,
