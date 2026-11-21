@@ -34,11 +34,11 @@
   .sky-togs { display: flex; gap: 4px 14px; flex-wrap: wrap; font-size: 12.5px; margin: 4px 0 8px; }
   .sky-tog { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
   .sky-tog .sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-  .sky-wrap { position: relative; overflow: hidden; border-radius: 10px; }
-  svg.sky { min-width: 0; touch-action: none; cursor: grab; user-select: none; }
+  .sky-wrap { position: relative; border-radius: 10px; }
+  svg.sky { min-width: 0; touch-action: none; cursor: grab; user-select: none; overflow: hidden; }
   svg.sky .pt { cursor: pointer; outline: none; }
   svg.sky .pt:focus circle, svg.sky .pt:hover circle { stroke: var(--text); }
-  .sky-tip { position: absolute; z-index: 2; max-width: 300px; background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  .sky-tip { position: absolute; z-index: 2; max-width: min(300px, calc(100% - 8px)); background: var(--surface); color: var(--text); border: 1px solid var(--line);
              border-radius: 8px; padding: 8px 26px 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.18); }
   .sky-tip p { margin: 6px 0; }
   .sky-tip .small { font-size: 11.5px; }
@@ -229,7 +229,7 @@ function renderSky(d) {
     counts.set(p.s.id, (counts.get(p.s.id) || 0) + 1);
     const col = SKY_COLORS[p.i % SKY_COLORS.length];
     g += `<g class="pt" data-n="${n}" data-study="${esc(p.s.id)}" tabindex="0" role="button" aria-label="${esc(p.tg.name)}">
-      <circle cx="${p.xy[0]}" cy="${p.xy[1]}" r="4.5" style="fill:${col};stroke:${css('--surface')}"/>
+      <circle cx="${p.xy[0]}" cy="${p.xy[1]}" r="4.5" vector-effect="non-scaling-stroke" style="fill:${col};stroke:${css('--surface')}"/>
       <text class="sky-lab pt-lab" data-x="${p.xy[0] + 7}" data-y="${p.xy[1] + 4}" x="${p.xy[0] + 7}" y="${p.xy[1] + 4}">${esc(p.tg.name)}</text></g>`;
   });
   const tools = `<div class="sky-tools"><button type="button" data-z="in" aria-label="${esc(t('Zoom in', '放大'))}">+</button>
@@ -256,7 +256,7 @@ function renderSky(d) {
 function skyCard(p, d) {
   const s = p.s, tg = p.tg, href = s.has_web ? `../../studies/${s.id}/web/` : null;
   const note = tg.note ? L(esc(tg.note), tg.note_zh ? esc(tg.note_zh) : null) : '';
-  const deep = `?view=sky&focus=${encodeURIComponent(tg.name.replace(/\s*\(CCHP host\)\s*$/i, ''))}&study=${encodeURIComponent(s.id)}`;
+  const deep = `?view=sky&focus=${encodeURIComponent(String(tg.name).replace(/\s*\(CCHP host\)\s*$/i, ''))}&study=${encodeURIComponent(s.id)}`;
   const coords = `l ${tg.l.toFixed(2)}°, b ${tg.b.toFixed(2)}°` + (Number.isFinite(tg.ra) ? ` · RA ${tg.ra.toFixed(3)}°, Dec ${tg.dec.toFixed(3)}°` : '');
   return `<button type="button" class="close" aria-label="${esc(t('Close', '关闭'))}">×</button><strong>${esc(tg.name)}</strong>
     <div class="muted">${href ? `<a href="${esc(href)}">${esc(plain(s, 'title'))}</a>` : esc(plain(s, 'title'))}</div>
@@ -285,19 +285,35 @@ function wireSky(d) {
     if (SKY.k === 1) { SKY.tx = 0; SKY.ty = 0; }
     apply(); place();
   };
-  const show = (n, pin) => {
+  let hideTimer = null;
+  const close = () => {
+    const n = SKY.pinned; SKY.pinned = null; tip.hidden = true;
+    const el = n !== null ? view.querySelector(`.pt[data-n="${n}"]`) : null; if (el) el.focus();
+  };
+  const show = (n, pin, keyboard) => {
+    clearTimeout(hideTimer);
     const p = pts[n]; tip.innerHTML = skyCard(p, d); tip.hidden = false; tip.dataset.n = n;
     if (pin) SKY.pinned = n;
-    tip.querySelector('.close').addEventListener('click', () => { SKY.pinned = null; tip.hidden = true; });
+    tip.querySelector('.close').addEventListener('click', close);
     place();
+    if (keyboard) tip.querySelector('.close').focus();
   };
+  tip.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); close(); } });
+  tip.addEventListener('pointerenter', () => clearTimeout(hideTimer));
+  tip.addEventListener('pointerleave', () => { if (SKY.pinned === null) tip.hidden = true; });
   const place = () => {
     if (tip.hidden) return;
     const p = pts[+tip.dataset.n]; const m = svg.getScreenCTM(), w = wrap.getBoundingClientRect();
     const x = (SKY.k * p.xy[0] + SKY.tx) * m.a + m.e - w.left, y = (SKY.k * p.xy[1] + SKY.ty) * m.d + m.f - w.top;
-    tip.style.left = Math.min(Math.max(x + 12, 4), w.width - 300) + 'px'; tip.style.top = (y + 12) + 'px';
+    if (x < 0 || y < 0 || x > w.width || y > w.height) { tip.style.visibility = 'hidden'; return; }   // point panned out of view
+    tip.style.visibility = '';
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    const left = Math.min(Math.max(x + 12, 4), Math.max(4, w.width - tw - 4));
+    let top = y + 12;
+    if (top + th > w.height && y - 12 - th >= 0) top = y - 12 - th;            // above the point if no room below
+    tip.style.left = left + 'px'; tip.style.top = Math.max(4, top) + 'px';
   };
-  const hide = () => { if (SKY.pinned === null) tip.hidden = true; };
+  const hide = () => { clearTimeout(hideTimer); hideTimer = setTimeout(() => { if (SKY.pinned === null) tip.hidden = true; }, 250); };
   for (const el of view.querySelectorAll('.pt')) {
     const n = +el.dataset.n;
     el.addEventListener('pointerenter', () => { if (SKY.pinned === null) show(n, false); });
@@ -305,11 +321,18 @@ function wireSky(d) {
     el.addEventListener('focus', () => { if (SKY.pinned === null) show(n, false); });
     el.addEventListener('blur', hide);
     el.addEventListener('click', e => { e.stopPropagation(); show(n, true); });
-    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(n, true); } });
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(n, true, true); }
+      else if (e.key === 'Escape') { SKY.pinned = null; tip.hidden = true; }
+    });
   }
-  svg.addEventListener('wheel', e => { e.preventDefault(); const q = toSvg(e.clientX, e.clientY); zoomAt(e.deltaY < 0 ? 1.25 : 0.8, q.x, q.y); }, {passive: false});
+  svg.addEventListener('wheel', e => {
+    if (!e.deltaY) return;
+    if (e.deltaY > 0 && SKY.k <= 1) return;                          // nothing to zoom out: let the page scroll
+    e.preventDefault(); const q = toSvg(e.clientX, e.clientY); zoomAt(e.deltaY < 0 ? 1.25 : 0.8, q.x, q.y);
+  }, {passive: false});
   let drag = null;
-  svg.addEventListener('pointerdown', e => { if (e.target.closest('.pt')) return; drag = {x: e.clientX, y: e.clientY, tx: SKY.tx, ty: SKY.ty, moved: false}; svg.setPointerCapture(e.pointerId); });
+  svg.addEventListener('pointerdown', e => { if (e.button !== 0 || e.target.closest('.pt')) return; drag = {x: e.clientX, y: e.clientY, tx: SKY.tx, ty: SKY.ty, moved: false}; svg.setPointerCapture(e.pointerId); });
   svg.addEventListener('pointermove', e => {
     if (!drag) return; const m = svg.getScreenCTM();
     const dx = (e.clientX - drag.x) / m.a, dy = (e.clientY - drag.y) / m.d;
@@ -317,6 +340,8 @@ function wireSky(d) {
     SKY.tx = drag.tx + dx; SKY.ty = drag.ty + dy; apply(); place();
   });
   svg.addEventListener('pointerup', () => { if (drag && !drag.moved) { SKY.pinned = null; tip.hidden = true; } drag = null; });
+  svg.addEventListener('pointercancel', () => { drag = null; });
+  svg.addEventListener('lostpointercapture', () => { drag = null; });
   document.querySelectorAll('.sky-tools button').forEach(b => b.addEventListener('click', () => {
     if (b.dataset.z === 'reset') { SKY.k = 1; SKY.tx = 0; SKY.ty = 0; apply(); place(); return; }
     zoomAt(b.dataset.z === 'in' ? 1.5 : 1 / 1.5, CX, CY);

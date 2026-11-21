@@ -190,5 +190,6 @@ python -m pytest                          # 核心库测试 + 各研究的结论
 - 关联结论条目已更新复现值（`ours`）与状态。
 - `log.md` 和 `STATUS.md` 已更新；`TODO.md` 中的条目已移入 `DONE.md`。
 - 根目录 `README.md` 的研究总表（中英两处）与 `STATUS.md` 的研究表都有该研究的行，并反映当前结果（第二条"总表保持同步"）。
+- `study.yaml` 的足迹完整（尺度、天区、数据；有具体天体时每个目标有坐标来源与中英文概述）；研究网页有"天图上的位置"一节（`atlas/web/skylinks.js`）；论文研究的 Wiki 文章中目标天体第一次被提到处链到 Atlas 天图（`tests/test_atlas_footprint.py` 检查这三项）。
 - 论文研究：Wiki 文章已与研究同步（第三部分反映实际结果，研究进展已记录），`tests/test_lean_arguments.py` 对该研究实际运行并通过（跳过不算通过）。
 - 已做过独立审稿（referee）：派一个子智能体（subagent），只给它代码与结果，不给我们的结论，专门找系统误差（systematics）与选择效应（selection effects）。论文研究另给它 Lean 测试生成的"引文—类型—内容"对照表，核对每个 `[stated]` 前提不强于引文、`GAP` 标注如实。

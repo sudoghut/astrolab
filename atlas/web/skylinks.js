@@ -37,6 +37,7 @@
       `足迹：${where.join('；') || (targets.length ? '目标天体' : '无')}。` + (targets.length ? '点名字即可在 Atlas 天图中定位到它。' : ''))}
       <a href="${ATLAS}?view=sky">${L('Open the sky view', '打开天图')}</a></p>`;
     box.innerHTML = head + body;
+    box.hidden = false;
   }
 
   function start() {

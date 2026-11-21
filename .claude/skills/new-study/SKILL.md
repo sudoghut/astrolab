@@ -55,7 +55,8 @@ same section numbers and tables, updated in the same PR (AGENTS.md bilingual rul
 - `test_conclusions.py`: recompute each verdict from the saved numbers by the pre-registered rule,
   rather than hard-coding the outcome; skip cleanly when `results/` is missing.
 - `web/index.html`: designed for this question, reading `../results/*.json`; must load
-  `atlas/web/i18n.js` (English default, en/zh switch). Check it with `python -m astrolab serve`.
+  `atlas/web/i18n.js` (English default, en/zh switch), and keep the template's "On the sky" box
+  (`<section id="skylinks" hidden>` and `atlas/web/skylinks.js`; a test checks it). Check it with `python -m astrolab serve`.
 - If the plan calls for staged review (section 2 complexity rule), review each stage with the
   `dual-gate-review` skill before moving on.
 
