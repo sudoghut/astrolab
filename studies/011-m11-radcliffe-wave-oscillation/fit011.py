@@ -21,6 +21,18 @@ import wave011 as W
 # ---------------------------------------------------------------------------------------------
 # Checkpoints (outside the project folder) and the time guard
 
+def replace_with_retry(src, dst, tries=5, wait=0.2):
+    """os.replace with retries: on Windows a scanner or sync client can hold the file briefly."""
+    for i in range(tries):
+        try:
+            os.replace(src, dst)
+            return
+        except PermissionError:
+            if i == tries - 1:
+                raise
+            time.sleep(wait * (2 ** i))
+
+
 class Paused(Exception):
     """Raised when the run's time budget is used up; rerunning continues from the checkpoints."""
 
@@ -50,7 +62,7 @@ class Store:
         tmp = p.with_suffix(".tmp")
         with open(tmp, "wb") as f:
             pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
-        os.replace(tmp, p)
+        replace_with_retry(tmp, p)
 
     def check_time(self, where=""):
         if self.stop_after_s is not None and time.time() - self.t0 > self.stop_after_s:
@@ -181,7 +193,7 @@ def run_mcmc(model: W.Model, center_vec, *, seed, n_walkers, n_steps, n_burn, st
             store.put(key + "_state", st)
         post = st["kept"].astype(float)
         tau = emcee.autocorr.integrated_time(post, tol=0) * thin_keep
-        res = {"samples": post.reshape(-1, ndim), "lnp": st["lnp"].reshape(-1).astype(float), "tau": tau.tolist(),
+        res = {"samples": st["kept"].reshape(-1, ndim), "lnp": st["lnp"].reshape(-1), "tau": tau.tolist(),
                "tau_max": float(np.max(tau)), "n_steps": steps, "n_burn": burn, "n_walkers": n_walkers,
                "thin": thin_keep, "acceptance": float(np.mean(st["accepted"]) / steps),
                "long_enough": bool(np.all(np.isfinite(tau)) and steps - burn >= min_tau_mult * np.max(tau)),
@@ -371,17 +383,23 @@ def t5_curve(v_clouds, grid: W.Grid, u1_mode="half", omega0=W.OMEGA0_ADOPTED,
             "Lambda": wv["Lambda"][vi], "env": np.abs(zeta[vi]) / peak, "omega": om[vi]}
 
 
-def t5_analyse(curve, cx, cy, cz, cvz, csig, *, cut, bandwidth, sigma=47.0, k_range=(0.3, 3.0, 0.01)):
-    """Project clusters on the baseline (x-y), drop end-of-grid clusters, apply the position cut
-    (each of the x, y, z residuals below `cut`; None keeps all), and fit z and v_z/omega(s)."""
-    P = np.column_stack([cx, cy])
-    j = W.closest(P, np.column_stack([curve["x"], curve["y"]]))
+def t5_select(curve, cx, cy, cz, *, cut):
+    """Positions only: project on the baseline (x-y), drop clusters whose closest point is an end of
+    the valid grid, and apply the position cut (each of the x, y, z residuals below `cut`; None keeps
+    all). Returns the closest indices, the end-of-grid mask and the kept mask. Fits nothing."""
+    j = W.closest(np.column_stack([cx, cy]), np.column_stack([curve["x"], curve["y"]]))
     n = len(curve["x"])
     end = (j == 0) | (j == n - 1)
     keep = ~end
     if cut is not None:
         res = np.column_stack([cx - curve["x"][j], cy - curve["y"][j], cz - curve["z"][j]])
         keep &= np.all(np.abs(res) < cut, axis=1)
+    return j, end, keep
+
+
+def t5_analyse(curve, cx, cy, cz, cvz, csig, *, cut, bandwidth, sigma=47.0, k_range=(0.3, 3.0, 0.01)):
+    """t5_select, then fit z and v_z/omega(s) on the kept clusters."""
+    j, end, keep = t5_select(curve, cx, cy, cz, cut=cut)
     out = {"n_in": int(len(cx)), "n_end": int(end.sum()), "n_kept": int(keep.sum())}
     if keep.sum() < 6:
         out["fit"] = None
@@ -399,7 +417,7 @@ def t5_analyse(curve, cx, cy, cz, cvz, csig, *, cut, bandwidth, sigma=47.0, k_ra
 
 
 def t5_bootstrap(samples_vectors, grid, cx, cy, cz, cvz, csig, rng, *, n_boot, cut, bandwidth, u1_mode,
-                 omega0=W.OMEGA0_ADOPTED, k_range=(0.3, 3.0, 0.01)):
+                 omega0=W.OMEGA0_ADOPTED, k_range=(0.3, 3.0, 0.01), sigma=47.0):
     """Resample the clusters; each resample also draws one clouds-only posterior sample."""
     n = len(cx)
     rows = []
@@ -412,7 +430,7 @@ def t5_bootstrap(samples_vectors, grid, cx, cy, cz, cvz, csig, rng, *, n_boot, c
             n_fail += 1
             continue
         r = t5_analyse(cur, cx[idx], cy[idx], cz[idx], cvz[idx], csig[idx], cut=cut, bandwidth=bandwidth,
-                       k_range=k_range)
+                       sigma=sigma, k_range=k_range)
         if r["fit"] is None:
             n_fail += 1
             continue
@@ -432,3 +450,16 @@ def circ_interval(x, level=0.95):
     d = W.wrap_pi(x - c)
     lo, hi = S.interval(d, level)
     return c + lo, c + hi
+
+
+def synthetic_clusters(grid: W.Grid, n, rng, B=0.84, w0t=-0.38, sigma=47.0):
+    """Clusters drawn on K24's column-(6) model with noise (timing and tests; no data involved)."""
+    v = W.k24_vector(6, w0t=w0t, B=B)
+    wv = W.wave_on_grid(v, grid)
+    vi = np.flatnonzero(wv["valid"])
+    vi = vi[(wv["s"][vi] > -200) & (wv["s"][vi] < 2400)]
+    j = rng.choice(vi, n)
+    om = math.exp(v[W.IDX["ln_omega0"]])
+    return W.Data(cx=wv["x"][j] + rng.normal(0, sigma, n), cy=wv["y"][j] + rng.normal(0, sigma, n),
+                  cz=wv["z"][j] + rng.normal(0, sigma, n), cvz=wv["vz"][j] + rng.normal(0, sigma * om, n),
+                  csig=np.ones((n, 4)), ox=np.zeros(0), oy=np.zeros(0), oz=np.zeros(0))

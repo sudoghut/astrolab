@@ -334,8 +334,8 @@ before any fit to the data.
 13. **Checkpoint storage** (section 4.7). Checkpoints are kept outside the project folder. For an MCMC
     fit they hold only the walkers' last state and the post-burn chain thinned by 10. The
     autocorrelation time is estimated on that thinned chain and multiplied by 10. The running state is
-    deleted once a chain is finished. The run's checkpoint folder is deleted after all results are
-    written. Fixed before any fit to the data.
+    deleted once a chain is finished. The checkpoint folder of a formal run is deleted after all results are
+    written; an exploration keeps its own folder and never touches the formal run's. Fixed before any fit to the data.
 14. **Cost estimate** (section 4.7). Measured on synthetic data of the real size, one likelihood
     evaluation takes about 1.2 ms (clusters) or 1.9 ms (clusters and clouds). The projected upper bound
     for the whole run is about 16 hours on one core: T3 mocks 6.2 h, T6 8.6 h, MCMC 0.9 h. As section
@@ -376,11 +376,14 @@ How a coding agent answers "what if" questions about this study without touching
 
 - Rerun with an override: `python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --set KEY=VALUE`
   (outputs in `explore/<date>-<topic>/`, not committed). A full run takes many hours (README 4.7), so set
-  `parts` and the counts for a quick look. Checkpoints live in the astrolab cache folder
-  (`s011_checkpoints/<key>`). The key leaves out `parts`, `stop_after_hours`, `timing_evals` and
-  `checkpoint_subdir`, so an exploration that changes only those reuses the formal run's chains and fits
-  (for example `--set parts='["t7"]'` takes minutes after the formal run). Any other override starts new
-  checkpoints.
+  `parts` and the counts for a quick look. An exploration keeps its own checkpoints in the astrolab cache
+  folder (`s011_checkpoints/explore/<date>-<topic>/<key>`) and never reads or deletes the formal run's.
+  The formal run deletes its checkpoints once all results are written, so every exploration recomputes
+  what it needs. At the default counts, the column-(3)–(6) chains and the three T3 maximum-likelihood
+  fits always run (about 40 minutes on one core). `parts='["t5"]'` (for example with a new `t5_band`) then
+  takes about 45 minutes in all, `parts='["t7"]'` about 50 minutes, and `parts='["t8"]'` (for example with
+  a new `sun_vz_kms`) about 70 minutes. Rerunning the same date, tag and PARAMS resumes from the
+  exploration's checkpoints; delete that folder by hand when done.
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --script explore/<name>.py`.
   Existing: `explore/age_scatter.py` (wiki Part 3 exploration "Age and birth in the Wave": RMS of the z
@@ -409,9 +412,9 @@ How a coding agent answers "what if" questions about this study without touching
   - `results/summary.json`: every label, `overall` (`reading`, `support`, `do_not_support`,
     `undetermined_or_not_evaluable`, `qualifier`), `load_check`, `timing`, `chain_short`.
 - Example questions:
-  - "Is T5's verdict sensitive to the wavelength band?" → `--set t5_band='[0.7, 1.4]' parts='["t5"]'`.
+  - "Is T5's verdict sensitive to the wavelength band?" → `--set t5_band='[0.7, 1.4]' parts='["t5"]'` (about 45 minutes).
   - "What if the Wave's scatter were 35 pc?" → `--set sigma_pc=35` (new fits; hours).
   - "Do older clusters scatter more?" → `--script explore/age_scatter.py`.
-  - "How much does the Sun's period depend on its vertical velocity?" → `--set sun_vz_kms=7.25 parts='["t8"]'`.
+  - "How much does the Sun's period depend on its vertical velocity?" → `--set sun_vz_kms=7.25 parts='["t8"]'` (about 70 minutes).
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.
