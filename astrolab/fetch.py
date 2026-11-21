@@ -23,6 +23,10 @@ import pandas as pd
 import requests
 
 from . import cache, config
+
+# A generic client name (no personal details): some archives, e.g. Harvard Dataverse, refuse the
+# default python-requests agent with 403 (T-020).
+HTTP_HEADERS = {"User-Agent": "astrolab/0.1 (research client)"}
 from .provenance import Provenance
 from .services import tap_url
 
@@ -402,14 +406,14 @@ def http(
     if not refresh and cache.get(key, suffix) is not None:
         refresh = True                       # stored bytes do not match their provenance
 
-    head = requests.head(url, allow_redirects=True, timeout=30)
+    head = requests.head(url, allow_redirects=True, timeout=30, headers=HTTP_HEADERS)
     size = int(head.headers.get("Content-Length", 0) or 0)
     if size > max_bytes:
         raise TooLarge(f"{url} is {size / 1024**2:.1f} MB > limit {max_bytes / 1024**2:.0f} MB.")
 
     tmp = cache.staging_path(suffix)
     written = 0
-    with requests.get(url, stream=True, timeout=60) as r:
+    with requests.get(url, stream=True, timeout=60, headers=HTTP_HEADERS) as r:
         r.raise_for_status()
         with open(tmp, "wb") as f:
             for chunk in r.iter_content(1 << 16):
