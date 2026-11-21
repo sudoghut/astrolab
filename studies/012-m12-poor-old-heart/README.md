@@ -232,8 +232,8 @@ Direct counts on the metallicity file. Labels as in section 2. The bands are fix
   The value at q̂ is the Nelder–Mead flattened fit (σ fitted there); the profile is the grid values plus
   that node, and lnL_max is the larger of that fit and the best grid value. The 95% interval is where
   2Δ = 2[lnL_max − lnL_profile(q)] ≤ 3.84; its ends are found by linear interpolation of 2Δ between
-  adjacent nodes. If 2Δ crosses 3.84 more than twice, the interval runs from the outermost crossings and
-  is reported with a flag. If 2Δ stays below 3.84 at q = 0.2 or q = 1.5, that end of the interval is the
+  adjacent nodes. If 2Δ crosses 3.84 more than twice, the interval is [lowest crossing, highest
+  crossing], including any interior region above 3.84, and is reported with a flag. If 2Δ stays below 3.84 at q = 0.2 or q = 1.5, that end of the interval is the
   grid edge. Check: lnL_profile(1.0) must equal the
   spherical fit's lnL (to 0.01). Used for the step-1 label on the data and in every mock.
 - **Bootstrap.** 200 resamples of the |b| ≥ 5° stars, each refitting all three models (5 starts each);
