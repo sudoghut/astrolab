@@ -23,12 +23,12 @@ import pandas as pd
 import requests
 
 from . import cache, config
+from .provenance import Provenance
+from .services import tap_url
 
 # A generic client name (no personal details): some archives, e.g. Harvard Dataverse, refuse the
 # default python-requests agent with 403 (T-020).
 HTTP_HEADERS = {"User-Agent": "astrolab/0.1 (research client)"}
-from .provenance import Provenance
-from .services import tap_url
 
 
 class TooLarge(RuntimeError):
