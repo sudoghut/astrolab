@@ -710,7 +710,8 @@ on XR22's claim.
     `mocks.catalogue_sel` or of the latent sampler) in one of the S15 term E power sets of that f,
     the sets used for the label. The ladder is cut there: no set at that f or a larger one is run
     after the failure, and those f values are reported as not feasible. A generator failure in a
-    term N or Full set is reported for that set and does not cut the ladder.
+    term N or Full set is reported for that set and does not cut the ladder; that variant's
+    reported label at that f is "not evaluable at f".
   - *Label R1-ERR (exactly one of):*
     1. "not evaluable (reproduction)" if a check below fails;
     2. otherwise "not evaluable (non-finite)" if any set used for the label has a non-finite mock
@@ -806,8 +807,9 @@ on XR22's claim.
   peaked at a 6.26 GB working set). Checkpoints per mock go to the system cache (`s010_err_mocks`),
   keyed by PARAMS and code. The SEL-8 projection rule applies with a stop at 16 h, well above the
   estimate (resuming needs the user's consent, recorded in `log.md`). Its projection groups are the
-  three variants: each projects from its own first-mock times until one of its own sets has
-  finished, then from its finished sets. No label is computed until every set has its 50 mocks.
+  (variant, f) pairs, so that slower sets at large f are not projected from faster ones: each group
+  projects from its own first-mock times until one of its own sets has finished, then from its
+  finished sets. No label is computed until every set that the rules run has its 50 mocks.
 
 - **Reporting.** Results go to a new file `r1_err.json`, with `provenance_err.json` and
   `run_info_err.json`. `r1_sel.json` and `r1_selfit.json` are read, never written, and no recorded
@@ -826,8 +828,8 @@ on XR22's claim.
   `selaux.NO_KEY_PARAMS`).
   - *Offline unit tests of the generator (no data):* with fixed τ and r, a large draw and no
     truncation in effect (τ and errors far from 0 and 20), (i) under e = r·τ the standard deviation
-    of (A − τ)/e is f within its sampling error, and (ii) under e = r·A, (A − τ)/(f·e) follows
-    N(0, 1) (mean, standard deviation and a Kolmogorov–Smirnov test); (iii) at f = 1 `observe` and
+    of (A − τ)/e is f within its sampling error, and (ii) under e = r·A, at fixed τ, 1 − τ/A
+    (which equals f·r·z) passes a Kolmogorov–Smirnov test against N(0, (f·r)²); (iii) at f = 1 `observe` and
     `catalogue_sel` return exactly the arrays of the current code for the same stream.
 
 ## 3. Data (with size estimate)
