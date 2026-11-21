@@ -343,7 +343,7 @@ def gen_sim(P, mi, name, i, n_target, sigma, q, bmin=0.0, completeness=False):
 
 
 def grid_check(P, arr, ctx):
-    """README 4.3: doubling the nodes must change sigma-hat by less than 0.01 kpc (both versions)."""
+    """README 4.3: doubling the nodes must change sigma-hat by less than P["grid_check_tol_kpc"] (pre-registered 0.01 kpc; both versions)."""
     k = int(P["grid_nodes"])
     kmax = int(P["grid_max_nodes"])
     hist = []
