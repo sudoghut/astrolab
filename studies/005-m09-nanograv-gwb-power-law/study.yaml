@@ -11,13 +11,78 @@ milestone: M9                 # roadmap milestone id, e.g. M1
 papers: ["2306.16213", "2306.16220", "2303.15442", "2306.16219"]            # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
 wiki: Study-005-nanograv-gwb-power-law            # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3
 
-# Where this study sits on the Atlas (optional; schema in design plan 011). Remove or fill.
-# footprint:
-#   scale: {min_pc: 1.0, max_pc: 1000.0, note: "distance range the study probes"}
-#   sky:
-#     mode: all-sky | survey | targets | none    # combine with ' + ', e.g. "survey + targets"
-#     survey: {name: "...", note: "..."}
-#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS; ra/dec may be omitted if
-#                                                  # results/targets.json gives them by name
-#   (write exponents as 4.0e+8: PyYAML reads 4e8 as a string; both are accepted)
-#   data: [...]
+# Where this study sits on the Atlas (schema in design plan 011; T-051).
+footprint:
+  scale: {min_pc: 160.0, max_pc: 6.45e+3, note: "pulsar-Earth distances of the NANOGrav 15-yr pulsars, 0.16-6.45 kpc (ATNF best estimates, DM-based by default, for 55 of the 67; the 12 newer pulsars are not in the VizieR copy); the background's sources (supermassive black hole binaries) are cosmological"}
+  sky:
+    mode: all-sky + targets
+    targets:   # the 67 pulsars of the 15-yr GWB analysis (L8, arXiv:2306.16213; 15-yr data set Table 5, arXiv:2306.16217,
+               # without J0614-3329); ATNF positions (VizieR B/psr via the CfA mirror, 2026-11-21)
+      - {name: "PSR J0023+0923", ra: 5.8203, dec: 9.39}
+      - {name: "PSR J0030+0451", ra: 7.6143, dec: 4.861}
+      - {name: "PSR J0340+4130", ra: 55.097, dec: 41.5126}
+      - {name: "PSR J0406+3039", ra: 61.5, dec: 30.65}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J0437-4715", ra: 69.3163, dec: -47.2525}
+      - {name: "PSR J0509+0856", ra: 77.25, dec: 8.9333}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J0557+1551", ra: 89.25, dec: 15.85}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J0605+3757", ra: 91.25, dec: 37.95}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J0610-2100", ra: 92.5566, dec: -21.0078}
+      - {name: "PSR J0613-0200", ra: 93.4333, dec: -2.0131}
+      - {name: "PSR J0636+5128", ra: 99.0, dec: 51.4667}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J0645+5158", ra: 101.4962, dec: 51.9708}
+      - {name: "PSR J0709+0458", ra: 107.25, dec: 4.9667}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J0740+6620", ra: 115.0, dec: 66.3333}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J0931-1902", ra: 142.8297, dec: -19.0486}
+      - {name: "PSR J1012+5307", ra: 153.1393, dec: 53.1174}
+      - {name: "PSR J1012-4235", ra: 153.0292, dec: -42.5833}
+      - {name: "PSR J1022+1001", ra: 155.7417, dec: 10.0313}
+      - {name: "PSR J1024-0719", ra: 156.1612, dec: -7.3221}
+      - {name: "PSR J1125+7819", ra: 171.25, dec: 78.3167}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J1312+0051", ra: 198.0, dec: 0.85}
+      - {name: "PSR J1453+1902", ra: 223.4405, dec: 19.0367}
+      - {name: "PSR J1455-3330", ra: 223.9499, dec: -33.5129}
+      - {name: "PSR J1600-3053", ra: 240.2162, dec: -30.8971}
+      - {name: "PSR J1614-2230", ra: 243.6521, dec: -22.5087}
+      - {name: "PSR J1630+3734", ra: 247.5, dec: 37.5667}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J1640+2224", ra: 250.0698, dec: 22.4024}
+      - {name: "PSR J1643-1224", ra: 250.909, dec: -12.4163}
+      - {name: "PSR J1705-1903", ra: 256.25, dec: -19.05}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J1713+0747", ra: 258.4564, dec: 7.7938}
+      - {name: "PSR J1719-1438", ra: 259.792, dec: -14.6336}
+      - {name: "PSR J1730-2304", ra: 262.5903, dec: -23.0753}
+      - {name: "PSR J1738+0333", ra: 264.7249, dec: 3.553}
+      - {name: "PSR J1741+1351", ra: 265.3798, dec: 13.8622}
+      - {name: "PSR J1744-1134", ra: 266.1225, dec: -11.5819}
+      - {name: "PSR J1745+1017", ra: 266.391, dec: 10.2979}
+      - {name: "PSR J1747-4036", ra: 266.953, dec: -40.6152}
+      - {name: "PSR J1751-2857", ra: 267.8863, dec: -28.9629}
+      - {name: "PSR J1802-2124", ra: 270.5223, dec: -21.401}
+      - {name: "PSR J1811-2405", ra: 272.8327, dec: -24.0884}
+      - {name: "PSR J1832-0836", ra: 278.115, dec: -8.6153}
+      - {name: "PSR J1843-1113", ra: 280.9219, dec: -11.2253}
+      - {name: "PSR J1853+1303", ra: 283.4888, dec: 13.0623}
+      - {name: "PSR J1857+0943", ra: 284.4016, dec: 9.7214}
+      - {name: "PSR J1903+0327", ra: 285.7741, dec: 3.4553}
+      - {name: "PSR J1909-3744", ra: 287.4476, dec: -37.7374}
+      - {name: "PSR J1910+1256", ra: 287.5404, dec: 12.9404}
+      - {name: "PSR J1911+1347", ra: 287.98, dec: 13.7929}
+      - {name: "PSR J1918-0642", ra: 289.7001, dec: -6.7097}
+      - {name: "PSR J1923+2515", ra: 290.8437, dec: 25.2613}
+      - {name: "PSR J1939+2134", ra: 294.9107, dec: 21.5831}
+      - {name: "PSR J1944+0907", ra: 296.0389, dec: 9.1231}
+      - {name: "PSR J1946+3417", ra: 296.6047, dec: 34.2874}
+      - {name: "PSR J1955+2908", ra: 298.8662, dec: 29.1454}
+      - {name: "PSR J2010-1323", ra: 302.6913, dec: -13.3989}
+      - {name: "PSR J2017+0603", ra: 304.3446, dec: 6.0516}
+      - {name: "PSR J2033+1734", ra: 308.3647, dec: 17.5829}
+      - {name: "PSR J2043+1711", ra: 310.837, dec: 17.1914}
+      - {name: "PSR J2124-3358", ra: 321.1827, dec: -33.9791}
+      - {name: "PSR J2145-0750", ra: 326.4602, dec: -7.8385}
+      - {name: "PSR J2214+3000", ra: 333.6619, dec: 30.0106}
+      - {name: "PSR J2229+2643", ra: 337.462, dec: 26.7327}
+      - {name: "PSR J2234+0611", ra: 338.5, dec: 6.1833}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J2234+0944", ra: 338.5, dec: 9.7333}  # position from the J2000 name (~1 arcmin)
+      - {name: "PSR J2302+4442", ra: 345.6958, dec: 44.7061}
+      - {name: "PSR J2317+1439", ra: 349.2885, dec: 14.6587}
+      - {name: "PSR J2322+2057", ra: 350.5932, dec: 20.9508}
+  data: ["NANOGrav 15-yr KDE free spectra v2.0.0 (Zenodo 21844115) and v1.1.0 (Zenodo 10344086)", "L37 Table A1 (arXiv:2306.16220)", "ATNF pulsar catalogue positions (VizieR B/psr; map only)"]

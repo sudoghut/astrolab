@@ -11,13 +11,10 @@ milestone: M6                  # roadmap milestone id, e.g. M1
 papers: ["2309.00048"]                  # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
 wiki: Study-009-mw-rotation-curve-decline                  # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3
 
-# Where this study sits on the Atlas (optional; schema in design plan 011). Remove or fill.
-# footprint:
-#   scale: {min_pc: 1.0, max_pc: 1000.0, note: "distance range the study probes"}
-#   sky:
-#     mode: all-sky | survey | targets | none    # combine with ' + ', e.g. "survey + targets"
-#     survey: {name: "...", note: "..."}
-#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS; ra/dec may be omitted if
-#                                                  # results/targets.json gives them by name
-#   (write exponents as 4.0e+8: PyYAML reads 4e8 as a string; both are accepted)
-#   data: [...]
+# Where this study sits on the Atlas (schema in design plan 011; T-051).
+footprint:
+  scale: {min_pc: 5.3e+3, max_pc: 2.73e+4, note: "Galactocentric radii (not distances from the Sun) of the published rotation-curve bins (E19, O24, J23), 5.3-27.3 kpc; the virial radius (~110-120 kpc) is only extrapolated"}
+  sky:
+    mode: survey
+    survey: {name: "Gaia DR3 (+APOGEE)", note: "published rotation-curve tables built from Gaia DR3 disc stars (J23, O24) and APOGEE + Gaia (E19); no sky data fetched here"}
+  data: ["J23 Tables 3 and 4 (arXiv:2309.00048)", "O24 Table 1 (arXiv:2303.12838)", "E19 Table 1 (arXiv:1810.09466)"]

@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-16T13:54:54+00:00",
+ "generated_at": "2026-11-21T08:38:35+00:00",
  "levels": [
   "L0",
   "L1",
@@ -83,7 +83,7 @@
     "How much of the preference comes from the w0-wa parametrisation versus binned w(z) or Gaussian-process reconstructions?",
     "Leave-one-tracer-out and leave-one-SN-sample-out sensitivity of the signal."
    ],
-   "notes": "Verified against arXiv abstracts in plan 002 (cosmology agent report, 2026-11-11). Milestone M1. Study 002 (2026-11-14): BAO-only and no-CMB rows reproduced, compressed-CMB row conditionally reproduced; full-CMB and DES-SN5YR rows are out of scope (full Planck/ACT likelihoods; 53.5 MB covariance above the download limit). The compressed prior reproduces when its omega_bc mean is read as omega_b + omega_c (-8.01) but not with omega_nu added (-6.59); the referee pointed out that the split may lie within the (unmeasured) theta_* calibration systematics, so the convention is left open (T-022). Study 002 R2-CAMB (2026-11-16): with theta_* from CAMB (anchored and raw) the R2 verdicts are unchanged (Delta chi2 shifts -0.002 to -0.125), so the split is robust to the theta_* calibration and R2 depends on the omega_bc convention itself, which only a primary source can settle. Referee (2026-11-16, post hoc, verified): the prior's source cmbant/PlanckEarlyLCDM gives omega_b + omega_c = 0.14143; DESI's 0.14208 adds omega_nu, so reading A is the faithful source prior and A gives about -6.6, not -8.0; how DESI's code applied the mean is open (T-030)."
+   "notes": "Verified against arXiv abstracts in plan 002 (cosmology agent report, 2026-11-11). Milestone M1. Study 002 (2026-11-14): BAO-only and no-CMB rows reproduced, compressed-CMB row conditionally reproduced; full-CMB and DES-SN5YR rows are out of scope (full Planck/ACT likelihoods; 53.5 MB covariance above the download limit). The compressed prior reproduces when its omega_bc mean is read as omega_b + omega_c (-8.01) but not with omega_nu added (-6.59); the referee pointed out that the split may lie within the (unmeasured) theta_* calibration systematics, so the convention is left open (T-022). Study 002 R2-CAMB (2026-11-16): with theta_* from CAMB (anchored and raw) the R2 verdicts are unchanged (Delta chi2 shifts -0.002 to -0.125), so the split is robust to the theta_* calibration and R2 depends on the omega_bc convention itself, which only a primary source can settle. Referee (2026-11-16, post hoc, verified): the prior's source cmbant/PlanckEarlyLCDM gives omega_b + omega_c = 0.14143; DESI's 0.14208 adds omega_nu, so reading A is the faithful source prior and A gives about -6.6, not -8.0; how DESI's code applied the mean is open (T-030). R2-CAMB-RD (2026-11-18, T-030, pre-registered): with theta_* and r_d both from CAMB the verdicts are unchanged (A -6.49 / -6.60, B -7.90 / -8.03), so the remaining ~1.4 under reading A is not from the r_d formula; DESI's configuration was not found in public sources. T-041 (2026-11-18, post hoc): DESI's public DR2 chain configuration feeds the compressed CMB likelihood ombh2 and omch2 with omch2 = omm h^2 - mnu/93.14 - ombh2, which indicates that the mean is compared with omega_b + omega_c (reading B; the likelihood source is not public, so an internal constant omega_nu cannot be excluded); the prior mean itself is 0.00065 above the source chain's omega_b + omega_c (open)."
   },
   {
    "id": "early-thick-disk-formation",
@@ -112,13 +112,23 @@
       "name": "star-formation peak (high-J_phi early stars)",
       "paper": "~11 Gyr ago",
       "ours": "observed-age peak 11.1 Gyr (no volume correction)"
+     },
+     {
+      "name": "old-disc sequence span over 1.5 dex",
+      "paper": "5-6 Gyr",
+      "ours": "6.09 Gyr (R3-SEL reproduced, robust; selection-term sensitive; T-031)"
+     },
+     {
+      "name": "intrinsic age scatter of the old sequence",
+      "paper": "0.82 Gyr",
+      "ours": "0.748 Gyr, SE 0.0098 (intrinsic-SEL confirmed < 0.82, not robust to f = 0.8; T-031)"
      }
     ]
    },
    "open_questions": [
     "Robustness of the onset epoch to the isochrone grid."
    ],
-   "notes": "Milestone M5. Updated catalog: 320,028 subgiants (NADC DOI 10.12149/101467); download only the needed columns. Study 010 (2026-11-16, published 247,104-row table): the 13 Gyr mean is reproduced on the catalogue's own age scale (12.93 Gyr), but the age-scale envelope (0.7-1.1 Gyr in quadrature) is comparable to the 0.87 Gyr margin to the Big Bang and a re-analysis 1.7 Gyr younger exceeds it; the 8 Gyr split and the old-disc sequence (span, 0.82 Gyr scatter) could not be determined, because the S15 selection term of our deconvolution is misspecified (referee, post hoc; re-test T-031). Lean: three gaps (bin identification, absolute scale, mean as onset)."
+   "notes": "Milestone M5. Updated catalog: 320,028 subgiants (NADC DOI 10.12149/101467); download only the needed columns. Study 010 (2026-11-16, published 247,104-row table): the 13 Gyr mean is reproduced on the catalogue's own age scale (12.93 Gyr), but the age-scale envelope (0.7-1.1 Gyr in quadrature) is comparable to the 0.87 Gyr margin to the Big Bang and a re-analysis 1.7 Gyr younger exceeds it; the 8 Gyr split and the old-disc sequence (span, 0.82 Gyr scatter) could not be determined, because the S15 selection term of our deconvolution is misspecified (referee, post hoc; re-test T-031). Re-test with a consistent selection term (T-031, 2026-11-20; pre-registered README 2.5; the original labels stand as the pre-registered outcome, these are the current reading): R1-SEL undetermined (robust; selection-term sensitive; it hinges on one bin whose power is limited by mock fits; diagnostic T-045, post hoc: the missed mocks are local optima of the mock fits, and with data-independent starts the bin's power is 1.00, so R1-SEL would read not reproduced if the null mocks and other bins hold up under the same refit, not tested; pre-registered rerun T-049); R3-SEL reproduced, robust (span 6.09 Gyr); R4-SEL not reproduced (sigma_sel 2.55 Gyr vs 0.82); intrinsic-SEL confirmed, not robust (sigma_int 0.748 Gyr; holds only for an error scale f >~ 0.83); R3/R4 selection-term sensitive because the no-term variant fails recovery. Lean: three gaps (bin identification, absolute scale, mean as onset)."
   },
   {
    "id": "gaia-dormant-black-holes",
@@ -279,9 +289,9 @@
     ]
    },
    "open_questions": [
-    "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003, post-data host labelling: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run. The 2.2 sigma uses C-propagated errors; random 10-host subsets show 1.33 times more scatter, placing the CCHP set at the 4.7th-5.7th percentile, about 1.7 sigma empirically (the subset spread is itself uncertain), where the pre-registered table would read no significant effect.) Update 2026-11-16 (R2-RE, pre-registered): with a host-level random effect the shift is -0.062 +/- 0.040 mag (1.5 sigma), not detected; robustness to single hosts open (T-032)."
+    "Is the CCHP-SH0ES difference a calibrator-host selection effect? (Study 003, post-data host labelling: in R22's data the CCHP hosts lower H0 by 0.073 +/- 0.033 mag in 5 log H0, and on those hosts Cepheids and TRGB agree to 0.01 mag; the host labelling was amended after the first run. The 2.2 sigma uses C-propagated errors; random 10-host subsets show 1.33 times more scatter, placing the CCHP set at the 4.7th-5.7th percentile, about 1.7 sigma empirically (the subset spread is itself uncertain), where the pre-registered table would read no significant effect.) Update 2026-11-16 (R2-RE, pre-registered): with a host-level random effect the shift is -0.062 +/- 0.040 mag (1.5 sigma), not detected; robustness to single hosts open (T-032). Update 2026-11-18 (R2-RE-ROB, pre-registered): the null is sensitive to one host, N5584 (without it tau 0.031, and the full-data host step under that tau gives z' -2.04); tau not clearly unusual under the null (p = 0.07), the 1.33 random-subset spread is (p = 0.02); referee (post hoc, verified with an approximate check): N5584 (SN 2007af) carries all three signals, and without its rows the host shift is not detected under either covariance (z -1.63, -1.50); explicit treatment registered as T-039. Update 2026-11-18 (R2-RE-N5584, pre-registered, T-039): removing N5584 (36 hosts) leaves calibrator scatter consistent with C (null p 0.34 for tau, 0.36 for the subset spread; pre-registered reading 'attributable to N5584'; read post hoc only as consistent with one outlying host, because the null ignores the selection of the most extreme host; confirmed as the pre-registered reading of the selection-aware test R2-RE-SEL, T-042, 2026-11-20: p 0.24 for tau, 0.24 and 0.14 for the spread; referee, post hoc: low power against diffuse host scatter, a post-hoc spread-drop statistic points towards one host but no single-outlier model was simulated, T-048) and the CCHP selection at the 8.5th percentile; a Student-t host effect (nu = 4, variational EM) down-weights only N5584 (weight 0.39) and gives z = -1.38: the null holds under both treatments (method spread of z about +/-0.3, never reaching -2). Whether N5584's SN 2007af or its Cepheid distance is off is not identified by the data; the literature favours the SN."
    ],
-   "notes": "Milestone M2. Study 003 R2-RE (2026-11-16): with a host-level random effect estimated by REML (0.077 mag), the CCHP host shift is 1.5 sigma and the pre-registered table gives no host-selection effect detected; the random effect removes the excess random-subset scatter (spread 1.33 -> 1.005)."
+   "notes": "Milestone M2. Study 003 R2-RE (2026-11-16): with a host-level random effect estimated by REML (0.077 mag), the CCHP host shift is 1.5 sigma and the pre-registered table gives no host-selection effect detected; the random effect removes the excess random-subset scatter (spread 1.33 -> 1.005). R2-RE-N5584 (2026-11-18): the excess calibrator scatter is consistent with one outlying host (N5584; also with the selection of the most extreme host simulated, R2-RE-SEL, T-042, a test with little power against diffuse host scatter, T-048); removing or down-weighting it keeps no host-selection effect detected (z -1.38 to -1.63)."
   },
   {
    "id": "jwst-z14-galaxies",
@@ -334,13 +344,18 @@
       "name": "R2/R3-POST: posterior over the z ~ 8 LF calibration (sensitivity check)",
       "paper": null,
       "ours": "ratio to N26's baseline 7.5-14.2 (16-84%), P(higher) = 1.00; P(sigma_UV overlaps 1.5-2 mag) = 0.962 (0.86-1.00 with sigma_cal)"
+     },
+     {
+      "name": "R3-POST2: sigma_cal sampled, Poisson brightest bins, gamma >= -1 (sensitivity check)",
+      "paper": null,
+      "ours": "P(higher) = 0.99, ratio 5.5-21.7 (16-84%); P(sigma_UV overlaps 1.5-2 mag) = 0.916, calibration-uncertain; sigma_cal prior-dominated (0.43-1.05 mag)"
      }
     ]
    },
    "open_questions": [
     "Minimal UV burstiness / star-formation efficiency needed at z ~ 12-15."
    ],
-   "notes": "Milestone M8. Detection is established; the interpretation of the excess is contested. Study 006: the size of the excess depends strongly on the pre-JWST baseline (calibration-dependent across 72 model variants); the counts are two sources with Poisson errors only (cosmic variance, the effective area and the bin drawn around the detections are open gaps). The referee showed that 1 sigma in phi*, M* or alpha flips the sigma_UV verdict (phi* -1 sigma also brings the model within 3x of N26's baseline), and that a z ~ 8 dust correction raises the ratio and flips the sigma_UV verdict. T-025 (2026-11-16, pre-registered posterior calibration on binned z ~ 8 LF data): the excess over N26's baseline is robust to the LF calibration uncertainty (P(higher) >= 0.994 in all four fits; ratio 16-84% 7.5-14.2 in the primary fit), while the sigma_UV overlap with N26 stays borderline (P = 0.96, 0.86-1.00 with sigma_cal); both conditional on the fiducial model ingredients."
+   "notes": "Milestone M8. Detection is established; the interpretation of the excess is contested. Study 006: the size of the excess depends strongly on the pre-JWST baseline (calibration-dependent across 72 model variants); the counts are two sources with Poisson errors only (cosmic variance, the effective area and the bin drawn around the detections are open gaps). The referee showed that 1 sigma in phi*, M* or alpha flips the sigma_UV verdict (phi* -1 sigma also brings the model within 3x of N26's baseline), and that a z ~ 8 dust correction raises the ratio and flips the sigma_UV verdict. T-025 (2026-11-16, pre-registered posterior calibration on binned z ~ 8 LF data): the excess over N26's baseline is robust to the LF calibration uncertainty (P(higher) >= 0.994 in all four fits; ratio 16-84% 7.5-14.2 in the primary fit), while the sigma_UV overlap with N26 stays borderline (P = 0.96, 0.86-1.00 with sigma_cal); both conditional on the fiducial model ingredients. T-036 (2026-11-18, pre-registered R3-POST2 with sigma_cal sampled, Poisson brightest bins, gamma >= -1): the excess stays robust (P = 0.99); the sigma_UV overlap is calibration-uncertain (P = 0.92), and the referee (post hoc) showed the data carry no information on sigma_cal, so P is set by the lower edge of its prior."
   },
   {
    "id": "milky-way-declining-rotation-curve",
@@ -384,7 +399,7 @@
    "open_questions": [
     "Joint propagation of Jeans-modelling systematics (cross-term, disequilibrium, disk scale length)."
    ],
-   "notes": "Milestone M6."
+   "notes": "Milestone M6. R6-COV (2026-11-18, T-028, pre-registered sensitivity analysis): with Table 3 errors correlated inside their variance (five assumed covariances calibrated to Einasto chi2 = dof), all calibrated kernels need 92-96% correlated variance (high-f); flat rejected at >= 2 sigma (2.99-4.94 for squared-exponential kernels), Keplerian not distinguished from gamma = -0.2, NFW disfavoured (delta chi2 14-61), all only with high-f covariances; referee (post hoc): correlation halves the flat rejection and removes the Keplerian preference of rescaled independent errors."
   },
   {
    "id": "nanohertz-gw-background",
@@ -479,6 +494,21 @@
       "ours": "2.18 +/- 0.03 sigma"
      },
      {
+      "name": "DES Y6 3x2pt - CMB full-space difference (6 parameters, normalizing flows)",
+      "paper": "1.8 sigma",
+      "ours": "1.70 sigma mean, 1.61-1.86 over 5 flow trainings (R6 not evaluable: training spread 0.098 > 0.07)"
+     },
+     {
+      "name": "Same difference without Sigma m_nu (5 parameters, normalizing flows; R6-NOMNU, pre-registered 2026-11-18)",
+      "paper": null,
+      "ours": "0.52 sigma (5 trainings, s 0.04): the full-space shift is mainly the Sigma m_nu direction; referee (post hoc): Sigma m_nu jointly with its DES correlations and partly the prior shape (T-044)"
+     },
+     {
+      "name": "Fraction of what Sigma m_nu adds that goes with its DES-side correlations (DES Sigma m_nu column shuffled, 6-D flows; R6-SHUF, pre-registered 2026-11-19)",
+      "paper": null,
+      "ours": "phi = 0.671, I = [0.638, 0.704] (5 paired trainings): mainly through its correlations with the other DES parameters; with DES's Sigma m_nu from its prior the 6-D value (0.55 sigma) is close to the 5-D one; referee (post hoc): gate-bias-corrected I = [0.601, 0.669], near the edge (T-047)"
+     },
+     {
       "name": "S8 KiDS-Legacy",
       "paper": "0.815 +0.016/-0.021 (mode); mean 0.813 +/- 0.018",
       "ours": "1.04 sigma from the CMB chain (summary only)",
@@ -487,9 +517,10 @@
     ]
    },
    "open_questions": [
-    "Same-prior, same-S8-definition meta-comparison across probes."
+    "Same-prior, same-S8-definition meta-comparison across probes.",
+    "Which DES parameters carry Sigma m_nu's correlation, and does a known-answer test of the shuffle fraction phi recover it within about 0.05? (R6-SHUF, T-044: phi = 0.67, mainly DES-side correlations, near the edge of the calibration; T-047.)"
    ],
-   "notes": "Milestone M3."
+   "notes": "Milestone M3. Study 008 R6-NOMNU (2026-11-18): most of DES Y6's full-space 1.8 sigma difference from the CMB goes with Sigma m_nu (the CMB chain sits at the 0.06 eV prior edge, DES is close to its prior); R6-SHUF (T-044, 2026-11-20, pre-registered): what Sigma m_nu adds is mainly through its correlations with the other DES parameters (phi = 0.67; about a third from DES's Sigma m_nu marginal against its prior; with DES's Sigma m_nu at its prior about 0.03 sigma remains, not separated between the CMB side, the sixth dimension and residuals; near the edge of the gates' calibration, T-047); in the other five parameters the difference is 0.5 sigma, in the data-constrained pair (A_s, Omega_m) 0.40 sigma."
   },
   {
    "id": "wide-binary-gravity-test",
@@ -546,7 +577,8 @@
    },
    "open_questions": [
     "Blind quality-ladder reanalysis reproducing both groups' cuts in one pipeline.",
-    "Hidden close binaries flagged with DR4 epoch astrometry."
+    "Hidden close binaries flagged with DR4 epoch astrometry.",
+    "Study 004 R5 (2026-11-18, pre-registered power gate): the enlarged d < 250 pc design was not run because its velocity-free power gate failed (L_N* 68 < 100); the relaxed degrouping rule keeps 44% of pairs at 130 pc but 23% at 250 pc (pointing to chance neighbours, referee post hoc; direct test T-043). A degrouping rule that scales with distance (chance-alignment rate, T-043) is open."
    ],
    "notes": "Milestone M7. Do not download the 1.8 GB El-Badry catalog; rebuild the sample server-side. Study 004 (2026-11-16): the server-side rebuild of C26's sample gives 639 pairs (C26 1421); with bootstrap errors the test cannot distinguish Newton from MOND and had no power; with C26's MAD/sqrt(N) errors the same data favour MOND, so the error model decides. Post hoc: C26's lowest x bin needs pairs below 1 kAU; with a 300 AU floor the result swings by orders of magnitude with the HR cut and degrouping (re-test T-034)."
   }
@@ -686,13 +718,274 @@
     },
     "sky": {
      "modes": [
-      "survey"
+      "survey",
+      "targets"
      ],
      "survey": {
       "name": "SH0ES + Pantheon+",
       "note": "Cepheid hosts and Hubble-flow SNe Ia across the sky (public SH0ES matrices); CCHP JWST hosts are a subset"
      },
-     "targets": []
+     "targets": [
+      {
+       "name": "M101 (CCHP host)",
+       "ra": 210.8025,
+       "dec": 54.3487,
+       "l": 102.03686946568175,
+       "b": 59.771432237720646
+      },
+      {
+       "name": "Mrk 1337",
+       "ra": 193.1449,
+       "dec": -9.7761,
+       "l": 303.40033746652887,
+       "b": 53.09460922330934
+      },
+      {
+       "name": "NGC 691",
+       "ra": 27.674,
+       "dec": 21.7597,
+       "l": 140.73849058436298,
+       "b": -39.05434503655792
+      },
+      {
+       "name": "NGC 1015",
+       "ra": 39.5486,
+       "dec": -1.3178,
+       "l": 172.18802952539914,
+       "b": -53.65297789964797
+      },
+      {
+       "name": "NGC 105",
+       "ra": 6.3212,
+       "dec": 12.885,
+       "l": 113.09369990074507,
+       "b": -49.486509159799745
+      },
+      {
+       "name": "NGC 1309",
+       "ra": 50.5278,
+       "dec": -15.4005,
+       "l": 202.20288956838476,
+       "b": -53.15663068639037
+      },
+      {
+       "name": "NGC 1365 (CCHP host)",
+       "ra": 53.4027,
+       "dec": -36.138,
+       "l": 237.95188445240666,
+       "b": -54.59728966078118
+      },
+      {
+       "name": "NGC 1448",
+       "ra": 56.1336,
+       "dec": -44.6438,
+       "l": 251.52056366502623,
+       "b": -51.39376268866424
+      },
+      {
+       "name": "NGC 1559",
+       "ra": 64.406,
+       "dec": -62.7844,
+       "l": 274.5098260421535,
+       "b": -41.19504371511421
+      },
+      {
+       "name": "NGC 2442 (CCHP host)",
+       "ra": 114.0996,
+       "dec": -69.5306,
+       "l": 281.2992429556624,
+       "b": -21.501540764517454
+      },
+      {
+       "name": "NGC 2525",
+       "ra": 121.409,
+       "dec": -11.4281,
+       "l": 231.85232138473324,
+       "b": 10.787426328744901
+      },
+      {
+       "name": "NGC 2608",
+       "ra": 128.8211,
+       "dec": 28.4742,
+       "l": 195.45461861122638,
+       "b": 34.047161623841134
+      },
+      {
+       "name": "NGC 3021",
+       "ra": 147.739,
+       "dec": 33.5545,
+       "l": 192.17652479234454,
+       "b": 50.83945438257031
+      },
+      {
+       "name": "NGC 3147",
+       "ra": 154.2218,
+       "dec": 73.4012,
+       "l": 136.29000942863044,
+       "b": 39.46248098678764
+      },
+      {
+       "name": "NGC 3254",
+       "ra": 157.3336,
+       "dec": 29.4912,
+       "l": 200.11029360165955,
+       "b": 58.75384458793282
+      },
+      {
+       "name": "NGC 3370",
+       "ra": 161.7657,
+       "dec": 17.2739,
+       "l": 225.34959759289677,
+       "b": 59.67130745003044
+      },
+      {
+       "name": "NGC 3447",
+       "ra": 163.3478,
+       "dec": 16.7734,
+       "l": 227.55990884564196,
+       "b": 60.82737556249412
+      },
+      {
+       "name": "NGC 3583",
+       "ra": 168.5482,
+       "dec": 48.3201,
+       "l": 158.11134725115494,
+       "b": 61.6296424415415
+      },
+      {
+       "name": "NGC 3972 (CCHP host)",
+       "ra": 178.9424,
+       "dec": 55.3187,
+       "l": 138.8451379009498,
+       "b": 60.05630993918453
+      },
+      {
+       "name": "NGC 3982",
+       "ra": 179.1174,
+       "dec": 55.1248,
+       "l": 138.83042404242906,
+       "b": 60.274272431390244
+      },
+      {
+       "name": "NGC 4038 (CCHP host)",
+       "ra": 180.4707,
+       "dec": -18.865,
+       "l": 286.9575668635807,
+       "b": 42.46442727103169
+      },
+      {
+       "name": "NGC 4424 (CCHP host)",
+       "ra": 186.7982,
+       "dec": 9.4209,
+       "l": 283.8801970419951,
+       "b": 71.39024950202325
+      },
+      {
+       "name": "NGC 4536 (CCHP host)",
+       "ra": 188.6124,
+       "dec": 2.1886,
+       "l": 292.9486341735976,
+       "b": 64.73054574013555
+      },
+      {
+       "name": "NGC 4639 (CCHP host)",
+       "ra": 190.7195,
+       "dec": 13.2584,
+       "l": 294.29948421292613,
+       "b": 75.98647685933899
+      },
+      {
+       "name": "NGC 4680",
+       "ra": 191.7287,
+       "dec": -11.6364,
+       "l": 301.1634743874924,
+       "b": 51.219815839059024
+      },
+      {
+       "name": "NGC 5468",
+       "ra": 211.6458,
+       "dec": -5.4536,
+       "l": 334.86762622473987,
+       "b": 52.69537304402233
+      },
+      {
+       "name": "NGC 5584",
+       "ra": 215.5999,
+       "dec": -0.3867,
+       "l": 345.1163989459661,
+       "b": 54.85612815122885
+      },
+      {
+       "name": "NGC 5643 (CCHP host)",
+       "ra": 218.1729,
+       "dec": -44.1734,
+       "l": 321.44539396825377,
+       "b": 15.02822088322614
+      },
+      {
+       "name": "NGC 5728",
+       "ra": 220.6008,
+       "dec": -17.2534,
+       "l": 337.32557542749873,
+       "b": 38.097601791291716
+      },
+      {
+       "name": "NGC 5861",
+       "ra": 227.317,
+       "dec": -11.3214,
+       "l": 348.5270167975687,
+       "b": 39.05317021182289
+      },
+      {
+       "name": "NGC 5917",
+       "ra": 230.3862,
+       "dec": -7.3781,
+       "l": 354.875629883714,
+       "b": 39.897966001455146
+      },
+      {
+       "name": "NGC 7250 (CCHP host)",
+       "ra": 334.5737,
+       "dec": 40.5625,
+       "l": 93.9744288941621,
+       "b": -13.544010364130212
+      },
+      {
+       "name": "NGC 7329",
+       "ra": 340.0984,
+       "dec": -66.4788,
+       "l": 320.97385779725755,
+       "b": -45.78956215328541
+      },
+      {
+       "name": "NGC 7541",
+       "ra": 348.6799,
+       "dec": 4.5344,
+       "l": 82.84043910809919,
+       "b": -50.65258401835339
+      },
+      {
+       "name": "NGC 7678",
+       "ra": 352.1174,
+       "dec": 22.4228,
+       "l": 98.88391640696767,
+       "b": -36.54445296977249
+      },
+      {
+       "name": "NGC 976",
+       "ra": 38.4986,
+       "dec": 20.9766,
+       "l": 152.83807928617733,
+       "b": -35.86988022075637
+      },
+      {
+       "name": "UGC 9391",
+       "ra": 218.6504,
+       "dec": 59.3334,
+       "l": 101.17800206473652,
+       "b": 53.21882980834205
+      }
+     ]
     }
    }
   },
@@ -711,13 +1004,15 @@
    "last_run": true,
    "footprint": {
     "scale": {
-     "log10_min": -6.0,
-     "log10_max": 4.0,
-     "note": null,
-     "default": true
+     "log10_min": 0.11394335230683679,
+     "log10_max": 2.3979400086720375,
+     "note": "Gaia DR3 wide binaries: velocities analysed to 150 pc (main sample 130 pc); the velocity-free R5 pair search to 250 pc; no lower distance cut (the nearest Gaia stars are at ~1.3 pc)",
+     "default": false
     },
     "sky": {
-     "modes": [],
+     "modes": [
+      "all-sky"
+     ],
      "survey": null,
      "targets": []
     }
@@ -738,15 +1033,488 @@
    "last_run": true,
    "footprint": {
     "scale": {
-     "log10_min": -6.0,
-     "log10_max": 10.15,
-     "note": null,
-     "default": true
+     "log10_min": 2.2041199826559246,
+     "log10_max": 3.8095597146352675,
+     "note": "pulsar-Earth distances of the NANOGrav 15-yr pulsars, 0.16-6.45 kpc (ATNF best estimates, DM-based by default, for 55 of the 67; the 12 newer pulsars are not in the VizieR copy); the background's sources (supermassive black hole binaries) are cosmological",
+     "default": false
     },
     "sky": {
-     "modes": [],
+     "modes": [
+      "all-sky",
+      "targets"
+     ],
      "survey": null,
-     "targets": []
+     "targets": [
+      {
+       "name": "PSR J0023+0923",
+       "ra": 5.8203,
+       "dec": 9.39,
+       "l": 111.38305463433478,
+       "b": -52.84922028656691
+      },
+      {
+       "name": "PSR J0030+0451",
+       "ra": 7.6143,
+       "dec": 4.861,
+       "l": 113.14118512434472,
+       "b": -57.61136292312084
+      },
+      {
+       "name": "PSR J0340+4130",
+       "ra": 55.097,
+       "dec": 41.5126,
+       "l": 153.78333978951588,
+       "b": -11.021858367576264
+      },
+      {
+       "name": "PSR J0406+3039",
+       "ra": 61.5,
+       "dec": 30.65,
+       "l": 165.10029159050646,
+       "b": -15.871036688280212
+      },
+      {
+       "name": "PSR J0437-4715",
+       "ra": 69.3163,
+       "dec": -47.2525,
+       "l": 253.39441389070822,
+       "b": -41.96335424314918
+      },
+      {
+       "name": "PSR J0509+0856",
+       "ra": 77.25,
+       "dec": 8.9333,
+       "l": 192.44107392212135,
+       "b": -18.011650838241206
+      },
+      {
+       "name": "PSR J0557+1551",
+       "ra": 89.25,
+       "dec": 15.85,
+       "l": 192.60860895251417,
+       "b": -4.4113489792611915
+      },
+      {
+       "name": "PSR J0605+3757",
+       "ra": 91.25,
+       "dec": 37.95,
+       "l": 174.19325412203065,
+       "b": 8.000872494185632
+      },
+      {
+       "name": "PSR J0610-2100",
+       "ra": 92.5566,
+       "dec": -21.0078,
+       "l": 227.74655161678157,
+       "b": -18.18363662545276
+      },
+      {
+       "name": "PSR J0613-0200",
+       "ra": 93.4333,
+       "dec": -2.0131,
+       "l": 210.41306728831412,
+       "b": -9.304837835697944
+      },
+      {
+       "name": "PSR J0636+5128",
+       "ra": 99.0,
+       "dec": 51.4667,
+       "l": 163.92038156704194,
+       "b": 18.62499627047991
+      },
+      {
+       "name": "PSR J0645+5158",
+       "ra": 101.4962,
+       "dec": 51.9708,
+       "l": 163.96296061096726,
+       "b": 20.250940140435745
+      },
+      {
+       "name": "PSR J0709+0458",
+       "ra": 107.25,
+       "dec": 4.9667,
+       "l": 210.49487929208215,
+       "b": 6.162807647870878
+      },
+      {
+       "name": "PSR J0740+6620",
+       "ra": 115.0,
+       "dec": 66.3333,
+       "l": 149.73943972816483,
+       "b": 29.522683315606308
+      },
+      {
+       "name": "PSR J0931-1902",
+       "ra": 142.8297,
+       "dec": -19.0486,
+       "l": 250.99921836206497,
+       "b": 23.053675207289718
+      },
+      {
+       "name": "PSR J1012+5307",
+       "ra": 153.1393,
+       "dec": 53.1174,
+       "l": 160.347022196401,
+       "b": 50.85778255799287
+      },
+      {
+       "name": "PSR J1012-4235",
+       "ra": 153.0292,
+       "dec": -42.5833,
+       "l": 274.1937609778121,
+       "b": 11.226181392207208
+      },
+      {
+       "name": "PSR J1022+1001",
+       "ra": 155.7417,
+       "dec": 10.0313,
+       "l": 231.79458857845532,
+       "b": 51.10068630666103
+      },
+      {
+       "name": "PSR J1024-0719",
+       "ra": 156.1612,
+       "dec": -7.3221,
+       "l": 251.70165284294228,
+       "b": 40.51550814897056
+      },
+      {
+       "name": "PSR J1125+7819",
+       "ra": 171.25,
+       "dec": 78.3167,
+       "l": 128.35406997822332,
+       "b": 37.886116537782335
+      },
+      {
+       "name": "PSR J1312+0051",
+       "ra": 198.0,
+       "dec": 0.85,
+       "l": 314.41786499684474,
+       "b": 63.262275443920664
+      },
+      {
+       "name": "PSR J1453+1902",
+       "ra": 223.4405,
+       "dec": 19.0367,
+       "l": 23.3947450100596,
+       "b": 60.81226427000745
+      },
+      {
+       "name": "PSR J1455-3330",
+       "ra": 223.9499,
+       "dec": -33.5129,
+       "l": 330.72177717829686,
+       "b": 22.562232348969573
+      },
+      {
+       "name": "PSR J1600-3053",
+       "ra": 240.2162,
+       "dec": -30.8971,
+       "l": 344.0903598884135,
+       "b": 16.45138128181469
+      },
+      {
+       "name": "PSR J1614-2230",
+       "ra": 243.6521,
+       "dec": -22.5087,
+       "l": 352.63569310992494,
+       "b": 20.192101436116282
+      },
+      {
+       "name": "PSR J1630+3734",
+       "ra": 247.5,
+       "dec": 37.5667,
+       "l": 60.218018200807876,
+       "b": 43.33397898753536
+      },
+      {
+       "name": "PSR J1640+2224",
+       "ra": 250.0698,
+       "dec": 22.4024,
+       "l": 41.050954518184405,
+       "b": 38.2711443665057
+      },
+      {
+       "name": "PSR J1643-1224",
+       "ra": 250.909,
+       "dec": -12.4163,
+       "l": 5.669486505011396,
+       "b": 21.217624399607065
+      },
+      {
+       "name": "PSR J1705-1903",
+       "ra": 256.25,
+       "dec": -19.05,
+       "l": 3.1555628637500455,
+       "b": 13.177613260010613
+      },
+      {
+       "name": "PSR J1713+0747",
+       "ra": 258.4564,
+       "dec": 7.7938,
+       "l": 28.75061474657708,
+       "b": 25.222851608056118
+      },
+      {
+       "name": "PSR J1719-1438",
+       "ra": 259.792,
+       "dec": -14.6336,
+       "l": 8.858518844432416,
+       "b": 12.83831608766924
+      },
+      {
+       "name": "PSR J1730-2304",
+       "ra": 262.5903,
+       "dec": -23.0753,
+       "l": 3.137224609710433,
+       "b": 6.023277261936262
+      },
+      {
+       "name": "PSR J1738+0333",
+       "ra": 264.7249,
+       "dec": 3.553,
+       "l": 27.721285064794436,
+       "b": 17.7421913684131
+      },
+      {
+       "name": "PSR J1741+1351",
+       "ra": 265.3798,
+       "dec": 13.8622,
+       "l": 37.88514316870158,
+       "b": 21.640747333014595
+      },
+      {
+       "name": "PSR J1744-1134",
+       "ra": 266.1225,
+       "dec": -11.5819,
+       "l": 14.79382647455908,
+       "b": 9.179722863715034
+      },
+      {
+       "name": "PSR J1745+1017",
+       "ra": 266.391,
+       "dec": 10.2979,
+       "l": 34.86929658332657,
+       "b": 19.253666677974604
+      },
+      {
+       "name": "PSR J1747-4036",
+       "ra": 266.953,
+       "dec": -40.6152,
+       "l": 350.2077539745377,
+       "b": -6.412003635456577
+      },
+      {
+       "name": "PSR J1751-2857",
+       "ra": 267.8863,
+       "dec": -28.9629,
+       "l": 0.6456157036639301,
+       "b": -1.1243233157600883
+      },
+      {
+       "name": "PSR J1802-2124",
+       "ra": 270.5223,
+       "dec": -21.401,
+       "l": 8.382134277875624,
+       "b": 0.6108896529486005
+      },
+      {
+       "name": "PSR J1811-2405",
+       "ra": 272.8327,
+       "dec": -24.0884,
+       "l": 7.073004889568671,
+       "b": -2.5589531305490136
+      },
+      {
+       "name": "PSR J1832-0836",
+       "ra": 278.115,
+       "dec": -8.6153,
+       "l": 23.10856768400089,
+       "b": 0.2564641912489214
+      },
+      {
+       "name": "PSR J1843-1113",
+       "ra": 280.9219,
+       "dec": -11.2253,
+       "l": 22.05468036943185,
+       "b": -3.396752700366048
+      },
+      {
+       "name": "PSR J1853+1303",
+       "ra": 283.4888,
+       "dec": 13.0623,
+       "l": 44.874572146365196,
+       "b": 5.366995201827784
+      },
+      {
+       "name": "PSR J1857+0943",
+       "ra": 284.4016,
+       "dec": 9.7214,
+       "l": 42.290246757434055,
+       "b": 3.0604191670076255
+      },
+      {
+       "name": "PSR J1903+0327",
+       "ra": 285.7741,
+       "dec": 3.4553,
+       "l": 37.336294661387484,
+       "b": -1.0135936231013907
+      },
+      {
+       "name": "PSR J1909-3744",
+       "ra": 287.4476,
+       "dec": -37.7374,
+       "l": 359.7307373813236,
+       "b": -19.59579142106099
+      },
+      {
+       "name": "PSR J1910+1256",
+       "ra": 287.5404,
+       "dec": 12.9404,
+       "l": 46.56384433141848,
+       "b": 1.7952210378095599
+      },
+      {
+       "name": "PSR J1911+1347",
+       "ra": 287.98,
+       "dec": 13.7929,
+       "l": 47.51798174934027,
+       "b": 1.8091670827133521
+      },
+      {
+       "name": "PSR J1918-0642",
+       "ra": 289.7001,
+       "dec": -6.7097,
+       "l": 30.02652431893807,
+       "b": -9.123047370462185
+      },
+      {
+       "name": "PSR J1923+2515",
+       "ra": 290.8437,
+       "dec": 25.2613,
+       "l": 58.945564871478545,
+       "b": 4.749051211149292
+      },
+      {
+       "name": "PSR J1939+2134",
+       "ra": 294.9107,
+       "dec": 21.5831,
+       "l": 57.50891392163285,
+       "b": -0.28961813705383527
+      },
+      {
+       "name": "PSR J1944+0907",
+       "ra": 296.0389,
+       "dec": 9.1231,
+       "l": 47.160227760549034,
+       "b": -7.357061133329019
+      },
+      {
+       "name": "PSR J1946+3417",
+       "ra": 296.6047,
+       "dec": 34.2874,
+       "l": 69.29431187962224,
+       "b": 4.712641874921957
+      },
+      {
+       "name": "PSR J1955+2908",
+       "ra": 298.8662,
+       "dec": 29.1454,
+       "l": 65.8393006021782,
+       "b": 0.4431938562060309
+      },
+      {
+       "name": "PSR J2010-1323",
+       "ra": 302.6913,
+       "dec": -13.3989,
+       "l": 29.44560750985664,
+       "b": -23.539666770863967
+      },
+      {
+       "name": "PSR J2017+0603",
+       "ra": 304.3446,
+       "dec": 6.0516,
+       "l": 48.62080204407895,
+       "b": -16.026297060549254
+      },
+      {
+       "name": "PSR J2033+1734",
+       "ra": 308.3647,
+       "dec": 17.5829,
+       "l": 60.856641266708394,
+       "b": -13.154229471528689
+      },
+      {
+       "name": "PSR J2043+1711",
+       "ra": 310.837,
+       "dec": 17.1914,
+       "l": 61.918847294848476,
+       "b": -15.312864234378875
+      },
+      {
+       "name": "PSR J2124-3358",
+       "ra": 321.1827,
+       "dec": -33.9791,
+       "l": 10.925059201807347,
+       "b": -45.437540743812505
+      },
+      {
+       "name": "PSR J2145-0750",
+       "ra": 326.4602,
+       "dec": -7.8385,
+       "l": 47.7766483855989,
+       "b": -42.08360030094043
+      },
+      {
+       "name": "PSR J2214+3000",
+       "ra": 333.6619,
+       "dec": 30.0106,
+       "l": 86.85536362259336,
+       "b": -21.665181062801377
+      },
+      {
+       "name": "PSR J2229+2643",
+       "ra": 337.462,
+       "dec": 26.7327,
+       "l": 87.69304382614243,
+       "b": -26.283904902361336
+      },
+      {
+       "name": "PSR J2234+0611",
+       "ra": 338.5,
+       "dec": 6.1833,
+       "l": 72.88828124461844,
+       "b": -42.94598636665626
+      },
+      {
+       "name": "PSR J2234+0944",
+       "ra": 338.5,
+       "dec": 9.7333,
+       "l": 76.08280332239426,
+       "b": -40.318144762783284
+      },
+      {
+       "name": "PSR J2302+4442",
+       "ra": 345.6958,
+       "dec": 44.7061,
+       "l": 103.39526839914495,
+       "b": -14.004630069486412
+      },
+      {
+       "name": "PSR J2317+1439",
+       "ra": 349.2885,
+       "dec": 14.6587,
+       "l": 91.36077477112832,
+       "b": -42.36017672394269
+      },
+      {
+       "name": "PSR J2322+2057",
+       "ra": 350.5932,
+       "dec": 20.9508,
+       "l": 96.51481239331589,
+       "b": -37.31007409155517
+      }
+     ]
     }
    }
   },
@@ -765,15 +1533,32 @@
    "last_run": true,
    "footprint": {
     "scale": {
-     "log10_min": 7.0,
-     "log10_max": 10.0,
-     "note": null,
-     "default": true
+     "log10_min": 9.939519252618618,
+     "log10_max": 10.021189299069938,
+     "note": "z ~ 14-15 volume (comoving 10.3-10.45 Gpc, Planck18) and the z ~ 7-8 comparison luminosity functions (8.7-9.1 Gpc)",
+     "default": false
     },
     "sky": {
-     "modes": [],
+     "modes": [
+      "targets"
+     ],
      "survey": null,
-     "targets": []
+     "targets": [
+      {
+       "name": "MoM-z14",
+       "ra": 150.0933255,
+       "dec": 2.2731627,
+       "l": 236.72809181312945,
+       "b": 42.13964241737201
+      },
+      {
+       "name": "JADES-GS-z14-0",
+       "ra": 53.0829375,
+       "dec": -27.8556306,
+       "l": 223.6460346281118,
+       "b": -54.47393087710956
+      }
+     ]
     }
    }
   },
@@ -792,13 +1577,15 @@
    "last_run": true,
    "footprint": {
     "scale": {
-     "log10_min": -6.0,
-     "log10_max": 10.15,
-     "note": null,
-     "default": true
+     "log10_min": 8.431363764158988,
+     "log10_max": 9.544068044350276,
+     "note": "comoving distances (Planck18) of the binary black holes, z 0.06-1.06; luminosity distances (posterior medians) 0.29-7.3 Gpc",
+     "default": false
     },
     "sky": {
-     "modes": [],
+     "modes": [
+      "all-sky"
+     ],
      "survey": null,
      "targets": []
     }
@@ -819,14 +1606,20 @@
    "last_run": true,
    "footprint": {
     "scale": {
-     "log10_min": 8.0,
-     "log10_max": 10.15,
-     "note": null,
-     "default": true
+     "log10_min": 8.924279286061882,
+     "log10_max": 10.143014800254095,
+     "note": "DES Y6 lens and source galaxies (mean bin redshifts 0.31-1.16; comoving ~0.8-4.5 Gpc) and, separately, the CMB (~13.9 Gpc); a combined, not contiguous, range",
+     "default": false
     },
     "sky": {
-     "modes": [],
-     "survey": null,
+     "modes": [
+      "survey",
+      "all-sky"
+     ],
+     "survey": {
+      "name": "DES Y6",
+      "note": "about 5,000 square degrees of the southern sky; the CMB comparison (Planck 2018 + ACT DR6 + SPT-3G) is all-sky (Planck) with partial ACT/SPT coverage"
+     },
      "targets": []
     }
    }
@@ -846,14 +1639,19 @@
    "last_run": true,
    "footprint": {
     "scale": {
-     "log10_min": 0.0,
-     "log10_max": 5.0,
-     "note": null,
-     "default": true
+     "log10_min": 3.724275869600789,
+     "log10_max": 4.4361626470407565,
+     "note": "Galactocentric radii (not distances from the Sun) of the published rotation-curve bins (E19, O24, J23), 5.3-27.3 kpc; the virial radius (~110-120 kpc) is only extrapolated",
+     "default": false
     },
     "sky": {
-     "modes": [],
-     "survey": null,
+     "modes": [
+      "survey"
+     ],
+     "survey": {
+      "name": "Gaia DR3 (+APOGEE)",
+      "note": "published rotation-curve tables built from Gaia DR3 disc stars (J23, O24) and APOGEE + Gaia (E19); no sky data fetched here"
+     },
      "targets": []
     }
    }
@@ -873,14 +1671,19 @@
    "last_run": true,
    "footprint": {
     "scale": {
-     "log10_min": 0.0,
-     "log10_max": 5.0,
-     "note": null,
-     "default": true
+     "log10_min": 2.0,
+     "log10_max": 3.845098040014257,
+     "note": "LAMOST/Gaia subgiants at Galactocentric 6 < R < 14 kpc and -4 < Z < 6 kpc, most within ~2.5 kpc of the Sun; XR22 state no lower distance, the 0.1 kpc start is nominal",
+     "default": false
     },
     "sky": {
-     "modes": [],
-     "survey": null,
+     "modes": [
+      "survey"
+     ],
+     "survey": {
+      "name": "LAMOST x Gaia",
+      "note": "LAMOST spectroscopic footprint (mostly northern sky) with Gaia parallaxes"
+     },
      "targets": []
     }
    }

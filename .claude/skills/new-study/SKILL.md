@@ -22,7 +22,7 @@ use `paper-study`: it adds the wiki article and the Lean argument before the pre
   step that relies on them (`literature-verification` skill).
 - Scaffold: `python -m astrolab new <slug> "<title>" --level Lx` (picks the next number). Then:
   - `study.yaml`: `title_zh`, `question_zh` (tests reject `TODO`), `claims:`, `milestone:`;
-    leave `papers: []` and `wiki: null`; fill or delete the `footprint` block;
+    leave `papers: []` and `wiki: null`; fill the `footprint` block (required: scale, sky mode, data; `claims check` fails without it; targets with sourced coordinates where the study has named objects);
   - delete `argument/` (only paper studies need it; an unchanged template copy is not checked);
   - the Chinese title in `web/index.html` (both `data-title-zh` and the `<h1>` span).
 

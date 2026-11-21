@@ -273,7 +273,8 @@ def test_validate_all_reports_study_placeholders(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "TEMPLATE", Path(__file__).parent.parent / "studies" / "_template")
     s = study.new("fresh", "Fresh", "L3")  # template placeholders, Chinese not filled in yet
     errs = claims.validate_all()[f"studies/{s.id}/study.yaml"]
-    assert len(errs) == 2 and all("placeholder" in e for e in errs)
+    assert len(errs) == 3 and sum("placeholder" in e for e in errs) == 2
+    assert any(e.startswith("footprint missing") for e in errs)       # T-051: the footprint is required
 
 
 def test_studies_have_chinese_fields():

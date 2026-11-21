@@ -120,6 +120,20 @@ def _coord_ok(t: dict[str, Any]) -> bool:
     return ra is not None and dec is not None and 0.0 <= ra < 360.0 and -90.0 <= dec <= 90.0
 
 
+def footprint_required_errors(meta: dict[str, Any]) -> list[str]:
+    """Every study (not the template) needs a footprint with a scale and a sky mode (T-051): the Atlas
+    falls back to a level default and draws nothing on the sky without one."""
+    fp = meta.get("footprint")
+    if not isinstance(fp, dict) or not fp:
+        return ["footprint missing: fill the footprint block of study.yaml (schema in design plan 011)"]
+    errs = []
+    if not fp.get("scale"):
+        errs.append("footprint.scale missing")
+    if not isinstance(fp.get("sky"), dict) or not fp["sky"].get("mode"):
+        errs.append("footprint.sky.mode missing (use 'none' if the study has no sky footprint)")
+    return errs
+
+
 def footprint_errors(meta: dict[str, Any]) -> list[str]:
     """Schema check of the optional ``footprint`` field of a study.yaml (design plan 011)."""
     fp = meta.get("footprint")
@@ -225,7 +239,7 @@ def validate_all() -> dict[str, list[str]]:
     claims = load_all()
     problems = {c["_file"]: validate(c, ids) for c in claims}
     for s in discover():  # studies must carry Chinese title/question too (bilingual rule)
-        errs = zh_errors(s.meta, STUDY_ZH_FIELDS) + footprint_errors(s.meta)
+        errs = zh_errors(s.meta, STUDY_ZH_FIELDS) + footprint_required_errors(s.meta) + footprint_errors(s.meta)
         if errs:
             problems[f"studies/{s.id}/study.yaml"] = errs
     known = {c.get("id") for c in claims}

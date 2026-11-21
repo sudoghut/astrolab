@@ -21,7 +21,7 @@ skill is the order of work and the checklists. Design rationale: `design/007-pla
 - Create the study folder as scaffolding only: `python -m astrolab new <slug> "<title>" --level Lx`.
   The article needs it (its Lean file lives in `argument/`, its page name uses the study number);
   the study itself - pre-registration, `run.py`, web page - still comes after the article (step 4). Fill `study.yaml`
-  `papers:` (arXiv IDs), `wiki:` (page name without `.md`, e.g. `Study-012-gaia-bh3`), and the Chinese fields (`title_zh`, `question_zh`; tests reject `TODO`).
+  `papers:` (arXiv IDs), `wiki:` (page name without `.md`, e.g. `Study-012-gaia-bh3`), the Chinese fields (`title_zh`, `question_zh`; tests reject `TODO`) and the `footprint` (required: scale, sky mode, data; targets with sourced coordinates where the paper has named objects).
 - Retrofitting an existing, already implemented study: copy `argument/`, README section 8 and
   the `papers`/`wiki` fields from `studies/_template/` by hand; write the article the same way,
   but mark part 3's table "written after implementation (post hoc)" (AGENTS.md section 2).

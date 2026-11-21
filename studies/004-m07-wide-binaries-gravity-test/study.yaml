@@ -11,13 +11,9 @@ milestone: M7                 # roadmap milestone id, e.g. M1
 papers: ["2602.24035", "2311.03436", "2305.04613"]  # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
 wiki: Study-004-wide-binaries-newton-or-mond  # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3
 
-# Where this study sits on the Atlas (optional; schema in design plan 011). Remove or fill.
-# footprint:
-#   scale: {min_pc: 1.0, max_pc: 1000.0, note: "distance range the study probes"}
-#   sky:
-#     mode: all-sky | survey | targets | none    # combine with ' + ', e.g. "survey + targets"
-#     survey: {name: "...", note: "..."}
-#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS; ra/dec may be omitted if
-#                                                  # results/targets.json gives them by name
-#   (write exponents as 4.0e+8: PyYAML reads 4e8 as a string; both are accepted)
-#   data: [...]
+# Where this study sits on the Atlas (schema in design plan 011; T-051).
+footprint:
+  scale: {min_pc: 1.3, max_pc: 250.0, note: "Gaia DR3 wide binaries: velocities analysed to 150 pc (main sample 130 pc); the velocity-free R5 pair search to 250 pc; no lower distance cut (the nearest Gaia stars are at ~1.3 pc)"}
+  sky:
+    mode: all-sky
+  data: [gaiadr3.gaia_source, gaiadr3.astrophysical_parameters]
