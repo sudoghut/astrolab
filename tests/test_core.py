@@ -708,3 +708,94 @@ def test_http_sends_generic_user_agent(tmp_cache, monkeypatch):
     fetch.http("http://example.invalid/ua.txt")
     assert len(seen) == 2 and all(h and h["User-Agent"].startswith("astrolab/") for h in seen)
     assert "@" not in fetch.HTTP_HEADERS["User-Agent"]
+
+
+WHY_BUDGET = "user consent 2026-11-21, TODO.md T-021 and log.md"
+
+
+def test_budget_consent_exempts_named_file_only(tmp_cache, monkeypatch):
+    """A fetch with budget_consent is not charged to the study budget but listed (with its consent)
+    in ctx.budget_exempt and its provenance note; other fetches are charged and still hit the budget."""
+    monkeypatch.setattr(config, "STUDY_BUDGET_BYTES", 1000)
+    ctx = study.Context(study.Study(Path(".")))
+    _fake_http(monkeypatch, b"x" * 900)
+    ctx.http("http://example.invalid/big1.csv", label="big1", budget_consent=WHY_BUDGET)
+    ctx.http("http://example.invalid/big2.csv", budget_consent=WHY_BUDGET)   # 1800 B exempt in all
+    assert ctx.bytes_in == 0
+    assert [(e["url"], e["bytes"], e["consent"]) for e in ctx.budget_exempt] == [
+        ("http://example.invalid/big1.csv", 900, WHY_BUDGET),
+        ("http://example.invalid/big2.csv", 900, WHY_BUDGET)]
+    assert all("budget exception: " + WHY_BUDGET in r["note"] for r in ctx.provenance.records)
+    ctx.http("http://example.invalid/small.csv")                 # charged as usual
+    assert ctx.bytes_in == 900 and len(ctx.budget_exempt) == 2
+    assert "note" not in ctx.provenance.records[-1]
+    with pytest.raises(fetch.TooLarge, match="budget"):          # the budget itself is unchanged
+        ctx.http("http://example.invalid/small2.csv")
+    with pytest.raises(fetch.TooLarge, match="budget"):          # a cache hit is charged too
+        ctx.http("http://example.invalid/small.csv")
+
+
+def test_budget_consent_validated_and_cap_still_applies(tmp_cache, monkeypatch):
+    monkeypatch.setattr(config, "HTTP_MAX_BYTES", 1000)
+    ctx = study.Context(study.Study(Path(".")))
+    _fake_http(monkeypatch, b"x" * 2000)
+    for bad in ("", "   ", "ok, user said so", 123):
+        with pytest.raises(ValueError, match="budget_consent"):
+            ctx.http("http://example.invalid/b.csv", budget_consent=bad)
+    with pytest.raises(ValueError, match="budget_consent"):     # allow_refetch alone is not consent
+        ctx.http("http://example.invalid/b.csv", allow_refetch=True)
+    with pytest.raises(fetch.TooLarge):                          # the per-download cap still applies
+        ctx.http("http://example.invalid/b.csv", budget_consent=WHY_BUDGET)
+    with pytest.raises(ValueError, match="cap_consent"):
+        ctx.http("http://example.invalid/b.csv", budget_consent=WHY_BUDGET, max_bytes=5000)
+    ctx.http("http://example.invalid/b.csv", budget_consent=WHY_BUDGET, max_bytes=5000,
+             cap_consent="user approved 2026-11-21, TODO.md T-021")
+    assert ctx.bytes_in == 0 and ctx.budget_exempt[0]["bytes"] == 2000
+    note = ctx.provenance.records[0]["note"]
+    assert "cap exception" in note and "budget exception" in note
+
+
+def test_budget_exempt_file_not_refetched_on_refresh(tmp_cache, monkeypatch):
+    import requests
+
+    _fake_http(monkeypatch, b"x" * 100)
+    study.Context(study.Study(Path("."))).http("http://example.invalid/r.csv", budget_consent=WHY_BUDGET)
+    calls = []
+    monkeypatch.setattr(requests, "get", lambda *a, **k: calls.append(1))
+    monkeypatch.setattr(requests, "head", lambda *a, **k: calls.append(1))
+    ctx = study.Context(study.Study(Path(".")), refresh=True)
+    with pytest.raises(ValueError, match="allow_refetch"):
+        ctx.http("http://example.invalid/r.csv", budget_consent=WHY_BUDGET)
+    with pytest.raises(ValueError, match="budget_consent"):
+        ctx.http("http://example.invalid/r.csv", allow_refetch=True)
+    assert calls == [] and ctx.budget_exempt == [] and ctx.provenance.records == []
+    _fake_http(monkeypatch, b"y" * 100)                           # fresh consent: re-downloaded
+    fresh = "user agreed again 2026-11-22 to re-download, log.md"
+    ctx.http("http://example.invalid/r.csv", budget_consent=fresh, allow_refetch=True)
+    assert ctx.budget_exempt[0]["consent"] == fresh and ctx.budget_exempt[0]["from_cache"] is False
+    assert ctx.bytes_in == 0
+
+
+def test_budget_exempt_list_in_run_record(tmp_path, tmp_cache, monkeypatch):
+    studies = tmp_path / "studies"
+    monkeypatch.setattr(config, "STUDIES", studies)
+    monkeypatch.setattr(config, "TEMPLATE", Path(__file__).parent.parent / "studies" / "_template")
+    _fake_http(monkeypatch, b"x" * 300)
+    s = study.new("exempt", "Exempt test", "L3")
+    (s.path / "run.py").write_text(
+        "PARAMS = {}\n\n\ndef main(ctx):\n"
+        f"    ctx.http('http://example.invalid/e.csv', budget_consent={WHY_BUDGET!r})\n"
+        "    ctx.http('http://example.invalid/n.csv')\n"
+        "    return {}\n", encoding="utf-8")
+    study.run(s)
+    info = json.loads((s.results_dir / "run_info.json").read_text(encoding="utf-8"))
+    assert info["bytes_charged"] == 300 and info["budget_bytes"] == config.STUDY_BUDGET_BYTES
+    assert [(e["url"], e["bytes"], e["consent"]) for e in info["budget_exempt"]] == [
+        ("http://example.invalid/e.csv", 300, WHY_BUDGET)]
+    prov = json.loads((s.results_dir / "provenance.json").read_text(encoding="utf-8"))["inputs"]
+    assert WHY_BUDGET in prov[0]["note"] and "note" not in prov[1]
+    (s.path / "explore").mkdir(exist_ok=True)
+    study.explore(s, "exempt-check")
+    out = next((s.path / "explore").glob("*-exempt-check"))
+    einfo = json.loads((out / "run_info.json").read_text(encoding="utf-8"))
+    assert einfo["budget_exempt"][0]["consent"] == WHY_BUDGET and einfo["bytes_charged"] == 300

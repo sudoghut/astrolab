@@ -15,6 +15,7 @@ Layout of a study folder::
 """
 from __future__ import annotations
 
+import dataclasses
 import datetime as _dt
 import importlib.util
 import json
@@ -115,6 +116,9 @@ class Context:
         self.saved: list[str] = []
         self._record_suffix = ""  # run(): provenance{suffix}.json, run_info{suffix}.json
         self.bytes_in = 0
+        # fetches the user consented to keep out of the budget (http(budget_consent=...)); written
+        # into run_info so every exemption is auditable
+        self.budget_exempt: list[dict[str, Any]] = []
         self.max_save_bytes: int | None = None  # set by explore(): outputs must stay small
 
     @property
@@ -150,12 +154,55 @@ class Context:
         self.log(f"tap:{service} {label or ''} -> {res.provenance.rows} rows{' (cache)' if res.from_cache else ''}")
         return res.data
 
-    def http(self, url: str, *, label: str | None = None, **kw) -> Path:
+    def http(self, url: str, *, label: str | None = None, budget_consent: str | None = None,
+             allow_refetch: bool = False, **kw) -> Path:
+        """Fetch ``url`` through ``fetch.http`` (cached, capped, provenance-logged) and charge its
+        bytes to the run's study budget (``config.STUDY_BUDGET_BYTES``).
+
+        Other keywords (``max_bytes``, ``cap_consent``, ``release``, ``suffix``, ``note``) pass
+        through to ``fetch.http``; raising the per-download cap still needs ``cap_consent``.
+
+        ``budget_consent``: for one named file the user agreed may exceed the study budget
+        (AGENTS.md section 1.6), a string of at least 20 characters naming where that consent is
+        recorded (e.g. "user consent 2026-11-21, TODO.md T-021 and log.md"). That file's bytes are
+        not charged to the budget; the fetch is listed in ``self.budget_exempt`` (url, bytes,
+        consent), written to the run's ``run_info``, and the consent is appended to the fetch's
+        provenance note. The budget itself is unchanged and still applies to every other fetch.
+
+        Such a file is never re-downloaded by a refresh run: with ``self.refresh`` set, the call
+        raises ValueError unless ``allow_refetch=True`` is passed with a consent that names the
+        user's fresh agreement to download it again.
+        """
+        if budget_consent is not None or allow_refetch:
+            if not isinstance(budget_consent, str) or len(budget_consent.strip()) < 20:
+                raise ValueError("budget_consent must name where the user's consent for this file is "
+                                 "recorded (at least 20 characters; AGENTS.md 1.6)"
+                                 + ("; allow_refetch needs it too" if allow_refetch else ""))
+            if self.refresh and not allow_refetch:
+                raise ValueError(f"refresh would re-download {url}, a file exempted from the study budget; "
+                                 "a new download needs the user's fresh consent: pass a budget_consent "
+                                 "naming it and allow_refetch=True, or run without --refresh")
         res = fetch.http(url, refresh=self.refresh, **kw)
-        self.provenance.add(res.provenance, label)
-        self._charge(res.provenance.bytes, f"http {label or url}")
-        self.log(f"http {label or url} -> {res.provenance.bytes} bytes{' (cache)' if res.from_cache else ''}")
+        prov = res.provenance
+        if budget_consent is not None:
+            exception = f"budget exception: {budget_consent.strip()}"
+            prov = dataclasses.replace(prov, note=f"{prov.note}; {exception}" if prov.note else exception)
+            self.provenance.add(prov, label)
+            self.budget_exempt.append({"url": url, "label": label, "bytes": prov.bytes or 0,
+                                       "sha256": prov.sha256, "consent": budget_consent.strip(),
+                                       "from_cache": res.from_cache})
+            how = "not charged to the study budget"
+        else:
+            self.provenance.add(prov, label)
+            self._charge(prov.bytes, f"http {label or url}")
+            how = "charged"
+        self.log(f"http {label or url} -> {prov.bytes} bytes{' (cache)' if res.from_cache else ''}, {how}")
         return res.data
+
+    def budget_record(self) -> dict[str, Any]:
+        """Charged and exempted input bytes of this run, for run_info."""
+        return {"bytes_charged": self.bytes_in, "budget_bytes": config.STUDY_BUDGET_BYTES,
+                "budget_exempt": list(self.budget_exempt)}
 
     def save(self, name: str, obj: Any) -> Path:
         if not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_.-]*", name) or ".." in name:
@@ -192,7 +239,8 @@ def run(study: Study, refresh: bool = False) -> dict[str, Any]:
     suffix = ctx.record_suffix                     # validated by the Context setter
     ctx.provenance.write(study.results_dir / f"provenance{suffix}.json")
     write_json(study.results_dir / f"run_info{suffix}.json",
-               {"study": study.id, "finished_at": now_iso(), "seconds": elapsed, "outputs": ctx.saved})
+               {"study": study.id, "finished_at": now_iso(), "seconds": elapsed, "outputs": ctx.saved,
+                **ctx.budget_record()})
     print(f"[{study.id}] done in {elapsed}s; outputs: {', '.join(ctx.saved) or '-'}")
     if summary:
         print(summarize(summary))
@@ -294,7 +342,7 @@ def explore(study: Study, tag: str, sets: list[str] | None = None, script: str |
     write_json(out / "run_info.json", {
         "study": study.id, "finished_at": now_iso(), "seconds": round(time.time() - t0, 2),
         "script": script or "run.py", "overrides": overrides, "params": dict(params),
-        "outputs": ctx.saved})
+        "outputs": ctx.saved, **ctx.budget_record()})
     print(f"[{study.id}] exploration written to {out.relative_to(study.path.resolve())}")
     if summary:
         print(summarize(summary))
