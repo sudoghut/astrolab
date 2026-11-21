@@ -1048,6 +1048,25 @@ numbers and found each one as the rules give. Triage:
 | 7 | Literature: Silva Aguirre et al. 2018 (arXiv:1710.09847) find that high- and low-α ages overlap; Miglio et al. 2021 (arXiv:2004.14806). | No; the IDs are the referee's and were not verified by us. | Noted as context; not used. |
 | 8 | Most important additional test: rerun bin [−0.7, −0.5)'s power sets with data-independent starts, recording the NLL and convergence for each K. | – | Registered as T-045 (a diagnostic; it does not change the label). |
 
+### Referee of R1-SEL-FIT (2026-11-21)
+
+The independent referee was a subagent. It saw README sections 2.0–2.6, the code of the block and the
+two results files (`r1_selfit.json`, `r1_sel.json`), but not sections 5–8 or `log.md`. It ran only
+short single-threaded inspections of the JSON. It found no bug that changes d, d*, power, a verdict or
+the label, and found every rule of 2.6 evaluated as written. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The power mocks draw and fit ages with the catalogue's quoted errors (f = 1, Gaussian kernel). If XR22's true errors are larger or have prior-shaped tails, a nearly disjoint latent distribution would be under-deconvolved and its valley partly filled to the observed d ≈ 0.4–0.6, which the power sets cannot see; 2.6 has no error-scale sensitivity for R1 | yes (`run.py` power-mock generator; 2.0/2.3 vary f only for R3/R4) | **Accepted limitation**: the label reads "not reproduced under the catalogue's quoted age errors"; section 5.2, the root tables and the wiki say so. The test the referee proposes is registered as T-054 |
+| 2 | The power model is the most favourable shape (hard-edged uniform young component plus a narrow old Gaussian, true d ≤ 0.02), and the fitted d of a K ≤ 4 Gaussian mixture is smoothed upward (bins 3–4: true d ≤ 0.04 recovered at ≈ 0.19–0.33); a softer split could fail the 0.25 cap. Data fits sit at K = 4 in every bin | yes (`r1_selfit.json` per-set d quantiles, K counts) | **Accepted limitation**: "not reproduced" means the data do not show XR22's idealised split, not that the phases overlap |
+| 3 | Choosing between fit (o) and the data-independent fit by NLL (tie 0.01) could bias null and power sets differently | yes: the rule is the same in both; bins [−0.7, 0.1) still have 0 valleys in every null set, so d* stays at the pre-registered cap and is not set by the mocks; any false-valley inflation would have lowered d* (towards "undetermined") | **Rejected** as a bias of the obtained label |
+| 4 | Precision of 50 mocks: bin [−0.1, 0.1) term E power 0.84 (rtau) is indistinguishable from 0.80 | yes | **Accepted**; that bin is not needed for the label: bins [−0.7, −0.5), [−0.5, −0.3), [−0.3, −0.1) are 50/50 in all 36 primary power sets with d far below 0.25 |
+| 5 | The non-monotone count covers K = 1–4 only (T-045 also counted K = 5); one Full null mock (set 87, bin [0.1, 0.3)) is still non-monotone after the better fit, so the new fits are not guaranteed global optima | yes (`run.py`, comment discloses it) | **Accepted**; reported in section 5.2 |
+| 6 | All-star R1 bins mix young α-rich stars, accreted or halo stars and migrators, and subgiant selection multiplies the latent distribution by a smooth function of age | – | **Accepted** as a limit of the 2.1 design (interpretation, not validity of the test) |
+| 7 | The run stopped early by the projection rule (first projection 16.2 h, actual 5.3 h; slow early sets suggest machine contention) and was resumed | yes: consent recorded in `log.md` (2026-11-20) | No action; results are deterministic |
+| 8 | Literature: Shariat, El-Badry & Bhattacharjee 2025 (arXiv:2510.08675; 11 wide pairs do not exclude f > 1) and Chen, Sun & Ye 2025 (arXiv:2510.10092; age-scale shift) bear on point 1; young α-rich stars (Chiappini et al. 2015, Martig et al. 2015) and Kepler/APOKASC age distributions (Silva Aguirre et al. 2018, Miglio et al. 2021) on point 6 | the two 2025 papers are cited in this README; the others unverified (IDs given by the referee) | Noted; not used |
+| 9 | Most important additional test: an error-scale power test for R1 (mocks drawn with f·e_Age, f ∈ {1.2, 1.5, 2.0, f_max}, fitted with f = 1), or more cheaply refit the data bins at several f | – | Registered as T-054 |
+
 ## 7. Open questions
 
 - **A selection term consistent with the error mechanism (T-031, done).** Re-tested in section 5.1
