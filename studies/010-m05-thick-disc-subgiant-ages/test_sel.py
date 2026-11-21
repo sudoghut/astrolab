@@ -861,7 +861,7 @@ def test_err_label_details():
     assert lab["case"] == 5 and lab["X"] == 1.2 and lab["Z"] == 1.5 and lab["Z_bins"] == ["a", "b"] and lab["W3"] is None
     # variant labels (S15 term N / Full): an f with a generator failure is named and skipped
     lab = selaux.err_label(LAD, {1.2: 0, 1.5: None, 2.0: 0, 2.81: 0}, None, NAMES, not_evaluable=[1.5])
-    assert lab["label"] == "robust up to f = 2.81 (not evaluable at f = 1.5)"
+    assert lab["label"] == "robust up to f = 1.2 (not evaluable at f = 1.5)"   # X ends at a not-evaluable f
     lab = selaux.err_label(LAD, {1.2: None, 1.5: 2, 2.0: 0, 2.81: 0}, None, NAMES, not_evaluable=[1.2])
     assert lab["label"] == "sensitive at f = 1.5 (not evaluable at f = 1.2)"
 
@@ -947,7 +947,7 @@ def test_err_evaluate_feasibility():
     out = _evaluate(lambda s: 0, lambda s: 3 if (s["variant"] == "S15N" and s["f"] == 1.5 and s["k"] % 6 == 0) else None)
     assert out["cut_f"] is None and out["label"]["label"] == "robust up to f = 2.81"
     assert out["variants"]["S15N"]["per_f"]["1.5"]["status"] == "not evaluable at f"
-    assert out["variants"]["S15N"]["label"]["label"] == "robust up to f = 2.81 (not evaluable at f = 1.5)"
+    assert out["variants"]["S15N"]["label"]["label"] == "robust up to f = 1.2 (not evaluable at f = 1.5)"
     # an incomplete set at a feasible f is an error, not a label
     with pytest.raises(RuntimeError):
         _evaluate(lambda s: 0, cut_from=(2.81, 70))
@@ -979,10 +979,25 @@ def test_run_mock_sets_cut_stops_larger_f(tmp_path):
     assert [len(res[k]) for k in range(9)] == [5, 5, 5, 3, 1, 1, 1, 1, 1]
     assert log[-1]["mocks_left"] == 0
     st2 = selaux.MockStore(tmp_path, "cut")
-    res2, _, _ = selaux.run_mock_sets(sets, 5, st2, lambda s, g: (_ for _ in ()).throw(AssertionError("recomputed")),
-                                      mk, 16.0, log=lambda m: None, cut=run.err_cut)
+    res2, _, log2 = selaux.run_mock_sets(sets, 5, st2, lambda s, g: (_ for _ in ()).throw(AssertionError("recomputed")),
+                                         mk, 16.0, log=lambda m: None, cut=run.err_cut)
     st2.release()
     assert res2 == res
+    assert log2[0]["mocks_left"] == 0           # the recorded cut leaves the projection before any replay
+    # a resume: the failure (k = 3, j = 2) is checkpointed but replayed only after the first projection;
+    # sets 3-8 must already be out of that projection (README 2.7, gate-1 minor a)
+    ok = {"gen_fail": False, "d": 0.01, "valley": True, "k": 3, "pass_rate": None}
+    st4 = selaux.MockStore(tmp_path, "cut3")
+    for k in range(9):
+        for j in range(5 if k < 3 else (3 if k == 3 else 1)):
+            st4.put(k, j, {**ok, "gen_fail": k == 3 and j == 2}, 1.0)
+    st4.release()
+    st5 = selaux.MockStore(tmp_path, "cut3")
+    res5, _, log5 = selaux.run_mock_sets(sets, 5, st5, lambda s, g: (_ for _ in ()).throw(AssertionError("recomputed")),
+                                         mk, 16.0, log=lambda m: None, cut=run.err_cut)
+    st5.release()
+    assert log5[0]["after"] == "first mock of every set" and log5[0]["mocks_left"] == 0
+    assert [len(res5[k]) for k in range(9)] == [5, 5, 5, 3, 1, 1, 1, 1, 1]
     # a failure in a term N set does not cut
     calls.clear()
 

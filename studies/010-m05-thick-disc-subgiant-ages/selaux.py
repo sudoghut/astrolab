@@ -1,4 +1,5 @@
-"""Bookkeeping of the R-SEL re-test (README 2.5): the mock-set list and seed numbering (SEL-8),
+"""Bookkeeping of the R-SEL re-test (README 2.5), reused by R1-SEL-FIT (2.6) and R1-ERR (2.7): the
+mock-set list and seed numbering (SEL-8),
 the R1 power-model edge loop (SEL-3), the runtime projection with the 16 h stop, per-mock
 checkpoints in the system cache, and the label rules. Pure helpers: nothing here reads PARAMS or
 imports run.py; every setting is an argument.
@@ -219,7 +220,7 @@ class MockStore:
     sets a new stop limit for the rest of the run (kept in limit.json, recorded in resumes.json); it
     takes precedence over PARAMS["sel_stop_h"] for this checkpoint folder."""
 
-    def __init__(self, root, key, *, stale_days=7.0):
+    def __init__(self, root, key, *, stale_days=7.0, name="R-SEL", rule="README 2.5 SEL-8"):
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
         for old in self.root.iterdir():        # abandoned folders of older keys
@@ -237,15 +238,15 @@ class MockStore:
             fd = os.open(self.lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
             os.close(fd)
         except FileExistsError:
-            raise RuntimeError(f"another run is using the R-SEL checkpoint folder {self.dir}; if no other "
+            raise RuntimeError(f"another run is using the {name} checkpoint folder {self.dir}; if no other "
                                "run is active, delete its lock file and rerun") from None
         stopped, consent = self.dir / "stopped.json", self.dir / "resume_consent.txt"
         self.resumed = False
         if stopped.exists():
             if not consent.exists():
                 self.release()
-                raise StopRun(f"the R-SEL run was stopped by the runtime rule ({stopped}). Resuming needs "
-                              "the user's explicit consent (README 2.5 SEL-8): record it in log.md, then "
+                raise StopRun(f"the {name} run was stopped by the runtime rule ({stopped}). Resuming needs "
+                              f"the user's explicit consent ({rule}): record it in log.md, then "
                               f"create {consent} and rerun.")
             text = consent.read_text(encoding="utf-8")
             m = re.search(r"^\s*limit_h\s*=\s*([0-9]+(?:\.[0-9]*)?)\s*$", text, re.M)
@@ -383,7 +384,8 @@ def _jsonable_result(res):
     return out
 
 
-def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print, cut=None):
+def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print, cut=None, name="R-SEL",
+                  rule="README 2.5 SEL-8"):
     """SEL-8 mock loop: the first mock of every set (timing), then each set in k order. Finished mocks
     come from the checkpoints; new ones are computed with make_rng(k, j) and checkpointed. After the
     first-mock pass and after every set, the projection is checked against the stop limit (a limit
@@ -394,7 +396,9 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print, cut=
     cut (README 2.7 feasibility rule; None for the other parts): a callable (set, result) -> None or a
     predicate on sets. When it returns a predicate, no further mock of a set for which the predicate is
     true is run (the set's results stay incomplete), and those sets leave the projection. A replayed
-    checkpoint cuts in the same way, so a resumed run makes the same cuts.
+    checkpoint cuts in the same way, so a resumed run makes the same cuts; on a resume, the cuts recorded
+    in the checkpoints are also applied to the projection from the start (before their mocks are replayed),
+    so sets cut in an earlier session are never projected as remaining work.
     Returns results (k -> list of dicts in mock order), state (times) and the projection log."""
     results = {s["k"]: [] for s in sets}
     cuts = []
@@ -405,6 +409,15 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print, cut=
     proj_log = []
     ckpt = store.checkpointed_seconds(sets, nmock)
     replayed = {s["k"]: set() for s in sets}
+    pre_cuts = []                              # cuts recorded in checkpoints of an earlier session (projection only)
+    if cut is not None:
+        for s in sets:
+            for j in range(nmock):
+                if (s["k"], j) in ckpt:
+                    rec = store.get(s["k"], j)
+                    pred = cut(s, rec["result"]) if rec is not None else None
+                    if pred is not None:
+                        pre_cuts.append(pred)
 
     def do(s, j):
         rec = store.get(s["k"], j)
@@ -427,7 +440,7 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print, cut=
         # replayed first, so times[0] stays each set's first-mock time)
         out = {}
         for s in sets:
-            if is_cut(s):                  # no more mocks of this set will run
+            if is_cut(s) or any(pred(s) for pred in pre_cuts):   # no more mocks of this set will run
                 continue
             k = s["k"]
             extra = [ckpt[(k, j)] for j in range(nmock) if j not in replayed[k] and (k, j) in ckpt]
@@ -446,14 +459,14 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print, cut=
         proj_log.append({"after": where, "elapsed_h": el / 3600, "projection_h": proj, "mocks_done": done,
                          "mocks_checkpointed_not_replayed": finished - done, "mocks_left": left,
                          "limit_h": limit})
-        log(f"R-SEL projection after {where}: {proj:.2f} h total (elapsed {el / 3600:.2f} h, {done} mocks done, "
+        log(f"{name} projection after {where}: {proj:.2f} h total (elapsed {el / 3600:.2f} h, {done} mocks done, "
             f"{finished - done} more checkpointed, {left} left; limit {limit} h)")
         if left > 0 and proj > limit:
             store.stop({"projection_h": proj, "elapsed_h": el / 3600, "mocks_done": done,
                         "mocks_checkpointed": finished, "mocks_left": left, "after": where,
                         "limit_h": limit, "stopped_at": time.time()})
             raise StopRun(
-                f"R-SEL runtime projection {proj:.2f} h exceeds {limit} h (README 2.5 SEL-8): stopped before the "
+                f"{name} runtime projection {proj:.2f} h exceeds {limit} h ({rule}): stopped before the "
                 f"remaining {left} mocks; {finished} finished mocks are checkpointed in {store.dir}. Ask the user; mock "
                 f"counts are never reduced. Resuming needs the user's explicit consent, recorded in log.md; then "
                 f"create {store.dir / 'resume_consent.txt'} (optionally with a line limit_h = <hours> for a new "
@@ -590,7 +603,8 @@ def err_label(ladder, E, cut_f, bins_by_f, *, min_bins=2, n_bins=3, reproduction
     of explainable bins (None where the f is not feasible or not evaluable); cut_f: the f where the
     feasibility rule cut the ladder (None if not cut); bins_by_f: f -> names of the explainable bins;
     not_evaluable: f values at which a variant's sets had a generator failure (the reported labels of
-    S15 term N and Full only; named as a qualifier)."""
+    S15 term N and Full only; named as a qualifier). X stops below the first f that is not feasible or not
+    evaluable (amendment 2026-11-21); Y, Z and W3 are taken over all feasible, evaluable f."""
     ladder = [float(f) for f in ladder]
     feas = [f for f in ladder if (cut_f is None or f < cut_f) and E.get(f) is not None]
     w3 = next((f for f in feas if E[f] >= n_bins), None)
@@ -611,9 +625,9 @@ def err_label(ladder, E, cut_f, bins_by_f, *, min_bins=2, n_bins=3, reproduction
     if ys:
         out.update(case=4, Y=ys[0], label=f"sensitive at f = {ffmt(ys[0])}")
     else:
-        x = 1.0
-        for f in feas:
-            if E[f] != 0:
+        x = 1.0                            # a variant's not-evaluable f ends X, as a cut would
+        for f in ladder:
+            if f not in feas or E[f] != 0:
                 break
             x = f
         ones = [f for f in feas if E[f] == 1]
