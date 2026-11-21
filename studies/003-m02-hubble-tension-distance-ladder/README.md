@@ -598,7 +598,8 @@ as a statistic that separates the two pictures. This addendum fixes in advance a
 data models for the excess calibrator scatter: C (no excess), diffuse host scatter V(τ), and one host
 offset by δ with everything else under C. The statistics are the drop D, computed exactly (36-host
 reference refits, not the referee's proxy), and a joint statistic J on the pair (37-host spread, 36-host
-spread), calibrated by simulation so that it is a valid p value. The labels attach to R2-RE-SEL's reading; they do not change any earlier label or the headline.
+spread), calibrated by simulation so that it is a valid p value for a statistic whose form was chosen
+after seeing the data. The labels attach to R2-RE-SEL's reading; they do not change any earlier label or the headline.
 
 *Seen before this addendum.* Everything in sections 5–6, in particular: R2-RE τ̂ = 0.0767 (68% interval
 0.0477–0.1050); R2-RE-ROB part B spread_obs (37 hosts, first 1,000 R4 subsets) = 1.3071, p = 0.021, 42 of
@@ -767,9 +768,11 @@ often d' is the offset host); the proxy D_proxy with P(D_proxy ≥ D_proxy,obs),
 agreement within Monte Carlo error is expected, not required); the KDE ratios above. Checks and seconds
 per part. Per-simulation values are saved so that every label can be re-derived: one file per model,
 `results/r2_re_d_sims_<model>.json` (model keys `C`, `V050`, `V077`, `V105`, `O`, `Olo`, `OVN`, `Oany`),
-holding the 10,000 (spread_37, spread_36) pairs rounded to 4 decimals and d' per simulation (about 140 KB
-each, 1.1 MB in all, every file below 1 MB). The test recomputes k_D and k_J from the pairs and must match
-the saved counts except for pairs within the rounding (5 × 10⁻⁵) of a threshold.
+holding the 10,000 (spread_37, spread_36) pairs rounded to 4 decimals, d' per simulation, and for each
+half-B simulation the integer count of half-A simulations in its quadrant, plus that count at the observed
+point (about 180 KB each, every file below 1 MB). The test recomputes k_J exactly from the saved integer
+counts, checks those counts against the pairs only away from rounding ties (pairs within 5 × 10⁻⁵ of each
+other in either coordinate are skipped), and recomputes k_D from the pairs except within 5 × 10⁻⁵ of D_obs.
 
 *Runtime (from measured times).* Recorded in `r2_re_sel.json`: criterion S's 37-host rows 109 s
 (`criterion_s_rows`); the 37 reduced systems' rows 100–115 s each, 4,067 s in all
@@ -812,8 +815,10 @@ reported variant is "not run"); in a full run it runs after the R2-RE-SEL block 
 as the R2-RE-N5584 block. Planned module `onehost.py` (receives `run.py`'s functions, reuses `rob.shift_rows`, `rob._cp`,
 `rob.three_way`, `sel.reduced_system`, `sel.index_stream`, `sel.crit_s_values`, `sel.pick_min`; does not
 import `run`), results in `results/r2_re_d.json`, a short summary in `summary.json` (`R2_RE_D`), a test
-`test_onehost.py` (synthetic checks, including the calibration of J on a toy model where p_J must be
-close to uniform; labels re-derived from saved k and n and from the per-simulation files), conclusion assertions in
+`test_onehost.py` (synthetic checks, including the calibration of J on two bivariate-normal toy models
+(correlation 0 and 0.8, fixed seed, 2,000 toy replicates of 2,000 simulations each): the share of replicates
+with p_J ≤ 0.05 must lie inside the 99% Clopper–Pearson interval of 0.05 for the calibrated statistic, and
+outside it for the raw quadrant probability at correlation 0.8; labels re-derived from saved k and n and from the per-simulation files), conclusion assertions in
 `test_conclusions.py`, a web section, section 8 knobs. None of this exists yet.
 
 ## 3. Data (with size estimate)
