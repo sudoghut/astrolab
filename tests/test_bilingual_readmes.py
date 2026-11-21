@@ -78,3 +78,15 @@ def test_chinese_companion(folder):
     if folder.name != "_template":
         title = zh_text.splitlines()[0]
         assert "TODO" not in title and re.search(r"[\u4e00-\u9fff]", title), "README.zh.md needs its Chinese title"
+
+
+def test_online_page_links_point_to_own_study():
+    """Every link to the online site in a study README names that study's own folder (T-050)."""
+    import re
+    root = Path(__file__).resolve().parents[1] / "studies"
+    pat = re.compile(r"https://sudoghut\.github\.io/astrolab/studies/([^/\s)\]]*)/web/")
+    for d in sorted(root.glob("[0-9][0-9][0-9]-*")):
+        for name in ("README.md", "README.zh.md"):
+            ids = pat.findall((d / name).read_text(encoding="utf-8"))
+            assert ids, f"{d.name}/{name}: no link to the online page"
+            assert all(i == d.name for i in ids), f"{d.name}/{name}: {ids}"

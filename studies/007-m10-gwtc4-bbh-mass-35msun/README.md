@@ -1,6 +1,6 @@
 # M10 GWTC-4.0 BBH mass spectrum: the 35 Msun feature and the event sample
 
-> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)
+> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies/007-m10-gwtc4-bbh-mass-35msun/web/](https://sudoghut.github.io/astrolab/studies/007-m10-gwtc4-bbh-mass-35msun/web/)
 
 > Sections 1-4 were written on 2026-11-15 BEFORE run.py and before any data were fetched
 > (pre-registration; derived from part 3 of the wiki article

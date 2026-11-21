@@ -1,6 +1,6 @@
 # M10 GWTC-4.0 双黑洞质量谱：35 M☉ 特征与事件样本
 
-> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。 网页在线版：[https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)。
+> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。网页在线版：[https://sudoghut.github.io/astrolab/studies/007-m10-gwtc4-bbh-mass-35msun/web/](https://sudoghut.github.io/astrolab/studies/007-m10-gwtc4-bbh-mass-35msun/web/)。
 
 > 第 1–4 节写于 2026-11-15，早于 run.py，也早于任何取数
 > （预注册（pre-registration）；由 Wiki 文章

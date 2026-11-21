@@ -1,6 +1,6 @@
 # M4：Gaia 休眠黑洞——DR3 复现与面向 DR4 的筛选
 
-> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。 网页在线版：[https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)。
+> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。网页在线版：[https://sudoghut.github.io/astrolab/studies/001-m04-gaia-dormant-black-holes/web/](https://sudoghut.github.io/astrolab/studies/001-m04-gaia-dormant-black-holes/web/)。
 
 > 第 1–4 节写于 2026-11-11，在 run.py 之前（预注册，pre-registration）。
 > 此后对这几节的修改必须附带注明日期的说明。

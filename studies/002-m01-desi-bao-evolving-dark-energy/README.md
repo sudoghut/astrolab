@@ -1,6 +1,6 @@
 # M1: DESI DR2 BAO and evolving dark energy
 
-> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)
+> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies/002-m01-desi-bao-evolving-dark-energy/web/](https://sudoghut.github.io/astrolab/studies/002-m01-desi-bao-evolving-dark-energy/web/)
 
 > Sections 1-4 were written on 2026-11-14 BEFORE run.py and before any data were fetched
 > (pre-registration; derived from part 3 of the wiki article
