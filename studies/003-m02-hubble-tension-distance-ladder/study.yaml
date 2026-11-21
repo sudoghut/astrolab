@@ -14,6 +14,45 @@ wiki: Study-003-hubble-tension-host-selection  # paper studies: wiki page name w
 footprint:
   scale: {min_pc: 7.6e+6, max_pc: 6.4e+8, note: "distance ladder from the NGC 4258 anchor (7.6 Mpc) through the 37 Cepheid hosts (to ~80 Mpc) to Hubble-flow SNe Ia at z < 0.15 (~640 Mpc); the MW and LMC anchors are nearer but dropped in the host-selection test"}
   sky:
-    mode: survey
+    mode: survey + targets
     survey: {name: "SH0ES + Pantheon+", note: "Cepheid hosts and Hubble-flow SNe Ia across the sky (public SH0ES matrices); CCHP JWST hosts are a subset"}
+    targets:   # the 37 SH0ES Cepheid hosts (R22 column labels); RC3 J2000 positions (VizieR VII/155 via
+               # the CfA mirror, 2026-11-21; Mrk 1337 as MCG -1-33-34); CCHP's 10 hosts marked
+      - {name: "M101 (CCHP host)", ra: 210.8025, dec: 54.3487}
+      - {name: "Mrk 1337", ra: 193.1449, dec: -9.7761}
+      - {name: "NGC 691", ra: 27.674, dec: 21.7597}
+      - {name: "NGC 1015", ra: 39.5486, dec: -1.3178}
+      - {name: "NGC 105", ra: 6.3212, dec: 12.885}
+      - {name: "NGC 1309", ra: 50.5278, dec: -15.4005}
+      - {name: "NGC 1365 (CCHP host)", ra: 53.4027, dec: -36.138}
+      - {name: "NGC 1448", ra: 56.1336, dec: -44.6438}
+      - {name: "NGC 1559", ra: 64.406, dec: -62.7844}
+      - {name: "NGC 2442 (CCHP host)", ra: 114.0996, dec: -69.5306}
+      - {name: "NGC 2525", ra: 121.409, dec: -11.4281}
+      - {name: "NGC 2608", ra: 128.8211, dec: 28.4742}
+      - {name: "NGC 3021", ra: 147.739, dec: 33.5545}
+      - {name: "NGC 3147", ra: 154.2218, dec: 73.4012}
+      - {name: "NGC 3254", ra: 157.3336, dec: 29.4912}
+      - {name: "NGC 3370", ra: 161.7657, dec: 17.2739}
+      - {name: "NGC 3447", ra: 163.3478, dec: 16.7734}
+      - {name: "NGC 3583", ra: 168.5482, dec: 48.3201}
+      - {name: "NGC 3972 (CCHP host)", ra: 178.9424, dec: 55.3187}
+      - {name: "NGC 3982", ra: 179.1174, dec: 55.1248}
+      - {name: "NGC 4038 (CCHP host)", ra: 180.4707, dec: -18.865}
+      - {name: "NGC 4424 (CCHP host)", ra: 186.7982, dec: 9.4209}
+      - {name: "NGC 4536 (CCHP host)", ra: 188.6124, dec: 2.1886}
+      - {name: "NGC 4639 (CCHP host)", ra: 190.7195, dec: 13.2584}
+      - {name: "NGC 4680", ra: 191.7287, dec: -11.6364}
+      - {name: "NGC 5468", ra: 211.6458, dec: -5.4536}
+      - {name: "NGC 5584", ra: 215.5999, dec: -0.3867}
+      - {name: "NGC 5643 (CCHP host)", ra: 218.1729, dec: -44.1734}
+      - {name: "NGC 5728", ra: 220.6008, dec: -17.2534}
+      - {name: "NGC 5861", ra: 227.317, dec: -11.3214}
+      - {name: "NGC 5917", ra: 230.3862, dec: -7.3781}
+      - {name: "NGC 7250 (CCHP host)", ra: 334.5737, dec: 40.5625}
+      - {name: "NGC 7329", ra: 340.0984, dec: -66.4788}
+      - {name: "NGC 7541", ra: 348.6799, dec: 4.5344}
+      - {name: "NGC 7678", ra: 352.1174, dec: 22.4228}
+      - {name: "NGC 976", ra: 38.4986, dec: 20.9766}
+      - {name: "UGC 9391", ra: 218.6504, dec: 59.3334}
   data: [PantheonPlusSH0ES/DataRelease SH0ES_Data (y, L, C, lstsq_results), paper tables R22 Tables 3 and 6, CCHP Table 2]

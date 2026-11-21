@@ -11,7 +11,8 @@ milestone: null               # roadmap milestone id, e.g. M1
 papers: []                    # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
 wiki: null                    # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3
 
-# Where this study sits on the Atlas (optional; schema in design plan 011). Remove or fill.
+# Where this study sits on the Atlas (required: `claims check` fails without it; schema in design plan 011).
+# Uncomment and fill at registration; use sky mode 'none' if the study has no sky footprint.
 # footprint:
 #   scale: {min_pc: 1.0, max_pc: 1000.0, note: "distance range the study probes"}
 #   sky:

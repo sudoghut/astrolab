@@ -11,13 +11,10 @@ milestone: M3                  # roadmap milestone id, e.g. M1
 papers: ["2601.14559"]                  # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
 wiki: Study-008-des-y6-s8-cmb                  # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3
 
-# Where this study sits on the Atlas (optional; schema in design plan 011). Remove or fill.
-# footprint:
-#   scale: {min_pc: 1.0, max_pc: 1000.0, note: "distance range the study probes"}
-#   sky:
-#     mode: all-sky | survey | targets | none    # combine with ' + ', e.g. "survey + targets"
-#     survey: {name: "...", note: "..."}
-#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS; ra/dec may be omitted if
-#                                                  # results/targets.json gives them by name
-#   (write exponents as 4.0e+8: PyYAML reads 4e8 as a string; both are accepted)
-#   data: [...]
+# Where this study sits on the Atlas (schema in design plan 011; T-051).
+footprint:
+  scale: {min_pc: 8.4e+8, max_pc: 1.39e+10, note: "DES Y6 lens and source galaxies (mean bin redshifts 0.31-1.16; comoving ~0.8-4.5 Gpc) and, separately, the CMB (~13.9 Gpc); a combined, not contiguous, range"}
+  sky:
+    mode: survey + all-sky
+    survey: {name: "DES Y6", note: "about 5,000 square degrees of the southern sky; the CMB comparison (Planck 2018 + ACT DR6 + SPT-3G) is all-sky (Planck) with partial ACT/SPT coverage"}
+  data: ["DES Y6 public chains (3x2pt, 1x2pt and CMB)", "published S8 summaries"]

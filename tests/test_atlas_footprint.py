@@ -131,3 +131,18 @@ def test_survey_extra_keys_and_bad_target_file(tmp_path):
     meta = {"level": "L4", "footprint": {"sky": {"mode": "targets", "targets": [{"name": "ok"}]}}}
     out = claims.resolve_footprint(tmp_path, meta)
     assert out["sky"]["targets"][0]["ra"] == 10
+
+
+def test_footprint_required_for_studies():
+    assert claims.footprint_required_errors({})                                   # missing
+    assert claims.footprint_required_errors({"footprint": {"scale": {"min_pc": 1, "max_pc": 10}}})
+    assert claims.footprint_required_errors({"footprint": {"sky": {"mode": "none"}}})
+    ok = {"footprint": {"scale": {"min_pc": 1, "max_pc": 10}, "sky": {"mode": "none"}}}
+    assert claims.footprint_required_errors(ok) == []
+
+
+def test_every_study_has_a_footprint():
+    """T-051: every study under studies/ (not the template) has a valid footprint."""
+    from astrolab import study
+    for s in study.discover():
+        assert claims.footprint_required_errors(s.meta) + claims.footprint_errors(s.meta) == [], s.id

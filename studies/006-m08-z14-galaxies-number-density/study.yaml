@@ -11,13 +11,12 @@ milestone: M8                 # roadmap milestone id, e.g. M1
 papers: ["2505.11263", "2405.18485", "2406.18352", "2305.05679"]            # paper studies: arXiv ids, e.g. ["2209.06833"]; otherwise leave empty
 wiki: Study-006-z14-galaxies-number-density            # paper studies: wiki page name without .md, e.g. Study-012-gaia-bh3
 
-# Where this study sits on the Atlas (optional; schema in design plan 011). Remove or fill.
-# footprint:
-#   scale: {min_pc: 1.0, max_pc: 1000.0, note: "distance range the study probes"}
-#   sky:
-#     mode: all-sky | survey | targets | none    # combine with ' + ', e.g. "survey + targets"
-#     survey: {name: "...", note: "..."}
-#     targets: [{name: "...", ra: 0.0, dec: 0.0}]  # degrees, ICRS; ra/dec may be omitted if
-#                                                  # results/targets.json gives them by name
-#   (write exponents as 4.0e+8: PyYAML reads 4e8 as a string; both are accepted)
-#   data: [...]
+# Where this study sits on the Atlas (schema in design plan 011; T-051).
+footprint:
+  scale: {min_pc: 8.7e+9, max_pc: 1.05e+10, note: "z ~ 14-15 volume (comoving 10.3-10.45 Gpc, Planck18) and the z ~ 7-8 comparison luminosity functions (8.7-9.1 Gpc)"}
+  sky:
+    mode: targets
+    targets:                     # discovery-paper coordinates (ICRS, degrees)
+      - {name: "MoM-z14", ra: 150.0933255, dec: 2.2731627}           # Naidu et al. 2026, arXiv:2505.11263, Table 1
+      - {name: "JADES-GS-z14-0", ra: 53.0829375, dec: -27.8556306}   # Carniani et al. 2024, arXiv:2405.18485, Table 1 (03:32:19.905 -27:51:20.27)
+  data: ["N26 counts, area and volume (arXiv:2505.11263)", "Bouwens et al. 2021 and 2022, Harikane et al. 2025 luminosity-function tables"]
