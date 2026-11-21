@@ -204,10 +204,11 @@ def timing_estimate(P, models, data, grid, ctx):
             m.loglike(th)
         t[key] = (time.perf_counter() - t0) / n
     cur = F.t5_curve(W.k24_vector(3), grid)
+    syn = F.synthetic_clusters(grid, data.n_clusters, rng_for(P["seed"], "timing"), sigma=P["sigma_pc"])
     t0 = time.perf_counter()
-    for _ in range(20):
-        F.t5_analyse(cur, data.cx, data.cy, data.cz, data.cvz, data.csig, cut=P["t5_cut_sigma"] * P["sigma_pc"],
-                     bandwidth=P["bandwidth_pc"])
+    for _ in range(20):           # synthetic clusters: nothing is fitted to the data here
+        F.t5_analyse(cur, syn.cx, syn.cy, syn.cz, syn.cvz, syn.csig, cut=P["t5_cut_sigma"] * P["sigma_pc"],
+                     bandwidth=P["bandwidth_pc"], sigma=P["sigma_pc"])
     t5 = (time.perf_counter() - t0) / 20
     mc = P["mcmc_walkers"] * P["mcmc_steps"]
     start_ml = P["ml_nm_maxfev"] + 0.5 * P["ml_lbfgs_maxfun"]   # NM budget plus a typical L-BFGS-B polish
@@ -410,7 +411,16 @@ def fit_record(model, f):
 # =============================================================================================
 # T4
 
-def t4_run(P, store, prefix, mods, fits, data, idx_mask, ctx, with_free_power=True, with_resid=True):
+def gen_inliers(model, fit, fallback):
+    """Inliers of a generating fit; with no outlier model (variant 2) every cluster, or `fallback`."""
+    if model.setup.outlier == "gauss" or fit.get("inlier") is None:
+        n = model.data.n_clusters
+        return np.ones(n, bool) if fallback is None else np.asarray(fallback, bool)
+    return np.asarray(fit["inlier"], bool)
+
+
+def t4_run(P, store, prefix, mods, fits, data, idx_mask, ctx, with_free_power=True, with_resid=True,
+           keep_arrays=False):
     """R over the B = 0.5 fit's inliers; standing mocks from the B = 0.5 fit, power mocks from the
     B = 1 (and B-free) fit; closest points recomputed on the B = 0.5 curve (README 4.3)."""
     idx = np.flatnonzero(idx_mask)
@@ -431,43 +441,52 @@ def t4_run(P, store, prefix, mods, fits, data, idx_mask, ctx, with_free_power=Tr
     sig_meas = d.csig[idx] / np.array([1.0, 1.0, 1.0, div])
     sd = np.sqrt(P["sigma_pc"] ** 2 + sig_meas ** 2)
 
-    def gen_points(model, v):
+    def gen_points(model, v, gen_inlier):
+        """Model points of the T4 clusters, and the residual pool: the generating fit's own inliers."""
         ev = model.evaluate(v)
         dv = model.divisor(v)
-        Mp = model.model_vectors(ev["wave"], v)[ev["cl_idx"]][idx]
-        Dv = model.cluster_vectors(v)[idx]
-        return Mp, Dv - Mp, dv
+        Mall = model.model_vectors(ev["wave"], v)[ev["cl_idx"]]
+        Dall = model.cluster_vectors(v)
+        pool = (Dall - Mall)[np.asarray(gen_inlier, bool)]
+        return Mall[idx], pool, dv
 
-    def draws(name, model, v, noise):
+    def draws(name, model, v, noise, gen_inlier):
         def go():
-            Mp, res, dv = gen_points(model, v)
+            Mp, res, dv = gen_points(model, v, gen_inlier)
             rng = rng_for(P["seed"], name)
             out = np.empty(P["t4_mocks"])
             for i in range(P["t4_mocks"]):
                 if noise == "gauss":
                     new = Mp + rng.standard_normal(Mp.shape) * sd
                 else:
-                    new = Mp + res[rng.integers(0, len(res), len(res))]
+                    new = Mp + res[rng.integers(0, len(res), len(Mp))]
                 out[i] = R_of(new[:, 0], new[:, 1], new[:, 2], new[:, 3] * dv)
             return out
         return store.cached(name, go)
 
     out = {"n_clusters": int(len(idx)), "R_obs": r_obs}
     for noise in (("gauss", "resid") if with_resid else ("gauss",)):
-        st = draws(f"{prefix}t4_stand_{noise}", m05, v05, noise)
-        pw1 = draws(f"{prefix}t4_pow1_{noise}", mods["col4"], fits["b1"]["vector"], noise)
+        st = draws(f"{prefix}t4_stand_{noise}", m05, v05, noise, gen_inliers(mods["b05"], fits["b05"], idx_mask))
+        pw1 = draws(f"{prefix}t4_pow1_{noise}", mods["col4"], fits["b1"]["vector"], noise,
+                    gen_inliers(mods["col4"], fits["b1"], None))
         p, k = S.p_low(r_obs, st)
         pow1 = S.power(pw1, st, P["t4_p_excl"])
-        rec = {"p": p, "k_standing_at_or_below": k, "p_mcse": S.p_mcse(p, len(st)), "power_B1": pow1,
+        rec = {"p": p, "k_standing_at_or_below": k, "n_standing": int(len(st)), "p_mcse": S.p_mcse(p, len(st)),
+               "power_B1": pow1, "n_power_B1": int(len(pw1)),
+               "k_power_B1_p_below": int(round(pow1 * len(pw1))),
                "power_B1_mcse": S.p_mcse(pow1, len(pw1)),
                "R_standing_quantiles": np.round(np.quantile(st, [0.001, 0.01, 0.05, 0.5, 0.95]), 4).tolist(),
                "R_power_B1_quantiles": np.round(np.quantile(pw1, [0.05, 0.5, 0.95]), 4).tolist(),
                "label": S.t4_label(p, pow1, p_excl=P["t4_p_excl"], p_not=P["t4_p_not"],
                                    power_min=P["t4_power_min"])}
         if with_free_power:
-            pwf = draws(f"{prefix}t4_powfree_{noise}", mods["col5"], fits["free"]["vector"], noise)
+            pwf = draws(f"{prefix}t4_powfree_{noise}", mods["col5"], fits["free"]["vector"], noise,
+                        gen_inliers(mods["col5"], fits["free"], None))
             rec["power_Bfree"] = S.power(pwf, st, P["t4_p_excl"])
             rec["R_power_Bfree_quantiles"] = np.round(np.quantile(pwf, [0.05, 0.5, 0.95]), 4).tolist()
+        if keep_arrays and noise == "gauss":
+            rec["R_standing"] = st.tolist()
+            rec["R_power_B1"] = pw1.tolist()
         out[noise] = rec
     out["label"] = out["gauss"]["label"]
     ctx.log(f"T4 {prefix or 'main'}: R_obs = {r_obs:.3f}, p = {out['gauss']['p']:.4f}, "
@@ -492,13 +511,15 @@ def t5_run(P, store, prefix, data, grid, chain_vectors, median_vector, ctx, *, c
 
     def point(omega0):
         cur = F.t5_curve(median_vector, grid, u1_mode, omega0=omega0)
-        return F.t5_analyse(cur, d.cx, d.cy, d.cz, d.cvz, d.csig, cut=cut, bandwidth=bandwidth, k_range=kr)
+        return F.t5_analyse(cur, d.cx, d.cy, d.cz, d.cvz, d.csig, cut=cut, bandwidth=bandwidth,
+                            sigma=P["sigma_pc"], k_range=kr)
 
     def boot(omega0, tag):
         def go():
             rng = rng_for(P["seed"], prefix + "t5boot" + tag)
             return F.t5_bootstrap(chain_vectors, grid, d.cx, d.cy, d.cz, d.cvz, d.csig, rng, n_boot=P["t5_boot"],
-                                  cut=cut, bandwidth=bandwidth, u1_mode=u1_mode, omega0=omega0, k_range=kr)
+                                  cut=cut, bandwidth=bandwidth, u1_mode=u1_mode, omega0=omega0, k_range=kr,
+                                  sigma=P["sigma_pc"])
         return store.cached(prefix + "t5boot" + tag, go)
 
     pt = point(W.OMEGA0_ADOPTED)
@@ -564,9 +585,10 @@ def t5_known_answer(P, store, grid, data, sel_mask, chain_vectors, median_vector
             def one(name=name):
                 rng = rng_for(P["seed"], name)
                 x, y, z, vz = F.known_answer_vectors(m6, v_inj, dsel, rng, sigma=P["sigma_pc"])
-                pt = F.t5_analyse(cur, x, y, z, vz, dsel.csig, cut=cut, bandwidth=P["bandwidth_pc"], k_range=kr)
+                pt = F.t5_analyse(cur, x, y, z, vz, dsel.csig, cut=cut, bandwidth=P["bandwidth_pc"],
+                                  sigma=P["sigma_pc"], k_range=kr)
                 bt = F.t5_bootstrap(chain_vectors, grid, x, y, z, vz, dsel.csig, rng, n_boot=P["t5_boot"], cut=cut,
-                                    bandwidth=P["bandwidth_pc"], u1_mode="half", k_range=kr)
+                                    bandwidth=P["bandwidth_pc"], u1_mode="half", k_range=kr, sigma=P["sigma_pc"])
                 lo, hi = S.interval(bt["bhat"])
                 return {"bhat": pt["fit"]["bhat"] if pt["fit"] else float("nan"), "interval": [lo, hi]}
             mocks.append(store.cached(name, one))
@@ -741,9 +763,7 @@ def run_variant(P, store, v, cl, co, grid, main, ctx):
                           "gauss", ctx)
         st_s, st_t = t3_stat(obs_s, ms, 1, P), t3_stat(obs_t, mt, 2, P)
         lab = t3_labels(st_s, st_t, P)
-        rec["t3"] = {"rule": "full", "standing": {k: st_s[k] for k in st_s if k != "mocks_two_dlnL"},
-                     "travelling": {k: st_t[k] for k in st_t if k != "mocks_two_dlnL"},
-                     "clipped": [cs, ct], **lab}
+        rec["t3"] = {"rule": "full", "standing_stat": st_s, "travelling_stat": st_t, "clipped": [cs, ct], **lab}
     else:
         red = t3_reduced(obs_s, obs_t, main["t3"]["standing_stat"]["factor"], main["t3"]["travelling_stat"]["factor"], P)
         ms_, mt_ = main["t3"]["standing_stat"], main["t3"]["travelling_stat"]
@@ -770,6 +790,25 @@ def run_variant(P, store, v, cl, co, grid, main, ctx):
     return rec
 
 
+def change_mcse(rec, label):
+    """Monte Carlo standard errors of the quantities behind a variant's label (README section 2, T6)."""
+    t3 = rec["t3"]
+    if label in ("T3 standing", "T3 pure travelling"):
+        side = "standing" if label == "T3 standing" else "travelling"
+        if t3["rule"] == "full":
+            s = t3[side + "_stat"]
+            return {"p_cal": s.get("p_cal"), "p_cal_mcse": s.get("p_cal_mcse"), "p_boot": s["p_boot"],
+                    "p_boot_mcse": s["p_boot_mcse"]}
+        return {"p_cal": t3[f"p_cal_{side}"], "p_cal_mcse": t3.get(f"p_cal_{side}_mcse")}
+    if label == "T4":
+        g = rec["t4"]["gauss"]
+        return {"p": g["p"], "p_mcse": g["p_mcse"], "power_B1": g["power_B1"], "power_B1_mcse": g["power_B1_mcse"]}
+    t5 = rec["t5"]
+    if label == "T5 wavelengths":
+        return {"k_ratio_interval": t5["k_ratio_interval"], "k_ratio_interval_mcse": t5["k_ratio_interval_mcse"]}
+    return {"bhat_interval": t5["bhat_interval"], "bhat_interval_mcse": t5["bhat_interval_mcse"]}
+
+
 def compare_variants(main_labels, main_reduced, variants):
     changes = []
     for rec in variants:
@@ -785,7 +824,8 @@ def compare_variants(main_labels, main_reduced, variants):
         rec["labels"] = {k: b for k, (a, b) in pairs.items()}
         rec["changed"] = [k for k, (a, b) in pairs.items() if a != b]
         for k in rec["changed"]:
-            changes.append({"variant": rec["variant"], "label": k, "main": pairs[k][0], "variant_label": pairs[k][1]})
+            changes.append({"variant": rec["variant"], "label": k, "main": pairs[k][0], "variant_label": pairs[k][1],
+                            "mcse": change_mcse(rec, k)})
     return ("robust" if not changes else "fragile"), changes
 
 
@@ -817,12 +857,15 @@ def main(ctx):
     key = F.checkpoint_key({k: v for k, v in P.items() if k not in _RUN_ONLY},
                            [HERE / "run.py", HERE / "wave011.py", HERE / "fit011.py", HERE / "stats011.py"], shas)
     stop = float(P["stop_after_hours"]) * 3600 if P["stop_after_hours"] else None
-    store = F.Store(config.cache_dir() / P["checkpoint_subdir"], key, stop)
-    ctx.log(f"checkpoints: {store.dir}")
+    formal = is_formal_run(ctx)
+    store = F.Store(checkpoint_root(config.cache_dir(), P, ctx), key, stop)
+    ctx.log(f"checkpoints ({'formal run' if formal else 'exploration'}): {store.dir}")
     try:
         out = pipeline(ctx, P, parts, cl, co, data, grid, mods, wc, store)
     except F.Paused as e:
         ctx.log(f"PAUSED: {e}")
+        if formal:
+            ctx.record_suffix = "_paused"    # keep provenance.json / run_info.json of the last complete run
         return {"status": "paused", "reason": str(e), "checkpoints": str(store.dir), "timing": timing}
     out["summary"]["load_check"] = lc
     out["summary"]["timing"] = timing
@@ -830,8 +873,26 @@ def main(ctx):
     for name, obj in out["files"].items():
         ctx.save(name, obj | {"params": P})
     ctx.save("summary", out["summary"] | {"params": P})
-    finish_checkpoints(store, ctx)
+    if formal:
+        finish_checkpoints(store, ctx)
+    else:
+        ctx.log(f"exploration checkpoints kept in {store.dir} (delete them when done)")
     return out["summary"]
+
+
+def is_formal_run(ctx):
+    """True for `astrolab run` (writes results/), False for `astrolab explore` (explore/<date>-<tag>/)."""
+    return (getattr(ctx, "max_save_bytes", None) is None
+            and Path(ctx.results).resolve() == (HERE / "results").resolve())
+
+
+def checkpoint_root(cache_dir, P, ctx):
+    """Formal runs: <cache>/<subdir>; explorations: <cache>/<subdir>/explore/<date>-<tag>, so an
+    exploration never reads or deletes the formal run's checkpoints."""
+    root = Path(cache_dir) / P["checkpoint_subdir"]
+    if not is_formal_run(ctx):
+        root = root / "explore" / Path(ctx.results).name
+    return root
 
 
 def finish_checkpoints(store, ctx):
@@ -851,12 +912,10 @@ def pipeline(ctx, P, parts, cl, co, data, grid, mods, wc, store):
 
     # 3. T5 known-answer check (no cluster fitted yet; positions only)
     cur0 = F.t5_curve(col3_med, grid)
-    sel = F.t5_analyse(cur0, data.cx, data.cy, data.cz, data.cvz, data.csig,
-                       cut=P["t5_cut_sigma"] * P["sigma_pc"], bandwidth=P["bandwidth_pc"],
-                       k_range=(P["t5_k_min"], P["t5_k_max"], P["t5_k_step"]))
+    _, _, sel_mask = F.t5_select(cur0, data.cx, data.cy, data.cz, cut=P["t5_cut_sigma"] * P["sigma_pc"])
     known = None
     if "t5" in parts or "t6" in parts:
-        known = t5_known_answer(P, store, grid, data, sel["kept_mask"], col3_vecs, col3_med, ctx)
+        known = t5_known_answer(P, store, grid, data, sel_mask, col3_vecs, col3_med, ctx)
 
     # 4. everything else
     main = {"col3_chain_vectors": col3_vecs, "col3_median_vector": col3_med, "known_answer": known}
@@ -935,7 +994,8 @@ def pipeline(ctx, P, parts, cl, co, data, grid, mods, wc, store):
     # T4
     t4 = None
     if "t4" in parts or "t6" in parts:
-        t4 = t4_run(P, store, "main_", mods, fits, data, np.asarray(fits["b05"]["inlier"], bool), ctx)
+        t4 = t4_run(P, store, "main_", mods, fits, data, np.asarray(fits["b05"]["inlier"], bool), ctx,
+                    keep_arrays=True)
         files["t4"] = t4
         summary["T4"] = {"label": t4["label"], "R_obs": t4["R_obs"], "p": t4["gauss"]["p"],
                          "power_B1": t4["gauss"]["power_B1"]}

@@ -102,11 +102,27 @@ def _t4_want(p, power):
     return "undetermined"
 
 
+def _t4_check(g):
+    """p and power from the stored mock counts (and from the stored R values when present)."""
+    assert g["p"] == pytest.approx(_p_boot(g["k_standing_at_or_below"], g["n_standing"]))
+    assert g["power_B1"] == pytest.approx(g["k_power_B1_p_below"] / g["n_power_B1"])
+    assert g["label"] == _t4_want(g["p"], g["power_B1"])
+
+
 def test_t4_label():
     t4 = load("t4")
     g = t4["gauss"]
-    assert t4["label"] == g["label"] == _t4_want(g["p"], g["power_B1"])
-    assert g["p"] > 0
+    _t4_check(g)
+    assert t4["label"] == g["label"]
+    if "R_standing" in g:
+        st = sorted(g["R_standing"])
+        k = sum(r <= t4["R_obs"] for r in st)
+        assert k == g["k_standing_at_or_below"]
+        n_low = 0
+        for r in g["R_power_B1"]:
+            kk = sum(x <= r for x in st)
+            n_low += _p_boot(kk, len(st)) < 0.01
+        assert n_low == g["k_power_B1_p_below"]
 
 
 def _wl_want(lo, hi):
@@ -151,6 +167,22 @@ def test_t5_labels_and_known_answer():
     assert t5["bhat_label"] == _bhat_want(*t5["bhat_interval"], wl, ka["passed"])
 
 
+def _reduced_standing(obs, factor):
+    if factor is None:
+        return "not evaluable"
+    pc, pr = chi2.sf(obs * factor, 1), chi2.sf(obs, 1)
+    if pc < 0.001 and pr < 0.001:
+        return "standing excluded strongly"
+    return "standing excluded" if pc < 0.05 else "standing not excluded"
+
+
+def _reduced_travel(obs, factor):
+    if factor is None:
+        return "not evaluable"
+    return ("pure travelling (B = 1) disfavoured" if chi2.sf(obs * factor, 2) < 0.05
+            else "pure travelling (B = 1) not disfavoured")
+
+
 def test_t6_robustness():
     t6 = load("t6")
     assert len(t6["variants"]) == 15
@@ -158,6 +190,21 @@ def test_t6_robustness():
     assert n_changes == len(t6["changes"])
     assert t6["label"] == ("robust" if n_changes == 0 else "fragile")
     main_full, main_red = t6["main_labels_full_rule"], t6["main_labels_reduced_rule"]
+    t3 = load("t3")
+    fs, ft = t3["standing_stat"]["factor"], t3["travelling_stat"]["factor"]
+    # the main run's reduced-rule labels, from its own numbers
+    assert main_red["standing"] == _reduced_standing(t3["standing_stat"]["two_dlnL"], fs)
+    assert main_red["pure_travelling"] == _reduced_travel(t3["travelling_stat"]["two_dlnL"], ft)
+    for v in t6["variants"]:
+        if v["t3"]["rule"] == "reduced":
+            assert v["labels"]["T3 standing"] == _reduced_standing(v["two_dlnL_standing"], fs)
+            assert v["labels"]["T3 pure travelling"] == _reduced_travel(v["two_dlnL_travelling"], ft)
+        else:
+            _t3_check(v["t3"]["standing_stat"], 1)
+            _t3_check(v["t3"]["travelling_stat"], 2)
+        _t4_check(v["t4"]["gauss"])
+        for c in t6["changes"]:
+            assert "mcse" in c
     for v in t6["variants"]:
         ref = main_full if v["t3"]["rule"] == "full" else main_red
         assert v["t5"]["known_answer_passed"] == load("t5")["known_answer_passed"]
