@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-21T08:49:37+00:00",
+ "generated_at": "2026-11-21T08:51:59+00:00",
  "levels": [
   "L0",
   "L1",
@@ -1673,7 +1673,7 @@
     "scale": {
      "log10_min": 2.0,
      "log10_max": 3.9542425094393248,
-     "note": "LAMOST/Gaia subgiants at Galactocentric 6 < R < 14 kpc and -4 < Z < 6 kpc (90% within 7.2 < R < 10.4 kpc and -1.2 < Z < 2 kpc); no heliocentric range is given, the far corner of that volume is ~8-9 kpc from the Sun; XR22 state no lower distance, the 0.1 kpc start is nominal",
+     "note": "LAMOST/Gaia subgiants at Galactocentric 6 < R < 14 kpc and -4 < Z < 6 kpc (90% within 7.2 < R < 10.4 kpc and -1.2 < Z < 2 kpc); no heliocentric range is given: toward the anticentre, which the LAMOST footprint favours, R = 14 kpc with Z = 6 kpc is ~8-9 kpc from the Sun (an estimate under that assumption; a purely geometric bound for the full volume would be ~23 kpc); XR22 state no lower distance, the 0.1 kpc start is nominal",
      "default": false
     },
     "sky": {

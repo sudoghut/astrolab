@@ -13,7 +13,7 @@ wiki: Study-010-thick-disc-early-formation                    # paper studies: w
 
 # Where this study sits on the Atlas (schema in design plan 011; T-051).
 footprint:
-  scale: {min_pc: 100.0, max_pc: 9.0e+3, note: "LAMOST/Gaia subgiants at Galactocentric 6 < R < 14 kpc and -4 < Z < 6 kpc (90% within 7.2 < R < 10.4 kpc and -1.2 < Z < 2 kpc); no heliocentric range is given, the far corner of that volume is ~8-9 kpc from the Sun; XR22 state no lower distance, the 0.1 kpc start is nominal"}
+  scale: {min_pc: 100.0, max_pc: 9.0e+3, note: "LAMOST/Gaia subgiants at Galactocentric 6 < R < 14 kpc and -4 < Z < 6 kpc (90% within 7.2 < R < 10.4 kpc and -1.2 < Z < 2 kpc); no heliocentric range is given: toward the anticentre, which the LAMOST footprint favours, R = 14 kpc with Z = 6 kpc is ~8-9 kpc from the Sun (an estimate under that assumption; a purely geometric bound for the full volume would be ~23 kpc); XR22 state no lower distance, the 0.1 kpc start is nominal"}
   sky:
     mode: survey
     survey: {name: "LAMOST x Gaia", note: "LAMOST spectroscopic footprint (mostly northern sky) with Gaia parallaxes"}
