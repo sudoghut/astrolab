@@ -884,7 +884,132 @@ verdicts above stand (SEL-9).
     lower d* from its cap 0.25, and the two other resolvable bins are more exposed to that than bin [−0.7, −0.5)
     (their recorded power mocks reach d = 0.03–0.14; power 1.00 at d* = 0.25); the metal-rich bins'
     power 0, attributed above to the density model, may also be partly optimiser-limited. A pre-registered rerun of R1-SEL with
-    data-independent starts in every mock fit is registered as T-049.
+    data-independent starts in every mock fit is registered as T-049 (done 2026-11-21, section 5.2:
+    the null sets and the other bins held up, and R1-SEL-FIT reads "not reproduced (robust;
+    selection-term robust)").
+
+### 5.2 R1-SEL-FIT: R1-SEL rerun with data-independent starts in every mock fit (T-049; run 2026-11-20/21)
+
+Pre-registered in section 2.6 (2026-11-20). Run with `"parts": ["selfit"]` (`python -m astrolab run 010`)
+on an otherwise idle machine. The first session started on the evening of 2026-11-20. The 15 R1 data
+fits passed the check. After the first set (k = 0, the S15 term-E skew-normal null set of bin
+[−0.7, −0.5), about 10.9 s per mock) the projection was 16.17 h against the 12 h limit. The run
+therefore stopped at 19:25 under the SEL-8 rule, with 157 mocks checkpointed
+(`mocks.resumes[0].stopped`). On 2026-11-21 the user consented to resume with a 24 h limit (`log.md`;
+`mocks.resumes[0].consent`, `mocks.stop_limit_h`); the number of mocks did not change. The resumed
+session started at 03:12 and finished at 08:13 local time (13:13 UTC, `run_info_selfit.json`).
+
+The stop rule counted 5.30 h of elapsed time over both sessions (`mocks.elapsed_h_total`); the resumed
+session ran 5.11 h, data fits included (`runtime_h`). The 5,400 mocks (108 sets of 50: 90 main sets
+and 18 floor-0.20 sets) took 5.29 h of fit time, against 2.6's estimate of 4.5–5 h. That is 3.53 s per
+mock on average (`per_set[].mean_s_per_mock`):
+- by variant, 4.67 s for S15 term E, 2.80 s for term N and 3.11 s for Full (T-045: about 4.2 and 2.4 s);
+- by kind, 4.08 s for null mocks, and 2.62 s and 3.20 s for power mocks at floors 0.12 and 0.20.
+
+Per-mock seeds make the numbers independent of the stop.
+
+New files: `r1_selfit.json`, `provenance_selfit.json` and `run_info_selfit.json`. `r1_sel.json` and
+every recorded label are unchanged. R1-SEL-FIT is a rerun of R1-SEL with improved mock fits, not a
+correction of it: R1-SEL's label in section 5.1 stands as that block's pre-registered outcome.
+
+- **Checks (2.6): all passed.** The 15 R1 data fits equal `r1_sel.json` within 10⁻⁹
+  (`data_fit_mismatches` is empty). Fit (o) reproduces the recorded d and valley flag of all 5,400
+  mocks (`mock_reproduction`: 0 mismatches). No mock had a non-finite likelihood (`nonfinite` is
+  empty).
+- **Label: R1-SEL-FIT is "not reproduced (robust; selection-term robust)"** (`label`), the outcome 2.6
+  stated as expected. Every variant has 4 of 5 bins resolvable and none almost disjoint (data
+  d = 0.367–0.580 against d* = 0.25), so the 2.1 rule gives "not reproduced" (`variants.<v>.verdict`).
+  Full gives the same verdict (robust), and so does S15 term N (selection-term robust).
+- **Floor 0.20.** The label is the same (`label_floor_sensitivity`), with 4 of 5 bins resolvable in
+  each variant (`floor_sensitivity.<v>`).
+- **The verdict does not depend on the metal-rich bins.** The three metal-poor bins have power 1.00 in
+  every variant, which already gives three resolvable bins.
+
+| Variant | Resolvable bins, R1-SEL → R1-SEL-FIT | Almost disjoint | Verdict, R1-SEL → R1-SEL-FIT |
+|---|---|---|---|
+| S15 term E (primary) | 2 → 4 | 0 → 0 | undetermined → **not reproduced** |
+| S15 term N | 3 → 4 | 0 → 0 | not reproduced → **not reproduced** |
+| Full | 2 → 4 | 0 → 0 | undetermined → **not reproduced** |
+| Label | – | – | undetermined (robust; selection-term sensitive) → **not reproduced (robust; selection-term robust)** |
+
+Per bin, R1-SEL (`recorded_r1_sel`) next to R1-SEL-FIT (`variants.<v>.bins[i]`). Power is given under
+e = r·τ / e = r·A. The FPR is the largest realised false-positive rate over the four null sets. The
+data d values do not change (data fits unchanged); d = 1 means no valley.
+
+| Variant | Bin [Fe/H] | Data d | Power, R1-SEL | Power, R1-SEL-FIT | FPR / q_s / d*, R1-SEL → R1-SEL-FIT | Resolvable, R1-SEL → R1-SEL-FIT |
+|---|---|---|---|---|---|---|
+| S15 term E | [−0.7, −0.5) | 0.410 | 0.80 / 0.58 | 1.00 / 1.00 | 0 / 0.25 / 0.25 → same | no → **yes** |
+| S15 term E | [−0.5, −0.3) | 0.579 | 1.00 / 1.00 | 1.00 / 1.00 | 0 / 0.25 / 0.25 → same | yes → yes |
+| S15 term E | [−0.3, −0.1) | 0.502 | 1.00 / 1.00 | 1.00 / 1.00 | 0 / 0.25 / 0.25 → same | yes → yes |
+| S15 term E | [−0.1, 0.1) | 1 | 0 / 0 | 0.84 / 0.92 | 0 / 0.25 / 0.25 → same | no → **yes** |
+| S15 term E | [0.1, 0.3) | 1 | 0 / 0 | 0.36 / 0.32 | 0 / 0.25 / 0.25 → same | no → no |
+| S15 term N | [−0.7, −0.5) | 0.367 | 0.88 / 0.88 | 1.00 / 1.00 | 0 / 0.25 / 0.25 → same | yes → yes |
+| S15 term N | [−0.5, −0.3) | 0.580 | 1.00 / 1.00 | 1.00 / 1.00 | 0 / 0.25 / 0.25 → same | yes → yes |
+| S15 term N | [−0.3, −0.1) | 0.482 | 1.00 / 1.00 | 1.00 / 1.00 | 0 / 0.25 / 0.25 → same | yes → yes |
+| S15 term N | [−0.1, 0.1) | 1 | 0 / 0 | 1.00 / 1.00 | 0 / 0.25 / 0.25 → same | no → **yes** |
+| S15 term N | [0.1, 0.3) | 1 | 0 / 0 | 0.50 / 0.56 | 0 / 0.25 / 0.25 → same | no → no |
+| Full | [−0.7, −0.5) | 0.386 | 0.70 / 0.74 | 1.00 / 1.00 | 0 / 0.25 / 0.25 → same | no → **yes** |
+| Full | [−0.5, −0.3) | 0.579 | 1.00 / 1.00 | 1.00 / 1.00 | 0 / 0.25 / 0.25 → same | yes → yes |
+| Full | [−0.3, −0.1) | 0.479 | 1.00 / 1.00 | 1.00 / 1.00 | 0 / 0.25 / 0.25 → same | yes → yes |
+| Full | [−0.1, 0.1) | 1 | 0 / 0 | 0.98 / 0.98 | 0 / 0.25 / 0.25 → same | no → **yes** |
+| Full | [0.1, 0.3) | 1 | 0 / 0 | 0.44 / 0.36 | 0 / 0.25 / 0.25 → same | no → no |
+
+Floor-0.20 power sets. Only three bins have their own power model at floor 0.20; the null sets, d*
+and the other bins are shared with the primary. R1-SEL is from `r1_sel.json` `floor_sensitivity`,
+R1-SEL-FIT from `floor_sensitivity.<v>.bins[i]`. In R1-SEL the three verdicts at floor 0.20 were the
+same as at floor 0.12.
+
+| Variant | Bin [Fe/H] | Power, R1-SEL | Power, R1-SEL-FIT |
+|---|---|---|---|
+| S15 term E | [−0.3, −0.1) | 1.00 / 1.00 | 1.00 / 1.00 |
+| S15 term E | [−0.1, 0.1) | 0.04 / 0.06 | 1.00 / 1.00 |
+| S15 term E | [0.1, 0.3) | 0 / 0 | 0.34 / 0.30 |
+| S15 term N | [−0.3, −0.1) | 1.00 / 1.00 | 1.00 / 1.00 |
+| S15 term N | [−0.1, 0.1) | 0.68 / 0.60 | 1.00 / 1.00 |
+| S15 term N | [0.1, 0.3) | 0 / 0 | 0.70 / 0.70 |
+| Full | [−0.3, −0.1) | 1.00 / 1.00 | 1.00 / 1.00 |
+| Full | [−0.1, 0.1) | 0.52 / 0.36 | 1.00 / 1.00 |
+| Full | [0.1, 0.3) | 0 / 0 | 0.60 / 0.44 |
+
+- **Reported without verdict (2.6, from `per_set`).**
+  - **Valley flag changes: 334 of 5,400 mocks, all gains.** No mock lost a valley.
+    - Null mocks: 5, all in bin [0.1, 0.3) (S15 term E 2, term N 1, Full 2). None of these valleys
+      passes, so every FPR stays 0 and d* stays at its cap.
+    - Primary power mocks: 306 (bin [−0.7, −0.5) 71, [−0.1, 0.1) 56, [0.1, 0.3) 179).
+    - Floor-0.20 power mocks: 23.
+  - **Pass changes: 825 mocks, all gains.** In every power set the new power minus the recorded
+    power equals the number of changes. By kind: null 0, primary power 484 (bins [−0.7, −0.5) 71,
+    [−0.1, 0.1) 286, [0.1, 0.3) 127), floor-0.20 power 341.
+  - **NLL rising with K (K = 1–4).** Under (o) the NLL rises in 1,748 of 5,400 mocks: 509 null (508
+    of them in bin [0.1, 0.3)), 737 primary power and 502 floor-0.20 power. Under the new fits it
+    rises in 1: one null mock of Full, bin [0.1, 0.3), split-normal null, e = r·A (set k = 87).
+  - **K chosen by BIC.** Under (o), K = 1 / 2 / 3 / 4 in 47 / 720 / 1,760 / 2,873 mocks. Under the
+    new fits, 0 / 524 / 798 / 4,078.
+    - Every power mock of the four bins above [−0.7, −0.5) now chooses K = 4.
+    - In bin [−0.7, −0.5)'s power mocks, K = 3 in 273 of 300 and K = 4 in 27.
+    - The null mocks of bin [0.1, 0.3) chose K = 2 in 599 of 600 under (o). Under the new fits they
+      choose K = 2 in 524, K = 3 in 73 and K = 4 in 3.
+  - **Bin [−0.7, −0.5) repeats T-045.** Its six power sets give the same K counts (K = 3 in 43–47 of
+    50) and the same 95th percentiles of d (0.017, 0.015, 0.009, 0.009, 0.009, 0.009) as the
+    diagnostic, as the shared stream intends.
+  - **d of the new power mocks** (range of the set medians, and the largest 95th percentile;
+    `d_new_quantiles_5_50_80_95`, both floors):
+    - [−0.5, −0.3): 0.003–0.009, at most 0.011.
+    - [−0.3, −0.1): 0.038–0.059, at most 0.069. R1-SEL's power mocks reached 0.14.
+    - [−0.1, 0.1): 0.183–0.224, at most 0.259.
+    - [0.1, 0.3): 0.234–0.275, at most 0.326.
+    - The true d of the metal-rich power models is 0.016 and 0.038.
+- **Reading (post hoc, 2026-11-21; no verdict).**
+  - With converged mock fits, the null sets did not move d*, and the metal-poor bins kept or gained
+    power. So R1-SEL's line between "undetermined" and "not reproduced" (section 5.1) was set by the
+    mock optimiser, as the T-045 diagnostic suggested. With better mock fits all three variants read
+    "not reproduced": the data's valleys (d = 0.37–0.58) are real but far from almost disjoint.
+  - Section 5.1 attributed the metal-rich bins' power 0 to the density model. That was only partly
+    right. With better fits, bin [−0.1, 0.1) is resolvable in every variant, at both floors. In bin
+    [0.1, 0.3) the power mocks still give median d ≈ 0.23–0.28 against a true 0.038, so its power stays
+    at 0.30–0.70: the K ≤ 4 Gaussian smearing remains there.
+  - The resolvability of bin [−0.1, 0.1) at floor 0.12 is narrow for S15 term E (power 0.84 under
+    e = r·τ). This does not affect the verdict.
 
 ## 6. Referee notes
 
@@ -933,6 +1058,10 @@ numbers and found each one as the rules give. Triage:
   would read "not reproduced" if the null sets and the other resolvable bins hold up under the same
   refit (section 5.1, post hoc; not tested). A pre-registered rerun of
   R1-SEL with such starts in every mock fit, null sets and all bins included, is T-049.
+  **Closed by R1-SEL-FIT (T-049, 2026-11-21, section 5.2).** The null sets kept d* at its cap 0.25
+  (no null mock passed), the three metal-poor bins have power 1.00 in every variant, and bin
+  [−0.1, 0.1) became resolvable too. R1-SEL-FIT reads "not reproduced (robust; selection-term
+  robust)", at both floors. R1-SEL's "undetermined" stands as its own pre-registered outcome.
 - **Which error generator is right.** Open points from section 5.1, readings 2–4:
   - Term N fails recovery only under the τ-keyed generator, whose pools carry the age dependence
     of the pass fraction that the errors themselves create.
@@ -942,15 +1071,19 @@ numbers and found each one as the rules give. Triage:
 - **Limitations noted by the referee.** Mock fits start from the data fit with 3 starts while data
   fits use 40; f_max = 2.81 (dominated by the true late-phase age spread and by σ_sel) is not a
   usable error scale; latent peaks pile up at the 20 Gyr grid edge in metal-rich bins, which affects
-  BIC and the K cap.
+  BIC and the K cap. For R1, R1-SEL-FIT (section 5.2) adds 8 data-independent starts per K to
+  every mock fit.
 - **R1 power.** Metal-rich bins have no power under the pre-registered generating model (one by
   construction, section 5); a model with a sharper young edge, or ages from a different pipeline,
-  would be needed to resolve them.
+  would be needed to resolve them. With better mock fits (R1-SEL-FIT, section 5.2), bin [−0.1, 0.1)
+  is resolvable (power 0.84–1.00). Bin [0.1, 0.3) is not (power 0.30–0.70; its power mocks give
+  median d ≈ 0.23–0.28 against a true 0.038), so the density-model limit remains there.
 - **Absolute age scale.** The 13 Gyr mean moves by ~1 Gyr with the isochrone grid and α scale, and the
   deconvolved mean is 0.3–0.7 Gyr lower; an independent age scale (e.g. Chen, Sun & Ye 2025) on the
   same stars would show whether the onset epoch survives.
 - **Mock budget (done in the re-test).** R-SEL used 50 mocks per set. The R1 line still sits on
-  one bin's power (section 5.1).
+  one bin's power (section 5.1). In R1-SEL-FIT it does not: three bins have power 1.00 in every
+  variant (section 5.2).
 
 ## 8. Exploring via chat
 
@@ -1012,7 +1145,10 @@ How a coding agent answers "what if" questions about this study without touching
   K chosen, NLL rising with K over K = 1–4 under (o) and under the new fits, how often (i) was used per K,
   changes in valley and pass, time per mock); `data_fit_mismatches`,
   `mock_reproduction`; `mocks` with the projections). The R1-SEL-FIT run (the committed default) takes
-  about 5 h of mocks plus about 25 min of data fits, on an otherwise idle machine.
+  about 5 h of mocks plus about 25 min of data fits, on an otherwise idle machine. The formal run took
+  5.29 h of mock fit time, 3.53 s per mock, and 5.30 h of elapsed time with one stop and a resume
+  (section 5.2). Its 12 h stop rule fired after the first set, whose mocks are the slowest (10.9 s each),
+  so a rerun needs either a higher `selfit_stop_h` or a resume with consent.
 - Example questions: "Does the R1 valley survive a stricter error cut?" → `--set cut=0.10`.
   "Is the 13 Gyr mean sensitive to the J_φ cut?" → `--set r2_jphi=300` (R2 also reports 300 and 700).
   "What if the selection term conditioned on relative error instead of e?" → an `explore/` script
