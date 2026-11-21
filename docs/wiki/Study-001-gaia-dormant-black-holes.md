@@ -387,6 +387,9 @@ that step is our `GAP`. For BH2, `mod_ns2` ("any plausible combination") already
 
 ### Part 3 · What astrolab can test or explore
 
+**Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/001-m04-gaia-dormant-black-holes/web/) (results, figures and tables;
+English/Chinese switch; updated when the site is republished).
+
 *Written after implementation (post hoc); not a pre-registration.* The study's actual pre-registration is in
 its [README](https://github.com/sudoghut/astrolab/blob/main/studies/001-m04-gaia-dormant-black-holes/README.md)
 (sections 1–4, with a DR4 addendum written before the DR4 release).
@@ -403,8 +406,7 @@ its [README](https://github.com/sudoghut/astrolab/blob/main/studies/001-m04-gaia
 
 What we found so far: Gaia DR3 alone reproduces the BH1 and BH2 masses, the screen recovers the known dark
 companions, and our vetoes leave 51 unexplained candidates in DR3, all giants or low-significance solutions,
-so no new dormant black hole around a main-sequence star. The interactive page runs locally with
-`python -m astrolab serve`.
+so no new dormant black hole around a main-sequence star. The interactive page is online: [study web page](https://sudoghut.github.io/astrolab/studies/001-m04-gaia-dormant-black-holes/web/) (locally: `python -m astrolab serve`).
 
 ### Glossary
 
@@ -679,6 +681,8 @@ exact ⟨b1, b2, b3⟩
 
 ### 第三部分 · 本项目可检验或探索的环节
 
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/001-m04-gaia-dormant-black-holes/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。
+
 *实现后补写（事后，post hoc），不是预注册。* 研究真正的预注册在它的 [README](https://github.com/sudoghut/astrolab/blob/main/studies/001-m04-gaia-dormant-black-holes/README.md) 中（第 1–4 节，另有 DR4 发布前写好的 DR4 附录）。
 
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
@@ -691,7 +695,7 @@ exact ⟨b1, b2, b3⟩
 | C：光度限制 | 不在范围内 | 需要光谱 | — | — | — |
 | D：三个以上致密天体的稳定性 | 可探索（不能判决） | n 体模拟或文献 | — | 无——仅供探索 | 尚未开始 |
 
-目前的发现：只用 Gaia DR3 就能复现 BH1 与 BH2 的质量；筛选能找回已知的暗伴星；我们的否决规则在 DR3 中留下 51 个未解释的候选，全部是巨星或低显著性的解，所以没有发现主序星旁边的新休眠黑洞。交互网页在本地用 `python -m astrolab serve` 打开。
+目前的发现：只用 Gaia DR3 就能复现 BH1 与 BH2 的质量；筛选能找回已知的暗伴星；我们的否决规则在 DR3 中留下 51 个未解释的候选，全部是巨星或低显著性的解，所以没有发现主序星旁边的新休眠黑洞。交互网页在线版：[研究网页](https://sudoghut.github.io/astrolab/studies/001-m04-gaia-dormant-black-holes/web/)（本地用 `python -m astrolab serve` 打开）。
 
 ### 术语表
 

@@ -239,6 +239,9 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 ### Part 3 · What astrolab can test or explore
 
+**Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/006-m08-z14-galaxies-number-density/web/) (results, figures and tables;
+English/Chinese switch; updated when the site is republished).
+
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
 | A: the number density (R1) | testable now | φ = N/(V Δm) with N = 2, V = 462,648 Mpc³; Gehrels 84% Poisson limits; recompute V from 388 arcmin² and z = 14–15 (Planck 2018) | N26 §4.1 numbers (~1 KB) | reproduced if log φ within 0.01 dex and each error within 0.05 dex; volume within 5% | **reproduced**: log φ = −5.364 (+0.365/−0.451); V = 460,463 Mpc³ (−0.5%) |
@@ -271,7 +274,7 @@ and above the ≈ 0.7 mag inferred to z ≈ 9. The three gaps of the argument (d
 variance, effective area), and the fourth found by the referee (`gap_bin`), are untouched by these numbers.
 
 Results: [`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r1.json), [`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r2.json), [`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r3.json),
-[`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json). The interactive page runs locally with `python -m astrolab serve`.
+[`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json). The interactive page is online: [study web page](https://sudoghut.github.io/astrolab/studies/006-m08-z14-galaxies-number-density/web/) (locally: `python -m astrolab serve`).
 
 **After the independent referee (2026-11-15; post hoc, explorations).** Neither fiducial verdict is
 stable against the uncertainty of the z ≈ 8 calibration data, which the pre-registration did not
@@ -501,6 +504,8 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 ### 第三部分 · 本项目可检验或探索的环节
 
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/006-m08-z14-galaxies-number-density/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。
+
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
 | A：数密度（R1） | 现在可检验 | φ = N/(V Δm)，N = 2、V = 462,648 Mpc³；Gehrels 84% 泊松限；由 388 arcmin² 与 z = 14–15 复算 V（Planck 2018） | N26 第 4.1 节的数字（约 1 KB） | log φ 差 0.01 dex 以内、各误差差 0.05 dex 以内、体积差 5% 以内 → 复现 | **复现**：log φ = −5.364（+0.365/−0.451）；V = 460,463 Mpc³（−0.5%） |
@@ -519,7 +524,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 一个独立的恒定恒星形成效率模型，用 Bouwens 等 2021 的 JWST 之前 z ≈ 8 光度函数校准后冻结，在同一箱中预言 φ = 2.2 × 10⁻⁷ Mpc⁻³ mag⁻¹：为 N26 基准的 9.4 倍（观测数密度约为这一预言的 19 倍，看到两个源的泊松概率约 0.5%）。在 72 个预先列出的变体中，这个倍数从 2.5 到 37（61 个"更高"、11 个"同一量级"），所以判定依赖校准。影响最大的是校准时假定的弥散、效率如何外推到小晕，以及晕质量函数（11 个"同一量级"的变体都用 Reed 等 2007）。固定中位数关系时，再现观测数密度所需的弥散为 σ_UV ≈ 1.4 mag（泊松范围内 1.15–1.57；各变体 1.07–1.60）：位于 N26 的 1.5–2 mag 的低端或略低，并高于推断到 z ≈ 9 的约 0.7 mag。论证的三个缺口（判决规则、宇宙方差、有效面积）以及审稿人发现的第四个缺口（`gap_bin`）都不受这些数字影响。
 
-结果：[`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r1.json)、[`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r2.json)、[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r3.json)、[`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json)。交互网页在本地用 `python -m astrolab serve` 打开。
+结果：[`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r1.json)、[`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r2.json)、[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/r3.json)、[`variants.json`](https://github.com/sudoghut/astrolab/blob/main/studies/006-m08-z14-galaxies-number-density/results/variants.json)。交互网页在线版：[研究网页](https://sudoghut.github.io/astrolab/studies/006-m08-z14-galaxies-number-density/web/)（本地用 `python -m astrolab serve` 打开）。
 
 **独立审稿之后（2026-11-15；事后，仅为探索）。** 两个基准判定都不能抵御 z ≈ 8 校准数据的不确定性，而预注册没有传播这一不确定性：把 Bouwens 等 2021 的任一参数按 1σ 移动，比值在 1.9 到 35 之间变化，所需 σ 在 1.70 到 1.10 mag 之间变化：每一种移动都会使 R3 翻转，φ* 减 1σ 还会使 R2 翻转（比值 1.9，"同一量级"）。只要去掉 0.3 mag 的 z ≈ 8 尘埃消光，比值就升到 20（R2 仍为"更高"），σ 变为 1.24 mag（R3"不同"）。稳健的说法更窄：独立的恒定 SFE 模型预言的 z = 14–15 星系多于 N26 的基准（预注册的变体网格上 2.5–37 倍，大多超过 3 倍；含事后探索为 1.9–99 倍），所以 182 倍强烈依赖基准；它所需的 σ_UV 在 1–2 mag 左右，与 N26 的 1.5–2 mag 是否重叠没有稳定的判定。审稿人还发现论证的第四个缺口：箱是围绕两个探测选的（`gap_bin`，旁视效应）。后续：用带误差的分箱数据校准并传播后验（T-025）。
 

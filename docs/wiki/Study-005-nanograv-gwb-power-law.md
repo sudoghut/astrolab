@@ -299,6 +299,9 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 ### Part 3 · What astrolab can test or explore
 
+**Interactive page:** [open this study's web page](https://sudoghut.github.io/astrolab/studies/005-m09-nanograv-gwb-power-law/web/) (results, figures and tables;
+English/Chinese switch; updated when the site is republished).
+
 | Stage / claim | Can we test or explore it? | How | Data (size) | Decision criterion | Result |
 |---|---|---|---|---|---|
 | A: amplitude at γ = 13/3 (R1) | testable now | refit log10 A on the v2.0.0 KDE free spectrum, 14 lowest frequencies, factorised likelihood, L8's prior | Zenodo 21844115 `ceffyl_data.zip`, 3.0 MB | Hellinger distance between our log10 A posterior and a median-pinned two-piece normal built from L8's 5/50/95% values < 0.15: "consistent with L8's interval"; otherwise "differs" | **consistent with L8's interval**: A = 2.31 [1.82, 2.92] × 10⁻¹⁵, H = 0.099 |
@@ -331,8 +334,7 @@ directory instead (post hoc) shows the 2026 sampler fix lowering A at γ = 13/3 
 over the γ = 13/3 power law (ln Bayes factor 2.37), a prior-dependent, descriptive number.
 
 Results: [`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r1.json), [`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2.json), [`r2b.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2b.json),
-[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r3.json), [`r4.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r4.json). The interactive page runs locally with
-`python -m astrolab serve`.
+[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r3.json), [`r4.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r4.json). The interactive page is online: [study web page](https://sudoghut.github.io/astrolab/studies/005-m09-nanograv-gwb-power-law/web/) (locally: `python -m astrolab serve`).
 
 **After the independent referee (2026-11-15; post hoc, explorations only).** Three caveats change how
 these numbers should be read:
@@ -557,6 +559,8 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 ### 第三部分 · 本项目可检验或探索的环节
 
+**交互网页：**[打开本研究的网页](https://sudoghut.github.io/astrolab/studies/005-m09-nanograv-gwb-power-law/web/)（结果、图与表，可切换中英文；网站重新发布时更新）。
+
 | 环节 / 结论 | 能否检验或探索 | 方法 | 数据（大小） | 判据 | 结果 |
 |---|---|---|---|---|---|
 | A：γ = 13/3 时的振幅（R1） | 现在可检验 | 在 v2.0.0 KDE 自由谱上、用最低 14 个频率、分解似然与 L8 的先验重拟 log10 A | Zenodo 21844115 `ceffyl_data.zip`，3.0 MB | 我们的 log10 A 后验与由 L8 的 5/50/95% 值构造、以中位数为界的两段半正态（median-pinned two-piece half-normal）之间的 Hellinger 距离 < 0.15："与 L8 的区间一致"；否则"不同" | **与 L8 的区间一致**：A = 2.31 [1.82, 2.92] × 10⁻¹⁵，H = 0.099 |
@@ -575,7 +579,7 @@ theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =
 
 与 2023 年产品的预注册比较（R3）不可评估：其压缩包里有两个目录符合我们的规则（另一个用不同的噪声模型）。事后改读精确目录可见，2026 年的采样器修正使 γ = 13/3 时的 A 降低约 8%（2.52 → 2.31 × 10⁻¹⁵），γ 升高约 0.17。低频转折相对 γ = 13/3 幂律略受偏好（ln 贝叶斯因子 2.37），这是依赖先验的描述性数字。
 
-结果：[`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r1.json)、[`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2.json)、[`r2b.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2b.json)、[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r3.json)、[`r4.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r4.json)。交互网页在本地用 `python -m astrolab serve` 打开。
+结果：[`r1.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r1.json)、[`r2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2.json)、[`r2b.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r2b.json)、[`r3.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r3.json)、[`r4.json`](https://github.com/sudoghut/astrolab/blob/main/studies/005-m09-nanograv-gwb-power-law/results/r4.json)。交互网页在线版：[研究网页](https://sudoghut.github.io/astrolab/studies/005-m09-nanograv-gwb-power-law/web/)（本地用 `python -m astrolab serve` 打开）。
 
 **独立审稿之后（2026-11-15；事后，仅为探索）。** 三条保留意见改变了对这些数字的解读：
 
