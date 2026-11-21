@@ -1,6 +1,6 @@
 # 宽双星：低加速度下是牛顿引力还是 MOND？
 
-> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。 网页在线版：[https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)。
+> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。网页在线版：[https://sudoghut.github.io/astrolab/studies/004-m07-wide-binaries-gravity-test/web/](https://sudoghut.github.io/astrolab/studies/004-m07-wide-binaries-gravity-test/web/)。
 
 > 第 1–4 节是预注册（pre-registration），由 Wiki 文章
 > [Study-004](https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-004-wide-binaries-newton-or-mond.md)

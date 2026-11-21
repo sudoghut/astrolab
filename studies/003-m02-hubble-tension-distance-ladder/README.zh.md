@@ -1,6 +1,6 @@
 # 哈勃张力：SH0ES 距离阶梯与校准宿主的选择
 
-> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。 网页在线版：[https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)。
+> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。网页在线版：[https://sudoghut.github.io/astrolab/studies/003-m02-hubble-tension-distance-ladder/web/](https://sudoghut.github.io/astrolab/studies/003-m02-hubble-tension-distance-ladder/web/)。
 
 > 第 1–4 节写于 2026-11-14，在 run.py 之前、也在获取任何数据之前
 > （预注册（pre-registration）；由 Wiki 文章

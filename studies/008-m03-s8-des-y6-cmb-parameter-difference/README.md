@@ -1,6 +1,6 @@
 # M3 S8 tension: DES Y6 3x2pt vs CMB parameter difference and multi-probe summary
 
-> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)
+> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/](https://sudoghut.github.io/astrolab/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/)
 
 > Write sections 1–4 BEFORE writing run.py (pre-registration). Edit them later only
 > with a dated note explaining the change.

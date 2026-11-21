@@ -1,6 +1,6 @@
 # M6 Milky Way outer rotation curve: Keplerian decline, mass and systematics
 
-> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)
+> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies/009-m06-mw-outer-rotation-curve-decline/web/](https://sudoghut.github.io/astrolab/studies/009-m06-mw-outer-rotation-curve-decline/web/)
 
 > Write sections 1–4 BEFORE writing run.py (pre-registration). Edit them later only
 > with a dated note explaining the change.

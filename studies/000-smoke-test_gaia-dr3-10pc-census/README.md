@@ -1,6 +1,6 @@
 # Smoke test: Gaia DR3 census of the 10 pc neighbourhood
 
-> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)
+> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies/000-smoke-test_gaia-dr3-10pc-census/web/](https://sudoghut.github.io/astrolab/studies/000-smoke-test_gaia-dr3-10pc-census/web/)
 
 ## 1. Question
 

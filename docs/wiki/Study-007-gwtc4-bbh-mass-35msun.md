@@ -4,11 +4,11 @@
 
 *Paper(s): LVK 2026, "GWTC-4.0: Population Properties of Merging Compact Binaries", ApJL 1005, L51, arXiv:2508.18083 (main paper, "P26"); GWTC-4.0 catalogue, ApJL 1004, arXiv:2508.18082 ("C26"); GW231123, ApJL 993, L25, arXiv:2507.08219. Study:
 [`studies/007-m10-gwtc4-bbh-mass-35msun`](https://github.com/sudoghut/astrolab/tree/main/studies/007-m10-gwtc4-bbh-mass-35msun) (web page: [online](https://sudoghut.github.io/astrolab/studies/007-m10-gwtc4-bbh-mass-35msun/web/)).
-Status: planned. Last updated: 2026-11-15 (see the
+Status: concluded. Last updated: 2026-11-15 (see the
 changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：GWTC-4.0 中的黑洞质量：35 M☉ 处是一个峰，还是只是一处弯折？状态：计划中。论文：LVK 2026，"GWTC-4.0: Population Properties of Merging Compact Binaries"，ApJL 1005, L51, arXiv:2508.18083（主论文，"P26"）；GWTC-4.0 目录，ApJL 1004, arXiv:2508.18082（"C26"）；GW231123，ApJL 993, L25, arXiv:2507.08219。研究：[`studies/007-m10-gwtc4-bbh-mass-35msun`](https://github.com/sudoghut/astrolab/tree/main/studies/007-m10-gwtc4-bbh-mass-35msun)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/007-m10-gwtc4-bbh-mass-35msun/web/)）。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：GWTC-4.0 中的黑洞质量：35 M☉ 处是一个峰，还是只是一处弯折？状态：已结束。论文：LVK 2026，"GWTC-4.0: Population Properties of Merging Compact Binaries"，ApJL 1005, L51, arXiv:2508.18083（主论文，"P26"）；GWTC-4.0 目录，ApJL 1004, arXiv:2508.18082（"C26"）；GW231123，ApJL 993, L25, arXiv:2507.08219。研究：[`studies/007-m10-gwtc4-bbh-mass-35msun`](https://github.com/sudoghut/astrolab/tree/main/studies/007-m10-gwtc4-bbh-mass-35msun)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/007-m10-gwtc4-bbh-mass-35msun/web/)）。最后更新：2026-11-15（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 

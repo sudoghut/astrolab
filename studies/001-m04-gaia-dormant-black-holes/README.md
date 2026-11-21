@@ -1,6 +1,6 @@
 # M4: Gaia dormant black holes - DR3 reproduction and DR4-ready screen
 
-> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)
+> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies/001-m04-gaia-dormant-black-holes/web/](https://sudoghut.github.io/astrolab/studies/001-m04-gaia-dormant-black-holes/web/)
 
 > Sections 1-4 were written on 2026-11-11 BEFORE run.py (pre-registration).
 > Later edits to them must carry a dated note.
