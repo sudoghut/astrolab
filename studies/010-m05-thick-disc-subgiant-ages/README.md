@@ -684,21 +684,26 @@ on XR22's claim.
     `[seed, 1000 + b, …]`).
 
 - **Decision rules (fixed now).** For variant v, bin b, scale f and mechanism m, n_reach is the
-  number of the 50 power mocks whose fitted d ≥ d_data(v, b), the R1-SEL-FIT data d of that bin and
-  variant (`r1_selfit.json` `variants.<v>.bins[b].d`). A mock without a valley has d = 1 and counts.
+  number of the 50 power mocks that have a valley and whose fitted d ≥ d_data(v, b), the R1-SEL-FIT
+  data d of that bin and variant (`r1_selfit.json` `variants.<v>.bins[b].d`). Mocks without a valley
+  (d = 1 is a sentinel, not a dip) are not in n_reach; they are counted separately as n_novalley and
+  reported. A blurred split that shows no dip at all does not reproduce the data's dip.
+  *Amendment (2026-11-21, Codex review, before any R1-ERR mock):* the first draft counted mocks
+  without a valley in n_reach, which would inflate it; changed to the definition above.
   - *Per bin:* "explainable at f" if n_reach / 50 ≥ 0.05 (at least 3 of 50) under at least one
-    mechanism, otherwise "not explainable at f". Equivalently, the 3rd largest mock d is ≥ the data
-    d.
+    mechanism, otherwise "not explainable at f". Equivalently, at least 3 mocks have a valley and,
+    among the mocks with a valley, the 3rd largest d is ≥ the data d.
   - *Why this rule and not the median.* The question is whether the data's d is consistent with an
     idealised split blurred by f, not whether it is typical of one. A one-sided 5% tail is the usual
     consistency criterion, and it mirrors the construction of d* (at most 2 of 50 null mocks pass).
-    The median rule (median mock d ≥ data d) asks for typicality and would call a bin "not
+    The median rule (n_reach ≥ 25 of 50: at least half of the mocks have a valley with d ≥ data
+    d) asks for typicality and would call a bin "not
     explainable" more easily, which favours the recorded label. It is reported (labels computed with
     it by the same structure) but not used. "At least one mechanism" is also the side less favourable
     to the recorded label: R1 needs power under both mechanisms, so a dip that either mechanism
     produces counts as explained.
   - *Precision (computed now from the binomial distribution, 50 mocks per mechanism, the two
-    mechanisms treated as independent).* If the true fraction of mocks reaching the data d is 2%
+    mechanisms treated as independent).* If the true fraction of mocks that have a valley with d ≥ data d is 2%
     under both mechanisms, a bin is called explainable with probability 0.15; if it is 5%, the call
     is missed with probability 0.29; at 10% it is missed with probability 0.01. "Not explainable" and
     "robust up to f = X" are therefore 50-mock estimates, not bounds; every n_reach / 50 is reported
@@ -750,8 +755,8 @@ on XR22's claim.
 
 - **Reported (no verdict).**
   - *Per set:* the 5th, 50th, 80th and 95th percentiles of the fitted d; n_reach with its 95%
-    Clopper–Pearson interval; n_reach restricted to the mocks that have a valley (descriptive); the
-    fraction with a valley; the power at d* = 0.25 (a valley and d < 0.25); the K chosen; how often
+    Clopper–Pearson interval; n_novalley; descriptively, the number of all mocks with d ≥ data d
+    including those without a valley (n_reach + n_novalley); the fraction with a valley; the power at d* = 0.25 (a valley and d < 0.25); the K chosen; how often
     (i) was used; the number of mocks whose NLL rises with K; the mean pass rate of the mocks against
     the data's S15 fraction of the parent; the 5th, 50th and 95th percentiles of the observed ages
     (median over mocks) against the data bin's; the number of stars dropped by the redraw limit of
