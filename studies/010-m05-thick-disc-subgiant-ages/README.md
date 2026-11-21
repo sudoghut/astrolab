@@ -885,8 +885,8 @@ verdicts above stand (SEL-9).
     (their recorded power mocks reach d = 0.03–0.14; power 1.00 at d* = 0.25); the metal-rich bins'
     power 0, attributed above to the density model, may also be partly optimiser-limited. A pre-registered rerun of R1-SEL with
     data-independent starts in every mock fit is registered as T-049 (done 2026-11-21, section 5.2:
-    d* stayed at its cap and the metal-poor bins held up (bin [0.1, 0.3)'s null sets gained 5 valleys,
-    none passing), and R1-SEL-FIT reads "not reproduced (robust;
+    d* stayed at its cap (bin [0.1, 0.3)'s null sets gained 5 valleys, none passing) and the
+    metal-poor bins held up, and R1-SEL-FIT reads "not reproduced (robust;
     selection-term robust)").
 
 ### 5.2 R1-SEL-FIT: R1-SEL rerun with data-independent starts in every mock fit (T-049; run 2026-11-20/21)
@@ -1082,7 +1082,12 @@ the label, and found every rule of 2.6 evaluated as written. Triage:
   **Closed by R1-SEL-FIT (T-049, 2026-11-21, section 5.2).** The null sets kept d* at its cap 0.25
   (no null mock passed), the three metal-poor bins have power 1.00 in every variant, and bin
   [−0.1, 0.1) became resolvable too. R1-SEL-FIT reads "not reproduced (robust; selection-term
-  robust)", at both floors. R1-SEL's "undetermined" stands as its own pre-registered outcome.
+  robust)", at both floors, under the catalogue's quoted age errors. R1-SEL's "undetermined" stands as
+  its own pre-registered outcome.
+- **Error scale of R1 (T-054).** R1's power mocks are drawn and fitted with the catalogue's quoted
+  age errors (f = 1), so whether a nearly disjoint latent split blurred by larger true errors would
+  look like the data's dip is untested (referee, section 6). An error-scale power test (mocks drawn
+  with f·e_Age, f ∈ {1.2, 1.5, 2.0, f_max}, fitted with f = 1) is registered as T-054.
 - **Which error generator is right.** Open points from section 5.1, readings 2–4:
   - Term N fails recovery only under the τ-keyed generator, whose pools carry the age dependence
     of the pass fraction that the errors themselves create.
