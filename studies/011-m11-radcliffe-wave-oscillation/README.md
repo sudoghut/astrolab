@@ -333,7 +333,7 @@ before any fit to the data.
     mocks. It adds about 3 hours, which section 4.7 did not count. Fixed before any fit to the data.
 13. **Checkpoint storage** (section 4.7). Checkpoints are kept outside the project folder. For an MCMC
     fit they hold only the walkers' last state and the post-burn chain thinned by 10. The
-    autocorrelation time is estimated on that thinned chain and multiplied by 10. The running state is
+    autocorrelation time is estimated on that thinned chain and multiplied by 10. Stored chain samples are float32. The running state is
     deleted once a chain is finished. The checkpoint folder of a formal run is deleted after all results are
     written; an exploration keeps its own folder and never touches the formal run's. Fixed before any fit to the data.
 14. **Cost estimate** (section 4.7). Measured on synthetic data of the real size, one likelihood

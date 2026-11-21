@@ -11,6 +11,7 @@ folder (astrolab cache dir / PARAMS["checkpoint_subdir"] / <key>), so an interru
 and code. Results are written only when every requested part has finished.
 """
 import hashlib
+import re
 import math
 import time
 import zlib
@@ -470,10 +471,11 @@ def t4_run(P, store, prefix, mods, fits, data, idx_mask, ctx, with_free_power=Tr
         pw1 = draws(f"{prefix}t4_pow1_{noise}", mods["col4"], fits["b1"]["vector"], noise,
                     gen_inliers(mods["col4"], fits["b1"], None))
         p, k = S.p_low(r_obs, st)
-        pow1 = S.power(pw1, st, P["t4_p_excl"])
+        k_pow1, n_pow1 = S.power_count(pw1, st, P["t4_p_excl"])
+        pow1 = k_pow1 / n_pow1
         rec = {"p": p, "k_standing_at_or_below": k, "n_standing": int(len(st)), "p_mcse": S.p_mcse(p, len(st)),
                "power_B1": pow1, "n_power_B1": int(len(pw1)),
-               "k_power_B1_p_below": int(round(pow1 * len(pw1))),
+               "k_power_B1_p_below": k_pow1,
                "power_B1_mcse": S.p_mcse(pow1, len(pw1)),
                "R_standing_quantiles": np.round(np.quantile(st, [0.001, 0.01, 0.05, 0.5, 0.95]), 4).tolist(),
                "R_power_B1_quantiles": np.round(np.quantile(pw1, [0.05, 0.5, 0.95]), 4).tolist(),
@@ -875,6 +877,7 @@ def main(ctx):
     ctx.save("summary", out["summary"] | {"params": P})
     if formal:
         finish_checkpoints(store, ctx)
+        remove_paused_records(ctx)
     else:
         ctx.log(f"exploration checkpoints kept in {store.dir} (delete them when done)")
     return out["summary"]
@@ -895,12 +898,39 @@ def checkpoint_root(cache_dir, P, ctx):
     return root
 
 
+def _dir_bytes(d):
+    return sum(f.stat().st_size for f in Path(d).rglob("*") if f.is_file())
+
+
 def finish_checkpoints(store, ctx):
-    """README 4.9 item 13: once every result is written, the run's checkpoint folder is deleted."""
+    """README 4.9 item 13: once every result is written, the run's checkpoint folder is deleted, and so
+    are stale key folders (other code or PARAMS) directly under the formal root; explore/ is left alone."""
+    import shutil
     size = store.size_bytes()
     ok = store.remove_all()
     ctx.log(f"checkpoints {'removed' if ok else 'could NOT be removed'}: {store.dir} ({size / 1024 ** 2:.1f} MB)")
+    root = store.dir.parent
+    if root.is_dir():
+        for d in sorted(root.iterdir()):
+            if d.is_dir() and d.name != "explore" and re.fullmatch(r"[0-9a-f]{20}", d.name):
+                n = _dir_bytes(d)
+                shutil.rmtree(d, ignore_errors=True)
+                ctx.log(f"stale checkpoint folder {'removed' if not d.exists() else 'could NOT be removed'}: "
+                        f"{d.name} ({n / 1024 ** 2:.1f} MB)")
     return ok
+
+
+def remove_paused_records(ctx):
+    """A completed formal run supersedes the records of an earlier paused attempt."""
+    removed = []
+    for name in ("provenance_paused.json", "run_info_paused.json"):
+        p = Path(ctx.results) / name
+        if p.exists():
+            p.unlink()
+            removed.append(name)
+    if removed:
+        ctx.log(f"removed records of the paused attempt: {', '.join(removed)}")
+    return removed
 
 
 def pipeline(ctx, P, parts, cl, co, data, grid, mods, wc, store):
