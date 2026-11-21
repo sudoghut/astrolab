@@ -345,14 +345,18 @@ def gen_sim(P, mi, name, i, n_target, sigma, q, bmin=0.0, completeness=False):
 def grid_check(P, arr, ctx):
     """README 4.3: doubling the nodes must change sigma-hat by less than 0.01 kpc (both versions)."""
     k = int(P["grid_nodes"])
+    kmax = int(P["grid_max_nodes"])
     hist = []
-    while True:
+    conv = {"i": False, "ii": False}
+    diff = float("nan")
+    # 300 vs 600, then 600 vs 1,200, then stop: no grid above grid_max_nodes is ever built (README 4.12 item 4)
+    while 2 * k <= kmax:
         a = {v: M.fit_sigma(lik_from(arr, v, P, k), bounds=tuple(P["sigma_bounds_kpc"]))["sigma"] for v in ("i", "ii")}
         b = {v: M.fit_sigma(lik_from(arr, v, P, 2 * k), bounds=tuple(P["sigma_bounds_kpc"]))["sigma"] for v in ("i", "ii")}
         diff = max(abs(a[v] - b[v]) for v in a)
         hist.append({"nodes": k, "sigma": a, "sigma_doubled": b, "max_change": diff})
-        if diff < P["grid_check_tol_kpc"] or 2 * k >= P["grid_max_nodes"]:
-            conv = {v: bool(abs(a[v] - b[v]) < P["grid_check_tol_kpc"]) for v in a}
+        conv = {v: bool(abs(a[v] - b[v]) < P["grid_check_tol_kpc"]) for v in a}
+        if all(conv.values()) or 4 * k > kmax:
             break
         k *= 2
     ctx.log(f"grid check: {k} nodes (max change {diff:.4f} kpc; converged {conv})")

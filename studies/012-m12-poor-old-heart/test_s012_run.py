@@ -53,7 +53,7 @@ def synthetic_files(tmp, seed=5, n_poor=300, n_rich=1500, kin_cols=None):
     mh["logg"] = rng.normal(2.0, 0.3, len(mh))
     # kinematics for 80% of the stars: rotation switches on at [M/H] = -1
     k = mh.sample(frac=0.8, random_state=1).reset_index(drop=True)
-    rot = np.where(k["mh"] < -1.0, 0.0, 0.8) + rng.normal(0, 0.2, len(k))
+    rot = np.where(k["mh"] < -1.2, 0.0, 0.8) + rng.normal(0, 0.02, len(k))   # step below T3 (b)'s bin
     jtot = rng.uniform(500, 1500, len(k))
     jphi = rot * jtot
     rest = np.sqrt(np.clip(jtot ** 2 - jphi ** 2, 0, None))
@@ -124,7 +124,8 @@ def test_pipeline_end_to_end(tmp_path, monkeypatch):
         assert "T-021" in kw["budget_consent"] and "T-021" in kw["cap_consent"]
         assert kw["allow_download"] is False and kw["max_bytes"] > 50 * 1024 ** 2
     lab = s["labels"]
-    assert lab["T3a"] in ("no net rotation", "net rotation", "net counter-rotation", "undetermined")
+    # synthetic truth: J_phi/J_tot = 0 below [M/H] = -1.2 and 0.8 above, scatter 0.02
+    assert lab["T3a"] == "no net rotation" and lab["T3b"] == "rotation dominated"
     t1 = json.loads((ctx.results / "t1.json").read_text(encoding="utf-8"))
     assert t1["counts"]["lt_m1p5"] == 300
     load = json.loads((ctx.results / "load.json").read_text(encoding="utf-8"))
@@ -202,6 +203,32 @@ def test_grid_not_converged(tmp_path, monkeypatch):
             getattr(tc, name)()
         except pytest.skip.Exception:
             pass
+
+
+def test_grid_check_never_exceeds_cap(monkeypatch):
+    run = _import("run")
+    built = []
+
+    def fake_lik(arr, version, P, k, mask=None):
+        built.append(k)
+        return k
+
+    def fake_fit(lik, weights=None, q=None, bounds=None, xatol=None):
+        return {"sigma": 2.7 + 1.0 / lik}             # never converges at tol 1e-6
+
+    monkeypatch.setattr(run, "lik_from", fake_lik)
+    monkeypatch.setattr(run.M, "fit_sigma", fake_fit)
+
+    class Ctx:
+        def log(self, m):
+            pass
+    P = dict(run.PARAMS, grid_check_tol_kpc=1e-6)
+    gc = run.grid_check(P, None, Ctx())
+    assert max(built) == 1200 and sorted(set(built)) == [300, 600, 1200]
+    assert not gc["passed"] and gc["nodes"] == 600 and [h["nodes"] for h in gc["history"]] == [300, 600]
+    built.clear()
+    gc = run.grid_check(dict(P, grid_check_tol_kpc=1.0), None, Ctx())
+    assert gc["passed"] and gc["nodes"] == 300 and max(built) == 600
 
 
 def test_checkpoint_key_survives_first_download_reset(tmp_path):
