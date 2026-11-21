@@ -646,14 +646,14 @@ on XR22's claim.
     (term N) in R-SEL; the sample-A, sample-B and R7 fits at f = 0.8 and f_max (other samples).
 
   **Not seen:** any R1 mock drawn with f ≠ 1, and any R1 data fit at f ≠ 1. While drafting this
-  addendum we made only the rough estimate given under "What the outcome can be", by hand; nothing
-  was computed.
+  addendum we made only the rough estimate given under "What the outcome can be", by hand, and the
+  binomial error rates of the decision rule (below); nothing else was computed.
 
-- **What changes (mock generator only).** New power and null sets for the three metal-poor bins
+- **What changes (mock generator only).** New power sets for the three metal-poor bins
   [−0.7, −0.5), [−0.5, −0.3) and [−0.3, −0.1), drawn with true errors f·e. In `mocks.observe` the
   standard-normal deviate z is multiplied by f and the catalogue error stays as it is: under
   e = r·τ, A = τ + f·r·τ·z and e = r·τ; under e = r·A, A = τ / (1 − f·r·z) and e = r·A (so
-  A − τ = f·r·A·z = f·e). The rest of the SEL-2 generator is unchanged: r keyed by τ from the bin's
+  A − τ = f·r·A·z = f·e·z). The rest of the SEL-2 generator is unchanged: r keyed by τ from the bin's
   data pass-bin pools, observed ages kept in (0, 20) by redrawing z, the S15 cut on the catalogue
   e/A, the mock parent and the mock's own term E. At f = 1 the generator is the existing one, draw
   for draw.
@@ -661,28 +661,31 @@ on XR22's claim.
     R-SEL's recomputed values (2.70 and 2.65) lie between 2.0 and 2.81, so the ladder brackets them.
     f_max is a heuristic upper value, not a supported error scale (2.0; section 7). f = 1 is
     R1-SEL-FIT itself and is not rerun.
-  - *Generating models:* the primary power models (floor 0.12) and the two null families of each
-    bin and variant, as recorded in `r1_sel.json` (data fits at f = 1), the same at every f. The
-    floor-0.20 power models are not used; among the metal-poor bins only [−0.3, −0.1) has one, and
-    its power equalled the primary one in R1-SEL-FIT.
+  - *Generating models:* the primary power models (floor 0.12) of each bin and variant, as recorded
+    in `r1_sel.json` (data fits at f = 1), the same at every f. The floor-0.20 power models are not
+    used; among the metal-poor bins only [−0.3, −0.1) has one, and its power equalled the primary
+    one in R1-SEL-FIT.
+  - *No null sets, and d* is not recomputed.* The label compares power mocks with the data's d, not
+    with d*, so d* enters no R1-ERR rule. Null mocks drawn from the f = 1 unimodal fits and blurred by
+    f would also not be the right null for "true errors f × e_Age" (that null would be fitted at f),
+    and they would cost about two thirds of the run. The reference threshold stays R1-SEL-FIT's
+    d* = 0.25 (the cap; no null mock of the metal-poor bins had a valley).
   - *Fits:* every mock is fitted with f = 1 exactly as in R1-SEL-FIT (2.6). Fit (o) starts from the
     data fit plus 2 perturbations, and fit (i) from 8 data-independent starts per K. Per K the
     better-fit rule applies (tie 0.01), then BIC and the K = 5 rule. Valley and d are found on the
     0.05 Gyr grid, with the variant's own selection term (S15 term E built from the mock parent;
     term N; Full with denominator 1).
-  - *Sets:* for each f, power sets in all three variants (3 variants × 3 bins × 2 mechanisms = 18)
-    and null sets in S15 term E only (3 bins × 2 families × 2 mechanisms = 12). That makes 30 sets per
-    f and 120 sets in all, 50 mocks each (6,000 mocks), with no reduced fallback. Nulls run only in
-    the primary variant because they are a check and do not enter the label.
-  - *Numbering and streams:* sets are numbered k = 0…119 in the loop nest f (ladder order) > variant
-    (S15E, S15N, Full) > bin > kind (null_sn and null_sp for S15E only, then power) > mechanism
-    (rtau, rA). Mock j of set k draws its catalogue and fit (o) from `default_rng([seed, 54, k, j])`
-    and fit (i) from `default_rng([seed, 154, k, j])`, consumed as in 2.6. No other stream uses tags
-    54 and 154 (SEL-8 uses 31, R1-SEL-FIT 45, the data fits `[seed, 1000 + b, …]`).
+  - *Sets:* for each f, 3 variants × 3 bins × 2 mechanisms = 18 power sets; 72 sets in all, 50 mocks
+    each (3,600 mocks), with no reduced fallback.
+  - *Numbering and streams:* sets are numbered k = 0…71 in the loop nest f (ladder order) > variant
+    (S15E, S15N, Full) > bin > mechanism (rtau, rA). Mock j of set k draws its catalogue and fit (o)
+    from `default_rng([seed, 54, k, j])` and fit (i) from `default_rng([seed, 154, k, j])`, consumed
+    as in 2.6. No other stream uses tags 54 and 154 (SEL-8 uses 31, R1-SEL-FIT 45, the data fits
+    `[seed, 1000 + b, …]`).
 
 - **Decision rules (fixed now).** For variant v, bin b, scale f and mechanism m, n_reach is the
-  number of the 50 power mocks whose fitted d ≥ d_data(v, b), the R1-SEL-FIT data d of that bin
-  and variant. A mock without a valley has d = 1 and counts.
+  number of the 50 power mocks whose fitted d ≥ d_data(v, b), the R1-SEL-FIT data d of that bin and
+  variant (`r1_selfit.json` `variants.<v>.bins[b].d`). A mock without a valley has d = 1 and counts.
   - *Per bin:* "explainable at f" if n_reach / 50 ≥ 0.05 (at least 3 of 50) under at least one
     mechanism, otherwise "not explainable at f". Equivalently, the 3rd largest mock d is ≥ the data
     d.
@@ -694,23 +697,33 @@ on XR22's claim.
     it by the same structure) but not used. "At least one mechanism" is also the side less favourable
     to the recorded label: R1 needs power under both mechanisms, so a dip that either mechanism
     produces counts as explained.
+  - *Precision (computed now from the binomial distribution, 50 mocks per mechanism, the two
+    mechanisms treated as independent).* If the true fraction of mocks reaching the data d is 2%
+    under both mechanisms, a bin is called explainable with probability 0.15; if it is 5%, the call
+    is missed with probability 0.29; at 10% it is missed with probability 0.01. "Not explainable" and
+    "robust up to f = X" are therefore 50-mock estimates, not bounds; every n_reach / 50 is reported
+    with its 95% Clopper–Pearson interval (for 0 of 50: 0–0.071; for 3 of 50: 0.013–0.165).
   - *E(f)* is the number of the three metal-poor bins explainable at f in S15 term E (primary). At
     f = 1, E = 0 from the R1-SEL-FIT record (every power mock d ≤ 0.073 against data d ≥ 0.410); it is
     computed from the per-mock d of `r1_selfit.json` and reported as the f = 1 row.
-  - *Feasibility:* an f is "not feasible" if the generator fails at it (a `RuntimeError` of
-    `mocks.catalogue_sel` or of the latent sampler). The ladder is cut at the first infeasible f;
-    that f and the larger ones are reported as not feasible and do not enter the label.
+  - *Feasibility:* an f is "not feasible" if the generator fails (a `RuntimeError` of
+    `mocks.catalogue_sel` or of the latent sampler) in one of the S15 term E power sets of that f,
+    the sets used for the label. The ladder is cut there: no set at that f or a larger one is run
+    after the failure, and those f values are reported as not feasible. A generator failure in a
+    term N or Full set is reported for that set and does not cut the ladder.
   - *Label R1-ERR (exactly one of):*
     1. "not evaluable (reproduction)" if a check below fails;
     2. otherwise "not evaluable (non-finite)" if any set used for the label has a non-finite mock
        result (`selaux.nonfinite` on d, valley, k and pass_rate);
-    3. otherwise "sensitive at f = Y", with Y the smallest feasible ladder f where E(f) ≥ 2;
-    4. otherwise "robust up to f = X", with X the largest feasible ladder f such that E(f′) = 0 for
+    3. otherwise "not evaluable (infeasible)" if f = 1.2 is not feasible;
+    4. otherwise "sensitive at f = Y", with Y the smallest feasible ladder f where E(f) ≥ 2;
+    5. otherwise "robust up to f = X", with X the largest feasible ladder f such that E(f′) = 0 for
        every feasible f′ ≤ f (X = 1 if E(1.2) = 1). It carries the qualifier "one bin explainable
-       from f = Z" (Z the smallest feasible f with E(f) = 1, with the bin or bins named) when there is one, and
-       "ladder ends at f = W" when the feasibility rule cuts the ladder.
+       from f = Z" (Z the smallest feasible f with E(f) = 1, with the bin or bins named) when there
+       is one, and "ladder ends at f = F_end" (F_end the largest feasible f) when the feasibility rule
+       cuts the ladder.
 
-    Cases 3 and 4 cover every remaining outcome, since either some feasible f has E(f) ≥ 2 or none
+    Cases 4 and 5 cover every remaining outcome, since either some feasible f has E(f) ≥ 2 or none
     has.
   - *Why two of three bins.* R1 (2.1) reads "reproduced" only with at least 3 almost-disjoint bins,
     and the metal-rich bins show no valley in the data. The recorded "not reproduced" could therefore
@@ -720,11 +733,11 @@ on XR22's claim.
     three bins explainable from f = W3") is reported next to the label.
 
 - **Unchanged.** The data fits (40 starts, the 2.0 streams; they must equal `r1_sel.json`); the power
-  and null models; the pass tables and r pools; R1-SEL-FIT's fit procedure; the valley rule and d*;
-  and every recorded label. R1-ERR computes no R1 verdict. The metal-rich bins are not run: their
-  data show no valley, and R1-SEL-FIT's verdict does not rest on them (three metal-poor bins with
-  power 1.00 already give it). The kernel stays Gaussian. The prior-shaped skewed kernel that T-054
-  lists as optional is not registered, because no specification of the shapes of XR22's age
+  models; the pass tables and r pools; R1-SEL-FIT's fit procedure; the valley rule; d* (R1-SEL-FIT's
+  0.25); and every recorded label. R1-ERR computes no R1 verdict. The metal-rich bins are not run:
+  their data show no valley, and R1-SEL-FIT's verdict does not rest on them (three metal-poor bins
+  with power 1.00 already give it). The kernel stays Gaussian. The prior-shaped skewed kernel that
+  T-054 lists as optional is not registered, because no specification of the shapes of XR22's age
   posteriors is available here; it stays an open question.
 
 - **Checks (a failure makes R1-ERR "not evaluable (reproduction)", reported and investigated before
@@ -735,17 +748,16 @@ on XR22's claim.
   (`r1_selfit.json` `variants.<v>.bins[b].mocks.power_<mech>`, absolute 10⁻⁹).
 
 - **Reported (no verdict).**
-  - *Per set:* the 5th, 50th, 80th and 95th percentiles of the fitted d; n_reach; the fraction with
-    a valley; the power at d* = 0.25 (a valley and d < 0.25); the K chosen; how often (i) was used;
-    the number of mocks whose NLL rises with K; the mean pass rate of the mocks against the data's
-    S15 fraction of the parent; the 5th, 50th and 95th percentiles of the observed ages (median over
-    mocks) against the data bin's; the number of stars dropped by the redraw limit of
-    `mocks.observe` (200 draws); the time per mock.
-  - *Per f:* the null sets' q_s, their realised false-positive rates at 0.25 and
-    d*(f) = min(0.25, q_1, …, q_4) for S15 term E (a check: d* does not enter the R1-ERR label); the
-    labels of S15 term N and Full by the same rules, next to the primary (they do not qualify it);
-    the median-rule labels; and the 2.1 verdict R1 would read at f with the power at f (against
-    d*(f) for term E and 0.25 for term N and Full).
+  - *Per set:* the 5th, 50th, 80th and 95th percentiles of the fitted d; n_reach with its 95%
+    Clopper–Pearson interval; n_reach restricted to the mocks that have a valley (descriptive); the
+    fraction with a valley; the power at d* = 0.25 (a valley and d < 0.25); the K chosen; how often
+    (i) was used; the number of mocks whose NLL rises with K; the mean pass rate of the mocks against
+    the data's S15 fraction of the parent; the 5th, 50th and 95th percentiles of the observed ages
+    (median over mocks) against the data bin's; the number of stars dropped by the redraw limit of
+    `mocks.observe` (200 draws); generator failures; the time per mock.
+  - *Per f:* the labels of S15 term N and Full by the same rules, next to the primary (they do not
+    qualify it); the median-rule labels; and the 2.1 verdict R1 would read at f with the power at f
+    against d* = 0.25.
   - *Companion data refit:* the 9 metal-poor data bins (3 variants) are refitted at each ladder f
     (`run.onedim` with f; 40 starts on the stream `default_rng([seed, 1000 + b, code, 50,
     round(100·f)])`; K = 1–4 by BIC and the K = 5 rule). Reported: d, K, valley, and whether
@@ -754,40 +766,48 @@ on XR22's claim.
 
 - **What the outcome can be (stated now).** At f = 1, E = 0 (R1-SEL-FIT). The recovered d of the
   power mocks should rise with f, because the f = 1 fit leaves a residual blur of about
-  √(f² − 1) × e. With the median relative error 0.075 (e ≈ 0.8 Gyr at 10–11 Gyr), that is about 0.5,
-  0.9, 1.4 and 2.2 Gyr at f = 1.2, 1.5, 2.0 and 2.81. The gaps between the young edge (7.0 Gyr) and
+  √(f² − 1) × e. With e ≈ 0.8 Gyr at 10–11 Gyr (median relative error 0.075), that is about 0.5,
+  0.9, 1.4 and 2.1 Gyr at f = 1.2, 1.5, 2.0 and 2.81. The gaps between the young edge (7.0 Gyr) and
   the old means are 4.7, 3.9 and 3.1 Gyr in the three bins, with an old width of 0.82 Gyr. A rough
   estimate by hand puts the recovered d below 0.37 at f ≤ 1.5 in every bin and leaves f = 2.0 and
   2.81 open, with bin [−0.3, −0.1) (the smallest gap) the first to reach. So "robust up to f = 1.5",
   "robust up to f = 2.0 / 2.81" and "sensitive at f = 2.0 / 2.81" are all foreseeable; "sensitive at
   f = 1.2 or 1.5" would contradict the estimate.
   - *Reading:* "robust up to f = X" means that XR22's idealised split, blurred by Gaussian errors up
-    to X times the quoted ones (under either mechanism), does not produce the data's dips. "Sensitive
-    at f = Y" means that R1-SEL-FIT's "not reproduced" holds only if the true errors are below about
-    Y times the quoted ones. Neither shows that the split exists or that it does not.
+    to X times the quoted ones (under either mechanism), does not produce the data's dips (within the
+    precision above). "Sensitive at f = Y" means that R1-SEL-FIT's "not reproduced" holds only if the
+    true errors are below about Y times the quoted ones. Neither shows that the split exists or that
+    it does not.
+  - *The generating model is "a 0.82 Gyr split blurred by f".* XR22's 0.82 Gyr width was deconvolved
+    with the quoted errors. Under errors f times larger their own deconvolution would give a narrower
+    old sequence, and at f ≳ 1.4 (√(f² − 1) × 0.8 Gyr ≳ 0.82 Gyr) the quoted width leaves no room for
+    the added error variance, so a 0.82 Gyr intrinsic width is no longer consistent with XR22's own
+    numbers. The mocks keep 0.82 Gyr at every f. That is the side less favourable to the recorded
+    label: a wider old component fills the valley more easily.
   - *Plausibility of f is outside R1-ERR.* The only independent check cited here (Shariat, El-Badry
     & Bhattacharjee 2025, 11 wide pairs) finds the quoted errors consistent but does not exclude
     modest misestimates, and f_max is a heuristic upper value. At large f the mocks' observed ages
     may be wider than the data's; the reported percentiles show this, but it does not enter the rule.
 
 - **Runtime and machine.** From R1-SEL-FIT's measured times in these bins (the overall mean of
-  3.53 s per mock would give 5.9 h):
+  3.53 s per mock would give 3.5 h):
 
   | Sets | Sets (4 f values) | Mocks | s per mock (R1-SEL-FIT) | Hours |
   |---|---|---|---|---|
-  | S15 term E null | 48 | 2,400 | 6.55 | 4.37 |
   | S15 term E power | 24 | 1,200 | 3.07 | 1.02 |
   | S15 term N power | 24 | 1,200 | 1.99 | 0.66 |
   | Full power | 24 | 1,200 | 2.39 | 0.80 |
-  | Total | 120 | 6,000 | – | 6.85 |
+  | Total | 72 | 3,600 | – | 2.48 |
 
   Larger f widens the mocks and may lengthen draws and fits; allowing up to 1.5 times gives
-  6.9–10.3 h of mocks. Add the 9 data fits (about 15 min; 2.6 took about 25 min for 15), the 36
-  companion refits (about 1 h) and check (b) (18 mocks, about 1 min): about 8–12 h in all. No data
+  2.5–3.7 h of mocks. Add the 9 data fits (about 15 min; 2.6 took about 25 min for 15), the 36
+  companion refits (about 1 h) and check (b) (18 mocks, about 1 min): about 4–5 h in all. No data
   download, cache only. The run is started only on an otherwise idle machine (the R-SEL mock stage
   peaked at a 6.26 GB working set). Checkpoints per mock go to the system cache (`s010_err_mocks`),
-  keyed by PARAMS and code. The SEL-8 projection rule applies with a stop at 16 h (resuming needs the
-  user's consent, recorded in `log.md`), and no label is computed until every set has its 50 mocks.
+  keyed by PARAMS and code. The SEL-8 projection rule applies with a stop at 16 h, well above the
+  estimate (resuming needs the user's consent, recorded in `log.md`). Its projection groups are the
+  three variants: each projects from its own first-mock times until one of its own sets has
+  finished, then from its finished sets. No label is computed until every set has its 50 mocks.
 
 - **Reporting.** Results go to a new file `r1_err.json`, with `provenance_err.json` and
   `run_info_err.json`. `r1_sel.json` and `r1_selfit.json` are read, never written, and no recorded
@@ -798,12 +818,17 @@ on XR22's claim.
 
 - **Code (none exists yet).** A new part `"err"` in `PARAMS["parts"]` runs only this test, alone (it
   reads `r1_sel.json` and `r1_selfit.json`): pass tables of the metal-poor bins, their 9 data fits,
-  check (b), the 120 sets and the companion refits. New PARAMS: `err_f = [1.2, 1.5, 2.0, 2.81]`,
+  check (b), the 72 sets and the companion refits. New PARAMS: `err_f = [1.2, 1.5, 2.0, 2.81]`,
   `err_bins = [0, 1, 2]`, `err_n_mock = 50`, `err_reach_frac = 0.05`, `err_min_bins = 2`,
   `err_seed_tag = 54`, `err_seed_tag_indep = 154`, `err_stop_h = 16`. `mocks.observe` and
   `mocks.catalogue_sel` get a keyword `f = 1.0` that scales only the deviate, and the R1-SEL-FIT
   mock function passes f through. The checkpoint key leaves out `parts` and `err_stop_h` (added to
   `selaux.NO_KEY_PARAMS`).
+  - *Offline unit tests of the generator (no data):* with fixed τ and r, a large draw and no
+    truncation in effect (τ and errors far from 0 and 20), (i) under e = r·τ the standard deviation
+    of (A − τ)/e is f within its sampling error, and (ii) under e = r·A, (A − τ)/(f·e) follows
+    N(0, 1) (mean, standard deviation and a Kolmogorov–Smirnov test); (iii) at f = 1 `observe` and
+    `catalogue_sel` return exactly the arrays of the current code for the same stream.
 
 ## 3. Data (with size estimate)
 
