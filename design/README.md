@@ -53,6 +53,7 @@ NNN-<类型>_<核心内容>.md
 | 025 | plan | [把 Atlas 与各研究网页作为 GitHub Pages 静态网站发布](025-plan_github-pages-static-site-for-atlas-and-study-pages.md) | 已完成 |
 | 026 | plan | [研究 010 在与误差机制一致的 S15 选择项下的重检（T-031）](026-plan_study-010-retest-with-consistent-selection-term.md) | 进行中 |
 | 027 | plan | [M11 Radcliffe 波的振荡（T-020，研究 011，论文研究）](027-plan_m11-radcliffe-wave-oscillation-paper-study.md) | 完成 |
+| 028 | plan | [M12 银河系贫而老的核心（T-021，研究 012，论文研究）](028-plan_m12-poor-old-heart-paper-study.md) | 进行中 |
 
 ## 术语约定
 
