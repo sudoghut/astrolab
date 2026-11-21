@@ -713,7 +713,93 @@ combination, and it rests on `gap_proto`.
 
 ### Part 3 · What astrolab can test or explore
 
-To be written next.
+Interactive page: [sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/](https://sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/) (not built yet).
+
+This part was written before any data were read (2026-11-21). It is the source of the study's
+pre-registration (README sections 1–4). The thresholds marked "proposed" are carried into the
+pre-registration, which may change them only with a dated reason, before the run.
+
+**What we had looked at.** Only the paper (arXiv HTML v1) and the Zenodo landing page (file names,
+sizes, MD5 checksums, the one-paragraph description). No data file has been opened. The column layout of
+the two files is not documented on the landing page, so it will be read at load time, and the tests
+below are defined on the quantities R22 describe: sky position and parallax, XP [M/H], T_eff and
+log g; Gaia RVS radial velocities; Galactocentric coordinates, actions and orbital parameters
+(eccentricity, apocentre). Where a test needs a quantity the files turn out not to contain, the fallback
+is named in the row; if there is none, the test's label is "undetermined (data not in the files)".
+
+**Data and cost.**
+- *Data.* Zenodo record 7035809 (CC BY 4.0): `xp_gc_mh.csv` (98.5 MB, "1.5 million stars": T_eff,
+  log g, [M/H]) and `xp_gc_kinematics.csv` (115.3 MB, "1.2 million stars": Galactocentric coordinates,
+  actions, orbital parameters), 213.8 MB in all. Both exceed the 50 MB single-download limit and
+  together the 200 MB study budget; the user agreed to this exception on 2026-11-21 (recorded in
+  `TODO.md`, item T-021, and in plan
+  [`design/028-plan_*`](https://github.com/sudoghut/astrolab/blob/main/design/028-plan_m12-poor-old-heart-paper-study.md)).
+  The study README section 3 will list the files with their MD5s, and the study log will record the
+  exception, before the first download. Each file is fetched once through `ctx.http` with the consent
+  recorded (`cap_consent`) and kept in the system cache, never in the project folder.
+- *Possible server-side addition.* If the metallicity file has no parallaxes, positions or photometry,
+  T2 needs, for the stars with [M/H] < −1.5 only (about 18,000–20,000 stars), `l, b, parallax,
+  parallax_error, phot_g_mean_mag, bp_rp` from the Gaia DR3 archive: about 20,000 rows × 7 columns, of
+  order 1–2 MB. The guarded `tap` has no table upload, so this would be about 10 server-side queries by
+  `source_id` lists of 2,000. Whether this is acceptable, and its exact size from a `COUNT(*)` first,
+  are fixed in the pre-registration; the two Zenodo files exhaust the budget, so this addition also
+  needs the user's agreement. If it is not done, T2 is "undetermined (data not in the files)".
+- *Cost.* Counting, binning and bootstraps on 1–2 million rows take seconds to minutes; the parallax
+  likelihood of T2 on about 20,000 stars with a numerical integral along each line of sight, and its
+  mocks (about 100 per check), take of order an hour on one core. The run waits until no other study is
+  running.
+
+**What we can and cannot reproduce exactly.**
+- *Taken from R22:* the metallicity cuts (−1, −1.5, −2, −2.7), the spherical-Gaussian model of eq. 1
+  with a parallax zero point of 0.02 mas, the GSE-like orbit cut (e ≥ 0.75 and R_apo ≥ 10 kpc), the
+  rotation measure J_φ/J_tot, and the mass conversion (800 M☉ per giant with M_G < 0.5; factor 2.5).
+- *Not given by R22, so fixed by us:* the exact sample behind each count (the paper gives 1.5, 1.7, 2
+  and 2.1 million in different places; the public file is described as 1.5 million); the integration
+  range of eq. 1; the Sun's distance from the Centre R0; how the luminosity cut and the field enter the likelihood (R22 do not say); the
+  [M/H] bins of the rotation trend.
+- *Circularity rules:* no test selects on the quantity it tests. T2 selects on [M/H] and fits
+  parallaxes (the parallax and luminosity cuts of the sample are part of the model, not a selection
+  we add); T3 selects on [M/H] and measures rotation; T5 selects on orbits and measures counts.
+
+| Stage (Part 2) | Premise or gap | Test or exploration | How | Data | Outcome labels (proposed thresholds, fixed in the pre-registration) |
+|---|---|---|---|---|---|
+| B | `obs_count` | **T1 · Recount the metal-poor stars.** N([M/H] < −2), N(< −1.5), N(−2.7 < [M/H] < −1.5), N(< −1) and the total N in the public file | Direct counts, as published (no cuts added). If the file's total differs by more than 5% from every sample size R22 give (1.5, 1.7, 2, 2.1 million), the counts are also compared as fractions of the total and labelled "sample differs" | 98.5 MB | For each statement of R22 separately: agrees / disagrees. A "∼X" statement agrees if our count is within ±5% of X (so ∼18,000 and ∼20,000, and ∼70,000 and "almost 100,000", are disjoint bands); a ">X" statement agrees if our count exceeds X. Summary label: abstract reproduced (the abstract's ∼18,000 for −2.7 < [M/H] < −1.5 agrees) / not reproduced; and which of each inconsistent pair the public file supports (one, both, neither) |
+| C | `stat_sigma`, `mod_sph` | **T2a · Reproduce σ_RGC.** Spherical Gaussian in Galactocentric radius fitted to the parallaxes of the [M/H] < −1.5 stars by maximum likelihood, as eq. 1 (zero point 0.02 mas; R0 = 8.2 kpc, our choice) | Two versions: (i) as written (eq. 1, field only); (ii) with the sample's truncations in the likelihood: parallax < 1 mas and each star's luminosity cut, parallax < 100·10^(0.2(0.9 − (G − 1.5(BP − RP − 1)))) mas. Errors from 1000 bootstrap resamples. Known-answer check before the data are fitted: mocks drawn from σ = 2.7 kpc with the observed directions, magnitudes and parallax errors must return σ within ±0.1 kpc (median of 100 mocks) | 98.5 MB (+ T2 server-side addition if needed) | reproduced (σ̂ of version (i) within 2.4–3.0 kpc) / not reproduced (outside); the version (ii) value and the difference (ii) − (i) are reported as the effect of the truncations. If the known-answer check fails, the label is "undetermined (method bias)" with the bias reported |
+| C | `gap_sel` (the part these data can reach), `mod_sph` | **T2b · Shape and the "5 kpc" statement.** Within version (ii): spherical Gaussian against a flattened Gaussian (axis ratio q free) and a cored power law with flattening (the form of Kurbatov et al. 2024: core radius, slope, q) | Maximum likelihood; the dust gap is handled by fitting only stars at Galactic latitude 5° or more from the plane (about 700 pc at the Centre's distance) with the same footprint in the model; variants at 3° and 8°. Power check: mocks with q = 0.5 (σ = 2.7 kpc) must give "flattened preferred" in at least 80 of 100 | same | spherical adequate / flattened preferred / power law preferred (proposed: the more complex model is preferred if 2ΔlnL > 10 per extra parameter; otherwise the simpler one is adequate); "undetermined" if the power check fails. Separately, the fraction of the population within 5 kpc of the Centre under the preferred model, with its interval: "most within 5 kpc" confirmed (interval entirely above 0.5) / not confirmed (entirely below) / undetermined |
+| D | `stat_norot`, `stat_spin` | **T3 · Rotation against metallicity.** ⟨J_φ/J_tot⟩ (and mean v_φ if the file gives velocities) in [M/H] bins of 0.25 dex from −2.5 to −0.5, for the stars of the kinematics file joined to the metallicity file on `source_id` | Bootstrap over stars (1000 resamples), 95% intervals. Known-answer check: inject a step from J_φ/J_tot = 0 to 0.8 at [M/H] = −1.0, blur [M/H] by the 0.1 dex error, and measure the recovered 10–90% transition width w₀ (the resolution limit) | 115.3 + 98.5 MB | (a) Below −2: no net rotation (interval contains 0 and its half-width is below 0.05) / net rotation (interval entirely above 0) / net counter-rotation (entirely below 0) / undetermined (contains 0 but wider than ±0.05). (b) At −1.1 to −0.9: rotation dominated (interval entirely above 0.5) / not (entirely below) / undetermined. (c) Transition: a logistic fit in [M/H]; sharp (10–90% width interval entirely below w₀ + 0.1 dex) / gradual (entirely above 0.4 dex; Viswanathan et al. 2025 find −1.7 to −1.0) / undetermined |
+| A | `gap_pure` (what these data can reach) | **T4 · Sensitivity to the metallicity scale and errors.** Counts (T1) and σ (T2a (i)) recomputed after (i) shifting all [M/H] by ±0.1 dex, (ii) adding Gaussian noise of 0.1 and 0.2 dex, (iii) dropping stars at the edge of the training range (T_eff or log g outside the 1st–99th percentile of the [M/H] > −1 stars; a variant at 5–95%) | Recomputation; no truth is available, so this measures leverage, not purity | 98.5 MB | robust (every count changes by less than 20% and σ by less than 0.3 kpc in every variant) / sensitive (naming the variants that exceed this). A count that changes by more than a factor 2 in variant (ii) at 0.1 dex is flagged as "dominated by scatter from above" |
+| B, F | `gap_template` (GSE part), `stat_apo` | **T5 · How many of the metal-poor stars are passing GSE or halo stars?** Fraction of the [M/H] < −1.5 stars in the kinematics file with e ≥ 0.75 and R_apo ≥ 10 kpc; also with R_apo ≥ 5 kpc | Count with bootstrap interval; the effect on the T1 count and on the T6 mass is reported. Applies to the RVS subsample only; extrapolation to the full tail is stated as an assumption | 115.3 + 98.5 MB | minor (interval entirely below 10%) / moderate (within 10–25%) / major (entirely above 25%) / undetermined (otherwise). And R22's "most stars have apocenters of less than 5 kpc": confirmed (fraction with R_apo < 5 kpc entirely above 0.5) / not confirmed / undetermined |
+| B | `mod_m4`, `gap_template`, `mod_corr` | **T6 · The mass, as an explicit propagation (no verdict).** M = N × m_giant × f, with N from T1 (with and without the T5 stars), m_giant = 800 M☉ (R22) and 1,000–2,000 M☉ (our reading of the M4 numbers), the fraction of counted stars brighter than M_G = 0.5 (from parallaxes where available), and f = 1 and 2.5 | Arithmetic with the T1, T5 inputs; a table of M under each choice | — | no label: the range of M is reported, and whether R22's own choices with our count give at least 5×10⁷ M☉ |
+
+**Explorations, with no verdict.** These are the entries for chat exploration (README section 8).
+
+- *Extent against metallicity* (Kurbatov et al.'s two components). Fit σ (T2a) separately in
+  [M/H] bins (−2.5 to −2, −2 to −1.5, −1.5 to −1). A more extended metal-poor end would fit a
+  second, accreted component (Ardern-Arentsen et al. 2024), but selection and errors change with
+  metallicity, so this is not a test.
+- *The tail's shape* (`gap_pure`, Chen et al. 2025). Fit an exponential slope to the counts below
+  [M/H] = −2 and compare with the slopes k ≈ 0.6–2.0 that Chen et al. find across XP catalogues;
+  the floor near −2.5 is reported. The slope depends on the training range, so this describes the
+  catalogue, not the Galaxy.
+- *"Older than the disc"* (`gap_onezone`, `mod_amr`, `lit_discage`). Cannot be tested here: the files
+  have no ages and no α abundances, and the argument rests on the chemical-evolution history of the
+  proto-Galaxy, which no quantity in the files measures. The exploration shows where the metal-poor
+  stars lie in J_φ/J_tot against [M/H] next to the old-disc regime (T3), which is the picture R22's
+  argument uses; it cannot order them in time.
+- *Proto-Galactic or accreted* (`gap_proto`). Cannot be tested here: R22 themselves do not
+  distinguish early in-situ from early-accreted pieces, and the chemistry (α, Al, Mn) that might
+  help is not in the files (only for the APOGEE subset, which is also the training set). The
+  exploration splits the metal-poor stars by orbit (T5 classes) and compares their extent and rotation.
+
+**What this study cannot test.**
+- *Purity against independent spectroscopy.* A direct measure of `gap_pure` needs spectroscopic
+  metallicities for an unbiased subset of the XP tail. APOGEE stars are R22's training set; PIGS
+  (Ardern-Arentsen et al. 2024) targets were pre-selected as metal-poor, so an overlap would
+  overstate purity; GSP-Spec does not reach low metallicities. Left as an open question.
+- *The full selection function* (dust map, crowding, the Gaia XP completeness) and the stellar
+  population model behind the mass: outside this study's scope.
+- *Ages* (absolute or relative), the 12.5 Gyr of the oldest disc, and the age–metallicity relation of
+  the early Galaxy: outside this study's data.
 
 ### Glossary
 
@@ -737,6 +823,8 @@ To be written next.
 
 Newest first.
 
+- 2026-11-21: part 3 drafted (tests T1–T6 and explorations; written before any data were read;
+  source of the pre-registration).
 - 2026-11-21: part 2 gate-2 (Codex) round 2: part (4) now says the bulk of the population formed in
   or with the early-coalescing main pieces, with a later-merged satellite contribution not excluded
   (no categorical "not debris"), and is marked as our formalisation of a hedged reading, carried by
@@ -1117,7 +1205,43 @@ exact ⟨m, c, a, pg⟩
 
 ### 第三部分 · 本项目可检验或探索的环节
 
-待写。
+交互网页：[sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/](https://sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/)（尚未建立）。
+
+本部分写于读取任何数据之前（2026-11-21），是研究预注册（README 第 1–4 节）的来源。标为"proposed"（建议）的阈值会带入预注册；预注册只能在运行之前、写明日期与理由后修改它们。
+
+**我们看过什么。** 只有论文（arXiv HTML v1）和 Zenodo 页面（文件名、大小、MD5 校验和、一段说明）。没有打开任何数据文件。两个文件的列在页面上没有说明，所以将在载入时读取；下面的检验按 R22 描述的量来定义：天球位置与视差、XP [M/H]、T_eff 与 log g、Gaia RVS 视向速度、银心坐标、作用量与轨道参数（偏心率、远心距）。如果某项检验需要的量不在文件中，该行写明替代办法；没有替代办法时，标记为"无法判定（文件中没有该数据）"。
+
+**数据与代价。**
+- *数据。* Zenodo 记录 7035809（CC BY 4.0）：`xp_gc_mh.csv`（98.5 MB，"1.5 million stars"：T_eff、log g、[M/H]）与 `xp_gc_kinematics.csv`（115.3 MB，"1.2 million stars"：银心坐标、作用量、轨道参数），合计 213.8 MB。两者都超过 50 MB 的单次下载上限，合起来也超过 200 MB 的研究预算；用户于 2026-11-21 同意这一例外（记录在 `TODO.md` 的 T-021 条目与计划 [`design/028-plan_*`](https://github.com/sudoghut/astrolab/blob/main/design/028-plan_m12-poor-old-heart-paper-study.md) 中）。第一次下载之前，研究 README 第 3 节会列出文件及其 MD5，研究日志会记录这一例外。每个文件通过 `ctx.http` 只下载一次，并传入同意记录（`cap_consent`），保存在系统缓存中，从不放进项目目录。
+- *可能的服务器端补充。* 如果金属丰度文件中没有视差、位置或测光，T2 只对 [M/H] < −1.5 的星（约 18,000–20,000 颗）需要 Gaia DR3 档案中的 `l, b, parallax, parallax_error, phot_g_mean_mag, bp_rp`：约 20,000 行 × 7 列，量级 1–2 MB。受守卫的 `tap` 不支持上传表格，所以这需要约 10 次按 2,000 个 `source_id` 列表的服务器端查询。是否可以这样做、以及先用 `COUNT(*)` 得到的确切大小，在预注册中确定；两个 Zenodo 文件已用尽预算，所以这一补充也需要用户同意。如果不做，T2 标为"无法判定（文件中没有该数据）"。
+- *计算量。* 对 100–200 万行计数、分箱与自助法（bootstrap）只需几秒到几分钟；T2 对约 20,000 颗星的视差似然（沿每条视线做数值积分）及其模拟（每项检查约 100 次）在单核上约需一小时。运行要等到没有其他研究在运行时进行。
+
+**能精确复现什么、不能复现什么。**
+- *取自 R22：* 金属丰度截断（−1、−1.5、−2、−2.7）、式 1 的球对称高斯模型与 0.02 mas 的视差零点、类 GSE 的轨道截断（e ≥ 0.75 且 R_apo ≥ 10 kpc）、转动量 J_φ/J_tot，以及质量换算（每颗 M_G < 0.5 的巨星 800 M☉；2.5 倍）。
+- *R22 没有给出、由我们确定的：* 每个计数背后的确切样本（论文在不同地方给出 150 万、170 万、200 万与 210 万；公开文件说明为 150 万）；式 1 的积分范围；太阳到银心的距离 R0；光度截断与视场如何进入似然（R22 没有说明）；转动趋势的 [M/H] 分箱。
+- *防止循环论证的规则：* 没有一项检验按它所检验的量来选样。T2 按 [M/H] 选样、拟合视差（样本的视差与光度截断是模型的一部分，不是我们额外加的选择）；T3 按 [M/H] 选样、测量转动；T5 按轨道选样、测量计数。
+
+| 环节（第二部分） | 前提或缺口 | 检验或探索 | 方法 | 数据 | 结果标签（建议阈值，在预注册中确定） |
+|---|---|---|---|---|---|
+| B | `obs_count` | **T1 · 重新计数贫金属星。** 公开文件中的 N([M/H] < −2)、N(< −1.5)、N(−2.7 < [M/H] < −1.5)、N(< −1) 与总数 N | 直接计数，按发布的样本（不另加截断）。如果文件的总数与 R22 给出的每个样本量（150 万、170 万、200 万、210 万）都相差 5% 以上，计数也按占总数的比例比较，并标记"样本不同" | 98.5 MB | 对 R22 的每个说法分别判定：一致 / 不一致。"∼X"的说法在我们的计数落在 X 的 ±5% 以内时一致（因此 ∼18,000 与 ∼20,000、∼70,000 与"almost 100,000"是互不重叠的区间）；">X"的说法在我们的计数超过 X 时一致。汇总标签：摘要复现（摘要中 −2.7 < [M/H] < −1.5 的 ∼18,000 一致）/ 未复现；以及每对不一致的数字中公开文件支持哪一个（一个、两个、都不） |
+| C | `stat_sigma`、`mod_sph` | **T2a · 复现 σ_RGC。** 按式 1，用最大似然对 [M/H] < −1.5 星的视差拟合按银心距的球对称高斯（零点 0.02 mas；R0 = 8.2 kpc，我们的选择） | 两个版本：（i）按论文所写（式 1，只含视场）；（ii）似然中包含样本的截断：视差 < 1 mas 以及每颗星的光度截断 parallax < 100·10^(0.2(0.9 − (G − 1.5(BP − RP − 1)))) mas。误差来自 1000 次自助重采样。拟合数据之前的已知答案检查：用观测的方向、星等与视差误差，从 σ = 2.7 kpc 抽取模拟，必须得到 ±0.1 kpc 以内的 σ（100 次模拟的中位数） | 98.5 MB（必要时加 T2 的服务器端补充） | 复现（版本（i）的 σ̂ 在 2.4–3.0 kpc 内）/ 未复现（在此之外）；报告版本（ii）的值以及（ii）−（i）之差，作为截断的影响。已知答案检查失败时，标签为"无法判定（方法偏差）"，并报告偏差 |
+| C | `gap_sel`（这些数据能触及的部分）、`mod_sph` | **T2b · 形状与"5 kpc"的说法。** 在版本（ii）中：球对称高斯对比扁平高斯（轴比 q 自由）以及带扁率的有核幂律（Kurbatov 等 2024 的形式：核半径、斜率、q） | 最大似然；尘埃缺口的处理方式是只拟合离盘面银纬 5° 或以上的星（在银心距离处约 700 pc），模型中使用同样的覆盖区；变体取 3° 与 8°。功效检查：q = 0.5（σ = 2.7 kpc）的模拟在 100 次中至少 80 次必须给出"扁平更好" | 同上 | 球形足够 / 扁平更好 / 幂律更好（建议：每多一个参数 2ΔlnL > 10 时选更复杂的模型，否则较简单的足够）；功效检查失败时为"无法判定"。另外，在更好的模型下离银心 5 kpc 以内的比例及其区间："大多数在 5 kpc 以内"确认（区间完全高于 0.5）/ 不确认（完全低于）/ 无法判定 |
+| D | `stat_norot`、`stat_spin` | **T3 · 转动与金属丰度。** 对运动学文件中、按 `source_id` 与金属丰度文件连接的星，在 −2.5 到 −0.5、宽 0.25 dex 的 [M/H] 箱中计算 ⟨J_φ/J_tot⟩（文件给出速度时也计算平均 v_φ） | 对恒星做自助法（1000 次重采样），95% 区间。已知答案检查：注入一个在 [M/H] = −1.0 处从 J_φ/J_tot = 0 跳到 0.8 的台阶，用 0.1 dex 误差模糊 [M/H]，测量恢复出的 10–90% 过渡宽度 w₀（分辨率极限） | 115.3 + 98.5 MB | （a）−2 以下：没有净转动（区间包含 0 且半宽小于 0.05）/ 有净转动（区间完全高于 0）/ 净反向转动（完全低于 0）/ 无法判定（包含 0 但宽于 ±0.05）。（b）−1.1 到 −0.9：以转动为主（区间完全高于 0.5）/ 不是（完全低于）/ 无法判定。（c）过渡：对 [M/H] 拟合逻辑斯谛函数；急剧（10–90% 宽度的区间完全低于 w₀ + 0.1 dex）/ 逐渐（完全高于 0.4 dex；Viswanathan 等 2025 得到 −1.7 到 −1.0）/ 无法判定 |
+| A | `gap_pure`（这些数据能触及的部分） | **T4 · 对金属丰度标尺与误差的敏感度。** 在以下情况下重算计数（T1）与 σ（T2a（i））：（i）所有 [M/H] 平移 ±0.1 dex；（ii）加上 0.1 与 0.2 dex 的高斯噪声；（iii）去掉处在训练范围边缘的星（T_eff 或 log g 在 [M/H] > −1 星的第 1–99 百分位之外；变体取 5–95%） | 重新计算；没有真值，所以这测量的是杠杆作用，不是纯度 | 98.5 MB | 稳健（在每个变体中每个计数变化都小于 20%，σ 变化小于 0.3 kpc）/ 敏感（列出超出的变体）。在 0.1 dex 的变体（ii）中变化超过 2 倍的计数标记为"由上方散射主导" |
+| B、F | `gap_template`（GSE 部分）、`stat_apo` | **T5 · 贫金属星中有多少是途经的 GSE 星或晕星？** 运动学文件中 [M/H] < −1.5、e ≥ 0.75 且 R_apo ≥ 10 kpc 的星所占比例；以及 R_apo ≥ 5 kpc 的比例 | 计数并给出自助法区间；报告对 T1 计数与 T6 质量的影响。只适用于 RVS 子样本；推广到整个尾巴作为假设写明 | 115.3 + 98.5 MB | 少量（区间完全低于 10%）/ 中等（在 10–25% 之内）/ 大量（完全高于 25%）/ 无法判定（其他）。以及 R22 的"most stars have apocenters of less than 5 kpc"：确认（R_apo < 5 kpc 的比例完全高于 0.5）/ 不确认 / 无法判定 |
+| B | `mod_m4`、`gap_template`、`mod_corr` | **T6 · 质量：显式传播（不作判定）。** M = N × m_giant × f，其中 N 取自 T1（含与不含 T5 的星），m_giant = 800 M☉（R22）与 1,000–2,000 M☉（我们对 M4 数字的解读），被计数星中比 M_G = 0.5 更亮者的比例（有视差时由视差算），f = 1 与 2.5 | 用 T1、T5 的输入做算术；列出每种选择下 M 的表格 | — | 无标签：报告 M 的范围，以及 R22 自己的选择配上我们的计数是否给出至少 5×10⁷ M☉ |
+
+**探索（不作判定）。** 这些是对话探索的入口（README 第 8 节）。
+
+- *尺度与金属丰度*（Kurbatov 等的两个成分）。在 [M/H] 箱（−2.5 到 −2、−2 到 −1.5、−1.5 到 −1）中分别拟合 σ（T2a）。更贫金属端更延展会符合第二个、吸积来的成分（Ardern-Arentsen 等 2024），但选择与误差随金属丰度变化，所以这不是检验。
+- *尾巴的形状*（`gap_pure`，Chen 等 2025）。对 [M/H] = −2 以下的计数拟合指数斜率，与 Chen 等在各 XP 星表中得到的 k ≈ 0.6–2.0 比较；报告 −2.5 附近的下限。斜率依赖训练范围，所以这描述的是星表，而不是银河系。
+- *"比盘更老"*（`gap_onezone`、`mod_amr`、`lit_discage`）。这里无法检验：文件中没有年龄，也没有 α 丰度，而论证依赖原银河系的化学演化史，文件中没有任何量测量它。探索展示贫金属星在 J_φ/J_tot 对 [M/H] 图中相对于老盘区域的位置（T3），这是 R22 论证所用的图景；它不能把它们按时间排序。
+- *原银河系还是吸积*（`gap_proto`）。这里无法检验：R22 自己不区分早期原位与早期被吸积的团块，而可能有帮助的化学（α、Al、Mn）不在文件中（只有 APOGEE 子集有，而它也是训练集）。探索按轨道（T5 的类别）把贫金属星分开，比较它们的尺度与转动。
+
+**本研究不能检验的内容。**
+- *与独立光谱比较的纯度。* 直接测量 `gap_pure` 需要 XP 尾巴一个无偏子集的光谱金属丰度。APOGEE 星是 R22 的训练集；PIGS（Ardern-Arentsen 等 2024）的目标是按贫金属预选的，所以重叠部分会高估纯度；GSP-Spec 达不到低金属丰度。作为开放问题保留。
+- *完整的选择函数*（尘埃图、拥挤、Gaia XP 的完备性）以及质量背后的恒星族群模型：超出本研究范围。
+- *年龄*（绝对或相对）、最老的盘的 12.5 Gyr，以及早期银河系的年龄—金属丰度关系：超出本研究的数据。
 
 ### 术语表
 
@@ -1141,6 +1265,7 @@ exact ⟨m, c, a, pg⟩
 
 按时间倒序。
 
+- 2026-11-21：起草第三部分（检验 T1–T6 与探索；写于读取任何数据之前；预注册的来源）。
 - 2026-11-21：第二部分闸门 2（Codex）第 2 轮：第（4）部分改为族群的主体形成于很早并合的主要团块之中或与之一同形成，不排除较晚并合的卫星星系的贡献（不再断言"不是碎片"），并注明这是我们对一个有保留的解读的形式化，由 `gap_proto` 承载。
 - 2026-11-21：第二部分闸门 2（Codex）第 1 轮：结论第（4）部分不再断言原位起源，而是 R22 的原银河系（形成于很早并合的主要团块之中或与之一同形成，而不是较晚被吸积的低质量卫星星系的碎片）；环节 F 写明 R22 不区分原位与早期被吸积的团块；四个部分的出处分别注明（第（4）部分的措辞来自第 IV 节；摘要的"forging the proto-Milky Way"）。
 - 2026-11-21：第二部分闸门 1 审查：老盘金属丰度下限改标 `LIT`（`lit_discfloor`，附 Hayden 等 2015 与 Xiang & Rix 2022）；结论第（3）部分加上"much of"（大部分）；球形改为 R22 的假设，扁平/幂律的竞争解释归于 `mod_sph`；计数中的 GSE 星（`gap_template`，最多约 2 倍）；子样本说明；R22 的"not a pure cross-validation"；`mod_confined` 的措辞；选择规则的文献码；摘要的"forging the proto-Milky Way"。
