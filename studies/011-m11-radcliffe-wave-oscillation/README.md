@@ -167,6 +167,11 @@ dated amendment.
 
 - **T3 fits.** The likelihood is profiled over all other parameters at B = 0.5, and at B = 1 with
   ω₀t = 0. In the B-free maximum, ω₀t is periodic on (−π, π].
+- **Why χ²₂ at B = 1 although B ≤ 1.** Written as the 2 × 2 matrix of section 4.4, the wave is a scale
+  times a rotation (B = 1) plus an anti-conformal part of size (1 − B) in magnitude and free angle
+  φ + ω₀t. Near B = 1 that part is a free 2-vector around 0, so B = 1 is an interior point of a regular
+  2-parameter family, not a one-sided boundary (wiki Part 3). The χ² reference is asymptotic only, so
+  every decision also requires p_boot < 0.05 from the bootstrap distribution itself.
 - **T3 mocks.** A mock is drawn from the fitted null model (the B = 0.5 fit, or the B = 1 fit).
   - Every inlier of the null fit is placed at the model point closest to it, (x, y, z, v_z), plus
     Gaussian noise: σ = 47 pc on all four components (in v_z, 47 pc × ω₀ ≈ 3.5 km/s), plus the
@@ -183,6 +188,8 @@ dated amendment.
     (and, reported, from the B-free fit).
   - In all mocks, closest points (s_k, and so ω_k) are recomputed on the B = 0.5 fit's curve, without
     refitting: the same procedure as for the data.
+  - Each power mock's R is compared with the same N₄ standing mocks, and its p uses the same
+    p_boot = (1 + k)/(1 + N₄).
   - In φ_k = arctan(z_k ω_k / v_z,k), z is in pc, ω in km s⁻¹ pc⁻¹ and v_z in km/s.
   - N₄ = 1000 mocks each. A reported variant uses residual resampling.
 
