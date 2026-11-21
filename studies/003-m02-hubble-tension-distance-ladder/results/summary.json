@@ -123,5 +123,59 @@
   "spread_S": "the 36-host spread is consistent with the selected null (S)",
   "p_spread_S": 0.13693153423288357
  },
+ "R2_RE_D": {
+  "status": "evaluated",
+  "reading": "tested diffuse model(s) not excluded (τ = 0.077, 0.105)",
+  "models": {
+   "C": {
+    "D": "excluded (D)",
+    "p_D": 0.005699430056994301,
+    "J": "excluded (J)",
+    "p_J": 0.01739652069586083
+   },
+   "V050": {
+    "D": "excluded (D)",
+    "p_D": 0.0156984301569843,
+    "J": "excluded (J)",
+    "p_J": 0.038592281543691265
+   },
+   "V077": {
+    "D": "excluded (D)",
+    "p_D": 0.033896610338966106,
+    "J": "not excluded (J)",
+    "p_J": 0.07998400319936012
+   },
+   "V105": {
+    "D": "not excluded (D)",
+    "p_D": 0.07639236076392361,
+    "J": "not excluded (J)",
+    "p_J": 0.06798640271945611
+   },
+   "O": {
+    "D": "not excluded (D)",
+    "p_D": 0.5193480651934806,
+    "J": "not excluded (J)",
+    "p_J": 0.6754649070185963
+   },
+   "Olo": {
+    "D": "not excluded (D)",
+    "p_D": 0.18738126187381263,
+    "J": "not excluded (J)",
+    "p_J": 0.2969406118776245
+   },
+   "OVN": {
+    "D": "not excluded (D)",
+    "p_D": 0.49575042495750427,
+    "J": "not excluded (J)",
+    "p_J": 0.6542691461707658
+   },
+   "Oany": {
+    "D": "not excluded (D)",
+    "p_D": 0.13188681131886812,
+    "J": "not excluded (J)",
+    "p_J": 0.29574085182963405
+   }
+  }
+ },
  "runtime_s": 33374.32105920001
 }
