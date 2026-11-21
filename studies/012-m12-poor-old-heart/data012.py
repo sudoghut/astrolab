@@ -39,7 +39,7 @@ def check_md5(paths: dict, expected: dict) -> dict:
 
 # ---------------------------------------------------------------------------------------------
 # L2 column mapping by name. The candidate names were fixed before any data file was read
-# (README 4.13 item 1). A column name is normalised to lower-case letters and digits only
+# (README 4.12 item 1). A column name is normalised to lower-case letters and digits only
 # ("[M/H]" -> "mh", "phot_g_mean_mag" -> "photgmeanmag").
 
 MH_CANDIDATES = {
@@ -121,7 +121,7 @@ def read_mapped(path, mapping, dtype_id="int64"):
 
 
 def add_galactic(df):
-    """l, b from ra, dec when the file has no l, b (README 4.13 item 2); l wrapped to (-180, 180]."""
+    """l, b from ra, dec when the file has no l, b (README 4.12 item 2); l wrapped to (-180, 180]."""
     if "l" not in df.columns and "ra" in df.columns and "dec" in df.columns:
         from astropy.coordinates import SkyCoord
         import astropy.units as u
@@ -206,7 +206,7 @@ PARALLAX_DEPENDENT = ("parallax", "parallax_over_error")
 def detect_cuts(values, lo, hi, width, min_count=50):
     """README 3 L6: a cut at c is declared if, inside the range R22's query allows, the histogram falls
     from at least `min_count` stars per bin to 0 at c (and stays 0 to the end of the range: a hole
-    is not a cut; README 4.13 item 3). Bins are aligned to multiples of `width`.
+    is not a cut; README 4.12 item 3). Bins are aligned to multiples of `width`.
     Returns (cuts, record) with cuts a list of {"side": "upper"/"lower", "c": edge}."""
     v = np.asarray(values, float)
     v = v[np.isfinite(v)]
@@ -276,8 +276,11 @@ def l7_range(mh):
 # T1 (README 4.2)
 
 def t1_counts(mh):
+    """README 4.2 counts; the total counts finite [M/H] only (rows without [M/H] are reported)."""
     mh = np.asarray(mh, float)
-    return {"lt_m2": int(np.sum(mh < -2.0)), "lt_m1p5": int(np.sum(mh < -1.5)),
+    n_nan = int(np.sum(~np.isfinite(mh)))
+    mh = mh[np.isfinite(mh)]
+    return {"n_nonfinite_mh": n_nan,"lt_m2": int(np.sum(mh < -2.0)), "lt_m1p5": int(np.sum(mh < -1.5)),
             "m2p7_to_m1p5": int(np.sum((mh > -2.7) & (mh < -1.5))), "lt_m1": int(np.sum(mh < -1.0)),
             "total": int(mh.size)}
 

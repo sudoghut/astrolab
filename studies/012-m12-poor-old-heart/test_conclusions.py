@@ -10,6 +10,8 @@ import pytest
 
 RESULTS = Path(__file__).parent / "results"
 MISSING = "undetermined (data not in the files)"
+GRID = "undetermined (grid not converged)"
+MIN_ROWS = 1_000_000      # README section 2: fewer rows in the metallicity file stop the run
 
 
 def load(name):
@@ -39,6 +41,7 @@ def test_load_checks_passed():
     assert ld["L1"]["passed"]
     assert ld["L3_mh"]["duplicated_fraction"] < 0.01 and ld["L3_kin"]["duplicated_fraction"] < 0.01
     assert 2.0 <= ld["L5"]["median_rapo"] <= 15.0
+    assert ld["rows"]["mh"] >= MIN_ROWS
 
 
 def _agrees(x, kind, v):
@@ -73,7 +76,9 @@ def test_t2a():
     want = "not reproduced" if fi else ("reproduced" if 2.4 <= si <= 3.0 else "not reproduced")
     assert a["reproduction_label"] == want
     lo, hi = a["intervals"]["ii"]
-    if a["fits"]["ii"]["at_bound"]:
+    if not a["grid_converged"]:
+        want = GRID
+    elif a["fits"]["ii"]["at_bound"]:
         want = "undetermined (fit at bound)"
     elif abs(a["mock_bias"]["ii"]["bias"]) > 0.1:
         want = "undetermined (method bias)"
@@ -106,7 +111,9 @@ def test_t2b():
     for name, c in b["checks"].items():
         assert c["pass"] == (c["passed_mocks"] >= 0.8 * c["n"])
     fp = all(c["pass"] for n, c in b["checks"].items() if n.startswith("fp"))
-    if not (fp and b["checks"]["power"]["pass"]):
+    if not t2["t2a"]["grid_converged"]:
+        assert b["shape_label"] == GRID
+    elif not (fp and b["checks"]["power"]["pass"]):
         assert b["shape_label"].startswith("undetermined") and b["f5_model"] == "sph"
     elif s1 == "spherical adequate":
         assert b["shape_label"] == s1
@@ -121,7 +128,7 @@ def test_t2b():
                                         "flattened Gaussian adequate")
     pop = t2["t2a"]["population_label"]
     lo, hi = b["f5_interval"]
-    if pop in (MISSING, "undetermined (fit at bound)", "undetermined (method bias)",
+    if pop in (MISSING, GRID, "undetermined (fit at bound)", "undetermined (method bias)",
                "undetermined (unmodelled selection)"):
         want = pop
     elif lo > 0.5:
@@ -183,12 +190,15 @@ def test_t4_t6():
     assert t6["r22_choices_mass"] == pytest.approx(m)
     assert t6["r22_choices_at_least_5e7"] == (m >= 5e7)
     t4 = load("t4")
-    assert t4["label"] == ("robust" if not t4["broken"] else "sensitive")
+    if t4["broken"]:
+        assert t4["label"] == "sensitive"
+    else:
+        assert t4["label"] == (GRID if t4["sigma_condition"] == GRID else "robust")
     base = t4["baseline"]
     for name, v in t4["variants"].items():
         ratio = v["mass"] / base["mass"]
         assert (["%s" % name, "T6 mass"] in t4["broken"]) == (not (1 / 3 < ratio < 3))
-        if not t4["sigma_condition_skipped"]:
+        if t4["sigma_condition"] == "evaluated":
             assert ([name, "sigma"] in t4["broken"]) == (not abs(v["sigma_ii"] - base["sigma_ii"]) < 0.3)
 
 
@@ -213,3 +223,8 @@ def test_readings():
             or lab["T5_g"] == "major" or lab["T5_a5"] == "not confirmed")
     want = "holds under our checks" if good else ("challenged" if chal else "undetermined")
     assert s["reading_robustness"]["label"] == want
+    pend = bool(s["pending_amendment"])
+    assert s["reading_reproduction"]["pending_amendment"] == pend == s["reading_robustness"]["pending_amendment"]
+    t2 = load("t2")
+    if "grid_check" in t2:
+        assert pend == (not t2["grid_check"]["passed"])

@@ -1,7 +1,7 @@
 """M12 Poor old heart: Gaia XP metallicities of the oldest Milky Way stars
 
 Implements the pre-registration of README sections 1-4 (load checks L1-L7, T1-T6, overall readings),
-with the amendments of README 4.13.
+with the amendments of README 4.12.
 
 Run with:      python -m astrolab run 012-m12-poor-old-heart
 Explore with:  python -m astrolab explore 012-m12-poor-old-heart --tag <topic> --set KEY=VALUE
@@ -46,7 +46,7 @@ CAP_CONSENT = ("user consent 2026-11-21 (TODO.md T-021, studies/012 log.md 2026-
 # Tunable knobs (AGENTS.md section 2). Read them inside main() at call time, never into
 # module-level constants, and pass values to helper modules as arguments (a helper that does
 # `import run` gets a fresh copy without the override): `astrolab explore --set` overrides
-# this dict in memory. The defaults are the pre-registered values (README sections 2-4 and 4.13);
+# this dict in memory. The defaults are the pre-registered values (README sections 2-4 and 4.12);
 # changing one in the committed file is a change to the pre-registration.
 PARAMS = {
     "first_download": False,          # True only for the one consented download (README section 8)
@@ -63,7 +63,7 @@ PARAMS = {
     "grid_dmax_kpc": 30.0,
     "grid_d1_i_kpc": 1.0,
     "grid_check_tol_kpc": 0.01,
-    "grid_max_nodes": 1200,           # memory bound of the grid check (README 4.13 item 4)
+    "grid_max_nodes": 1200,           # memory bound of the grid check (README 4.12 item 4)
     "sigma_bounds_kpc": [0.5, 10.0],
     "bound_tol_kpc": 0.05,
     "sigma_true_kpc": 2.7,
@@ -122,6 +122,13 @@ PARAMS = {
 # Floors of README 4.10: a formal run may not go below them.
 FLOORS = {"t2a_boot": 200, "t2a_mocks": 100, "t2b_boot": 200, "t2b_mocks": 100, "t3_boot": 1000,
           "t3_w0_mocks": 100, "t4_boot": 1000, "t4_realisations": 10, "t5_boot": 1000}
+# README section 2: the run stops if the metallicity file is not R22's sample (fewer than 1.0 million rows
+# after L3). A module constant (not a PARAMS knob) so no exploration can lower it; tests patch it.
+MIN_MH_ROWS = 1_000_000
+ALL_PARTS = ["t1", "t2", "t3", "t4", "t5", "t6"]
+# a formal run uses these pre-registered sizes (README 4.3, 4.10)
+FORMAL_FIXED = {"parts": ALL_PARTS, "grid_nodes": 300, "ext_a_grid": [0.0, 5.0, 0.05],
+                "ext_bd_grid_deg": [1.0, 20.0, 0.5], "t2_mh_range": [-99.0, -1.5]}
 _RUN_ONLY = ("stop_after_hours", "timing_evals", "parts", "checkpoint_subdir", "first_download")
 
 
@@ -192,6 +199,10 @@ def _load_and_check(paths, P, ctx, rec):
     mh = D.read_mapped(paths["mh"], map_mh)
     kin = D.read_mapped(paths["kin"], map_kin)
     mh, rec["L3_mh"] = D.drop_duplicates(mh, "metallicity file")
+    if len(mh) < MIN_MH_ROWS:
+        raise D.StopRun(f"L3: the metallicity file has {len(mh):,} rows after duplicates, fewer than "
+                        f"{MIN_MH_ROWS:,}: not R22's sample; stop (README section 2), the reading is fixed by "
+                        "a dated amendment")
     kin, rec["L3_kin"] = D.drop_duplicates(kin, "kinematics file")
     mh = D.add_galactic(mh)
     mh["mh_row"] = np.arange(len(mh))
@@ -207,7 +218,7 @@ def _load_and_check(paths, P, ctx, rec):
 
 
 def t2_arrays(df, lo, hi):
-    """Stars with lo <= [M/H] < hi and finite T2 quantities (README 4.13 item 4)."""
+    """Stars with lo <= [M/H] < hi and finite T2 quantities (README 4.12 item 4)."""
     m = (df["mh"] >= lo) & (df["mh"] < hi)
     sub = df.loc[m]
     need = ["l", "b", "parallax", "parallax_error", "g", "bp_rp"]
@@ -238,7 +249,7 @@ def lik_from_sim(sim, version, P, k):
 
 
 def mock_inputs(mh, P):
-    """LF sample and parallax-error sampler (README 4.3; README 4.13 items 5 and 8)."""
+    """LF sample and parallax-error sampler (README 4.3; README 4.12 items 5 and 8)."""
     need = ["g", "bp_rp", "bp", "parallax", "parallax_error", "b", "mh"]
     df = mh[need].dropna()
     df = df[df["parallax_error"] > 0]
@@ -362,11 +373,11 @@ def run_t2(P, store, ctx, mh, load, before_data=None):
     lf, errs, mrec = mock_inputs(mh, P)
     declared = sim_cuts(load)
     mrec["declared_cuts_in_mocks"] = declared
-    ext = store.cached("extgrid", lambda: M.extinction_grid(
+    ext = M.extinction_grid(
         arr["b"], arr["bp_rp"], n_target=n, lf=lf, errs=errs, a_values=frange(P["ext_a_grid"]),
         bd_values=frange(P["ext_bd_grid_deg"]), seed=int(rng_for(P["seed"], "extgrid").integers(2 ** 31)),
         sigma=P["sigma_true_kpc"], R0=P["R0_kpc"], zp=P["plx_zp_mas"], declared=declared,
-        check_time=store.check_time))
+        row_cache=store.cached)
     ctx.log(f"extinction grid: a = {ext['a']} mag, b_d = {ext['b_d']} deg")
     mi = {"lf": lf, "errs": errs, "ext": (ext["a"], ext["b_d"]), "declared": declared}
     out["mocks"] = mrec | {"extinction": ext, "extinction_coefficients": {"A_G/A_V": M.EXT_G, "A_BP/A_V": M.EXT_BP,
@@ -394,6 +405,7 @@ def run_t2(P, store, ctx, mh, load, before_data=None):
 
     # --- T2a on the data
     gc = store.cached("grid_check", lambda: grid_check(P, arr, ctx))
+    grid_ok = bool(gc["passed"])
     k = gc["nodes"]
     out["grid_check"] = gc
     bnd = tuple(P["sigma_bounds_kpc"])
@@ -429,7 +441,8 @@ def run_t2(P, store, ctx, mh, load, before_data=None):
            "unmodelled_selection": unmodelled,
            "reproduction_label": S.t2a_reproduction(missing, fits["i"]["sigma"], fits["i"]["at_bound"]),
            "population_label": S.t2a_population(missing, fits["ii"]["at_bound"], bias["ii"]["bias"], unmodelled,
-                                                iv["ii"], bias_max=P["t2a_bias_max_kpc"])}
+                                                iv["ii"], bias_max=P["t2a_bias_max_kpc"], grid_ok=grid_ok),
+           "grid_converged": grid_ok}
     # reference fits (README 4.3)
     refs = {}
     for lo_r, hi_r in P["ref_bins"]:
@@ -488,6 +501,8 @@ def run_t2(P, store, ctx, mh, load, before_data=None):
     else:
         t2b["step2"] = {"reached": False, "mocks": "not run" if not (fp_pass and pw_pass) else "not reached"}
     shape, f5_model = S.t2b_shape(False, fp_pass, pw_pass, d5["step1_label"], step2_pass, step2)
+    if not grid_ok:          # README 4.12 item 4: undetermined until a dated amendment
+        shape = S.GRID
     # bootstrap (README 4.4): all three models refitted, 5 starts each
     bres = []
     for j in range(P["t2b_boot"]):
@@ -603,7 +618,7 @@ def run_t3(P, store, ctx, joined, load, w0res):
         vrep["file"] = {"a_mean": _nanmean(vf[sel_a]), "b_mean": _nanmean(vf[sel_b])}
     for r0 in P["t3_R0_variants_kpc"]:
         sub = joined.loc[sel_a | sel_b]
-        v = K.vphi_heliocentric(sub, r0)
+        v = K.vphi_heliocentric(sub, r0, zp=P["plx_zp_mas"])
         if v is None:
             vrep[f"R0_{r0}"] = "not computed (no heliocentric observables in the kinematics file)"
             continue
@@ -650,8 +665,11 @@ def f_bright(mh, P):
             "note": "the plx/err > 5 cut favours nearer stars (README 4.8)"}
 
 
-def mass_r22(n, P):
-    return n * P["t6_m_giant"][0] * 1.0 * P["t6_f"][-1]
+R22_M_GIANT, R22_F = 800.0, 2.5      # R22's own choices (README 4.8), not knobs
+
+
+def mass_r22(n, P=None):
+    return n * R22_M_GIANT * 1.0 * R22_F
 
 
 def run_t6(P, counts, t5, fb):
@@ -717,7 +735,7 @@ def t4_elasticity(base, shifted_plus, shifted_minus, cuts=(-2.0, -1.5, -1.0), st
     return rows
 
 
-def run_t4(P, store, ctx, mh, joined, base, t2_ok, k):
+def run_t4(P, store, ctx, mh, joined, base, t2_ok, k, grid_ok=True):
     runs = []
     rows = joined["mh_row"].to_numpy()
     for name, mhv, keep, r in t4_variants(P, mh):
@@ -738,7 +756,7 @@ def run_t4(P, store, ctx, mh, joined, base, t2_ok, k):
                 jm = mhv[rows]
                 sub = joined.loc[jk]
                 prim_s = t3_samples(sub, P, jm[jk])[0]
-                rec |= K.t3_ab(prim_s, rng_for(P["seed"], f"t4_t3_{name}_{r}"), P["t4_boot"])
+                rec |= K.t3_ab(prim_s, rng_for(P["seed"], f"t4_t3_{name}_{r}"), P["t4_boot"], P["t3_delta"])
             return rec
         runs.append(store.cached(f"t4_{name}_{r}_K{k}".replace(" ", "_"), go))
     # aggregate per variant (README 4.6: medians and the 6-of-10 rule for the noise variants)
@@ -768,7 +786,7 @@ def run_t4(P, store, ctx, mh, joined, base, t2_ok, k):
         if not base.get("t3_ok"):
             cv["a_changed"] = cv["b_changed"] = False
         check_vars[nm_] = cv
-    label, broken = S.t4_label(bl, check_vars, sigma_skipped)
+    label, broken = S.t4_label(bl, check_vars, sigma_skipped, grid_ok=grid_ok)
     plus = next(x for x in runs if x["variant"] == "shift +0.1")
     flags = {}
     n0 = base["counts"]
@@ -780,7 +798,9 @@ def run_t4(P, store, ctx, mh, joined, base, t2_ok, k):
     el = t4_elasticity(base_mh, base_mh + P["t4_shift_dex"], base_mh - P["t4_shift_dex"])
     ctx.log(f"T4: {label} {broken}")
     return {"label": label, "broken": [list(b) for b in broken], "variants": variants,
-            "sigma_condition_skipped": sigma_skipped, "elasticity": el,
+            "sigma_condition_skipped": sigma_skipped,
+            "sigma_condition": "skipped (T2 data not in the files)" if sigma_skipped else (
+                "evaluated" if grid_ok else S.GRID), "elasticity": el,
             "dominated_by_scatter_from_above": flags, "baseline": bl,
             "trim_computed": any(x["variant"].startswith("trim") for x in runs),
             "plus_counts": plus["counts"]}
@@ -797,6 +817,9 @@ def main(ctx):
         low = {k: P[k] for k, v in FLOORS.items() if P[k] < v}
         if low:
             raise ValueError(f"formal run below the floors of README 4.10: {low}")
+        off = {k: P[k] for k, v in FORMAL_FIXED.items() if P[k] != v}
+        if off:
+            raise ValueError(f"a formal run needs all parts and the pre-registered sizes: {off}")
     paths = fetch_files(ctx, P)
     try:
         mh, kin, joined, load = load_and_check(paths, P, ctx)
@@ -811,9 +834,7 @@ def main(ctx):
     lo, hi = P["t2_mh_range"]
     n_t2 = int(((mh["mh"] >= lo) & (mh["mh"] < hi)).sum())
     timing = timing_estimate(P, n_t2, ctx)
-    key = C.checkpoint_key({k: v for k, v in P.items() if k not in _RUN_ONLY},
-                           [HERE / f for f in ("run.py", "data012.py", "model012.py", "kin012.py", "stats012.py")],
-                           [load["L1"][k]["md5"] for k in FILES])
+    key = run_key(P, [load["L1"][k]["md5"] for k in FILES])
     stop = float(P["stop_after_hours"]) * 3600 if P["stop_after_hours"] else None
     store = C.Store(checkpoint_root(_cache_dir(), P, ctx), key, stop)
     ctx.log(f"checkpoints ({'formal run' if formal else 'exploration'}): {store.dir}")
@@ -869,6 +890,7 @@ def pipeline(ctx, P, parts, store, mh, joined, load, t2_ok):
     files["t5"] = t5
     fb = f_bright(mh, P) if t2_ok else None
     files["t6"] = run_t6(P, counts, t5, fb)
+    grid_ok = not (t2_ok and "grid_check" in t2) or bool(t2["grid_check"]["passed"])
     t4 = None
     if "t4" in parts:
         base = {"counts": counts, "mass": mass_r22(counts["lt_m1p5"], P),
@@ -876,8 +898,9 @@ def pipeline(ctx, P, parts, store, mh, joined, load, t2_ok):
                 "t3_ok": t3 is not None and "missing" not in t3,
                 "a_label": t3["a_label"] if t3 else None, "b_label": t3["b_label"] if t3 else None}
         k = t2["grid_check"]["nodes"] if t2_ok else int(P["grid_nodes"])
-        t4 = run_t4(P, store, ctx, mh, joined, base, t2_ok, k)
+        t4 = run_t4(P, store, ctx, mh, joined, base, t2_ok, k, grid_ok=grid_ok)
         files["t4"] = t4
+    pending = [] if grid_ok else ["T2 grid not converged (README 4.12 item 4): readings wait for a dated amendment"]
     rep = S.reading_reproduction(t1["summary"], t2["t2a"]["reproduction_label"],
                                  t3["a_label"] if t3 else "undetermined", t3["b_label"] if t3 else "undetermined")
     rob = S.reading_robustness(t2["t2a"]["population_label"], t2["t2b"]["f5_label"],
@@ -891,10 +914,19 @@ def pipeline(ctx, P, parts, store, mh, joined, load, t2_ok):
                    "T3c": t3["c_label"] if t3 else None, "T4": t4["label"] if t4 else None,
                    "T5_g": t5["g_label"], "T5_a5": t5["a5_label"],
                    "T6_r22_at_least_5e7": files["t6"]["r22_choices_at_least_5e7"]},
-        "reading_reproduction": {"label": rep[0], "tests": rep[1]},
-        "reading_robustness": {"label": rob[0], "tests": rob[1]},
+        "reading_reproduction": {"label": rep[0], "tests": rep[1], "pending_amendment": bool(pending)},
+        "reading_robustness": {"label": rob[0], "tests": rob[1], "pending_amendment": bool(pending)},
+        "pending_amendment": pending,
     }
     return files
+
+
+def run_key(P, data_ids):
+    """Checkpoint key: the effective PARAMS minus run-only keys, the helper modules and run.py without
+    its PARAMS literal, and the data checksums (README section 8: resetting first_download keeps it)."""
+    return C.checkpoint_key({k: v for k, v in P.items() if k not in _RUN_ONLY},
+                            [HERE / f for f in ("data012.py", "model012.py", "kin012.py", "stats012.py",
+                                                "store012.py")], data_ids, params_source=HERE / "run.py")
 
 
 def is_formal_run(ctx):

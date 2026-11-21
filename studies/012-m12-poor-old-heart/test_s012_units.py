@@ -361,3 +361,75 @@ def test_readings():
     assert S.reading_robustness("undetermined (method bias)", "undetermined (method bias)", "robust", "major",
                                 "not confirmed") == ("challenged", ["T5 g", "T5 a5"])
     assert S.reading_robustness("undetermined", *good[1:])[0] == "undetermined"
+
+
+# ---------------------------------------------------------------------------------------------
+# gate-1 fixes
+
+def test_parallax_outlier_does_not_underflow():
+    l, b, plx, err = np.array([5.0, 5.0]), np.array([10.0, 10.0]), np.array([0.12, 0.9]), np.array([0.01, 0.01])
+    lik = M.Lik(l, b, plx, err, np.array([12.0, 12.0]), np.array([1.5, 1.5]), version="ii", k=300)
+    ps = lik.per_star("sph", (2.7,))
+    assert np.all(np.isfinite(ps)) and ps[1] > -1e4    # 0.9 mas is about 40 sigma from 1/30 kpc..
+
+
+def test_two_dlnl_uses_profile_maximum():
+    rng = np.random.default_rng(11)
+    sim = M.simulate(rng, 800, sigma=2.7, q=0.7, lf=bright_lf(rng), ext=(0.0, 5.0), errs=errs(rng), bmin=5.0)
+    lik = M.Lik(sim["l"], sim["b"], sim["plx"], sim["err"], sim["g"], sim["bp_rp"], version="ii", k=80)
+    s1 = M.step1(lik, rng, n_starts=2)
+    assert s1["two_dlnl"] == pytest.approx(2 * (s1["profile"]["lnl_max"] - s1["sph"]["lnl"]))
+    assert s1["two_dlnl"] >= 2 * (s1["flat"]["lnl"] - s1["sph"]["lnl"]) - 1e-9
+
+
+def test_colour_ssd_penalises_missing():
+    t = np.array([1.0, 2.0, np.nan, 3.0])
+    assert M.colour_ssd(np.array([1.0, 2.0, np.nan, 3.0]), t) == 0.0
+    assert M.colour_ssd(np.array([1.0, np.nan, np.nan, 3.0]), t) == M.NAN_PENALTY
+    assert M.colour_ssd(np.array([1.0, 2.0, 5.0, 3.0]), t) == M.NAN_PENALTY
+
+
+def test_extinction_grid_rows_are_cached():
+    rng = np.random.default_rng(8)
+    lf, er = bright_lf(rng, mg=-1.5), errs(rng)
+    truth = M.simulate(np.random.default_rng(9), 500, sigma=2.7, q=1.0, lf=lf, ext=(1.0, 6.0), errs=er)
+    store = {}
+
+    def cache(name, fn):
+        if name not in store:
+            store[name] = fn()
+        return store[name]
+    kw = dict(n_target=500, lf=lf, errs=er, a_values=[0.0, 1.0], bd_values=[6.0], seed=1)
+    r1 = M.extinction_grid(truth["b"], truth["bp_rp"], row_cache=cache, **kw)
+    assert set(store) == {"extgrid_row_0", "extgrid_row_1"}
+    assert M.extinction_grid(truth["b"], truth["bp_rp"], **kw)["a"] == r1["a"]
+
+
+def test_store_makes_progress_under_tiny_budget(tmp_path):
+    C = _import("store012")
+    st = C.Store(tmp_path, "k", stop_after_s=0.0)
+    assert st.cached("a", lambda: 1) == 1
+    with pytest.raises(C.Paused):
+        st.cached("b", lambda: 2)
+    st2 = C.Store(tmp_path, "k", stop_after_s=0.0)
+    assert st2.cached("a", lambda: 9) == 1 and st2.cached("b", lambda: 2) == 2
+
+
+def test_t1_counts_finite_only():
+    c = D.t1_counts(np.array([-2.5, -1.7, np.nan, 0.0]))
+    assert c["total"] == 3 and c["n_nonfinite_mh"] == 1 and c["lt_m2"] == 1
+
+
+def test_label_c_without_bootstrap_widths():
+    assert K.label_c(True, [None, None], 0.3) == "undetermined"
+    assert K.label_c(True, S.pct_interval([np.nan, np.nan]), 0.3) == "undetermined"
+
+
+def test_grid_labels():
+    g = S.GRID
+    assert S.t2a_population(False, False, 0.0, False, [2.5, 2.6], grid_ok=False) == g
+    assert S.t2b_f5(g, [0.6, 0.7]) == g
+    base = {"sigma_ii": 2.7, "a_label": "x", "b_label": "y", "mass": 1e8}
+    v = {"sigma_ii": 5.0, "a_label": "x", "b_label": "y", "mass": 1e8}
+    assert S.t4_label(base, {"v": v}, False, grid_ok=False) == (g, [])
+    assert S.t4_label(base, {"v": dict(v, mass=1e9)}, False, grid_ok=False)[0] == "sensitive"

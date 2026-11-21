@@ -24,6 +24,9 @@ def replace_with_retry(src, dst, tries=5, wait=0.2):
             time.sleep(wait * (2 ** i))
 
 
+CRLF, LF = chr(13) + chr(10), chr(10)
+
+
 class Paused(Exception):
     """Raised when the run's time budget is used up; rerunning continues from the checkpoints."""
 
@@ -34,6 +37,7 @@ class Store:
         self.dir.mkdir(parents=True, exist_ok=True)
         self.t0 = time.time()
         self.stop_after_s = stop_after_s
+        self.computed = 0
 
     def _p(self, name):
         return self.dir / f"{name}.pkl"
@@ -56,7 +60,8 @@ class Store:
         replace_with_retry(tmp, p)
 
     def check_time(self, where=""):
-        if self.stop_after_s is not None and time.time() - self.t0 > self.stop_after_s:
+        # at least one unit is computed per run, so a short time budget still makes progress
+        if self.stop_after_s is not None and self.computed and time.time() - self.t0 > self.stop_after_s:
             raise Paused(f"time budget used up at {where}; rerun to continue from {self.dir}")
 
     def cached(self, name, fn):
@@ -66,6 +71,7 @@ class Store:
         self.check_time(name)
         val = fn()
         self.put(name, val)
+        self.computed += 1
         return val
 
     def size_bytes(self):
@@ -81,6 +87,7 @@ class NullStore(Store):
 
     def __init__(self, stop_after_s=None):
         self.dir = Path(".")
+        self.computed = 0
         self.t0 = time.time()
         self.stop_after_s = stop_after_s
         self._mem = {}
@@ -102,11 +109,27 @@ class NullStore(Store):
         return True
 
 
-def checkpoint_key(params: dict, sources: list, data_ids: list) -> str:
+def source_without_assignment(path, name="PARAMS") -> bytes:
+    """A module's source with the top-level `name = ...` assignment removed (its values enter the key
+    separately, minus the run-only keys), so resetting a run-only flag in the file keeps the key."""
+    import ast
+    text = Path(path).read_text(encoding="utf-8").replace(CRLF, LF)
+    tree = ast.parse(text)
+    lines = text.split(LF)
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == name for t in node.targets):
+            del lines[node.lineno - 1:node.end_lineno]
+            break
+    return LF.join(lines).encode()
+
+
+def checkpoint_key(params: dict, sources: list, data_ids: list, params_source=None) -> str:
     h = hashlib.sha256()
     h.update(repr(sorted((k, repr(v)) for k, v in params.items())).encode())
+    if params_source is not None:
+        h.update(source_without_assignment(params_source))
     for p in sources:
-        h.update(Path(p).read_bytes())
+        h.update(Path(p).read_text(encoding="utf-8").replace(CRLF, LF).encode())
     for s in data_ids:
         h.update(str(s).encode())
     return h.hexdigest()[:20]

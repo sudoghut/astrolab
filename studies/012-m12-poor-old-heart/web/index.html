@@ -124,14 +124,15 @@
     const S = await get('summary');
     const st = document.getElementById('status');
     if (!S) {
-      st.innerHTML = L('Not yet run. The pre-registration is fixed (README sections 1–4 and 4.13); the formal run downloads R22\'s two files once under the user\'s exception (T-021) and takes about a day on one core.',
-                       '尚未运行。预注册已固定（README 第 1–4 节与第 4.13 节）；正式运行在用户的例外（T-021）下一次性下载 R22 的两个文件，单核约需一天。');
+      st.innerHTML = L('Not yet run. The pre-registration is fixed (README sections 1–4 and 4.12); the formal run downloads R22\'s two files once under the user\'s exception (T-021) and takes about a day on one core.',
+                       '尚未运行。预注册已固定（README 第 1–4 节与第 4.12 节）；正式运行在用户的例外（T-021）下一次性下载 R22 的两个文件，单核约需一天。');
       return;
     }
     if (S.status !== 'complete') { st.innerHTML = L(`Run status: ${esc(S.status)}`, `运行状态：${esc(S.status)}`); return; }
     st.innerHTML = L(`Complete run (parts: ${esc(S.parts.join(', '))}).`, `完整运行（parts：${esc(S.parts.join(', '))}）。`);
     const R = S.reading_reproduction, B = S.reading_robustness;
-    document.getElementById('readings').innerHTML =
+    const pend = (S.pending_amendment || []).length ? `<p class="lab bad">${L('Pending amendment: ' + esc(S.pending_amendment.join('; ')), '等待修订：T2 的网格未收敛（README 第 4.12 节第 4 项），解读等待带日期的修订')}</p>` : '';
+    document.getElementById('readings').innerHTML = pend +
       `<p>${L('Reproduction', '复现')}: ${lab(R.label)} ${R.tests.length ? '(' + esc(R.tests.join(', ')) + ')' : ''}</p>` +
       `<p>${L("Robustness of R22's picture", 'R22 图景的稳健性')}: ${lab(B.label)} ${B.tests.length ? '(' + esc(B.tests.join(', ')) + ')' : ''}</p>`;
     document.getElementById('readings-sec').hidden = false;
@@ -165,6 +166,12 @@
       const a = t2.t2a;
       d += `<h3>T2a</h3><p class="num">σ̂ (i) = ${f(a.fits.i.sigma)} kpc ${iv(a.intervals.i)}; σ̂ (ii) = ${f(a.fits.ii.sigma)} kpc ${iv(a.intervals.ii)}; ${L('mock bias (ii)', '模拟偏差 (ii)')} ${f(a.mock_bias.ii.bias)} ± ${f(a.mock_bias.ii.bias_se)} kpc</p>`;
       const b = t2.t2b;
+      const ck = (x, y) => x === undefined ? '–' : (x ? L('passed', '通过') : L('failed', '未通过'));
+      const c2 = b.checks.fp2 ? `${b.checks.fp2.passed_mocks}/${b.checks.fp2.n} ${ck(b.checks.fp2.pass)}` : L('not needed', '不需要');
+      d += `<h3>${L('Checks', '检查')}</h3><p class="num">${L('grid convergence', '网格收敛')}: ${ck(t2.grid_check && t2.grid_check.passed)} (${t2.grid_check ? t2.grid_check.nodes : '–'} ${L('nodes', '个节点')}); ` +
+        `${L('false-positive mocks', '假阳性模拟')}: ${b.checks.fp.passed_mocks}/${b.checks.fp.n} ${ck(b.checks.fp.pass)}; ${L('second false-positive set', '第二组假阳性模拟')}: ${c2}; ` +
+        `${L('power mocks', '功效模拟')}: ${b.checks.power.passed_mocks}/${b.checks.power.n} ${ck(b.checks.power.pass)}; ` +
+        `${L('profile at q = 1 equals the spherical fit', 'q = 1 处的剖面等于球对称拟合')}: ${ck(b.data.profile.check_q1_ok)}</p>`;
       d += `<h3>T2b</h3><p class="num">2ΔlnL = ${f(b.data.two_dlnl, 2)}; q̂ = ${f(b.data.flat.theta[1])} ${iv([b.data.profile.interval.lo, b.data.profile.interval.hi])}; f₅ = ${f(b.f5)} ${iv(b.f5_interval)} (${esc(b.f5_model)})</p>`;
     }
     if (t3 && t3.primary) {

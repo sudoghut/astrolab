@@ -24,7 +24,7 @@ def ratio(jr, jphi, jz, flip=False):
 def boot_subset(rng, n_total, n_sub):
     """Indices into a subset of size n_sub for one bootstrap resample of all n_total stars, restricted
     to the subset: K ~ Binomial(n_total, n_sub/n_total) draws, uniform within the subset. Equal in
-    distribution to resampling all stars and keeping those in the subset (README 4.13 item 11)."""
+    distribution to resampling all stars and keeping those in the subset (README 4.12 item 11)."""
     k = rng.binomial(n_total, n_sub / n_total) if n_total > 0 else 0
     return rng.integers(0, n_sub, k) if n_sub > 0 else np.zeros(0, int)
 
@@ -52,7 +52,7 @@ def logistic(x, a, b, m, s):
 
 def fit_logistic(xc, means, var, s_bounds=(0.01, 2.0)):
     """Least squares weighted by the bins' variances (README 4.5). Bins with no stars or no variance are
-    left out (README 4.13 item 12). Converged = solver success and s not at a bound."""
+    left out (README 4.12 item 12). Converged = solver success and s not at a bound."""
     xc = np.asarray(xc, float)
     ok = np.isfinite(means) & np.isfinite(var) & (var > 0)
     if ok.sum() < 5:
@@ -124,6 +124,8 @@ def label_c(fit_ok, iv, w0, sharp_add=0.1, gradual_min=0.4):
     if not fit_ok:
         return "undetermined (fit failed)"
     lo, hi = iv
+    if lo is None or w0 is None or not np.isfinite(w0):
+        return "undetermined"
     if hi < w0 + sharp_add:
         return "sharp"
     if lo > max(gradual_min, w0 + sharp_add):
@@ -139,14 +141,14 @@ def boot_variances(sample, rng, n_boot):
         return np.nanvar(ms, axis=0, ddof=1)
 
 
-def t3_ab(sample, rng, n_boot):
+def t3_ab(sample, rng, n_boot, delta=0.05):
     """(a) and (b) labels only (used by T4)."""
     a = np.empty(n_boot)
     b = np.empty(n_boot)
     for i in range(n_boot):
         a[i], b[i], _, _ = sample.stats(boot_subset(rng, sample.n_total, sample.mh.size))
     iva, ivb = S.pct_interval(a), S.pct_interval(b)
-    return {"a_interval": iva, "b_interval": ivb, "a_label": label_a(iva), "b_label": label_b(ivb)}
+    return {"a_interval": iva, "b_interval": ivb, "a_label": label_a(iva, delta), "b_label": label_b(ivb)}
 
 
 def t3_full(sample, rng, n_boot1, n_boot2, w0, delta=0.05):
@@ -222,14 +224,14 @@ def vphi_from_file(df):
     return None
 
 
-def vphi_heliocentric(df, R0, vsun=(11.1, 245.0, 7.3)):
+def vphi_heliocentric(df, R0, zp=0.02, vsun=(11.1, 245.0, 7.3)):
     """v_phi recomputed from heliocentric observables with astropy (z_sun = 0); None if absent."""
     need = ("ra", "dec", "parallax", "pmra", "pmdec", "rv")
     if not all(c in df for c in need):
         return None
     import astropy.units as u
     from astropy.coordinates import CartesianDifferential, Galactocentric, SkyCoord
-    plx = df["parallax"].to_numpy(float) + 0.02
+    plx = df["parallax"].to_numpy(float) + zp
     c = SkyCoord(ra=df["ra"].to_numpy(float) * u.deg, dec=df["dec"].to_numpy(float) * u.deg,
                  distance=(1.0 / plx) * u.kpc, pm_ra_cosdec=df["pmra"].to_numpy(float) * u.mas / u.yr,
                  pm_dec=df["pmdec"].to_numpy(float) * u.mas / u.yr,

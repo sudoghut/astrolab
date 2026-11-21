@@ -360,15 +360,12 @@ cannot be tested here).
 - R22's potential, used for the actions and orbital parameters, taken as given.
 - Ages and α abundances (not in the files).
 
-### 4.12 Amendments before the run
-
-None yet.
-
-### 4.13 Amendments before any fit (2026-11-21)
+### 4.12 Amendments before any fit (2026-11-21)
 
 Implementation choices fixed on 2026-11-21 while writing `run.py` and its helper modules, before any data
 file was downloaded or read (no fit has been made). Sections 1–4.11 are unchanged; where they leave a
-detail open, it is fixed here.
+detail open, it is fixed here. (This subsection replaces the earlier placeholder "4.12 Amendments before the
+run: None yet.")
 
 1. **L2 column names.** A column name is reduced to lower-case letters and digits ("[M/H]" → "mh",
    "phot_g_mean_mag" → "photgmeanmag") and compared with fixed candidate lists in `data012.py`
@@ -389,21 +386,28 @@ detail open, it is fixed here.
    The integrals are trapezoid sums in parallax over the log-spaced nodes; version (i) has its own 300 nodes
    log-spaced over 1–30 kpc, version (ii) 300 over 0.2–30 kpc. The node-doubling check is applied to both
    versions and stops at 1,200 nodes (memory: about 0.4 GB per likelihood at 20,000 stars); if it has not
-   converged there, `t2.json: grid_check.passed` is false and the reading waits for a dated amendment. The
+   converged there, `t2.json: grid_check.passed` is false: T2a's σ of the population, T2b's shape and f₅ and
+   T4's σ condition are "undetermined (grid not converged)" (T4 is then that label unless another condition
+   makes it "sensitive"), both readings carry `pending_amendment`, and they wait for a dated amendment. The
    mocks are fitted at 300 nodes before the data fit (section 4.10 order); if the check adopts more nodes,
-   every mock is regenerated from its seed and refitted at the adopted number.
+   every mock is regenerated from its seed and refitted at the adopted number. The parallax Gaussian of each
+   star is stored relative to its largest node (its logarithm kept separately), so a parallax outlier does not
+   underflow in the single-precision matrices.
 5. **Luminosity function.** The LF sample's ϖ/σ_ϖ > 10 uses the raw parallax (section 4.1: cuts on the raw ϖ).
    Each LF star's M′ is turned into an intrinsic M_G0 = M′ + 1.5(BP − RP − 1) − A_G, intrinsic colour
    BP − RP − E(BP − RP) and intrinsic BP − G, with the extinction model at its own (b, d = 1/ϖ_corr). A mock
    star at distance d gets G = M_G0 + μ(d) + A_G, BP − RP = colour₀ + E(BP − RP), BP = G + (BP − G)₀ + (A_BP − A_G).
    This needs BP magnitudes in the file (the mocks apply BP < 15.5); without them the run stops at L2 like the
-   other missing T2 columns (the optional TAP addition of section 3 lists no BP magnitude).
+   other missing T2 columns. The optional TAP addition of section 3 therefore also fetches
+   `phot_bp_mean_mag` (documentation only: the addition is still made only with the user's agreement).
 6. **Extinction coefficients.** Constant ratios A_G : A_BP : A_RP = 0.789 : 1.002 : 0.589 per unit A_V
    (Wang & Chen 2019, ApJ 877, 116), so A_BP = 1.270 A_G and E(BP − RP) = 0.523 A_G. This simplifies the
    colour-dependent Gaia DR3 law.
 7. **Extinction grid.** Each grid point simulates one spherical mock at σ = 2.7 kpc with as many stars as the
    T2 sample, all grid points with the same random seed (common random numbers, so the comparison between
-   grid points is not dominated by mock noise). The |b| bins are [lo, hi).
+   grid points is not dominated by mock noise). The |b| bins are [lo, hi). A statistic missing in the mock or
+   the data but not both (an empty |b| bin) adds a penalty of 100 instead of being dropped. Finished rows of
+   the grid (one value of a) are checkpointed, so a pause loses at most one row.
 8. **Mock parallax errors.** σ_ϖ is resampled from all stars of the metallicity file in the mock star's 0.25 mag
    G bin (the nearest populated bin if it is empty); the raw parallax is 1/d − 0.02 + N(0, σ_ϖ).
 9. **T2b fits.** Nelder–Mead with bounds (xatol 10⁻⁴, fatol 10⁻⁴, at most 3,000 evaluations per start); σ of the
@@ -412,7 +416,9 @@ detail open, it is fixed here.
    number of stars fitted (the data's |b| ≥ 5° stars, or the mock's size). T2b mocks have as many stars as the
    data at |b| ≥ 5°. The data's power-law fit is always made and reported; it is labelled only at step 2. The
    latitude variants (3°, 8°) are point fits of the three models with the q profile, reported only. The
-   bootstrap resamples the |b| ≥ 5° stars.
+   bootstrap resamples the |b| ≥ 5° stars. The data's power-law fit is made together with the step-1 fits,
+   before the step-2 mocks (section 4.10 lists step 2 after them); the step-2 mocks are drawn from the
+   flattened-Gaussian fit and do not depend on the power-law fit, so the order does not change any number.
 10. **Bounds.** σ is "at a bound" within 0.05 kpc of 0.5 or 10 kpc (section 4.3); the logistic s is at a bound
     within 0.1% of 0.01 or 2 dex.
 11. **T3 bootstrap.** Each resample of the N stars of a T3 sample draws K ~ Binomial(N, n/N) stars uniformly
@@ -420,7 +426,9 @@ detail open, it is fixed here.
     distribution. Bins are [c − 0.1, c + 0.1).
 12. **Logistic fit.** Bins without stars or with zero bootstrap variance are left out; fewer than 5 usable bins
     count as not converged. Starting values: a and b the means of the first and last two bins, m = −1.2, s = 0.1
-    (bounded trust-region least squares, `scipy.optimize.least_squares`).
+    (bounded trust-region least squares, `scipy.optimize.least_squares`). If no bootstrap resample gives a
+    width, T3 (c) is "undetermined". T1's total counts the rows with a finite [M/H]; rows without one are
+    reported (`t1.json: counts.n_nonfinite_mh`).
 13. **w₀ mocks.** Made on the primary sample; mock J_φ/J_tot values are not clipped to [−1, 1]; the all-R_apo
     variant uses the primary w₀. The per-bin scatter is the standard deviation of the data's J_φ/J_tot in the
     bin of the star's [M/H].
@@ -436,7 +444,11 @@ detail open, it is fixed here.
     Zenodo URLs with `?download=1` were confirmed on the record page on 2026-11-21. The two files are fetched
     with `cap_consent` and `budget_consent` (both citing T-021 and this study's log); `allow_download` is true only
     when `PARAMS["first_download"]` is set (section 8). A formal run refuses counts below the floors of section
-    4.10. If L2 finds T2 columns missing, the run stops and asks for the user's decision on the optional TAP
+    4.10, a partial run (`parts` other than all six) and grid sizes other than the pre-registered ones. A paused
+    run continues from its checkpoints: the checkpoint key hashes the effective PARAMS without the run-only keys
+    (including `first_download`), the helper modules and `run.py` without its PARAMS literal, and the files'
+    checksums. Each restart computes at least one checkpointed unit before the time guard can pause it. If L2
+    finds T2 columns missing, the run stops and asks for the user's decision on the optional TAP
     addition (`PARAMS["t2_missing_ok"]` is set only if the user declines it).
 
 ## 5. Results
@@ -478,6 +490,8 @@ How a coding agent answers "what if" questions about this study without touching
   1.5 million rows; `parts=["t1","t3","t5","t6"]` then runs in minutes, while T2 needs hours (an evaluation of the
   likelihood takes about 0.08–0.14 s at 20,000 stars and 300 nodes). Explorations keep their checkpoints in the
   cache under `s012_checkpoints/explore/<date>-<topic>/` (delete them when done), apart from the formal run's.
+  Resetting `first_download` to `False` does not change the checkpoint key, so a formal run paused after the
+  download continues from its checkpoints.
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 012-m12-poor-old-heart --tag <topic> --script explore/<name>.py`.
 - Results files and keys: `load.json` (L1–L7: `L1` checksums, `L2` column mapping and presence, `L3_*`

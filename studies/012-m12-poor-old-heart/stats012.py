@@ -9,6 +9,7 @@ import math
 import numpy as np
 
 MISSING = "undetermined (data not in the files)"
+GRID = "undetermined (grid not converged)"
 
 
 def pct_interval(x, level=0.95):
@@ -44,11 +45,15 @@ def t2a_reproduction(missing, sigma_i, at_bound_i, lo=2.4, hi=3.0):
     return "reproduced" if lo <= sigma_i <= hi else "not reproduced"
 
 
-def t2a_population(missing, at_bound_ii, bias_ii, unmodelled, interval, lo=2.4, hi=3.0, bias_max=0.1):
+def t2a_population(missing, at_bound_ii, bias_ii, unmodelled, interval, lo=2.4, hi=3.0, bias_max=0.1,
+                   grid_ok=True):
     """Order of README section 2: missing data, fit at bound, method bias, unmodelled selection, then the
-    interval against 2.4-3.0 kpc."""
+    interval against 2.4-3.0 kpc. A grid check that did not converge (README 4.12 item 4) makes it
+    undetermined until a dated amendment."""
     if missing:
         return MISSING
+    if not grid_ok:
+        return GRID
     if at_bound_ii:
         return "undetermined (fit at bound)"
     if abs(bias_ii) > bias_max:
@@ -94,7 +99,7 @@ def t2b_shape(missing, fp_pass, power_pass, step1, step2_pass=None, step2=None):
 
 def t2b_f5(t2a_pop_label, interval):
     """f5 label: inherits T2a (ii)'s undetermined reasons except the straddling 'undetermined'."""
-    inherit = (MISSING, "undetermined (fit at bound)", "undetermined (method bias)",
+    inherit = (MISSING, GRID, "undetermined (fit at bound)", "undetermined (method bias)",
                "undetermined (unmodelled selection)")
     if t2a_pop_label in inherit:
         return t2a_pop_label
@@ -111,13 +116,13 @@ def t2b_f5(t2a_pop_label, interval):
 # ---------------------------------------------------------------------------------------------
 # T4
 
-def t4_label(baseline, variants, sigma_skipped, sigma_max=0.3, mass_factor=3.0):
+def t4_label(baseline, variants, sigma_skipped, sigma_max=0.3, mass_factor=3.0, grid_ok=True):
     """baseline: {"sigma_ii", "a_label", "b_label", "mass"}; variants: {name: same keys, with for the
     noise variants "a_changed", "b_changed" already decided by the 6-of-10 rule}. Returns
     (label, list of broken (variant, quantity))."""
     broken = []
     for name, v in variants.items():
-        if not sigma_skipped:
+        if not sigma_skipped and grid_ok:
             s0, s1 = baseline.get("sigma_ii"), v.get("sigma_ii")
             if s0 is None or s1 is None or not abs(s1 - s0) < sigma_max:
                 broken.append((name, "sigma"))
@@ -128,7 +133,10 @@ def t4_label(baseline, variants, sigma_skipped, sigma_max=0.3, mass_factor=3.0):
         m0, m1 = baseline["mass"], v["mass"]
         if not (m0 > 0 and m1 > 0 and 1.0 / mass_factor < m1 / m0 < mass_factor):
             broken.append((name, "T6 mass"))
-    return ("robust" if not broken else "sensitive"), broken
+    if broken:
+        return "sensitive", broken
+    # the sigma condition cannot be evaluated without a converged grid (README 4.12 item 4)
+    return ("robust" if grid_ok else GRID), broken
 
 
 # ---------------------------------------------------------------------------------------------

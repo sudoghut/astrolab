@@ -18,7 +18,7 @@ from scipy.stats import chi2
 MODELS = ("sph", "flat", "pow")
 BOUNDS = {"sph": [(0.5, 10.0)], "flat": [(0.5, 10.0), (0.2, 1.5)],
           "pow": [(0.05, 3.0), (1.0, 8.0), (0.2, 1.5)]}
-# Gaia passband extinction relative to A_V (Wang & Chen 2019, ApJ 877, 116; README 4.13 item 6)
+# Gaia passband extinction relative to A_V (Wang & Chen 2019, ApJ 877, 116; README 4.12 item 6)
 EXT_G, EXT_BP, EXT_RP = 0.789, 1.002, 0.589
 SQRT2PI = math.sqrt(2.0 * math.pi)
 
@@ -86,6 +86,9 @@ class Lik:
         self.B = np.empty((self.n, self.k), np.float32)
         self.R2 = np.empty((self.n, self.k), np.float32)
         self.Z2 = np.empty((self.n, self.k), np.float32)
+        # the parallax Gaussian is stored relative to its largest node per star (log of that maximum in
+        # self.amax), so a parallax outlier does not underflow in float32 (README 4.12 item 4)
+        self.amax = np.empty(self.n)
         if version == "ii":
             cut = cut_ii(np.asarray(g, float), np.asarray(bp_rp, float), plx_max)
             if extra_cut is not None:
@@ -96,7 +99,10 @@ class Lik:
             r2, z2 = gc_r2_z2(l[sl], b[sl], d[None, :], R0)
             self.R2[sl] = r2
             self.Z2[sl] = z2
-            self.A[sl] = base * np.exp(-0.5 * ((pc[sl] - plx[None, :]) / s[sl]) ** 2) / (SQRT2PI * s[sl])
+            logn = -0.5 * ((pc[sl] - plx[None, :]) / s[sl]) ** 2 - np.log(SQRT2PI * s[sl])
+            mx = logn.max(axis=1, keepdims=True)
+            self.amax[sl] = mx[:, 0]
+            self.A[sl] = base * np.exp(logn - mx)
             if version == "ii":
                 self.B[sl] = base * ndtr((cut[sl] - plx[None, :] + zp) / s[sl])
             else:
@@ -123,7 +129,7 @@ class Lik:
             e = np.exp(lr - m)
             num = np.einsum("ij,ij->i", self.A[sl], e)
             den = np.einsum("ij,ij->i", self.B[sl], e)
-            out[sl] = np.log(np.maximum(num, 1e-300)) - np.log(np.maximum(den, 1e-300))
+            out[sl] = np.log(np.maximum(num, 1e-300)) - np.log(np.maximum(den, 1e-300)) + self.amax[sl]
         return out
 
     def lnl(self, model, theta, weights=None):
@@ -154,7 +160,7 @@ def random_starts(rng, model, n):
 
 def first_start(model, sph_sigma, flat_theta=None):
     """README 4.4: the first start is the spherical sigma with q = 1; for the power law (no sigma) the
-    first start is r_c = 1 kpc, alpha = 3.4, q from the flattened fit (README 4.13 item 9)."""
+    first start is r_c = 1 kpc, alpha = 3.4, q from the flattened fit (README 4.12 item 9)."""
     if model == "flat":
         return np.array([sph_sigma, 1.0])
     q = 1.0 if flat_theta is None else float(flat_theta[1])
@@ -246,6 +252,8 @@ def step1(lik, rng, sph=None, weights=None, n_starts=5, profile=True):
     out = {"sph": sph, "flat": flat, "two_dlnl": 2.0 * (flat["lnl"] - sph["lnl"])}
     if profile:
         out["profile"] = profile_q(lik, flat, sph["lnl"], weights)
+        # README 4.4: lnL_max is the larger of the Nelder-Mead fit and the best profile node
+        out["two_dlnl"] = 2.0 * (out["profile"]["lnl_max"] - sph["lnl"])
         out["label"] = step1_label(out["two_dlnl"], out["profile"]["interval"])
     return out
 
@@ -429,27 +437,51 @@ def colour_stats(b_deg, bp_rp):
     return np.array(out)
 
 
-def extinction_grid(data_b, data_c, *, n_target, lf, errs, a_values, bd_values, seed, sigma=2.7, R0=8.2,
-                    zp=0.02, declared=None, check_time=None):
-    """One mock per grid point with common random numbers (README 4.13 item 7); least sum of squared
-    differences of the 8 statistics, ties to the smallest a, then the smallest b_d."""
-    target = colour_stats(data_b, data_c)
+NAN_PENALTY = 100.0   # per statistic missing on one side only (README 4.12 item 7)
+
+
+def colour_ssd(stats, target):
+    """Sum of squared differences of the 8 statistics; a statistic missing in the mock or the data
+    (but not both) adds NAN_PENALTY instead of being dropped."""
+    d = stats - target
+    one_missing = np.isnan(stats) != np.isnan(target)
+    return float(np.nansum(d ** 2) + NAN_PENALTY * one_missing.sum())
+
+
+def extinction_row(a, bd_values, *, target, n_target, lf, errs, seed, sigma=2.7, R0=8.2, zp=0.02, declared=None):
+    """One row of the grid (fixed a): one mock per b_d with common random numbers (README 4.12 item 7)."""
+    out = []
+    for bd in bd_values:
+        rng = np.random.default_rng(seed)
+        sim = simulate(rng, n_target, sigma=sigma, q=1.0, lf=lf, ext=(a, bd), errs=errs, R0=R0, zp=zp,
+                       declared=declared)
+        out.append(colour_ssd(colour_stats(sim["b"], sim["bp_rp"]), target))
+    return out
+
+
+def best_of_grid(a_values, bd_values, rows):
+    """Least sum of squared differences; ties to the smallest a, then the smallest b_d."""
     best = None
-    ssd = np.full((len(a_values), len(bd_values)), np.nan)
-    for i, a in enumerate(a_values):
-        if check_time:
-            check_time(f"extinction grid a={a:.2f}")
-        for j, bd in enumerate(bd_values):
-            rng = np.random.default_rng(seed)
-            sim = simulate(rng, n_target, sigma=sigma, q=1.0, lf=lf, ext=(a, bd), errs=errs, R0=R0, zp=zp,
-                           declared=declared)
-            st = colour_stats(sim["b"], sim["bp_rp"])
-            v = float(np.nansum((st - target) ** 2))
-            ssd[i, j] = v
+    for a, row in zip(a_values, rows):
+        for bd, v in zip(bd_values, row):
             if best is None or v < best[0] - 1e-15:
                 best = (v, float(a), float(bd))
-    return {"a": best[1], "b_d": best[2], "ssd": best[0], "target_stats": target.tolist(),
-            "ssd_grid_min_per_a": np.nanmin(ssd, axis=1).round(6).tolist()}
+    return {"a": best[1], "b_d": best[2], "ssd": best[0],
+            "ssd_grid_min_per_a": [round(float(min(r)), 6) for r in rows]}
+
+
+def extinction_grid(data_b, data_c, *, n_target, lf, errs, a_values, bd_values, seed, sigma=2.7, R0=8.2,
+                    zp=0.02, declared=None, row_cache=None):
+    """The whole grid; row_cache(name, fn) (a checkpoint store's `cached`) keeps finished rows so a
+    pause loses at most one row (README 4.12 item 7)."""
+    target = colour_stats(data_b, data_c)
+    rows = []
+    for i, a in enumerate(a_values):
+        def go(a=a):
+            return extinction_row(a, bd_values, target=target, n_target=n_target, lf=lf, errs=errs, seed=seed,
+                                  sigma=sigma, R0=R0, zp=zp, declared=declared)
+        rows.append(row_cache(f"extgrid_row_{i}", go) if row_cache else go())
+    return best_of_grid(a_values, bd_values, rows) | {"target_stats": target.tolist()}
 
 
 # ---------------------------------------------------------------------------------------------

@@ -106,6 +106,7 @@ def _setup(tmp_path, monkeypatch, **kw):
     monkeypatch.setitem(run.FILES["mh"], "md5", D.md5_of(pm))
     monkeypatch.setitem(run.FILES["kin"], "md5", D.md5_of(pk))
     monkeypatch.setattr(run, "_cache_dir", lambda: tmp_path / "cache")
+    monkeypatch.setattr(run, "MIN_MH_ROWS", 1000)
     for k, v in SMALL.items():
         monkeypatch.setitem(run.PARAMS, k, v)
     ctx = FakeCtx(tmp_path / "out", files)
@@ -138,6 +139,7 @@ def test_pipeline_end_to_end(tmp_path, monkeypatch):
     # the independent label checks of test_conclusions.py hold on these results
     tc = _import("test_conclusions")
     tc.RESULTS = ctx.results
+    tc.MIN_ROWS = 1000
     ran = 0
     for name in dir(tc):
         if name.startswith("test_"):
@@ -170,6 +172,50 @@ def test_missing_t2_columns_stop(tmp_path, monkeypatch):
     assert "parallax_error" in load["L2"]["t2_columns_missing"]
 
 
+def test_too_few_rows_stop(tmp_path, monkeypatch):
+    run, ctx = _setup(tmp_path, monkeypatch)
+    monkeypatch.setattr(run, "MIN_MH_ROWS", 1_000_000)        # the pre-registered threshold
+    s = run.main(ctx)
+    assert s["status"].startswith("stopped at load: L3") and "1,000,000" in s["status"]
+
+
+def test_grid_not_converged(tmp_path, monkeypatch):
+    run, ctx = _setup(tmp_path, monkeypatch)
+    monkeypatch.setitem(run.PARAMS, "grid_check_tol_kpc", -1.0)   # can never pass
+    s = run.main(ctx)
+    assert s["status"] == "complete"
+    lab = s["labels"]
+    g = "undetermined (grid not converged)"
+    assert lab["T2a_population"] == g and lab["T2b_shape"] == g and lab["T2b_f5"] == g
+    t4 = json.loads((ctx.results / "t4.json").read_text(encoding="utf-8"))
+    assert t4["sigma_condition"] == g and lab["T4"] in (g, "sensitive")
+    assert s["pending_amendment"] and s["reading_reproduction"]["pending_amendment"]
+    assert s["reading_robustness"]["pending_amendment"]
+    tc = _import("test_conclusions")
+    tc.RESULTS = ctx.results
+    for name in ("test_t2a", "test_t2b", "test_t4_t6", "test_readings"):
+        try:
+            getattr(tc, name)()
+        except pytest.skip.Exception:
+            pass
+
+
+def test_checkpoint_key_survives_first_download_reset(tmp_path):
+    run = _import("run")
+    C = _import("store012")
+    text = (HERE / "run.py").read_text(encoding="utf-8")
+    assert '"first_download": False,' in text
+    other = tmp_path / "run.py"
+    other.write_text(text.replace('"first_download": False,', '"first_download": True,'), encoding="utf-8")
+    assert C.source_without_assignment(HERE / "run.py") == C.source_without_assignment(other)
+    P = dict(run.PARAMS)
+    k0 = run.run_key(P, ["a", "b"])
+    assert run.run_key(P | {"first_download": True, "stop_after_hours": 3.0}, ["a", "b"]) == k0
+    assert run.run_key(P | {"seed": 1}, ["a", "b"]) != k0
+    other.write_text(text.replace("def rng_for(", "def rng_for2(", 1), encoding="utf-8")
+    assert C.source_without_assignment(HERE / "run.py") != C.source_without_assignment(other)
+
+
 def test_md5_mismatch_stops(tmp_path, monkeypatch):
     run, ctx = _setup(tmp_path, monkeypatch)
     monkeypatch.setitem(run.FILES["kin"], "md5", "0" * 32)
@@ -188,6 +234,17 @@ def test_formal_floors_enforced(monkeypatch):
         run.main(Formal())
 
 
+def test_formal_run_needs_all_parts(monkeypatch):
+    run = _import("run")
+    monkeypatch.setitem(run.PARAMS, "parts", ["t1"])
+
+    class Formal:
+        max_save_bytes = None
+        results = HERE / "results"
+    with pytest.raises(ValueError, match="all parts"):
+        run.main(Formal())
+
+
 def test_params_defaults_are_preregistered():
     run = _import("run")
     P = run.PARAMS
@@ -197,5 +254,8 @@ def test_params_defaults_are_preregistered():
     assert P["grid_nodes"] == 300 and P["R0_kpc"] == 8.2 and P["plx_zp_mas"] == 0.02
     assert P["t2_mh_range"][1] == -1.5 and P["subsample_seed"] == 12012
     assert len(run.frange(P["ext_a_grid"])) == 101 and len(run.frange(P["ext_bd_grid_deg"])) == 39
+    for k, v in run.FORMAL_FIXED.items():
+        assert P[k] == v
+    assert run.MIN_MH_ROWS == 1_000_000 and run.mass_r22(20000) == 20000 * 800 * 2.5
     assert run.FILES["mh"]["md5"] == "7257c98622573a4a625571fc973859c5"
     assert run.FILES["kin"]["md5"] == "b220c27aacff1f2f03d5a1f2b5fca147"
