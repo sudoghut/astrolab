@@ -1,6 +1,6 @@
 # Wide binaries: Newton or MOND at low acceleration?
 
-> 中文：[README.zh.md](README.zh.md)
+> 中文：[README.zh.md](README.zh.md) · Web page online: [https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)
 
 > Sections 1-4 are the pre-registration (derived from part 3 of the wiki article
 > [Study-004](https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-004-wide-binaries-newton-or-mond.md)

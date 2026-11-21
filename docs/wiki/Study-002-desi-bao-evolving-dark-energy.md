@@ -5,12 +5,12 @@
 *Paper(s): DESI Collaboration, Abdul-Karim et al. 2025, PRD 112, 083515, arXiv:2503.14738 (DESI DR2
 BAO cosmology); Popovic et al. 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517 (DES
 supernova recalibration, "Dovekie"). Study:
-[`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy).
+[`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy) (web page: [online](https://sudoghut.github.io/astrolab/studies/002-m01-desi-bao-evolving-dark-energy/web/)).
 Status: reproduced (2026-11-14; R2 conditionally, convention open). Last updated: 2026-11-18 (see the changelog at the end). The source of this page
 lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：DESI DR2：暗能量在演化吗？状态：已复现（2026-11-14；R2 为有条件复现，约定未定）。论文：DESI 合作组 Abdul-Karim 等 2025, PRD 112, 083515, arXiv:2503.14738（DESI DR2 BAO 宇宙学）；Popovic 等 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517（DES 超新星重新校准，"Dovekie"）。研究：[`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy)。最后更新：2026-11-18（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：DESI DR2：暗能量在演化吗？状态：已复现（2026-11-14；R2 为有条件复现，约定未定）。论文：DESI 合作组 Abdul-Karim 等 2025, PRD 112, 083515, arXiv:2503.14738（DESI DR2 BAO 宇宙学）；Popovic 等 2026, MNRAS, doi:10.1093/mnras/stag632, arXiv:2511.07517（DES 超新星重新校准，"Dovekie"）。研究：[`studies/002-m01-desi-bao-evolving-dark-energy`](https://github.com/sudoghut/astrolab/tree/main/studies/002-m01-desi-bao-evolving-dark-energy)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/002-m01-desi-bao-evolving-dark-energy/web/)）。最后更新：2026-11-18（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 

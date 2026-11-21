@@ -80,6 +80,8 @@ three example questions. Exploration never edits `results/`.
 - The study's row in the root `README.md` status tables (English "Status" and Chinese "进展") and
   in the `STATUS.md` study table: added in the PR that creates the study, and updated in every later
   PR that changes its results, verdicts or status (AGENTS.md section 2, "总表保持同步").
+- After merging, the online site (https://sudoghut.github.io/astrolab/) still shows the old page until
+  the Pages workflow runs again (AGENTS.md section 3): ask the user, then `gh workflow run pages.yml --ref main`.
 - `python -m pytest` passes; `STATUS.md` updated; move the TODO item to `DONE.md` with the PR
   number; if the plan uses staged review, a final `dual-gate-review` of the whole diff; mark the
   PR ready and rebase-merge.

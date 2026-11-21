@@ -151,6 +151,8 @@ python -m astrolab cache [info|prune|clear]
 python -m pytest                          # 核心库测试 + 各研究的结论测试
 ```
 
+在线网站：https://sudoghut.github.io/astrolab/（研究网页在 `studies/<id>/web/`）。它由 `.github/workflows/pages.yml` 从 `main` 构建，只能手动触发（`gh workflow run pages.yml --ref main`），所以改动网页或 `results/` 的 PR 合并后网站不会自动更新：发布属于对外操作，经用户同意后再触发，并在 PR 或日志中记下。
+
 ## 第四条：目录结构
 
 | 路径 | 内容 |

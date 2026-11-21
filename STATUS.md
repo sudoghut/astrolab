@@ -81,9 +81,9 @@
 | `005-m09-nanograv-gwb-power-law` | X | reproduced | 振幅与 L8 的区间一致，谱指数张力同一量级（描述；DMX 噪声模型）；表 A1 重叠 8/24；DMGP 噪声模型下差别明显（事后，无盲检验可能） |
 | `006-m08-z14-galaxies-number-density` | L1 | reproduced | 数密度复现；恒定 SFE 模型预言 N26 基准的 2.5–37 倍（预注册变体网格），所需 σ_UV ≈ 1–2 mag；R2/R3-POST（T-025）：R2 对 z ≈ 8 光度函数校准的不确定性稳健，R3 临界且主要取决于 σ_cal；R3-POST2（T-036）：σ_cal 自由时 R2 仍稳健，R3 依赖校准（P = 0.92），σ_cal 由先验主导 |
 | `007-m10-gwtc4-bbh-mass-35msun` | X | concluded | O4a 样本 84/84 复现；O1–O3 按规则 59/69（GWOSC 的 GWTC-2.1 行无 FAR，事后 69）；35 M☉ 局部峰依赖选择函数模型（探索） |
-| `008-m03-s8-des-y6-cmb-parameter-difference` | L0 | reproduced | DES Y6 与 CMB 的参数差异复现（S8 2.67σ，S8–Ωm 2.18σ）；结论取决于"低于 3σ 即没有证据"的用法；完整 6 维差异（归一化流（normalizing flow），1.70σ）主要来自 Σmν 方向（不含 Σmν 时 0.52σ，T-040）以及 Σmν 与其他 DES 参数的相关（T-044） |
+| `008-m03-s8-des-y6-cmb-parameter-difference` | L0 | reproduced | DES Y6 与 CMB 的参数差异复现（S8 2.67σ，S8–Ωm 2.18σ）；结论取决于"低于 3σ 即没有证据"的用法；归一化流（normalizing flow）给出的完整 6 维差异（1.70σ）只作描述（训练离散超过预注册上限，R6 无判定），主要来自 Σmν 方向（不含 Σmν 时 0.52σ，T-040）以及 Σmν 与其他 DES 参数的相关（T-044） |
 | `009-m06-mw-outer-rotation-curve-decline` | L3 | reproduced | J23 的幂律与质量在其假设下复现；3σ 部分来自先验、误差不独立，总质量由晕的形状决定；R6-COV（T-028）：在相关误差下（只在高 f 协方差下；平方指数核）下降约 3–5σ、开普勒式无法区分、NFW 不被看好 |
-| `010-m05-thick-disc-subgiant-ages` | L3 | concluded | 13 Gyr 均值复现（12.93 Gyr）；一致选择项下（R-SEL，T-031）老盘跨度复现（6.09 Gyr）、弥散未复现（2.55 Gyr）、内禀离散确认但不稳健（0.748 Gyr）；8 Gyr 分界无法判定，其关键箱的功效受模拟拟合局部最优限制（T-045），预注册重跑 T-049 |
+| `010-m05-thick-disc-subgiant-ages` | L3 | concluded | 13 Gyr 均值复现（12.93 Gyr）；一致选择项下（R-SEL，T-031）老盘跨度复现（6.09 Gyr）、弥散未复现（2.55 Gyr），两者都对选择项敏感（原判定"无法确定"保留）；内禀离散确认但不稳健（0.748 Gyr）；8 Gyr 分界无法判定，其关键箱的功效受模拟拟合局部最优限制（T-045），预注册重跑 T-049 |
 | `001-m04-gaia-dormant-black-holes` | L4 | reproduced（DR3） | BH1、BH2 只用 DR3 复现成立；服务器端筛选与否决规则已在正样本上验证；按数据发布参数化，DR4 判据已预注册（计划 008），发布日按技能 `gaia-dr4-release-day` 运行 |
 
 ## 时间点

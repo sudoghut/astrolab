@@ -1,6 +1,6 @@
 # M8 z ≈ 14 星系：数密度，以及恒定效率模型所需的紫外弥散
 
-> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。
+> English: [README.md](README.md)。以英文 `README.md` 为准（预注册与判据的权威文本）；本文件是它的中文译本，节号与表格一一对应，英文改动时在同一个 PR 中同步修改。 网页在线版：[https://sudoghut.github.io/astrolab/studies//web/](https://sudoghut.github.io/astrolab/studies//web/)。
 
 > 第 1–4 节写于 2026-11-15，在 run.py 之前、进行任何计算之前
 > （预注册（pre-registration）；由 Wiki 文章
