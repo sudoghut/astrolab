@@ -611,7 +611,10 @@ def run_block(L, y, C, nz, rows_a, groups, labels, host_rows, picks, P, fns, log
     seconds["kde"] = time.perf_counter() - t0
 
     read = reading(models, taus)
-    out.update(status="evaluated", reading=read, section5=section5_action(read), checks=checks)
+    # the block status follows rule (1): a decisive model that is not evaluable makes the block not evaluable
+    status = ("not evaluable (a decisive model is not evaluable)" if str(read).startswith("not evaluable")
+              else "evaluated")
+    out.update(status=status, reading=read, section5=section5_action(read), checks=checks)
     seconds["block"] = time.perf_counter() - t_block
     out["seconds"] = seconds
     log(f"R2-RE-D: {read}")
