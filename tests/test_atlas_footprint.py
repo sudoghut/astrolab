@@ -164,3 +164,77 @@ def test_target_notes_bilingual_and_resolved(tmp_path):
     a, b = fp["sky"]["targets"]
     assert (a["note"], a["note_zh"]) == ("own", "自己的")                     # own note wins
     assert (b["note"], b["note_zh"]) == ("a study default", "研究默认说明")     # study default
+
+
+def test_targets_need_notes():
+    base = {"scale": {"min_pc": 1, "max_pc": 10}, "data": ["x"]}
+    no_note = {"footprint": {**base, "sky": {"mode": "targets", "targets": [{"name": "A", "ra": 1.0, "dec": 1.0}]}}}
+    assert any("note" in e for e in claims.footprint_required_errors(no_note))
+    shared = {"footprint": {**base, "sky": {"mode": "targets", "target_note": "x", "target_note_zh": "说明",
+                                            "targets": [{"name": "A", "ra": 1.0, "dec": 1.0}]}}}
+    assert claims.footprint_required_errors(shared) == []
+
+
+def test_every_study_page_has_the_sky_box():
+    """T-053: every study page (and the template) shows its sky targets with links to the Atlas sky."""
+    from astrolab import config
+    pages = sorted((config.ROOT / "studies").glob("*/web/index.html"))
+    assert len(pages) >= 5 and any(p.parent.parent.name == "_template" for p in pages)
+    for p in pages:
+        text = p.read_text(encoding="utf-8")
+        assert '<section id="skylinks"' in text and 'src="../../../atlas/web/skylinks.js"' in text, p
+
+
+def _wiki_first_mentions(text, names):
+    """Positions (line, column) of the first plain mention of any name, as in the T-053 linking:
+    whole word, outside headings, code and existing link text."""
+    import re
+    fence = False
+    for i, l in enumerate(text.split("\n")):
+        if l.startswith("```"):
+            fence = not fence
+            continue
+        if fence or l.startswith("#") or l.startswith("<!--"):
+            continue
+        hits = []
+        for a in names:
+            for m in re.finditer(r"(?<![\w/-])" + re.escape(a) + r"(?![\w+-])", l):
+                pre = l[:m.start()]
+                if pre.count("`") % 2 or pre.rfind("](") > pre.rfind(")"):
+                    continue
+                hits.append(m)
+                break
+        if hits:
+            m = min(hits, key=lambda h: h.start())
+            return l, m
+    return None
+
+
+def test_wiki_first_mentions_link_to_the_sky():
+    """T-053: in each language of a study's wiki article, the first mention of each sky target is a link
+    to the Atlas sky view centred on it."""
+    import re
+    from astrolab import config, study
+    wiki = config.ROOT / "docs" / "wiki"
+    for s in study.discover():
+        art = (s.meta or {}).get("wiki")
+        fp = claims.resolve_footprint(s.path, s.meta)
+        if not art or not fp["sky"]["targets"] or not (wiki / f"{art}.md").exists():
+            continue
+        text = (wiki / f"{art}.md").read_text(encoding="utf-8")
+        body_en = text[text.index("\n## English"):text.index("\n## 中文")]
+        body_zh = text[text.index("\n## 中文"):]
+        for t in fp["sky"]["targets"]:
+            name = re.sub(r"\s*\(CCHP host\)\s*$", "", t["name"])
+            names = [name] + ([name[5:]] if name.startswith("Gaia BH") else []) + ([name[4:]] if name.startswith("PSR ") else [])
+            m = re.fullmatch(r"(NGC|UGC|Mrk) (\d+)", name)        # R22 host labels: N5584, U9391, M1337
+            if m:
+                names.append({"NGC": "N", "UGC": "U", "Mrk": "M"}[m.group(1)] + m.group(2).zfill(4))
+            for part in (body_en, body_zh):
+                hit = _wiki_first_mentions(part, names)
+                if hit is None:
+                    continue
+                line, m = hit
+                after = line[m.end():]
+                assert line[:m.start()].endswith("[") and after.startswith("](https://sudoghut.github.io/astrolab/atlas/web/?view=sky&focus="), \
+                    f"{art}: first mention of {name} is not a sky link: {line.strip()[:120]}"

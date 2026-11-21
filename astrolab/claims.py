@@ -133,6 +133,12 @@ def footprint_required_errors(meta: dict[str, Any]) -> list[str]:
         errs.append("footprint.sky.mode missing (use 'none' if the study has no sky footprint)")
     if not isinstance(fp.get("data"), list) or not fp["data"]:
         errs.append("footprint.data missing: list the study's inputs")
+    sky = fp.get("sky") if isinstance(fp.get("sky"), dict) else {}
+    default = sky.get("target_note") and sky.get("target_note_zh")
+    for t in sky.get("targets") or []:
+        if isinstance(t, dict) and not (default or (t.get("note") and t.get("note_zh"))):
+            errs.append(f"footprint target {t.get('name')}: give note/note_zh (or sky.target_note/target_note_zh) "
+                        "on its role and result in the study (T-053)")
     return errs
 
 
@@ -185,6 +191,8 @@ def footprint_errors(meta: dict[str, Any]) -> list[str]:
         elif tg:
             errs.append("footprint.sky.targets given but mode does not include targets")
         errs += _note_errors(sky, "target_note", "footprint.sky")
+        if (sky.get("target_note") or sky.get("target_note_zh")) and "targets" not in modes:
+            errs.append("footprint.sky.target_note given but mode does not include targets")
     return errs
 
 
