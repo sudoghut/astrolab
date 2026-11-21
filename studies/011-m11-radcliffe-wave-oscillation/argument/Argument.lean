@@ -12,7 +12,7 @@ drift (5 km/s) and the Local Bubble link are not encoded (wiki article, section 
 
 The chain:
   Stage A: young clusters and clouds are co-located, and the clusters were selected on the x-y
-      plane only, so the clusters were born in the Wave; younger than 30 Myr, they still move with
+      plane only; [gap] so the clusters were born in the Wave (K24: suggesting); younger than 30 Myr, they still move with
       their clouds; the model also explains the 12CO velocities, so the cluster kinematics are the
       Wave's
   Stage B: only gravity acts; the vertical potential is an anharmonic oscillator whose parameters
@@ -20,10 +20,10 @@ The chain:
       stationary; so for a travelling wave the shape fixes v_z; the travelling-wave fit to z and
       v_z is excellent, with a 90 degree offset
   Stage C: the cluster phases sweep -pi/2 to pi/2, which a standing wave forbids [gap: unless the
-      spread is noise]; B = 0.84 is closer to 1; [gap] both rest on a cluster v_z pattern that
+      spread is noise]; B = 0.84 is above 0.75 (closer to 1); [gap] both rest on a cluster v_z pattern that
       belongs to the Wave -> a travelling wave is preferred over a standing wave; B = 1 and B free
       are equivalently good -> B = 1 is adopted (the Figure 1 fit is the B = 1 realisation)
-  Stage D: with B = 1 adopted, the excellent fit, [gap] the robust v_z pattern and [gap] one
+  Stage D: with B = 1 adopted (the Methods state the finding categorically), the excellent fit, [gap] the robust v_z pattern and [gap] one
       coherent wave despite Galactic shear (Li, Zhou and Chen 2024)
       -> the Wave oscillates like a travelling wave
   Stage E: with the potential freed the fit gives omega0 = 68 km/s/kpc; the isothermal sheet turns
@@ -32,7 +32,9 @@ The chain:
 
 B is encoded in hundredths (Nat): b_x100 = 84 is the reported best fit, not a bound. Quotes were
 checked against the arXiv v1 PDF (accepted manuscript); sub- and superscripts are flattened
-(12CO, omega0 written as in print where possible).
+(12CO, omega0 written as in print where possible). Hedged inferences (suggesting, indicates)
+are not encoded as stated implications: the step becomes a GAP, or a categorical sentence of K24
+is quoted instead.
 
 Rules: AGENTS.md section 2 (paper study, Lean); specification: design/007 section 2.2.
 -/
@@ -81,8 +83,6 @@ structure Vocab where
   Standing : Prop
   /-- Best-fit mixing parameter B of the travelling/standing mixture model, in hundredths (reported value). -/
   b_x100 : Nat
-  /-- The data favour a travelling wave in the mixture model. -/
-  FavorTW : Prop
   /-- The cluster z-v_z pattern (and so the phases and the B posterior) is a property of the Wave, not of the cluster sample, its radial-velocity coverage, the solar-motion zero point or the outlier and weighting choices. -/
   VzRobust : Prop
   /-- A travelling wave is (strongly) preferred over a standing wave. -/
@@ -110,8 +110,8 @@ inductive Field where
   | obs_coloc
   /-- MOD [stated: "We make a conservative selection on the x-y plane by enclosing all stellar clusters within ±5 times the radius of the Wave (47 pc) from the best fit of the dust component"] Methods, Stellar Cluster Catalog (main text p. 1: without an a priori selection criterion for height) -/
   | mod_xy
-  /-- MOD [stated: "The clusters were selected from a top-down view of the Galaxy, without an a priori selection criterion for height off the Galactic plane (see Methods), suggesting that the clusters' stars were born in the molecular clouds along the Radcliffe Wave."] main text p. 1; the hedge suggesting is dropped (plain implication) -/
-  | mod_born
+  /-- GAP [reconstructed] co-located young clusters selected with no height cut were born in the Wave's molecular clouds. K24 only suggests this (main text p. 1: selected without an a priori selection criterion for height, suggesting that the clusters' stars were born in the molecular clouds along the Radcliffe Wave); the step from co-location to common origin is not demonstrated (no age-position or chemistry test; chance alignment of unrelated young groups not quantified) -/
+  | gap_born
   /-- MOD [stated: "We restrict our analysis to only the youngest clusters (ages smaller than 30 Myr), guaranteeing that these associations are still tracing the velocities of the molecular clouds that served as their birthplaces."] Methods, Stellar Cluster Catalog -/
   | mod_age
   /-- STAT [stated: "We show in Extended Data Figure 3a that our model explains the 12CO observations"] Methods, Line-of-sight Gas Velocities (model-data agreement shown graphically; no goodness-of-fit number) -/
@@ -138,11 +138,9 @@ inductive Field where
   | gap_phase_noise
   /-- STAT [stated: "We find a best fit value for B = 0.84."] Methods; Extended Data Table 2 column (5), clusters with B free: 0.84 +0.07 -0.06, uniform prior on 0 to 1; encoded as the reported value 84 hundredths -/
   | stat_b
-  /-- MOD [stated: "The value of B closer to 1 indicates that data favors a traveling wave."] Methods; closer to 1 than to 0.5 is encoded as above 0.75 (our reading) -/
-  | mod_bnear1
   /-- GAP [reconstructed] the clusters' mean vertical velocities (Gaia DR3 proper motions, Gaia and APOGEE radial velocities, the 50 km/s cut, the solar motion w = 7.8 km/s of Schoenrich et al. 2010 that sets every v_z zero point, the tanh outlier model that drops all Perseus and Taurus clusters, and the kernel weights) give the Wave's true z-v_z pattern, on which the phases, the B posterior and the Figure 1 fit all rest. K24 checks the Sun's height, a plane tilt, three potentials and a second cluster catalogue, but not alternative v_z derivations nor the outlier and weighting choices; Zhu et al. 2024 (arXiv:2402.15346), with APOGEE-2 stars and with cloud radial velocities plus YSO proper motions, find vertical-velocity oscillations not synchronous with the vertical coordinate (a dipole-like gradient); Bobylev, Ikhsanov and Bajkova 2025 (arXiv:2503.21019) find different wavelengths in z and v_z -/
   | gap_vz
-  /-- MOD [stated: "When fitting a mixture model that allows for superpositions of a traveling and a standing wave, we find that a traveling wave is strongly preferred over a standing wave (see Methods)."] main text p. 2; encoded with VzRobust as antecedent (weaker than the quote) -/
+  /-- MOD [stated: "When fitting a mixture model that allows for superpositions of a traveling and a standing wave, we find that a traveling wave is strongly preferred over a standing wave (see Methods)."] main text p. 2; encoded with B above 0.75 (our reading of closer to 1, Methods), the excluded standing wave and VzRobust as antecedents (weaker than the quote) -/
   | mod_prefer
   /-- STAT [stated: "Thus, both models are an equivalently good fit to the data, while the realization with fixed B = 1 is slightly preferred."] Methods (Delta ln Z = ln Z2 - ln Z1 of about 1, Z1 for B = 1, Z2 for B free; the printed sign and the stated preference disagree) -/
   | stat_bequiv
@@ -150,7 +148,7 @@ inductive Field where
   | mod_b1
   /-- GAP [reconstructed] one coherent travelling wave, with one phase law Lambda(s) and one solid-body in-plane drift, is an adequate description of the Wave over the time its tracers (up to 30 Myr old) span. K24 notes that on several tens of Myr the Wave is likely affected by cloud destruction and phase mixing (Fig. 1 caption) and that its time-independent approximation reaches the noise after about 40 Myr, but treats the Wave as a single coherent structure; Li, Zhou and Chen 2024 (arXiv:2410.14603) find that shear stretches the Wave to almost twice its length in about 45 Myr, within which only half an oscillation cycle occurs, and call the solid-body treatment an oversimplification -/
   | gap_shear
-  /-- MOD [stated: "The fit shown as a solid black line in Figure 1 (cf. Supplementary Figure 1, Methods) indicates that the Radcliffe Wave oscillates through the Galactic plane like a traveling wave"] main text p. 2; the Figure 1 fit is the B = 1 realisation, so B1OK is an antecedent; encoded with the two gaps as extra antecedents (weaker than the quote) -/
+  /-- MOD [stated: "In the case of the z-component, we find that the Radcliffe Wave oscillates like a traveling wave driven by the Milky Way's gravitational acceleration."] Methods, Full Spatial and Kinematic Model (categorical; the main text p. 2 says the Figure 1 fit indicates this); the Figure 1 fit is the B = 1 realisation, so B1OK is an antecedent; encoded with the earlier steps and the two gaps as antecedents (weaker than the quote) -/
   | mod_osc
   /-- STAT [stated: "We find a median value and 1σ errors (computed using the 16th, 50th and 84th percentiles of the samples) of ω0 = 68 +8 -7 km s-1 kpc-1"] Methods, Sun's Vertical Oscillation Period (superscripts flattened; mu0 = 1.4, r0 = 3.6 kpc in the same sentence; Extended Data Table 2 column (7)) -/
   | stat_omega
@@ -165,7 +163,7 @@ inductive Field where
 def prov : Field → Prov
   | .obs_coloc => .stated
   | .mod_xy => .stated
-  | .mod_born => .stated
+  | .gap_born => .reconstructed
   | .mod_age => .stated
   | .stat_co => .stated
   | .mod_transfer => .stated
@@ -179,7 +177,6 @@ def prov : Field → Prov
   | .mod_standing => .stated
   | .gap_phase_noise => .reconstructed
   | .stat_b => .stated
-  | .mod_bnear1 => .stated
   | .gap_vz => .reconstructed
   | .mod_prefer => .stated
   | .stat_bequiv => .stated
@@ -194,7 +191,7 @@ def prov : Field → Prov
 def prem : Field → Vocab → Prop
   | .obs_coloc, v => v.CoLocated
   | .mod_xy, v => v.NoHeightCut
-  | .mod_born, v => v.CoLocated → v.NoHeightCut → v.BornInWave
+  | .gap_born, v => v.CoLocated → v.NoHeightCut → v.BornInWave
   | .mod_age, v => v.BornInWave → v.Tracer
   | .stat_co, v => v.COMatch
   | .mod_transfer, v => v.Tracer → v.COMatch → v.Coherent
@@ -208,9 +205,8 @@ def prem : Field → Vocab → Prop
   | .mod_standing, v => v.Standing → v.PhaseNotNoise → ¬ v.PhaseSpread
   | .gap_phase_noise, v => v.PhaseNotNoise
   | .stat_b, v => v.b_x100 = 84
-  | .mod_bnear1, v => v.b_x100 > 75 → v.FavorTW
   | .gap_vz, v => v.VzRobust
-  | .mod_prefer, v => v.FavorTW → ¬ v.Standing → v.VzRobust → v.PreferTW
+  | .mod_prefer, v => v.b_x100 > 75 → ¬ v.Standing → v.VzRobust → v.PreferTW
   | .stat_bequiv, v => v.BEquiv
   | .mod_b1, v => v.PreferTW → v.BEquiv → v.B1OK
   | .gap_shear, v => v.SolidOK
@@ -235,7 +231,7 @@ def full : Vocab :=
   { CoLocated := True, NoHeightCut := True, BornInWave := True, Tracer := True, COMatch := True,
     Coherent := True, GravOnly := True, PotParams := True, PotKnown := True, Stationary := True,
     VzFixed := True, TWFit := True, PhaseSpread := True, PhaseNotNoise := True, Standing := False,
-    b_x100 := 84, FavorTW := True, VzRobust := True, PreferTW := True, BEquiv := True,
+    b_x100 := 84, VzRobust := True, PreferTW := True, BEquiv := True,
     B1OK := True, SolidOK := True, Oscillating := True, OmegaFit := True, Sheet := True,
     DataDriven := True, Weighs := True }
 
@@ -244,15 +240,14 @@ theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   -- Stage A: the clusters trace the Wave (main text p. 1; Methods)
   have c : v.Coherent :=
-    p .mod_transfer (p .mod_age (p .mod_born (p .obs_coloc) (p .mod_xy))) (p .stat_co)
+    p .mod_transfer (p .mod_age (p .gap_born (p .obs_coloc) (p .mod_xy))) (p .stat_co)
   -- Stage B: the model and the fit (main text p. 2; Methods)
   have z : v.VzFixed :=
     p .mod_shape (p .mod_grav) (p .mod_pot (p .lit_pot)) (p .mod_stationary)
   -- Stage C: travelling, not standing; B = 1 adopted (Methods)
   have hb : v.b_x100 = 84 := p .stat_b
-  have ft : v.FavorTW := p .mod_bnear1 (by omega)
   have ns : ¬ v.Standing := fun s => p .mod_standing s (p .gap_phase_noise) (p .stat_phase)  -- GAP
-  have pt : v.PreferTW := p .mod_prefer ft ns (p .gap_vz)                                     -- GAP
+  have pt : v.PreferTW := p .mod_prefer (by omega) ns (p .gap_vz)                                     -- GAP
   have b1 : v.B1OK := p .mod_b1 pt (p .stat_bequiv)
   -- Stage D: the Wave oscillates (main text p. 2)
   have o : v.Oscillating :=
@@ -282,7 +277,7 @@ theorem mod_xy_needed : ¬ ∀ v, Without .mod_xy v → Conclusion v := fun h =>
   (h { full with NoHeightCut := False, BornInWave := False, Tracer := False, Coherent := False, Oscillating := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).1
 
-theorem mod_born_needed : ¬ ∀ v, Without .mod_born v → Conclusion v := fun h =>
+theorem gap_born_needed : ¬ ∀ v, Without .gap_born v → Conclusion v := fun h =>
   (h { full with BornInWave := False, Tracer := False, Coherent := False, Oscillating := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).1
 
@@ -337,11 +332,7 @@ theorem gap_phase_noise_needed : ¬ ∀ v, Without .gap_phase_noise v → Conclu
     (by intro f hf; cases f <;> simp_all [prem, full])).2.1
 
 theorem stat_b_needed : ¬ ∀ v, Without .stat_b v → Conclusion v := fun h =>
-  (h { full with b_x100 := 0, FavorTW := False, PreferTW := False, B1OK := False, Oscillating := False }
-    (by intro f hf; cases f <;> simp_all [prem, full])).2.1
-
-theorem mod_bnear1_needed : ¬ ∀ v, Without .mod_bnear1 v → Conclusion v := fun h =>
-  (h { full with FavorTW := False, PreferTW := False, B1OK := False, Oscillating := False }
+  (h { full with b_x100 := 0, PreferTW := False, B1OK := False, Oscillating := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.1
 
 theorem gap_vz_needed : ¬ ∀ v, Without .gap_vz v → Conclusion v := fun h =>
@@ -386,14 +377,14 @@ theorem mod_weigh_needed : ¬ ∀ v, Without .mod_weigh v → Conclusion v := fu
   (h { full with Weighs := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).2.2
 
-/-- What the paper writes is not enough: the robustness of the v_z pattern (on which all three
+/-- What the paper writes is not enough: the common origin of clusters and clouds, the robustness of the v_z pattern (on which all three
 parts rest), the phase spread beyond noise, the coherent-wave description and the data-driven
 omega0 are not stated. -/
 theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
   (h { full with VzRobust := False, PreferTW := False, B1OK := False, Oscillating := False }
     (by intro f hf; cases f <;> simp_all [prov, prem, full])).1
 
-/-- No standard knowledge closes them (there is no implied premise): four gaps remain. -/
+/-- No standard knowledge closes them (there is no implied premise): five gaps remain. -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
   (h { full with VzRobust := False, PreferTW := False, B1OK := False, Oscillating := False }
     (by intro f hf; cases f <;> simp_all [prov, prem, full])).1
