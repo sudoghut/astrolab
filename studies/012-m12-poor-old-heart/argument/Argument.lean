@@ -6,9 +6,12 @@ Fouesneau, Hogg, De Angeli, Naidu, Xiang, Ruz-Mieres 2022, "The Poor Old Heart o
 The conclusion encoded has four parts: (1) the metal-poor stars (XP [M/H] below -1.5) in the inner
 Galaxy amount to at least about 5e7 solar masses; (2) they are centrally concentrated, most within
 5 kpc of the Galactic Centre; (3) much of it formed before the oldest disc, at least 12.5 Gyr ago
-(z of about 5 or more); (4) they are the most ancient proto-Galactic (in-situ) component of the
-Milky Way. The abstract and the summary (Section IV) state all four; the abstract hedges (3)
-("most likely predate") and Section IV hedges (4) ("fits a picture in which").
+(z of about 5 or more); (4) they are the most ancient proto-Galactic component of the Milky Way,
+formed in or with the early-coalescing main pieces of the Galaxy (R22's proto-Galaxy, which does not
+single out an in-situ part), not debris of a later-accreted low-mass satellite. Parts (1)-(3) are
+in the abstract and the summary (Section IV); the abstract hedges (3) ("most likely predate").
+Part (4)'s wording is from Section IV, hedged ("fits a picture in which"); the abstract has
+"forging the proto-Milky Way".
 
 The chain:
   Stage A: the XP metallicities are precise to about 0.1 dex; [gap] the metal-poor tail is not
@@ -29,7 +32,8 @@ The chain:
       or more
   Stage F: confinement argues against a once-distant satellite; alpha-enhancement argues
       for rapid enrichment in a deep potential well; [gap] together with mass, age and kinematics
-      this makes the population the proto-Galaxy's in-situ core
+      this makes the population the most ancient proto-Galactic component, not debris of a
+      later-accreted low-mass satellite
 
 Hedged sentences are not encoded as stated implications: "most likely predate" becomes the gap
 gap_onezone plus the standard rule mod_amr; "most likely ... not at a low-mass satellite" and
@@ -101,7 +105,7 @@ structure Vocab where
   NotDistant : Prop
   /-- Rapid enrichment in a deep potential well is favoured. -/
   DeepWell : Prop
-  /-- The metal-poor heart is the most ancient proto-Galactic (in-situ) component of the Milky Way. -/
+  /-- The metal-poor heart is the most ancient proto-Galactic component of the Milky Way: it formed in or with the early-coalescing main pieces of the Galaxy (R22's proto-Galaxy, which includes pieces that coalesced early and does not single out an in-situ part), not as debris of a later-accreted low-mass satellite (GSE-like). No in-situ claim. -/
   ProtoGal : Prop
 
 /-- The premises. -/
@@ -154,7 +158,7 @@ inductive Field where
   | mod_confined
   /-- MOD [stated: "are distinctly α-enhanced, arguing for rapid enrichment in a deep potential well"] Section IV; the atom says favoured, as the quote does -/
   | mod_deepwell
-  /-- GAP [reconstructed] mass, age, confinement, a deep well and the rotation trend make the population the proto-Galaxy in-situ core rather than debris of an early accreted galaxy. R22 hedges both steps: such stars are most likely to occur at the center of a (eventually) quite massive halo, not at a low-mass satellite (Section IV), and the information fits a picture in which the heart constitutes the most ancient proto-Galactic component (Section IV); the proposed Heracles/Kraken/Koala debris is virtually indistinguishable in all chemical spaces (Section III.4), early in-situ and accreted stars may be operationally impossible to separate (Section I), and Ardern-Arentsen et al. 2024 (arXiv:2312.03847) attribute a more metal-poor, extended component to smaller accreted galaxies -/
+  /-- GAP [reconstructed] mass, age, confinement, a deep well and the rotation trend make the population the most ancient proto-Galactic component (formed in or with the early-coalescing main pieces), not debris of a later-accreted low-mass satellite. R22 hedges both steps: such stars are most likely to occur at the center of a (eventually) quite massive halo, not at a low-mass satellite (Section IV), and the information fits a picture in which the heart constitutes the most ancient proto-Galactic component (Section IV); the proposed Heracles/Kraken/Koala debris is virtually indistinguishable in all chemical spaces (Section III.4), early in-situ and accreted stars may be operationally impossible to separate (Section I), so R22 do not distinguish in-situ from early-accreted pieces, and Ardern-Arentsen et al. 2024 (arXiv:2312.03847) attribute a more metal-poor, extended component to smaller accreted galaxies -/
   | gap_proto
   deriving DecidableEq, Repr
 
@@ -213,7 +217,7 @@ def prem : Field → Vocab → Prop
   | .gap_proto, v =>
       v.Massive → v.Ancient → v.NotDistant → v.DeepWell → v.NoRotVMP → v.RotRich → v.ProtoGal
 
-/-- [stated: "This sample reveals an extensive, ancient, and metal-poor population"] Abstract (continues: that includes about 18,000 stars, a stellar mass of at least about 5e7 Msun, a Gaussian extent of about 2.7 kpc; these central, metal-poor stars most likely predate the oldest part of the disk, about 12.5 Gyr, which implies that they formed at z of about 5 or more, forging the proto-Milky Way); part 4 rests on Section IV: All of this information fits a picture in which this metal-poor heart of the Milky Way constitutes the most ancient proto-Galactic component of our Galaxy -/
+/-- [stated: "This sample reveals an extensive, ancient, and metal-poor population"] Abstract, parts 1-3 (continues: that includes about 18,000 stars, a stellar mass of at least about 5e7 Msun, a Gaussian extent of about 2.7 kpc; these central, metal-poor stars most likely predate the oldest part of the disk, about 12.5 Gyr, which implies that they formed at z of about 5 or more, forging the proto-Milky Way); the wording of part 4 is from Section IV: All of this information fits a picture in which this metal-poor heart of the Milky Way constitutes the most ancient proto-Galactic component of our Galaxy -/
 def Conclusion (v : Vocab) : Prop := v.Massive ∧ v.Central ∧ v.Ancient ∧ v.ProtoGal
 
 -- FIXED BLOCK B (identical in every study)
