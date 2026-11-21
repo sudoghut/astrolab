@@ -792,6 +792,41 @@ R2-RE-D 的 `TIE_D` 相同）。
 `summary.json` 中写简短摘要（`R2_RE_G`），测试 `test_shape.py`（上述合成检查；由保存的文件重新推出标签、功效与检验水平；每个
 文件都低于 1 MB），`test_conclusions.py` 中的结论断言，一个网页部分，第 8 节的可调项。这些目前都不存在。
 
+*R2-RE-G 任何模拟之前的修订（2026-11-21）。* 编写代码（`shape.py`、`test_shape.py`、`run.py` 的 `g_*` 可调项）时做出的实现选择，
+在真实设计上做任何模拟之前，也在真实数据上计算 N5584 以外任何宿主的 z_j、Σz²、G、功效或检验水平之前（代码只在合成系统上运行过）；
+上文不变。
+1. `run.py` 中 `g_check` 的默认值在正式阶段之前为 false（上文的"（true）"是它在正式运行中的取值）：在功效记录写入 log.md 之前做一次
+   研究的完整运行，会在同一进程中算出 G_obs。正式阶段把它与 `g_only` 一起设为 true，先用 `g_stage = "power"`，再用 `"full"`；之后
+   是否保持 true 记在 log.md 中。
+2. 结论检查是一个函数 `test_conclusions.check_r2_re_g`，`test_r2_re_g_labels` 用它检查保存的文件，`test_shape.py` 用它检查合成输出。
+3. REML 网格的来源：独立模式下为已提交的 `results/r2_re.json`（`reml.grid_m2l`，从 `run.py` 旁边读取，对话探索中也是如此）；
+   研究的完整运行中为同一次运行中 R2-RE 的网格（即这次运行保存的值）。来源记在 `settings.reml_grid_source` 中。
+4. 完整阶段重新计算功效阶段计算的一切，包括逐点检查；在研究的完整运行中也是如此（不复用功效阶段的数组），所以完整运行要把
+   模拟做两遍。
+5. 规则 (1)：多个原因合并写为"not evaluable (<原因>; <原因>)"，运行时间保护的下限给出"not evaluated (runtime)"；
+   "anti-conservative at τ = <列表>"中的 τ 取 4 位有效数字。在模拟之前发现的规则 (1) 条件（复现检查、τ̂_obs 位于上界、某个
+   M_jj ≤ 0、Cholesky 分解、逐点检查）使该阶段就此停止；计数不一致使完整阶段在构造 G_obs 之前停止；只有"偏宽松"
+   （anti-conservative）条件成立时，完整阶段仍计算并报告 G_obs、p_G 与其他报告的数，解读为规则 (1) 的结果。
+6. M 的负特征值若低于 −10⁻¹⁰ · max λ（对半正定的 M，除舍入外不可能出现），运行以错误停止（这是程序错误），不作为规则 (1) 的结果。
+7. 运行时间保护：预估值 = 前 1,000 次 VHAT 模拟的平均用时（抽取 ε_s、B ε_s、重新拟合与内层抽样）× n × 要运行的组数（13）；
+   不计准备工作与检查。n 被减小时，保留前 1,000 次 VHAT 模拟。
+8. 功效 ≥ 0.8 的最小 z_alt 只在功效曲线的五个点上取；OANYLO 与 OANY 列在曲线旁边（`curve_with_oany`），但不参与。对 O，
+   "ĵ_s 是偏移宿主的次数"统计的是 ĵ_s = N5584。
+9. 另外报告（不起决定作用）：两个阶段中每组 k_s 的 SHA-256（`k_sha256`；完整阶段报告它们是否一致，由计数决定）、每个宿主的
+   σ_δ,j = M_jj^(−1/2)、max |W X| 与联合秩 p + rank(M)（只依赖设计，两个阶段都有），以及 p_dbl 与 p_rev 的计数相对 n 的
+   Clopper–Pearson 区间。
+10. 没有 `results/r2_re_g_power.json` 时，独立模式下的完整阶段拒绝运行（在任何计算之前报错）；对话探索例外（其文件夹开始时为空），
+    那时两个阶段在同一进程中运行，功效记录先保存。功效记录在模拟之前就已停止时（规则 (1)，或"not evaluated (runtime)"），
+    完整阶段不重新计算，直接记录同样的原因（没有可复现的计数）。
+11. 把一个模型的模拟分块会在最后几位改变 B ε_s（BLAS 的分块），所以两个阶段以相同方式分块（VHAT：先 1,000 次，再每块 500 次；
+    其他各组：从 s = 0 起每块 500 次）；计数的比较是精确的。
+12. 实测（与真实规模相同的合成系统：3,489 行，37 个宿主，47 列，稠密的 C；单线程，同时机器上有另一个研究在运行）：一次外层
+    模拟 4.0 ms（内层抽样 3.3 ms，经 `reml_tau` 重新拟合 τ 0.4 ms，ε_s 0.04 ms），设计 1.1 s，另外四个 Cholesky 分解与五个 B
+    乘积 1.6 s，一次单列 GLS 拟合 0.6 s，一次用 `reml_m2l` 的 REML 拟合 30 s。每个阶段的预估：模拟 130,000 × 4 ms ≈ 9 分钟，
+    逐点检查 6 ×（37 次拟合 + 1 次 REML 拟合）≈ 5 分钟，准备、读取数据与宿主识别约 2–3 分钟；功效阶段约 17 分钟，完整阶段约
+    18 分钟（含真实数据上的 37 次拟合与联合拟合），合计约 35 分钟，CPU 被共享时最多约为两倍。按这个速度，运行时间保护（120 分钟）
+    不会起作用。
+
 ## 3. 数据（附大小估计）
 
 | 输入 | 来源（服务 / URL） | 选择条件 | 预估行数 / 大小 |
@@ -1271,10 +1306,12 @@ R4 以及宿主识别精确复现了 2026-11-14 的数字）。数字：
 | `re_check`、`re_tau_max`、`re_grid_step` | 运行 R2-RE；τ 搜索范围与网格步长（mag） | true/false；0.3–1.0；0.005–0.02 | 只用缓存 |
 | `sel_check`、`sel_seed_base`、`sel_n_tau`、`sel_n_spread`、`sel_n_subsets`、`sel_max_failed` | 运行 R2-RE-SEL（含选择的零假设（selection-aware null），2026-11-19 增补；需要 `n5584_check`）；ε_s 的种子基数、τ 部分与弥散部分的模拟次数、每次弥散所用子集数、允许失败的 REML 拟合数 | true/false；20,000（预注册值；与 10,000–11,999 重叠的种子会重复 ROB 的模拟）；400 与 2,000 是预注册的次数（较小的值只用于快速查看，每次 τ 模拟约 20 s）；1,000（必须等于 `rob_n_subsets`：否则本部分在任何模拟之前以配置状态停止，这是实现上的保护，不是增补中的规则）；20 | 只用缓存 |
 | `d_check`、`d_seed_base`、`d_n_sims`、`d_taus`、`d_host_seed_base`、`d_kde_boot`、`d_only` | 运行 R2-RE-D（一个离群宿主还是分散的宿主离散，2026-11-21 增补；模块 `onehost.py`）；ε_s 的种子基数（八个模型共用）、每个模型的模拟次数、分散模型 V(τ) 的 τ（mag）、O_any 偏移宿主的种子基数、KDE 比值的自助法（bootstrap）重抽样次数、独立模式 | true/false（默认 true：完整运行或不带 `d_only` 的完整对话探索会多出约 1.5 小时；`--set d_check=false` 跳过本部分）；100,000 与 200,000（预注册值；不得与 0、10,000–11,999、20,000–21,999 或 50,000–50,999 重叠）；10,000（预注册值；J 的 A/B 两半是偶数与奇数编号的模拟，所以用偶数；本部分约 1.5 小时，其中约 68 分钟用于构建缩减系统，所以用 `--set d_n_sims=200` 快速查看仍要将近一小时）；[0.05, 0.077, 0.105]（预注册值；解读的措辞写的是这三个值）；200；`d_only=true` 只运行本部分（只用缓存，约 1.5 小时）：写出 `r2_re_d.json`、八个 `r2_re_d_sims_<model>.json`、`provenance_d.json`、`run_info_d.json` 与 `summary.json` 的 `R2_RE_D` 键（其他键逐字节不变；没有现成的 `summary.json` 时拒绝运行，对话探索除外，那时只写含该键的摘要）。本部分需要 `n5584_check`（它为 false 时完整运行把本部分记为"未运行"），使用 `rob_n_subsets` 个子集与 `n5584_host`；索引流短于 `rob_n_subsets` 时整个部分为"不可评估"（实现上的保护，2026-11-21 在任何运行之前加入；完整运行中 R4 至少保留 2,000 次抽样，所以不会触发）；已记录的值（离散、准则 S、δ̂、τ̂_N）与容差是 `onehost.py` 中的常量 | 只用缓存 |
+| `g_check`、`g_seed_base`、`g_host_seed_base`、`g_inner_seed`、`g_n_sims`、`g_n_inner`、`g_power_min`、`g_z_curve`、`g_taus_rep`、`g_max_minutes`、`g_min_sims`、`g_only`、`g_stage` | 运行 R2-RE-G（复合形状检验 G = max_j z_j²/Σ_j z_j²，2026-11-21 增补，T-055；模块 `shape.py`）；ε_s 的种子基数（13 组共用）、O_any 偏移宿主的种子基数与固定内层矩阵的种子；每组的外层模拟次数（含运行时间保护的下限）、每个 p_boot 的内层抽样次数、功效门槛、功效曲线的 z_alt、τ̂_obs 之外检查的两个 τ（mag）、保护的上限（分钟）与下限、独立模式及其阶段 | `g_check` 为 false（正式阶段之前的默认值；为 true 时运行本部分，完整运行或完整的对话探索也会运行，多出约 35 分钟）；400,000、500,000 与 600,000（预注册值；不得与 0、10,000–11,999、20,000–21,999、50,000–50,999、100,000–109,999、200,000–209,999 或 300,000–300,199 重叠）；10,000（预注册值；下限 5,000；每次模拟每组约 4 ms，所以用 `--set g_check=true g_only=true g_n_sims=200` 的对话探索约 15 分钟跑完两个阶段，大部分时间花在逐点检查上）；20,000（属于检验本身：不要改）；0.8；[2.5, 3.0, 4.0, 4.5, 5.0]；[0.05, 0.105]；120；5,000；`g_only=true` 配 `g_stage="power"` 只写出 `r2_re_g_power.json`（以及 `provenance_gp.json`、`run_info_gp.json`），配 `g_stage="full"` 时需要该文件，重新计算它，并写出 `r2_re_g.json`、八个 `r2_re_g_sims_<model>.json`、`provenance_g.json`、`run_info_g.json` 与 `summary.json` 中仅 `R2_RE_G` 一个键（其他键逐字节不变）；在对话探索中（文件夹为空）完整阶段会运行两个阶段。已记录的 τ̂_obs、δ̂、σ_δ、z_obs、τ̂_N 与各容差是 `shape.py` 中的常量；REML 网格取自 `results/r2_re.json` | 只用缓存 |
 
 - 带覆盖值重跑：`python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --set KEY=VALUE`
   （输出在 `explore/<date>-<topic>/`，不入库；使用默认的 R4 和 R2-RE 约 28 分钟；
   `--set r4_draws=1000` 需要几分钟；`--set re_check=false` 跳过 R2-RE）。
+- R2-RE-G 的正式运行分两个阶段（README 第 2 节，2026-11-21 增补）：(1) 把 `g_check` 与 `g_only` 设为 true、`g_stage` 设为 "power"，运行 `python -m astrolab run 003-m02-hubble-tension-distance-ladder`（只用缓存，约 17 分钟）：它写出 `r2_re_g_power.json`，并在日志中写一行功效、检验水平与功效曲线（`shape.power_log_line`）；其中没有任何内容用到数据上的 G。(2) 把这一行写进 log.md 并在分支上提交。(3) 把 `g_stage` 设为 "full" 再运行一次（约 18 分钟）：它重新计算功效阶段（计数必须与功效记录相同，否则为规则 (1)），然后计算 G_obs、p_G 与解读。(4) 把 `g_only` 改回 false、`g_stage` 改回 "full"，并在 log.md 中写明日期。
 - `run.py` 未涵盖的分析：写一个带 `def main(ctx)` 的脚本 `explore/<name>.py`，用
   `python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --script explore/<name>.py` 运行。
   已有：`explore/diag_hosts.py`（哪些检查把 L 的哪一列与哪个宿主联系起来）。
@@ -1292,6 +1329,7 @@ R4 以及宿主识别精确复现了 2026-11-14 的数字）。数字：
   `kde`；`reading`；`section5`；`checks`；`seconds`；摘要键 `R2_RE_D`），`r2_re_d_sims_<key>.json`（逐次模拟：
   四舍五入到 4 位小数的 `pairs`（spread_37，spread_36）、`dropped`（d'）、`half_b_counts`、`count_obs`，`Oany`
   另有 `offset_host`），
+  `r2_re_g_power.json`（功效阶段：`status`、`rule1`、`n_sims`、`runtime_guard`、`design`（`rank_M`、`sigma_delta_j`、`joint_rank`）、`checks`（`reproduction`、`pointwise`）、`models.<key>`，键为 `VHAT`、`V050`、`V105`、`C`、`OANY`、`OANYLO`、`OANYVN`、`O`、`Z250`–`Z500`，含 `n_excluded`、`rate`、`ci95`、G_s 与 τ̂_s 的 `quantiles_5_50_95`、`n_tau_zero`、`n_tau_bound`、`n_jhat_is_offset_host`、`k_sha256`；`power`、`size`、`curve`、`curve_with_oany`、`smallest_z_alt_power_08`、`seconds`），`r2_re_g.json`（同样内容重新计算，另有 `checks.power_stage_counts_reproduced`、`observed`（`G_obs`、`j_hat_obs`、`host_j_hat`、`sum_z2`、`hosts_observed`，含每个 z_j、δ̂_j、σ_δ,j）、`p_G`（`k`、`n_inner`、`p`、`ci95`、`label`）、`p_G_fixed`、`p_dbl`、`p_rev`、`joint_fit`、`reading`、`sub_label`、`section5`；摘要键 `R2_RE_G`），`r2_re_g_sims_<key>.json`（逐次模拟：`G`（5 位小数）、`tau_hat`（6 位小数）、`k`、`j_hat`，OANY 各模型另有 `offset_host`），
   `r3.json`（`cchp_side_h0`、`d`、`sigma_d`、`per_host`），`r4.json`（`percentile`、`quantiles`、
   histogram、`z_quantiles`、`z_std`、`z_percentile`、`cchp_z`），`host_identification.json`（`column_labels`、`relabelled`、`per_column_under_labels`），
   `cross_paper.json`。

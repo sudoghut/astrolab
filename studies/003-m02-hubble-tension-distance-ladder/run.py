@@ -11,7 +11,9 @@ R4  Random 10-host subsets (descriptive).
 Cross-paper comparison of published H0 values (descriptive).
 """
 import hashlib
+import json
 import time
+from pathlib import Path
 
 import numpy as np
 from scipy import linalg, optimize
@@ -22,6 +24,7 @@ import n5584
 import onehost
 import rob
 import sel
+import shape
 
 # Tunable knobs (AGENTS.md section 2). Read inside main() and passed on as arguments.
 PARAMS = {
@@ -53,6 +56,12 @@ PARAMS = {
     # d_only: standalone mode (only this block; writes r2_re_d*.json and summary.json's R2_RE_D key)
     "d_check": True, "d_seed_base": 100_000, "d_n_sims": 10_000, "d_taus": [0.05, 0.077, 0.105],
     "d_host_seed_base": 200_000, "d_kde_boot": 200, "d_only": False,
+    # R2-RE-G (README section 2, addendum 2026-11-21, T-055): composite shape test of one offset host against
+    # diffuse host scatter. g_check stays false until the formal stages (README amendment 2026-11-21); g_only:
+    # standalone mode; g_stage "power" (writes only r2_re_g_power.json) then "full" (README section 8)
+    "g_check": False, "g_seed_base": 400_000, "g_host_seed_base": 500_000, "g_inner_seed": 600_000,
+    "g_n_sims": 10_000, "g_n_inner": 20_000, "g_power_min": 0.8, "g_z_curve": [2.5, 3.0, 4.0, 4.5, 5.0],
+    "g_taus_rep": [0.05, 0.105], "g_max_minutes": 120, "g_min_sims": 5_000, "g_only": False, "g_stage": "full",
 }
 
 DR = "PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/"
@@ -672,10 +681,80 @@ def run_d(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, n_pick, picks=None,
                              rob_spread_obs=rob_spread_obs)
 
 
+def save_g(ctx, g_out, sims):
+    """R2-RE-G's full-stage files: r2_re_g.json and the eight r2_re_g_sims_<model>.json (always all of them)."""
+    ctx.save("r2_re_g", g_out)
+    for k, v in sims.items():
+        ctx.save(f"r2_re_g_sims_{k}", v)
+
+
+def recorded_reml_grid():
+    """R2-RE's saved REML grid (README R2-RE-G: the reproduction check's source), read from the committed
+    results next to this file (also in an exploration, whose ctx.results is another folder)."""
+    path = Path(__file__).parent / "results" / "r2_re.json"
+    if not path.exists():
+        raise RuntimeError("g_only needs results/r2_re.json (R2-RE's REML grid): run the full study first")
+    return json.loads(path.read_text(encoding="utf-8"))["reml"]["grid_m2l"]
+
+
+def g_not_run(P, status, stage):
+    keys = shape.sim_keys([float(t) for t in P["g_taus_rep"]])
+    out = {"stage": stage, "status": status}
+    if stage == "full":
+        out["reading"] = status if status.startswith("not evaluable") else None
+    return out, {k: {"model": k, "status": status} for k in keys}
+
+
+def run_g(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, stage, grid_m2l, power_rec=None,
+          grid_source=shape.REML_GRID_SOURCE, recorded=None):
+    """One stage of the R2-RE-G block (README section 2, addendum 2026-11-21, T-055). Returns (out, sims);
+    sims is None in the power stage."""
+    if not ident["host_step_evaluable"]:
+        out, sims = g_not_run(P, "not evaluable (host step not evaluable)", stage)
+        return out, (sims if stage == "full" else None)
+    calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]
+    fns_g = {"reml_tau": reml_tau, "reml_m2l": reml_m2l, "fit": fit, "with_re": with_re,
+             "is_fit_failure": is_fit_failure}
+    return shape.run_stage(stage, L, y, C, rows_a, calib_groups, col_host[:NH], P, fns_g, ctx.log, grid_m2l,
+                           power_rec=power_rec, grid_source=grid_source,
+                           expected_col=N5584_COLUMN if P["n5584_host"] == "N5584" else None, recorded=recorded)
+
+
+def run_g_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, grid_m2l, grid_source, save_power):
+    """Both stages in one process (a full study run, or an exploration without a power record): the power
+    record is saved and logged before the full stage computes G_obs."""
+    p_out, _ = run_g(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, "power", grid_m2l, grid_source=grid_source)
+    save_power(p_out)
+    ctx.log(shape.power_log_line(p_out))
+    return run_g(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, "full", grid_m2l, power_rec=p_out,
+                 grid_source=grid_source)
+
+
 def main(ctx):
     P = dict(PARAMS)
     t0 = time.perf_counter()
     d_only = bool(P["d_only"])
+    g_only = bool(P["g_only"])
+    if d_only and g_only:
+        raise ValueError("d_only and g_only cannot both be true")
+    if g_only:
+        # standalone R2-RE-G (README section 2, addendum 2026-11-21, T-055): power stage -> r2_re_g_power.json
+        # (records provenance_gp / run_info_gp) only; full stage -> r2_re_g*.json and summary.json's R2_RE_G key
+        if not P["g_check"]:
+            raise ValueError("g_only needs g_check = true")
+        if P["g_stage"] not in ("power", "full"):
+            raise ValueError(f"g_stage must be 'power' or 'full', not {P['g_stage']!r}")
+        ctx.record_suffix = "_gp" if P["g_stage"] == "power" else "_g"
+        if P["g_stage"] == "full":
+            sum_path = ctx.results / "summary.json"
+            if sum_path.exists():
+                onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_G", None)
+            elif getattr(ctx, "max_save_bytes", None) is None:
+                raise RuntimeError("g_only updates summary.json's R2_RE_G key: run the full study first")
+            if (not (ctx.results / "r2_re_g_power.json").exists()
+                    and getattr(ctx, "max_save_bytes", None) is None):
+                raise RuntimeError("the full stage needs results/r2_re_g_power.json: run g_stage = 'power' first "
+                                   "and commit its power to log.md")
     if d_only:
         # standalone R2-RE-D (README section 2, addendum 2026-11-21): its own provenance_d/run_info_d, no
         # other results file written; summary.json must exist and re-serialise to itself (checked first)
@@ -687,7 +766,7 @@ def main(ctx):
             onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_D", None)
         elif getattr(ctx, "max_save_bytes", None) is None:      # an exploration starts from an empty folder
             raise RuntimeError("d_only updates summary.json's R2_RE_D key: run the full study first")
-    save = (lambda name, obj: None) if d_only else ctx.save
+    save = (lambda name, obj: None) if (d_only or g_only) else ctx.save
     C, L, y, lsq = load(ctx)
     hosts = [h for h, *_ in TABLE6]
     hosts = list(dict.fromkeys(hosts))
@@ -818,6 +897,30 @@ def main(ctx):
         new = (onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_D", onehost.summary(d_out))
                if sum_path.exists() else {"R2_RE_D": onehost.summary(d_out)})
         save_d(ctx, d_out, sims)       # only after the summary check passed: no half-written result
+        ctx.save("summary", new)
+        return new
+
+    if g_only:              # standalone R2-RE-G: rows_a and one stage of the block
+        rows_a, _ = anchor_rows(nz, cls, y)
+        grid, src = recorded_reml_grid(), shape.REML_GRID_SOURCE + " (committed file, standalone mode)"
+        if P["g_stage"] == "power":
+            p_out, _ = run_g(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, "power", grid, grid_source=src)
+            ctx.save("r2_re_g_power", p_out)
+            ctx.log(shape.power_log_line(p_out))
+            return {"R2_RE_G_power": {k: p_out.get(k) for k in ("status", "n_sims", "power", "size",
+                                                                 "smallest_z_alt_power_08")}}
+        pw_path = ctx.results / "r2_re_g_power.json"
+        if pw_path.exists():
+            power_rec = json.loads(pw_path.read_text(encoding="utf-8"))
+            g_out, sims = run_g(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, "full", grid, power_rec=power_rec,
+                                grid_source=src)
+        else:               # an exploration (empty folder): both stages in this process
+            g_out, sims = run_g_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, grid, src,
+                                     lambda o: ctx.save("r2_re_g_power", o))
+        sum_path = ctx.results / "summary.json"
+        new = (onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_G", shape.summary(g_out))
+               if sum_path.exists() else {"R2_RE_G": shape.summary(g_out)})
+        save_g(ctx, g_out, sims)       # only after the summary check passed: no half-written result
         ctx.save("summary", new)
         return new
 
@@ -1068,6 +1171,25 @@ def main(ctx):
                               rob_spread_obs=rob_out.get("B", {}).get("spread", {}).get("spread_obs"))
     save_d(ctx, d_out, sims_d)
 
+    # ---- R2-RE-G (README section 2, addendum 2026-11-21, T-055): runs after the R2-RE-D block, under the
+    # condition R2-RE run and the host step evaluable; both stages in this process, the power record saved and
+    # logged before G_obs is computed; R2-RE's REML grid from this run
+    if not P["g_check"]:
+        st = "not run (PARAMS)"
+        p_out, _ = g_not_run(P, st, "power")
+        g_out, sims_g = g_not_run(P, st, "full")
+        ctx.save("r2_re_g_power", p_out)
+    elif not (P["re_check"] and ident["host_step_evaluable"]) or re.get("status") != "evaluated":
+        st = "not evaluable (R2-RE not run or host step not evaluable)"
+        p_out, _ = g_not_run(P, st, "power")
+        g_out, sims_g = g_not_run(P, st, "full")
+        ctx.save("r2_re_g_power", p_out)
+    else:
+        g_out, sims_g = run_g_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, re["reml"]["grid_m2l"],
+                                   "R2-RE's REML grid of the same run (r2_re.json reml.grid_m2l)",
+                                   lambda o: ctx.save("r2_re_g_power", o))
+    save_g(ctx, g_out, sims_g)
+
     # One canonical qualified verdict for the host step (gate-2 review): states the labelling mode
     # and, when R4 ran, the empirical (random-subset) scale next to the C-propagated significance.
     qual = []
@@ -1134,6 +1256,7 @@ def main(ctx):
         "R2_RE_N5584": n5584_summary(n_out),
         "R2_RE_SEL": sel.summary(sel_out),
         "R2_RE_D": onehost.summary(d_out),
+        "R2_RE_G": shape.summary(g_out),
         "runtime_s": time.perf_counter() - t0,
     }
     ctx.save("summary", summary)
