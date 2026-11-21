@@ -70,7 +70,9 @@ Experiment, SDSS Data Release 17) measures for the same stars (Section II.2, App
   W2 from ALLWISE (the Wide-field Infrared Survey Explorer catalogue);
 - outputs: [M/H] (and effective temperature T_eff and log g, released on Zenodo);
 - accuracy: 20-fold cross-validation (Table 1) gives a median absolute error of 0.049 dex and a
-  root-mean-square error (RMSE) of 0.107 dex for the adopted configuration; against about 17,000
+  root-mean-square error (RMSE) of 0.107 dex for the Table 1 row matching the adopted inputs (all
+  coefficients + XP colours + WISE), although Appendix A.1 says the final configuration is "slightly
+  worse than the best"; against about 17,000
   APOGEE stars in the target region the estimates are "≲0.1 in the median" over −2.5 < [M/H] < 0.5,
   which R22 call "not a pure cross-validation" since those stars were in the training set; against
   LAMOST, GALAH and Gaia GSP-Spec the root-mean-square difference is about 0.1 dex (Appendix A.2,
@@ -90,10 +92,10 @@ error at the metal-poor end.
   centred on the Galactic Centre (the abstract's "within 30°" means this box, not a cone);
 - colour 1.0 < BP − RP < 3.5 (red, i.e. cool or reddened, stars), brightness phot_bp_mean_mag < 15.5,
   and XP spectra available (has_xp_continuous);
-- distance: parallax < 1 mas (milliarcsecond), i.e. further than about 1 kpc, plus a parallax limit
-  that keeps only stars brighter than an absolute magnitude of about M_G = 0.9 (luminous giants,
-  including the red clump); the query expression is garbled in the HTML rendering, and we read it
-  as parallax < 100·10^(0.2(0.9 − G)) mas (not checked against the PDF).
+- distance and luminosity: `parallax < 1.` (parallax below 1 mas, milliarcsecond, i.e. further than
+  about 1 kpc) and `parallax < 100.*power(10.,0.2*(0.9 - (phot_g_mean_mag - 1.5*(bp_rp-1.))))` (parallax in mas). The second condition uses a colour-corrected, approximately
+  dereddened magnitude G − 1.5(BP − RP − 1) and keeps stars brighter than about M_G = 0.9 after that
+  correction (luminous giants, including the red clump).
 
 This "yields 2.1 million objects". About 2% are removed as reddened hot stars using a synthetic
 colour (m1) criterion. The result is "[M/H] estimates for about 2 million giants toward the inner
@@ -109,7 +111,8 @@ angular momentum about the Galaxy's rotation axis. R22 use the ratio J_φ/J_tot,
 J_tot = √(J_φ² + J_R² + J_z²): close to +1 for a star on a disc-like circular orbit, near 0 for a
 star with no net rotation (on average, for a non-rotating population).
 
-**Public files.** Zenodo record 7035809 (doi:10.5281/zenodo.7035809, version v0.1, 2 September
+**Public files.** Zenodo record 7035809 (doi:10.5281/zenodo.7035809, cited by R22, presumably the
+concept DOI; version v0.1 is doi:10.5281/zenodo.7035810, 2 September
 2022, CC BY 4.0, authors Andrae, Rix, Chandra, Price-Whelan): `xp_gc_mh.csv` (98.5 MB, MD5
 7257c98622573a4a625571fc973859c5), "XGBOOST-inferred temperatures, surface gravities, and
 metallicities for 1.5 million stars", and `xp_gc_kinematics.csv` (115.3 MB, MD5
@@ -139,7 +142,9 @@ distribution of the whole sample is the main result. The counts, as given in dif
 | [M/H] < −1 | almost 100,000 | nearly 100,000 | ∼70,000 | — |
 | whole sample | about 2 million (II.2) | ∼1.7 million | ∼2 million | 2 million |
 
-(The introduction says 1.5 million, as does the Zenodo description; the query returned 2.1 million.)
+(The introduction and Section II.4, "estimates for 1.5 million stars towards the Galactic center",
+with orbits for 1.25 million, say 1.5 million, as does the Zenodo description; the query returned
+2.1 million.)
 The shape of the distribution: the logarithmic number density rises with metallicity as
 d log n/d[M/H] ≈ 1 between about −2 and −1, more steeply below −2 and between −1 and −0.6, and peaks
 near [M/H] ≈ −0.6. The tail ends near [M/H] ≈ −2.5; R22 write that whether this is a "genuine
@@ -163,7 +168,8 @@ parallax zero-point correction of 0.02 mas, by maximum likelihood gives, for the
 "an extent of σ_RGC∼2.7 kpc". No uncertainty is quoted, no flattened shape is tried, and the paper
 calls the modelling of dust, crowding and parallax errors a task for follow-up.
 
-*Back-of-envelope checks.* σ = 2.7 kpc seen from 8.2–8.5 kpc subtends 18–19°, R22's "∼18°". The field
+*Back-of-envelope checks.* σ = 2.7 kpc seen from 8.2–8.5 kpc subtends ≈18° (17.6–18.2° exactly, arctan(2.7 kpc/R0)); R22 say
+18° (Section III.1). The field
 edge at 30° from the Centre is 4.7–4.9 kpc away from it in projection, less than 2σ, so the model must
 account for the field boundary (it does, through the dΩ over the observed directions). A 3D Gaussian
 with σ = 2.7 kpc puts 47% of its stars within 4 kpc of the Centre and 67% within 5 kpc, matching the
@@ -179,7 +185,8 @@ Section III.2). The summary goes further: the "manifest dust obscuration implies
 suggesting M* ≳ 10⁸ M☉.
 
 *Back-of-envelope check.* 18,000–20,000 giants × 800 M☉ = 1.4–1.6×10⁷ M☉, rounded to 2×10⁷ (the
-sample counts include stars fainter than M_G = 0.5, down to about 0.9, so the template does not match
+sample counts include stars fainter than M_G = 0.5, down to a colour-corrected (approximately
+dereddened) M_G ≈ 0.9, so the template does not match
 the sample cut exactly). The per-giant mass itself does not follow from the numbers quoted: if half of
 M4's mass lies beyond its half-mass radius, 35 giants there mean about 3.5×10⁴/35 ≈ 1,000 M☉ per
 giant (7×10⁴/35 = 2,000 if the whole mass is used), not 800. The steps between are not given (our
@@ -187,7 +194,8 @@ arithmetic; not verified against the PDF or the journal version).
 
 **Step 5 · How do they move?** (Section III.3, Figs. 5, 6). Most metal-poor stars have hot, eccentric
 orbits (eccentricities spread nearly flat from about 0.1 to 0.8) that stay in the inner Galaxy (mean
-apocentre ⟨R_apo⟩ ≈ 4 kpc; "most stars have apocenters of less than 5 kpc"). A separate group with
+apocentre ⟨R_apo⟩ ≈ 4 kpc, Section III.3; the summary, Section IV: "most stars have apocenters of
+less than 5 kpc"). A separate group with
 e ≥ 0.75 and R_apo ≳ 10 kpc is identified as stars of the Gaia-Sausage-Enceladus (GSE) merger
 debris passing through pericentre; R22 do not quantify that contamination. The rotation measure
 J_φ/J_tot rises with metallicity: the abstract says "Stars with [M/H]<−2 show no net rotation" and
@@ -203,7 +211,7 @@ apocentres (GSE-like) appears at high eccentricity. R22 note the diagnostic is "
 metallicity".
 
 **Step 7 · From metallicity to age** (Section IV). R22 measure no ages for these giants; age
-estimates are "beyond the scope of this work". The age argument is chemical: the oldest α-enhanced
+estimates are "beyond the scope of this work" (Section II). The age argument is chemical: the oldest α-enhanced
 disc stars, at [M/H] ∼ −1, "appear to be ≈12.5 Gyrs old" (ref. [96], Xiang & Rix 2022; see our
 [Study 010 article](https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-010-thick-disc-early-formation.md)).
 Stars that are more metal-poor than the oldest disc, and that "chemically, and therefore temporally,
@@ -211,8 +219,8 @@ predate the oldest α-enhanced disk", must then have formed at τ ≳ 12.5 Gyr, 
 This assumes that metallicity rose monotonically in time across the whole proto-Galaxy.
 
 *Back-of-envelope check.* In the Planck 2018 cosmology (age 13.79 Gyr), a lookback time of 12.5 Gyr
-corresponds to redshift z ≈ 4.6, and z = 5 to 12.6 Gyr; "z≳5" is a round number for "about 1.3 Gyr
-after the Big Bang" (our calculation with astropy's Planck18; R22 do not give the conversion).
+is redshift z ≈ 4.6 (1.3 Gyr after the Big Bang); "z≳5" rounds up slightly (z = 5 is 12.62 Gyr
+lookback) (our calculation with astropy's Planck18; R22 do not give the conversion).
 
 #### 1.4 What they conclude, and how sure they are
 
@@ -220,35 +228,39 @@ The abstract: Gaia XP data reveal "an extensive, ancient, and metal-poor populat
 Galaxy: ∼18,000 stars with −2.7 < [M/H] < −1.5, representing ≳5×10⁷ M☉ of stars, with a spatial
 Gaussian extent σ ≈ 2.7 kpc; the most metal-poor ([M/H] < −2) show no net rotation, those at
 [M/H] ∼ −1 are rotation dominated; "These central, metal-poor stars most likely predate the oldest
-part of the disk (τ_age≈12.5 Gyrs), which implies that they formed at z≳5". The summary calls it
-"the most ancient proto-Galactic component of our Galaxy", identifies it with Belokurov &
-Kravtsov's Aurora, and argues that being confined within the solar circle (R_GC < R☉) argues
+part of the disk (τ_age≈12.5 Gyrs), which implies that they formed at z≳5". The summary (Section IV) calls it
+"the most ancient proto-Galactic component of our Galaxy"; Section III.4 identifies it with Belokurov &
+Kravtsov's Aurora. The summary argues that being confined within the solar circle (R_GC < R☉) argues
 "against an origin through accretion from a once-distant satellite": such masses of strongly
 α-enhanced stars at such low [M/H] "are most likely to occur at the center of a (eventually) quite
 massive halo", not in a low-mass satellite. Since the chemistry of the proposed
 Heracles/Kraken/Koala merger debris and of the proto-Galactic Aurora is "virtually indistinguishable
-in all chemical spaces", R22 suggest their picture "appears to obviate the need for an ex-situ merger"
-of that kind. They do not claim a new component: "The results presented here are by no means a new
+in all chemical spaces", R22 suggest (Section III.4) their picture "appears to obviate the need for an
+ex-situ merger" of that kind, adding: "This does not necessarily imply that these mergers did not
+occur." They do not claim a new component: "The results presented here are by no means a new
 distinct stellar component".
 
-Caveats the authors give (Section IV, "in many ways preliminary"):
+Caveats the authors give (the summary, Section IV, calls the analysis "in many ways preliminary"):
 
 - the spatial distribution "deserves to be modeled quantitatively, including the effects of dust
-  extinction, source crowding, parallax uncertainties"; dust hides the central kpc and most stars at
-  |Z| < 700 pc from the plane;
-- "How pure are the XP selected samples in this regime?" (contamination of the metal-poor tail by
-  stars with wrong metallicities);
-- the [M/H] floor near −2.5 may be real or an artefact of the APOGEE training range;
-- apocentres may be biased high by distance errors;
-- the mass rests on the M4 template and a "conservative" correction;
-- the XP information is "far from" fully exploited; forward modelling should do better.
+  extinction, source crowding, parallax uncertainties" (Section IV);
+- dust leaves a gap at |Z| < 700 pc from the plane, where most stars are missing (Section III.2), and
+  obscures the central kpc (Section III.3);
+- "How pure are the XP selected samples in this regime?" (Section IV; contamination of the metal-poor
+  tail by stars with wrong metallicities);
+- the [M/H] floor near −2.5 may be real or an artefact of the APOGEE training range (Section IV);
+- apocentres may be biased high by distance errors (Section III.3);
+- the mass rests on the M4 template and a "conservative" correction (Section III.2);
+- the XP information is "far from" fully exploited; forward modelling should do better (Section IV).
 
 Points of our reading to carry into part 2:
 
 - **Counts are internally inconsistent** (table in step 2): ∼18,000 vs ∼20,000 below −1.5; >4,000 vs
-  ∼5,000 below −2; almost 100,000 vs ∼70,000 below −1; and the sample size is 1.5, 1.7, 2 or 2.1
-  million depending on where one looks (some of this may reflect different subsets, e.g. before and
+  ∼5,000 below −2; almost 100,000 vs ∼70,000 below −1; and the sample size is 1.5 (introduction,
+  Section II.4), 1.7 (Fig. 4), 2 (abstract, II.2, IV) or 2.1 (query) million depending on where one looks (some of this may reflect different subsets, e.g. before and
   after cuts, but the paper does not say).
+- **Table 1 vs text**: the adopted configuration's row (0.049 dex, 0.107 dex) is the best in Table 1,
+  but Appendix A.1 says the final configuration is "slightly worse than the best".
 - **The mass** is ≳5×10⁷ M☉ in the abstract and ≳10⁸ M☉ in the summary, and its per-giant
   conversion (800 M☉) does not follow from the quoted M4 numbers by simple arithmetic.
 - **σ ≈ 2.7 kpc has no uncertainty**, rests on a spherical Gaussian (no flattening), on parallaxes
@@ -283,7 +295,7 @@ What would have to be true for the authors to be wrong:
   Ardern-Arentsen et al. 2024 (PIGS VIII, arXiv:2312.03847, accepted to MNRAS; abstract verified),
   with spectroscopy of 13,235 stars, find that about 60% of very metal-poor ([Fe/H] < −2.0) stars stay
   within 5 kpc, that the rotation drops between [Fe/H] = −1.0 and −2.0 but is "constant for VMP stars
-  (at ∼ 40 km/s)" (so very metal-poor inner stars do rotate somewhat), and propose two spheroidal
+  (at ∼ 40 km/s)" (so very metal-poor inner stars do rotate somewhat), and tentatively propose two spheroidal
   components: a more metal-rich, concentrated, faster-rotating one (pre-disc in situ or large building
   blocks) and a more metal-poor, extended, slower one (smaller accreted galaxies).
 - *The spin-up is not what it seems*: Viswanathan et al. 2025 (arXiv:2411.12165, A&A 703, A183;
@@ -294,7 +306,7 @@ What would have to be true for the authors to be wrong:
   gradual rise; the interpretation of the transition differs.
 - *The metallicity tail is shaped by the method*: Chen et al. 2025 (arXiv:2511.18901, "The dawn is
   quiet II", Open Journal of Astrophysics; abstract verified) compare ten Gaia XP metallicity
-  catalogues at −3 < [Fe/H] < −2 and find after quality cuts a "single-slope exponential tail" in
+  catalogues at −3 < [Fe/H] < −2 and find a "single-slope exponential tail" in
   every catalogue but with slopes k ≈ 0.6–2.0, which they translate into very different early gas
   reservoirs (≳10⁹ M☉ for k ≈ 0.6; best fit k ≈ 1.0, 10⁸–10⁹ M☉). The spread between catalogues shows
   that the very metal-poor end of XP metallicities is catalogue dependent. Whether their sample
@@ -334,13 +346,17 @@ To be written next.
 
 Newest first.
 
+- 2026-11-21: part 1 gate-1 review: exact parallax/luminosity query cut (colour-corrected G); Table 1
+  vs text and Section II.4's 1.5 million added to the inconsistencies; section attributions of quotes
+  and caveats; R22's "This does not necessarily imply that these mergers did not occur"; angle and
+  redshift checks made exact; Zenodo authors and DOIs; Chen et al. wording; Chinese term glosses.
 - 2026-11-21: part 1 drafted (plain-language walkthrough; numbers from arXiv v1, later literature
   from abstracts). Plan `design/028-plan_*`.
 
 ### Sources
 
 - Rix et al. 2022, ApJ 941, 45, arXiv:2209.02722 (the paper studied; numbers and quotes from the arXiv HTML v1).
-- Rix, Chandra & Andrae 2022, Zenodo, doi:10.5281/zenodo.7035809 (public sample; landing page read 2026-11-21).
+- Andrae, Rix, Chandra & Price-Whelan 2022, Zenodo, doi:10.5281/zenodo.7035809 (public sample; cited by R22 as ref. [85], "Rix, Chandra & Andrae"; 7035809 is presumably the concept DOI, the version v0.1 record is doi:10.5281/zenodo.7035810; landing page read 2026-11-21).
 - Xiang & Rix 2022, Nature 603, 599, arXiv:2203.12110 (oldest disc age, R22's ref. [96]).
 - Belokurov & Kravtsov 2022, MNRAS 514, 689, arXiv:2203.04980 (Aurora; cited by R22, not re-read here; journal reference from memory, not verified).
 - Kurbatov et al. 2024, arXiv:2410.22250; Ardern-Arentsen et al. 2024, arXiv:2312.03847; Viswanathan et al. 2025, A&A 703, A183, arXiv:2411.12165; Chen et al. 2025, OJAp, arXiv:2511.18901 (later literature; abstracts read 2026-11-21).
@@ -357,7 +373,7 @@ Newest first.
 
 恒星保存着它出生时气体的化学记录。最早的恒星几乎由纯氢和氦形成；此后每一代爆发的恒星都加入更重的元素（天文学家统称为"金属"）。恒星的**金属丰度**（metallicity）[M/H] 是其金属与氢之比相对于太阳的对数：[M/H] = 0 为太阳值，−1 为十分之一，−2 为百分之一。所以极贫金属的恒星形成得很早，那时增丰还没有进行多少。
 
-银河系最老的恒星应该在哪里？类银河系星系的宇宙学模拟预言：最早的恒星形成于几个很早就并合成"原银河系"（proto-Galaxy，即银河系还没有盘之前的前身）的致密团块之中。这些恒星现在应当位于引力势阱最深处，靠近银心，处在热的（取向随机、不作有序转动的）轨道上。R22 摘要把这写成对大质量盘星系的预期：它们"should host an ancient, metal-poor, and centrally concentrated stellar population"（应当拥有一个古老、贫金属、向中心集中的恒星族群）。
+银河系最老的恒星应该在哪里？类银河系星系的宇宙学模拟（cosmological simulations）预言：最早的恒星形成于几个很早就并合成"原银河系"（proto-Galaxy，即银河系还没有盘之前的前身）的致密团块之中。这些恒星现在应当位于引力势（gravitational potential）阱最深处，靠近银心，处在热的（取向随机、不作有序转动的）轨道上。R22 摘要把这写成对大质量盘星系的预期：它们"should host an ancient, metal-poor, and centrally concentrated stellar population"（应当拥有一个古老、贫金属、向中心集中的恒星族群）。
 
 2022 年之前这个族群很难看到。内银河系拥挤，被尘埃严重遮挡，而贫金属星在那里只占极小的少数（大多数核球星是富金属的）。早先的工作用窄带测光预选找到了这类恒星（例如 Arentsen 等的原初内银河系巡天（Pristine Inner Galaxy Survey, PIGS）），Belokurov 与 Kravtsov 2022 在太阳附近识别出一个古老、运动学上热、化学上独特的原位（in situ，在银河系内诞生的）族群，命名为**曙光**（Aurora），盘就从它当中演化出来。缺的是内银河系几千秒差距（千秒差距 kpc；1 kpc ≈ 3,260 光年）内一个大而均匀、带金属丰度与轨道的贫金属星样本。2022 年 6 月发布的 Gaia 第三次数据发布（Data Release 3, DR3）使之成为可能。
 
@@ -372,7 +388,7 @@ Newest first.
 - 训练集："the *entire* SDSS DR17 APOGEE of giants with G_BP<15.5 (∼230,000 stars)"（G_BP < 15.5 的全部 SDSS DR17 APOGEE 巨星，约 230,000 颗），要求表面重力 log g < 3.5（只取巨星）；
 - 输入：110 个 XP 系数；用 GaiaXPy 从 XP 光谱算出的合成窄带测光（Pristine、Strömgren、J-PLUS、SkyMapper 与 HST 色指数）；以及来自 ALLWISE（广域红外巡天探测器，Wide-field Infrared Survey Explorer 的星表）的红外星等 W1、W2；
 - 输出：[M/H]（以及有效温度 T_eff 与 log g，发布在 Zenodo）；
-- 精度：20 折交叉验证（cross-validation，表 1）给出所采用配置的中位绝对误差 0.049 dex、均方根误差（root-mean-square error, RMSE）0.107 dex；与目标天区约 17,000 颗 APOGEE 星相比，在 −2.5 < [M/H] < 0.5 范围内"≲0.1 in the median"（中位数 ≲0.1），R22 称这"not a pure cross-validation"（不是纯粹的交叉验证），因为这些星在训练集中；与 LAMOST、GALAH 和 Gaia GSP-Spec 相比，均方根差约 0.1 dex（附录 A.2，图 8），"slight increase in scatter towards low [M/H]"（向低 [M/H] 弥散略有增大）；T_eff 与 APOGEE 的中位差为 32 K；
+- 精度：20 折交叉验证（cross-validation，表 1）对与所采用输入相符的表 1 一行（全部系数 + XP 色指数 + WISE）给出中位绝对误差 0.049 dex、均方根误差（root-mean-square error, RMSE）0.107 dex，但附录 A.1 说最终配置"slightly worse than the best"（比最好的略差）；与目标天区约 17,000 颗 APOGEE 星相比，在 −2.5 < [M/H] < 0.5 范围内"≲0.1 in the median"（中位数 ≲0.1），R22 称这"not a pure cross-validation"（不是纯粹的交叉验证），因为这些星在训练集中；与 LAMOST、GALAH 和 Gaia GSP-Spec 相比，均方根差（root-mean-square difference）约 0.1 dex（附录 A.2，图 8），"slight increase in scatter towards low [M/H]"（向低 [M/H] 弥散略有增大）；T_eff 与 APOGEE 的中位差为 32 K；
 - 消光：直到 A_K = 0.3（约 A_V ≈ 3 星等的目视消光），估计值"at a level of a few percent"（在百分之几的水平上）无偏。
 
 像 XGBoost 这样的树模型不能预测超出训练标签范围的值；R22 写道它"will not extrapolate [M/H] significantly beyond the APOGEE DR17 range"（不会显著外推到 APOGEE DR17 范围之外）。论文没有说明训练集中有多少颗 [M/H] < −2 的星（未核实；APOGEE 中这类星很少），也没有单独给出贫金属端的误差。
@@ -381,13 +397,13 @@ Newest first.
 
 - 天区：|b| < 30° 且（l < 30° 或 l > 330°），即以银心为中心、银经 l 与银纬 b 方向各 60° 的方框（摘要中的"within 30°"指这个方框，不是圆锥）；
 - 颜色 1.0 < BP − RP < 3.5（偏红，即低温或受红化的星），亮度 phot_bp_mean_mag < 15.5，并且有 XP 光谱（has_xp_continuous）；
-- 距离：视差 < 1 mas（毫角秒），即远于约 1 kpc；另加一个视差限，只保留比绝对星等约 M_G = 0.9 更亮的星（高光度巨星，包括红团簇（red clump））；HTML 渲染中这个查询表达式残缺，我们把它读作 parallax < 100·10^(0.2(0.9 − G)) mas（未对照 PDF 核实）。
+- 距离与光度：`parallax < 1.`（视差小于 1 mas（毫角秒，milliarcsecond），即远于约 1 kpc）以及 `parallax < 100.*power(10.,0.2*(0.9 - (phot_g_mean_mag - 1.5*(bp_rp-1.))))`（视差以 mas 为单位）。第二个条件用一个经颜色改正、近似消红化（dereddened）的星等 G − 1.5(BP − RP − 1)，保留改正后比约 M_G = 0.9 更亮的星（高光度巨星，包括红团簇（red clump））。
 
 这"yields 2.1 million objects"（得到 210 万个天体）。约 2% 按一个合成色指数（m1）判据作为受红化的热星去除。结果是"[M/H] estimates for about 2 million giants toward the inner Galaxy, 1.58 million of which have RVS velocities, and 1.25 million have both RVS velocities and ϖ/σ_ϖ≥5"（约 200 万颗内银河系方向巨星的 [M/H] 估计，其中 158 万颗有 RVS 速度，125 万颗同时有 RVS 速度且 ϖ/σ_ϖ ≥ 5）（RVS：Gaia 的视向速度光谱仪，Radial Velocity Spectrometer；ϖ/σ_ϖ：视差除以其误差）。
 
 **轨道**（第 II.4 节）。对 125 万颗有视向速度（误差 δv_RVS < 5 km/s）且视差良好的星，R22 在一个四分量银河系引力势中积分轨道（Hernquist 核与核球、标长 2.6 kpc 标高 300 pc 的近似指数盘、NFW 暗晕），太阳处圆周速度 229 km/s，并用 galpy 中的"Stäckel 近似"（Stäckel fudge）计算**作用量**（action）。作用量是轨道的标签：J_R 度量径向偏移，J_z 度量竖直偏移，J_φ 是绕银河系转轴的角动量。R22 用比值 J_φ/J_tot，其中 J_tot = √(J_φ² + J_R² + J_z²)：沿类盘圆轨道运动的星接近 +1，无净转动的星接近 0（对不转动的族群取平均而言）。
 
-**公开文件。** Zenodo 记录 7035809（doi:10.5281/zenodo.7035809，版本 v0.1，2022 年 9 月 2 日，CC BY 4.0，作者 Andrae、Rix、Chandra、Price-Whelan）：`xp_gc_mh.csv`（98.5 MB，MD5 7257c98622573a4a625571fc973859c5），"XGBOOST-inferred temperatures, surface gravities, and metallicities for 1.5 million stars"（150 万颗星的 XGBoost 温度、表面重力与金属丰度）；`xp_gc_kinematics.csv`（115.3 MB，MD5 b220c27aacff1f2f03d5a1f2b5fca147），120 万颗有 Gaia DR3 视向速度的星的"Galactocentric coordinates, actions, and basic orbital parameters"（银心坐标、作用量与基本轨道参数）；合计 213.8 MB。两个文件都超过本项目 50 MB 的单次下载上限；用户于 2026-11-21 同意破例（计划 [`design/028-plan_*`](https://github.com/sudoghut/astrolab/blob/main/design/028-plan_m12-poor-old-heart-paper-study.md)）。文件的列在页面上没有说明，由研究读取。
+**公开文件。** Zenodo 记录 7035809（doi:10.5281/zenodo.7035809，R22 所引，应是概念 DOI；版本 v0.1 为 doi:10.5281/zenodo.7035810，2022 年 9 月 2 日，CC BY 4.0，作者 Andrae、Rix、Chandra、Price-Whelan）：`xp_gc_mh.csv`（98.5 MB，MD5 7257c98622573a4a625571fc973859c5），"XGBOOST-inferred temperatures, surface gravities, and metallicities for 1.5 million stars"（150 万颗星的 XGBoost 温度、表面重力与金属丰度）；`xp_gc_kinematics.csv`（115.3 MB，MD5 b220c27aacff1f2f03d5a1f2b5fca147），120 万颗有 Gaia DR3 视向速度的星的"Galactocentric coordinates, actions, and basic orbital parameters"（银心坐标、作用量与基本轨道参数）；合计 213.8 MB。两个文件都超过本项目 50 MB 的单次下载上限；用户于 2026-11-21 同意破例（计划 [`design/028-plan_*`](https://github.com/sudoghut/astrolab/blob/main/design/028-plan_m12-poor-old-heart-paper-study.md)）。文件的列在页面上没有说明，由研究读取。
 
 #### 1.3 一步一步：作者如何从数据走到结论
 
@@ -402,42 +418,44 @@ Newest first.
 | [M/H] < −1 | almost 100,000（近 100,000） | nearly 100,000（近 100,000） | ∼70,000 | — |
 | 全样本 | 约 200 万（II.2） | ∼170 万 | ∼200 万 | 200 万 |
 
-（引言写 150 万，Zenodo 说明也是 150 万；查询返回 210 万。）分布的形状：对数数密度随金属丰度上升，在约 −2 到 −1 之间 d log n/d[M/H] ≈ 1，在 −2 以下以及 −1 到 −0.6 之间更陡，在 [M/H] ≈ −0.6 附近达到峰值。尾巴止于 [M/H] ≈ −2.5 附近；R22 写道，这是"genuine metallicity floor"（真实的金属丰度下限）还是反映了 APOGEE 训练集，需要后续工作。摘要的下界 −2.7 在正文中没有解释（来源未核实）。
+（引言与第 II.4 节写 150 万（"estimates for 1.5 million stars towards the Galactic center"，其中 125 万颗有轨道），Zenodo 说明也是 150 万；查询返回 210 万。）分布的形状：对数数密度随金属丰度上升，在约 −2 到 −1 之间 d log n/d[M/H] ≈ 1，在 −2 以下以及 −1 到 −0.6 之间更陡，在 [M/H] ≈ −0.6 附近达到峰值。尾巴止于 [M/H] ≈ −2.5 附近；R22 写道，这是"genuine metallicity floor"（真实的金属丰度下限）还是反映了 APOGEE 训练集，需要后续工作。摘要的下界 −2.7 在正文中没有解释（来源未核实）。
 
 *粗略验算。* 如果 d log n/d[M/H] 恰好为 1，那么每 0.5 dex，低于某金属丰度的星数增大 10^0.5 ≈ 3.2 倍。从 −1.5 以下的 18,000 颗出发，预计 −2 以下约 5,700 颗，−1 以下约 57,000 颗。−2 以下的">4,000"符合文中所说 −2 以下更陡的下降；−1 以下的"∼70,000"接近幂律，而"近 100,000"需要从 −1.5 到 −1 增大约 5.5 倍，比 R22 对该区间描述的斜率更陡。这是我们的算术，不是 R22 的。
 
 **第 3 步 · 它们在哪里？空间尺度**（第 III.1 节、图 2、3）。贫金属星太远，单颗星的距离不好：它们视差精度的中位数"only ϖ/σ_ϖ∼5"（只有约 5；全样本约 12；全样本中 1% 的视差为负）。所以 R22 没有逐颗把视差换成距离，而是假设一个模型（式 1）：恒星按银心距 R_GC 服从宽度为 σ_RGC 的**球对称高斯分布**（spherical Gaussian），每个方向、每个视差区间中预期的星数为 n(ϖ) = dΩ dϖ ϖ⁻⁴ ρ_Gauss(R(ϖ, l, b), σ_RGC)（ϖ⁻⁴ 把距离 1/ϖ 处的体积元换成视差区间）。用最大似然（maximum likelihood）拟合观测视差（含误差与 0.02 mas 的视差零点改正），对 [M/H] < −1.5 的星得到"an extent of σ_RGC∼2.7 kpc"（约 2.7 kpc 的尺度）。没有给出不确定度，没有尝试扁平形状，论文把尘埃、拥挤与视差误差的建模留作后续工作。
 
-*粗略验算。* 从 8.2–8.5 kpc 处看，σ = 2.7 kpc 张角 18–19°，即 R22 的"∼18°"。离银心 30° 的视场边缘在投影上距银心 4.7–4.9 kpc，不到 2σ，所以模型必须考虑视场边界（它通过对观测方向的 dΩ 考虑了）。σ = 2.7 kpc 的三维高斯把 47% 的星放在离银心 4 kpc 以内、67% 放在 5 kpc 以内，与总结中的"most stars are within 5 kpc of the Galactic center"（大多数星在离银心 5 kpc 以内）一致。
+*粗略验算。* 从 8.2–8.5 kpc 处看，σ = 2.7 kpc 张角 ≈18°（精确为 17.6–18.2°，arctan(2.7 kpc/R0)）；R22 写的是 18°（第 III.1 节）。离银心 30° 的视场边缘在投影上距银心 4.7–4.9 kpc，不到 2σ，所以模型必须考虑视场边界（它通过对观测方向的 dΩ 考虑了）。σ = 2.7 kpc 的三维高斯把 47% 的星放在离银心 4 kpc 以内、67% 放在 5 kpc 以内，与总结中的"most stars are within 5 kpc of the Galactic center"（大多数星在离银心 5 kpc 以内）一致。
 
 **第 4 步 · 质量多大？**（第 III.2 节）。计数的只是高光度巨星；它们代表多少恒星质量需要一个模板族群。R22 用球状星团（globular cluster）M4（一个古老、贫金属的星团）：其半质量半径（half-mass radius）6′ 以外约有 35 颗 M_G < 0.5 的巨星，总质量 7×10⁴ M☉，这"implies one giant (at M_G<0.5) per 800 M☉ of total stellar population mass"（意味着每 800 M☉ 的恒星总质量有一颗 M_G < 0.5 的巨星）。照此计算，[M/H] < −1.5 的星代表 M_tot ∼ 2×10⁷ M☉。拥挤与尘埃会遮住恒星，所以 R22 乘上"a conservative estimate"（保守估计）2.5 倍，给出下限 M_tot ≳ 5×10⁷ M☉（摘要与第 III.2 节）。总结更进一步："manifest dust obscuration implies a large correction"（明显的尘埃遮挡意味着很大的改正），提示 M* ≳ 10⁸ M☉。
 
-*粗略验算。* 18,000–20,000 颗巨星 × 800 M☉ = 1.4–1.6×10⁷ M☉，取整为 2×10⁷（样本计数包括比 M_G = 0.5 暗、直到约 0.9 的星，所以模板与样本截断并不完全一致）。每颗巨星对应的质量本身并不能从所引的数字推出：如果 M4 一半的质量在半质量半径以外，那里的 35 颗巨星意味着每颗约 3.5×10⁴/35 ≈ 1,000 M☉（若用全部质量则 7×10⁴/35 = 2,000），不是 800。中间步骤没有给出（我们的算术；未对照 PDF 或期刊版核实）。
+*粗略验算。* 18,000–20,000 颗巨星 × 800 M☉ = 1.4–1.6×10⁷ M☉，取整为 2×10⁷（样本计数包括比 M_G = 0.5 暗、直到经颜色改正（近似消红化）的 M_G ≈ 0.9 的星，所以模板与样本截断并不完全一致）。每颗巨星对应的质量本身并不能从所引的数字推出：如果 M4 一半的质量在半质量半径以外，那里的 35 颗巨星意味着每颗约 3.5×10⁴/35 ≈ 1,000 M☉（若用全部质量则 7×10⁴/35 = 2,000），不是 800。中间步骤没有给出（我们的算术；未对照 PDF 或期刊版核实）。
 
-**第 5 步 · 它们怎样运动？**（第 III.3 节、图 5、6）。大多数贫金属星处在热的偏心轨道上（偏心率从约 0.1 到 0.8 几乎均匀分布），并留在内银河系（平均远心距 ⟨R_apo⟩ ≈ 4 kpc；"most stars have apocenters of less than 5 kpc"，大多数星的远心距小于 5 kpc）。另有一群 e ≥ 0.75、R_apo ≳ 10 kpc 的星被认定为正经过近心点的盖亚–香肠–恩克拉多斯（Gaia-Sausage-Enceladus, GSE）并合碎片；R22 没有定量估计这种混入。转动量 J_φ/J_tot 随金属丰度上升：摘要说"Stars with [M/H]<−2 show no net rotation"（[M/H] < −2 的星没有净转动），"those with [M/H]∼−1 are rotation dominated"（[M/H] ∼ −1 的星以转动为主）；第 III.3 节更谨慎（"starting already at [M/H]<−2 there is some, albeit small, net" rotation，即从 [M/H] < −2 开始就已有一些虽小的净转动），给出 [M/H] = −1.3 时 J_φ/J_tot ≈ 0.3，并在 −0.7 附近趋平；总结给出 [M/H] = −1.5 时 0.25、−0.8 时 ≈0.9。
+**第 5 步 · 它们怎样运动？**（第 III.3 节、图 5、6）。大多数贫金属星处在热的偏心轨道上（偏心率（eccentricity）从约 0.1 到 0.8 几乎均匀分布），并留在内银河系（平均远心距（apocentre）⟨R_apo⟩ ≈ 4 kpc，第 III.3 节；总结第 IV 节："most stars have apocenters of less than 5 kpc"，大多数星的远心距小于 5 kpc）。另有一群 e ≥ 0.75、R_apo ≳ 10 kpc 的星被认定为正经过近心点（pericentre）的盖亚–香肠–恩克拉多斯（Gaia-Sausage-Enceladus, GSE）并合碎片；R22 没有定量估计这种混入。转动量 J_φ/J_tot 随金属丰度上升：摘要说"Stars with [M/H]<−2 show no net rotation"（[M/H] < −2 的星没有净转动），"those with [M/H]∼−1 are rotation dominated"（[M/H] ∼ −1 的星以转动为主）；第 III.3 节更谨慎（"starting already at [M/H]<−2 there is some, albeit small, net" rotation，即从 [M/H] < −2 开始就已有一些虽小的净转动），给出 [M/H] = −1.3 时 J_φ/J_tot ≈ 0.3，并在 −0.7 附近趋平；总结给出 [M/H] = −1.5 时 0.25、−0.8 时 ≈0.9。
 
-**第 6 步 · 化学**（第 III.4 节、图 7）。对 APOGEE DR17 中的子样本，[α/Fe]、[Al/Fe] 与 [Mg/Mn]（α 元素由大质量恒星快速产生，相对于铁的丰度；以及用来区分银河系内诞生与吸积来的恒星的比值）表明：大多数低偏心率、[M/H] < −1 的星是 α 增丰的，即形成于快速增丰的气体；而在高偏心率处出现一条大远心距的低 α 序列（类似 GSE）。R22 指出这一判据"more ambiguous at low metallicity"（在低金属丰度时更含糊）。
+**第 6 步 · 化学**（第 III.4 节、图 7）。对 APOGEE DR17 中的子样本，[α/Fe]、[Al/Fe] 与 [Mg/Mn]（α 元素由大质量恒星快速产生，相对于铁的丰度；以及用来区分银河系内诞生与吸积来的恒星的比值）表明：大多数低偏心率、[M/H] < −1 的星是 α 增丰（α-enhanced）的，即形成于快速增丰的气体；而在高偏心率处出现一条大远心距的低 α 序列（类似 GSE）。R22 指出这一判据"more ambiguous at low metallicity"（在低金属丰度时更含糊）。
 
-**第 7 步 · 从金属丰度到年龄**（第 IV 节）。R22 没有测这些巨星的年龄；年龄估计"beyond the scope of this work"（超出本文范围）。年龄论证是化学的：最老的 α 增丰盘星在 [M/H] ∼ −1 处，"appear to be ≈12.5 Gyrs old"（看来约 12.5 Gyr）（参考文献 [96]，Xiang & Rix 2022；见本项目的[研究 010 文章](https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-010-thick-disc-early-formation.md)）。比最老的盘更贫金属、"chemically, and therefore temporally, predate the oldest α-enhanced disk"（在化学上、因而在时间上早于最老的 α 增丰盘）的星，就必定形成于 τ ≳ 12.5 Gyr，"corresponding to z≳5"（对应 z ≳ 5）。这假设整个原银河系中金属丰度随时间单调上升。
+**第 7 步 · 从金属丰度到年龄**（第 IV 节）。R22 没有测这些巨星的年龄；年龄估计"beyond the scope of this work"（超出本文范围；第 II 节）。年龄论证是化学的：最老的 α 增丰盘星在 [M/H] ∼ −1 处，"appear to be ≈12.5 Gyrs old"（看来约 12.5 Gyr）（参考文献 [96]，Xiang & Rix 2022；见本项目的[研究 010 文章](https://github.com/sudoghut/astrolab/blob/main/docs/wiki/Study-010-thick-disc-early-formation.md)）。比最老的盘更贫金属、"chemically, and therefore temporally, predate the oldest α-enhanced disk"（在化学上、因而在时间上早于最老的 α 增丰盘）的星，就必定形成于 τ ≳ 12.5 Gyr，"corresponding to z≳5"（对应 z ≳ 5）。这假设整个原银河系中金属丰度随时间单调上升。
 
-*粗略验算。* 在 Planck 2018 宇宙学（宇宙年龄 13.79 Gyr）中，回溯时间（lookback time）12.5 Gyr 对应红移 z ≈ 4.6，z = 5 对应 12.6 Gyr；"z≳5"是"大爆炸后约 13 亿年"的整数说法（我们用 astropy 的 Planck18 计算；R22 没有给出换算）。
+*粗略验算。* 在 Planck 2018 宇宙学（宇宙年龄 13.79 Gyr）中，回溯时间（lookback time）12.5 Gyr 对应红移 z ≈ 4.6（大爆炸后 13 亿年）；"z≳5"略微向上取整（z = 5 对应回溯 12.62 Gyr）（我们用 astropy 的 Planck18 计算；R22 没有给出换算）。
 
 #### 1.4 结论与把握程度
 
-摘要：Gaia XP 数据在内银河系揭示了"an extensive, ancient, and metal-poor population"（一个延展、古老、贫金属的族群）：∼18,000 颗 −2.7 < [M/H] < −1.5 的星，代表 ≳5×10⁷ M☉ 的恒星，空间高斯尺度 σ ≈ 2.7 kpc；最贫金属的（[M/H] < −2）没有净转动，[M/H] ∼ −1 的以转动为主；"These central, metal-poor stars most likely predate the oldest part of the disk (τ_age≈12.5 Gyrs), which implies that they formed at z≳5"（这些中心的贫金属星很可能早于盘最老的部分（τ_age ≈ 12.5 Gyr），这意味着它们形成于 z ≳ 5）。总结称之为"the most ancient proto-Galactic component of our Galaxy"（我们银河系最古老的原银河系成分），把它与 Belokurov 和 Kravtsov 的"曙光"等同，并论证：局限在太阳圆以内（R_GC < R☉）"against an origin through accretion from a once-distant satellite"（不支持来自一个曾经遥远的卫星星系的吸积起源）：如此低 [M/H] 下如此多强 α 增丰的恒星质量"are most likely to occur at the center of a (eventually) quite massive halo"（最可能出现在一个（最终）相当大质量的晕的中心），而不是低质量卫星星系中。由于所提出的 Heracles/Kraken/Koala 并合碎片与原银河系"曙光"的化学"virtually indistinguishable in all chemical spaces"（在所有化学空间中几乎无法区分），R22 认为他们的图景"appears to obviate the need for an ex-situ merger"（似乎无需这样一次异位并合）。他们不声称发现了新成分："The results presented here are by no means a new distinct stellar component"（这里给出的结果绝不是一个新的独立恒星成分）。
+摘要：Gaia XP 数据在内银河系揭示了"an extensive, ancient, and metal-poor population"（一个延展、古老、贫金属的族群）：∼18,000 颗 −2.7 < [M/H] < −1.5 的星，代表 ≳5×10⁷ M☉ 的恒星，空间高斯尺度 σ ≈ 2.7 kpc；最贫金属的（[M/H] < −2）没有净转动，[M/H] ∼ −1 的以转动为主；"These central, metal-poor stars most likely predate the oldest part of the disk (τ_age≈12.5 Gyrs), which implies that they formed at z≳5"（这些中心的贫金属星很可能早于盘最老的部分（τ_age ≈ 12.5 Gyr），这意味着它们形成于 z ≳ 5）。总结（第 IV 节）称之为"the most ancient proto-Galactic component of our Galaxy"（我们银河系最古老的原银河系成分）；第 III.4 节把它与 Belokurov 和 Kravtsov 的"曙光"等同。总结论证：局限在太阳圆以内（R_GC < R☉）"against an origin through accretion from a once-distant satellite"（不支持来自一个曾经遥远的卫星星系的吸积起源）：如此低 [M/H] 下如此多强 α 增丰的恒星质量"are most likely to occur at the center of a (eventually) quite massive halo"（最可能出现在一个（最终）相当大质量的晕的中心），而不是低质量卫星星系中。由于所提出的 Heracles/Kraken/Koala 并合碎片与原银河系"曙光"的化学"virtually indistinguishable in all chemical spaces"（在所有化学空间中几乎无法区分），R22（第 III.4 节）认为他们的图景"appears to obviate the need for an ex-situ merger"（似乎无需这样一次异位并合），并补充："This does not necessarily imply that these mergers did not occur."（这并不一定意味着这些并合没有发生。）他们不声称发现了新成分："The results presented here are by no means a new distinct stellar component"（这里给出的结果绝不是一个新的独立恒星成分）。
 
-作者给出的注意事项（第 IV 节，"in many ways preliminary"，在很多方面是初步的）：
+作者给出的注意事项（总结第 IV 节称分析"in many ways preliminary"，在很多方面是初步的）：
 
-- 空间分布"deserves to be modeled quantitatively, including the effects of dust extinction, source crowding, parallax uncertainties"（值得定量建模，包括尘埃消光、源拥挤与视差误差的影响）；尘埃挡住了中心 1 kpc 和离盘面 |Z| < 700 pc 的大多数星；
-- "How pure are the XP selected samples in this regime?"（在这个区间 XP 选出的样本有多纯？）即贫金属尾巴被金属丰度估错的星污染的程度；
-- −2.5 附近的 [M/H] 下限可能是真实的，也可能是 APOGEE 训练范围造成的假象；
-- 距离误差可能使远心距偏高；
-- 质量依赖 M4 模板和一个"保守"改正；
-- XP 的信息"far from"（远未）被充分利用；正向建模（forward modelling）应当做得更好。
+- 空间分布"deserves to be modeled quantitatively, including the effects of dust extinction, source crowding, parallax uncertainties"（值得定量建模，包括尘埃消光、源拥挤与视差误差的影响）（第 IV 节）；
+- 尘埃在离盘面 |Z| < 700 pc 处留下缺口，那里大多数星缺失（第 III.2 节），并挡住了中心 1 kpc（第 III.3 节）；
+- "How pure are the XP selected samples in this regime?"（在这个区间 XP 选出的样本有多纯？）（第 IV 节）即贫金属尾巴被金属丰度估错的星污染的程度；
+- −2.5 附近的 [M/H] 下限可能是真实的，也可能是 APOGEE 训练范围造成的假象（第 IV 节）；
+- 距离误差可能使远心距偏高（第 III.3 节）；
+- 质量依赖 M4 模板和一个"保守"改正（第 III.2 节）；
+- XP 的信息"far from"（远未）被充分利用；正向建模（forward modelling）应当做得更好（第 IV 节）。
 
 我们的阅读中要带入第二部分的要点：
 
-- **计数内部不一致**（第 2 步的表）：−1.5 以下 ∼18,000 与 ∼20,000；−2 以下 >4,000 与 ∼5,000；−1 以下近 100,000 与 ∼70,000；样本量取决于看哪里，是 150 万、170 万、200 万或 210 万（部分可能反映不同的子样本，例如截断前后，但论文没有说明）。
+- **计数内部不一致**（第 2 步的表）：−1.5 以下 ∼18,000 与 ∼20,000；−2 以下 >4,000 与 ∼5,000；−1 以下近 100,000 与 ∼70,000；样本量取决于看哪里，是 150 万（引言、第 II.4 节）、170 万（图 4）、200 万（摘要、II.2、IV）或 210 万（查询）（部分可能反映不同的子样本，例如截断前后，但论文没有说明）。
+- **表 1 与正文**：所采用配置的一行（0.049 dex、0.107 dex）在表 1 中是最好的，但附录 A.1 说最终配置"slightly worse than the best"（比最好的略差）。
 - **质量**在摘要中为 ≳5×10⁷ M☉，在总结中为 ≳10⁸ M☉；每颗巨星的换算（800 M☉）不能由所引的 M4 数字简单算出。
 - **σ ≈ 2.7 kpc 没有不确定度**，依赖球对称高斯（无扁平）、中位精度约 5 的视差，以及一个不含尘埃与拥挤的模型。
 - **"早于最老的盘"是推断，不是年龄测量**：样本中没有一颗星有年龄。它需要年轻银河系各处都有单调的年龄—金属丰度关系，而 12.5 Gyr 的盘年龄本身来自 Xiang & Rix 2022，有其绝对标尺的不确定性（见研究 010 的文章）。
@@ -448,9 +466,9 @@ Newest first.
 
 - *计数被高估*：[M/H] < −1.5 的星中有相当一部分是 XP 金属丰度被低估的较富金属星（例如由于尘埃或拥挤），这样族群更小、质量更轻。对 XP 选出的子样本做独立光谱观测可以检验。
 - *尺度不同*：把尘埃、拥挤与视场边界建模，或允许扁平形状之后，贫金属星也许不是一个紧凑的 2.7 kpc 球。Kurbatov 等 2024（arXiv:2410.22250，"The realm of Aurora"，投稿 MNRAS；已核实摘要）用 Gaia 选择函数（selection function）为 r ∼ 1 到 18 kpc、[M/H] < −1.3 的 Gaia XP 巨星建模：单分量有核幂律拟合给出"a vertical flattening of ∼0.5 and a slope −3.4"（竖直扁率约 0.5、斜率 −3.4），双分量模型更好，GSE 碎片与"曙光"在太阳附近大致各占一半，但"Aurora dominates the inner halo with a steeper power-law index of −4.5"（曙光以更陡的 −4.5 幂律指数主导内晕）。这支持"曙光"向中心集中，但它是扁的，不是球形（Rix 是合作者）。
-- *这些星并非都是老的或原位的*：如果内银河系贫金属族群混有早期小卫星星系的碎片，"早于盘"与"非吸积"就会减弱。Ardern-Arentsen 等 2024（PIGS VIII，arXiv:2312.03847，已被 MNRAS 接受；已核实摘要）对 13,235 颗星做了光谱观测，发现约 60% 的极贫金属（very metal-poor, VMP，[Fe/H] < −2.0）星留在 5 kpc 以内；转动在 [Fe/H] = −1.0 到 −2.0 之间下降，但"constant for VMP stars (at ∼ 40 km/s)"（对极贫金属星保持不变，约 40 km/s）（所以极贫金属的内区星确有一些转动）；并提出两个类球（spheroidal）成分：一个较富金属、更集中、转得更快（盘形成之前的原位星或大的构建块），一个较贫金属、更延展、转得更慢（较小的吸积星系）。
+- *这些星并非都是老的或原位的*：如果内银河系贫金属族群混有早期小卫星星系的碎片，"早于盘"与"非吸积"就会减弱。Ardern-Arentsen 等 2024（PIGS VIII，arXiv:2312.03847，已被 MNRAS 接受；已核实摘要）对 13,235 颗星做了光谱观测，发现约 60% 的极贫金属（very metal-poor, VMP，[Fe/H] < −2.0）星留在 5 kpc 以内；转动在 [Fe/H] = −1.0 到 −2.0 之间下降，但"constant for VMP stars (at ∼ 40 km/s)"（对极贫金属星保持不变，约 40 km/s）（所以极贫金属的内区星确有一些转动）；并初步（tentatively）提出两个类球（spheroidal）成分：一个较富金属、更集中、转得更快（盘形成之前的原位星或大的构建块），一个较贫金属、更延展、转得更慢（较小的吸积星系）。
 - *转动加速并非看上去那样*：Viswanathan 等 2025（arXiv:2411.12165，A&A 703, A183；已核实摘要）用 Gaia DR3 巨星发现，贫金属高 α 盘在 [M/H] ∼ −1.7 到 −1.0 之间"gradually spins up"（逐渐转快），"a slow, monotonic spin-up phase rather than a rapid, dramatic spin-up"（是缓慢、单调的转快阶段，而不是）在 [M/H] ∼ −1.0 处"as previously inferred"（如以前推断的）快速、剧烈的转快（摘要没有说"以前"指谁；未核实是否指 R22）。R22 上升的 J_φ/J_tot 与逐渐上升相容；对转变的解释不同。
-- *金属丰度尾巴由方法塑造*：Chen 等 2025（arXiv:2511.18901，"The dawn is quiet II"，Open Journal of Astrophysics；已核实摘要）比较了十个 Gaia XP 金属丰度星表在 −3 < [Fe/H] < −2 的部分，发现经过质量截断后每个星表都是"single-slope exponential tail"（单一斜率的指数尾巴），但斜率 k ≈ 0.6–2.0，并把它们转换成非常不同的早期气体库（k ≈ 0.6 时 ≳10⁹ M☉；最佳拟合 k ≈ 1.0，10⁸–10⁹ M☉）。星表之间的差别表明 XP 金属丰度的极贫金属端依赖于星表。他们的样本是否覆盖内银河系未核实（只读了摘要）。
+- *金属丰度尾巴由方法塑造*：Chen 等 2025（arXiv:2511.18901，"The dawn is quiet II"，Open Journal of Astrophysics；已核实摘要）比较了十个 Gaia XP 金属丰度星表在 −3 < [Fe/H] < −2 的部分，发现每个星表都是"single-slope exponential tail"（单一斜率的指数尾巴），但斜率 k ≈ 0.6–2.0，并把它们转换成非常不同的早期气体库（k ≈ 0.6 时 ≳10⁹ M☉；最佳拟合 k ≈ 1.0，10⁸–10⁹ M☉）。星表之间的差别表明 XP 金属丰度的极贫金属端依赖于星表。他们的样本是否覆盖内银河系未核实（只读了摘要）。
 
 这些论文都没有推翻 R22 的主要观点，即存在一个古老、贫金属、向中心集中的族群；它们细化了它的形状（扁平、幂律）、转动（在最低金属丰度处小而非零；逐渐转快）及其可能的吸积成分。
 
@@ -484,12 +502,13 @@ Newest first.
 
 按时间倒序。
 
+- 2026-11-21：第一部分闸门 1 审查：给出视差/光度查询截断的精确表达式（经颜色改正的 G）；表 1 与正文的矛盾、第 II.4 节的 150 万加入不一致清单；引文与注意事项注明所在章节；加上 R22 的"This does not necessarily imply that these mergers did not occur"；张角与红移验算改为精确值；Zenodo 作者与 DOI；Chen 等的措辞；中文术语括注英文。
 - 2026-11-21：起草第一部分（科普详解；数字取自 arXiv v1，后续文献据摘要）。计划 `design/028-plan_*`。
 
 ### 来源
 
 - Rix 等 2022，ApJ 941, 45，arXiv:2209.02722（被研究的论文；数字与引文据 arXiv HTML v1）。
-- Rix, Chandra & Andrae 2022，Zenodo，doi:10.5281/zenodo.7035809（公开样本；2026-11-21 阅读页面）。
+- Andrae, Rix, Chandra & Price-Whelan 2022，Zenodo，doi:10.5281/zenodo.7035809（公开样本；R22 引作参考文献 [85]"Rix, Chandra & Andrae"；7035809 应是概念 DOI（concept DOI），版本 v0.1 的记录为 doi:10.5281/zenodo.7035810；2026-11-21 阅读页面）。
 - Xiang & Rix 2022，Nature 603, 599，arXiv:2203.12110（最老盘的年龄，R22 的参考文献 [96]）。
 - Belokurov & Kravtsov 2022，MNRAS 514, 689，arXiv:2203.04980（曙光；R22 引用，此处未重读；期刊信息凭记忆，未核实）。
 - Kurbatov 等 2024，arXiv:2410.22250；Ardern-Arentsen 等 2024，arXiv:2312.03847；Viswanathan 等 2025，A&A 703, A183，arXiv:2411.12165；Chen 等 2025，OJAp，arXiv:2511.18901（后续文献；2026-11-21 阅读摘要）。
