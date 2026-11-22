@@ -201,5 +201,14 @@
   "p_T": 0.05239738013099345,
   "p_T_label": "undetermined (Monte Carlo)"
  },
+ "R2_RE_GTP": {
+  "status": "evaluated",
+  "statement": "t-tail comparison: model-limited (p_fix from 0.0112 to 0.1211)",
+  "p_fix_min": 0.0111994400279986,
+  "p_fix_max": 0.12114394280285985,
+  "p_cal_min": 0.015298470152984701,
+  "p_cal_max": 0.07829217078292171,
+  "anti_conservative_nu": []
+ },
  "runtime_s": 33374.32105920001
 }
