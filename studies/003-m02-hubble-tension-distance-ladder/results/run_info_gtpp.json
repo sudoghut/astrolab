@@ -1,0 +1,21 @@
+{
+ "study": "003-m02-hubble-tension-distance-ladder",
+ "finished_at": "2026-11-22T09:43:56+00:00",
+ "seconds": 1736.04,
+ "outputs": [
+  "r2_re_gtp.json",
+  "r2_re_gtp_sims_3_0.05.json",
+  "r2_re_gtp_sims_3_tau_obs.json",
+  "r2_re_gtp_sims_3_0.105.json",
+  "r2_re_gtp_sims_6_0.05.json",
+  "r2_re_gtp_sims_6_tau_obs.json",
+  "r2_re_gtp_sims_6_0.105.json",
+  "r2_re_gtp_sims_10_0.05.json",
+  "r2_re_gtp_sims_10_tau_obs.json",
+  "r2_re_gtp_sims_10_0.105.json",
+  "r2_re_gtp_sims_30_0.05.json",
+  "r2_re_gtp_sims_30_tau_obs.json",
+  "r2_re_gtp_sims_30_0.105.json",
+  "summary.json"
+ ]
+}
