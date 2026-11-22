@@ -922,6 +922,16 @@ def main(ctx):
         raise RuntimeError("gt_check = true outside gt_only would compute p_T on the data before the formal two-stage "
                            "R2-RE-GT run: run gt_only = true with gt_stage = 'power', then 'full', or set gt_check = "
                            "false (README section 8)")
+    if P["gt_check"] and not (gt_only or d_only or g_only):
+        # a full study run with gt_check (after the formal stages): the same safeguards, before any data is loaded
+        # (gate-1 review of the code, 2026-11-21): the first formal outcome stands, and R2-RE-G's committed
+        # simulations are the reproduction reference (read now, so a missing file fails before hours of work)
+        why = P["gt_rerun_reason"]
+        if (getattr(ctx, "max_save_bytes", None) is None and shape.formal_outcome(ctx.results / "r2_re_gt.json")
+                and not (isinstance(why, str) and why.strip() and why in study_log_text())):
+            raise RuntimeError("results/r2_re_gt.json already holds a formal R2-RE-GT outcome: a full run with "
+                               "gt_check = true reruns it and needs PARAMS gt_rerun_reason, also present in log.md")
+        g_saved_gt = recorded_g_sims(P)[0]
     if g_only:
         # standalone R2-RE-G (README section 2, addendum 2026-11-21, T-055): power stage -> r2_re_g_power.json
         # (records provenance_gp / run_info_gp) only; full stage -> r2_re_g*.json and summary.json's R2_RE_G key
@@ -1396,15 +1406,15 @@ def main(ctx):
         save_g(ctx, g_out, sims_g)
 
     # ---- R2-RE-GT (README section 2, addendum 2026-11-21, T-057): runs after the R2-RE-G block under the same
-    # condition (only after its formal full stage, see main's gate); R2-RE-G's simulations of this run when its
-    # block ran, else its committed files, are the reproduction reference
+    # condition (only after its formal full stage, see main's gate); R2-RE-G's committed simulation files are the
+    # reproduction reference (read in main before any data is loaded)
     sims_gt = None
     if not P["gt_check"]:
         gt_out = save_gt_stubs(ctx, P, "not run (PARAMS)")
     elif not (P["re_check"] and ident["host_step_evaluable"]) or re.get("status") != "evaluated":
         gt_out = save_gt_stubs(ctx, P, "not evaluable (R2-RE not run or host step not evaluable)")
     else:
-        g_saved_gt = shape.check_g_sims(sims_g, P) if sims_g is not None else recorded_g_sims(P)[0]
+        g_saved_gt = g_saved_gt if g_saved_gt is not None else recorded_g_sims(P)[0]   # committed files
         gt_out, sims_gt = run_gt_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, re["reml"]["grid_m2l"],
                                       "R2-RE's REML grid of the same run (r2_re.json reml.grid_m2l)", g_saved_gt,
                                       lambda o: ctx.save("r2_re_gt_power", o))
