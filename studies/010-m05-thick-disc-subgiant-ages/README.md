@@ -864,6 +864,17 @@ on XR22's claim.
      not checkpointed; the 36 companion refits run after the 72 sets, are not checkpointed and are not
      in the projection; their stream uses the literal 50 as written above. With `err_n_mock` ≠ 50 (an
      exploration) no label is given, as in 2.6. The committed `PARAMS["parts"]` is `["err"]`.
+- **Note after the first formal attempt (2026-11-21; no rule changes, no R1-ERR mock had run).** The first
+  formal run, single-threaded (`OMP_NUM_THREADS`, `MKL_NUM_THREADS`, `OPENBLAS_NUM_THREADS` = 1), stopped
+  at check (a) as "not evaluable (reproduction)": d and K of the 9 data fits matched, but the skew-normal
+  and split-normal fits (and two K fits) differed from `r1_sel.json` by more than 10⁻⁹. Investigated as
+  this section requires: an exploration with the default thread settings (as in the runs that wrote
+  `r1_sel.json` and `r1_selfit.json`, whose thread settings were not recorded) passed check (a) and check
+  (b) (18 of 18); it was stopped before any R1-ERR mock was kept, and its checkpoints were deleted. The
+  cause is the thread count (multi-threaded BLAS changes the optimiser paths at the 10⁻¹² level), not the
+  code or the data. The formal run is therefore repeated with the default thread settings; `r1_err.json`
+  now records them (`threads`). The exploration also showed that an exploration wrote R1-ERR mock
+  checkpoints into the formal folder; they now go to `s010_err_mocks/explore/<date>-<tag>`.
 
 ## 3. Data (with size estimate)
 

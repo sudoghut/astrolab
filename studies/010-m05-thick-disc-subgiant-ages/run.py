@@ -24,6 +24,7 @@ R1-ERR  error-scale power test of R1-SEL-FIT: power mocks of the metal-poor bins
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import time
 from pathlib import Path
@@ -1994,6 +1995,13 @@ def err_evaluate(P, sets, results, times, rfit, data_age_pct=None, data_frac=Non
             "label": variants["S15E"]["label"], "label_median_rule": variants["S15E"]["label_median_rule"]}
 
 
+def _is_formal(ctx):
+    """True for `astrolab run` (writes results/), False for `astrolab explore` (explore/<date>-<tag>/)."""
+    res = getattr(ctx, "results", None)
+    return (getattr(ctx, "max_save_bytes", None) is None and res is not None
+            and Path(res).resolve() == (HERE / "results").resolve())
+
+
 def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
     """R1-ERR (README 2.7, T-054). Writes r1_err.json; r1_sel.json and r1_selfit.json are read, never written."""
     from astrolab import config
@@ -2038,7 +2046,8 @@ def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
             mism += selfit_data_check(D, rec["data_fits"][f"{v}_{b}"], rec["variants"][v]["bins"][b], f"{v}_{b}")
             ctx.log(f"R1-ERR data {v} bin {b}: K={D['shape']['k']} d={D['shape']['d']:.3f}")
     out = {"status": None, "n_mock": nmock, "seed_tags": [int(P["err_seed_tag"]), int(P["err_seed_tag_indep"])],
-           "checks": {"data_fit_mismatches": mism}}
+           "checks": {"data_fit_mismatches": mism},
+           "threads": {k: os.environ.get(k) for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")}}
 
     def fail(status):
         out["status"] = status
@@ -2061,6 +2070,8 @@ def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
         return fail("not evaluable (reproduction): the f = 1 generator differs from the recorded R1-SEL-FIT mocks")
     sets = selaux.err_sets(P["err_f"], bins, P["mechs"])
     root = Path(store_root) if store_root else config.cache_dir() / "s010_err_mocks"
+    if store_root is None and not _is_formal(ctx):  # an exploration never writes into the formal checkpoints
+        root = root / "explore" / Path(ctx.results).name
     store = selaux.MockStore(root, _sel_key(P, df), name="R1-ERR", rule="README 2.7")   # refuses a stopped run without consent
     ctx.log(f"R1-ERR checkpoints: {store.dir} ({'resumed with consent' if store.resumed else 'new or continued'})")
 
