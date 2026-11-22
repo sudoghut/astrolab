@@ -282,6 +282,30 @@
    "X-P-R:col3"
   ]
  },
+ "T8_P": {
+  "label": "prior-driven",
+  "at_bound": false,
+  "halfwidth_broad": 0.17247148036956794,
+  "median_shift_in_sigma_broad": 1.1537676461341833,
+  "omega0_k24": {
+   "median": 71.2840576171875,
+   "p16": 63.147178955078125,
+   "p84": 80.61890258789062,
+   "plus": 9.334844970703116,
+   "minus": 8.136878662109375
+  },
+  "omega0_broad": {
+   "median": 58.78830528259277,
+   "p16": 49.17437728881836,
+   "p84": 70.39283630371092,
+   "plus": 11.604531021118149,
+   "minus": 9.61392799377441
+  },
+  "chain_short": [
+   "k24",
+   "broad"
+  ]
+ },
  "overall": {
   "reading": "mixed",
   "labels": {
