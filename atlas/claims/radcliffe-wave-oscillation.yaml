@@ -20,7 +20,7 @@ reproduction:
     - {name: "B with omega0 t free (Extended Data Table 2, column 5)", paper: "0.84 +0.07/-0.06", ours: "0.84 (0.78-0.91)"}
     - {name: "cluster fit, column 4 (6 shape parameters)", paper: "A 217, p 4752, delta 624, s0 673, gamma 1.40, phi -0.23", ours: "3 of 6 inside K24's 16-84% (A 214, delta 605, gamma 1.44); p 4420, s0 490, phi 0.14 outside; clouds-only and column-6 fits not reproduced"}
     - {name: "standing wave (B = 0.5) against B free", paper: "travelling preferred (Delta lnZ about 1)", ours: "excluded in the main fit (2 dlnL 20.2, calibrated p 0.033, p_boot 0.0099) but fragile: 9 of 15 robustness variants change a label (2 dlnL 1.2 without the Orion region)"}
-    - {name: "omega0 (column 7)", paper: "67.7 +7.7/-7.1 km/s/kpc", ours: "71 +10/-8 with the v_z divisor fixed at 74 (K24's priors only; data versus prior not tested); the free-divisor fit is withdrawn (likelihood degenerate in omega0)"}
+    - {name: "omega0 (column 7)", paper: "67.7 +7.7/-7.1 km/s/kpc", ours: "71 +10/-8 with the v_z divisor fixed at 74 (K24's priors only; data versus prior not tested); the free-divisor fit is withdrawn (likelihood ill-posed in omega0)"}
 open_questions:
   - "Which baseline convention reproduces K24's clouds-only fit (column 3)? (T-056)"
   - "A likelihood proper in omega0 when the v_z divisor is fitted (T-056)."
