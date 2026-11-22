@@ -1039,3 +1039,12 @@ def test_err_generator_check_flags_differences():
     assert run.err_generator_check(P, rfit, off)["mismatches"] == [["Full", 2, "rA"]]
     gf = lambda v, b, mech, k: {"gen_fail": True, "d": None, "valley": None}
     assert len(run.err_generator_check(P, rfit, gf)["mismatches"]) == 18
+
+
+def test_err_exploration_checkpoints_are_separate(tmp_path):
+    """README 2.7 (2026-11-21 note): only a formal run (results/ of this study) counts as formal."""
+    import types
+    import run as R
+    formal = types.SimpleNamespace(results=str(R.HERE / "results"))
+    explore = types.SimpleNamespace(results=str(tmp_path / "2026-11-21-x"), max_save_bytes=1_000_000)
+    assert R._is_formal(formal) and not R._is_formal(explore)
