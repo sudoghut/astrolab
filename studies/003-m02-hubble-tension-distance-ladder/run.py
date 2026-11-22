@@ -74,7 +74,7 @@ PARAMS = {
     # R2-RE-GTP (README section 2, addendum 2026-11-22, T-060): a reported, non-decisive profile of R2-RE-GT over nu
     # and tau; runs only standalone (gtp_check and gtp_only true for the formal run, back to false afterwards).
     # Reuses gt_* (nu = 4, the inner seeds of nu = 3 and 10) and g_* (eps_s, E_in) from R2-RE-GT and R2-RE-G
-    "gtp_check": True, "gtp_only": True, "gtp_nus": [3, 4, 6, 10, 30, "inf"],
+    "gtp_check": False, "gtp_only": False, "gtp_nus": [3, 4, 6, 10, 30, "inf"],
     "gtp_t_seeds": {3: 430_000, 6: 440_000, 10: 450_000, 30: 460_000},
     "gtp_inner_seeds": {6: 613_000, 30: 614_000}, "gtp_n_sims": 10_000,
     "gtp_rerun_reason": "",     # a formal rerun after a formal outcome needs a reason, also present in log.md
