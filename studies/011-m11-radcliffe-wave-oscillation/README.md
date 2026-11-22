@@ -585,6 +585,63 @@ to K24's 67.7. The CO velocities, if anything, fit the B = 1 model worse than v_
 reproduction matches 3 of K24's 6 shape parameters; the wavelength p comes out about 330 pc
 (1.7σ) shorter and the phase φ differs by 0.37 rad, so the remaining tests refer to our implementation.
 
+### 5.1 R-CONV and T8-P (post hoc, addendum 4.10, T-056; runs 2026-11-22)
+
+Two standalone runs with the formal run's settings (`parts` ["conv"], then ["t8p"], set back to the default
+afterwards), single-threaded, cache only: R-CONV 9,167 s (2.5 h), T8-P 1,910 s (32 min). Load check passed (weighted
+mean v_z −2.18 km/s). Numbers: `results/rconv.json`, `results/t8p.json`, `summary.json` keys `R_CONV` and `T8_P`. Both
+are post hoc; the formal labels, the overall reading and T6 stay as recorded.
+
+**R-CONV: "column (3) not reproduced under any candidate convention (best among these 16 candidate conventions, post
+hoc)"** (choice rule (iii): every count ≤ 2). So Part A stops here and nothing is rerun (no column-(4)/(6) refit, no T5
+known-answer check on our own curve). In all 16 conventions the same two parameters are inside K24's 16–84% interval
+(s₀ and γ) and the same four outside, with nearly the same σ-scaled differences:
+
+| Parameter | Range of (ours − K24)/σ over the 16 conventions | Formal run (L-F-W) |
+|---|---|---|
+| A | −1.42 to −1.14 | −1.39 |
+| p | −1.71 to −1.41 | −1.44 |
+| δ | −2.14 to −1.87 | −2.09 |
+| s₀ | −0.43 to +0.36 (inside) | +0.17 |
+| γ | −0.99 to −0.52 (inside) | −0.99 |
+| φ | +2.91 to +4.06 | +3.69 |
+| x₀ | −1.70 to −1.10 | −1.47 |
+| y₀ | −2.30 to −1.93 | −2.07 |
+
+- **Width ratios** 1.07–1.20 (our 16–84% half-widths 7–20% wider than K24's), inside [2/3, 3/2] in every convention;
+  P (σ from the spread of d²) gives the slightly narrower posteriors (1.07–1.12) than F (1.17–1.20). Under P, σ at
+  our own posterior median is 42–44 pc, close to K24's 47 (not the 60 pc found at K24's medians on our curve, section
+  4.10).
+- **Chains:** in every convention the post-burn chain (8,000 steps after the doubling) is shorter than 50τ (τ_max
+  148–217), so every column-(3) fit carries the pre-registered "chain short" flag.
+- The baseline (L, C, Y, X), σ (F, P) and weights (W, R) move the anchors by at most about 0.6σ (x₀) and the shape
+  parameters by at most about 1.2σ (φ): none of these conventions accounts for the column-(3) difference.
+
+**T8-P: "prior-driven" (post hoc)**, with the divisor fixed at 74 km s⁻¹ kpc⁻¹ and the formal convention. The broad-prior
+posterior of ln ω₀ has a half-width of 0.172 (limit 0.085) and its median is 1.15σ (of K24's prior) from the K24-prior
+median (limit 0.5); the broad-prior median, 58.6 km s⁻¹ kpc⁻¹, is not at a bound (16th percentile 49, far from the
+31.5 threshold; no draw above 142.5). Both chains were flagged short after the doubling: τ_max 389 (K24) and 499
+(broad), so the 8,000 post-burn steps are only 16–21τ; the widths and medians carry that Monte Carlo uncertainty.
+
+| Prior | ω₀ (km s⁻¹ kpc⁻¹) | ρ₀ (M☉ pc⁻³) | Sun's vertical period (Myr) |
+|---|---|---|---|
+| K24's (ln(ω₀ km⁻¹ s pc) ~ N(−2.4, 0.17), centred on 91) | 71 (+9/−8) | 0.094 (+0.026/−0.020) | 88 (+12/−10) |
+| broad | 59 (+12/−10) | 0.064 (+0.028/−0.019) | 107 (+22/−17) |
+
+**Reading (post hoc).** (1) The column-(3) difference is not a matter of the baseline, the σ convention or the weights:
+all sixteen readings of K24's Methods give the same two inside and four outside, with δ about 2σ shorter, φ 3–4σ
+larger and the first anchor about 2σ lower in y; the addendum's expectation that Y, X or P would move the anchors by
+about 100 pc was wrong (at most about 35 pc). The cause is common to all sixteen: the data, the likelihood, or a
+convention none of them varies (the origin of s and the form of Λ(s), section 6). K24 fit "only those molecular clouds
+for which we can obtain a radial velocity measurement", which is our 79-cloud sample's definition; whether the clouds
+and their positions are the same is not checked here (T-061). (2) With ω₀ entering only through the model, the data
+constrain ln ω₀ to about ±0.17 (about ±19%), as tightly as K24's prior and far more than the broad prior (about ±0.46),
+and on their own prefer 59 km s⁻¹ kpc⁻¹; K24's prior (centred on 91) pulls the median up to 71. So prior and data are
+comparable, and K24's 67.7 sits between them. The broad width is inflated by the ω₀–r₀–μ₀ freedom (r₀ stays at about
+its prior width), and with B = 1 and ω₀t = 0 fixed ω₀ effectively measures the clusters' A_v/A_z ratio, which a
+partly standing component or the tanh outlier truncation would bias; it is not a clean measure of the midplane
+density. The withdrawn T8 stays withdrawn.
+
 ## 6. Referee notes
 
 ### Referee of the formal run (2026-11-21)
@@ -608,15 +665,40 @@ goalposts, and one likelihood problem in T8. Triage (each point checked against 
 | 10 | Literature: Zhu et al. 2024 (arXiv:2402.15346; gas and stars oscillate out of sync), Li & Chen 2022 (arXiv:2112.08390; standing or one-way travelling both consistent), Tu et al. 2022 (arXiv:2208.06469), Alves et al. 2020 (baseline conventions) | Zhu et al. 2024 is cited in the wiki; the others unverified (IDs from the referee) | Noted |
 | 11 | Most important additional test: find the convention that reproduces column (3), then rerun T1 and a T5 known-answer check injected on our own fit | – | Open question (section 7) |
 
+### Referee of R-CONV and T8-P (2026-11-22)
+
+The independent referee was a subagent. It saw README sections 1–4 (with 4.10 and its amendments), `wave011.py`,
+`stats011.py`, the conv and t8p parts of `run.py`, and the results files, not sections 5–7; it did not evaluate the
+likelihood on the data. It found no bug in the four baselines, P, R, the count, the width ratio, the choice rule or the
+T8-P likelihood, and found both labels applied as written. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The difference is common to all 16 conventions (they agree to about 0.3σ), so it comes from the data or the likelihood, not the baseline. At K24's medians σ_P on our curve is 59.7 pc against 42–44 pc at ours, which with σ = 47 pc costs of order 60 in ln L, far more than the priors gain: K24's column-(3) point is strongly disfavoured by our 79 clouds. The referee suggests the 79-cloud CO table may not be K24's column-(3) sample (about 9% of clouds were dropped in the CO analysis) | the agreement and the σ_P values: yes (`rconv.json`); the ln L estimate is the referee's, not computed by us. K24's Methods ("Modeling the Spatial Molecular Cloud Distribution", read 2026-11-22) say they "include in our analysis only those molecular clouds for which we can obtain a radial velocity measurement", i.e. the clouds with a CO velocity, which is what our 79 are; K24 do not print the count there | **Accepted** that the cause is common to all conventions (section 5.1 reading); **not accepted** as shown that the samples differ (K24's own selection is the clouds with velocities). A per-cloud diagnostic is registered (T-061) |
+| 2 | The origin of s and the form of Λ(s) = s/(p − γs) were not varied: an origin shift is not absorbed by s₀ and moves φ, p and γ together, which is the observed pattern (φ +3–4σ, p −1.5σ, γ −0.9σ). The addendum argued from cloud coverage, not from the model | yes (all conventions put s = 0 at anchor 0; K24: "s = 0 pc at the beginning of the Wave (near CMa OB1)") | **Accepted** as a gap of R-CONV's set of conventions; part of T-061 |
+| 3 | Held fixed everywhere: no z offset of the Sun (as K24), the ln(2πσ²) constant of eq. 11 (matters only under P), priors centred near K24's results (which attenuate our offsets) | yes | **Accepted** as limitations; listed in section 7 |
+| 4 | The "chain short" flags do not matter for the labels: about 1,800 independent samples per chain, sixteen chains with different seeds agree to 0.1–0.3σ, all started at K24's medians and moved away; T8-P's margins are large | yes (τ_max 148–217 for R-CONV; 389 and 499 for T8-P) | Noted in section 5.1 |
+| 5 | T8-P's "prior-driven" follows the rule, but the reading needs care: the data constrain ln ω₀ about as well as K24's prior (0.17 against 0.17), far better than the broad prior (about 0.46); under K24's prior (centred on 91) the median moves from 59 to 71. The broad width is inflated by the ω₀–r₀–μ₀ freedom (r₀ essentially at its prior width). With B = 1 and ω₀t = 0 fixed, ω₀ measures the clusters' A_v/A_z ratio, which a partly standing component or the outlier truncation bias | yes (`t8p.json`; K24's prior ln(ω₀ km⁻¹ s pc) ~ N(−2.4, 0.17), section 4.1) | **Accepted**: section 5.1's reading reworded ("prior and data comparable; K24's value pulled up by its prior") with these caveats |
+| 6 | No serious bug; minor: P is not a proper likelihood (σ depends on the residuals) | yes | Noted; harmless here (P ≈ F) |
+| 7 | The addendum's expectation (Y, X or P would move the anchors by about 100 pc) was wrong | yes (at most about 0.6σ ≈ 35 pc in x₀) | Stated in section 5.1 |
+| 8 | Literature: Alves et al. 2020 (arXiv:2001.08748), Zucker et al. 2020 (arXiv:2001.00591), Edenhofer et al. 2024 (arXiv:2308.01295), Zhu et al. 2024 (arXiv:2402.15346), Li & Chen 2022 (arXiv:2112.08390), McKee et al. 2015 (arXiv:1509.05334) | Alves et al. 2020 is cited in the wiki; the others are the referee's IDs, not verified | Noted; not used |
+| 9 | Most important additional test: on the 79 clouds, ln L and the per-cloud d² at K24's column-(3) medians against our MAP (L-F-W); then refits with the origin of s shifted by ±200 pc and with z + 20.8 pc | – | Registered as T-061 |
+
 ## 7. Open questions
 
 - Which convention reproduces K24's clouds-only fit (column (3))? Candidates: the curve starting at
   u = 0 rather than −0.2, σ estimated from the spread of d² as K24 describe, kernel weights recomputed at
   each parameter vector. Then rerun T1 and a T5 known-answer check injected on our own fit, so injection
-  and analysis share one curve (referee, section 6, points 2, 3 and 11).
+  and analysis share one curve (referee, section 6, points 2, 3 and 11). **Answered by R-CONV (2026-11-22, T-056,
+  section 5.1): none of 16 conventions** (baselines L, C, Y, X; σ fixed or from the spread of d²; fixed or
+  recomputed weights) reproduces column (3); all give the same two inside and four outside. Still open: the origin of
+  s and the form of Λ(s), a z offset of the Sun, and whether our 79 clouds and their positions are K24's (a per-cloud
+  diagnostic at K24's medians, T-061).
 - T8 needs a likelihood that is proper in ω₀ when the v_z divisor is fitted (for example an untruncated
   velocity term, or a fixed divisor with ω₀ entering only through the frequency); as pre-registered it
-  is uninformative (section 6, point 1).
+  is uninformative (section 6, point 1). **Answered by T8-P (2026-11-22, T-056, section 5.1):** with the divisor
+  fixed, the data constrain ln ω₀ about as tightly as K24's prior and prefer 59 km s⁻¹ kpc⁻¹; the label is
+  "prior-driven" (half-width 0.172 against 0.085), and K24's 67.7 lies between prior and data.
 
 ## 8. Exploring via chat
 
