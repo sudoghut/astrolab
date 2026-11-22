@@ -837,8 +837,8 @@ def run_gt_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, grid_m2l, gri
 
 
 # ---------------------------------------------------------------- R2-RE-GTP (addendum 2026-11-22, T-060)
-GTP_REUSED_FILES = {"4": ("r2_re_gt_sims_", {"0.05": "T050", "tau_obs": "THAT", "0.105": "T105"}),
-                    "inf": ("r2_re_g_sims_", {"0.05": "V050", "tau_obs": "VHAT", "0.105": "V105"})}
+GTP_REUSED_FILES = {nk: ("r2_re_gt_sims_" if nk == "4" else "r2_re_g_sims_", keys)
+                    for nk, keys in shape.GTP_REUSED_SETS.items()}
 
 
 def formal_gtp_done(path=None):
@@ -853,6 +853,13 @@ def gtp_preflight(ctx, P):
     if not P["gtp_check"]:
         raise ValueError("gtp_only needs gtp_check = true")
     exploring = getattr(ctx, "max_save_bytes", None) is not None
+    if not exploring:
+        # a formal run uses the pre-registered grid, streams and counts (README R2-RE-GTP)
+        bad = [k for k, v in shape.GTP_PREREGISTERED.items()
+               if shape.json_like(P[k]) != shape.json_like(v)]
+        if bad:
+            raise RuntimeError("R2-RE-GTP formal run refused: PARAMS differ from the pre-registered values (" +
+                               ", ".join(bad) + ")")
     if exploring and not formal_gtp_done():
         raise RuntimeError("an exploration may run R2-RE-GTP only after the formal results/r2_re_gtp.json is committed "
                            "(README section 8)")
@@ -861,6 +868,8 @@ def gtp_preflight(ctx, P):
         raise RuntimeError("R2-RE-GTP needs R2-RE-GT's formal results/r2_re_gt.json")
     gt_rec = json.loads((res / "r2_re_gt.json").read_text(encoding="utf-8"))
     g_rec = json.loads((res / "r2_re_g.json").read_text(encoding="utf-8"))
+    if g_rec.get("status") != "evaluated" or "p_G" not in g_rec:
+        raise RuntimeError("R2-RE-GTP needs R2-RE-G's evaluated results/r2_re_g.json (with p_G)")
     reused = {}
     for nk, (prefix, keys) in GTP_REUSED_FILES.items():
         reused[nk] = {}
@@ -891,7 +900,9 @@ def run_gtp_only(ctx, P, L, y, C, nz, cls, col_host, ident, pre):
     r2_re_gtp_sims_<nu>_<tau>.json and summary.json's R2_RE_GTP key."""
     gt_rec, g_rec, reused = pre
     if not ident["host_step_evaluable"]:
-        out, sims = {"stage": "full", "status": "not evaluable (host step not evaluable)"}, {}
+        out = {"stage": "full", "status": "not evaluable (host step not evaluable)",
+               "settings": {"nus": [shape.gtp_nu_key(v) for v in P["gtp_nus"]], "threads": shape.thread_settings()}}
+        sims = {}
     else:
         rows_a, _ = anchor_rows(nz, cls, y)
         calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]

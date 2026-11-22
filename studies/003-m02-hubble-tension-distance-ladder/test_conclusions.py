@@ -1021,6 +1021,15 @@ def check_r2_re_gtp(out, sims, reused, s, sizes=None, recorded_k=None):
         return
     n_in = out["settings"]["n_inner"]
     assert out["settings"]["nus"] == GTP_NUS and out["settings"]["taus"] == GTP_TAUS
+    st = out["settings"]
+    t_seeds = {str(k): v for k, v in st["gtp_t_seeds"].items()}
+    i_seeds = {str(k): v for k, v in st["gtp_inner_seeds"].items()}
+    i_seeds.update({str(st["gt_nu"]): st["gt_inner_seed"]})
+    i_seeds.update({str(a): b for a, b in zip(st["gt_nu_rep"], st["gt_inner_seeds_rep"])})
+    for name, f in sims.items():
+        a = name.split("_")[0]
+        assert f"{f['nu']:g}" == a and f["t_seed_base"] == t_seeds[a] and f["inner_t_seed"] == i_seeds[a]
+        assert f["seed_base"] == st["g_seed_base"] and f["inner_seed"] == st["g_inner_seed"] and f["n_inner"] == n_in
     for (a, b), k in (GTP_RECORDED_K if recorded_k is None else recorded_k).items():
         assert out["p_fix"][a][b]["k"] == k, (a, b)
     labs, ps = [], []
@@ -1061,7 +1070,7 @@ def check_r2_re_gtp(out, sims, reused, s, sizes=None, recorded_k=None):
     elif all(x == "not excluded" for x in labs):
         exp = pre + "not excluded across the profile"
     else:
-        exp = pre + f"model-limited (p_fix from {min(ps):.3f} to {max(ps):.3f})"
+        exp = pre + f"model-limited (p_fix from {min(ps):.4f} to {max(ps):.4f})"
     assert out["statement"] == exp
 
 

@@ -1695,6 +1695,13 @@ GTP_RECORDED_K = {("4", "tau_obs"): 1047, ("4", "0.05"): 501, ("4", "0.105"): 18
                   ("3", "tau_obs"): 1476, ("10", "tau_obs"): 422,
                   ("inf", "tau_obs"): 326, ("inf", "0.05"): 254, ("inf", "0.105"): 453}
 GTP_PROFILE = "t-tail comparison: "
+# the pre-registered values a formal run must use (README R2-RE-GTP)
+GTP_PREREGISTERED = {"gtp_nus": [3, 4, 6, 10, 30, "inf"],
+                     "gtp_t_seeds": {3: 430_000, 6: 440_000, 10: 450_000, 30: 460_000},
+                     "gtp_inner_seeds": {6: 613_000, 30: 614_000}, "gtp_n_sims": 10_000,
+                     "gt_n_inner": 20_000, "gt_nu": 4, "gt_inner_seed": 610_000,
+                     "gt_nu_rep": [3, 10], "gt_inner_seeds_rep": [611_000, 612_000],
+                     "g_seed_base": 400_000, "g_inner_seed": 600_000}
 
 
 def gtp_nu_key(nu):
@@ -1731,7 +1738,7 @@ def gtp_statement(labels, ps):
         return GTP_PROFILE + "excluded across the profile"
     if all(x == NOT_EXCL for x in labels):
         return GTP_PROFILE + "not excluded across the profile"
-    return GTP_PROFILE + f"model-limited (p_fix from {min(ps):.3f} to {max(ps):.3f})"
+    return GTP_PROFILE + f"model-limited (p_fix from {min(ps):.4f} to {max(ps):.4f})"
 
 
 def gtp_refit_record(k_s, k_obs, n_in):
