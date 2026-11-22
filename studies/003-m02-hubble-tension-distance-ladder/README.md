@@ -1354,6 +1354,84 @@ under the T null was computed (the code was run on synthetic systems only); no r
     ends under rule (1) without p_T,obs, the exploration gate stays closed (no exploration full stage, no full run
     with `gt_check`) until a rerun with a logged reason. Sensitivity keys are written as `f"{ν:g}"` ("3", "10").
 
+### Addendum 2026-11-22: R2-RE-GTP, a profile of R2-RE-GT over the tail weight and the scale (T-060), pre-registered before any of these simulations
+
+*Why.* R2-RE-GT (T-057) read "undetermined (underpowered)" with the sub-label "t₄ diffuse undetermined (Monte
+Carlo)": p_T,obs = 0.052 at ν = 4 and τ̂_obs, its interval containing 0.05. Its referee (section 6, R2-RE-GT points 1,
+2, 7 and 10) noted that the Monte Carlo error (about ±0.003) is small against the model choices: the descriptive
+sensitivities moved p from 0.021 (ν = 10) to 0.092 (EM scale), and the size was checked only at ν = 4. This addendum
+computes, on one grid of tail weights ν and scales τ, the plug-in p value on the data, the size of the plug-in test
+and a parametric-bootstrap p value, and summarises the grid in one reported statement. **It is a reported,
+non-decisive profile: it changes no verdict, label, reading, sub-label or gloss, and R2-RE's row stays the headline.**
+
+*Seen before this addendum.* Everything in sections 5–7 and log.md, in particular all of R2-RE-GT's results: p_T,obs =
+0.0524 (k = 1,047) at ν = 4 and τ̂_obs = 0.0766988; at ν = 4 and fixed τ 0.05 and 0.105, p = 0.025 (k = 501) and
+0.090 (k = 1,806); at τ̂_obs, ν = 3 0.074 (k = 1,476) and ν = 10 0.021 (k = 422); with the EM scale 0.092; the rates
+R_THAT 0.0461, R_T050 0.0410, R_T105 0.0442; and R2-RE-G's Gaussian results (p_G = 0.016 at τ̂_obs, 0.013 at 0.05,
+0.023 at 0.105; R_VHAT 0.0477, R_V050 0.0447, R_V105 0.0483). From the referee of R2-RE-GT: the THAT rejection rates
+by τ̂_s bins and, from the committed simulations, P(G_s ≥ G_obs) = 0.056 (THAT), 0.027 (T050), 0.093 (T105). Not yet
+computed: any simulation or inner draw at ν = 6 or 30, any outer simulation at ν = 3 or 10, p at ν = 3 or 10 with a
+fixed τ, and any size other than those listed; no code for this addendum exists.
+
+*Grid.* ν ∈ {3, 4, 6, 10, 30, ∞} (∞: Gaussian host effects) × τ ∈ {0.05, τ̂_obs, 0.105} mag, the three values that
+R2-RE-G and R2-RE-GT checked (close to R2-RE's 68% interval 0.048–0.105), 18 points. The statistic G, z_j, M, W,
+the design, the inner draws, the REML refit and `rob.three_way` are exactly R2-RE-GT's (R2-RE-G's for ν = ∞).
+
+*Per grid point (ν, τ).*
+- **p_plug(ν, τ):** the plug-in p value on the data at fixed τ: k = #{i: G_i ≥ G_obs} over the 20,000 fixed inner
+  draws z_i = A0_i + s T0_i with s = τ√((ν − 2)/ν) and T_in drawn with ν; p = (1 + k)/(1 + 20,000), label from
+  `rob.three_way` as in R2-RE-GT. For ν = ∞ it is R2-RE-G's Gaussian inner p at τ (`shape.inner_k`).
+- **size(ν, τ):** the rejection rate ("excluded") of the plug-in test with τ refitted in each simulation, under
+  outer simulations from T(τ) with host effects b_j = s·t_j, t_j ~ t_ν (as THAT, T050, T105 of R2-RE-GT), n =
+  10,000, with its Clopper–Pearson interval; a point whose interval lies entirely above 0.05 is flagged
+  "anti-conservative".
+- **p_boot(ν, τ):** a parametric-bootstrap p value from the same outer simulations, (1 + #{s: G_s ≥ G_obs})/(1 + n),
+  which does not use the plug-in τ̂ (labelled by `rob.three_way` on the count, as p_plug).
+- Streams. Inner T_in: ν = 4 `default_rng(610_000)`, ν = 3 `611_000`, ν = 10 `612_000` (R2-RE-GT's), ν = 6
+  `613_000`, ν = 30 `614_000`, all `.standard_t(ν, (20_000, 37))`; E_in R2-RE-G's (`600_000`). Outer ε_s R2-RE-G's
+  (`400_000 + s`); outer t_s: ν = 4 `410_000 + s` (R2-RE-GT's), ν = 3 `430_000 + s`, ν = 6 `440_000 + s`, ν = 10
+  `450_000 + s`, ν = 30 `460_000 + s`. Seeds 430,000–469,999, 613,000 and 614,000 collide with none used before.
+- Reuse. The ν = 4 points take size and p_boot from R2-RE-GT's committed simulations (THAT, T050, T105) and
+  p_plug from its records; the ν = ∞ points take them from R2-RE-G's (VHAT, V050, V105, p_G, `p_G_fixed`). New: 12
+  outer sets (ν = 3, 6, 10, 30 × three τ) and the inner p at the 10 new (ν, τ) pairs.
+
+*Checks (a failure makes R2-RE-GTP "not evaluable (<reason>)", reported instead of the summary).* R2-RE-G's and
+R2-RE-GT's reproduction checks on the data (τ̂_obs, the REML grid, z_obs, G_obs within a relative 10⁻⁸); the
+recomputed k at the five recorded (ν, τ) pairs (ν = 4 at τ̂_obs, 0.05, 0.105; ν = 3 and 10 at τ̂_obs) equal 1,047,
+501, 1,806, 1,476 and 422 exactly; for each new outer set, the first three simulations pass R2-RE-GT's pointwise check
+(y_s built in full, the 37 one-column GLS z within 10⁻⁸).
+
+*Summary statement (reported; fixed now).* From the 18 p_plug labels:
+- all "excluded" → **"t-tail comparison: excluded across the profile"**;
+- all "not excluded" → **"t-tail comparison: not excluded across the profile"**;
+- otherwise → **"t-tail comparison: model-limited (p_plug from <min> to <max>)"**.
+Reported with it: the supremum and infimum of p_plug and of p_boot over the grid (and over the points not flagged
+anti-conservative), the points flagged anti-conservative, and the 18 × 3 table. The statement is attached in section 5
+to R2-RE-GT's sub-label as its profile; it is not a reading and does not replace the sub-label.
+
+*Expected outcome (stated now).* p_plug grows with heavier tails and larger τ (ν = 3, τ = 0.105 the largest;
+ν = ∞, τ = 0.05 the smallest), from about 0.013 to about 0.12, so **"model-limited"** is by far
+the most likely statement. The size should stay near or below 0.05 at ν ≥ 4; at ν = 3 it may rise above 0.05 (heavier
+tails make one large draw inflate G and τ̂ together), in which case that point is flagged. p_boot should track
+p_plug within a factor of about 1.5.
+
+*Runtime.* R2-RE-GT's outer sets took about 18 s each for 10,000 simulations (single thread); 12 new sets about 4 min,
+the inner p and checks under 1 min, data loading and host identification 2–3 min: about 10 min single-threaded.
+Cache only, no download.
+
+*Code checks before the formal run (synthetic data only).* The variance matching at ν = 3, 6, 10, 30 (sample variance
+of b equals τ²); ν = ∞ uses R2-RE-G's functions unchanged; the summary rule and the anti-conservative flag; the
+record contains every grid point. On the real data before the formal run only the reproduction checks above.
+
+*Switch and code.* `PARAMS["gtp_check"]` (false by default; true with `gtp_only` = true only for the formal run, back
+afterwards with a dated note in log.md), `"gtp_nus": [3, 4, 6, 10, 30, "inf"]`, `"gtp_t_seeds": {3: 430_000, 6:
+440_000, 10: 450_000, 30: 460_000}`, `"gtp_inner_seeds": {6: 613_000, 30: 614_000}`, `"gtp_n_sims": 10_000`. Results
+`results/r2_re_gtp.json` and `results/r2_re_gtp_sims_<ν>_<τ>.json` for the 12 new sets (G_s, τ̂_s, k_s; each below
+1 MB), a key `R2_RE_GTP` in `summary.json` (other keys byte-identical); `shape.py` gains the profile after R2-RE-GT's
+block (no change to R2-RE-G's or R2-RE-GT's functions or results), tests, conclusion checks, a web section and section 8
+knobs. As for R2-RE-GT, the first formal outcome stands, and a rerun needs a reason also present in log.md. None of
+this exists yet.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
