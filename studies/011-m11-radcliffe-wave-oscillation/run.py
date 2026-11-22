@@ -9,8 +9,12 @@ The formal run takes many hours on one core (README 4.7). It writes checkpoints 
 folder (astrolab cache dir / PARAMS["checkpoint_subdir"] / <key>), so an interrupted or paused run
 (PARAMS["stop_after_hours"]) continues where it stopped when it is started again with the same PARAMS
 and code. Results are written only when every requested part has finished.
+
+The post-hoc parts of README 4.10 (T-056) run alone: PARAMS["parts"] = ["conv"] (R-CONV) or ["t8p"] (T8-P)
+write rconv.json / t8p.json and only the R_CONV / T8_P keys of summary.json (main_standalone).
 """
 import hashlib
+import json
 import re
 import math
 import time
@@ -96,9 +100,16 @@ PARAMS = {
     "t8_divisor_variant_kms_kpc": 74.0,
     "t8_draws": 2000,
     "sun_vz_kms": 7.8,
+    # R-CONV and T8-P (README 4.10, T-056, post hoc); run alone with parts ["conv"] or ["t8p"]
+    "conv_indices": list(range(16)),          # the 16 conventions (index = baseline*4 + sigma*2 + weights)
+    "conv_seed_offset": 3000,                 # column-(3) chain of convention i: seed (seed, 3000 + i)
+    "conv_min_count": 3,
+    "conv_repro_count": 5,
+    "conv_width_range": [0.6666666666666666, 1.5],
+    "t8p_bound_frac": 0.05,                   # broad-prior median within 5% of a bound -> at the bound
     # load check (README 3)
     "load_check_max_abs_vz": 3.0,
-    # running
+    # running ("conv" and "t8p" are standalone parts, README 4.10 and section 8)
     "parts": ["t1t2", "t3", "t4", "t5", "t6", "t7", "t8"],
     "timing_evals": 100,
     "stop_after_hours": 10.0,                 # pause (checkpointed) after this long; 0 = no limit
@@ -181,6 +192,10 @@ def setups(P, outlier="k24", u1_mode="half"):
                               prior="broad", broad=broad, **common),
         "col7_div": W.Setup(free=SHAPE + ("ln_omega0", "ln_mu0", "r0"), clouds=True,
                             divisor=P["t8_divisor_variant_kms_kpc"] / 1000.0, prior="k24", **common),
+        # T8-P (README 4.10 Part B): the divisor fixed at 74 under the broad priors
+        "col7_div_broad": W.Setup(free=SHAPE + ("ln_omega0", "ln_mu0", "r0"), clouds=True,
+                                  divisor=P["t8_divisor_variant_kms_kpc"] / 1000.0, prior="broad", broad=broad,
+                                  **common),
     }
 
 
@@ -239,9 +254,11 @@ def timing_estimate(P, models, data, grid, ctx):
 # =============================================================================================
 # Fits
 
-def mcmc(P, store, name, model, center_vec, ctx):
+def mcmc(P, store, name, model, center_vec, ctx, seed_int=None):
     ctx.log(f"MCMC {name} ({len(model.setup.free)} parameters)")
-    return F.run_mcmc(model, center_vec, seed=int(rng_for(P["seed"], "mcmc_" + name).integers(2 ** 31)),
+    if seed_int is None:
+        seed_int = int(rng_for(P["seed"], "mcmc_" + name).integers(2 ** 31))
+    return F.run_mcmc(model, center_vec, seed=seed_int,
                       n_walkers=P["mcmc_walkers"], n_steps=P["mcmc_steps"], n_burn=P["mcmc_burn"], store=store,
                       name="mcmc_" + name, chunk=P["mcmc_chunk"], log=ctx.log,
                       min_tau_mult=P["mcmc_min_tau_mult"], thin_keep=P["mcmc_thin_keep"])
@@ -569,20 +586,24 @@ def summarise_t5(P, pt, bt, known_answer):
     }
 
 
-def t5_known_answer(P, store, grid, data, sel_mask, chain_vectors, median_vector, ctx):
-    """README 4.4: mocks on K24's column-(6) medians with omega0 t = -0.38 at B = 0.5, 0.84, 1."""
+def t5_known_answer(P, store, grid, data, sel_mask, chain_vectors, median_vector, ctx, *, inject=None,
+                    u1_mode="half", prefix=""):
+    """README 4.4: mocks on K24's column-(6) medians with omega0 t = -0.38 at B = 0.5, 0.84, 1.
+
+    README 4.10 (R-CONV reruns): `inject(B)` gives the injected vector instead, `u1_mode` the convention's
+    baseline and `prefix` separates the checkpoint names; the defaults are the formal run's check."""
     kr = (P["t5_k_min"], P["t5_k_max"], P["t5_k_step"])
     cut = P["t5_cut_sigma"] * P["sigma_pc"]
     dsel = data.cluster_subset(sel_mask)
-    m6 = W.Model(W.Setup(free=SHAPE, sigma=P["sigma_pc"]), dsel, grid)
-    cur = F.t5_curve(median_vector, grid)
+    m6 = W.Model(W.Setup(free=SHAPE, sigma=P["sigma_pc"], u1_mode=u1_mode), dsel, grid)
+    cur = F.t5_curve(median_vector, grid, u1_mode)
     rows = {}
     passed = True
     for B in P["t5_ka_B"]:
-        v_inj = W.k24_vector(6, w0t=P["t5_ka_w0t"], B=B)
+        v_inj = W.k24_vector(6, w0t=P["t5_ka_w0t"], B=B) if inject is None else inject(B)
         mocks = []
         for i in range(P["t5_ka_mocks"]):
-            name = f"t5ka_B{B}_{i}"
+            name = f"{prefix}t5ka_B{B}_{i}"
 
             def one(name=name):
                 rng = rng_for(P["seed"], name)
@@ -590,7 +611,7 @@ def t5_known_answer(P, store, grid, data, sel_mask, chain_vectors, median_vector
                 pt = F.t5_analyse(cur, x, y, z, vz, dsel.csig, cut=cut, bandwidth=P["bandwidth_pc"],
                                   sigma=P["sigma_pc"], k_range=kr)
                 bt = F.t5_bootstrap(chain_vectors, grid, x, y, z, vz, dsel.csig, rng, n_boot=P["t5_boot"], cut=cut,
-                                    bandwidth=P["bandwidth_pc"], u1_mode="half", k_range=kr, sigma=P["sigma_pc"])
+                                    bandwidth=P["bandwidth_pc"], u1_mode=u1_mode, k_range=kr, sigma=P["sigma_pc"])
                 lo, hi = S.interval(bt["bhat"])
                 return {"bhat": pt["fit"]["bhat"] if pt["fit"] else float("nan"), "interval": [lo, hi]}
             mocks.append(store.cached(name, one))
@@ -670,21 +691,25 @@ def t8_run(P, models, res_k, res_b, res_div):
                        shift_max=P["t8_shift_max"])
 
     def derived(res, name):
-        m = models[name]
-        rng = rng_for(P["seed"], "t8draws_" + name)
-        sam = res["samples"][rng.integers(0, len(res["samples"]), P["t8_draws"])]
-        om = np.exp(sam[:, m.setup.free.index("ln_omega0")])
-        mu = np.exp(sam[:, m.setup.free.index("ln_mu0")]) * 1e-3
-        r0 = sam[:, m.setup.free.index("r0")]
-        rho = np.array([W.rho0(o) for o in om])
-        per = np.array([W.sun_period_myr(o, u, r, P["sun_vz_kms"]) for o, u, r in zip(om, mu, r0)])
-        return {"omega0_kms_kpc": S.percentiles(1000 * om), "rho0_msun_pc3": S.percentiles(rho),
-                "sun_period_myr": S.percentiles(per[np.isfinite(per)]), "mu0_kpc": S.percentiles(mu * 1e3),
-                "r0_pc": S.percentiles(r0)}
+        return t8_derived(P, models[name], res, "t8draws_" + name)
     return {"ln_omega0_k24_prior": pk, "ln_omega0_broad_prior": pb, "halfwidth_broad": half_b,
             "k24_prior_sigma": P["t8_prior_sigma_ln_omega0"], "median_shift_in_sigma_broad": shift,
             "label": label, "k24_priors": derived(res_k, "col7"), "broad_priors": derived(res_b, "col7_broad"),
             "variant_divisor_fixed": derived(res_div, "col7_div") | {"divisor_kms_kpc": P["t8_divisor_variant_kms_kpc"]}}
+
+
+def t8_derived(P, m, res, draws_name):
+    """omega0, rho0 = omega0^2/(4 pi G), the Sun's vertical period, mu0, r0 from t8_draws posterior draws."""
+    rng = rng_for(P["seed"], draws_name)
+    sam = res["samples"][rng.integers(0, len(res["samples"]), P["t8_draws"])]
+    om = np.exp(sam[:, m.setup.free.index("ln_omega0")])
+    mu = np.exp(sam[:, m.setup.free.index("ln_mu0")]) * 1e-3
+    r0 = sam[:, m.setup.free.index("r0")]
+    rho = np.array([W.rho0(o) for o in om])
+    per = np.array([W.sun_period_myr(o, u, r, P["sun_vz_kms"]) for o, u, r in zip(om, mu, r0)])
+    return {"omega0_kms_kpc": S.percentiles(1000 * om), "rho0_msun_pc3": S.percentiles(rho),
+            "sun_period_myr": S.percentiles(per[np.isfinite(per)]), "mu0_kpc": S.percentiles(mu * 1e3),
+            "r0_pc": S.percentiles(r0)}
 
 
 # =============================================================================================
@@ -832,6 +857,301 @@ def compare_variants(main_labels, main_reduced, variants):
 
 
 # =============================================================================================
+# README 4.10 (T-056, post hoc): R-CONV (which convention reproduces column (3)?) and T8-P (omega0 with
+# the v_z divisor fixed at 74). Standalone parts: run alone, write rconv.json / t8p.json and only the
+# R_CONV / T8_P keys of summary.json; every other results file is left untouched.
+
+STANDALONE = ("conv", "t8p")
+STANDALONE_KEYS = {"conv": ("rconv", "R_CONV"), "t8p": ("t8p", "T8_P")}
+
+
+def conv_seed(P, index):
+    """Column-(3) chain seed of convention `index`: the integer drawn from the seed sequence
+    (seed, conv_seed_offset + index), i.e. (seed, 3000 + index) at the defaults."""
+    ss = [int(P["seed"]) % (2 ** 32), int(P["conv_seed_offset"]) + int(index)]
+    return int(np.random.default_rng(ss).integers(2 ** 31))
+
+
+def conv_models(P, data, grid, conv):
+    """Column (3)-(6) models under one convention (README 4.10). sigma: the convention's (F or P) for the
+    clouds-only column (3); 47 pc (sigma_pc) for every cluster fit. Weights W: fixed at K24's column-(6)
+    medians on the convention's curve; R: recomputed at each parameter vector (same bandwidth)."""
+    bw = P["bandwidth_pc"]
+    wc, wo = W.fixed_weights(data, grid, bw, conv["u1_mode"])
+    common = dict(sigma=P["sigma_pc"], outlier="k24", u1_mode=conv["u1_mode"], weights_mode=conv["weights_mode"],
+                  bandwidth=bw)
+    st = {"col3": W.Setup(free=SHAPE, clusters=False, clouds=True, sigma_mode=conv["sigma_mode"], **common),
+          "col4": W.Setup(free=SHAPE, **common),
+          "col5": W.Setup(free=SHAPE + ("w0t", "B"), **common),
+          "col6": W.Setup(free=SHAPE, clouds=True, **common)}
+    return {k: W.Model(s, data, grid, wc, wo) for k, s in st.items()}
+
+
+def sigma_p_of(model, v):
+    """README 4.10 P's sigma at v: sqrt(0.5 x the unweighted standard deviation of the clouds' d^2)."""
+    ev = model.evaluate(v)
+    if ev is None or "co_res" not in ev:
+        return None
+    d2 = (ev["co_res"] ** 2).sum(1)
+    return float(math.sqrt(0.5 * float(np.std(d2))))
+
+
+def conv_row(conv, model, res):
+    """One convention's column-(3) record: T1 count, sigma-scaled differences, width ratio, chain."""
+    t1 = t1_column(model, res, 3)
+    k24 = W.K24_TABLE2[3]
+    ours = {n: (t1["parameters"][n]["ours"]["p16"], t1["parameters"][n]["ours"]["p84"]) for n in T1_KEYS}
+    theirs = {n: (k24[n][1], k24[n][2]) for n in T1_KEYS}
+    med = F.posterior_median_vector(model, res["samples"])
+    return {**{k: conv[k] for k in ("index", "name", "baseline", "sigma", "weights", "n_factors_differing")},
+            "count": t1["n_inside_of_6"], "t1_label": t1["label"],
+            "inside": {n: t1["parameters"][n]["inside_k24_1sigma"] for n in T1_KEYS},
+            "sigma_scaled_differences": {n: t1["parameters"][n]["sigma_scaled_difference"] for n in T1_KEYS + ANCHORS},
+            "width_ratio": S.width_ratio(ours, theirs),
+            "halfwidth_ratios": {n: S.half_width(*ours[n]) / (0.5 * sum(theirs[n])) for n in T1_KEYS},
+            "parameters": {n: t1["parameters"][n]["ours"] for n in T1_KEYS + ANCHORS},
+            "sigma_P_at_median_pc": sigma_p_of(model, med),
+            "chain": chain_meta(res)}
+
+
+def ka_injection_vector(v3, v5, B):
+    """README 4.10 known-answer injection: the chosen convention's column-(3) posterior median (anchors and
+    A, p, delta, s0, gamma, phi; omega0, mu0, r0 adopted), omega0 t from its column-(5) median, and B."""
+    v = np.array(v3, float)
+    v[W.IDX["w0t"]] = float(v5[W.IDX["w0t"]])
+    v[W.IDX["B"]] = float(B)
+    return v
+
+
+def conv_reruns(P, store, data, grid, conv, mods, res3, ctx):
+    """Columns (4), (5), (6), T1 for (4) and (6), T5 and its known-answer check under the chosen convention."""
+    pre = f"conv{conv['index']:02d}_"
+    qual = f"under {conv['name']}, post hoc"
+    col3_vecs = np.array([mods["col3"].full(s) for s in res3["samples"]])
+    col3_med = F.posterior_median_vector(mods["col3"], res3["samples"])
+    res4 = mcmc(P, store, pre + "col4", mods["col4"], W.k24_vector(4), ctx)
+    res5 = mcmc(P, store, pre + "col5", mods["col5"], W.k24_vector(5), ctx)
+    res6 = mcmc(P, store, pre + "col6", mods["col6"], W.k24_vector(6), ctx)
+    v5 = F.posterior_median_vector(mods["col5"], res5["samples"])
+    t1 = {}
+    for c, r, col in (("col4", res4, 4), ("col6", res6, 6)):
+        t1[c] = t1_column(mods[c], r, col)
+        t1[c]["label_qualified"] = f"{t1[c]['label']} {qual}"
+    f5 = mods["col5"].setup.free
+    col5 = {"B": S.percentiles(res5["samples"][:, f5.index("B")]),
+            "w0t": S.percentiles(res5["samples"][:, f5.index("w0t")]), "median": W.physical(v5)}
+    # T5 (README 4.4) on the chosen convention's column-(3) median curve; its known-answer check is
+    # injected on that same curve (README 4.10)
+    cur = F.t5_curve(col3_med, grid, conv["u1_mode"])
+    _, _, sel = F.t5_select(cur, data.cx, data.cy, data.cz, cut=P["t5_cut_sigma"] * P["sigma_pc"])
+    ka = t5_known_answer(P, store, grid, data, sel, col3_vecs, col3_med, ctx,
+                         inject=lambda B: ka_injection_vector(col3_med, v5, B), u1_mode=conv["u1_mode"], prefix=pre)
+    inj = W.physical(ka_injection_vector(col3_med, v5, 1.0))
+    inj.pop("B")
+    ka["injected_vector"] = inj
+    ka["injected_B"] = list(P["t5_ka_B"])
+    t5 = t5_run(P, store, pre, data, grid, col3_vecs, col3_med, ctx, cut_sigma=P["t5_cut_sigma"],
+                bandwidth=P["bandwidth_pc"], u1_mode=conv["u1_mode"], known_answer=ka)
+    t5["known_answer"] = ka
+    labels = {"T1_col4": t1["col4"]["label_qualified"], "T1_col6": t1["col6"]["label_qualified"],
+              "T5_wavelengths": f"{t5['wavelengths_label']} ({qual})", "T5_bhat": f"{t5['bhat_label']} ({qual})",
+              "T5_known_answer_passed": bool(ka["passed"])}
+    chains = {k: chain_meta(r) for k, r in (("col4", res4), ("col5", res5), ("col6", res6))}
+    return {"convention": conv["name"], "index": conv["index"], "sigma_pc_cluster_fits": P["sigma_pc"],
+            "t1": t1, "col5": col5, "t5": t5, "labels": labels, "chains": chains,
+            "chain_short": [k for k, r in (("col4", res4), ("col5", res5), ("col6", res6)) if r["chain_short"]],
+            "note": "reported next to the formal run's labels; the formal labels, the overall reading and T6 "
+                    "stay as recorded; T3, T4, T6, T7 are not rerun (README 4.10)"}
+
+
+def conv_run(P, store, data, grid, ctx):
+    """README 4.10 Part A: the sixteen column-(3) chains, the choice rule, and the reruns if one is chosen."""
+    idxs = [int(i) for i in P["conv_indices"]]
+    rows, keep = [], {}
+    for i in idxs:
+        conv = W.convention(i)
+        mods = conv_models(P, data, grid, conv)
+        res = mcmc(P, store, f"conv{i:02d}_col3", mods["col3"], W.k24_vector(3), ctx, seed_int=conv_seed(P, i))
+        row = conv_row(conv, mods["col3"], res)
+        rows.append(row)
+        keep[i] = (conv, mods, res)
+        ctx.log(f"R-CONV {conv['name']} (index {i}): count {row['count']}/6, width ratio {row['width_ratio']:.3f}"
+                f"{' (chain short)' if res['chain_short'] else ''}")
+    choice = S.rconv_choose(rows, min_count=P["conv_min_count"], repro_count=P["conv_repro_count"],
+                            ratio_range=tuple(P["conv_width_range"]))
+    ctx.log(f"R-CONV: {choice['label']}" + (f" ({choice['reason']})" if choice["reason"] else ""))
+    out = {"post_hoc": True, "conventions": rows, "choice": choice, "label": choice["label"],
+           "complete_set": sorted(idxs) == list(range(16)),
+           "k24_column3": {n: dict(zip(("median", "plus", "minus"), W.K24_TABLE2[3][n])) for n in T1_KEYS + ANCHORS},
+           "reruns": None}
+    if choice["chosen"] is not None:
+        conv, mods, res3 = keep[choice["chosen"]]
+        out["reruns"] = conv_reruns(P, store, data, grid, conv, mods, res3, ctx)
+    return out
+
+
+def conv_summary(rc):
+    rr = rc["reruns"]
+    return {"label": rc["label"], "case": rc["choice"]["case"], "chosen": rc["choice"].get("chosen_name"),
+            "reason": rc["choice"]["reason"], "complete_set": rc["complete_set"],
+            "counts": {r["name"]: r["count"] for r in rc["conventions"]},
+            "width_ratios": {r["name"]: r["width_ratio"] for r in rc["conventions"]},
+            "reruns": rr["labels"] if rr else None,
+            "chain_short": [r["name"] + ":col3" for r in rc["conventions"] if r["chain"]["chain_short"]]
+            + ([rr["convention"] + ":" + k for k in rr["chain_short"]] if rr else [])}
+
+
+def t8p_run(P, store, mods, ctx):
+    """README 4.10 Part B: column-(7) setup with the divisor fixed at 74 under the formal convention (L, F, W),
+    under K24's priors and under the broad priors; section 2's T8 rule plus the bound rule."""
+    rk = mcmc(P, store, "t8p_k24", mods["col7_div"], W.k24_vector(7), ctx)
+    rb = mcmc(P, store, "t8p_broad", mods["col7_div_broad"], W.k24_vector(7), ctx)
+    return t8p_evaluate(P, mods, rk, rb, ctx)
+
+
+def t8p_evaluate(P, mods, rk, rb, ctx):
+    i = mods["col7_div"].setup.free.index("ln_omega0")
+    lk, lb = np.asarray(rk["samples"][:, i], float), np.asarray(rb["samples"][:, i], float)
+    pk, pb = S.percentiles(lk), S.percentiles(lb)
+    half_b = 0.5 * (pb["p84"] - pb["p16"])
+    shift = (pk["median"] - pb["median"]) / half_b if half_b > 0 else float("inf")
+    om_med_b = 1000.0 * math.exp(pb["median"])
+    lo, hi = P["t8_broad_omega0_kms_kpc"]
+    lab = S.t8p_label(half_b, P["t8_prior_sigma_ln_omega0"], shift, om_med_b, (lo, hi), bound_frac=P["t8p_bound_frac"],
+                      width_frac=P["t8_width_frac"], shift_max=P["t8_shift_max"])
+    om_b = 1000.0 * np.exp(lb)
+    kd = t8_derived(P, mods["col7_div"], rk, "t8p_draws_k24")
+    bd = t8_derived(P, mods["col7_div_broad"], rb, "t8p_draws_broad")
+    out = {"post_hoc": True, "divisor_kms_kpc": P["t8_divisor_variant_kms_kpc"], "convention": "L-F-W",
+           "ln_omega0_k24_prior": pk, "ln_omega0_broad_prior": pb, "halfwidth_broad": half_b,
+           "k24_prior_sigma": P["t8_prior_sigma_ln_omega0"], "width_frac": P["t8_width_frac"],
+           "shift_max": P["t8_shift_max"], "median_shift_in_sigma_broad": shift,
+           "broad_median_omega0_kms_kpc": om_med_b, "label": lab["label"], "at_bound": lab["at_bound"],
+           "width_shift_rule_label": lab["width_shift_rule_label"], "bound_thresholds_kms_kpc": lab["bound_thresholds"],
+           "broad_bounds_kms_kpc": [lo, hi],
+           "distance_to_upper_bound": {"median_kms_kpc": hi - om_med_b,
+                                       "p84_kms_kpc": hi - bd["omega0_kms_kpc"]["p84"],
+                                       "fraction_above_threshold": float(np.mean(om_b > lab["bound_thresholds"][1]))},
+           "k24_priors": kd, "broad_priors": bd,
+           "chains": {"k24": chain_meta(rk), "broad": chain_meta(rb)},
+           "chain_short": [k for k, r in (("k24", rk), ("broad", rb)) if r["chain_short"]],
+           "note": "the withdrawn T8 stays withdrawn (README 4.10)"}
+    ctx.log(f"T8-P: half-width {half_b:.3f} (limit {P['t8_width_frac'] * P['t8_prior_sigma_ln_omega0']:.3f}), "
+            f"shift {shift:.2f} sigma, broad median {om_med_b:.1f} km/s/kpc -> {lab['label']}")
+    return out
+
+
+def t8p_summary(t8p):
+    return {"label": t8p["label"], "at_bound": t8p["at_bound"], "halfwidth_broad": t8p["halfwidth_broad"],
+            "median_shift_in_sigma_broad": t8p["median_shift_in_sigma_broad"],
+            "omega0_k24": t8p["k24_priors"]["omega0_kms_kpc"], "omega0_broad": t8p["broad_priors"]["omega0_kms_kpc"],
+            "chain_short": t8p["chain_short"]}
+
+
+def _dump(o):
+    from astrolab.results import to_jsonable
+    return json.dumps(to_jsonable(o), indent=1, ensure_ascii=False)
+
+
+def summary_with_key(old_text, key, value, before="overall"):
+    """summary.json with only `key` set to `value` (standalone parts). Every other key keeps its serialised
+    bytes: refuses (RuntimeError) when the existing file does not re-serialise to itself. An existing key is
+    replaced in place; a new one goes before `before`, or at the end."""
+    old = json.loads(old_text)
+    if not isinstance(old, dict) or _dump(old) != old_text:
+        raise RuntimeError("summary.json does not re-serialise byte-identically; refusing to update it")
+    new = {}
+    for k, v in old.items():
+        if k == before and key not in old:
+            new[key] = value
+        new[k] = value if k == key else v
+    if key not in new:
+        new[key] = value
+    for k in old:
+        if k != key and _dump(new[k]) != _dump(old[k]):
+            raise RuntimeError(f"summary.json key {k} would change")
+    return new
+
+
+def standalone_tag(parts):
+    return "".join(p for p in STANDALONE if p in parts)
+
+
+def check_standalone(P, parts, formal):
+    """README 4.10: 'conv' and 't8p' run alone; a formal run takes one of them, R-CONV with all 16 conventions."""
+    other = sorted(set(parts) - set(STANDALONE))
+    if other:
+        raise ValueError(f"parts {sorted(set(STANDALONE) & set(parts))} run alone (README 4.10), not with {other}")
+    if formal and len(parts) != 1:
+        raise ValueError("a formal run takes one standalone part at a time: parts ['conv'] or ['t8p']")
+    if formal and "conv" in parts and sorted(int(i) for i in P["conv_indices"]) != list(range(16)):
+        raise ValueError("the formal R-CONV run uses all 16 conventions (conv_indices = 0..15)")
+
+
+def main_standalone(ctx, P, parts):
+    """README 4.10: parts 'conv' and/or 't8p' (one at a time in a formal run). Other parts' results are read,
+    never written; summary.json changes only in its R_CONV / T8_P key."""
+    from astrolab import config
+
+    formal = is_formal_run(ctx)
+    check_standalone(P, parts, formal)
+    tag = standalone_tag(parts)
+    ctx.record_suffix = "_" + tag
+    sum_path = Path(ctx.results) / "summary.json"
+    if sum_path.exists():                       # refuse before any work if the summary cannot be updated
+        for p in STANDALONE:
+            if p in parts:
+                summary_with_key(sum_path.read_text(encoding="utf-8"), STANDALONE_KEYS[p][1], None)
+    elif formal:
+        raise RuntimeError("standalone parts update summary.json: the formal full run must exist first")
+
+    cl, co, shas = load_tables(ctx)
+    check_columns(cl, co)
+    grid = W.Grid(int(P["grid_n"]), float(P["u_min"]), float(P["u_max"]))
+    data = make_data(cl, co)
+    mods, wc, wo = models_for(P, data, grid, P["bandwidth_pc"])
+    lc = load_check(data.cvz, wc, P["load_check_max_abs_vz"])
+    ctx.log(f"load check: weighted mean v_z = {lc['weighted_mean_vz']:.2f} km/s -> {'pass' if lc['passed'] else 'FAIL'}")
+    if not lc["passed"]:
+        raise RuntimeError("load check failed (README 3); nothing is written")
+    key = F.checkpoint_key({k: v for k, v in P.items() if k not in _RUN_ONLY} | {"standalone_parts": tag},
+                           [HERE / "run.py", HERE / "wave011.py", HERE / "fit011.py", HERE / "stats011.py"], shas)
+    stop = float(P["stop_after_hours"]) * 3600 if P["stop_after_hours"] else None
+    store = F.Store(checkpoint_root(config.cache_dir(), P, ctx) / tag, key, stop)
+    ctx.log(f"checkpoints ({'formal run' if formal else 'exploration'}, {tag}): {store.dir}")
+    files = {}
+    try:
+        if "conv" in parts:
+            files["rconv"] = conv_run(P, store, data, grid, ctx)
+        if "t8p" in parts:
+            files["t8p"] = t8p_run(P, store, mods, ctx)
+    except F.Paused as e:
+        ctx.log(f"PAUSED: {e}")
+        ctx.record_suffix = "_" + tag + "paused"     # keep the records of the last complete run
+        return {"status": "paused", "reason": str(e), "checkpoints": str(store.dir)}
+    values = {"rconv": conv_summary(files["rconv"]) if "rconv" in files else None,
+              "t8p": t8p_summary(files["t8p"]) if "t8p" in files else None}
+    if sum_path.exists():
+        text = sum_path.read_text(encoding="utf-8")
+        new = None
+        for fname, skey in STANDALONE_KEYS.values():
+            if fname in files:
+                new = summary_with_key(text, skey, values[fname])
+                text = _dump(new)
+    else:                                        # an exploration starts from an empty folder
+        new = {STANDALONE_KEYS[p][1]: values[STANDALONE_KEYS[p][0]] for p in STANDALONE if p in parts}
+    for name, obj in files.items():
+        ctx.save(name, obj | {"load_check": lc, "checkpoints": store.dir.name, "params": P})
+    ctx.save("summary", new)
+    if formal:
+        finish_checkpoints(store, ctx)
+        remove_paused_records(ctx, (f"provenance_{tag}paused.json", f"run_info_{tag}paused.json"))
+    else:
+        ctx.log(f"exploration checkpoints kept in {store.dir} (delete them when done)")
+    return {STANDALONE_KEYS[p][1]: new[STANDALONE_KEYS[p][1]] for p in STANDALONE if p in parts}
+
+
+# =============================================================================================
 # main
 
 def main(ctx):
@@ -839,6 +1159,8 @@ def main(ctx):
 
     P = dict(PARAMS)
     parts = set(P["parts"])
+    if parts & set(STANDALONE):
+        return main_standalone(ctx, P, parts)
     cl, co, shas = load_tables(ctx)
     check_columns(cl, co)
     grid = W.Grid(int(P["grid_n"]), float(P["u_min"]), float(P["u_max"]))
@@ -920,10 +1242,10 @@ def finish_checkpoints(store, ctx):
     return ok
 
 
-def remove_paused_records(ctx):
+def remove_paused_records(ctx, names=("provenance_paused.json", "run_info_paused.json")):
     """A completed formal run supersedes the records of an earlier paused attempt."""
     removed = []
-    for name in ("provenance_paused.json", "run_info_paused.json"):
+    for name in names:
         p = Path(ctx.results) / name
         if p.exists():
             p.unlink()

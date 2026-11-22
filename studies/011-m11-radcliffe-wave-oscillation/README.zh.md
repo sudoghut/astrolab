@@ -144,6 +144,35 @@ Konietzka 等 2024（Nature 628, 62；arXiv:2402.12596；下称 K24）用阻尼�
 
 *开关与代码。* `PARAMS["parts"]` 中新增部分 `"conv"`（A 部分）与 `"t8p"`（B 部分），正式运行时单独运行（其他部分的结果只读不写）；结果为 `results/rconv.json` 与 `results/t8p.json`（每个小于 1 MB），`summary.json` 中的键 `R_CONV` 与 `T8_P`（其他键逐字节不变）；`wave011.py` 增加 C、Y、X 基线、P 的 σ 与 R 的权重作为选项（默认值不变，所以正式结果仍可复现），以及测试、结论复核、网页一节、第 8 节的参数。这些都尚不存在。
 
+*在任何 R-CONV 或 T8-P 拟合之前的修订（2026-11-21）。* 以下各条确定本补充没有写明的实现选择，是在写代码时、在任何
+R-CONV 或 T8-P 对数据的拟合之前固定的；上面的规则、阈值与标签都不改变。
+1. **随机种子。** 约定 i 的第 (3) 列链的整数种子，是用序列（`seed`，3000 + i）初始化的 NumPy 生成器抽出的第一个整数。
+   其他新链按正式运行的方式由（`seed`，链名）得到种子：重跑用 `conv<NN>_col4`、`conv<NN>_col5`、`conv<NN>_col6`，
+   B 部分用 `t8p_k24` 与 `t8p_broad`。因此 B 部分 K24 先验下的链是正式 `col7_div` 设定的一条新链，不是它的复制。
+   行走者（walker）的起点与正式运行一样，围绕被拟合那一列的 K24 中位数。
+2. **Y 与 X 曲线。** 自变量（Y 为 x，X 为 y）随网格参数 t 线性变化，t 从 −0.2 到 1.4，t = 0 在锚点 0，t = 1 在锚点 2，
+   取 2,000 个在 t 上等距的点；s 是解析 x–y 速度的梯形积分，与 L 相同。锚点坐标相等（例如 x₀ = x₁）算作不单调。
+3. **P 下的 σ。** 标准差是总体标准差（ddof = 0），对全部云计算，不加权。若它为零或不是有限值，似然为零。核权重（W 或 R）
+   仍乘在式 11 每朵云的项上，与第 4.1 节相同。三个星团重跑中，每种约定下 σ 都是 47 pc。
+4. **W 与 R 下的权重。** 在 C、Y、X 下，固定权重 W 来自每个天体在该约定自身曲线上、K24 第 (6) 列中位数处的 s（与第 4.9
+   节第 9 条对变体 10 的做法相同）。在 R 下，每一组（星团、云）的权重由该组自身的最近点重算（星团用除数 74 的四维最近点，
+   云用三维最近点），并按第 4.1 节归一化到该组的天体数。
+5. **宽度比。** K24 的半宽是 Extended Data Table 2 第 (3) 列印出的 (plus + minus)/2；我们的是 (p84 − p16)/2；δ 与 γ
+   用表中印出的线性单位。[2/3, 3/2] 的两个端点都算在区间内。
+6. **重跑。** T5 包括第 4.4 节 ω₀ = 68 的敏感度检查。已知答案的注入保留第 (3) 列拟合采用的 ω₀、μ₀ 与 r₀（74 km s⁻¹ kpc⁻¹、
+   1.3 kpc⁻¹、3.7 kpc），每个选中的星团按第 4.9 节第 7 条放在所选约定曲线上的注入模型上。星团在这条曲线上用 √3 × 47 pc
+   的位置截断选出。
+7. **标签中的名称。** 约定在标签与 `rconv.json` 中写作 `<基线>-<σ>-<权重>`，例如 `Y-P-W`。重跑的标签以"under <约定>,
+   post hoc"（在 <约定> 下，事后）结尾。
+8. **T8-P 的边界规则。** 宽先验下 ω₀ 的中位数取 exp(ln ω₀ 的中位数)；"在边界值的 5% 以内"用严格不等式：中位数 >
+   0.95 × 150 = 142.5 或 < 1.05 × 30 = 31.5 km s⁻¹ kpc⁻¹。ρ₀ 与太阳周期与 T8 一样用 2,000 个后验抽样。
+9. **单独运行。** 正式运行只取 `parts = ["conv"]` 或 `["t8p"]` 之一，R-CONV 用全部 16 种约定；若 `summary.json` 不存在，
+   或不能逐字节地重新序列化为自身，则拒绝开始。它写出 `rconv.json` 或 `t8p.json`（附载入检查与 `params`），把 `R_CONV`
+   或 `T8_P` 放进 `summary.json` 中 `overall` 之前，并单独保存运行记录（`provenance_conv.json`、`run_info_conv.json`；
+   `_t8p`；暂停的尝试为 `_convpaused`、`_t8ppaused`）。断点放在 `s011_checkpoints/<conv|t8p>/<key>`，所以一个部分完成时
+   不会删除另一个部分的断点。探索可以只拟合部分约定（`conv_indices`）；这时 `rconv.json` 写明 `complete_set: false`，
+   选择只在这部分约定中进行。
+
 ## 5. 结果
 
 2026-11-21 的正式运行（`results/`，网页 `web/index.html`）。运行按预注册的规则（第 4.9 节）在 10 小时处暂停，随后从断点续跑：36,004 s + 1,617 s，合计约 10.5 小时，单线程。载入检查：加权平均 v_z = −2.18 km/s（上限 3），通过。下面的数字除另注明文件外都在 `results/summary.json` 中。
@@ -227,6 +256,9 @@ Konietzka 等 2024（Nature 628, 62；arXiv:2402.12596；下称 K24）用阻尼�
 | 旋钮（`PARAMS`） | 含义 | 安全范围 | 只用缓存，还是需要新数据（大小）？ |
 |---|---|---|---|
 | `parts` | 运行哪些检验（`t1t2`、`t3`、`t4`、`t5`、`t6`、`t7`、`t8`）；第 (3)–(6) 列的链总会运行 | 任意子集 | 只用缓存（两张表，16 KB） |
+| `parts` = `["conv"]` 或 `["t8p"]` | README 4.10 的事后检验 R-CONV（16 种第 (3) 列约定、选择与重跑）或 T8-P（除数固定为 74 时的 ω₀）；单独运行：从不与其他部分一起运行，其他部分的结果只读 | 二者之一（只有探索时可以一起运行） | 只用缓存 |
+| `conv_indices` | R-CONV 拟合哪些约定（编号 = 基线·4 + σ·2 + 权重；基线 L、C、Y、X；σ F、P；权重 W、R） | 探索时任意子集；正式运行需要全部 16 种 | 只用缓存 |
+| `conv_seed_offset`、`conv_min_count`、`conv_repro_count`、`conv_width_range`、`t8p_bound_frac` | R-CONV 的种子与选择规则、T8-P 的边界规则（预注册的值，README 4.10） | 只在探索时改动 | 只用缓存 |
 | `variants` | 运行哪些 T6 变体 | 十个名字的任意子集 | 只用缓存 |
 | `bandwidth_pc` | 权重的核带宽（kernel bandwidth，pc） | 30–300 | 只用缓存 |
 | `sigma_pc` | 似然与模拟噪声共用的弥散 σ（pc） | 30–80 | 只用缓存 |
@@ -246,6 +278,16 @@ Konietzka 等 2024（Nature 628, 62；arXiv:2402.12596；下称 K24）用阻尼�
   `parts='["t5"]'`（例如配合新的 `t5_band`）总共约 45 分钟，`parts='["t7"]'` 约 50 分钟，
   `parts='["t8"]'`（例如配合新的 `sun_vz_kms`）约 70 分钟。以相同的日期、主题与 PARAMS 重跑时，从该探索的
   断点继续；用完后手动删除那个目录。
+- **R-CONV 与 T8-P（README 4.10，事后）。** 正式步骤：在正式完整运行之后（其 `summary.json` 必须存在），把 `PARAMS` 中的
+  `"parts"` 设为 `["conv"]`（提交，并在 `log.md` 写一行），运行 `python -m astrolab run 011-m11-radcliffe-wave-oscillation`，
+  每次在 `stop_after_hours` 暂停后重跑同一命令，直到完成（从 `s011_checkpoints/conv/<key>` 续跑，完成后删除该目录）；
+  然后用 `["t8p"]` 同样运行；最后把 `parts` 改回默认列表。只写出 `rconv.json` 或 `t8p.json`、`summary.json` 的 `R_CONV`
+  或 `T8_P` 键，以及 `_conv` / `_t8p` 运行记录。运行时间（在真实规模的合成数据上测量：79 朵云、2,000 个网格点，测量时
+  机器较忙）：一次第 (3) 列似然按约定不同需 0.7–1.4 ms（L-F-W 最快；C、X 与 P 最慢）。正式运行的每条链都以加倍步数
+  重跑过，所以每条链按 48 × 18,000 次计算：每条第 (3) 列链约 10–20 分钟，十六条共 2.7–5.4 小时；重跑约 0.8 小时
+  （第 (4)–(6) 列约 45 分钟，T5 及其已知答案检查几分钟）；B 部分约 0.7 小时。单核合计约 3.5–6 小时（R-CONV）加
+  0.7 小时（T8-P）。快速查看：`--set parts='["conv"]' conv_indices='[0, 9]' mcmc_steps=1500 mcmc_burn=500`
+  （连同重跑约 25 分钟，标明为子集）。
 - `run.py` 没有覆盖的分析：在 `explore/<name>.py` 写带 `def main(ctx)` 的脚本，用
   `python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --script explore/<name>.py` 运行。
   已有：`explore/age_scatter.py`（Wiki 第三部分的探索"年龄与在波中诞生"：按 10 与 20 Myr 分组，给出相对
@@ -272,12 +314,24 @@ Konietzka 等 2024（Nature 628, 62；arXiv:2402.12596；下称 K24）用阻尼�
   - `results/t8.json`：`ln_omega0_k24_prior`、`ln_omega0_broad_prior`、`halfwidth_broad`、
     `median_shift_in_sigma_broad`、`label`，以及 `k24_priors`、`broad_priors`、`variant_divisor_fixed`
     各自的 `omega0_kms_kpc`、`rho0_msun_pc3`、`sun_period_myr`。
+  - `results/rconv.json`（README 4.10）：`conventions`（每种约定：`index`、`name`、`count`、`inside`、
+    `sigma_scaled_differences`、`width_ratio`、`halfwidth_ratios`、`parameters`、`sigma_P_at_median_pc`、`chain`），
+    `choice`（`case`、`chosen`、`chosen_name`、`label`、`reason`），`label`、`complete_set`、`k24_column3`、`reruns`
+    （`t1`、`col5`、带 `known_answer`（含 `injected_vector`）的 `t5`、`labels`、`chains`、`chain_short`）。
+  - `results/t8p.json`（README 4.10）：`ln_omega0_k24_prior`、`ln_omega0_broad_prior`、`halfwidth_broad`、
+    `median_shift_in_sigma_broad`、`broad_median_omega0_kms_kpc`、`label`、`at_bound`、`width_shift_rule_label`、
+    `bound_thresholds_kms_kpc`、`distance_to_upper_bound`，`k24_priors` 与 `broad_priors`（`omega0_kms_kpc`、
+    `rho0_msun_pc3`、`sun_period_myr`、`mu0_kpc`、`r0_pc`），`chains`。
   - `results/summary.json`：全部标签，`overall`（`reading`、`support`、`do_not_support`、
-    `undetermined_or_not_evaluable`、`qualifier`），`load_check`、`timing`、`chain_short`。
+    `undetermined_or_not_evaluable`、`qualifier`），`load_check`、`timing`、`chain_short`；单独运行之后还有
+    `R_CONV`（`label`、`case`、`chosen`、`reason`、`counts`、`width_ratios`、`reruns`、`chain_short`）与 `T8_P`
+    （`label`、`at_bound`、`halfwidth_broad`、`median_shift_in_sigma_broad`、`omega0_k24`、`omega0_broad`）。
 - 示例问题：
   - "T5 的结论对波长带敏感吗？" → `--set t5_band='[0.7, 1.4]' parts='["t5"]'`（约 45 分钟）。
   - "如果波的弥散是 35 pc 呢？" → `--set sigma_pc=35`（重新拟合；需数小时）。
   - "年龄较大的星团弥散更大吗？" → `--script explore/age_scatter.py`。
   - "太阳周期对其竖直速度有多敏感？" → `--set sun_vz_kms=7.25 parts='["t8"]'`（约 70 分钟；只有除数为 74 的变体有意义，第 6 节第 1 点）。
   - "T8 需要 ln ω₀ 归一化项吗？" → `--script explore/t8_jacobian.py`。
+  - "哪种基线、σ 与权重约定能复现 K24 的第 (3) 列？" → 上面的正式 R-CONV 运行（`parts=["conv"]`）。
+  - "除数固定后 ω₀ 由数据决定吗？" → 正式 T8-P 运行（`parts=["t8p"]`，约 0.7 小时）。
 - 改变认识的发现写进 `log.md`（论文研究还要写进 Wiki 文章），照常走分支。

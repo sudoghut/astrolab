@@ -169,8 +169,57 @@ def chord_u1(v):
     return float(d01 / (d01 + d12))
 
 
+# Baseline options of README 4.10 (R-CONV). The internal mode strings flow through every function that
+# takes `u1_mode`: "half" (L, the formal curve), "chord" (C, variant 10), "y_of_x" (Y), "x_of_y" (X).
+BASELINE_MODE = {"L": "half", "C": "chord", "Y": "y_of_x", "X": "x_of_y"}
+CONV_BASELINES = ("L", "C", "Y", "X")
+CONV_SIGMAS = ("F", "P")          # F: sigma fixed (47 pc); P: sigma^2 = 0.5 std(d^2) per evaluation
+CONV_WEIGHTS = ("W", "R")         # W: fixed at K24 column-(6) medians; R: recomputed per evaluation
+
+
+def convention(index: int) -> dict:
+    """README 4.10: index = baseline*4 + sigma*2 + weights, options numbered in the listed order."""
+    index = int(index)
+    if not 0 <= index < 16:
+        raise ValueError(f"convention index {index} outside 0..15")
+    b, s, w = index // 4, (index // 2) % 2, index % 2
+    name = f"{CONV_BASELINES[b]}-{CONV_SIGMAS[s]}-{CONV_WEIGHTS[w]}"
+    return {"index": index, "name": name, "baseline": CONV_BASELINES[b], "sigma": CONV_SIGMAS[s],
+            "weights": CONV_WEIGHTS[w], "u1_mode": BASELINE_MODE[CONV_BASELINES[b]],
+            "sigma_mode": "per_eval" if s else "fixed", "weights_mode": "recompute" if w else "fixed",
+            "n_factors_differing": int(b != 0) + int(s != 0) + int(w != 0)}
+
+
+def _baseline_function(v, grid: Grid, mode: str):
+    """README 4.10 Y / X: the dependent coordinate as the quadratic (Lagrange) function of the other one
+    through the three anchors. The independent coordinate runs linearly in the grid parameter, a(t) = a0 +
+    t (a2 - a0) for t in [u_min, u_max] (the formal extent: 0.2 of the anchor span before anchor 0, 0.4
+    after anchor 2). Needs a0 < a1 < a2 or a0 > a1 > a2, else None (zero likelihood). s is the x-y arc
+    length from anchor 0 (t = 0)."""
+    X = (v[IDX["x0"]], v[IDX["x1"]], v[IDX["x2"]])
+    Y = (v[IDX["y0"]], v[IDX["y1"]], v[IDX["y2"]])
+    a, b = (X, Y) if mode == "y_of_x" else (Y, X)
+    a0, a1, a2 = a
+    if not ((a0 < a1 < a2) or (a0 > a1 > a2)):
+        return None
+    t = grid.u
+    q = a0 + t * (a2 - a0)
+    d0, d1, d2 = (a0 - a1) * (a0 - a2), (a1 - a0) * (a1 - a2), (a2 - a0) * (a2 - a1)
+    f = b[0] * (q - a1) * (q - a2) / d0 + b[1] * (q - a0) * (q - a2) / d1 + b[2] * (q - a0) * (q - a1) / d2
+    df = b[0] * (2.0 * q - a1 - a2) / d0 + b[1] * (2.0 * q - a0 - a2) / d1 + b[2] * (2.0 * q - a0 - a1) / d2
+    speed = abs(a2 - a0) * np.sqrt(1.0 + df * df)
+    cum = np.concatenate([[0.0], np.cumsum(0.5 * (speed[1:] + speed[:-1]) * np.diff(t))])
+    s = cum - np.interp(0.0, t, cum)                  # s = 0 at anchor 0, negative before it
+    return (q, f, s) if mode == "y_of_x" else (f, q, s)
+
+
 def baseline(v, grid: Grid, u1_mode: str = "half"):
-    """Quadratic Lagrange curve through the anchors at u = 0, u1, 1; returns x, y, s on the grid."""
+    """Quadratic Lagrange curve through the anchors at u = 0, u1, 1 ("half": u1 = 0.5; "chord": the
+    chord-length u1), or y(x) / x(y) for "y_of_x" / "x_of_y" (README 4.10); returns x, y, s on the grid."""
+    if u1_mode in ("y_of_x", "x_of_y"):
+        return _baseline_function(v, grid, u1_mode)
+    if u1_mode not in ("half", "chord"):
+        raise ValueError(f"unknown baseline mode {u1_mode!r}")
     u = grid.u
     u1 = 0.5 if u1_mode == "half" else chord_u1(v)
     if not (0.0 < u1 < 1.0):
@@ -231,7 +280,13 @@ def closest(D, M):
     # second is one matrix product with an augmented column.
     Ma = np.column_stack([-2.0 * M, (M * M).sum(1)])
     Da = np.column_stack([D, np.ones(len(D))])
+    if len(D) > CLOSEST_CHUNK:          # large synthetic tests only (data and mocks have < 200 rows)
+        return np.concatenate([np.argmin(Da[i:i + CLOSEST_CHUNK] @ Ma.T, axis=1)
+                               for i in range(0, len(D), CLOSEST_CHUNK)])
     return np.argmin(Da @ Ma.T, axis=1)
+
+
+CLOSEST_CHUNK = 5000
 
 
 def kde_weights(s, bandwidth):
@@ -303,9 +358,12 @@ class Setup:
     divisor: float | None = OMEGA0_ADOPTED        # None: v_z/omega0 uses the fitted omega0 (T8)
     prior: str = "k24"                            # k24 | broad (T8)
     outlier: str = "k24"                          # k24 | 3sigma | gauss
-    u1_mode: str = "half"                         # half | chord (variant 10)
+    u1_mode: str = "half"                         # half | chord (variant 10) | y_of_x | x_of_y (README 4.10)
     sigma: float = 47.0
     broad: dict | None = None                     # T8 broad bounds (default BROAD)
+    sigma_mode: str = "fixed"                     # fixed | per_eval (README 4.10 P; clouds-only fits only)
+    weights_mode: str = "fixed"                   # fixed | recompute (README 4.10 R; needs `bandwidth`)
+    bandwidth: float | None = None                # kernel bandwidth (pc) for weights_mode = recompute
 
 
 class Model:
@@ -327,6 +385,14 @@ class Model:
         self.const_cl = 3.0 * math.log(2.0 * math.pi * s2)
         self.const_co = math.log(2.0 * math.pi * s2)
         self.broad = setup.broad or BROAD
+        if setup.sigma_mode not in ("fixed", "per_eval"):
+            raise ValueError(f"unknown sigma_mode {setup.sigma_mode!r}")
+        if setup.sigma_mode == "per_eval" and setup.clusters:
+            raise ValueError("sigma_mode 'per_eval' applies to the clouds-only column (3) only (README 4.10)")
+        if setup.weights_mode not in ("fixed", "recompute"):
+            raise ValueError(f"unknown weights_mode {setup.weights_mode!r}")
+        if setup.weights_mode == "recompute" and setup.bandwidth is None:
+            raise ValueError("weights_mode 'recompute' needs the kernel bandwidth")
 
     # parameter vectors ---------------------------------------------------------------------
     def full(self, theta):
@@ -363,7 +429,11 @@ class Model:
             res = D - M[j]
             x2 = (res / sig) ** 2
             c, thr = outlier_terms(x2, self.setup.outlier)
-            lnl = -0.5 * float(np.sum(self.w_cl * (c.sum(1) + self.const_cl)))
+            w_cl = self.w_cl
+            if self.setup.weights_mode == "recompute":     # README 4.10 R: from the 4-D closest points' s
+                w_cl = kde_weights(wv["s"][valid_idx[j]], self.setup.bandwidth)
+                out["w_cl"] = w_cl
+            lnl = -0.5 * float(np.sum(w_cl * (c.sum(1) + self.const_cl)))
             out.update(cl_idx=valid_idx[j], cl_res=res, cl_outlier=np.any(x2 > thr, axis=1), lnL_cl=lnl)
             out["lnL"] += lnl
         if self.setup.clouds and self.data.n_clouds:
@@ -371,7 +441,20 @@ class Model:
             j = closest(self.D3o, M3)
             res = self.D3o - M3[j]
             d2 = (res * res).sum(1)
-            lnl = -float(np.sum(self.w_co * (d2 / (2.0 * sig * sig) + self.const_co)))
+            w_co = self.w_co
+            if self.setup.weights_mode == "recompute":     # README 4.10 R: from the 3-D closest points' s
+                w_co = kde_weights(wv["s"][valid_idx[j]], self.setup.bandwidth)
+                out["w_co"] = w_co
+            if self.setup.sigma_mode == "per_eval":
+                # README 4.10 P: sigma^2 = 0.5 x the unweighted standard deviation (ddof 0) of the clouds'
+                # squared 3-D distances d^2_cloud,i(s_min), at this parameter vector, in eq. 11 incl. ln(2 pi sigma^2)
+                s2 = 0.5 * float(np.std(d2))
+                if not (np.isfinite(s2) and s2 > 0.0):
+                    return None
+                lnl = -float(np.sum(w_co * (d2 / (2.0 * s2) + math.log(2.0 * math.pi * s2))))
+                out["sigma_eval"] = math.sqrt(s2)
+            else:
+                lnl = -float(np.sum(w_co * (d2 / (2.0 * sig * sig) + self.const_co)))
             out.update(co_idx=valid_idx[j], co_res=res, lnL_co=lnl)
             out["lnL"] += lnl
         return out

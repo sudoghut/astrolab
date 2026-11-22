@@ -575,3 +575,337 @@ def test_completed_formal_run_cleans_up(tmp_path):
 def test_power_count():
     st = np.linspace(0.5, 1.0, 999)
     assert S.power_count([0.1, 0.99, 0.2], st, 0.01) == (2, 3)
+
+
+# ---------------------------------------------------------------------------------------------
+# README 4.10 (T-056): R-CONV options and T8-P, code checks on synthetic data only
+
+def _syn_data(n_cl=125, n_co=79, seed=11):
+    """Synthetic clusters (K24 column-(6) model) and clouds (K24 column-(3) curve), real sizes."""
+    g = W.Grid()
+    d = F.synthetic_clusters(g, n_cl, np.random.default_rng(seed))
+    wv = W.wave_on_grid(W.k24_vector(3), g)
+    vi = np.flatnonzero(wv["valid"])
+    r = np.random.default_rng(seed + 1)
+    k = r.choice(vi[150:1500], n_co)
+    return g, W.Data(d.cx, d.cy, d.cz, d.cvz, d.csig, wv["x"][k] + r.normal(0, 47, n_co),
+                     wv["y"][k] + r.normal(0, 47, n_co), wv["z"][k] + r.normal(0, 47, n_co))
+
+
+def test_default_options_reproduce_the_formal_likelihood():
+    """Values computed with the formal run's code (commit e15b38f, before README 4.10's options existed)."""
+    g, d = _syn_data()
+    wc, wo = W.fixed_weights(d, g, 100.0)
+    want = (-834.095003579991, -1898.0509466694732, -2734.172960247183, -2736.903913094627,
+            -1963.9281671304311, -2735.338197635543)
+    cases = ((dict(clusters=False, clouds=True), 3), (dict(), 4), (dict(clouds=True), 6),
+             (dict(clouds=True, u1_mode="chord"), 6), (dict(outlier="3sigma"), 4), (dict(clouds=True, divisor=None), 7))
+    for (kw, col), ref in zip(cases, want):
+        free = W.SHAPE_NAMES + (("ln_omega0", "ln_mu0", "r0") if col == 7 else ())
+        for extra in ({}, {"sigma_mode": "fixed", "weights_mode": "fixed", "bandwidth": 100.0}):
+            m = W.Model(W.Setup(free=free, **kw, **extra), d, g, wc, wo)
+            assert m.loglike(m.theta_of(W.k24_vector(col))) == pytest.approx(ref, rel=1e-12, abs=0)
+
+
+def test_convention_index_and_names():
+    names = [W.convention(i)["name"] for i in range(16)]
+    assert names[0] == "L-F-W" and names[1] == "L-F-R" and names[2] == "L-P-W" and names[4] == "C-F-W"
+    assert names[9] == "Y-F-R" and names[15] == "X-P-R" and len(set(names)) == 16
+    for i in range(16):
+        c = W.convention(i)
+        b, s, w = W.CONV_BASELINES.index(c["baseline"]), W.CONV_SIGMAS.index(c["sigma"]), W.CONV_WEIGHTS.index(c["weights"])
+        assert i == b * 4 + s * 2 + w
+        assert c["n_factors_differing"] == (b != 0) + (s != 0) + (w != 0)
+        assert c["u1_mode"] == W.BASELINE_MODE[c["baseline"]]
+    with pytest.raises(ValueError):
+        W.convention(16)
+
+
+def test_y_and_x_equal_l_for_equally_spaced_collinear_anchors():
+    g = W.Grid()
+    v = W.k24_vector(3)
+    p0, step = np.array([-850.0, -800.0]), np.array([570.0, 1090.0])
+    for k, (xn, yn) in enumerate((("x0", "y0"), ("x1", "y1"), ("x2", "y2"))):
+        v[W.IDX[xn]], v[W.IDX[yn]] = p0 + k * step
+    xl, yl, sl = W.baseline(v, g, "half")
+    for mode in ("y_of_x", "x_of_y"):
+        x, y, s = W.baseline(v, g, mode)
+        assert np.allclose(x, xl, rtol=0, atol=1e-8) and np.allclose(y, yl, rtol=0, atol=1e-8)
+        assert np.allclose(s, sl, rtol=0, atol=1e-7)
+    assert sl[-1] - sl[0] == pytest.approx(1.6 * np.hypot(*(2 * step)), rel=1e-12)
+
+
+def test_y_and_x_need_monotonic_anchors():
+    g = W.Grid(400)
+    v = W.k24_vector(3)
+    v[W.IDX["x1"]] = v[W.IDX["x2"]] + 10.0          # x no longer monotonic; y still is
+    assert W.baseline(v, g, "y_of_x") is None and W.wave_on_grid(v, g, "y_of_x") is None
+    assert W.baseline(v, g, "x_of_y") is not None
+    d = W.Data(np.zeros(0), np.zeros(0), np.zeros(0), np.zeros(0), np.zeros((0, 4)), np.array([0.0]), np.array([0.0]),
+               np.array([0.0]))
+    m = W.Model(W.Setup(free=W.SHAPE_NAMES, clusters=False, clouds=True, u1_mode="y_of_x"), d, g)
+    assert m.loglike(m.theta_of(v)) == -np.inf
+    with pytest.raises(ValueError):
+        W.baseline(v, g, "nonsense")
+
+
+def test_c_equals_variant_10():
+    import pandas as pd
+    cfg = run.variant_config(dict(run.PARAMS), ("v10_chord_u1", ()), pd.DataFrame({"x": [0.0, 1.0]}))
+    c = W.convention(4)
+    assert c["name"] == "C-F-W" and c["u1_mode"] == cfg["u1_mode"] == "chord"
+    g = W.Grid()
+    v = W.k24_vector(3)
+    for a, b in zip(W.baseline(v, g, c["u1_mode"]), W.baseline(v, g, cfg["u1_mode"])):
+        assert np.array_equal(a, b)
+
+
+def test_s_is_the_xy_arc_length_from_anchor_0_in_every_option():
+    g = W.Grid(4001)
+    v = W.k24_vector(3)
+    for b in W.CONV_BASELINES:
+        mode = W.BASELINE_MODE[b]
+        x, y, s = W.baseline(v, g, mode)
+        chord = np.concatenate([[0.0], np.cumsum(np.hypot(np.diff(x), np.diff(y)))])
+        assert np.allclose(s - s[0], chord, rtol=1e-6, atol=1e-3), b
+        i0 = int(np.argmin(np.hypot(x - v[W.IDX["x0"]], y - v[W.IDX["y0"]])))
+        assert np.hypot(x[i0] - v[W.IDX["x0"]], y[i0] - v[W.IDX["y0"]]) < 1e-6 and abs(s[i0]) < 1e-6, b
+        for an in ("1", "2"):                          # the curve passes through anchors 1 and 2
+            dmin = np.min(np.hypot(x - v[W.IDX["x" + an]], y - v[W.IDX["y" + an]]))
+            assert dmin < 2.0, (b, an)
+        # extent: 0.2 of the anchor span before anchor 0 and 0.4 after anchor 2, in the curve's own parameter
+        if mode == "y_of_x":
+            span = v[W.IDX["x2"]] - v[W.IDX["x0"]]
+            assert x[0] == pytest.approx(v[W.IDX["x0"]] - 0.2 * span) and x[-1] == pytest.approx(v[W.IDX["x2"]] + 0.4 * span)
+        if mode == "x_of_y":
+            span = v[W.IDX["y2"]] - v[W.IDX["y0"]]
+            assert y[0] == pytest.approx(v[W.IDX["y0"]] - 0.2 * span) and y[-1] == pytest.approx(v[W.IDX["y2"]] + 0.4 * span)
+
+
+def test_sigma_p_recovers_47_pc_for_1e5_clouds():
+    """K24's chi^2_2 argument: d^2 / sigma^2 ~ chi^2_2 has standard deviation 2, so 0.5 std(d^2) = sigma^2."""
+    g = W.Grid()
+    v = W.k24_vector(3)
+    wv = W.wave_on_grid(v, g)
+    vi = np.flatnonzero(wv["valid"])
+    rng = np.random.default_rng(47)
+    n = 100_000
+    k = rng.choice(vi[150:-150], n)
+    d = W.Data(np.zeros(0), np.zeros(0), np.zeros(0), np.zeros(0), np.zeros((0, 4)), wv["x"][k] + rng.normal(0, 47, n),
+               wv["y"][k] + rng.normal(0, 47, n), wv["z"][k] + rng.normal(0, 47, n))
+    m = W.Model(W.Setup(free=W.SHAPE_NAMES, clusters=False, clouds=True, sigma_mode="per_eval"), d, g)
+    ev = m.evaluate(v)
+    assert ev["sigma_eval"] == pytest.approx(47.0, rel=0.01)
+    d2 = (ev["co_res"] ** 2).sum(1)
+    s2 = 0.5 * np.std(d2)
+    assert ev["lnL"] == pytest.approx(-np.sum(d2 / (2 * s2) + np.log(2 * np.pi * s2)), rel=1e-12)
+    with pytest.raises(ValueError):                     # P is for the clouds-only column (3) only
+        W.Model(W.Setup(free=W.SHAPE_NAMES, clouds=True, sigma_mode="per_eval"), d, g)
+
+
+def test_recomputed_weights_equal_fixed_weights_at_k24_column_6():
+    g, d = _syn_data()
+    v6 = W.k24_vector(6)
+    for b in W.CONV_BASELINES:
+        mode = W.BASELINE_MODE[b]
+        wc, wo = W.fixed_weights(d, g, 100.0, mode)
+        m = W.Model(W.Setup(free=W.SHAPE_NAMES, clouds=True, u1_mode=mode, weights_mode="recompute", bandwidth=100.0),
+                    d, g, wc, wo)
+        ev = m.evaluate(v6)
+        assert np.allclose(ev["w_cl"], wc, rtol=1e-12, atol=0) and np.allclose(ev["w_co"], wo, rtol=1e-12, atol=0), b
+        mf = W.Model(W.Setup(free=W.SHAPE_NAMES, clouds=True, u1_mode=mode), d, g, wc, wo)
+        assert ev["lnL"] == pytest.approx(mf.evaluate(v6)["lnL"], rel=1e-12)
+        # away from those medians the recomputed weights differ
+        v = v6.copy()
+        v[W.IDX["s0"]] += 300.0
+        v[W.IDX["x1"]] += 80.0
+        assert not np.allclose(m.evaluate(v)["w_co"], wo)
+    with pytest.raises(ValueError):
+        W.Model(W.Setup(free=W.SHAPE_NAMES, weights_mode="recompute"), d, g)
+
+
+def test_convention_0_is_the_formal_column_3_likelihood():
+    g, d = _syn_data()
+    P = dict(run.PARAMS)
+    mods, wc, wo = run.models_for(P, d, g, P["bandwidth_pc"])
+    cm = run.conv_models(P, d, g, W.convention(0))
+    for c in ("col3", "col4", "col5", "col6"):
+        th = mods[c].theta_of(W.k24_vector(5 if c == "col5" else 3))
+        assert cm[c].loglike(th) == mods[c].loglike(th)
+    cp = run.conv_models(P, d, g, W.convention(2))       # L-P-W: P only in column (3)
+    assert cp["col3"].setup.sigma_mode == "per_eval"
+    assert all(cp[c].setup.sigma_mode == "fixed" and cp[c].setup.sigma == 47.0 for c in ("col4", "col5", "col6"))
+
+
+def test_divisor_fixed_omega0_changes_only_the_model_vz():
+    g, d = _syn_data()
+    P = dict(run.PARAMS)
+    mods, wc, wo = run.models_for(P, d, g, P["bandwidth_pc"])
+    v1 = W.k24_vector(7)
+    v2 = v1.copy()
+    v2[W.IDX["ln_omega0"]] += 0.3
+    for name in ("col7_div", "col7_div_broad"):
+        m = mods[name]
+        assert m.setup.divisor == pytest.approx(0.074)
+        assert np.array_equal(m.cluster_vectors(v1), m.cluster_vectors(v2))     # the data vector
+        assert m.const_cl == 3.0 * math.log(2 * math.pi * 47.0 ** 2)              # the eq. 13 constant
+        w1, w2 = W.wave_on_grid(v1, g), W.wave_on_grid(v2, g)
+        vi = np.flatnonzero(w1["valid"])
+        assert np.array_equal(vi, np.flatnonzero(w2["valid"]))
+        M1, M2 = m.model_vectors(w1, v1)[vi], m.model_vectors(w2, v2)[vi]
+        assert np.array_equal(M1[:, :3], M2[:, :3]) and not np.allclose(M1[:, 3], M2[:, 3])
+    assert mods["col7_div_broad"].setup.prior == "broad" and mods["col7_div"].setup.prior == "k24"
+    m7 = mods["col7"]                                   # the withdrawn T8: omega0 rescales the data vector
+    assert not np.array_equal(m7.cluster_vectors(v1), m7.cluster_vectors(v2))
+
+
+def _row(i, count, ratio):
+    c = W.convention(i)
+    return {"index": i, "name": c["name"], "count": count, "width_ratio": ratio,
+            "n_factors_differing": c["n_factors_differing"]}
+
+
+def test_rconv_choice_rule_tie_break_and_width_condition():
+    sfx = " (best among these 16 candidate conventions, post hoc)"
+    # (i) every count <= 2
+    r = S.rconv_choose([_row(i, 2, 1.0) for i in range(16)])
+    assert r["case"] == "i" and r["chosen"] is None
+    assert r["label"] == "column (3) not reproduced under any candidate convention" + sfx
+    # (ii) the largest count among those with the ratio in [2/3, 3/2]; a larger count outside the range loses
+    rows = [_row(i, 1, 1.0) for i in range(16)]
+    rows[3] = _row(3, 6, 2.0)                       # count 6 but too wide
+    rows[12] = _row(12, 4, 1.2)
+    r = S.rconv_choose(rows)
+    assert r["case"] == "ii" and r["chosen"] == 12
+    assert r["label"] == "column (3) partly reproduced under X-F-W" + sfx and "count 4" in r["reason"]
+    # reproduced: count >= 5 and ratio in range; tie on count broken by fewest differing factors, then index
+    rows = [_row(i, 1, 1.0) for i in range(16)]
+    rows[7] = _row(7, 5, 1.0)                       # L-P-R: 2 factors differ
+    rows[8] = _row(8, 5, 0.9)                       # Y-F-W: 1 factor
+    rows[2] = _row(2, 5, 1.4)                       # L-P-W: 1 factor, lower index than 8
+    r = S.rconv_choose(rows)
+    assert r["chosen"] == 2 and r["label"] == "column (3) reproduced under L-P-W" + sfx and r["reason"] is None
+    # the ratio bounds are inclusive
+    assert S.rconv_choose([_row(0, 5, 2.0 / 3.0)])["status"] == "reproduced"
+    assert S.rconv_choose([_row(0, 5, 1.5)])["status"] == "reproduced"
+    assert S.rconv_choose([_row(0, 5, 1.5001)])["status"] == "partly reproduced"
+    # (iii) none of the count >= 3 conventions has its ratio in range: the largest count among them, partly
+    rows = [_row(i, 0, 1.0) for i in range(16)]
+    rows[5] = _row(5, 5, 3.0)
+    rows[6] = _row(6, 5, 2.5)                       # same count, same number of factors (2): lower index wins
+    rows[1] = _row(1, 4, 0.5)
+    r = S.rconv_choose(rows)
+    assert r["case"] == "iii" and r["chosen"] == 5 and r["status"] == "partly reproduced"
+    assert "width ratio 3.000 outside" in r["reason"]
+    assert r["label"] == "column (3) partly reproduced under C-F-R" + sfx
+
+
+def test_width_ratio():
+    ours = {"A": (190.0, 230.0), "p": (4600.0, 5000.0), "delta": (700.0, 830.0)}
+    k24 = {"A": (10.0, 10.0), "p": (100.0, 100.0), "delta": (65.0, 65.0)}
+    assert S.width_ratio(ours, k24) == pytest.approx(2.0)       # ratios 2, 2, 1
+
+
+def test_t8p_label_and_bound_rule():
+    lab = S.t8p_label(0.03, 0.17, 0.2, 80.0, (30.0, 150.0))
+    assert lab["label"] == "data-driven" and not lab["at_bound"]
+    assert lab["bound_thresholds"] == pytest.approx([31.5, 142.5])
+    lab = S.t8p_label(0.03, 0.17, 0.2, 143.0, (30.0, 150.0))      # bound rule takes precedence
+    assert lab["label"] == "prior-driven (posterior at the bound)" and lab["width_shift_rule_label"] == "data-driven"
+    assert S.t8p_label(0.03, 0.17, 0.2, 31.0, (30.0, 150.0))["at_bound"]
+    assert not S.t8p_label(0.03, 0.17, 0.2, 142.5, (30.0, 150.0))["at_bound"]
+    assert S.t8p_label(0.12, 0.17, 0.2, 80.0, (30.0, 150.0))["label"] == "partly data-driven"
+    assert S.t8p_label(0.12, 0.17, 0.9, 80.0, (30.0, 150.0))["label"] == "prior-driven"
+
+
+def test_t8p_evaluate_on_fake_chains():
+    g, d = _syn_data()
+    P = dict(run.PARAMS, t8_draws=50)
+    mods, wc, wo = run.models_for(P, d, g, P["bandwidth_pc"])
+    free = mods["col7_div"].setup.free
+    i = free.index("ln_omega0")
+    rng = np.random.default_rng(2)
+
+    def chain(med, sd):
+        sam = np.tile(mods["col7_div"].theta_of(W.k24_vector(7)), (400, 1))
+        sam[:, i] = rng.normal(math.log(med / 1000), sd, 400)
+        return {"samples": sam, "n_walkers": 48, "n_steps": 6000, "n_burn": 2000, "acceptance": 0.3, "tau_max": 100.0,
+                "long_enough": True, "rerun": False, "chain_short": False, "tau": [1.0] * len(free), "free": list(free)}
+
+    class Ctx:
+        def log(self, m):
+            pass
+    out = run.t8p_evaluate(P, mods, chain(75.0, 0.12), chain(146.0, 0.05), Ctx())
+    assert out["at_bound"] and out["label"] == "prior-driven (posterior at the bound)"
+    assert out["broad_median_omega0_kms_kpc"] == pytest.approx(1000 * math.exp(out["ln_omega0_broad_prior"]["median"]))
+    assert out["distance_to_upper_bound"]["median_kms_kpc"] == pytest.approx(150 - out["broad_median_omega0_kms_kpc"])
+    out = run.t8p_evaluate(P, mods, chain(75.0, 0.03), chain(75.0, 0.03), Ctx())
+    assert out["label"] == "data-driven" and not out["at_bound"]
+    assert set(out["k24_priors"]) >= {"omega0_kms_kpc", "rho0_msun_pc3", "sun_period_myr"}
+
+
+def test_known_answer_injection_vector(monkeypatch):
+    g, d = _syn_data(n_cl=40)
+    v3 = W.k24_vector(3)
+    v3[W.IDX["x0"]] += 37.0
+    v3[W.IDX["A"]] = 201.0
+    v5 = W.k24_vector(5)
+    for B in (0.5, 0.84, 1.0):
+        v = run.ka_injection_vector(v3, v5, B)
+        for n in W.SHAPE_NAMES + ("ln_omega0", "ln_mu0", "r0"):
+            assert v[W.IDX[n]] == v3[W.IDX[n]], n
+        assert v[W.IDX["w0t"]] == v5[W.IDX["w0t"]] == -0.38 and v[W.IDX["B"]] == B
+        assert v[W.IDX["ln_omega0"]] == math.log(W.OMEGA0_ADOPTED)
+    seen = []
+    orig = run.F.known_answer_vectors
+
+    def spy(model, v_inj, data_sel, rng, sigma=47.0):
+        seen.append((np.array(v_inj), model.setup.u1_mode))
+        return orig(model, v_inj, data_sel, rng, sigma=sigma)
+    monkeypatch.setattr(run.F, "known_answer_vectors", spy)
+    P = dict(run.PARAMS, t5_ka_mocks=2, t5_boot=3)
+
+    class Ctx:
+        def log(self, m):
+            pass
+    vecs = np.array([v3, v3])
+    cur = F.t5_curve(v3, g, "y_of_x")
+    _, _, sel = F.t5_select(cur, d.cx, d.cy, d.cz, cut=P["t5_cut_sigma"] * 47.0)
+    ka = run.t5_known_answer(P, F.NullStore(), g, d, sel, vecs, v3, Ctx(),
+                             inject=lambda B: run.ka_injection_vector(v3, v5, B), u1_mode="y_of_x", prefix="conv08_")
+    assert len(seen) == 6 and set(ka["injections"]) == {"0.5", "0.84", "1.0"}
+    for k, B in enumerate((0.5, 0.5, 0.84, 0.84, 1.0, 1.0)):
+        assert np.array_equal(seen[k][0], run.ka_injection_vector(v3, v5, B)) and seen[k][1] == "y_of_x"
+    for r in ka["injections"].values():
+        assert "coverage_or_above_bT_fraction" in r and "mean_bhat" in r
+
+
+def test_summary_with_key_keeps_other_keys():
+    from astrolab.results import to_jsonable
+    import json
+    old = {"status": "complete", "T8": {"label": "prior-driven"}, "overall": {"reading": "mixed"}, "params": {"a": 1.5}}
+    text = json.dumps(to_jsonable(old), indent=1, ensure_ascii=False)
+    new = run.summary_with_key(text, "R_CONV", {"label": "x"})
+    assert list(new) == ["status", "T8", "R_CONV", "overall", "params"]
+    new2 = run.summary_with_key(run._dump(new), "T8_P", {"label": "y"})
+    assert list(new2) == ["status", "T8", "R_CONV", "T8_P", "overall", "params"]
+    assert run.summary_with_key(run._dump(new2), "R_CONV", {"label": "z"})["R_CONV"] == {"label": "z"}
+    with pytest.raises(RuntimeError):
+        run.summary_with_key(text.replace("\n", "\n "), "R_CONV", None)
+
+
+def test_standalone_parts_run_alone():
+    P = dict(run.PARAMS)
+    run.check_standalone(P, {"conv"}, True)
+    run.check_standalone(P, {"t8p"}, True)
+    run.check_standalone(P, {"conv", "t8p"}, False)
+    with pytest.raises(ValueError):
+        run.check_standalone(P, {"conv", "t8p"}, True)
+    with pytest.raises(ValueError):
+        run.check_standalone(P, {"conv", "t5"}, False)
+    with pytest.raises(ValueError):
+        run.check_standalone(dict(P, conv_indices=[0, 1]), {"conv"}, True)
+    run.check_standalone(dict(P, conv_indices=[0, 1]), {"conv"}, False)
+    assert run.standalone_tag({"t8p", "conv"}) == "convt8p" and run.standalone_tag({"t8p"}) == "t8p"
+    assert run.conv_seed(P, 0) != run.conv_seed(P, 1)
+    assert run.conv_seed(P, 5) == int(np.random.default_rng([P["seed"], 3005]).integers(2 ** 31))
