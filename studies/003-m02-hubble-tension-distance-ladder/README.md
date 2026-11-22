@@ -1181,7 +1181,13 @@ u = ZᵀP y = ZᵀP K_C ε + M b, with Cov(ZᵀP K_C ε) = M (as in R2-RE-G), so
 - **τ in each data vector:** the Gaussian REML τ̂ of R2-RE-G (the reduced form f(τ; u), `reml_tau(f, 0.5, 0.01,
   interval=False)`, the same zero and bound rules). It is used as a variance estimate of the host effects, not as a
   model claim; the size of the whole procedure under T(τ) is checked by simulation (below), so no property of REML
-  under t₄ effects is assumed.
+  under t₄ effects is assumed. *Why the scale is tied to τ̂ and not fitted by a t likelihood (R2-RE-G referee point 8
+  asked for a fitted scale):* REML's estimating equations use only second moments, so τ̂² estimates Var(b) whatever the
+  effect distribution, and variance matching is the matching consistent with τ̂; at ν = 4 the fourth moment is
+  infinite, so τ̂ is noisy, which is why the size is checked by simulation. Reported as a sensitivity on the real data
+  only: p_T,obs with the scale fitted by R2-RE-N5584's ν = 4 variational EM, s = 0.07521926289752753
+  (`r2_re_n5584.json` `heavy_tail.nu_main.tau_hat`; in that model u_j | w_j ~ N(0, s²/w_j) with w_j ~ Gamma(2, rate 2),
+  so it is the t scale and Var(b) = 2s², about 1.9 times τ̂_obs²), descriptive like the ν sensitivities below.
 - **Inner draws (the test applied to one data vector with refitted τ̂):** u_i = Q diag(√λ) e_i + M b_i, b_i =
   (τ̂/√2)·t_i, with e_i the rows of R2-RE-G's fixed E_in (`numpy.random.default_rng(600_000).standard_normal((20_000,
   37))`) and t_i the rows of one fixed matrix T_in = `numpy.random.default_rng(610_000).standard_t(4, (20_000, 37))`
@@ -1200,9 +1206,11 @@ u_s → τ̂_s (refitted), then p_T,s, k_s and the label at τ̂_s.
   **Power = min(R_OANY, R_OANYVN)**.
 - Reported, not decisive: **TC** (C, no excess, tested with the T null); **VHAT** (R2-RE-G's Gaussian V(τ̂_obs), tested
   with the T null: how conservative the T test is when the truth is Gaussian); and, on the real data only, p_T,obs with
-  ν = 3 and ν = 10 inner draws (T_in drawn with `default_rng(611_000)` and `default_rng(612_000)`) and at fixed τ =
-  0.05, 0.105 (ν = 4).
-- Seeds 410,000–419,999 and 610,000–612,000 collide with none used before (R2-RE-G's list plus 400,000–409,999,
+  ν = 3 and ν = 10 inner draws (T_in drawn with `default_rng(611_000)` and `default_rng(612_000)`, scale s =
+  τ̂·√((ν − 2)/ν), i.e. τ̂/√3 and τ̂·√0.8, so the variance stays τ̂²) and at fixed τ = 0.05, 0.105 (ν = 4). These
+  sensitivities have no size check (only ν = 4 is checked, and only at the three τ), so they are descriptive, not
+  calibrated p values.
+- Seeds 410,000–419,999 and the three inner seeds 610,000, 611,000 and 612,000 collide with none used before (R2-RE-G's list plus 400,000–409,999,
   500,000–509,999, 600,000). Counts: n = 10,000 outer simulations per model (7 sets, 70,000 simulations); N_in =
   20,000 (fixed). Runtime guard as in R2-RE-G (`gt_max_minutes` = 120, floor 5,000, the power stage only).
 
@@ -1219,8 +1227,15 @@ sub-labels (R2 through R2-RE-G) stay as recorded; R2-RE's row stays the headline
   δ̂, σ_δ, z_obs; in the full stage also G_obs = 0.30485762235426483 within a relative 10⁻⁸ and |Δz_j| ≤ 10⁻⁸ against
   the 37 one-column fits); a pointwise check fails (the first three simulations of THAT: y_s built in full with K_C ε_s +
   Z b_s, the 37 one-column GLS z against the reduced computation within 10⁻⁸); some M_jj ≤ 0; a Cholesky factor fails;
-  the full stage does not reproduce the power stage's counts; the runtime floor is not met; or the test is
-  anti-conservative: the Clopper–Pearson interval of R_THAT, R_T050 or R_T105 lies entirely above 0.05.
+  the full stage does not reproduce the power stage's counts; the reproduction of R2-RE-G's outer simulations fails
+  (OANY, OANYVN and VHAT use R2-RE-G's ε_s and host draws, so their G_s and τ̂_s must equal the saved
+  `r2_re_g_sims_<model>.json` values to the saved precision, 5 and 6 decimals; in the full stage the Gaussian inner
+  draws at τ̂_obs must give R2-RE-G's k = 326 for G_obs); the reduced-form τ̂_s of the first three THAT simulations
+  differs from `reml_tau` on `reml_m2l` by more than 2 × 10⁻⁵; an eigenvalue of M below −10⁻¹⁰·max λ (R2-RE-G
+  amendment 6); the runtime floor is not met; or the test is anti-conservative: the Clopper–Pearson interval of
+  R_THAT, R_T050 or R_T105 lies entirely above 0.05. Several reasons are joined. When the only reason is
+  anti-conservativeness, p_T,obs and its label are still computed and reported (as R2-RE-G amendment 5), with no
+  sub-label. A reported model (TC, VHAT) whose factor fails is "not evaluable" alone and enters no rule.
 - (2) Power < 0.8 → **"undetermined (underpowered)"**, with a sub-label from p_T,obs's label: **"t₄ diffuse
   excluded"**, **"t₄ diffuse not excluded"** or **"t₄ diffuse undetermined (Monte Carlo)"** (sub-labels, not readings;
   the sub-label is reported in every case because the question of this addendum, R2-RE-G's referee point 2, is about
@@ -1234,8 +1249,10 @@ sub-labels (R2 through R2-RE-G) stay as recorded; R2-RE's row stays the headline
   scatter is excluded. Neither says whether an offset is a data defect or on which side of the ladder it sits.
 
 *What changes in section 5 (the text, not any earlier label).* A new subsection "R2-RE-GT" with the numbers and the
-reading; R2-RE-G's sub-label is glossed with this addendum's sub-label or reading ("not only Gaussian tails" for t₄
-excluded, "Gaussian tails only" for t₄ not excluded). The open question of section 7 is answered accordingly. The
+reading; R2-RE-G's sub-label is glossed with this addendum's sub-label or reading: "not only Gaussian tails" for t₄
+excluded (or reading (3)); "not shown to hold beyond Gaussian tails" for t₄ not excluded (or reading (4)); "t₄
+comparison undetermined (Monte Carlo)" for that sub-label (or reading (5)); and for rule (1) "t₄ comparison not
+evaluable (<reason>)". The open question of section 7 is answered accordingly. The
 headline, `summary.json` `R2_host` and the claim's verdict do not change.
 
 *Reported (not decisive).* p_T,obs with k, interval and label; p_T,obs at ν = 3 and 10 and at fixed τ = 0.05, 0.105;
@@ -1255,9 +1272,19 @@ upper end of the 99% Clopper–Pearson interval of 0.05); the rule order and the
 record contains no p_T,obs. On the real data before the formal run only R2-RE-G's reproduction checks.
 
 *Switch and code.* `PARAMS["gt_check"]` (false by default; true with `gt_only` = true and `gt_stage` "power", then
-"full", only for the formal runs, back afterwards with dated notes in log.md), `"gt_seed_base": 410_000`,
-`"gt_inner_seed": 610_000`, `"gt_nu": 4`, `"gt_nu_rep": [3, 10]`, `"gt_n_sims": 10_000`, `"gt_n_inner": 20_000`,
-`"gt_power_min": 0.8`, `"gt_max_minutes": 120`, `"gt_min_sims": 5_000`. Module `shape.py` gains the T null (no
+"full", only for the formal runs, back afterwards with dated notes in log.md; defaults `gt_only` false, `gt_stage`
+"full"), `"gt_seed_base": 410_000`, `"gt_inner_seed": 610_000`, `"gt_inner_seeds_rep": [611_000, 612_000]`, `"gt_nu":
+4`, `"gt_nu_rep": [3, 10]`, `"gt_n_sims": 10_000`, `"gt_n_inner": 20_000`, `"gt_power_min": 0.8`,
+`"gt_max_minutes": 120`, `"gt_min_sims": 5_000`, `"gt_rerun_reason": ""`; reused from R2-RE-G: `g_seed_base`
+(400,000, ε_s), `g_host_seed_base` (500,000, the OANY host draws), `g_inner_seed` (600,000, E_in) and `g_taus_rep`
+([0.05, 0.105]). Standalone records: `provenance_gtp.json`, `run_info_gtp.json` (power stage) and
+`provenance_gt.json`, `run_info_gt.json` (full stage). **R2-RE-G's procedural safeguards apply unchanged to the
+`gt_*` stages** (its amendments 10, 13 and 15): the full stage is refused unless the power line is in log.md; until
+the formal `r2_re_gt.json` is committed, no exploration may run the full stage or compute p_T,obs (an exploration may
+only run the power stage); the first formal outcome stands and a rerun needs a reason also present in log.md; the power
+record's settings, including the thread environment and all `gt_*` and reused `g_*` values, must equal the full stage's;
+a run that skips the block writes no formal `r2_re_gt*` file. Since p_T,obs is a fast deterministic function of known
+data, these procedural gates are the protection. Module `shape.py` gains the T null (no
 change to R2-RE-G's functions or results), tests in `test_shape.py`, conclusion checks, a web section, section 8 knobs.
 None of this exists yet.
 
