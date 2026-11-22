@@ -547,6 +547,84 @@ R6-NOMNU a new key `"r6_nomnu_retrain": False` skips all of its runs (a)–(d), 
 `results/r6_nomnu.json` instead. This reuse path, the column variants and the kNN report are code to
 be written at the code stage; none exists yet.
 
+### 2.9 Addendum 2026-11-22: R6-SHUF-KA, a known-answer test of φ (T-047, flow part)
+
+Written after R6-SHUF, its referee review and T-047's first, flow-free part (section 5), before any flow was trained
+on the synthetic family below. It changes nothing above: the R6, R6-NOMNU and R6-SHUF labels stay as recorded, and
+nothing is retrained. **It is a known-answer test of the estimator of φ (section 2.8), reported next to R6-SHUF's
+label as a qualifier; it is not a verdict on D26.**
+
+*Why.* R6-SHUF reads "what Σmν adds is mainly through its correlations with the other DES parameters" with φ̄ = 0.671,
+s_φ = 0.037 and I_φ = [0.638, 0.704]. Its referee (section 6, R6-SHUF points 2 and 11) noted that the flow gates bound
+each n_σ's bias only at single points (2.37 and 0.86 in 6-D, 2.39 in 5-D): corrected by the gates' mean offsets,
+I_φ = [0.601, 0.669], just above 0.60, and a bias of n_S against n₆ of about 0.045σ would move the label. The gates
+do not test φ itself, a ratio of differences of three flow outputs. This addendum measures the bias of φ directly on
+a synthetic family whose exact n₆, n_S and n₅ are known and whose φ is close to the data's.
+
+*Seen before this addendum.* Everything in sections 5–7 and log.md, in particular R6-SHUF's per-seed values and the
+numbers above, and the flow-free conditional means of T-047's first part. While drafting (synthetic data only, numpy,
+no flow): a search over the family's parameters (the coupling a, the centre c, the box of u and its edge width, μ₁),
+keeping the members with n₆ ≈ 1.4–2.1, n_S ≈ 0.7–1.3 and n₅ ≈ 0.3–0.8, and the exact values of the member chosen
+(below), by Monte Carlo with 2,000,000 draws at two seeds (999 and 998), equal to 4 decimals except n₅ (0.3652,
+0.3648; the closed forms and the first search grid are `explore/t047_ka_design.py`, added in the same change). Among the searched members (100,000–300,000 draws each) with n₆ within 0.2 of the data's 1.70 and φ within
+0.05 of R6-SHUF's band edge 0.60 (two members: φ 0.603 with n_S 0.81, and φ 0.610 with n_S 0.92), it is the one whose
+n_S is closest to the data's 0.909. No flow has been trained on any member.
+
+*The synthetic family (6-D, the analogue of the DES − CMB difference).* A latent v ~ U(0.05, 2.05); the Σmν-like
+column u = v − N(0, 0.2²); the curved pair x₁ ~ N(μ₁ + a(v − c), 1), x₂ = N(μ₂, 1) + κ(x₁ − μ₁)²; three boxes b_i =
+U(−0.6, 1.4) − N(0, 0.05²) (R6's gate boxes); with μ₁ = 0.9, μ₂ = 0.55, κ = 0.3, a = 2.5, c = 1.4. So u is coupled to
+the curved pair through v (the analogue of Σmν's DES-side correlations), and u's own offset from 0 adds to the shift.
+Its three variants: **D6**, the 6-D vector (x₁, x₂, u, b₁, b₂, b₃); **DS**, u replaced by an independent draw from its
+marginal (the product of u's marginal and the rest's, exactly what shuffling gives); **D5**, u dropped. Each has a
+closed-form density (the integral over v of a Gaussian times a uniform), and n_σ = √2 erf⁻¹(P(log p(X) > log p(0)))
+from 2,000,000 draws (`default_rng(999)`; DS: u permuted with `default_rng(1000)`). Exact: **n₆ = 1.8087, n_S =
+0.9263, n₅ = 0.3652, φ_exact = (n₆ − n_S)/(n₆ − n₅) = 0.6113**. These are recomputed by the run; a difference above
+0.002 in any of them is rule 1.
+
+*Method.* Seeds k = 10–14 (no overlap with R6-SHUF's 0–4). For seed k: N = 100,000 rows of D6 from
+`default_rng(5000 + k)`; the DS rows are the same rows with the u column permuted by `default_rng(6000 + k)
+.permutation(N)` (as R6-SHUF's (S) permutes the resampled DES Σmν column); the D5 rows are the same rows without the u
+column. A flow is trained on each with R6's settings and call (tensiometer defaults, `pop_size` not passed,
+`estimate_shift(tol=0.02, max_iter=1000, step=100000)`, TensorFlow seeded with k), giving n̂₆,k, n̂_S,k, n̂₅,k; φ̂_k =
+(n̂₆,k − n̂_S,k)/(n̂₆,k − n̂₅,k), paired as in R6-SHUF; b_k = φ̂_k − φ_exact. Environment as R6-SHUF: the versions and
+flow settings must equal those recorded in `results/r6.json` and `results/r6_shuf.json`.
+
+*Label R6-SHUF-KA (rules in order; the first that applies decides).*
+1. The versions or flow settings differ from the recorded ones, or an exact value differs from the numbers above by
+   more than 0.002 → "not evaluable".
+2. Any training fails, is non-finite, has not converged or is a lower bound → "not evaluable".
+3. Any Ê_k = n̂₆,k − n̂₅,k ≤ 0.20, or s_b > 0.30 → "not evaluable" (R6-SHUF's limits).
+4. Otherwise I_b = b̄ ± 2 s_b/√5: I_b ⊂ (0, ∞) → **"flows overestimate φ (bias b̄)"**; I_b ⊂ (−∞, 0) → **"flows
+   underestimate φ (bias b̄)"**; otherwise → **"no bias of φ detected (I_b = [..])"**.
+
+*Qualifier of R6-SHUF (reported; fixed now).* Except under rules 1–3, R6-SHUF's interval corrected by the bias,
+I_φ,corr = (φ̄_R6 − b̄) ± 2√(s_φ,R6² + s_b²)/√5 (the two sets of seeds are independent), is read with R6-SHUF's band
+rule: ⊂ [0.60, ∞) → "R6-SHUF's label holds after the known-answer correction"; ⊂ (−∞, 0.40] → "R6-SHUF's label
+reverses after the known-answer correction"; otherwise → "R6-SHUF's label is not decided after the known-answer
+correction". It is reported next to R6-SHUF's label (section 5, the root tables, `STATUS.md`, the claim, the wiki), which
+stays as recorded. Caveats stated with it: the family is one synthetic member near φ = 0.61, not the chains, and its
+n₆, n_S and n₅ (1.81, 0.93, 0.37) differ from the data's (1.70, 0.91, 0.52), so the bias is transferred, not measured,
+for the data.
+
+*Reported, descriptive.* Per seed n̂₆,k, n̂_S,k, n̂₅,k, Ê_k, φ̂_k, b_k and the training times; the mean offsets n̄_v −
+n_v,exact with s; s_φ; I_b; I_φ,corr.
+
+*Expected outcome (stated now).* R6's gates and the R6-NOMNU referee (item 5) suggest flows biased high at small n_σ
+(n₅ ≈ 0.37 and n_S ≈ 0.93 more than n₆ ≈ 1.81), which would lower φ̂ (a negative b); the gate offsets (+0.025, +0.009,
+−0.028 for the three gates) are mixed. Our guess: |b̄| ≲ 0.05 with s_b ≈ 0.04, so "no bias of φ detected" is the most
+likely label, and the qualifier most likely "holds".
+
+*Runtime.* R6's 6-D trainings took 745–807 s; 15 trainings (three variants × five seeds, the 5-D ones somewhat
+faster) ≈ 3.0–3.4 h in venv-tf (`TF_USE_LEGACY_KERAS=1`, through the project venv's subprocess as for R6 and R6-SHUF),
+plus the exact values (about 1 min), run when no other study is running. No data downloaded; the chains are not read.
+PARAMS: `"r6_ka": False` (true only for the formal run, alone; R1–R5 run as usual, R6, R6-NOMNU and R6-SHUF are read,
+not rerun), `"r6_ka_seeds": [10, 11, 12, 13, 14]`, `"r6_ka_family": {"mu1": 0.9, "mu2": 0.55, "curv": 0.3, "a": 2.5,
+"c": 1.4, "ubox": [0.05, 2.05, 0.2], "boxes": [[-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05]]}`,
+`"r6_ka_exact": {"n6": 1.8087, "S": 0.9263, "n5": 0.3652}`, `"r6_ka_seed_offsets": [5000, 6000]`; output
+`results/r6_ka.json`, and a key `R6_KA` in `summary.json`. Code checks before the formal run (synthetic, no flow): the
+closed-form densities against numerical integration over v; DS rows have u's marginal and are independent of the rest;
+the rule order and the qualifier. None of this code exists yet.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
