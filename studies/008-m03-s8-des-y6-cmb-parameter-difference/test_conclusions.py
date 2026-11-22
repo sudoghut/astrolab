@@ -301,3 +301,60 @@ def test_r6_shuf_label_rule():
             assert det["flag"] == ("cross-run pairing approximate" if abs(det["difference"]) > 0.02 else None)
     assert out["label"] == expected
     assert out["summary"]["label"] == expected
+
+
+KA_SEEDS = list(range(15, 25))
+KA_EXACT = {"n6": 1.8087, "S": 0.9263, "n5": 0.3652}
+
+
+def check_r6_ka(x):
+    """README 2.9 (R6-SHUF-KA): re-derive the label and the qualifier from the saved per-seed flows, the exact values
+    and R6-SHUF's recorded phi, independently of r6ka.py."""
+    import math
+    assert x["summary"]["label"] == x["label"]
+    if x["label"].startswith("not evaluable"):
+        assert "qualifier" not in x
+        return
+    ex = x["exact"]
+    assert ex["ok"] and all(abs(ex["recomputed"][k] - KA_EXACT[k]) <= 0.005 for k in KA_EXACT)
+    fl = x["flows"]
+    n = {}
+    for v in ("6", "S", "5"):
+        reps = fl[v]
+        assert [r["seed"] for r in reps] == KA_SEEDS and all(_good_rep(r) for r in reps)
+        n[v] = {r["seed"]: r["n_sigma"] for r in reps}
+    e = {k: n["6"][k] - n["5"][k] for k in KA_SEEDS}
+    assert min(e.values()) > 0.20
+    b = [(n["6"][k] - n["S"][k]) / e[k] - ex["recomputed"]["phi"] for k in KA_SEEDS]
+    m = sum(b) / len(b)
+    s = math.sqrt(sum((v - m) ** 2 for v in b) / (len(b) - 1))
+    assert s <= 0.30
+    lo, hi = m - 2 * s / math.sqrt(len(b)), m + 2 * s / math.sqrt(len(b))
+    exp = (f"flows overestimate φ (bias {m:+.3f})" if lo > 0 else f"flows underestimate φ (bias {m:+.3f})" if hi < 0
+           else f"no bias of φ detected (I_b = [{lo:.3f}, {hi:.3f}])")
+    assert x["label"] == exp
+    rs = x["records"]["r6_shuf"]
+    w = 2 * math.sqrt(rs["s_phi"] ** 2 / rs["n"] + s ** 2 / len(b))
+    c = rs["phi_bar"] - m
+    if c - w >= 0.60:
+        q = "R6-SHUF's label holds after the known-answer correction"
+    elif c + w <= 0.40:
+        q = "R6-SHUF's label reverses after the known-answer correction"
+    elif rs["phi_bar"] - w < 0.60:
+        q = f"known-answer correction not decisive (test too noisy: w = {w:.3f})"
+    else:
+        q = "R6-SHUF's label is not decided after the known-answer correction"
+    assert x["qualifier"]["qualifier"] == q and abs(x["qualifier"]["w"] - w) < 1e-12
+
+
+def test_r6_ka_rule():
+    """README 2.9: skips until R6-SHUF-KA has run; R6-SHUF's record is the one the qualifier read."""
+    path = RESULTS / "r6_ka.json"
+    if not path.exists():
+        pytest.skip("r6_ka.json missing; R6-SHUF-KA has not run")
+    x = load("r6_ka")
+    shuf = load("r6_shuf")
+    rs = x["records"]["r6_shuf"]
+    if rs.get("ok"):
+        assert rs["phi_bar"] == shuf["quantities"]["phi"]["mean"] and rs["s_phi"] == shuf["quantities"]["phi"]["s"]
+    check_r6_ka(x)
