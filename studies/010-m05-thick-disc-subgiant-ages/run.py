@@ -2049,7 +2049,7 @@ def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
            "checks": {"data_fit_mismatches": mism},
            "threads": {**{k: os.environ.get(k) for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")},
                        "cpu_count": os.cpu_count(),
-                       "note": "settings of the last session; every session of a run must use the same settings"}}
+                       "note": "environment variables of the last session (null: the libraries chose their own thread counts); every session of a run must use the same settings"}}
 
     def fail(status):
         out["status"] = status

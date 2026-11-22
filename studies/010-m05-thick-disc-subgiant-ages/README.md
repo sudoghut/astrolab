@@ -864,7 +864,7 @@ on XR22's claim.
      not checkpointed; the 36 companion refits run after the 72 sets, are not checkpointed and are not
      in the projection; their stream uses the literal 50 as written above. With `err_n_mock` ≠ 50 (an
      exploration) no label is given, as in 2.6. The committed `PARAMS["parts"]` is `["err"]`.
-- **Note after the first formal attempt (2026-11-21; no rule changes, no R1-ERR mock had run).** The first
+- **Note after the first formal attempt (2026-11-21; no rule changes, no formal R1-ERR mock had run).** The first
   formal run, single-threaded (`OMP_NUM_THREADS`, `MKL_NUM_THREADS`, `OPENBLAS_NUM_THREADS` = 1), stopped
   at check (a) as "not evaluable (reproduction)": d and K of the 9 data fits matched, but the skew-normal
   and split-normal fits (and two K fits) differed from `r1_sel.json` by more than 10⁻⁹. Investigated as
