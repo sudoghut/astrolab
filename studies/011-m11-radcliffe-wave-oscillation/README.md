@@ -655,7 +655,9 @@ How a coding agent answers "what if" questions about this study without touching
   `python -m astrolab run 011-m11-radcliffe-wave-oscillation`, and rerun the same command after each pause at
   `stop_after_hours` until it completes (it resumes from `s011_checkpoints/conv/<key>` and deletes that folder when done);
   then the same with `["t8p"]`; then set `parts` back to the default list. Only `rconv.json` or `t8p.json`, the
-  `R_CONV` or `T8_P` key of `summary.json` and the `_conv` / `_t8p` records are written. Runtime, measured on synthetic
+  `R_CONV` or `T8_P` key of `summary.json` and the `_conv` / `_t8p` records are written. A later rerun of the full
+  pipeline rewrites `summary.json` without these keys; rerun the two parts afterwards (a conclusion test fails while a
+  result file exists without its key). Runtime, measured on synthetic
   data of the real size (79 clouds, 2,000 grid points) while the machine was busy: one column-(3) likelihood takes
   0.7–1.4 ms depending on the convention (L-F-W fastest; C, X and P slowest). Every formal chain was rerun with doubled
   steps, so each chain is taken as 48 × 18,000 evaluations: about 10–20 minutes per column-(3) chain, 2.7–5.4 hours for

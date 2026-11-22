@@ -371,6 +371,10 @@ def test_t8p_label():
 
 def test_standalone_summary_keys():
     s = load("summary")
+    # a rerun of the full pipeline rewrites summary.json without these keys: an existing result file must keep its key
+    for f, key in (("rconv", "R_CONV"), ("t8p", "T8_P")):
+        if (RESULTS / f"{f}.json").exists():
+            assert key in s, f"results/{f}.json exists but summary.json has no {key}: rerun part {f!r} (README section 8)"
     if "R_CONV" in s:
         rc = load("rconv")
         assert s["R_CONV"]["label"] == rc["label"]
