@@ -103,15 +103,34 @@ def check_density(g):
         assert abs(np.log(num1) - log_x1(np.array([x1]), g)[0]) < 1e-6
 
 
+def grids():
+    """The three search grids of README 2.9 (drafting, synthetic only): (label, n draws, members, print filter)."""
+    import itertools
+    other = {"mu2": 0.55, "curv": 0.3, "boxes": [[-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05]]}
+    g1 = [dict(other, ubox=[-0.1, 1.9, 0.1], mu1=m, a=a, c=c)
+          for m, a, c in itertools.product((0.6, 0.9, 1.2), (1.0, 2.0, 3.0), (0.9, 1.9))]
+    g2 = [dict(other, ubox=[lo, lo + 2.0, 0.1], a=a, c=c, mu1=m)
+          for lo, a, c, m in itertools.product((0.1, 0.3, 0.5), (1.0, 1.5, 2.0), (1.0, 1.4), (0.6, 0.9))]
+    g3 = [dict(other, ubox=[lo, lo + 2.0, s], a=a, c=c, mu1=m)
+          for lo, s, a, c, m in itertools.product((-0.1, 0.0, 0.05), (0.1, 0.2, 0.3), (2.0, 2.5, 3.0), (1.4, 1.9),
+                                                  (0.6, 0.9))]
+    return [("i", 200_000, g1, lambda e: True),
+            ("ii", 150_000, g2, lambda e: 1.3 < e["6"] < 2.1 and 0.3 < e["5"] < 0.8),
+            ("iii", 100_000, g3, lambda e: 1.4 < e["6"] < 2.1 and 0.7 < e["S"] < 1.3 and 0.3 < e["5"] < 0.8)]
+
+
+CHOSEN = {"mu1": 0.9, "mu2": 0.55, "curv": 0.3, "a": 2.5, "c": 1.4, "ubox": [0.05, 2.05, 0.2],
+          "boxes": [[-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05]]}
+
+
 if __name__ == "__main__":
-    base = {"mu2": 0.55, "curv": 0.3, "ubox": [-0.1, 1.9, 0.1], "c": 0.9,
-            "boxes": [[-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05]]}
-    check_density(dict(base, mu1=1.0, a=1.5))
+    check_density(CHOSEN)
     print("closed forms ok")
-    n = int(sys.argv[1]) if len(sys.argv) > 1 else 300_000
-    for mu1 in (0.6, 0.9, 1.2):
-        for a in (1.0, 2.0, 3.0):
-            for c in (0.9, 1.9):
-                g = dict(base, mu1=mu1, a=a, c=c)
-                e = exact(g, n=n)
-                print(f"mu1 {mu1} a {a} c {c}: n6 {e['6']:.3f} nS {e['S']:.3f} n5 {e['5']:.3f} phi {e['phi']:.3f}")
+    for name, n, members, keep in grids():
+        for g in members:
+            e = exact(g, n=n)
+            if keep(e):
+                print(name, {k: g[k] for k in ("ubox", "mu1", "a", "c")},
+                      {k: round(v, 3) for k, v in e.items()}, flush=True)
+    for seed in (999, 998):
+        print("chosen", seed, {k: round(v, 4) for k, v in exact(CHOSEN, n=2_000_000, seed=seed).items()})
