@@ -178,6 +178,11 @@ def t8_label(halfwidth_broad, prior_sigma, median_shift_sigma, *, width_frac=0.5
 # README 4.10 (T-056, post hoc): R-CONV choice of the convention, T8-P
 
 RCONV_SUFFIX = " (best among these 16 candidate conventions, post hoc)"
+
+
+def rconv_suffix(n):
+    """The label suffix; an exploration subset names its own number of conventions (not a formal result)."""
+    return RCONV_SUFFIX if n == 16 else f" (best among these {n} candidate conventions, exploration subset, post hoc)"
 T8P_AT_BOUND = "prior-driven (posterior at the bound)"
 
 
@@ -205,10 +210,11 @@ def rconv_choose(rows, *, min_count=3, repro_count=5, ratio_range=(2.0 / 3.0, 1.
     (iii) if none of those has its ratio in range, the largest count among count >= 3.
     Ties: fewest factors differing from (L, F, W), then the lowest index."""
     lo, hi = ratio_range
+    suffix = rconv_suffix(len(rows))
     cand = [r for r in rows if r["count"] >= min_count]
     if not cand:
         return {"case": "i", "chosen": None, "label": "column (3) not reproduced under any candidate convention"
-                + RCONV_SUFFIX, "reason": f"every count <= {min_count - 1}", "status": "not reproduced"}
+                + suffix, "reason": f"every count <= {min_count - 1}", "status": "not reproduced"}
     inw = [r for r in cand if width_in(r["width_ratio"], lo, hi)]
     pool, case = (inw, "ii") if inw else (cand, "iii")
     best = min(pool, key=lambda r: (-r["count"], r["n_factors_differing"], r["index"]))
@@ -220,7 +226,7 @@ def rconv_choose(rows, *, min_count=3, repro_count=5, ratio_range=(2.0 / 3.0, 1.
         reasons.append(f"width ratio {best['width_ratio']:.3f} outside [2/3, 3/2]")
     status = "reproduced" if not reasons else "partly reproduced"
     return {"case": case, "chosen": best["index"], "chosen_name": best["name"],
-            "label": f"column (3) {status} under {best['name']}" + RCONV_SUFFIX,
+            "label": f"column (3) {status} under {best['name']}" + suffix,
             "reason": "; ".join(reasons) or None, "status": status}
 
 
