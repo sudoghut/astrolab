@@ -1,0 +1,371 @@
+{
+ "status": "complete",
+ "parts": [
+  "t1t2",
+  "t3",
+  "t4",
+  "t5",
+  "t6",
+  "t7",
+  "t8"
+ ],
+ "T1": {
+  "col4": "partly reproduced",
+  "col6": "not reproduced",
+  "on_our_reproduction_only": false
+ },
+ "T2": {
+  "B_median": 0.8386741578578949,
+  "B_p16": 0.7769750261306763,
+  "B_p84": 0.9092483162879944,
+  "P_B_gt_0p95": 0.0646875,
+  "P_B_lt_0p5": 5.208333333333334e-05
+ },
+ "chain_short": [
+  "col3",
+  "col4",
+  "col5",
+  "col6",
+  "col7",
+  "col7_broad",
+  "col7_div"
+ ],
+ "T3": {
+  "standing": "standing excluded",
+  "pure_travelling": "pure travelling (B = 1) not disfavoured",
+  "two_dlnL_standing": 20.2369803140773,
+  "two_dlnL_travelling": 6.389702823666539,
+  "p_cal_standing": 0.0329981706092121,
+  "p_boot_standing": 0.009900990099009901,
+  "p_cal_travelling": 0.156601790262291,
+  "p_boot_travelling": 0.1782178217821782
+ },
+ "T4": {
+  "label": "undetermined",
+  "R_obs": 0.3765123775309242,
+  "p": 0.2987012987012987,
+  "power_B1": 0.412
+ },
+ "T5": {
+  "wavelengths": "undetermined",
+  "bhat": "undetermined",
+  "bhat_value": 0.5323893052559585,
+  "bhat_interval": [
+   0.3883158950287037,
+   0.611990171412647
+  ],
+  "k_ratio_interval": [
+   0.6168498958869167,
+   4.091997582180458
+  ],
+  "known_answer_passed": false
+ },
+ "T6": {
+  "label": "fragile",
+  "changes": [
+   {
+    "variant": "v1_outlier_3sigma",
+    "label": "T3 standing",
+    "main": "standing excluded",
+    "variant_label": "standing excluded strongly",
+    "mcse": {
+     "p_cal": 7.610027508894227e-05,
+     "p_cal_mcse": 5.4083135516543446e-05,
+     "p_boot": 0.009900990099009901,
+     "p_boot_mcse": 0.009900990099009901
+    }
+   },
+   {
+    "variant": "v1_outlier_3sigma",
+    "label": "T3 pure travelling",
+    "main": "pure travelling (B = 1) not disfavoured",
+    "variant_label": "pure travelling (B = 1) disfavoured",
+    "mcse": {
+     "p_cal": 0.006744702526498317,
+     "p_cal_mcse": 0.004834570325627047,
+     "p_boot": 0.0297029702970297,
+     "p_boot_mcse": 0.01697666158364579
+    }
+   },
+   {
+    "variant": "v1_outlier_3sigma",
+    "label": "T4",
+    "main": "undetermined",
+    "variant_label": "standing not excluded by the phases",
+    "mcse": {
+     "p": 0.057942057942057944,
+     "p_mcse": 0.0073881510449839306,
+     "power_B1": 0.987,
+     "power_B1_mcse": 0.0035820385257559714
+    }
+   },
+   {
+    "variant": "v2_no_outlier_model",
+    "label": "T3 standing",
+    "main": "standing excluded",
+    "variant_label": "standing excluded strongly",
+    "mcse": {
+     "p_cal": 3.274925451612571e-07,
+     "p_cal_mcse": 5.367256929127329e-07,
+     "p_boot": 0.009900990099009901,
+     "p_boot_mcse": 0.009900990099009901
+    }
+   },
+   {
+    "variant": "v3_no_weights",
+    "label": "T3 standing",
+    "main": "standing excluded",
+    "variant_label": "standing not excluded",
+    "mcse": {
+     "p_cal": 0.27105577183965035,
+     "p_cal_mcse": 0.018267025049312532
+    }
+   },
+   {
+    "variant": "v7_no_orion",
+    "label": "T3 standing",
+    "main": "standing excluded",
+    "variant_label": "standing not excluded",
+    "mcse": {
+     "p_cal": 0.6059587717902062,
+     "p_cal_mcse": 0.013734622062318236
+    }
+   },
+   {
+    "variant": "v8_leave_out:CantatGaudin+2020",
+    "label": "T3 standing",
+    "main": "standing excluded",
+    "variant_label": "standing not excluded",
+    "mcse": {
+     "p_cal": 0.09598484195738739,
+     "p_cal_mcse": 0.01266707170628629
+    }
+   },
+   {
+    "variant": "v8_leave_out:Hao+2022",
+    "label": "T3 standing",
+    "main": "standing excluded",
+    "variant_label": "standing not excluded",
+    "mcse": {
+     "p_cal": 0.06504026420848127,
+     "p_cal_mcse": 0.01023077190599164
+    }
+   },
+   {
+    "variant": "v8_leave_out:Hao+2022",
+    "label": "T4",
+    "main": "undetermined",
+    "variant_label": "standing not excluded by the phases",
+    "mcse": {
+     "p": 0.16283716283716285,
+     "p_mcse": 0.011675667913927074,
+     "power_B1": 0.835,
+     "power_B1_mcse": 0.011737759581794136
+    }
+   },
+   {
+    "variant": "v8_leave_out:He+2022",
+    "label": "T3 standing",
+    "main": "standing excluded",
+    "variant_label": "standing not excluded",
+    "mcse": {
+     "p_cal": 0.06811267725095824,
+     "p_cal_mcse": 0.010507824510736277
+    }
+   },
+   {
+    "variant": "v8_leave_out:Sim+2019",
+    "label": "T3 standing",
+    "main": "standing excluded",
+    "variant_label": "standing not excluded",
+    "mcse": {
+     "p_cal": 0.06449275544049203,
+     "p_cal_mcse": 0.010180455445215111
+    }
+   },
+   {
+    "variant": "v9_low_sigmavz",
+    "label": "T3 standing",
+    "main": "standing excluded",
+    "variant_label": "standing not excluded",
+    "mcse": {
+     "p_cal": 0.46991348109013265,
+     "p_cal_mcse": 0.01692762857532281
+    }
+   }
+  ]
+ },
+ "T7": {
+  "label": "CO does not distinguish",
+  "m2lnL": [
+   459.9808101519498,
+   449.3371952813,
+   435.8028058460551
+  ]
+ },
+ "T8": {
+  "label": "prior-driven",
+  "omega0_k24": {
+   "median": 113.07415008544922,
+   "p16": 97.3690118408203,
+   "p84": 130.81061584472656,
+   "plus": 17.736465759277337,
+   "minus": 15.705138244628913
+  },
+  "omega0_broad": {
+   "median": 137.97563934326172,
+   "p16": 123.04284088134766,
+   "p84": 146.46452697753907,
+   "plus": 8.488887634277347,
+   "minus": 14.93279846191406
+  }
+ },
+ "overall": {
+  "reading": "mixed",
+  "labels": {
+   "T1": "partly reproduced",
+   "T3": "standing excluded",
+   "T4": "undetermined",
+   "T5": "undetermined",
+   "T6": "fragile"
+  },
+  "support": [
+   "T1",
+   "T3"
+  ],
+  "do_not_support": [
+   "T6"
+  ],
+  "undetermined_or_not_evaluable": [
+   "T4",
+   "T5"
+  ]
+ },
+ "load_check": {
+  "weighted_mean_vz": -2.178484705528535,
+  "unweighted_mean_vz": -1.4407999999999999,
+  "weights": "kernel weights of README 4.1 (K24 column-(6) medians, bandwidth from PARAMS)",
+  "threshold": 3.0,
+  "passed": true
+ },
+ "timing": {
+  "seconds_per_loglike": {
+   "col3": 0.631,
+   "col4": 0.848,
+   "col6": 1.225
+  },
+  "unit": "ms",
+  "seconds_per_t5_analysis_ms": 2.029,
+  "projected_hours": {
+   "mcmc": 0.58,
+   "ml_main": 0.22,
+   "t3_mocks": 4.24,
+   "t4": 0.0,
+   "t5": 0.03,
+   "t6": 5.91
+  },
+  "projected_total_hours": 10.98,
+  "note": "MCMC at the pre-registered length (reruns with doubled steps not included); ML fits at the full Nelder-Mead budget per start (upper end)"
+ },
+ "checkpoints": "C:\\Users\\how612\\AppData\\Local\\astrolab\\Cache\\s011_checkpoints\\89fed8977112c4575e79",
+ "params": {
+  "seed": 20261121,
+  "sigma_pc": 47.0,
+  "bandwidth_pc": 100.0,
+  "grid_n": 2000,
+  "u_min": -0.2,
+  "u_max": 1.4,
+  "mcmc_walkers": 48,
+  "mcmc_steps": 6000,
+  "mcmc_burn": 2000,
+  "mcmc_min_tau_mult": 50.0,
+  "mcmc_chunk": 250,
+  "mcmc_thin_keep": 10,
+  "ml_starts": 20,
+  "ml_nm_maxfev": 6000,
+  "ml_lbfgs_maxfun": 3000,
+  "t3_mocks": 100,
+  "t3_resid_variant": true,
+  "t3_strong": 0.001,
+  "alpha": 0.05,
+  "t4_mocks": 1000,
+  "t4_p_excl": 0.01,
+  "t4_p_not": 0.05,
+  "t4_power_min": 0.8,
+  "t5_boot": 1000,
+  "t5_ka_mocks": 20,
+  "t5_ka_B": [
+   0.5,
+   0.84,
+   1.0
+  ],
+  "t5_ka_w0t": -0.38,
+  "t5_b_t": 0.4,
+  "t5_band": [
+   0.8,
+   1.25
+  ],
+  "t5_k_min": 0.3,
+  "t5_k_max": 3.0,
+  "t5_k_step": 0.01,
+  "t5_cut_sigma": 1.7320508075688772,
+  "t5_omega0_sens_kms_kpc": 68.0,
+  "variants": [
+   "v1_outlier_3sigma",
+   "v2_no_outlier_model",
+   "v3_no_weights",
+   "v4_bandwidth_50",
+   "v5_bandwidth_200",
+   "v6_wsun_7p25",
+   "v7_no_orion",
+   "v8_leave_out_reference",
+   "v9_low_sigmavz",
+   "v10_chord_u1"
+  ],
+  "v4_bandwidth_pc": 50.0,
+  "v5_bandwidth_pc": 200.0,
+  "v1_cut_sigma": 3.0,
+  "v6_dvz_kms": -0.55,
+  "v7_orion_l_deg": [
+   180.0,
+   220.0
+  ],
+  "v7_orion_b_deg": [
+   -25.0,
+   -5.0
+  ],
+  "t7_vc_kms": 242.0,
+  "t7_margin": 9.0,
+  "t8_broad_omega0_kms_kpc": [
+   30.0,
+   150.0
+  ],
+  "t8_broad_mu0_kpc": [
+   0.3,
+   3.0
+  ],
+  "t8_broad_r0_pc": [
+   1000.0,
+   10000.0
+  ],
+  "t8_prior_sigma_ln_omega0": 0.17,
+  "t8_width_frac": 0.5,
+  "t8_shift_max": 0.5,
+  "t8_divisor_variant_kms_kpc": 74.0,
+  "t8_draws": 2000,
+  "sun_vz_kms": 7.8,
+  "load_check_max_abs_vz": 3.0,
+  "parts": [
+   "t1t2",
+   "t3",
+   "t4",
+   "t5",
+   "t6",
+   "t7",
+   "t8"
+  ],
+  "timing_evals": 100,
+  "stop_after_hours": 10.0,
+  "checkpoint_subdir": "s011_checkpoints"
+ }
+}
