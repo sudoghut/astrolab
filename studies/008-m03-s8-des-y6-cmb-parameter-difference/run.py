@@ -99,7 +99,7 @@ PARAMS = {
     # R6-SHUF-KA (README 2.9, T-047 flow part). r6_shuf_retrain False: R6-SHUF is not rerun; results/r6_shuf.json
     # is read (README 2.9 amendment 1). r6_ka True only for the formal run (with R6, R6-NOMNU and R6-SHUF read).
     "r6_shuf_retrain": False,
-    "r6_ka": False, "r6_ka_seeds": [15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+    "r6_ka": True, "r6_ka_seeds": [15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
     "r6_ka_family": {"mu1": 0.9, "mu2": 0.55, "curv": 0.3, "a": 2.5, "c": 1.4, "ubox": [0.05, 2.05, 0.2],
                      "boxes": [[-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05]]},
     "r6_ka_exact": {"n6": 1.8087, "S": 0.9263, "n5": 0.3652},
