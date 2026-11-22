@@ -177,5 +177,18 @@
    }
   }
  },
+ "R2_RE_G": {
+  "status": "evaluated",
+  "reading": "undetermined (underpowered)",
+  "sub_label": "diffuse excluded; test underpowered against the σ-matched alternative",
+  "power": 0.4908,
+  "size": 0.0483,
+  "n_sims": 10000,
+  "smallest_z_alt_power_08": 5.0,
+  "G_obs": 0.30485762235426483,
+  "host_j_hat": "N5584",
+  "p_G": 0.016349182540872958,
+  "p_G_label": "excluded"
+ },
  "runtime_s": 33374.32105920001
 }
