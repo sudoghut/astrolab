@@ -1518,6 +1518,10 @@ How a coding agent answers "what if" questions about this study without touching
 | `sel_power_floor`, `sel_power_floor_sens` | R1-SEL power-model floor and its sensitivity value | 0.10–0.30 | cache only |
 | `sel_pass_width`, `sel_n_min` | pass-bin width (Gyr) and minimum parent count per pass bin (SEL-0) | 0.5–2; 100–500 | cache only |
 
+- Exploration checkpoints: since 2026-11-22 (T-058) R-SEL and R1-SEL-FIT explorations, like R1-ERR's
+  since T-054, keep their mock checkpoints under a sibling root (`s010_sel_mocks_explore`,
+  `s010_selfit_mocks_explore`, `s010_err_mocks_explore`, each under `<date>-<tag>`), never in the formal
+  folders, so pruning exploration checkpoints cannot touch the formal ones.
 - Rerun with an override: `python -m astrolab explore 010-m05-thick-disc-subgiant-ages --tag <topic> --set KEY=VALUE`
   (outputs in `explore/<date>-<topic>/`, not committed). The original pipeline needs
   `--set 'parts=["orig"]'`; without mocks
@@ -1525,10 +1529,8 @@ How a coding agent answers "what if" questions about this study without touching
   and the full calibration about 5 h. The R-SEL pipeline (the default) takes about 0.75 h of data fits
   plus mocks (`--set sel_n_mock=2` for a quick run; at 50 per set the mocks took 6 h of compute and
   the interrupted run 10 h in all). Its mocks are
-  checkpointed in the cache under a key of the code and PARAMS, so an override starts a new folder;
-  since 2026-11-22 (T-058) an exploration's R-SEL, R1-SEL-FIT and R1-ERR checkpoints go to a sibling root
-  (`s010_sel_mocks_explore`, `s010_selfit_mocks_explore`, `s010_err_mocks_explore`, each under
-  `<date>-<tag>`), never into the formal folders, so pruning exploration checkpoints cannot touch them;
+  checkpointed in the cache under a key of the code and PARAMS, so an override starts a new folder
+  (an exploration's folders sit under a separate root, see the item above);
   it needs about 6 GB of memory at peak (section 5.1). Since 2026-11-20 (T-046, after the R-SEL
   run; the code change gives a new checkpoint key) a refused file replace is retried for about 25 s
   before the run stops, and on a resume the projection counts mocks already checkpointed as
