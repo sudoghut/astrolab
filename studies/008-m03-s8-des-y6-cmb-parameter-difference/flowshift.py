@@ -7,7 +7,8 @@ tensiometer, getdist), one job per process, started by r6flow.py:
 
 where <job> is "meta", "exact", "gate <seed>" or "case <name> <seed>" (R6), or "exact <gate>" and
 "gate <gate> <seed>" for a named gate in cfg["gates"] (R6-NOMNU, README 2.7), and "shuf <variant> <seed>"
-and "knn <seed>" for the Sigma m_nu column variants of R6-SHUF (README 2.8). It never touches the network
+and "knn <seed>" for the Sigma m_nu column variants of R6-SHUF (README 2.8), and "ka <variant> <seed>" for
+the synthetic family of R6-SHUF-KA (README 2.9). It never touches the network
 or the project folder: it reads the job folder's input.npz (the chains' columns and weights) and
 writes one JSON file atomically. The pure helpers (gate_summary, case_summary, finite) are also
 used by r6flow.py in the project environment. Order (README 2.6): the known-answer gate first; only
@@ -223,6 +224,117 @@ def finite(o):
     return o
 
 
+# ------------------------------------------------------------------ R6-SHUF-KA (README 2.9) ----
+# The synthetic family of the known-answer test of phi: the functions of explore/t047_ka_design.py (the
+# pre-registration's design script), copied with a ka_ prefix (test_r6ka.py checks identical draws and densities).
+# Latent v ~ U(lo, hi); u = v - N(0, s); x1 = N(mu1 + a (v - c), 1); x2 = N(mu2, 1) + curv (x1 - mu1)^2; three boxes.
+# Variants "6" (x1, x2, u, b1, b2, b3), "S" (u column permuted: u's marginal times the rest's), "5" (u dropped).
+
+KA_NAMES6 = ["x1", "x2", "u", "b1", "b2", "b3"]
+KA_U_COL = 2
+
+
+def ka_nsig(p):
+    from scipy.special import erfinv
+    return float(np.sqrt(2) * erfinv(p))
+
+
+def ka_sample(n, rng, g):
+    """D6 rows; draw order v, the u noise, x1, x2, the boxes (each a full vector)."""
+    lo, hi, s = g["ubox"]
+    v = rng.uniform(lo, hi, n)
+    u = v - rng.normal(0.0, s, n)
+    x1 = rng.normal(g["mu1"] + g["a"] * (v - g["c"]), 1.0, n)
+    x2 = rng.normal(g["mu2"], 1.0, n) + g["curv"] * (x1 - g["mu1"]) ** 2
+    boxes = [rng.uniform(blo, bhi, n) - rng.normal(0.0, bs, n) for blo, bhi, bs in g["boxes"]]
+    return np.column_stack([x1, x2, u] + boxes)
+
+
+def ka_variant(z6, v, perm_rng=None):
+    """The rows of variant v from the D6 rows: "6" as is; "S" the u column permuted by perm_rng; "5" u dropped."""
+    if v == "6":
+        return z6
+    if v == "S":
+        z = z6.copy()
+        z[:, KA_U_COL] = z[perm_rng.permutation(len(z)), KA_U_COL]
+        return z
+    if v == "5":
+        return np.delete(z6, KA_U_COL, axis=1)
+    raise ValueError(f"unknown variant {v!r}")
+
+
+def ka_names(v):
+    return [n for n in KA_NAMES6 if not (v == "5" and n == "u")]
+
+
+def ka_log_box(u, lo, hi, s):
+    from scipy.stats import norm
+    return np.log(np.clip(norm.cdf((u - lo) / s) - norm.cdf((u - hi) / s), 1e-300, None) / (hi - lo))
+
+
+def ka_log_x1(x1, g):
+    """marginal of x1: int U(v) N(x1; mu1 + a (v - c), 1) dv"""
+    from scipy.stats import norm
+    lo, hi, _ = g["ubox"]
+    a = g["a"]
+    if a == 0:
+        return norm.logpdf(x1, g["mu1"], 1.0)
+    m_lo = g["mu1"] + a * (lo - g["c"])
+    m_hi = g["mu1"] + a * (hi - g["c"])
+    A, B = min(m_lo, m_hi), max(m_lo, m_hi)
+    return np.log(np.clip(norm.cdf(x1 - A) - norm.cdf(x1 - B), 1e-300, None) / (B - A))
+
+
+def ka_log_x1u(x1, u, g):
+    """int U(v) N(u; v, s) N(x1; mu1 + a (v - c), 1) dv (closed form)"""
+    from scipy.stats import norm
+    lo, hi, s = g["ubox"]
+    a, c, mu1 = g["a"], g["c"], g["mu1"]
+    if a == 0:
+        return norm.logpdf(x1, mu1, 1.0) + ka_log_box(u, lo, hi, s)
+    t1, p1 = u, 1.0 / s ** 2
+    t2, p2 = (x1 - mu1) / a + c, a ** 2
+    P = p1 + p2
+    m = (p1 * t1 + p2 * t2) / P
+    log_pair = norm.logpdf(t1, t2, np.sqrt(1 / p1 + 1 / p2)) - np.log(abs(a))
+    sd = 1 / np.sqrt(P)
+    mass = np.clip(norm.cdf((hi - m) / sd) - norm.cdf((lo - m) / sd), 1e-300, None)
+    return log_pair + np.log(mass) - np.log(hi - lo)
+
+
+def ka_logp(z, g, variant):
+    from scipy.stats import norm
+    x1, x2 = z[:, 0], z[:, 1]
+    out = norm.logpdf(x2 - g["curv"] * (x1 - g["mu1"]) ** 2, g["mu2"], 1.0)
+    if variant == "6":
+        out = out + ka_log_x1u(x1, z[:, 2], g)
+        rest = z[:, 3:]
+    elif variant == "S":
+        out = out + ka_log_x1(x1, g) + ka_log_box(z[:, 2], *g["ubox"])
+        rest = z[:, 3:]
+    else:  # "5": u dropped
+        out = out + ka_log_x1(x1, g)
+        rest = z[:, 2:]
+    for i, (lo, hi, s) in enumerate(g["boxes"]):
+        out = out + ka_log_box(rest[:, i], lo, hi, s)
+    return out
+
+
+def ka_exact(g, n=2_000_000, seed=999):
+    """README 2.9: exact n_sigma of the three variants (D6 from default_rng(seed), DS by permuting its u column
+    with default_rng(seed + 1), D5 by dropping u) and phi."""
+    z6 = ka_sample(n, np.random.default_rng(seed), g)
+    zS = z6.copy()
+    zS[:, 2] = zS[np.random.default_rng(seed + 1).permutation(n), 2]
+    z5 = np.delete(z6, 2, axis=1)
+    out = {}
+    for v, z in (("6", z6), ("S", zS), ("5", z5)):
+        o = np.zeros((1, z.shape[1]))
+        out[v] = ka_nsig(float(np.mean(ka_logp(z, g, v) > ka_logp(o, g, v)[0])))
+    out["phi"] = (out["6"] - out["S"]) / (out["6"] - out["5"])
+    return out
+
+
 def run_job(job, inp, cfg):
     """One unit of work in its own process (so TensorFlow memory is freed when it exits):
     'meta', 'exact', ('gate', seed) or ('case', name, seed) as in R6; ('exact', gate) and
@@ -260,6 +372,15 @@ def run_job(job, inp, cfg):
             vals = {v: knn_nsigma_multi(draw(v, k), sc["knn_k"]) for v in VARIANTS}
             vals["5d"] = knn_nsigma_multi(np.delete(draw("none", k), j, axis=1), sc["knn_k"])
             return {"seed": k, "k": list(sc["knn_k"]), "n_sigma": vals, "knn_s": round(time.time() - t0, 1)}
+        if job[0] == "ka":
+            # README 2.9: one flow on variant job[1] ("6", "S" or "5") of the synthetic family at seed job[2];
+            # the D6 rows from default_rng(offsets[0] + k), the (S) permutation from default_rng(offsets[1] + k)
+            ka = cfg["ka"]
+            variant, k = job[1], int(job[2])
+            z6 = ka_sample(cfg["n"], np.random.default_rng(ka["offsets"][0] + k), ka["family"])
+            x = ka_variant(z6, variant, np.random.default_rng(ka["offsets"][1] + k) if variant == "S" else None)
+            out = one_shift(x, ka_names(variant), k, cfg["estimate"], None, True)
+            return {**out, "variant": variant}
         name, k = job[1], int(job[2])
         case = cfg["cases"][name]
         cols = case["columns"]

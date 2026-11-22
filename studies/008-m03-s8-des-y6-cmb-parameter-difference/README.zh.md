@@ -344,6 +344,13 @@ CPU 运行错开；不取数据（链来自缓存）。PARAMS：`"r6_nomnu": Tru
 
 *运行时间。* R6 的 6 维训练用了 745–807 秒；30 次训练（三个变体 × 十个种子，5 维的稍快）在 venv-tf 中约 6.0–6.7 小时（`TF_USE_LEGACY_KERAS=1`，与 R6 和 R6-SHUF 一样通过项目 venv 的子进程运行），加上精确值（几秒），在没有其他研究运行时进行。不下载数据；不读取链。PARAMS：`"r6_ka": False`（只在正式运行时单独设为 true；R1–R5 照常运行，R6、R6-NOMNU 与 R6-SHUF 只读取、不重跑），`"r6_ka_seeds": [15, 16, 17, 18, 19, 20, 21, 22, 23, 24]`，`"r6_ka_family": {"mu1": 0.9, "mu2": 0.55, "curv": 0.3, "a": 2.5, "c": 1.4, "ubox": [0.05, 2.05, 0.2], "boxes": [[-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05]]}`，`"r6_ka_exact": {"n6": 1.8087, "S": 0.9263, "n5": 0.3652}`，`"r6_ka_seed_offsets": [5000, 6000]`；输出 `results/r6_ka.json`，以及 `summary.json` 中的键 `R6_KA`。正式运行前的代码检查（合成数据，不训练流）：闭合形式的密度与对 v 的数值积分比较；DS 的行具有 u 的边缘分布且与其余部分独立；规则顺序与限定语。这些代码都尚不存在。
 
+*在任何 R6-SHUF-KA 流训练之前的修订（2026-11-22）。* 编写代码（flowshift 的 `ka` 任务、`r6ka.py`、`run.py` 的 `r6_ka` 路径、`test_r6ka.py`、结论复核、网页一节）时所做的实现上的选择，在分布族上训练任何流之前（代码只在不训练流的合成行上运行过）；上面的规则都不改变。
+1. `"r6_shuf_retrain": False`（新增）：R6-SHUF 不重跑；在每次运行中都只读取 `results/r6_shuf.json`，从不重写（此前 `r6_shuf` 为 true 的运行会重新训练它）。`r6_ka` 为 true 而 `r6_shuf_retrain` 也为 true 时拒绝运行。不带 `r6_ka` 的运行保留已记录的 `r6_ka.json` 的概要。
+2. 概要中的键为 `r6_ka`（与 `r6_shuf`、`r6_nomnu` 一样），不是 `R6_KA`。
+3. 分布族的函数原样复制到 `flowshift.py` 中，加 `ka_` 前缀，因为流的任务以隔离方式（`python -I`）运行 `flowshift.py`，不能导入对话探索脚本；`test_r6ka.py` 检查它们与 `explore/t047_ka_design.py` 的抽样与对数密度完全相同，并检查在 TF 环境的 numpy（2.5.5）与项目环境的 numpy（1.26.4）下抽样相同。精确值在项目环境中用 `flowshift.ka_exact` 重新计算（2,000,000 次抽样，种子 999，(S) 的置换用种子 1000）。
+4. 若 R6 或 R6-SHUF 的记录不能复用，或某个重新计算的精确值相差超过 0.005，则不训练任何流（由规则 1 判为"not evaluable"）；若环境与记录的不同，只运行 `meta` 任务。
+5. 流任务的文件夹与 R6 一样，以一个占位的输入数组、配置、`flowshift.py` 与 TF 环境的软件包为键；`ka` 任务自行抽取数据行。
+
 ## 3. 数据（附大小估计）
 
 | 输入 | 来源（服务 / URL） | 选择 | 估计行数 / 大小 |
@@ -669,10 +676,12 @@ DES 的每个箱占 0.20 的权重（有效样本量（effective sample size, ES
 | `probes` | R5 汇总值：name -> [mean, σ₊, σ₋, reference] | 任意已发表的 S8 | 只用缓存 |
 | `chains` | DES 服务器上的链文件名 | `chains_release/` 中的其他文件 | 新数据：先检查大小（50 MB 上限；只有 32pt 链有用户批准的例外） |
 | `r6_retrain`, `r6_nomnu_retrain` | `False`：不重新训练 R6 / R6-NOMNU，检查并复用已记录的 `results/r6.json` / `results/r6_nomnu.json`（README 2.7、2.8） | 保持 `False`（`True` 会重新训练数小时） | 只用缓存 |
-| `r6_shuf` | 运行 R6-SHUF（README 2.8）：在 DES 的 Σmν 列打乱（S）、从先验（prior）抽取（P）、两条链都打乱（SS）后训练流 | `False` 跳过（在 venv-tf 中约 4 小时的流训练）；它默认为 `True`，且运行结束后作业文件夹会被删除，所以探索其他键时请加 `--set r6_shuf=False`，否则每次运行都会重新训练 | 只用缓存 |
+| `r6_shuf` | 运行 R6-SHUF（README 2.8）：在 DES 的 Σmν 列打乱（S）、从先验（prior）抽取（P）、两条链都打乱（SS）后训练流 | `False` 跳过；`r6_shuf_retrain` 为 false 时（2026-11-22 起的默认值，README 2.9 修订 1）只读取已记录的 `r6_shuf.json`；`r6_shuf_retrain=True` 会重新训练（在 venv-tf 中约 4 小时的流训练） | 只用缓存 |
 | `r6_shuf_seeds`, `r6_shuf_seed_offsets` | R6-SHUF 的种子 k（与 R6、R6-NOMNU 配对）以及 (S)、(P)、(SS) 随机数生成器的偏移 | 登记值 `[0..4]`、`[1000, 2000, 3000]` | 只用缓存 |
 | `r6_shuf_s_max`, `r6_shuf_e_min`, `r6_shuf_band` | R6-SHUF 标签规则 4–6（改变它们就不是登记的标签） | – | 只用缓存 |
 | `r6_shuf_gate` | 低偏移门槛（low-shift gate）：弯曲参数对的均值与已记录的精确 n_σ | – | 只用缓存 |
+| `r6_shuf_retrain` | 重新训练 R6-SHUF，而不是读取 `results/r6_shuf.json` | `False`（默认值）；只有在 `r6_ka` 为 false 时才可为 `True` | 只用缓存 |
+| `r6_ka`、`r6_ka_seeds`、`r6_ka_family`、`r6_ka_exact`、`r6_ka_seed_offsets` | 运行 R6-SHUF-KA（README 2.9）：十个种子 × 合成分布族上的三个流；分布族；预注册的精确值；D6 行与 (S) 置换的生成器 | `r6_ka` 为 `False`（只在正式运行时为 true，在 venv-tf 中约 6–7 小时，R6、R6-NOMNU 与 R6-SHUF 只读取）；其余为预注册值（对话探索可以用更少的种子，例如 `--set r6_ka=True --set r6_ka_seeds=[15]`，约 40 分钟，只写入它自己的文件夹） | 不下载 |
 | `r6_shuf_prior`, `r6_shuf_knn_k` | (P) 使用的 Σmν 先验范围；描述性 kNN（k 近邻，k-nearest neighbour）值的 k | 先验取自链文件头；k 10–200 | 只用缓存 |
 
 - 带覆盖参数重跑：`python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --set KEY=VALUE`

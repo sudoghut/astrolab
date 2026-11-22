@@ -646,6 +646,23 @@ rerun), `"r6_ka_seeds": [15, 16, 17, 18, 19, 20, 21, 22, 23, 24]`, `"r6_ka_famil
 closed-form densities against numerical integration over v; DS rows have u's marginal and are independent of the rest;
 the rule order and the qualifier. None of this code exists yet.
 
+*Amendments before any R6-SHUF-KA flow (2026-11-22).* Implementation choices made while writing the code (flowshift's
+`ka` jobs, `r6ka.py`, `run.py`'s `r6_ka` path, `test_r6ka.py`, the conclusion check, the web section), before any flow
+was trained on the family (the code was run on synthetic rows without flows); no rule above is changed.
+1. `"r6_shuf_retrain": False` (new): R6-SHUF is not rerun; `results/r6_shuf.json` is read and never rewritten, in
+   every run (before, a run with `r6_shuf` true retrained it). `r6_ka` true with `r6_shuf_retrain` true is refused. A
+   run without `r6_ka` keeps the recorded `r6_ka.json`'s summary.
+2. The summary key is `r6_ka` (as `r6_shuf` and `r6_nomnu`), not `R6_KA`.
+3. The family's functions are copied unchanged into `flowshift.py` with a `ka_` prefix, because the flow jobs run
+   `flowshift.py` isolated (`python -I`) and cannot import the explore script; `test_r6ka.py` checks identical draws
+   and log densities against `explore/t047_ka_design.py`, and identical draws under the TF environment's numpy (2.5.5)
+   and the project's (1.26.4). The exact values are recomputed in the project environment with `flowshift.ka_exact`
+   (2,000,000 draws, seed 999, the (S) permutation from seed 1000).
+4. If R6's or R6-SHUF's record is not reusable, or a recomputed exact value is off by more than 0.005, no flow is
+   trained (rule 1 decides "not evaluable"); if the environment differs from the records, only the `meta` job runs.
+5. The flow job folder is keyed, as for R6, by a dummy input array, the configuration, `flowshift.py` and the TF
+   environment's packages; the `ka` jobs draw their own rows.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
@@ -1139,11 +1156,13 @@ How a coding agent answers "what if" questions about this study without touching
 | `probes` | R5 summaries: name -> [mean, σ₊, σ₋, reference] | any published S8 | cache only |
 | `chains` | chain file names on the DES server | other files in `chains_release/` | new data: check sizes first (50 MB cap; only the 32pt chain has the user-approved exception) |
 | `r6_retrain`, `r6_nomnu_retrain` | `False`: R6 / R6-NOMNU are not retrained; the recorded `results/r6.json` / `results/r6_nomnu.json` are checked and reused (README 2.7, 2.8) | keep `False` (`True` retrains for hours) | cache only |
-| `r6_shuf` | run R6-SHUF (README 2.8): flows on DES's Σmν column shuffled (S), drawn from the prior (P) and both chains shuffled (SS) | `False` skips it (about 4 h of flows in venv-tf); it defaults to `True` and its job folder is deleted after a finished run, so pass `--set r6_shuf=False` when exploring other keys, or every run retrains | cache only |
+| `r6_shuf` | run R6-SHUF (README 2.8): flows on DES's Σmν column shuffled (S), drawn from the prior (P) and both chains shuffled (SS) | `False` skips it; with `r6_shuf_retrain` false (the default since 2026-11-22, README 2.9 amendment 1) the recorded `r6_shuf.json` is only read; `r6_shuf_retrain=True` retrains it (about 4 h of flows in venv-tf) | cache only |
 | `r6_shuf_seeds`, `r6_shuf_seed_offsets` | R6-SHUF seeds k (paired with R6 and R6-NOMNU) and the offsets of the (S), (P), (SS) generators | the registered `[0..4]`, `[1000, 2000, 3000]` | cache only |
 | `r6_shuf_s_max`, `r6_shuf_e_min`, `r6_shuf_band` | R6-SHUF label rules 4–6 (changing them is not the registered label) | – | cache only |
 | `r6_shuf_gate` | low-shift gate: curved-pair means and the recorded exact n_σ | – | cache only |
 | `r6_shuf_prior`, `r6_shuf_knn_k` | Σmν prior range used by (P); k of the descriptive kNN values | prior from the chain headers; k 10–200 | cache only |
+| `r6_shuf_retrain` | retrain R6-SHUF instead of reading `results/r6_shuf.json` | `False` (default); `True` only with `r6_ka` false | cache only |
+| `r6_ka`, `r6_ka_seeds`, `r6_ka_family`, `r6_ka_exact`, `r6_ka_seed_offsets` | run R6-SHUF-KA (README 2.9): ten seeds × three flows on the synthetic family; the family; the registered exact values; the generators of the D6 rows and the (S) permutation | `r6_ka` `False` (true only for the formal run, about 6–7 h in venv-tf, with R6, R6-NOMNU and R6-SHUF read); the rest pre-registered (an exploration may use fewer seeds, e.g. `--set r6_ka=True --set r6_ka_seeds=[15]`, about 40 min, writing only to its own folder) | no download |
 
 - Rerun with an override: `python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --set KEY=VALUE`
   (outputs in `explore/<date>-<topic>/`, not committed; about 70 s from cache with `--set r6_shuf=False`).

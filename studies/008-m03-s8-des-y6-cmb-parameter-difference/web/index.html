@@ -51,6 +51,9 @@
   <div class="scroll"><table id="r6s"></table></div>
   <div class="scroll"><table id="r6sq"></table></div>
   <p class="muted" id="r6snote"></p>
+  <h2><span class="en">R6-SHUF-KA · A known-answer test of φ on a synthetic family (addendum 2026-11-22)</span><span class="zh">R6-SHUF-KA · 在合成分布族上对 φ 的已知答案检验（补充 2026-11-22）</span></h2>
+  <div class="scroll"><table id="r6k"></table></div>
+  <p class="muted" id="r6knote"></p>
   <p class="muted" id="err"></p>
   <section id="skylinks" class="card" hidden></section>
 </main>
@@ -123,6 +126,7 @@ function render(d) {
   renderR6(r6);
   renderR6N(d.r6n);
   renderR6S(d.r6s);
+  renderR6K(d.r6k);
   document.getElementById('r4note').innerHTML = L(
     'The Gaussian full-space numbers depend on the parametrization (post hoc, after the referee): 0.32σ in (A_s, Ωm) but 2.21σ in (S8, Ωm), and 1.48σ for the six parameters with S8 in place of A_s. None of them is a test of D26\'s flow-based 1.8σ.',
     '全空间的高斯近似数字依赖参数化（审稿后事后补做）：(A_s, Ωm) 上 0.32σ，(S8, Ωm) 上 2.21σ，以 S8 代替 A_s 的六参数为 1.48σ。它们都不是对 D26 基于归一化流的 1.8σ 的检验。');
@@ -231,10 +235,53 @@ function renderR6S(x) {
     `标签（预注册）：<b>${R6S_LABELS[x.label] || esc(x.label)}</b>` + (iv.length ? `（I_φ = [${f(iv[0])}, ${f(iv[1])}]；区间 0.40–0.60）。` : '。') + `分解按预注册的顺序（先打乱，再换成先验），并不唯一；ψ、ρ、(SS) 与 kNN 的值（在结果文件中，未经标定）不给标签。DES 的 Σmν 取先验时，6 维值接近 5 维值（ρ 把 CMB 链的 Σmν、第六维与残差合在一起）。低偏移门控只检查一个点（0.86）；n₅ 与 n_P 低于它，没有门控。事后（独立审稿）：按门控的均值偏差修正后 I_φ = [0.601, 0.669]，接近标定的边缘；φ 的已知答案检验已登记（T-047；README 第 5–6 节）。`);
 }
 
+// R6-SHUF-KA (README 2.9, T-047): per seed the three flows on the synthetic family, phi and its bias; the label and
+// the qualifier attached to R6-SHUF's label (reported; R6-SHUF's label stays as recorded)
+const R6K_Q = {
+  "R6-SHUF's label holds after the known-answer correction": '已知答案修正后 R6-SHUF 的标签成立',
+  "R6-SHUF's label reverses after the known-answer correction": '已知答案修正后 R6-SHUF 的标签反转',
+  "R6-SHUF's label is not decided after the known-answer correction": '已知答案修正后 R6-SHUF 的标签无法判定',
+};
+function r6kLabel(v) {
+  if (!v) return '—';
+  let m = String(v).match(/^flows (over|under)estimate φ \(bias (.*)\)$/);
+  if (m) return L(esc(v), `流${m[1] === 'over' ? '高估' : '低估'} φ（偏差 ${m[2]}）`);
+  m = String(v).match(/^no bias of φ detected \(I_b = (.*)\)$/);
+  if (m) return L(esc(v), `未检出 φ 的偏差（I_b = ${m[1]}）`);
+  m = String(v).match(/^known-answer correction not decisive \(test too noisy: w = (.*)\)$/);
+  if (m) return L(esc(v), `已知答案修正不具决定性（检验太噪：w = ${m[1]}）`);
+  if (R6K_Q[v]) return L(esc(v), R6K_Q[v]);
+  if (/^not evaluable/.test(v)) return L(esc(v), '无法评估');
+  return esc(v);
+}
+function renderR6K(x) {
+  const t = document.getElementById('r6k'), note = document.getElementById('r6knote');
+  if (!x) {
+    t.innerHTML = '';
+    note.innerHTML = L('Not yet run (pre-registered in README 2.9; results will appear here as r6_ka.json).', '尚未运行（已在 README 2.9 预注册；结果写入 r6_ka.json 后显示在这里）。');
+    return;
+  }
+  const ex = (x.exact || {}).recomputed || {};
+  const nums = x.numbers || {};
+  let h = `<tr><th>${L('seed', '种子')}</th><th>n̂₆</th><th>n̂_S</th><th>n̂₅</th><th>φ̂</th><th>b = φ̂ − φ_exact</th></tr>`;
+  h += `<tr><td>${L('exact', '精确值')}</td><td>${f(ex.n6)}</td><td>${f(ex.S)}</td><td>${f(ex.n5)}</td><td>${f(ex.phi)}</td><td>—</td></tr>`;
+  for (const [k, r] of Object.entries(x.per_seed || {})) {
+    const phi = (nums.phi || {})[k];
+    h += `<tr><td>${k}</td><td>${f(r['6'])}</td><td>${f(r.S)}</td><td>${f(r['5'])}</td><td>${f(phi)}</td><td>${phi === undefined || phi === null ? '—' : f(phi - ex.phi)}</td></tr>`;
+  }
+  t.innerHTML = h;
+  const ib = nums.interval_b || [], q = x.qualifier || {};
+  note.innerHTML = L(
+    `Label (pre-registered): <b>${r6kLabel(x.label)}</b>` + (ib.length ? ` (b̄ = ${f(nums.b_bar)}, s_b = ${f(nums.s_b)}, I_b = [${f(ib[0])}, ${f(ib[1])}]).` : ` (${esc(x.reason || '')}).`)
+      + (q.qualifier ? ` Qualifier of R6-SHUF: <b>${r6kLabel(q.qualifier)}</b> (corrected φ ${f(q.phi_corrected)} ± ${f(q.w)}). R6-SHUF's label stays as recorded; the family is one synthetic member near φ = 0.61, not the chains, so the bias is transferred, not measured, for the data.` : ''),
+    `标签（预注册）：<b>${r6kLabel(x.label)}</b>` + (ib.length ? `（b̄ = ${f(nums.b_bar)}，s_b = ${f(nums.s_b)}，I_b = [${f(ib[0])}, ${f(ib[1])}]）。` : `（${esc(x.reason || '')}）。`)
+      + (q.qualifier ? `R6-SHUF 的限定语：<b>${r6kLabel(q.qualifier)}</b>（修正后的 φ ${f(q.phi_corrected)} ± ${f(q.w)}）。R6-SHUF 的标签按记录保留；分布族只是 φ = 0.61 附近的一个合成成员，不是链本身，所以对数据而言偏差是迁移过来的，而不是测得的。` : ''));
+}
+
 let data = null;
 const getOpt = n => get(n).catch(() => null);
-Promise.all([...['r1', 'r2', 'r3', 'r4', 'r5'].map(get), getOpt('r6'), getOpt('r6_nomnu'), getOpt('r6_shuf')])
-  .then(([r1, r2, r3, r4, r5, r6, r6n, r6s]) => { data = {r1, r2, r3, r4, r5, r6, r6n, r6s}; render(data); i18n.onLangChange(() => render(data)); })
+Promise.all([...['r1', 'r2', 'r3', 'r4', 'r5'].map(get), getOpt('r6'), getOpt('r6_nomnu'), getOpt('r6_shuf'), getOpt('r6_ka')])
+  .then(([r1, r2, r3, r4, r5, r6, r6n, r6s, r6k]) => { data = {r1, r2, r3, r4, r5, r6, r6n, r6s, r6k}; render(data); i18n.onLangChange(() => render(data)); })
   .catch(e => { document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + esc(e); });
 </script>
 </body>
