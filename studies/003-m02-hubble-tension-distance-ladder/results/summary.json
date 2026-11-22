@@ -190,5 +190,16 @@
   "p_G": 0.016349182540872958,
   "p_G_label": "excluded"
  },
+ "R2_RE_GT": {
+  "status": "evaluated",
+  "reading": "undetermined (underpowered)",
+  "sub_label": "t₄ diffuse undetermined (Monte Carlo)",
+  "gloss": "t₄ comparison undetermined (Monte Carlo)",
+  "power": 0.3172,
+  "size": 0.0461,
+  "n_sims": 10000,
+  "p_T": 0.05239738013099345,
+  "p_T_label": "undetermined (Monte Carlo)"
+ },
  "runtime_s": 33374.32105920001
 }
