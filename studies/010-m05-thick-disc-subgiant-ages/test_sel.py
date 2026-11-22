@@ -1044,7 +1044,7 @@ def test_err_generator_check_flags_differences():
 def test_err_exploration_checkpoints_are_separate(tmp_path):
     """README 2.7 (2026-11-21 note): only a formal run (results/ of this study) counts as formal."""
     import types
-    import run as R
+    R = run                                   # this study's run.py (a bare "import run" can find another study's)
     formal = types.SimpleNamespace(results=str(R.HERE / "results"))
     explore = types.SimpleNamespace(results=str(tmp_path / "2026-11-21-x"), max_save_bytes=1_000_000)
     assert R._is_formal(formal) and not R._is_formal(explore)
