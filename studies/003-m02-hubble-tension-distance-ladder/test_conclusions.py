@@ -912,7 +912,8 @@ def check_r2_re_gt(out, sims, s, sizes=None, power_rec=None, g_sims=None):
         if "offset_host" in sm:
             assert m["n_jhat_is_offset_host"] == sum(1 for a, b in zip(sm["j_hat"], sm["offset_host"]) if a == b)
         if g_sims and k in g_sims and g_sims[k].get("status") == "evaluated":
-            # R2-RE-G's eps_s and host draws: the same G_s and tau_s (to the saved precision; rounding ties aside)
+            # R2-RE-G's eps_s and host draws: the same G_s and tau_s. Both files hold rounded values, so two roundings
+            # of numbers that agree within half a unit (amendment 4, checked in the run) can differ by one unit here
             gg, gt_ = np.array(g_sims[k]["G"][:n]), np.array(g_sims[k]["tau_hat"][:n])
             assert np.all(np.abs(g5[:len(gg)] - gg) <= 1e-5 + 1e-12), k
             assert np.all(np.abs(t6[:len(gt_)] - gt_) <= 1e-6 + 1e-12), k

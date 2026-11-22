@@ -1347,6 +1347,12 @@ under the T null was computed (the code was run on synthetic systems only); no r
     simulations about 4 min, the pointwise checks (3 × 37 fits and 3 REML fits) about 2.5 min, data loading and host
     identification about 2–3 min: power stage about 10 min, full stage about 10 min (with the 37 fits on the real data
     and the sensitivities), up to twice that with a shared CPU. The runtime guard does not bind.
+17. (Gate-1 review of the code.) A full study run with `gt_check` true (allowed only after the formal stages) obeys
+    the same rule as a `gt_only` full stage: if `results/r2_re_gt.json` holds a formal outcome it is refused, before
+    any data is loaded, unless `gt_rerun_reason` is non-empty and present in log.md; its reproduction reference is
+    always R2-RE-G's committed `r2_re_g_sims_<model>.json`, read before any data is loaded. If the formal full stage
+    ends under rule (1) without p_T,obs, the exploration gate stays closed (no exploration full stage, no full run
+    with `gt_check`) until a rerun with a logged reason. Sensitivity keys are written as `f"{ν:g}"` ("3", "10").
 
 ## 3. Data (with size estimate)
 

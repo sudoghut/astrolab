@@ -1630,7 +1630,7 @@ def run_gt_stage(stage, L, y, C, rows_a, groups, labels, P, fns, log, grid_m2l, 
             "nu": {}, "fixed_tau": {}}
     for nu_r, seed_r in zip(P["gt_nu_rep"], P["gt_inner_seeds_rep"]):
         inner_r = TInner(des, E_in, t_draws(seed_r, nu_r, (n_in, nh)), nu_r)
-        sens["nu"][str(nu_r)] = _p_record(inner_r.k(g_obs, t_in), n_in, tau=tau_obs, nu=nu_r,
+        sens["nu"][f"{float(nu_r):g}"] = _p_record(inner_r.k(g_obs, t_in), n_in, tau=tau_obs, nu=nu_r,
                                           scale=gt_scale(t_in, nu_r), inner_t_seed=int(seed_r))
         inner_r = None
     for t in taus_rep:
