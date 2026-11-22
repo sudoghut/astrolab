@@ -346,9 +346,9 @@ CPU 运行错开；不取数据（链来自缓存）。PARAMS：`"r6_nomnu": Tru
 
 *在任何 R6-SHUF-KA 流训练之前的修订（2026-11-22）。* 编写代码（flowshift 的 `ka` 任务、`r6ka.py`、`run.py` 的 `r6_ka` 路径、`test_r6ka.py`、结论复核、网页一节）时所做的实现上的选择，在分布族上训练任何流之前（代码只在不训练流的合成行上运行过）；上面的规则都不改变。
 1. `"r6_shuf_retrain": False`（新增）：R6-SHUF 不重跑；在每次运行中都只读取 `results/r6_shuf.json`，从不重写（此前 `r6_shuf` 为 true 的运行会重新训练它）。`r6_ka` 为 true 而 `r6_shuf_retrain` 也为 true 时拒绝运行。不带 `r6_ka` 的运行保留已记录的 `r6_ka.json` 的概要。
-2. 概要中的键为 `r6_ka`（与 `r6_shuf`、`r6_nomnu` 一样），不是 `R6_KA`。
+2. 概要中的键为 `r6_ka`（与 `r6_shuf`、`r6_nomnu` 一样），不是 `R6_KA`；与其他 R6 部分一样，概要是运行的返回值（`run_info.json`）。少于两个种子（对话探索）为"not evaluable"。
 3. 分布族的函数原样复制到 `flowshift.py` 中，加 `ka_` 前缀，因为流的任务以隔离方式（`python -I`）运行 `flowshift.py`，不能导入对话探索脚本；`test_r6ka.py` 检查它们与 `explore/t047_ka_design.py` 的抽样与对数密度完全相同，并检查在 TF 环境的 numpy（2.5.5）与项目环境的 numpy（1.26.4）下抽样相同。精确值在项目环境中用 `flowshift.ka_exact` 重新计算（2,000,000 次抽样，种子 999，(S) 的置换用种子 1000）。
-4. 若 R6 或 R6-SHUF 的记录不能复用，或某个重新计算的精确值相差超过 0.005，则不训练任何流（由规则 1 判为"not evaluable"）；若环境与记录的不同，只运行 `meta` 任务。
+4. 若 R6 或 R6-SHUF 的记录不能复用，或某个重新计算的精确值相差超过 0.005，则不训练任何流（由规则 1 判为"not evaluable"）；若环境与记录的不同，只运行 `meta` 任务。流任务崩溃时记为失败、运行继续（与 R6-SHUF 相同），由规则 2 判定；此后任务文件夹被删除，重跑（需要在 log.md 中写明理由）会重新训练全部 30 个流。
 5. 流任务的文件夹与 R6 一样，以一个占位的输入数组、配置、`flowshift.py` 与 TF 环境的软件包为键；`ka` 任务自行抽取数据行。
 
 ## 3. 数据（附大小估计）
@@ -680,12 +680,12 @@ DES 的每个箱占 0.20 的权重（有效样本量（effective sample size, ES
 | `r6_shuf_seeds`, `r6_shuf_seed_offsets` | R6-SHUF 的种子 k（与 R6、R6-NOMNU 配对）以及 (S)、(P)、(SS) 随机数生成器的偏移 | 登记值 `[0..4]`、`[1000, 2000, 3000]` | 只用缓存 |
 | `r6_shuf_s_max`, `r6_shuf_e_min`, `r6_shuf_band` | R6-SHUF 标签规则 4–6（改变它们就不是登记的标签） | – | 只用缓存 |
 | `r6_shuf_gate` | 低偏移门槛（low-shift gate）：弯曲参数对的均值与已记录的精确 n_σ | – | 只用缓存 |
-| `r6_shuf_retrain` | 重新训练 R6-SHUF，而不是读取 `results/r6_shuf.json` | `False`（默认值）；只有在 `r6_ka` 为 false 时才可为 `True` | 只用缓存 |
-| `r6_ka`、`r6_ka_seeds`、`r6_ka_family`、`r6_ka_exact`、`r6_ka_seed_offsets` | 运行 R6-SHUF-KA（README 2.9）：十个种子 × 合成分布族上的三个流；分布族；预注册的精确值；D6 行与 (S) 置换的生成器 | `r6_ka` 为 `False`（只在正式运行时为 true，在 venv-tf 中约 6–7 小时，R6、R6-NOMNU 与 R6-SHUF 只读取）；其余为预注册值（对话探索可以用更少的种子，例如 `--set r6_ka=True --set r6_ka_seeds=[15]`，约 40 分钟，只写入它自己的文件夹） | 不下载 |
 | `r6_shuf_prior`, `r6_shuf_knn_k` | (P) 使用的 Σmν 先验范围；描述性 kNN（k 近邻，k-nearest neighbour）值的 k | 先验取自链文件头；k 10–200 | 只用缓存 |
+| `r6_shuf_retrain` | 重新训练 R6-SHUF，而不是读取 `results/r6_shuf.json` | `False`（默认值）；只有在 `r6_ka` 为 false 时才可为 `True` | 只用缓存 |
+| `r6_ka`、`r6_ka_seeds`、`r6_ka_family`、`r6_ka_exact`、`r6_ka_seed_offsets` | 运行 R6-SHUF-KA（README 2.9）：十个种子 × 合成分布族上的三个流；分布族；预注册的精确值；D6 行与 (S) 置换的生成器 | `r6_ka` 为 `False`（只在正式运行时为 true，在 venv-tf 中约 6–7 小时，R6、R6-NOMNU 与 R6-SHUF 只读取）；其余为预注册值（对话探索可以用更少的种子，例如 `--set r6_ka=True --set r6_ka_seeds=[15,16]`，约 80 分钟，只写入它自己的文件夹；至少两个种子） | 不下载 |
 
 - 带覆盖参数重跑：`python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --set KEY=VALUE`
-  （输出在 `explore/<date>-<topic>/`，不入库；加 `--set r6_shuf=False` 时从缓存运行约 70 s）。
+  （输出在 `explore/<date>-<topic>/`，不入库；从缓存运行约 70 s：默认只读取 R6、R6-NOMNU 与 R6-SHUF，不重跑）。
 - `run.py` 未覆盖的分析：写一个带 `def main(ctx)` 的脚本 `explore/<name>.py`，用
   `python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --script explore/<name>.py` 运行。
   已有：`explore/estimator_calibration.py`（估计量的合成数据校准）；

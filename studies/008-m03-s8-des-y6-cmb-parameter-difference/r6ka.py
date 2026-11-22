@@ -127,6 +127,8 @@ def label(env_ok, exact_ok, recs_ok, reps, seeds, phi_exact, e_min, s_max):
         r = reps.get(v)
         if not r or [x.get("seed") for x in r] != list(seeds) or not all(_good(x) for x in r):
             return NE, f"a ({v}) training failed, is non-finite, has not converged or is a lower bound", {}
+    if len(seeds) < 2:
+        return NE, "fewer than two seeds (s_b undefined)", {}
     n = {v: {int(x["seed"]): float(x["n_sigma"]) for x in reps[v]} for v in VARIANTS}
     e = {k: n["6"][k] - n["5"][k] for k in seeds}
     if any(x <= e_min for x in e.values()):                                     # rule 3

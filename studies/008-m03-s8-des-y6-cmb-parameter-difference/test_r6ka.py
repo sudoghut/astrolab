@@ -142,6 +142,8 @@ def test_label_rule_order():
     assert lab == ka.NE and "E_k" in why                                          # rule 3: E <= 0.20
     lab, why, _ = ka.label(True, True, True, _reps(*_vals(scatter=0.4)), SEEDS, 0.6113, EMIN, SMAX)
     assert lab == ka.NE and "s_b" in why                                          # rule 3: s_b > 0.30
+    one = _reps([1.8], [0.95], [0.4], seeds=[15])
+    assert ka.label(True, True, True, one, [15], 0.6113, EMIN, SMAX)[0] == ka.NE   # an exploration with one seed
 
 
 def test_label_outcomes():
@@ -305,3 +307,25 @@ def test_conclusion_check_on_assembled_output(tmp_path):
     bad["qualifier"]["qualifier"] = ka.Q_HOLDS if out["qualifier"]["qualifier"] != ka.Q_HOLDS else ka.Q_UNDECIDED
     with pytest.raises(AssertionError):
         tc.check_r6_ka(bad)
+
+
+def test_draws_identical_under_the_tf_environment(tmp_path):
+    """README 2.9 amendment 3: the TF environment's numpy gives the same D6 rows and (S) permutation as the project's
+    (skipped when venv-tf is absent)."""
+    import subprocess
+    sys.path.insert(0, str(HERE))
+    try:
+        r6flow = _import("r6flow")
+    finally:
+        sys.path.remove(str(HERE))
+    exe = r6flow.tf_python()
+    if exe is None:
+        pytest.skip("no TF environment")
+    code = ("import sys, json, numpy as np; sys.path.insert(0, sys.argv[1]); import flowshift as fs; "
+            "F = json.loads(sys.argv[2]); z = fs.ka_sample(2000, np.random.default_rng(5015), F); "
+            "s = fs.ka_variant(z, 'S', np.random.default_rng(6015)); np.save(sys.argv[3], np.concatenate([z, s]))")
+    out = tmp_path / "tf.npy"
+    subprocess.run([str(exe), "-I", "-c", code, str(HERE), json.dumps(FAMILY), str(out)], check=True, timeout=300)
+    z = fs.ka_sample(2000, np.random.default_rng(5015), FAMILY)
+    here = np.concatenate([z, fs.ka_variant(z, "S", np.random.default_rng(6015))])
+    assert np.load(out).tobytes() == here.tobytes()

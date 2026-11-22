@@ -652,7 +652,8 @@ was trained on the family (the code was run on synthetic rows without flows); no
 1. `"r6_shuf_retrain": False` (new): R6-SHUF is not rerun; `results/r6_shuf.json` is read and never rewritten, in
    every run (before, a run with `r6_shuf` true retrained it). `r6_ka` true with `r6_shuf_retrain` true is refused. A
    run without `r6_ka` keeps the recorded `r6_ka.json`'s summary.
-2. The summary key is `r6_ka` (as `r6_shuf` and `r6_nomnu`), not `R6_KA`.
+2. The summary key is `r6_ka` (as `r6_shuf` and `r6_nomnu`), not `R6_KA`; the summary is the run's return value
+   (`run_info.json`), as for the other R6 blocks. Fewer than two seeds (an exploration) is "not evaluable".
 3. The family's functions are copied unchanged into `flowshift.py` with a `ka_` prefix, because the flow jobs run
    `flowshift.py` isolated (`python -I`) and cannot import the explore script; `test_r6ka.py` checks identical draws
    and log densities against `explore/t047_ka_design.py`, and identical draws under the TF environment's numpy (2.5.5)
@@ -660,6 +661,8 @@ was trained on the family (the code was run on synthetic rows without flows); no
    (2,000,000 draws, seed 999, the (S) permutation from seed 1000).
 4. If R6's or R6-SHUF's record is not reusable, or a recomputed exact value is off by more than 0.005, no flow is
    trained (rule 1 decides "not evaluable"); if the environment differs from the records, only the `meta` job runs.
+   A crashed flow job is recorded as failed and the run continues (as R6-SHUF), so rule 2 decides; the job folder
+   is then removed, and a rerun (which needs a reason in log.md) would retrain all 30 flows.
 5. The flow job folder is keyed, as for R6, by a dummy input array, the configuration, `flowshift.py` and the TF
    environment's packages; the `ka` jobs draw their own rows.
 
@@ -1162,10 +1165,11 @@ How a coding agent answers "what if" questions about this study without touching
 | `r6_shuf_gate` | low-shift gate: curved-pair means and the recorded exact n_σ | – | cache only |
 | `r6_shuf_prior`, `r6_shuf_knn_k` | Σmν prior range used by (P); k of the descriptive kNN values | prior from the chain headers; k 10–200 | cache only |
 | `r6_shuf_retrain` | retrain R6-SHUF instead of reading `results/r6_shuf.json` | `False` (default); `True` only with `r6_ka` false | cache only |
-| `r6_ka`, `r6_ka_seeds`, `r6_ka_family`, `r6_ka_exact`, `r6_ka_seed_offsets` | run R6-SHUF-KA (README 2.9): ten seeds × three flows on the synthetic family; the family; the registered exact values; the generators of the D6 rows and the (S) permutation | `r6_ka` `False` (true only for the formal run, about 6–7 h in venv-tf, with R6, R6-NOMNU and R6-SHUF read); the rest pre-registered (an exploration may use fewer seeds, e.g. `--set r6_ka=True --set r6_ka_seeds=[15]`, about 40 min, writing only to its own folder) | no download |
+| `r6_ka`, `r6_ka_seeds`, `r6_ka_family`, `r6_ka_exact`, `r6_ka_seed_offsets` | run R6-SHUF-KA (README 2.9): ten seeds × three flows on the synthetic family; the family; the registered exact values; the generators of the D6 rows and the (S) permutation | `r6_ka` `False` (true only for the formal run, about 6–7 h in venv-tf, with R6, R6-NOMNU and R6-SHUF read); the rest pre-registered (an exploration may use fewer seeds, e.g. `--set r6_ka=True --set r6_ka_seeds=[15,16]`, about 80 min, writing only to its own folder; at least two seeds) | no download |
 
 - Rerun with an override: `python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --set KEY=VALUE`
-  (outputs in `explore/<date>-<topic>/`, not committed; about 70 s from cache with `--set r6_shuf=False`).
+  (outputs in `explore/<date>-<topic>/`, not committed; about 70 s from cache: R6, R6-NOMNU and R6-SHUF are read,
+  not rerun, by default).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --script explore/<name>.py`.
   Existing: `explore/estimator_calibration.py` (the synthetic calibration of the estimator);
