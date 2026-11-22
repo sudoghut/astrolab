@@ -911,3 +911,765 @@ def power_log_line(p_out):
             + "curve " + ", ".join(f"z {c['z_alt']:g}: {c['rate']:.4f}" for c in p_out["curve"]
                                    if c["rate"] is not None)
             + f"; smallest z with power ≥ 0.8: {p_out['smallest_z_alt_power_08']}; status {p_out['status']}")
+
+
+# ==================================================================================================================
+# R2-RE-GT (README section 2, addendum 2026-11-21, T-057): the shape test G against heavy-tailed diffuse host
+# scatter. Everything above this block is R2-RE-G and unchanged (test_shape.py pins its text); R2-RE-GT reuses it.
+#
+# The null T(tau): y = y_hat + K_C eps + Z b, b_j = s t_j independent, t_j ~ Student-t(nu), s = tau sqrt((nu - 2)
+# / nu), so Var(b_j) = tau^2. Then u = Z^T P K_C eps + M b and z = B_C eps + WH b, WH = W Z = diag(M_jj^-1/2) M.
+# The test of one data vector (G, tau_hat refitted with R2-RE-G's reduced REML form): inner draws
+# z_i = A0_i + s(tau_hat) T0_i with A0 = E_in (D Q sqrt(lam))^T (R2-RE-G's fixed E_in) and T0 = T_in WH^T, T_in one
+# fixed matrix default_rng(gt_inner_seed).standard_t(nu, (N_in, 37)) (common random numbers; both products once,
+# the draw is linear in s); k = #{i: G_i >= G}, p_T = (1 + k) / (1 + N_in), label rob.three_way as in R2-RE-G.
+# ==================================================================================================================
+GT_RECORDED_G_OBS = 0.30485762235426483       # R2-RE-G G_obs (r2_re_g.json observed.G_obs)
+GT_G_OBS_RTOL = 1e-8                          # relative
+GT_RECORDED_K_G = 326                         # R2-RE-G p_G's k (Gaussian inner draws at tau_hat_obs)
+GT_EM_SCALE = 0.07521926289752753             # R2-RE-N5584's nu = 4 EM t scale (heavy_tail.nu_main.tau_hat)
+GT_N_POINTWISE = 3                            # first simulations of THAT checked in full
+GT_REPRO_KEYS = ("VHAT", "OANY", "OANYVN")    # R2-RE-G models reproduced against r2_re_g_sims_<model>.json
+GT_G_REPRO_ATOL = 0.5 * 10.0 ** -G_DECIMALS + 1e-12      # "to the saved precision": half a unit in the last
+GT_TAU_REPRO_ATOL = 0.5 * 10.0 ** -TAU_DECIMALS + 1e-12  # saved decimal (5 for G_s, 6 for tau_hat_s)
+GT_POWER_KEYS = ["OANY", "OANYVN"]
+GT_REML_GRID_SOURCE = REML_GRID_SOURCE
+
+# keys the power stage must never write (README: the power stage never computes p_T,obs)
+GT_FORBIDDEN_POWER_KEYS = ("p_T_obs", "observed", "sensitivities", "reading", "sub_label", "gloss", "section5",
+                           "G_obs", "k_gauss_obs", "real_data")
+
+# settings the full stage must share with the power stage (gt_only, gt_stage and gt_rerun_reason differ by design)
+GT_STAGE_SETTING_KEYS = ("gt_seed_base", "gt_inner_seed", "gt_inner_seeds_rep", "gt_nu", "gt_nu_rep", "gt_n_sims",
+                         "gt_n_inner", "gt_power_min", "gt_max_minutes", "gt_min_sims", "g_seed_base",
+                         "g_host_seed_base", "g_inner_seed", "g_taus_rep", "n5584_host", "threads")
+
+_SUBSCRIPT = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+
+
+def gt_t(nu):
+    """'t₄' for nu = 4 (the labels name the nu of the run)."""
+    return "t" + str(int(nu)).translate(_SUBSCRIPT)
+
+
+def gt_sub_label(pt_label, nu=4):
+    """Rule (2)'s sub-label from p_T,obs's three-way label."""
+    t = gt_t(nu)
+    if pt_label == EXCL:
+        return f"{t} diffuse excluded"
+    if pt_label == NOT_EXCL:
+        return f"{t} diffuse not excluded"
+    return f"{t} diffuse undetermined (Monte Carlo)"
+
+
+def gt_read_preferred(nu=4):
+    return f"one offset host preferred over {gt_t(nu)} diffuse scatter"
+
+
+def gt_read_not_excl(nu=4):
+    return f"{gt_t(nu)} diffuse scatter not excluded"
+
+
+def gt_formal_done(path=None):
+    """True once the formal full stage's results/r2_re_gt.json is committed in the study folder: status "evaluated"
+    or a record with p_T_obs (p_T on the data computed). Until then only the two standalone stages may run (README
+    R2-RE-GT, R2-RE-G's safeguards)."""
+    path = STUDY_DIR / "results" / "r2_re_gt.json" if path is None else Path(path)
+    if not path.exists():
+        return False
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    return rec.get("status") == "evaluated" or "p_T_obs" in rec
+
+
+def gt_stage_settings(P):
+    """The settings a power record must share with the full stage, as they read back from JSON."""
+    return json_like({**{k: P[k] for k in GT_STAGE_SETTING_KEYS if k != "threads"}, "threads": thread_settings()})
+
+
+def gt_power_record_problems(power_rec, settings):
+    """Why a power record cannot be the basis of a full stage (an error, not rule (1)): a stub or settings that
+    differ from this run's (threads: thread_problems)."""
+    if (not isinstance(power_rec, dict) or power_rec.get("stage") != "power" or "settings" not in power_rec
+            or str(power_rec.get("status", "")).startswith("not run")):
+        st = power_rec.get("status") if isinstance(power_rec, dict) else None
+        return [f"the power record is a stub or not a power-stage record (status {st!r})"]
+    ps = power_rec["settings"]
+    bad = [f"{k}: power stage {ps.get(k)!r}, now {settings.get(k)!r}" for k in GT_STAGE_SETTING_KEYS
+           if k != "threads" and ps.get(k) != settings.get(k)]
+    return bad + thread_problems(ps.get("threads"), settings.get("threads"))
+
+
+# ---------------------------------------------------------------- names and models
+def tkey(tau):
+    """Model key of T(tau): T050, T105."""
+    return "T%03d" % int(round(tau * 1000))
+
+
+def gt_size_keys(taus_rep):
+    return ["THAT"] + [tkey(t) for t in taus_rep]
+
+
+def gt_sim_keys(taus_rep):
+    """The seven sets, in the order they run (THAT first: the runtime guard)."""
+    return gt_size_keys(taus_rep) + ["OANY", "OANYVN", "TC", "VHAT"]
+
+
+def gt_scale(tau, nu):
+    """The t scale with variance tau^2: s = tau sqrt((nu - 2) / nu) (tau / sqrt(2) at nu = 4)."""
+    return float(tau) * float(np.sqrt((nu - 2.0) / nu))
+
+
+def gt_model_specs(taus_rep, tau_obs, tau_n, z_obs, nu):
+    """tau: the Gaussian random effect of the covariance (0 is C); tau_t: the tau of the Student-t host effects
+    (None: none); offset as in R2-RE-G."""
+    t = gt_t(nu)
+    sp = {"THAT": {"tau": 0.0, "tau_t": float(tau_obs), "offset": None, "decisive": True,
+                   "description": f"T(τ̂_obs): {t} diffuse host scatter at the fitted τ (size at τ̂_obs)"}}
+    for x in taus_rep:
+        sp[tkey(x)] = {"tau": 0.0, "tau_t": float(x), "offset": None, "decisive": True,
+                       "description": f"T({x:g}): {t} diffuse host scatter (size at τ = {x:g})"}
+    sp["OANY"] = {"tau": 0.0, "tau_t": None, "offset": "any", "z_alt": float(z_obs), "decisive": True,
+                  "description": "O_any on C (R2-RE-G's): one host drawn uniformly, σ-matched offset z_obs σ_δ,k"}
+    sp["OANYVN"] = {"tau": float(tau_n), "tau_t": None, "offset": "any", "z_alt": float(z_obs), "decisive": True,
+                    "description": "O_any on V(τ̂_N) (R2-RE-G's): one σ-matched offset host plus a small diffuse term"}
+    sp["TC"] = {"tau": 0.0, "tau_t": None, "offset": None, "decisive": False,
+                "description": f"C: no excess scatter, tested with the {t} null (reported)"}
+    sp["VHAT"] = {"tau": float(tau_obs), "tau_t": None, "offset": None, "decisive": False,
+                  "description": f"R2-RE-G's Gaussian V(τ̂_obs), tested with the {t} null (reported)"}
+    return sp
+
+
+# ---------------------------------------------------------------- labels and reading (pure)
+def gt_reading(reasons, power, pt_label, power_min=0.8, nu=4):
+    """Rules (1)-(5) in order; returns (reading, sub_label). Rule (2) reports the sub-label in every case (README
+    R2-RE-GT); rule (1) has none (also when its only reason is anti-conservativeness)."""
+    if reasons:                                                    # (1)
+        return rule1_status(reasons), None
+    if power < power_min:                                          # (2)
+        return READ_UNDERPOWERED, gt_sub_label(pt_label, nu)
+    if pt_label == EXCL:                                           # (3)
+        return gt_read_preferred(nu), None
+    if pt_label == NOT_EXCL:                                       # (4)
+        return gt_read_not_excl(nu), None
+    return READ_UNDET_MC, None                                     # (5)
+
+
+def gt_gloss(read, sub, reasons, nu=4):
+    """The gloss of R2-RE-G's sub-label in section 5 (README R2-RE-GT, 'What changes in section 5')."""
+    t = gt_t(nu)
+    if reasons:
+        return f"{t} comparison not evaluable (" + "; ".join(reasons) + ")"
+    if sub == gt_sub_label(EXCL, nu) or read == gt_read_preferred(nu):
+        return "not only Gaussian tails"
+    if sub == gt_sub_label(NOT_EXCL, nu) or read == gt_read_not_excl(nu):
+        return "not shown to hold beyond Gaussian tails"
+    return f"{t} comparison undetermined (Monte Carlo)"
+
+
+def gt_anti_conservative(models, taus_rep):
+    """Rule (1): the 95% Clopper-Pearson interval of the rejection rate entirely above 0.05 under THAT, T050 or
+    T105; returns the list of those tau (THAT as its tau)."""
+    out = []
+    for k in gt_size_keys(taus_rep):
+        m = models.get(k, {})
+        if m.get("status") == "evaluated" and m["ci95"][0] > 0.05:
+            out.append(m["tau_t"])
+    return out
+
+
+# ---------------------------------------------------------------- the heavy-tailed draws
+def t_draws(seed, nu, shape):
+    return np.random.default_rng(int(seed)).standard_t(float(nu), shape)
+
+
+def t_block(seed_base, s_list, nu, n_hosts):
+    """t_s = default_rng(seed_base + s).standard_t(nu, n_hosts), one column per s (common to every T model)."""
+    T = np.empty((int(n_hosts), len(s_list)))
+    for i, s in enumerate(s_list):
+        T[:, i] = np.random.default_rng(int(seed_base) + int(s)).standard_t(float(nu), int(n_hosts))
+    return T
+
+
+def host_effect_y(b, des):
+    """Z b on rows_a: b_j on host j's calibrator rows."""
+    out = np.zeros(des["n_a"])
+    for j, p in enumerate(des["gpos"]):
+        out[p] += b[j]
+    return out
+
+
+class TInner:
+    """The fixed inner draws of the T null: z_i = A0_i + s T0_i (A0 = E_in (D Q sqrt(lam))^T, T0 = T_in WH^T)."""
+
+    def __init__(self, des, E_in, T_in, nu):
+        self.A0 = E_in @ inner_matrix(0.0, des).T
+        self.T0 = T_in @ des["WH"].T
+        self.nu = float(nu)
+        self._buf = np.empty_like(self.A0)
+
+    def draws(self, s):
+        """The N_in inner z (a new array) at the t scale s."""
+        return self.A0 + float(s) * self.T0
+
+    def k_scale(self, G, s):
+        """k = #{i: G_i >= G} at the t scale s."""
+        Zi = np.multiply(self.T0, float(s), out=self._buf)
+        Zi += self.A0
+        np.square(Zi, out=Zi)
+        Gi = Zi.max(axis=1) / Zi.sum(axis=1)
+        return int(np.count_nonzero(Gi >= G))
+
+    def k(self, G, tau):
+        """k at the variance-matched scale of tau."""
+        return self.k_scale(G, gt_scale(tau, self.nu))
+
+
+def gt_simulate(spec, B, des, inner, seed_base, t_seed_base, nu, s_lo, s_hi, any_hosts, reml_tau):
+    """Outer simulations s_lo..s_hi-1 of one model: z_s = B eps_s (+ WH b_s for a T model) (+ offset), G_s, j_s,
+    tau_s (refitted), k_s (T inner draws at tau_s; tau_s < 1e-3 counts as zero). For a model without t host
+    effects z_s is computed exactly as in R2-RE-G's simulate (same blocks), so it reproduces R2-RE-G's G_s and
+    tau_s."""
+    n = s_hi - s_lo
+    G = np.empty(n)
+    J = np.empty(n, dtype=np.int64)
+    T = np.empty(n)
+    K = np.empty(n, dtype=np.int64)
+    Z0 = np.empty(n, dtype=bool)
+    UB = np.empty(n, dtype=bool)
+    nh = des["n_hosts"]
+    scale = None if spec.get("tau_t") is None else gt_scale(spec["tau_t"], nu)
+    for c0 in range(s_lo, s_hi, CHUNK):
+        s_list = np.arange(c0, min(c0 + CHUNK, s_hi))
+        E = onehost.eps_block(seed_base, s_list, des["n_a"])
+        Zc = (B @ E).T
+        if scale is not None:
+            Zc = Zc + (des["WH"] @ (scale * t_block(t_seed_base, s_list, nu, nh))).T
+        for i, s in enumerate(s_list):
+            z = Zc[i]
+            if spec["offset"] is not None:
+                z = z + offset_z(spec, int(any_hosts[s]) if spec["offset"] == "any" else None, des)
+            g, j = g_stat(z)
+            est = tau_refit(v_of_z(z, des), des["lam"], reml_tau)
+            t_in = 0.0 if est["at_zero"] else est["tau_hat"]
+            r = s - s_lo
+            G[r], J[r], T[r], Z0[r], UB[r] = float(g), int(j), est["tau_hat"], est["at_zero"], est["at_upper_bound"]
+            K[r] = inner.k(float(g), t_in)
+    return {"G": G, "j": J, "tau": T, "k": K, "at_zero": Z0, "at_bound": UB}
+
+
+# ---------------------------------------------------------------- R2-RE-G's saved simulations
+def check_g_sims(sims, P):
+    """R2-RE-G's per-simulation records of GT_REPRO_KEYS, checked for use as the reproduction reference: evaluated,
+    and generated with this run's g_seed_base, g_inner_seed and (OANY models) g_host_seed_base. Returns
+    {key: {"G": array, "tau_hat": array, "n": n}}; raises RuntimeError otherwise (an error, not rule (1))."""
+    out, bad = {}, []
+    for k in GT_REPRO_KEYS:
+        r = (sims or {}).get(k)
+        if not isinstance(r, dict) or r.get("status") != "evaluated" or "G" not in r:
+            bad.append(f"{k}: not an evaluated R2-RE-G record ({(r or {}).get('status')!r})")
+            continue
+        pairs = [("seed_base", "g_seed_base"), ("inner_seed", "g_inner_seed")]
+        if k.startswith("OANY"):
+            pairs.append(("host_seed_base", "g_host_seed_base"))
+        for key, pk in pairs:
+            if r.get(key) != P[pk]:
+                bad.append(f"{k}: {key} {r.get(key)!r}, {pk} {P[pk]!r}")
+        out[k] = {"G": np.asarray(r["G"], dtype=float), "tau_hat": np.asarray(r["tau_hat"], dtype=float),
+                  "n": int(r["n"])}
+    if bad:
+        raise RuntimeError("R2-RE-GT needs R2-RE-G's saved simulations: " + "; ".join(bad))
+    return out
+
+
+def read_g_sims(P, folder=None):
+    """R2-RE-G's committed r2_re_g_sims_<model>.json of GT_REPRO_KEYS (results/ next to this file, also in an
+    exploration), checked by check_g_sims; also returns R2-RE-G's thread settings (r2_re_g.json, or None)."""
+    folder = STUDY_DIR / "results" if folder is None else Path(folder)
+    sims = {}
+    for k in GT_REPRO_KEYS:
+        p = folder / f"r2_re_g_sims_{k}.json"
+        if not p.exists():
+            raise RuntimeError(f"R2-RE-GT needs results/{p.name} (R2-RE-G's saved simulations): run R2-RE-G first")
+        sims[k] = json.loads(p.read_text(encoding="utf-8"))
+    gp = folder / "r2_re_g.json"
+    threads = None
+    if gp.exists():
+        threads = json.loads(gp.read_text(encoding="utf-8")).get("settings", {}).get("threads")
+    return check_g_sims(sims, P), threads
+
+
+def gt_reproduce_g(arrs, g_saved, n):
+    """G_s and tau_s of VHAT, OANY and OANYVN against R2-RE-G's saved values (the first min(n, n_saved)
+    simulations), to the saved precision. Returns (check record, list of mismatches)."""
+    rec, bad = {}, []
+    for k in GT_REPRO_KEYS:
+        if k not in arrs:
+            rec[k] = {"status": "not compared (model not evaluated)"}
+            continue
+        sv = g_saved[k]
+        m = min(int(n), len(sv["G"]), len(sv["tau_hat"]))
+        dg = np.abs(arrs[k]["G"][:m] - sv["G"][:m])
+        dt = np.abs(arrs[k]["tau"][:m] - sv["tau_hat"][:m])
+        ng, nt = int(np.sum(~(dg <= GT_G_REPRO_ATOL))), int(np.sum(~(dt <= GT_TAU_REPRO_ATOL)))
+        rec[k] = {"n_compared": m, "max_abs_dG": float(dg.max()) if m else None,
+                  "max_abs_dtau": float(dt.max()) if m else None, "n_G_off": ng, "n_tau_off": nt,
+                  "ok": bool(m > 0 and ng == 0 and nt == 0)}
+        if not rec[k]["ok"]:
+            bad.append(f"{k}: {ng} G_s and {nt} τ̂_s of {m} off" if m else f"{k}: nothing to compare")
+    return rec, bad
+
+
+# ---------------------------------------------------------------- records
+def gt_model_record(key, spec, arr, n_in, any_hosts, cache):
+    rec = model_record(key, spec, arr, n_in, any_hosts, cache)
+    rec["tau_t"] = spec["tau_t"]
+    return rec
+
+
+def gt_sims_file(key, spec, arr, P, any_hosts):
+    n = len(arr["k"])
+    out = {"model": key, "status": "evaluated", "n": int(n), "seed_base": int(P["g_seed_base"]),
+           "nu": P["gt_nu"], "n_inner": int(P["gt_n_inner"]), "inner_seed": int(P["g_inner_seed"]),
+           "inner_t_seed": int(P["gt_inner_seed"]),
+           "G": [round(float(g), G_DECIMALS) for g in arr["G"]],
+           "tau_hat": [round(float(t), TAU_DECIMALS) for t in arr["tau"]],
+           "k": [int(k) for k in arr["k"]], "j_hat": [int(j) for j in arr["j"]]}
+    if spec.get("tau_t") is not None:
+        out["t_seed_base"] = int(P["gt_seed_base"])
+        out["tau_t"] = spec["tau_t"]
+    if spec["offset"] == "any":
+        out["host_seed_base"] = int(P["g_host_seed_base"])
+        out["offset_host"] = [int(h) for h in any_hosts[:n]]
+    return out
+
+
+def _gt_reproduce(L, y, C, rows_a, groups, col, des, grid_m2l, fns, rec):
+    """R2-RE-G's reproduction checks on the real data (the REML grid differences, tau_hat_obs, delta_hat,
+    sigma_delta, z_obs) with R2-RE-G's tolerances. Returns (repro, mismatches, est_obs, delta, z_obs)."""
+    ya = y[rows_a]
+    delta, sigma_delta = onehost.fit_delta(L, y, C, rows_a, groups[col], fns)
+    z_obs = delta / sigma_delta
+    v_obs = des["Q"].T @ (des["PZt"] @ ya)        # u_obs used only through v, as in R2-RE-G
+    grid = np.round(np.arange(0.0, TAU_MAX + TAU_STEP / 2, TAU_STEP), 10)
+    f_grid = np.array([reml_f(t, v_obs, des["lam"]) for t in grid])
+    est_obs = tau_refit(v_obs, des["lam"], fns["reml_tau"])
+    tau_obs = est_obs["tau_hat"]
+    gm = np.asarray(grid_m2l, dtype=float)
+    repro = {"reml_grid_n": int(len(gm)), "tau_hat_obs": tau_obs, "tau_hat_obs_refined": est_obs["refined"],
+             "tau_hat_obs_at_zero": est_obs["at_zero"], "tau_hat_obs_at_upper_bound": est_obs["at_upper_bound"],
+             "delta_hat": delta, "sigma_delta": sigma_delta, "z_obs": z_obs,
+             "sigma_delta_from_M_rel_diff": abs(des["dinv"][col] - sigma_delta) / sigma_delta}
+    bad = []
+    if len(gm) != len(grid):
+        bad.append(f"REML grid has {len(gm)} values, expected {len(grid)}")
+    else:
+        dg = np.abs((f_grid - f_grid[0]) - (gm - gm[0]))
+        repro["reml_grid_max_abs_diff"] = float(dg.max())
+        if not dg.max() <= GRID_ATOL:
+            bad.append(f"REML grid differences off by up to {dg.max():.3g} (tolerance {GRID_ATOL:g})")
+    if not abs(tau_obs - rec["tau_obs"]) <= TAU_OBS_ATOL:
+        bad.append(f"τ̂_obs {tau_obs!r} vs recorded {rec['tau_obs']!r} (absolute {TAU_OBS_ATOL:g})")
+    if not abs(delta - rec["delta_hat"]) <= DELTA_ATOL:
+        bad.append(f"δ̂ {delta!r} vs recorded {rec['delta_hat']!r} (absolute {DELTA_ATOL:g})")
+    if not abs(sigma_delta - rec["sigma_delta"]) <= REL_TOL * abs(rec["sigma_delta"]):
+        bad.append(f"σ_δ {sigma_delta!r} vs recorded {rec['sigma_delta']!r} (relative {REL_TOL:g})")
+    if not abs(z_obs - rec["z_obs"]) <= REL_TOL * abs(rec["z_obs"]):
+        bad.append(f"z_obs {z_obs!r} vs recorded {rec['z_obs']!r} (relative {REL_TOL:g})")
+    repro["mismatches"] = bad
+    return repro, bad, est_obs, delta, z_obs
+
+
+def _p_record(k, n_in, **extra):
+    lab, ci = p_label(k, n_in)
+    return {"k": int(k), "n_inner": int(n_in), "p": p_boot(k, n_in), "ci95": list(ci), "label": lab, **extra}
+
+
+# ---------------------------------------------------------------- the block
+def run_gt_stage(stage, L, y, C, rows_a, groups, labels, P, fns, log, grid_m2l, g_saved, power_rec=None,
+                 grid_source=GT_REML_GRID_SOURCE, expected_col=None, recorded=None):
+    """One stage of R2-RE-GT. stage "power": returns (power_record, None). stage "full": needs power_rec (the power
+    stage's record) and returns (out, sims), sims mapping the seven model keys to their per-simulation records.
+    g_saved: check_g_sims of R2-RE-G's saved simulations (VHAT, OANY, OANYVN). `recorded` overrides the recorded
+    values (tests only)."""
+    if stage not in ("power", "full"):
+        raise ValueError(f"gt_stage must be 'power' or 'full', not {stage!r}")
+    if stage == "full" and power_rec is None:
+        raise ValueError("the full stage needs the power stage's record")
+    t_start = CLOCK()
+    rows_a = np.asarray(rows_a)
+    nh = len(groups)
+    nu = P["gt_nu"]
+    taus_rep = [float(t) for t in P["g_taus_rep"]]
+    keys = gt_sim_keys(taus_rep)
+    n_in = int(P["gt_n_inner"])
+    cols = [j for j, h in enumerate(labels) if h == P["n5584_host"]]
+    if len(cols) != 1:
+        raise RuntimeError(f"host {P['n5584_host']} labels {len(cols)} columns, expected 1")
+    col = cols[0]
+    if expected_col is not None and col != expected_col:
+        raise RuntimeError(f"{P['n5584_host']} is column {col}, documented as column {expected_col}")
+    rec = {"tau_obs": RECORDED_TAU_OBS, "delta_hat": RECORDED_DELTA, "sigma_delta": RECORDED_SIGMA_DELTA,
+           "z_obs": RECORDED_Z_OBS, "tau_n": RECORDED_TAU_N, "em_scale": GT_EM_SCALE,
+           "g_obs": GT_RECORDED_G_OBS, "k_g_obs": GT_RECORDED_K_G}
+    rec.update(recorded or {})
+    # the power stage does not record the values that only the full stage's real-data checks use
+    rec_out = {k: v for k, v in rec.items() if stage == "full" or k not in ("g_obs", "k_g_obs")}
+    out = {"stage": stage, "host": labels[col], "column": int(col),
+           "headline": "R2-RE's row stays the headline; this block attaches a label to R2-RE-G's sub-label",
+           "settings": {"eps": "numpy.random.default_rng(g_seed_base + s).standard_normal(len(rows_a)), R2-RE-G's "
+                               "eps_s, the same for every model",
+                        "t_host": "numpy.random.default_rng(gt_seed_base + s).standard_t(gt_nu, 37), common to every "
+                                  "T model; b_s = tau sqrt((nu - 2) / nu) t_s",
+                        "offset_host_any": "numpy.random.default_rng(g_host_seed_base + s).integers(0, 37) "
+                                           "(R2-RE-G's)",
+                        "inner": "z_i = A0_i + s T0_i: A0 = E_in (D Q sqrt(lam))^T, E_in = numpy.random.default_rng("
+                                 "g_inner_seed).standard_normal((gt_n_inner, 37)); T0 = T_in WH^T, T_in = numpy."
+                                 "random.default_rng(gt_inner_seed).standard_t(gt_nu, (gt_n_inner, 37)); s = "
+                                 "tau_hat sqrt((nu - 2) / nu)",
+                        **{k: P[k] for k in ("gt_seed_base", "gt_inner_seed", "gt_inner_seeds_rep", "gt_nu",
+                                             "gt_nu_rep", "gt_n_sims", "gt_n_inner", "gt_power_min",
+                                             "gt_max_minutes", "gt_min_sims", "gt_only", "gt_stage",
+                                             "g_seed_base", "g_host_seed_base", "g_inner_seed", "g_taus_rep",
+                                             "n5584_host")},
+                        "threads": thread_settings(),
+                        "reml": f"reml_tau(f, {TAU_MAX}, {TAU_STEP}, interval=False); τ̂ < 1e-3 counts as zero",
+                        "eig_rtol": EIG_RTOL, "reml_grid_source": grid_source},
+           "recorded": rec_out, "sim_keys": keys,
+           "decisive": [k for k in keys if k in gt_size_keys(taus_rep) + GT_POWER_KEYS]}
+    seconds, checks, reasons = {}, {}, []
+
+    def finish(models=None):
+        out["checks"] = checks
+        out["rule1"] = list(reasons)
+        out["status"] = rule1_status(reasons) if reasons else "evaluated"
+        if models is not None:
+            out["models"] = models
+        seconds["block"] = CLOCK() - t_start
+        out["seconds"] = seconds
+        return out
+
+    def conclude():
+        """The full stage's reading, sub-label and gloss (p_T,obs computed, or rule (1))."""
+        pt = out.get("p_T_obs", {}).get("label")
+        pw = out.get("power", {}).get("power")
+        read, sub = gt_reading(reasons, pw if pw is not None else 0.0, pt, float(P["gt_power_min"]), nu)
+        out.update(reading=read, sub_label=sub, gloss=gt_gloss(read, sub, reasons, nu))
+
+    def stop():
+        finish()
+        log("R2-RE-GT (" + stage + "): " + out["status"])
+        if stage == "power":
+            return out, None
+        conclude()
+        return out, {k: {"model": k, "status": out["status"]} for k in keys}
+
+    if stage == "full":
+        bad_rec = gt_power_record_problems(power_rec, json_like(
+            {**{k: P[k] for k in GT_STAGE_SETTING_KEYS if k != "threads"}, "threads": out["settings"]["threads"]}))
+        if bad_rec:
+            raise RuntimeError("R2-RE-GT full stage refused: " + "; ".join(bad_rec))
+        # the gate holds for any caller (also an explore/ script): p_T on the data only after the formal full
+        # stage, or for the formal full stage itself, whose power line must be present in log.md
+        if not (gt_formal_done() or gt_power_log_line(power_rec) in study_log_text()):
+            raise RuntimeError("R2-RE-GT full stage refused: the power record's line (shape.gt_power_log_line) is "
+                               "not present in log.md and the formal results/r2_re_gt.json does not exist yet")
+    if stage == "full" and power_rec.get("status") == NE_RUNTIME:
+        reasons.append(RUNTIME)
+        checks["power_record_status"] = power_rec.get("status")
+        return stop()
+    if stage == "full" and not power_rec.get("n_sims"):
+        reasons.extend(power_rec.get("rule1") or [f"the power stage was not evaluated ({power_rec.get('status')})"])
+        checks["power_record_status"] = power_rec.get("status")
+        return stop()
+
+    # ---- design (R2-RE-G's)
+    t0 = CLOCK()
+    try:
+        des, problem = design(L, y, C, rows_a, groups, fns)
+    except (np.linalg.LinAlgError, ValueError) as e:
+        if not fns["is_fit_failure"](e):
+            raise
+        reasons.append(f"fit: the design under C on rows_a: {e}")
+        return stop()
+    except RuntimeError as e:
+        if not str(e).startswith("M has a negative eigenvalue"):
+            raise
+        reasons.append(str(e))                   # rule (1) in R2-RE-GT (R2-RE-G amendment 6's condition)
+        return stop()
+    if problem:
+        reasons.append(problem)
+        return stop()
+    out["design"] = {"n_rows": des["n_a"], "n_hosts": nh, "n_columns_X": des["p"], "rank_M": des["rank_M"],
+                     "n_eigenvalues_clipped": des["n_clipped"], "lambda_max": des["lam_max"],
+                     "lambda_min_unclipped": des["lam_min_raw"], "M_jj_min": float(des["mjj"].min())}
+    seconds["design"] = CLOCK() - t0
+
+    # ---- R2-RE-G's reproduction checks (recorded values only; both stages)
+    t0 = CLOCK()
+    try:
+        repro, bad, est_obs, delta, z_obs = _gt_reproduce(L, y, C, rows_a, groups, col, des, grid_m2l, fns, rec)
+    except (np.linalg.LinAlgError, ValueError) as e:
+        if not fns["is_fit_failure"](e):
+            raise
+        reasons.append(f"fit: δ̂: {e}")
+        return stop()
+    checks["reproduction"] = repro
+    seconds["reproduction"] = CLOCK() - t0
+    if bad:
+        reasons.append("reproduction check failed: " + "; ".join(bad))
+        return stop()
+    if est_obs["at_upper_bound"]:
+        reasons.append("τ̂_obs at the upper bound")
+        return stop()
+    tau_obs = est_obs["tau_hat"]
+    log(f"R2-RE-GT ({stage}): reproduced τ̂_obs {tau_obs:.6f}, δ̂ {delta:.6f}, z_obs {z_obs:.6f}; "
+        f"rank M {des['rank_M']} of {nh}")
+
+    # ---- models, Cholesky factors and B = W K
+    t0 = CLOCK()
+    specs = gt_model_specs(taus_rep, tau_obs, rec["tau_n"], z_obs, nu)
+    n_req = int(P["gt_n_sims"]) if stage == "power" else int(power_rec["n_sims"])
+    Bs, fail = {}, {}
+    for tau in dict.fromkeys(specs[k]["tau"] for k in keys):
+        try:
+            if tau == 0.0:
+                K = des["Kc"]
+            else:
+                V = fns["with_re"](C, groups, tau)
+                K = linalg.cholesky(V[np.ix_(rows_a, rows_a)], lower=True)
+                V = None
+        except np.linalg.LinAlgError as e:
+            fail[tau] = str(e)
+            continue
+        Bs[tau] = des["W"] @ K
+        K = None
+    status = {k: "evaluated" if specs[k]["tau"] not in fail else
+              f"not evaluable (Cholesky factor failed: {fail[specs[k]['tau']]})" for k in keys}
+    checks["cholesky_failed"] = {fmt_tau(t): e for t, e in fail.items()}
+    seconds["factors"] = CLOCK() - t0
+    dec_fail = [t for t in fail if any(specs[k]["tau"] == t and specs[k]["decisive"] for k in keys)]
+    if dec_fail:
+        reasons.append("the Cholesky factor of " + ", ".join("C" if t == 0.0 else f"V({fmt_tau(t)})"
+                                                             for t in dec_fail) + " failed")
+        return stop()
+
+    E_in = inner_draws(P["g_inner_seed"], n_in, nh)
+    inner = TInner(des, E_in, t_draws(P["gt_inner_seed"], nu, (n_in, nh)), nu)
+    any_hosts = onehost.offset_hosts(P["g_host_seed_base"], n_req, nh)
+
+    # ---- pointwise checks: the first simulations of THAT built in full (y_s = y_hat + K_C eps_s + Z b_s)
+    t0 = CLOCK()
+    n_pw = min(GT_N_POINTWISE, n_req)
+    sp = specs["THAT"]
+    eps_pw = onehost.eps_block(P["g_seed_base"], np.arange(n_pw), des["n_a"])
+    tb_pw = gt_scale(sp["tau_t"], nu) * t_block(P["gt_seed_base"], np.arange(n_pw), nu, nh)
+    pw = []
+    for s in range(n_pw):
+        z_red = Bs[0.0] @ eps_pw[:, s] + des["WH"] @ tb_pw[:, s]
+        y_full = np.array(y, dtype=float)
+        y_full[rows_a] = des["yhat"] + des["Kc"] @ eps_pw[:, s] + host_effect_y(tb_pw[:, s], des)
+        d, sd = one_column_z(L, y_full, C, rows_a, groups, fns)
+        dz = float(np.max(np.abs(d / sd - z_red)))
+        t_red = tau_refit(v_of_z(z_red, des), des["lam"], fns["reml_tau"])["tau_hat"]
+        t_full = fns["reml_tau"](lambda t: fns["reml_m2l"](L, y_full, C, rows_a, groups, t), TAU_MAX, TAU_STEP,
+                                 interval=False)["tau_hat"]
+        z_ok, t_ok = bool(dz <= Z_ATOL), bool(abs(t_red - t_full) <= POINT_TAU_ATOL)
+        pw.append({"model": "THAT", "s": s, "max_abs_dz": dz, "tau_reduced": t_red, "tau_reml_m2l": t_full,
+                   "z_ok": z_ok, "tau_ok": t_ok, "ok": z_ok and t_ok})
+    checks["pointwise"] = pw
+    seconds["pointwise"] = CLOCK() - t0
+    if not all(p["z_ok"] for p in pw):
+        reasons.append("pointwise check failed (" + ", ".join(f"THAT s={p['s']}" for p in pw if not p["z_ok"]) + ")")
+    if not all(p["tau_ok"] for p in pw):
+        reasons.append("reduced-form τ̂_s differs from reml_tau on reml_m2l ("
+                       + ", ".join(f"THAT s={p['s']}" for p in pw if not p["tau_ok"]) + ")")
+    if reasons:
+        return stop()
+
+    # ---- outer simulations, THAT first (runtime guard in the power stage)
+    run_keys = [k for k in keys if status[k] == "evaluated"]
+    arrs, seconds_m = {}, {}
+
+    def sim(key, lo, hi):
+        s_ = specs[key]
+        return gt_simulate(s_, Bs[s_["tau"]], des, inner, P["g_seed_base"], P["gt_seed_base"], nu, lo, hi,
+                           any_hosts, fns["reml_tau"])
+    t0 = CLOCK()
+    n_time = min(TIME_SIMS, n_req)
+    first = sim("THAT", 0, n_time)
+    per = (CLOCK() - t0) / max(n_time, 1)
+    if stage == "power":
+        n, proj, reduced = guard_n(per, n_req, len(run_keys), float(P["gt_max_minutes"]), int(P["gt_min_sims"]))
+        out["runtime_guard"] = {"timed_sims": n_time, "seconds_per_sim": per, "n_sets": len(run_keys),
+                                "n_requested": n_req, "projected_minutes": proj, "max_minutes": P["gt_max_minutes"],
+                                "min_sims": P["gt_min_sims"], "reduced": reduced, "n": n}
+        if n is None:
+            reasons.append(RUNTIME)
+            out["n_sims"] = None
+            return stop()
+        if reduced:
+            log(f"R2-RE-GT (power): projected {proj:.0f} min; n reduced from {n_req} to {n}")
+    else:
+        n = n_req
+        out["runtime_guard"] = {"from_power_stage": power_rec.get("runtime_guard"), "seconds_per_sim": per}
+    out["n_sims"] = int(n)
+    parts = [first] if n >= n_time else [{k: v[:n] for k, v in first.items()}]
+    if n > n_time:
+        parts.append(sim("THAT", n_time, n))
+    arrs["THAT"] = _cat(parts)
+    seconds_m["THAT"] = CLOCK() - t0
+    log(f"  R2-RE-GT ({stage}): THAT {n} simulations, {seconds_m['THAT']:.0f} s")
+    for key in run_keys:
+        if key == "THAT":
+            continue
+        t1 = CLOCK()
+        arrs[key] = sim(key, 0, n)
+        seconds_m[key] = CLOCK() - t1
+        log(f"  R2-RE-GT ({stage}): {key} {n} simulations, {seconds_m[key]:.0f} s")
+    seconds["simulations"] = seconds_m
+    Bs.clear()
+
+    # ---- per-model records, power, size; the reproduction of R2-RE-G's simulations
+    t0 = CLOCK()
+    cache = {}
+    models = {}
+    for k in keys:
+        if status[k] != "evaluated":
+            models[k] = {"description": specs[k]["description"], "decisive": specs[k]["decisive"],
+                         "status": status[k], "tau": specs[k]["tau"], "tau_t": specs[k]["tau_t"]}
+            continue
+        models[k] = gt_model_record(k, specs[k], arrs[k], n_in, any_hosts, cache)
+    r_any, r_vn = models["OANY"]["rate"], models["OANYVN"]["rate"]
+    power = min(r_any, r_vn)
+    sz = {k: models[k]["rate"] for k in gt_size_keys(taus_rep)}
+    out["power"] = {"R_OANY": r_any, "R_OANYVN": r_vn, "power": power, "power_min": float(P["gt_power_min"]),
+                    "powered": bool(power >= float(P["gt_power_min"]))}
+    out["size"] = {**{f"R_{k}": v for k, v in sz.items()}, "size": max(sz.values()),
+                   "taus": {k: models[k]["tau_t"] for k in gt_size_keys(taus_rep)},
+                   "note": f"under {gt_t(nu)} host effects at τ = 0.05, τ̂_obs and 0.105 only"}
+    out["reported"] = {k: {"rate": models[k].get("rate"), "ci95": models[k].get("ci95"),
+                           "status": models[k]["status"]} for k in ("TC", "VHAT")}
+    ac = gt_anti_conservative(models, taus_rep)
+    if ac:
+        reasons.append("anti-conservative at τ = " + ", ".join(fmt_tau(t) for t in ac))
+    rg, rg_bad = gt_reproduce_g(arrs, g_saved, n)
+    checks["r2_re_g_simulations_reproduced"] = rg
+    if rg_bad:
+        reasons.insert(0, "reproduction of R2-RE-G's simulations failed (" + "; ".join(rg_bad) + ")")
+    if stage == "full":
+        mism = []
+        pm = power_rec.get("models", {})
+        if int(power_rec.get("n_sims") or -1) != n:
+            mism.append(f"n {n} vs power stage {power_rec.get('n_sims')}")
+        for k in keys:
+            a, b = models[k].get("n_excluded"), pm.get(k, {}).get("n_excluded")
+            if a != b:
+                mism.append(f"{k}: {a} vs power stage {b}")
+        checks["power_stage_counts_reproduced"] = not mism
+        checks["power_stage_count_mismatches"] = mism
+        checks["power_stage_k_sha256_equal"] = {k: models[k].get("k_sha256") == pm.get(k, {}).get("k_sha256")
+                                                for k in keys}
+        if mism:
+            reasons.insert(0, "the full stage does not reproduce the power stage's counts")
+    seconds["records"] = CLOCK() - t0
+    log(f"R2-RE-GT ({stage}): power min(R_OANY {r_any:.4f}, R_OANYVN {r_vn:.4f}) = {power:.4f}; size max "
+        + ", ".join(f"R_{k} {v:.4f}" for k, v in sz.items()))
+
+    if stage == "power":
+        finish(models)
+        return out, None
+
+    # ---- full stage: the real-data checks and p_T,obs (only after the power stage's counts are reproduced)
+    out["models"] = models
+    sims = {k: gt_sims_file(k, specs[k], arrs[k], P, any_hosts) if k in arrs else
+            {"model": k, "status": status[k]} for k in keys}
+
+    def stop_full():
+        finish(models)
+        conclude()
+        log("R2-RE-GT (full): " + out["status"])
+        return out, sims
+    if any(r != RUNTIME and not r.startswith("anti-conservative") for r in reasons):
+        return stop_full()
+    t0 = CLOCK()
+    try:
+        d_j, s_j = one_column_z(L, y, C, rows_a, groups, fns)
+    except (np.linalg.LinAlgError, ValueError) as e:
+        if not fns["is_fit_failure"](e):
+            raise
+        reasons.insert(0, f"fit: the one-column fits on the real data: {e}")
+        return stop_full()
+    z_w = des["W"] @ y[rows_a]
+    dz = float(np.max(np.abs(z_w - d_j / s_j)))
+    g_obs, j_obs = g_stat(z_w)
+    g_obs, j_obs = float(g_obs), int(j_obs)
+    t_in = 0.0 if est_obs["at_zero"] else tau_obs
+    k_gauss = inner_k(g_obs, t_in, des, E_in)
+    g_rel = abs(g_obs - rec["g_obs"]) / abs(rec["g_obs"])
+    real = {"max_abs_dz_W_y_vs_one_column_fits": dz, "G_obs": g_obs, "G_obs_recorded": rec["g_obs"],
+            "G_obs_rel_diff": g_rel, "k_gauss_obs": int(k_gauss), "k_gauss_recorded": int(rec["k_g_obs"])}
+    bad = []
+    if not dz <= Z_ATOL:
+        bad.append(f"W y against the one-column GLS fits (max |Δz| {dz:.3g})")
+    if not g_rel <= GT_G_OBS_RTOL:
+        bad.append(f"G_obs {g_obs!r} vs recorded {rec['g_obs']!r} (relative {GT_G_OBS_RTOL:g})")
+    if int(k_gauss) != int(rec["k_g_obs"]):
+        bad.append(f"Gaussian inner draws at τ̂_obs give k = {k_gauss}, R2-RE-G recorded {rec['k_g_obs']}")
+    real["mismatches"] = bad
+    checks["real_data"] = real
+    seconds["real_data_checks"] = CLOCK() - t0
+    if bad:
+        reasons.insert(0, "reproduction check failed: " + "; ".join(bad))
+        return stop_full()
+
+    t0 = CLOCK()
+    out["observed"] = {"G_obs": g_obs, "j_hat_obs": j_obs, "host_j_hat": labels[j_obs], "z_j_hat": float(z_w[j_obs]),
+                       "tau_hat_obs": tau_obs, "scale_obs": gt_scale(t_in, nu)}
+    out["p_T_obs"] = _p_record(inner.k(g_obs, t_in), n_in, tau=tau_obs, nu=nu, scale=gt_scale(t_in, nu))
+    sens = {"note": "descriptive, not calibrated p values: only nu = 4 at the three checked τ has a size check",
+            "nu": {}, "fixed_tau": {}}
+    for nu_r, seed_r in zip(P["gt_nu_rep"], P["gt_inner_seeds_rep"]):
+        inner_r = TInner(des, E_in, t_draws(seed_r, nu_r, (n_in, nh)), nu_r)
+        sens["nu"][str(nu_r)] = _p_record(inner_r.k(g_obs, t_in), n_in, tau=tau_obs, nu=nu_r,
+                                          scale=gt_scale(t_in, nu_r), inner_t_seed=int(seed_r))
+        inner_r = None
+    for t in taus_rep:
+        sens["fixed_tau"][fmt_tau(t)] = _p_record(inner.k(g_obs, t), n_in, tau=t, nu=nu, scale=gt_scale(t, nu))
+    sens["em_scale"] = _p_record(inner.k_scale(g_obs, rec["em_scale"]), n_in, nu=nu, scale=rec["em_scale"],
+                                 variance=float(rec["em_scale"]) ** 2 * nu / (nu - 2.0),
+                                 source="r2_re_n5584.json heavy_tail.nu_main.tau_hat (the t scale; Var(b) = 2 s²)")
+    out["sensitivities"] = sens
+    seconds["observed"] = CLOCK() - t0
+    finish(models)
+    conclude()
+    log(f"R2-RE-GT (full): p_T,obs {out['p_T_obs']['p']:.4f} ({out['p_T_obs']['label']}); reading: "
+        f"{out['reading']}" + (f" [{out['sub_label']}]" if out["sub_label"] else "") + f"; gloss: {out['gloss']}")
+    return out, sims
+
+
+def gt_summary(gt_out):
+    """Short summary for summary.json (R2_RE_GT)."""
+    out = {"status": gt_out.get("status"), "reading": gt_out.get("reading")}
+    if gt_out.get("sub_label"):
+        out["sub_label"] = gt_out["sub_label"]
+    if gt_out.get("gloss"):
+        out["gloss"] = gt_out["gloss"]
+    if "power" in gt_out:
+        out.update(power=gt_out["power"]["power"], size=gt_out["size"]["size"], n_sims=gt_out.get("n_sims"))
+    if "p_T_obs" in gt_out:
+        out.update(p_T=gt_out["p_T_obs"]["p"], p_T_label=gt_out["p_T_obs"]["label"])
+    return out
+
+
+def gt_power_log_line(p_out):
+    """One line for log.md after the power stage (power, size, the reported rates; nothing about p_T,obs)."""
+    if "power" not in p_out:
+        return f"R2-RE-GT power stage: {p_out.get('status')}"
+    pw, sz = p_out["power"], p_out["size"]
+    rep = p_out.get("reported", {})
+    return (f"R2-RE-GT power stage (n = {p_out['n_sims']}): power = min(R_OANY {pw['R_OANY']:.4f}, R_OANYVN "
+            f"{pw['R_OANYVN']:.4f}) = {pw['power']:.4f} ({'powered' if pw['powered'] else 'underpowered'}); size = "
+            + ", ".join(f"{k} {v:.4f}" for k, v in sz.items() if k.startswith("R_")) + f" (max {sz['size']:.4f}); "
+            + "reported " + ", ".join(f"R_{k} {r['rate']:.4f}" if r.get("rate") is not None else f"R_{k} {r['status']}"
+                                      for k, r in rep.items())
+            + f"; status {p_out['status']}")

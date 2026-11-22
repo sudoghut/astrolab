@@ -825,3 +825,174 @@ def test_r2_re_g_power_record():
     if "models" not in p:
         pytest.skip(f"r2_re_g_power.json has no models ({p.get('status')})")
     check_r2_re_g_power(p, path.stat().st_size)
+
+
+# R2-RE-GT (README section 2, addendum 2026-11-21, T-057)
+GT_SIM_KEYS = ["THAT", "T050", "T105", "OANY", "OANYVN", "TC", "VHAT"]
+GT_SIZE_KEYS = ["THAT", "T050", "T105"]
+GT_FORBIDDEN_POWER_KEYS = ("p_T_obs", "observed", "sensitivities", "reading", "sub_label", "gloss", "section5",
+                           "G_obs", "k_gauss_obs", "real_data")
+
+
+def _gt_t(nu):
+    return "t" + str(int(nu)).translate(str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉"))
+
+
+def _keys_of(o):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            yield k
+            yield from _keys_of(v)
+    elif isinstance(o, list):
+        for v in o:
+            yield from _keys_of(v)
+
+
+def check_r2_re_gt_power(p, size=None):
+    """R2-RE-GT's power record: no key that needs p_T on the data, power = min(R_OANY, R_OANYVN), size = max over
+    THAT, T050, T105, below 1 MB (also used by test_shape.py on synthetic output)."""
+    if size is not None:
+        assert size < 1_000_000
+    assert not set(_keys_of(p)) & set(GT_FORBIDDEN_POWER_KEYS)
+    assert p["stage"] == "power"
+    assert "g_obs" not in p.get("recorded", {}) and "k_g_obs" not in p.get("recorded", {})
+    if "models" not in p:
+        return
+    M = p["models"]
+    rates = [M[k].get("rate") for k in ["OANY", "OANYVN"] + GT_SIZE_KEYS]
+    assert None not in rates
+    assert p["power"]["power"] == min(M["OANY"]["rate"], M["OANYVN"]["rate"])
+    assert p["power"]["powered"] == (p["power"]["power"] >= p["settings"]["gt_power_min"])
+    assert p["size"]["size"] == max(M[k]["rate"] for k in GT_SIZE_KEYS)
+    for k, m in M.items():
+        if m.get("status") == "evaluated":
+            assert abs(m["rate"] - m["n_excluded"] / m["n"]) < 1e-15 and m["n"] == p["n_sims"], k
+            assert all(abs(a - b) < 1e-9 for a, b in zip(m["ci95"], _sel_cp(m["n_excluded"], m["n"]))), k
+
+
+def check_r2_re_gt(out, sims, s, sizes=None, power_rec=None, g_sims=None):
+    """Re-derive R2-RE-GT's counts, power, size, p values, the reading, its sub-label and the gloss from the saved
+    files (also used by test_shape.py on synthetic output). sims: model key -> per-simulation record; s:
+    summary.json's R2_RE_GT; sizes: file name -> bytes (each below 1 MB); power_rec: r2_re_gt_power.json when
+    present; g_sims: R2-RE-G's per-simulation records (VHAT, OANY, OANYVN) when present."""
+    import hashlib
+    import numpy as np
+
+    for name, size in (sizes or {}).items():
+        assert size < 1_000_000, name
+    assert s["status"] == out["status"] and s.get("reading") == out.get("reading")
+    assert s.get("sub_label") == out.get("sub_label")
+    if "models" not in out:
+        assert out["status"].startswith(("not evaluable", "not evaluated", "not run"))
+        return
+    nu = out["settings"]["gt_nu"]
+    t = _gt_t(nu)
+    n, n_in = out["n_sims"], out["settings"]["gt_n_inner"]
+    k_ex, k_ne = _three_way_thresholds(n_in)
+    M = out["models"]
+    assert out["sim_keys"] == GT_SIM_KEYS
+    for k in out["sim_keys"]:
+        m = M[k]
+        if m["status"] != "evaluated":
+            assert not m["decisive"] or out["status"] != "evaluated"
+            continue
+        sm = sims[k]
+        assert sm["model"] == k and sm["n"] == n == m["n"] and len(sm["k"]) == len(sm["G"]) == n
+        kk = np.array(sm["k"], dtype=np.int64)
+        assert hashlib.sha256(kk.astype("<i8").tobytes()).hexdigest() == m["k_sha256"], k
+        assert (int(np.sum(kk <= k_ex)), int(np.sum(kk >= k_ne))) == (m["n_excluded"], m["n_not_excluded"]), k
+        g5, t6 = np.array(sm["G"]), np.array(sm["tau_hat"])
+        assert all(abs(a - b) <= 1e-5 + 1e-12 for a, b in zip(np.percentile(g5, [5, 50, 95]),
+                                                              m["quantiles_5_50_95"]["G"])), k
+        assert all(abs(a - b) <= 1e-6 + 1e-12 for a, b in zip(np.percentile(t6, [5, 50, 95]),
+                                                              m["quantiles_5_50_95"]["tau_hat"])), k
+        assert abs(m["rate"] - m["n_excluded"] / n) < 1e-15
+        assert all(abs(a - b) < 1e-9 for a, b in zip(m["ci95"], _sel_cp(m["n_excluded"], n))), k
+        assert (sm.get("tau_t") is not None) == (k in GT_SIZE_KEYS)
+        if "offset_host" in sm:
+            assert m["n_jhat_is_offset_host"] == sum(1 for a, b in zip(sm["j_hat"], sm["offset_host"]) if a == b)
+        if g_sims and k in g_sims and g_sims[k].get("status") == "evaluated":
+            # R2-RE-G's eps_s and host draws: the same G_s and tau_s (to the saved precision; rounding ties aside)
+            gg, gt_ = np.array(g_sims[k]["G"][:n]), np.array(g_sims[k]["tau_hat"][:n])
+            assert np.all(np.abs(g5[:len(gg)] - gg) <= 1e-5 + 1e-12), k
+            assert np.all(np.abs(t6[:len(gt_)] - gt_) <= 1e-6 + 1e-12), k
+    if power_rec is not None and "models" in power_rec:
+        assert power_rec["n_sims"] == n
+        assert {k: power_rec["models"][k].get("n_excluded") for k in out["sim_keys"]} == \
+            {k: M[k].get("n_excluded") for k in out["sim_keys"]}
+    pw = min(M["OANY"]["rate"], M["OANYVN"]["rate"])
+    assert out["power"]["power"] == pw and out["power"]["powered"] == (pw >= out["settings"]["gt_power_min"])
+    sz = [M[k].get("rate") for k in GT_SIZE_KEYS]
+    assert None not in sz and out["size"]["size"] == max(sz)
+    ac = [k for k in GT_SIZE_KEYS if _sel_cp(M[k]["n_excluded"], n)[0] > 0.05]
+    assert any(r.startswith("anti-conservative") for r in out["rule1"]) == bool(ac)
+    if "p_T_obs" not in out:
+        assert out["rule1"] and out["reading"] == out["status"] and out["sub_label"] is None
+        assert out["gloss"] == f"{t} comparison not evaluable (" + "; ".join(out["rule1"]) + ")"
+        return
+    pt = out["p_T_obs"]
+    assert pt["n_inner"] == n_in and abs(pt["p"] - (1 + pt["k"]) / (1 + n_in)) < 1e-15
+    assert pt["label"] == _g_label(pt["k"], n_in)
+    sens = out["sensitivities"]
+    for rec in list(sens["nu"].values()) + list(sens["fixed_tau"].values()) + [sens["em_scale"]]:
+        assert abs(rec["p"] - (1 + rec["k"]) / (1 + n_in)) < 1e-15 and rec["label"] == _g_label(rec["k"], n_in)
+    assert sorted(sens["nu"]) == sorted(str(v) for v in out["settings"]["gt_nu_rep"])
+    for v, rec in sens["nu"].items():
+        assert abs(rec["scale"] - rec["tau"] * ((int(v) - 2) / int(v)) ** 0.5) < 1e-12
+    assert abs(sens["em_scale"]["variance"] - sens["em_scale"]["scale"] ** 2 * nu / (nu - 2)) < 1e-15
+    real = out["checks"]["real_data"]
+    assert real["mismatches"] == [] and real["k_gauss_obs"] == real["k_gauss_recorded"]
+    assert out["observed"]["G_obs"] == real["G_obs"]
+    # reading: rules (1)-(5) in order, the sub-label of rule (2) and the gloss of R2-RE-G's sub-label
+    lab = pt["label"]
+    if out["rule1"]:
+        exp, sub = out["status"], None
+        gloss = f"{t} comparison not evaluable (" + "; ".join(out["rule1"]) + ")"
+    else:
+        sub_of = {"excluded": f"{t} diffuse excluded", "not excluded": f"{t} diffuse not excluded"}
+        gloss = {"excluded": "not only Gaussian tails",
+                 "not excluded": "not shown to hold beyond Gaussian tails"}.get(
+            lab, f"{t} comparison undetermined (Monte Carlo)")
+        if pw < out["settings"]["gt_power_min"]:
+            exp = "undetermined (underpowered)"
+            sub = sub_of.get(lab, f"{t} diffuse undetermined (Monte Carlo)")
+        else:
+            exp = {"excluded": f"one offset host preferred over {t} diffuse scatter",
+                   "not excluded": f"{t} diffuse scatter not excluded"}.get(lab, "undetermined (Monte Carlo)")
+            sub = None
+    assert out["reading"] == exp and out["sub_label"] == sub and out["gloss"] == gloss
+    assert s.get("p_T") == pt["p"] and s.get("power") == pw and s.get("gloss") == gloss
+
+
+def test_r2_re_gt_labels():
+    """README section 2, addendum 2026-11-21 (R2-RE-GT): re-derive counts, power, size, p values, the reading, its
+    sub-label and the gloss from the saved files. Skips until the full stage has run."""
+    path = RESULTS / "r2_re_gt.json"
+    if not path.exists():
+        pytest.skip("r2_re_gt.json missing; the R2-RE-GT block has not run")
+    out = load("r2_re_gt")
+    keys = out.get("sim_keys", GT_SIM_KEYS)
+    sims, sizes = {}, {"r2_re_gt.json": path.stat().st_size}
+    for k in keys:
+        sp = RESULTS / f"r2_re_gt_sims_{k}.json"
+        assert sp.exists(), k
+        sizes[sp.name] = sp.stat().st_size
+        sims[k] = load(f"r2_re_gt_sims_{k}")
+    pw = RESULTS / "r2_re_gt_power.json"
+    if pw.exists():
+        sizes[pw.name] = pw.stat().st_size
+    g_sims = {k: load(f"r2_re_g_sims_{k}") for k in ("VHAT", "OANY", "OANYVN")
+              if (RESULTS / f"r2_re_g_sims_{k}.json").exists()}
+    check_r2_re_gt(out, sims, load("summary")["R2_RE_GT"], sizes,
+                   load("r2_re_gt_power") if pw.exists() else None, g_sims)
+
+
+def test_r2_re_gt_power_record():
+    """README section 2, addendum 2026-11-21 (R2-RE-GT): the power record. Skips until the power stage has run."""
+    path = RESULTS / "r2_re_gt_power.json"
+    if not path.exists():
+        pytest.skip("r2_re_gt_power.json missing; the R2-RE-GT power stage has not run")
+    p = load("r2_re_gt_power")
+    if "models" not in p:
+        pytest.skip(f"r2_re_gt_power.json has no models ({p.get('status')})")
+    check_r2_re_gt_power(p, path.stat().st_size)
