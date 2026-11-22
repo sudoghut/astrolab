@@ -132,5 +132,12 @@ if __name__ == "__main__":
             if keep(e):
                 print(name, {k: g[k] for k in ("ubox", "mu1", "a", "c")},
                       {k: round(v, 3) for k, v in e.items()}, flush=True)
+    # the selection rule of README 2.9: in grid (iii), n6 within 0.2 of 1.70 and phi within 0.05 of 0.60; then the
+    # member whose n_S is closest to the data's 0.909
+    name, n, members, keep = grids()[2]
+    cands = [(g, e) for g in members for e in [exact(g, n=n)]
+             if abs(e["6"] - 1.70) <= 0.2 and abs(e["phi"] - 0.60) <= 0.05 and keep(e)]
+    best = min(cands, key=lambda ge: abs(ge[1]["S"] - 0.909))[0]
+    print("selected", {k: best[k] for k in ("ubox", "mu1", "a", "c")})
     for seed in (999, 998):
         print("chosen", seed, {k: round(v, 4) for k, v in exact(CHOSEN, n=2_000_000, seed=seed).items()})
