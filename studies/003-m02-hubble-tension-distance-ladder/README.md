@@ -1143,6 +1143,124 @@ is unchanged.
     step not evaluable; gate-1 review, two rounds) writes its records only where no R2-RE-G file exists, so it never
     overwrites a formal result, and takes `summary.json`'s `R2_RE_G` from an existing `r2_re_g.json`.
 
+### Addendum 2026-11-21: R2-RE-GT, the shape test G against heavy-tailed diffuse host scatter (T-057), pre-registered before any of these simulations
+
+*Why.* R2-RE-G (T-055) read "undetermined (underpowered)" (power 0.49) with the sub-label "diffuse excluded":
+G_obs = 0.305 is unusual under Gaussian diffuse host scatter of the fitted size (p_G = 0.016). Its referee
+(section 6, R2-RE-G points 2 and 8) noted that the null family is Gaussian: host effects drawn from a heavy-tailed
+distribution with no single defective host also concentrate G, so the sub-label may only say "Gaussianity excluded".
+This addendum calibrates the same statistic G under diffuse host scatter with Student-t host effects (ν = 4, the value
+R2-RE-N5584 used), its scale tied to the refitted τ in each simulation, with the power against the same σ-matched
+single offset host fixed and logged before the data's p value under this null is computed. It attaches a label to
+R2-RE-G's sub-label; it changes no earlier label, reading or the headline.
+
+*Seen before this addendum.* Everything in sections 5–7 and log.md, in particular all of R2-RE-G's results: G_obs =
+0.30486 (ĵ = N5584, z = 3.6354; next |z| N1365 2.33, N3982 2.03; Σ_j z_j² = 43.35), τ̂_obs = 0.0766988, p_G =
+0.016 under V(τ̂_obs) (0.013 at τ = 0.05, 0.023 at 0.105, 0.011 under C), the power 0.49 (R_OANY 0.535, R_OANYVN 0.491),
+the size (≤ 0.048) and the power curve (0.8 reached at z_alt ≈ 5). So the data value of G is known; what is not known
+is its distribution under the null of this addendum. Not yet computed: any simulation with Student-t host effects, any
+p value, power or size under that null; no code for this addendum exists.
+
+*Expected outcome (stated now).* A heavier-tailed null puts more probability on one large host effect, so G's null
+distribution moves up: the power against the σ-matched offset host is expected below R2-RE-G's 0.49 (roughly 0.2–0.45),
+and **"undetermined (underpowered)" is the most likely reading**. The informative part is then the sub-label, whether
+G_obs is still unusual under t₄ diffuse scatter: our rough guess is a p value of about 0.03–0.15, so any of the three
+sub-labels is plausible.
+
+*Question.* Is the concentration of the calibrator host offsets in one host (G_obs = 0.305) unusual under diffuse host
+scatter whose host effects are Student-t with ν = 4 and variance matched to the refitted τ̂, and how much power does
+this test have against one σ-matched offset host?
+
+*Statistic.* G, z_j, M, W, u, Q, λ and the numerical-rank rule exactly as in R2-RE-G (the same design: NGC 4258-only
+system `rows_a`, 37 hosts, the amended host labelling, C on `rows_a`).
+
+*The heavy-tailed null T(τ).* y = ŷ + K_C ε + Z b, where K_C is the lower Cholesky factor of C on `rows_a`, ε is
+standard normal, and the host effects b_j = s·t_j are independent with t_j Student-t with ν = 4 degrees of freedom
+and s = τ/√2, so that Var(b_j) = s²ν/(ν − 2) = τ² (variance matched to R2-RE's random effect of the same τ). Then
+u = ZᵀP y = ZᵀP K_C ε + M b, with Cov(ZᵀP K_C ε) = M (as in R2-RE-G), so z = diag(M_jj^(−1/2)) (ZᵀP K_C ε + M b).
+- **τ in each data vector:** the Gaussian REML τ̂ of R2-RE-G (the reduced form f(τ; u), `reml_tau(f, 0.5, 0.01,
+  interval=False)`, the same zero and bound rules). It is used as a variance estimate of the host effects, not as a
+  model claim; the size of the whole procedure under T(τ) is checked by simulation (below), so no property of REML
+  under t₄ effects is assumed.
+- **Inner draws (the test applied to one data vector with refitted τ̂):** u_i = Q diag(√λ) e_i + M b_i, b_i =
+  (τ̂/√2)·t_i, with e_i the rows of R2-RE-G's fixed E_in (`numpy.random.default_rng(600_000).standard_normal((20_000,
+  37))`) and t_i the rows of one fixed matrix T_in = `numpy.random.default_rng(610_000).standard_t(4, (20_000, 37))`
+  (common random numbers); z_i = diag(M_jj^(−1/2)) u_i; k = #{i: G_i ≥ G}, **p_T = (1 + k)/(1 + N_in)**, N_in =
+  20,000, and the label `rob.three_way(k, N_in, "excluded", "not excluded")` as in R2-RE-G (the 95% Clopper–Pearson
+  interval of k/N_in below, above or containing 0.05). On the real data: **p_T,obs = p_T(G_obs, τ̂_obs)**.
+
+*Models (outer simulations).* Each outer simulation s = 0, …, 9,999 uses R2-RE-G's ε_s
+(`numpy.random.default_rng(400_000 + s).standard_normal(3489)`) and, for the T models, host draws t_s =
+`numpy.random.default_rng(410_000 + s).standard_t(4, 37)`, common to every T model. In each simulation: z_s, G_s,
+u_s → τ̂_s (refitted), then p_T,s, k_s and the label at τ̂_s.
+- **THAT, T050, T105 (decisive for the size):** T(τ̂_obs), T(0.05), T(0.105) (τ̂_obs from the run; the same three
+  checked values as R2-RE-G). Their rejection rates are the size at these values.
+- **OANY and OANYVN (decisive alternatives):** exactly R2-RE-G's (one host drawn by `numpy.random.default_rng(500_000 +
+  s).integers(0, 37)`, σ-matched offset z_obs·σ_δ,k on C, and on V(τ̂_N) with τ̂_N = 0.0314), now tested with the T null.
+  **Power = min(R_OANY, R_OANYVN)**.
+- Reported, not decisive: **TC** (C, no excess, tested with the T null); **VHAT** (R2-RE-G's Gaussian V(τ̂_obs), tested
+  with the T null: how conservative the T test is when the truth is Gaussian); and, on the real data only, p_T,obs with
+  ν = 3 and ν = 10 inner draws (T_in drawn with `default_rng(611_000)` and `default_rng(612_000)`) and at fixed τ =
+  0.05, 0.105 (ν = 4).
+- Seeds 410,000–419,999 and 610,000–612,000 collide with none used before (R2-RE-G's list plus 400,000–409,999,
+  500,000–509,999, 600,000). Counts: n = 10,000 outer simulations per model (7 sets, 70,000 simulations); N_in =
+  20,000 (fixed). Runtime guard as in R2-RE-G (`gt_max_minutes` = 120, floor 5,000, the power stage only).
+
+*Power, size and their order.* R_m = #{s: label_s = "excluded"}/n with its Clopper–Pearson interval; power = min(R_OANY,
+R_OANYVN); size = max(R_THAT, R_T050, R_T105). Two stages as in R2-RE-G: the **power stage** computes the reproduction
+checks and all outer simulations and writes `results/r2_re_gt_power.json`; it never computes p_T,obs, and one line with its power and
+size is written into log.md and committed **before** the full stage starts. The **full stage**
+recomputes the power stage (counts must match exactly), then computes p_T,obs and the reading. (G_obs itself is already
+known from R2-RE-G; the two stages fix the power and the size before the data's p value under this null is seen.)
+
+*Decision rules and labels, fixed now (in this order; exactly one applies).* All earlier verdicts, labels, readings and
+sub-labels (R2 through R2-RE-G) stay as recorded; R2-RE's row stays the headline.
+- (1) **Not evaluable** (with the reason) when: a reproduction check fails (R2-RE-G's checks on τ̂_obs, the REML grid,
+  δ̂, σ_δ, z_obs; in the full stage also G_obs = 0.30485762235426483 within a relative 10⁻⁸ and |Δz_j| ≤ 10⁻⁸ against
+  the 37 one-column fits); a pointwise check fails (the first three simulations of THAT: y_s built in full with K_C ε_s +
+  Z b_s, the 37 one-column GLS z against the reduced computation within 10⁻⁸); some M_jj ≤ 0; a Cholesky factor fails;
+  the full stage does not reproduce the power stage's counts; the runtime floor is not met; or the test is
+  anti-conservative: the Clopper–Pearson interval of R_THAT, R_T050 or R_T105 lies entirely above 0.05.
+- (2) Power < 0.8 → **"undetermined (underpowered)"**, with a sub-label from p_T,obs's label: **"t₄ diffuse
+  excluded"**, **"t₄ diffuse not excluded"** or **"t₄ diffuse undetermined (Monte Carlo)"** (sub-labels, not readings;
+  the sub-label is reported in every case because the question of this addendum, R2-RE-G's referee point 2, is about
+  p_T,obs).
+- (3) Power ≥ 0.8 and p_T,obs's interval entirely below 0.05 → **"one offset host preferred over t₄ diffuse scatter"**.
+- (4) Power ≥ 0.8 and the interval entirely above 0.05 → **"t₄ diffuse scatter not excluded"**.
+- (5) Power ≥ 0.8 and the interval containing 0.05 → **"undetermined (Monte Carlo)"**.
+- Notes. "t₄ diffuse excluded" means: with host effects of R2-RE's size drawn from a Student-t with ν = 4, a
+  concentration as large as G_obs is rare, so R2-RE-G's sub-label does not rest on Gaussian tails alone (at ν = 4 and
+  the three checked τ only). "t₄ diffuse not excluded" means: R2-RE-G's sub-label says only that Gaussian diffuse
+  scatter is excluded. Neither says whether an offset is a data defect or on which side of the ladder it sits.
+
+*What changes in section 5 (the text, not any earlier label).* A new subsection "R2-RE-GT" with the numbers and the
+reading; R2-RE-G's sub-label is glossed with this addendum's sub-label or reading ("not only Gaussian tails" for t₄
+excluded, "Gaussian tails only" for t₄ not excluded). The open question of section 7 is answered accordingly. The
+headline, `summary.json` `R2_host` and the claim's verdict do not change.
+
+*Reported (not decisive).* p_T,obs with k, interval and label; p_T,obs at ν = 3 and 10 and at fixed τ = 0.05, 0.105;
+per model the rejection rate with its interval and the quantiles (5/50/95%) of G_s and τ̂_s; TC's and VHAT's rejection
+rates; the per-simulation k_s, G_s and τ̂_s in `results/r2_re_gt_sims_<model>.json` (each below 1 MB);
+`results/r2_re_gt.json` and `results/r2_re_gt_power.json`; a key `R2_RE_GT` in `summary.json` (every other key
+byte-identical). Checks and seconds per part.
+
+*Runtime.* R2-RE-G's power stage took 764 s for 13 sets; the inner draws here add one 37 × 37 product per draw (M b_i),
+about doubling the inner cost. Estimate: 7 sets, power stage about 15 min, full stage about 15 min, both about 30 min
+single-threaded. Cache only, no download.
+
+*Code checks before the formal run (synthetic data only).* The heavy-tailed draw (sample variance of b at s = τ/√2
+equals τ² within Monte Carlo error); u = ZᵀP K_C ε + M b against full y_s; the inner draw's covariance equals M +
+τ²M² (the variance matching); the size of the T test on a synthetic system at a known τ under T(τ) (not above the
+upper end of the 99% Clopper–Pearson interval of 0.05); the rule order and the sub-labels of rule (2); the power
+record contains no p_T,obs. On the real data before the formal run only R2-RE-G's reproduction checks.
+
+*Switch and code.* `PARAMS["gt_check"]` (false by default; true with `gt_only` = true and `gt_stage` "power", then
+"full", only for the formal runs, back afterwards with dated notes in log.md), `"gt_seed_base": 410_000`,
+`"gt_inner_seed": 610_000`, `"gt_nu": 4`, `"gt_nu_rep": [3, 10]`, `"gt_n_sims": 10_000`, `"gt_n_inner": 20_000`,
+`"gt_power_min": 0.8`, `"gt_max_minutes": 120`, `"gt_min_sims": 5_000`. Module `shape.py` gains the T null (no
+change to R2-RE-G's functions or results), tests in `test_shape.py`, conclusion checks, a web section, section 8 knobs.
+None of this exists yet.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
