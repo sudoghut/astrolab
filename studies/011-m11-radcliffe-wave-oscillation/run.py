@@ -871,7 +871,7 @@ def main(ctx):
         return {"status": "paused", "reason": str(e), "checkpoints": str(store.dir), "timing": timing}
     out["summary"]["load_check"] = lc
     out["summary"]["timing"] = timing
-    out["summary"]["checkpoints"] = str(store.dir)
+    out["summary"]["checkpoints"] = store.dir.name     # key folder only: no local path in results/
     for name, obj in out["files"].items():
         ctx.save(name, obj | {"params": P})
     ctx.save("summary", out["summary"] | {"params": P})
