@@ -356,7 +356,7 @@ section were added after the run (study README section 5; [web page](https://sud
 
 ### Changelog
 
-- 2026-11-22: R2-RE-GTP (T-060): profile of R2-RE-GT over the tail weight and scale; model-limited; calibrated p ≤ 0.031 for ν ≥ 6, 0.05 at ν = 4, 0.08 at ν = 3; part 3 updated; independent referee done.
+- 2026-11-22: R2-RE-GTP (T-060): profile of R2-RE-GT over the tail weight and scale; model-limited; calibrated p ≤ 0.031 for ν ≥ 6, 0.051 at ν = 4 (Monte Carlo-undetermined), 0.08 at ν = 3; part 3 updated; independent referee done.
 - 2026-11-22: R2-RE-GT (T-057): G under a Student-t (ν = 4) diffuse null with τ refitted; power 0.32 fixed before the p value, so "undetermined (underpowered)"; p_T,obs = 0.052 (Monte Carlo interval contains 0.05), sub-label "t₄ diffuse undetermined (Monte Carlo)"; part 3 updated. Independent referee done.
 - 2026-11-21: R2-RE-G (T-055): composite shape test G with τ refitted, power fixed before reading G: 0.49, so "undetermined (underpowered)"; G = 0.305 at N5584, Gaussian diffuse scatter excluded (p 0.016), not independently of R2-RE-D; referee: no bug, heavy-tailed diffuse null registered as T-057; headline unchanged (part 3 updated).
 - 2026-11-21: R2-RE-D (T-048): C, diffuse host scatter V(τ) and a single N5584 offset compared with
@@ -536,7 +536,7 @@ exact p .gap_rule (p .stat_full) (p .stat_sel) (p .stat_drop) (p .stat_agree) (p
 
 ### 研究进展
 
-- 2026-11-22：R2-RE-GTP（T-060）：R2-RE-GT 在尾部权重与尺度上的剖面；受模型限制；校准 p 在 ν ≥ 6 时 ≤ 0.031，ν = 4 时 0.05，ν = 3 时 0.08；更新第三部分；独立审稿已做。
+- 2026-11-22：R2-RE-GTP（T-060）：R2-RE-GT 在尾部权重与尺度上的剖面；受模型限制；校准 p 在 ν ≥ 6 时 ≤ 0.031，ν = 4 时 0.051（蒙特卡洛无法判定），ν = 3 时 0.08；更新第三部分；独立审稿已做。
 - 2026-11-22：R2-RE-GT（T-057）：G 在 Student-t（ν = 4）分散零假设下校准，重新拟合 τ；功效 0.32 在 p 值之前固定，所以"无法判定（功效不足）"；p_T,obs = 0.052（蒙特卡洛区间包含 0.05），子标签"t₄ 分散：无法判定（蒙特卡洛）"；更新第三部分。独立审稿已做。
 - 2026-11-21：R2-RE-G（T-055）：重新拟合 τ 的复合形状检验 G，功效在读取 G 前固定：0.49，所以"无法判定（功效不足）"；G = 0.305（N5584），高斯分散离散被排除（p 0.016），但不独立于 R2-RE-D；审稿：没有错误，重尾分散零假设登记为 T-057；标题判定不变（第三部分更新）。
 - 2026-11-21：R2-RE-D（T-048）：用离散下降量 D 与校准后的联合统计量 J 比较 C、分散的宿主离散 V(τ) 与单独 N5584 偏移；V(0.05) 被排除，V(0.077) 与 V(0.105) 未被 J 排除（p 0.080、0.068），单宿主模型未被排除（p 0.68，构造使然）：无法区分一个离群宿主与分散离散；审稿（事后）：功效不足（对单个偏移宿主约 50%），J 对 V(0.05) 的排除不牢靠，登记复合形状检验 T-055；标题判定不变（第三部分更新）。
