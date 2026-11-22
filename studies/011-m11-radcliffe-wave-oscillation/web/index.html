@@ -142,7 +142,7 @@
       s.T6.changes.length ? s.T6.changes.map(c => esc(`${c.variant}: ${c.label}`)).join('<br>') : '');
     if (s.T7) rows += row('T7', '¹²CO velocities', '¹²CO 速度', lab(s.T7.label), `−2lnL (a, b, c) = ${s.T7.m2lnL.map(x => f(x, 1)).join(', ')}. ${L('The rule has one direction only; the B = 1 model (a) fits the CO velocities worst.', '规则只有一个方向；B = 1 模型 (a) 对 CO 速度拟合得最差。')}`);
     if (s.T8) rows += row('T8', 'potential set by the data?', '引力势由数据决定吗？', lab(s.T8.label),
-      `ω₀ = ${f(s.T8.omega0_k24.median, 1)} (K24 ${L('priors', '先验')}), ${f(s.T8.omega0_broad.median, 1)} (${L('broad', '宽先验')}) km s⁻¹ kpc⁻¹.${L(' <b>Withdrawn as uninformative</b> (referee, README section 6 point 1): with ω₀ free the likelihood is not proper in ω₀, so the posterior is pushed to a prior edge; only the divisor-74 variant is meaningful (ω₀ ≈ 71).', ' <b>作为无信息撤回</b>（审稿，README 第 6 节第 1 点）：ω₀ 自由时似然对 ω₀ 不是正常密度，后验被推到先验边界；只有除数为 74 的变体有意义（ω₀ ≈ 71）。')}`);
+      `ω₀ = ${f(s.T8.omega0_k24.median, 1)} (K24 ${L('priors', '先验')}), ${f(s.T8.omega0_broad.median, 1)} (${L('broad', '宽先验')}) km s⁻¹ kpc⁻¹.${L(' <b>Withdrawn as uninformative</b> (referee, README section 6 point 1): with ω₀ free the likelihood is degenerate in ω₀, so the posterior is pushed to a bound (broad priors) or set by the prior (K24's priors); only the divisor-74 variant is meaningful (ω₀ ≈ 71).', ' <b>作为无信息撤回</b>（审稿，README 第 6 节第 1 点）：ω₀ 自由时似然对 ω₀ 退化（degenerate），后验在宽先验下被推到边界、在 K24 先验下由先验决定；只有除数为 74 的变体有意义（ω₀ ≈ 71）。')}`);
     document.getElementById('labels').innerHTML = rows;
     document.getElementById('labels-sec').hidden = false;
 
@@ -186,9 +186,10 @@
     if (t8) {
       const pr = (o, k) => `${f(o[k].median, 3)} +${f(o[k].plus, 3)}/−${f(o[k].minus, 3)}`;
       det += `<details><summary>T8: ${lab(t8.label)}</summary><p class="num">` +
-        [['k24_priors', L("K24's priors", 'K24 的先验')], ['broad_priors', L('broad priors', '宽先验')], ['variant_divisor_fixed', L('divisor fixed at 74', '除数固定为 74')]].map(([k, nm]) =>
-          `${nm}: ω₀ ${pr(t8[k], 'omega0_kms_kpc')} km s⁻¹ kpc⁻¹; ρ₀ ${pr(t8[k], 'rho0_msun_pc3')} M☉ pc⁻³; ${L("Sun's period", '太阳周期')} ${pr(t8[k], 'sun_period_myr')} Myr`).join('<br>') +
-        `<br>${L('half-width (broad, ln ω₀)', '半宽（宽先验，ln ω₀）')} ${f(t8.halfwidth_broad)} vs 0.085; ${L('median shift', '中位数移动')} ${f(t8.median_shift_in_sigma_broad, 2)}σ<br>${L(' <b>Withdrawn as uninformative</b> (referee, README section 6 point 1): with ω₀ free the likelihood is not proper in ω₀, so the posterior is pushed to a prior edge; only the divisor-74 variant is meaningful (ω₀ ≈ 71).', ' <b>作为无信息撤回</b>（审稿，README 第 6 节第 1 点）：ω₀ 自由时似然对 ω₀ 不是正常密度，后验被推到先验边界；只有除数为 74 的变体有意义（ω₀ ≈ 71）。')}</p></details>`;
+        [['k24_priors', L("K24's priors", 'K24 的先验')], ['broad_priors', L('broad priors', '宽先验')]].map(([k, nm]) =>
+          `${nm} (${L('withdrawn', '已撤回')}): ω₀ ${pr(t8[k], 'omega0_kms_kpc')} km s⁻¹ kpc⁻¹`).join('<br>') +
+        `<br>${L('divisor fixed at 74 (K24 priors only)', '除数固定为 74（只用 K24 先验）')}: ω₀ ${pr(t8.variant_divisor_fixed, 'omega0_kms_kpc')} km s⁻¹ kpc⁻¹; ρ₀ ${pr(t8.variant_divisor_fixed, 'rho0_msun_pc3')} M☉ pc⁻³; ${L("Sun's period", '太阳周期')} ${pr(t8.variant_divisor_fixed, 'sun_period_myr')} Myr` +
+        `<br>${L('half-width (broad, ln ω₀)', '半宽（宽先验，ln ω₀）')} ${f(t8.halfwidth_broad)} vs 0.085; ${L('median shift', '中位数移动')} ${f(t8.median_shift_in_sigma_broad, 2)}σ<br>${L(' <b>Withdrawn as uninformative</b> (referee, README section 6 point 1): with ω₀ free the likelihood is degenerate in ω₀, so the posterior is pushed to a bound (broad priors) or set by the prior (K24's priors); only the divisor-74 variant is meaningful (ω₀ ≈ 71).', ' <b>作为无信息撤回</b>（审稿，README 第 6 节第 1 点）：ω₀ 自由时似然对 ω₀ 退化（degenerate），后验在宽先验下被推到边界、在 K24 先验下由先验决定；只有除数为 74 的变体有意义（ω₀ ≈ 71）。')}</p></details>`;
     }
     document.getElementById('details').innerHTML = det;
     document.getElementById('details-sec').hidden = false;
