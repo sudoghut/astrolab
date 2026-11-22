@@ -267,7 +267,7 @@
   "projected_total_hours": 10.98,
   "note": "MCMC at the pre-registered length (reruns with doubled steps not included); ML fits at the full Nelder-Mead budget per start (upper end)"
  },
- "checkpoints": "C:\\Users\\how612\\AppData\\Local\\astrolab\\Cache\\s011_checkpoints\\89fed8977112c4575e79",
+ "checkpoints": "89fed8977112c4575e79",
  "params": {
   "seed": 20261121,
   "sigma_pc": 47.0,

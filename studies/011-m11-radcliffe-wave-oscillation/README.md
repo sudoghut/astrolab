@@ -366,8 +366,8 @@ excluded). Do not support: T6 (fragile). Undetermined: T4 and T5.
 | T5 wavelengths | k_z/k_vz = 0.75, 95% interval 0.62–4.09 (98 clusters kept) | undetermined |
 | T5 b̂ | b̂ = 0.53, interval 0.39–0.61 (contains neither 0 nor 0.68); Δ = 1.07 rad, ρ = 0.71. Known-answer check **failed** at B = 1 (median mock b̂ 0.42, interval 0.04–0.76, not above 0.4), so the label is undetermined by rule | undetermined |
 | T6 | 9 of 15 variants change at least one label (table below) | fragile |
-| T7 | −2 ln L_max: (a) B = 1 460.0, (b) v_z = 0 449.3, (c) B = 0.5 435.8 (79 clouds); (a) is the worst of the three | CO does not distinguish |
-| T8 | ω₀ = 113 (+18/−16) km s⁻¹ kpc⁻¹ under K24's priors, 138 (+8/−15) under broad priors; broad half-width 0.089 in ln ω₀ (limit 0.085); shift −2.2σ | prior-driven |
+| T7 | −2 ln L_max: (a) B = 1 460.0, (b) v_z = 0 449.3, (c) B = 0.5 435.8 (79 clouds); (a) is the worst of the three, by 10.6 and 24.2: the rule has one direction only, and the CO data, if anything, go against the B = 1 model | CO does not distinguish |
+| T8 | ω₀ = 113 (+18/−16) km s⁻¹ kpc⁻¹ under K24's priors, 138 (+8/−15) under broad priors; broad half-width 0.089 in ln ω₀ (limit 0.085); shift −2.2σ. **Withdrawn as uninformative (post hoc, referee point 1):** with ω₀ free the likelihood is not proper in ω₀, so the posterior is pushed to a prior edge | prior-driven (withdrawn) |
 
 **T6 variants** (labels: T3 standing / T3 B = 1 / T4 / T5 wavelengths / T5 b̂; `t6.json`). The main
 run's labels are the same under the full and the reduced rule: standing excluded / not disfavoured /
@@ -401,9 +401,13 @@ every variant's b̂ undetermined by rule).
 - T5 with ω₀ = 68 km s⁻¹ kpc⁻¹: b̂ = 0.56 (0.39–0.65).
 - T5 known-answer coverage over all 20 mocks: 0.85 at B = 0.5 (covers 0), 0.40 at B = 0.84 (covers
   0.68), 0.00 at B = 1 (above 0.4); mean mock b̂ −0.16, 0.31, 0.39 at the three injections: b̂ is biased
-  low by about 0.3–0.6 at large B, as anticipated in section 4.9.
-- T8 with the v_z/ω₀ divisor fixed at 74: ω₀ = 71 (+10/−8) km s⁻¹ kpc⁻¹. ρ₀ = 0.24 (K24 priors) and
-  0.35 (broad) M☉ pc⁻³; the Sun's vertical period 55 and 45 Myr.
+  low by about 0.3–0.6 at large B, as anticipated in section 4.9. The mocks inject K24's column-(6)
+  curve while the analysis uses our column-(3) curve, and are far noisier than the data, so the failed
+  check says the check is not informative, not that b̂ on the data is biased by this much (section 6,
+  point 3).
+- T8 with the v_z/ω₀ divisor fixed at 74: ω₀ = 71 (+10/−8) km s⁻¹ kpc⁻¹, close to K24's 67.7; this
+  is the only meaningful T8 number (section 6, point 1). The free-ω₀ values of ρ₀ and the Sun's period
+  in `t8.json` are not results.
 - MCMC: every chain (columns 3–7, broad and divisor variants) was rerun at 12,000 steps and is still
   flagged `chain_short`: the longest autocorrelation time is 199–467 steps, so the 8,000 post-burn
   steps are 17–40 τ, below the 50 τ target. Medians are reported as they are; the T1 comparisons and
@@ -414,15 +418,44 @@ likelihood ratio prefers a travelling-type wave over a standing one in the main 
 preference rests on a minority of the clusters: leaving out the Orion region (58 clusters) or the
 kernel weights removes it (2ΔlnL 1.2 and 5.4), and so does leaving out any of four source catalogues
 or the clusters with larger v_z errors. The phase-spread test (T4) has too little power to decide,
-and the model-free b̂ (T5) cannot be read because the known-answer check fails at B = 1. Our column (4)
+and the model-free b̂ (T5) cannot be read because the known-answer check fails at B = 1. T8's
+free-ω₀ reading is withdrawn (section 6, point 1); with the divisor fixed, ω₀ = 71 km s⁻¹ kpc⁻¹, close
+to K24's 67.7. The CO velocities, if anything, fit the B = 1 model worse than v_z = 0. Our column (4)
 reproduction matches 3 of K24's 6 shape parameters; the wavelength p comes out about 330 pc
 (1.6σ) shorter and the phase φ differs by 0.37 rad, so the remaining tests refer to our implementation.
 
 ## 6. Referee notes
 
-Independent critique: selection effects, systematics, alternative explanations.
+### Referee of the formal run (2026-11-21)
+
+The independent referee was a subagent. It saw README sections 1–4, the code and `results/*.json`, but
+not sections 5–8, `log.md` or the wiki; it read K24's Methods to check eqs. 1–13 and ran only short
+read-only inspections of the JSON. It found the labels computed as pre-registered, with no moved
+goalposts, and one likelihood problem in T8. Triage (each point checked against the code and results):
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | T8: with ω₀ free, the fourth component is v_z/ω₀ at fixed σ, and the likelihood has no −Σ w_k ln ω₀ normalisation, so a larger ω₀ shrinks every velocity residual at no cost; amendment 11's "cancels in every comparison" is false for T8. The free-ω₀ posteriors (113 under K24's priors, against K24's 67.7; 138 piled against the broad bound of 150) would be artefacts | yes (`wave011.py` `Model.evaluate`; `run.py` `setups`, `col7` and `col7_broad` with `divisor=None`). A post-hoc check (`explore/t8_jacobian.py`, 2026-11-21, posterior modes, not in `results/`): without the term the mode is ω₀ = 117 (K24's priors) and 150, the upper bound (broad); **with** the term it runs to 4.2 and to 30, the lower bound, because K24's truncation tanh(x²) is bounded, so a small ω₀ turns every v_z residual into a capped outlier while the normalisation keeps growing | **Accepted, post hoc (2026-11-21):** the free-ω₀ likelihood of eq. 13 with K24's bounded outlier function is not a proper density in ω₀; with or without the normalisation the posterior is driven to a prior edge. The T8 label "prior-driven" is computed by the rule but **withdrawn as uninformative** (it reflects the likelihood's construction, not the data), and the derived ρ₀ and solar periods are not reported as results. Only the variant with the divisor fixed at 74 (ω₀ = 71 +10/−8, close to K24's 67.7) is meaningful. How K24 handled this is not stated in eq. 13. T8 does not enter the overall reading, which is unchanged |
+| 2 | The clouds-only fit (column (3)) is not reproduced either (x₀ −1.5σ, y₀ −2.1σ, δ −2.1σ, φ +3.7σ), so a geometry or convention difference sits upstream of every test (grid u ∈ [−0.2, 1.4], fixed weights, fixed σ = 47 pc); the same shift appears in columns (4) and (6); column (4) is one parameter away from "not reproduced" | yes (`t1_t2.json` `col3_for_reference`: 2 of 6 inside) | **Accepted limitation**: section 5 says T3–T5 refer to our implementation; finding the convention that reproduces column (3) is registered as an open question (section 7) |
+| 3 | The T5 known-answer mocks inject K24's column-(6) medians (ω₀t = −0.38) while the analysis curve and the position cut come from our column-(3) median, which differs by ~100 pc and ~0.5 rad; the mocks are much noisier than the data (data b̂ interval 3× narrower than a typical mock's; the B = 0.84 "pass" has interval [−0.57, 0.72]) | yes (`run.py` `t5_known_answer`; `t5.json`) | **Accepted**: the check's failure means the check is not informative about the data, not that b̂ on the data is biased by the mock amount. The b̂ label would be "undetermined" anyway (lower end 0.388 < 0.4). Section 5 wording changed accordingly |
+| 4 | T3 searches harder on the data than in each mock (22/20 starts against 4/2); the likelihood surface is rugged. The mock 2ΔlnL distribution is not a scaled χ²₁ (median 3.5 against 2.0 for the same mean), so p_cal = 0.033 is approximate; the empirical tail (0 of 100 mocks reach 20.2) is stronger | yes (`run.py` `t3_mocks`; `t3.json`) | **Accepted limitation** (pre-registered numbers of starts); direction of the bias unknown |
+| 5 | T3's preference for travelling rests on few clusters: without the Orion box (which removes 58 of 125 clusters, far more than the Orion complex) 2ΔlnL = 1.2 and for the low-σ_vz half 2.3, against about 11 and 9.5 expected pro rata | yes (`t6.json`) | **Accepted**; stated in section 5 |
+| 6 | The noise model matters: with residual resampling, pure travelling becomes "disfavoured" (p_boot 0.030) and T4's power falls to 0.02; R_obs = 0.377 is at the 30th percentile of standing mocks and the 95th of B = 1 mocks, i.e. the phases look, if anything, more like a standing wave, though the best-measured half (variant 9) gives R = 0.043, p = 0.001 | yes (`t3.json`, `t4.json`, `t6.json`) | **Accepted**; reported in section 5 (no label changes) |
+| 7 | MCMC chains are 17–40 τ after the reruns (target 50 τ), τ estimated on a thinned chain; effective sample sizes ~800–1,900 are adequate for T1/T2 medians (no T1 parameter within 0.23σ of its interval edge) | yes (`t1_t2.json`, `t8.json` `chains`) | **Accepted**; disclosed in section 5 |
+| 8 | T6 "fragile" follows the rule; several changes are within 1–2 Monte Carlo errors of a threshold, but variants 3, 7 and 9 (calibrated p 0.27, 0.61, 0.47) are decisive. The reduced rule cannot tell a real change from lost power in a subset | yes | **Accepted**; the label stands |
+| 9 | T7: the label "does not distinguish" is right by the one-directional rule, but the CO data go against (a): the B = 1 model's −2 ln L is worse than v_z = 0 by 10.6 and than the B = 0.5 fit by 24.2 (the latter also differs in geometry and Θ₂) | yes (`t7.json`) | **Accepted**; stated in section 5 |
+| 10 | Literature: Zhu et al. 2024 (arXiv:2402.15346; gas and stars oscillate out of sync), Li & Chen 2022 (arXiv:2112.08390; standing or one-way travelling both consistent), Tu et al. 2022 (arXiv:2208.06469), Alves et al. 2020 (baseline conventions) | Zhu et al. 2024 is cited in the wiki; the others unverified (IDs from the referee) | Noted |
+| 11 | Most important additional test: find the convention that reproduces column (3), then rerun T1 and a T5 known-answer check injected on our own fit | – | Open question (section 7) |
 
 ## 7. Open questions
+
+- Which convention reproduces K24's clouds-only fit (column (3))? Candidates: the curve starting at
+  u = 0 rather than −0.2, σ estimated from the spread of d² as K24 describe, kernel weights recomputed at
+  each parameter vector. Then rerun T1 and a T5 known-answer check injected on our own fit, so injection
+  and analysis share one curve (referee, section 6, points 2, 3 and 11).
+- T8 needs a likelihood that is proper in ω₀ when the v_z divisor is fitted (for example an untruncated
+  velocity term, or a fixed divisor with ω₀ entering only through the frequency); as pre-registered it
+  is uninformative (section 6, point 1).
 
 ## 8. Exploring via chat
 
@@ -456,7 +489,9 @@ How a coding agent answers "what if" questions about this study without touching
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --script explore/<name>.py`.
   Existing: `explore/age_scatter.py` (wiki Part 3 exploration "Age and birth in the Wave": RMS of the z
-  and v_z residuals about the clusters-only B = 1 fit, split at 10 and 20 Myr; needs `results/t3.json`).
+  and v_z residuals about the clusters-only B = 1 fit, split at 10 and 20 Myr; needs `results/t3.json`);
+  `explore/t8_jacobian.py` (referee check, section 6 point 1: posterior modes of ω₀ in the column-(7)
+  setup with and without the −Σ w_k ln ω₀ term, under both priors; about 5 minutes; needs `results/t8.json`).
 - Results files and keys (every file also stores `params`):
   - `results/t1_t2.json`: `t1` (`col4`, `col6`, `col3_for_reference`: per parameter `ours`, `k24`,
     `inside_k24_1sigma`, `sigma_scaled_difference`; `n_inside_of_6`; `label`; `inliers_vs_table_flag`),
@@ -484,6 +519,7 @@ How a coding agent answers "what if" questions about this study without touching
   - "Is T5's verdict sensitive to the wavelength band?" → `--set t5_band='[0.7, 1.4]' parts='["t5"]'` (about 45 minutes).
   - "What if the Wave's scatter were 35 pc?" → `--set sigma_pc=35` (new fits; hours).
   - "Do older clusters scatter more?" → `--script explore/age_scatter.py`.
-  - "How much does the Sun's period depend on its vertical velocity?" → `--set sun_vz_kms=7.25 parts='["t8"]'` (about 70 minutes).
+  - "How much does the Sun's period depend on its vertical velocity?" → `--set sun_vz_kms=7.25 parts='["t8"]'` (about 70 minutes; only the divisor-74 variant is meaningful, section 6 point 1).
+  - "Does T8 need the ln ω₀ normalisation?" → `--script explore/t8_jacobian.py`.
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.
