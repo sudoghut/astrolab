@@ -1038,8 +1038,8 @@ def _clean(d):
 
 
 def _sel_key(P, df):
-    """Checkpoint key (selaux.checkpoint_key): PARAMS values without 'parts' and 'sel_stop_h' (they
-    change no mock), the code of this study with run.py's PARAMS literal removed, and the catalogue."""
+    """Checkpoint key (selaux.checkpoint_key): PARAMS values without selaux.NO_KEY_PARAMS ('parts' and the
+    stop limits; they change no mock), the code of this study with run.py's PARAMS literal removed, and the catalogue."""
     src = {n: (HERE / n).read_text(encoding="utf-8") for n in ("run.py", "m0.py", "mocks.py", "selaux.py")}
     src["run.py"] = selaux.strip_params(src["run.py"])
     data = np.ascontiguousarray(pd.util.hash_pandas_object(df, index=True).to_numpy()).tobytes()
@@ -2053,7 +2053,7 @@ def _is_formal(ctx):
 
 
 def _store_root(ctx, store_root, name):
-    """Checkpoint root of a mock block (R-SEL, R1-SEL-FIT, R1-ERR): an explicit store_root (tests) as given;
+    """Checkpoint root of a mock block (R-SEL, R1-SEL-FIT, R1-ERR, R1-ERRCAL): an explicit store_root (tests) as given;
     the formal run's `<cache>/<name>`; an exploration's own `<cache>/<name>_explore/<date>-<tag>`, so that an
     exploration never writes into (or is pruned together with) the formal checkpoints (T-058)."""
     from astrolab import config
@@ -2407,6 +2407,17 @@ def main_errcal(ctx, P, store_root=None, recorded=None, recorded_fit=None, recor
     root = _store_root(ctx, store_root, "s010_errcal_mocks")
     store = selaux.MockStore(root, _sel_key(P, df), name="R1-ERRCAL", rule="README 2.8")
     ctx.log(f"R1-ERRCAL checkpoints: {store.dir} ({'resumed with consent' if store.resumed else 'new or continued'})")
+    # README 2.8 amendment 11 (gate 1): the mock inputs (the 18 data and null fits at f) are fixed by the first
+    # session; a later session must reproduce them exactly, else it stops before any mock
+    side = Path(store.dir) / "errcal_data_fits.json"
+    cur = json.dumps(out["data_fits"], sort_keys=True)
+    if side.exists():
+        if side.read_text(encoding="utf-8") != cur:
+            store.release()
+            raise RuntimeError("R1-ERRCAL refused: the data and null fits at f differ from the first session's "
+                               "(the same thread settings are required in every session, README 2.8 amendment 11)")
+    else:
+        side.write_text(cur, encoding="utf-8")
 
     def run_one(s, rngs):
         return r1_mock_errcal(C, r1d[(s["f"], s["variant"], s["bin"])], s["kind"], s["mech"], rngs,

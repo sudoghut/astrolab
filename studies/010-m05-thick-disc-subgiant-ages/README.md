@@ -1031,6 +1031,10 @@ is reported next to R1-SEL-FIT and R1-ERR as a further qualifier, not as a verdi
      `data_fits.<f>.<variant>[bin]`.
   10. *Order and records.* The 18 data fits run before any mock, are not checkpointed and are repeated on a
       resume (about 30 min). The run uses the default thread settings, recorded in `threads` as in R1-ERR.
+  11. *Same mock inputs in every session (gate-1 review of the code).* The first session writes the data and null
+      fits at f into the checkpoint folder (`errcal_data_fits.json`); a later session must reproduce them exactly
+      (the same thread settings are required), else it stops before any mock. The power models come from
+      `r1_sel.json`, the metal-rich bins' resolvable flags and edges from `r1_selfit.json`.
 
 ## 3. Data (with size estimate)
 
