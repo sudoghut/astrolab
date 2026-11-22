@@ -1384,7 +1384,7 @@ R2-RE-G and R2-RE-GT checked (close to R2-RE's 68% interval 0.048–0.105). The 
 inner draws, the REML refit and `rob.three_way` are exactly R2-RE-GT's (R2-RE-G's for ν = ∞).
 
 *Two kinds of number (kept apart).*
-- **Fixed-τ p values p_fix(ν, τ)** (18; exact simple-null p values up to Monte Carlo error, no size check needed):
+- **Fixed-τ p values p_fix(ν, τ)** (18; Monte Carlo estimates of simple-null p values, no size check needed):
   k = #{i: G_i ≥ G_obs} over the 20,000 fixed inner draws at τ, p = (1 + k)/(1 + 20,000), labelled by `rob.three_way`
   as in R2-RE-GT. For finite ν the inner draws are z_i = A0_i + s T0_i with s = τ√((ν − 2)/ν) and T_in drawn with ν;
   for ν = ∞ they are R2-RE-G's Gaussian inner draws at τ (`shape.inner_k`, `inner_matrix(τ)`). The value at τ̂_obs,
