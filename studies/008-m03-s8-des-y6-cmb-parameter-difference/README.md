@@ -1070,7 +1070,7 @@ numbers in `results/r6_ka.json`). Each flow training took 421–1,214 s.
   the chains; its n₆, n_S and n₅ (1.81, 0.93, 0.37) differ from the data's (1.70, 0.91, 0.52), so the n₅ end in
   particular is not matched; DS breaks all of u's correlations, while R6-SHUF's (S) keeps the CMB chain's; u is coupled
   to the curved pair through one latent variable. The bias of φ is transferred to the data, not measured on it. The
-  mean offsets of the individual n_σ (each about 4–7 standard errors from 0) are a finding about this family (post hoc,
+  mean offsets of the individual n_σ (each about 4–7 standard errors of the mean over the ten seeds from 0) are a finding about this family (post hoc,
   descriptive): the flows underestimate each n_σ here, unlike R6's gates (offsets n₆ +0.025, n₅ +0.009, n_S −0.028), so the
   per-variant bias depends on the distribution, and b̄ ≈ 0 rests on its cancellation between variants on this family.
   Post hoc margins (not rules): with b̄ scaled by the ratio of the gaps (the family's exact n₆ − n₅ = 1.44 over the data's Ē = 1.17) and w unchanged the
