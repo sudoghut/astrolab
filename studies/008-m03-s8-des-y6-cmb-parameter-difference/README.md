@@ -1071,10 +1071,11 @@ numbers in `results/r6_ka.json`). Each flow training took 421–1,214 s.
   particular is not matched; DS breaks all of u's correlations, while R6-SHUF's (S) keeps the CMB chain's; u is coupled
   to the curved pair through one latent variable. The bias of φ is transferred to the data, not measured on it. The
   mean offsets of the individual n_σ (each about 4–7 standard errors from 0) are a finding about this family (post hoc,
-  descriptive): the flows underestimate each n_σ here, unlike R6's gates (offsets +0.025, +0.009, −0.028), so the
+  descriptive): the flows underestimate each n_σ here, unlike R6's gates (offsets n₆ +0.025, n₅ +0.009, n_S −0.028), so the
   per-variant bias depends on the distribution, and b̄ ≈ 0 rests on its cancellation between variants on this family.
-  Post hoc margins (not rules): with the same offsets scaled to the data's Ē = 1.17 the corrected lower end is 0.606;
-  with a t quantile (9 degrees of freedom) in place of 2 it is 0.605; both stay above 0.60. If the data's offsets
+  Post hoc margins (not rules): with b̄ scaled by the ratio of the gaps (1.44/1.17, the data's Ē) and w unchanged the
+  corrected lower end is 0.606 (0.602 if s_b is scaled too); with a t quantile (9 degrees of freedom) in place of 2
+  it is 0.605; all stay above 0.60, the last two only just. If the data's offsets
   followed the gates' pattern instead, the correction would differ by an amount of the size of the margin; a known-answer
   test on a surrogate of the data's own difference is registered as T-063.
 
@@ -1174,7 +1175,7 @@ I_b = [−0.0056, 0.0450], w = 0.0414, I_φ,corr = [0.6101, 0.6929]) and the exa
 
 | # | Point | Verified | Action |
 |---|---|---|---|
-| 1 | **Transfer to the data is the weak point.** The per-variant offsets here (−0.073, −0.116, −0.098; s.e. ≈ 0.017) are 3–10 times the gates' and of the other sign for n₆; b̄ ≈ 0 is a residual of their cancellation (δ₆ − δ_S ≈ +0.043, the size of R6-SHUF's 0.045 flip threshold). The lower end of I_φ,corr is 0.010 above 0.60; scaled to the data's Ē it is about 0.607, with a t quantile 0.605 | yes (our recomputation: 0.606 and 0.605) | **Accepted** (post hoc, section 5): the margins are stated next to the qualifier, which stays as registered; T-063 registered. |
+| 1 | **Transfer to the data is the weak point.** The per-variant offsets here (−0.073, −0.116, −0.098; s.e. ≈ 0.017) are 3–11 times the gates' and of the other sign for n₆ and n₅; b̄ ≈ 0 is a residual of their cancellation (δ₆ − δ_S ≈ +0.043, the size of R6-SHUF's 0.045 flip threshold). The lower end of I_φ,corr is 0.010 above 0.60; scaled to the data's Ē it is about 0.607, with a t quantile 0.605 | yes (our recomputation: 0.606 with b̄ scaled by 1.44/1.17, 0.602 with s_b scaled too, 0.605 with t₉) | **Accepted** (post hoc, section 5): the margins are stated next to the qualifier, which stays as registered; T-063 registered. |
 | 2 | DS makes u independent of everything; R6-SHUF's (S) keeps the CMB-side correlations; (SS) ≈ (S) supports that this matters little but it is not tested on the family | yes (as section 2.9 discloses) | Accepted limitation (section 5). |
 | 3 | n₅ (0.37) and Ê (1.36–1.61) differ from the data's (0.52; 1.03–1.38), and ∂φ/∂n₅ ≈ 0.42; the coupling runs through one latent (corr(u, x₁) ≈ 0.78), while DES's Σmν is tied to five parameters jointly (R² 0.87, section 5) | yes | Accepted limitation (section 5); covered by T-063. |
 | 4 | No code bugs: `ka_*` equal the explore script, seeds and permutation as registered, rule and qualifier order as registered; minor: `r6ka.plan()` catches only `RuntimeError`, so another exception from a flow job would abort the run instead of being recorded under rule 2 (not triggered) | yes (`r6ka.py`) | Noted; not changed after the run (no effect on this result). |
