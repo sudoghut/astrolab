@@ -348,99 +348,114 @@ before any fit to the data.
 ### 4.10 Addendum 2026-11-21: R-CONV, the baseline convention, and T8-P, a proper ω₀ test (T-056), pre-registered before any of these fits
 
 *Why.* The formal run (section 5) reproduced column (4) only partly (3 of 6) and did not reproduce the clouds-only
-column (3) (2 of 6: x₀ −1.5σ, y₀ −2.1σ, δ −2.1σ, φ +3.7σ) or column (6). Column (3) uses cloud positions only (no
-velocities, no B, no outlier model), so the difference must lie in the geometry or its conventions; the referee
-(section 6, points 2, 3 and 11) proposed finding the convention that reproduces column (3), then rerunning T1 and a
-T5 known-answer check injected on our own fit. Separately, T8 was withdrawn because the free-ω₀ likelihood is
-ill-posed (section 6, point 1); its open question asks for a likelihood that is proper in ω₀.
+column (3) (2 of 6: inside s₀ +0.22σ and γ −0.98σ; outside A −1.40σ, p −1.41σ, δ −2.11σ, φ +3.73σ; anchors x₀ −1.50σ,
+y₀ −2.08σ) or column (6). Column (3) uses cloud positions only (no velocities, no B, no outlier model), so the
+difference must lie in the geometry, its conventions or the likelihood's width; the referee (section 6, points 2, 3 and
+11) proposed finding the convention that reproduces column (3), then rerunning T1 and a T5 known-answer check injected
+on our own fit. Separately, T8 was withdrawn because the free-ω₀ likelihood is ill-posed (section 6, point 1); its open
+question asks for a likelihood in which ω₀ is identified. **Both parts are added after the formal results were seen and
+are labelled post hoc throughout.**
 
-*K24's text, rechecked (arXiv v1 PDF, Methods, pp. 10–14, read 2026-11-21).*
+*K24's text, rechecked (arXiv v1 PDF, Methods pp. 10–14 and Extended Data Tables 1–2, read 2026-11-21).*
 - σ: "σ² is calculated as 0.5 times the standard deviation of d²_min" (after eq. 11), where d²_min = Σᵢ d²_cloud,i
   (s_min) for the clouds, said to be χ²-distributed with two degrees of freedom; this gives "a radius of the Wave of 47
-  pc". For clusters "the scatter parameter σ remains the same as in the molecular cloud discussion". So σ is a plug-in
-  from the clouds' squared distances, not a fixed number; when it is evaluated (once, or at every parameter vector) is
-  not stated, nor whether the standard deviation is weighted.
+  pc". For clusters "the scatter parameter σ remains the same as in the molecular cloud discussion". When σ is
+  evaluated (once, or at every parameter vector) is not stated, nor whether the standard deviation is weighted.
 - Baseline: "a quadratic function in x and y described by three anchor points" (x₀, y₀), (x₁, y₁), (x₂, y₂); "s = 0
-  pc at the beginning of the Wave (near CMa OB1)". The parametrisation of the quadratic (parametric in a curve
-  parameter, as our Lagrange P(u), or y as a quadratic function of x) and whether the curve extends past the anchors are
-  not stated.
+  pc at the beginning of the Wave (near CMa OB1)". The parametrisation of the quadratic and whether the curve extends
+  past the anchors are not stated.
 - Weights: a Gaussian kernel density estimate "whose bandwidth is chosen to be a few percent of the total length of the
   Wave", normalised to the number of objects; when the weights are computed is not stated.
-- Column (7): the fourth entry of d_cluster is v_z/ω₀ (eq. 12) and eq. 13 has no ω₀ normalisation, so K24's own
-  free-ω₀ fit has the property for which our T8 was withdrawn.
+- Priors (Extended Data Table 1): as section 4.1 uses them; in particular ln(δ/pc) ~ N(6.5, 0.1), centred on 665 pc.
+- Column (7): the fourth entry of d_cluster is v_z/ω₀ (eq. 12) and eq. 13 has no ω₀ term, so K24's own free-ω₀ fit
+  has the property for which our T8 was withdrawn.
 
 *Seen before this addendum.* All of sections 5–7 and log.md, in particular every T1 number of the formal run
-(`t1_t2.json`, including `col3_for_reference`) and every T5 and T8 number. No fit under any convention below has been
-run; no code for this addendum exists.
+(`t1_t2.json`, including `col3_for_reference`: our column-(3) δ = 666 pc sits on the prior centre, against K24's 798),
+every T5 and T8 number (the formal `col7_div`, divisor 74 under K24's priors: ω₀ = 71 +10/−8, half-width in ln ω₀
+about 0.12, above the 0.085 limit). From gate-1 review of this addendum (no fit): at K24's published column-(3)
+medians, on our formal curve, the 79 clouds give σ = 59.7 pc by "0.5 × the standard deviation of d²" (58.9 kernel-
+weighted), not K24's 47; and only 1 of the 79 clouds has s < 0. No fit under any convention below has been run; no
+code for this addendum exists.
 
-*Part A, R-CONV: which convention reproduces column (3)?* Sixteen conventions, all combinations of four binary
-factors (the first option of each is the formal run's):
-- **Baseline (L / Y).** L: the parametric Lagrange curve P(u) through the anchors at u = 0, 0.5, 1 (section 4.1). Y: y
-  as the quadratic function of x through the three anchors, the curve parametrised by x (requires x₀ < x₁ < x₂ or x₀ >
-  x₁ > x₂; a parameter vector violating this has zero likelihood).
-- **Extent (E / S).** E: the formal grid, the curve evaluated from 0.2 of the anchor span before anchor 0 to 0.4 after
-  anchor 2 (u ∈ [−0.2, 1.4] for L; the same fractions of x₂ − x₀ for Y), s measured from anchor 0. S: the curve starts at
-  anchor 0 (s = 0 there and no negative s; u ∈ [0, 1.4], or x from x₀ to x₀ + 1.4(x₂ − x₀)). 2,000 grid points in both.
+*Part A, R-CONV: which convention reproduces column (3)?* Sixteen conventions, all combinations of three factors (the
+first option of each is the formal run's; the index is baseline·4 + σ·2 + weights, with the options numbered 0, 1, …
+in the order listed):
+- **Baseline (four options).** L: the parametric Lagrange curve P(u) through the anchors at u = 0, 0.5, 1 (section
+  4.1). C: the same with the middle anchor at its chord-length position (variant 10). Y: y as the quadratic function of x
+  through the three anchors (requires x₀ < x₁ < x₂ or x₀ > x₁ > x₂; otherwise zero likelihood). X: x as the quadratic
+  function of y through the three anchors (same monotonicity condition in y), since "a quadratic function in x and y" is
+  symmetric in its wording and the Wave spans more in y than in x. In every option the curve runs from 0.2 of the
+  anchor span before anchor 0 to 0.4 after anchor 2 (the formal extent; in the parameter u, x or y respectively), and s
+  is the arc length in the x–y plane from anchor 0, on 2,000 grid points. The formal run's extent is kept because only 1
+  of 79 clouds has s < 0 at K24's medians, so starting the curve at anchor 0 would change little.
 - **σ (F / P).** F: σ = 47 pc fixed. P: at each parameter vector, σ² = 0.5 × the (unweighted) standard deviation of the
-  79 clouds' squared distances d²_cloud,i(s_min) (K24's sentence read per evaluation, with d²_min read as the per-cloud
-  values); the eq. 11 likelihood then uses this σ, including its ln(2πσ²) term. For the cluster fits (Part A's reruns)
-  σ is held at the value P gives at the column-(3) posterior median of the chosen convention ("remains the same").
+  79 clouds' squared distances d²_cloud,i(s_min) (K24's sentence read per evaluation, d²_min read as the per-cloud
+  values), used in eq. 11 including its ln(2πσ²) term. P is a reading of K24's words, not a way to reach 47 pc: at
+  K24's medians it gives about 60 pc on our curve (above), and a larger σ flattens the likelihood towards the priors,
+  which is why the width condition below is part of the label.
 - **Weights (X / R).** X: fixed, from each object's s under K24's column-(6) medians (section 4.1). R: recomputed at
-  each parameter vector from that vector's s (same kernel and bandwidth 100 pc).
+  each parameter vector from that vector's s (same kernel, bandwidth 100 pc); for clusters, from the s of the 4-D
+  closest point.
 
 For each convention: the column-(3) MCMC exactly as section 4.2 (48 walkers, 6,000 steps, burn 2,000, doubling if
-shorter than 50τ, then flagged), seed `seed` with the convention's index appended; T1's column-(3) count: how many of
-A, p, δ, s₀, γ, φ have their posterior median inside K24's 16–84% interval (Extended Data Table 2, column 3), and the
-σ-scaled differences of all 12 shape and anchor parameters.
+shorter than 50τ, then flagged), with seed (`seed`, 3000 + index); T1's column-(3) count, how many of A, p, δ, s₀, γ, φ
+have their posterior median inside K24's 16–84% interval (Extended Data Table 2, column 3); the σ-scaled differences of
+all 12 shape and anchor parameters; and the **width ratio**, the median over the six counted parameters of our
+16–84% half-width divided by K24's. `results/rconv.json` reports all sixteen counts, differences and ratios.
 
 *Choice of the convention (fixed now).* The convention with the largest count; ties broken by the fewest departures
-from the formal run (F, L, E, X), then by the order of factors baseline, extent, σ, weights (L before Y, E before S, F
-before P, X before R). Labels:
-- **"column (3) reproduced under <convention>"** if its count is ≥ 5;
-- **"column (3) partly reproduced under <convention>"** if 3–4;
+from the formal run (L, F, X), then by the index. Labels (each says "best of 16 conventions, post hoc"):
+- **"column (3) reproduced under <convention>"** if its count is ≥ 5 and its width ratio lies in [2/3, 3/2];
+- **"column (3) partly reproduced under <convention>"** if its count is 3–4, or ≥ 5 with the width ratio outside
+  [2/3, 3/2] (then the reason is stated);
 - **"column (3) not reproduced under any candidate convention"** if ≤ 2; then Part A stops here and nothing is rerun.
 
-*Reruns under the chosen convention (only if reproduced or partly reproduced).* Column (4), column (5) and column (6)
-MCMC as section 4.2; T1 for columns (4) and (6) by section 2's rule (labels "under <convention>"); T5 as section 4.4
-(position-only cluster selection on the chosen convention's column-(3) median curve, 1,000 bootstrap resamples, the
-wavelength and b̂ rules), with its known-answer check injected on **our own** column-(5) posterior median under the
-chosen convention, with B replaced by 0.5, 0.84 and 1.0 (the other parameters, ω₀t included, from that median), 20 mocks
-per injection, and the pass rule of section 2. These labels are reported **next to** the formal run's, labelled
-post hoc (the convention was chosen after the formal results were seen); the formal labels, the overall reading and T6
-stay as recorded. T3, T4, T6, T7 are not rerun.
+*Reruns under the chosen convention (only if reproduced or partly reproduced).* σ is 47 pc for every cluster fit and
+for T5 under every convention (K24 print 47 pc and say the clusters keep it; under P only the column-(3) clouds
+likelihood changes). Column (4), column (5) and column (6) MCMC as section 4.2; T1 for columns (4) and (6) by section
+2's rule (labels "under <convention>, post hoc"); T5 as section 4.4 (position-only cluster selection on the chosen
+convention's column-(3) median curve with the √3 × 47 pc cut, 1,000 bootstrap resamples, the wavelength and b̂ rules).
+Its known-answer check injects on the **same curve the analysis uses**: the chosen convention's column-(3) posterior
+median (anchors and A, p, δ, s₀, γ, φ), with ω₀t from our column-(5) posterior median under that convention and B =
+0.5, 0.84 and 1.0, 20 mocks per injection, 47 pc noise as in section 4.4, and the pass rule of section 2. The mock noise
+(47 pc on all four components) may still make the mocks noisier than the data, so the check may again be uninformative;
+the coverage and mean b̂ per injection are reported either way. These labels are reported **next to** the formal run's;
+the formal labels, the overall reading and T6 stay as recorded. T3, T4, T6, T7 are not rerun.
 
-*Part B, T8-P: ω₀ with a likelihood proper in ω₀.* The column-(7) setup (ω₀, μ₀, r₀ free) with the v_z divisor
-**fixed at 74 km s⁻¹ kpc⁻¹**, so ω₀ enters only through the frequency ω(z_max, r) of eq. 3 and the likelihood is a fixed
-density in v_z; under the formal run's convention (L, E, F, X). MCMC as section 4.2 under K24's priors (the formal run's
-`col7_div`, rerun so both chains come from this run) and under the broad priors of section 2 (new). Section 2's T8 rule
-applied unchanged (half-width of the broad-prior ln ω₀ posterior against 0.085; median shift against 0.5σ) →
-**"data-driven"**, **"partly data-driven"** or **"prior-driven"**, reported as T8-P with ρ₀ and the Sun's vertical period
-under both priors. The withdrawn T8 stays withdrawn.
+*Part B, T8-P: ω₀ with the divisor fixed (post hoc).* The column-(7) setup (ω₀, μ₀, r₀ free) with the v_z divisor
+**fixed at 74 km s⁻¹ kpc⁻¹**, under the formal run's convention (L, F, X). Then ω₀ enters only the model mean of v_z
+(through the frequency ω(z_max, r) of eq. 3), and the likelihood's dependence on ω₀ is through the model alone, so the
+withdrawn T8's problem (ω₀ rescaling the data's velocity component) is absent. MCMC as section 4.2 under K24's priors
+(the formal `col7_div`, rerun so both chains come from this run) and under the broad priors of section 2 (new).
+Section 2's T8 rule applied unchanged (half-width of the broad-prior ln ω₀ posterior against 0.085; median shift
+against 0.5σ) → **"data-driven"**, **"partly data-driven"** or **"prior-driven"**, reported as T8-P (post hoc) with ρ₀
+and the Sun's vertical period under both priors. Because the tanh cap lets the likelihood plateau at large ω₀, the
+broad-prior posterior's distance from the 150 km s⁻¹ kpc⁻¹ bound is reported; if its median lies within 5% of either
+bound, T8-P is "prior-driven (posterior at the bound)". The withdrawn T8 stays withdrawn.
 
-*Expected outcome (stated now).* Part A: we expect Y (the graph form K24's wording suggests) or P to move the anchors
-by about 100 pc and to raise the count to 4–6; an even chance that column (3) is reproduced; if so, column (4) likely
-reproduced and the known-answer check more likely to pass, with b̂'s label still likely "undetermined" (its interval
-0.39–0.61 sits across 0.4). Part B: the formal `col7_div` gave ω₀ = 71 (+10/−8) under K24's priors (half-width in ln ω₀
-about 0.12); with the frequency as the only route, the broad-prior posterior is likely wider than 0.085, so
-"prior-driven" or "partly data-driven" is the likely label.
+*Expected outcome (stated now).* Part A: we expect Y, X or P to move the anchors by about 100 pc; the count could reach
+4–6, but P may raise it only by widening the posteriors, which the width condition catches; an even chance that column
+(3) is reproduced; if so, column (4) likely reproduced, and the known-answer check more likely to pass, with b̂'s label
+still likely "undetermined". Part B: the K24-prior chain already gave a half-width of about 0.12 (above 0.085), so
+"data-driven" is very unlikely; "prior-driven" or "partly data-driven" is the likely label.
 
-*Cost.* Sixteen column-(3) MCMC runs (79 clouds, about 0.6 ms per likelihood with fixed weights; R and P add a kernel
-evaluation and a variance per call, perhaps doubling it): about 10–20 min each with the doubling, 3–5 h in all; the
-reruns about 1.5 h; Part B about 1 h. In all about 5–7 h single-threaded, with the formal run's pause at
+*Cost.* Sixteen column-(3) MCMC runs (about 0.6–1.2 ms per likelihood; with the doubling about 9–17 min each, 2.5–4.6 h
+in all); the reruns about 1–1.5 h; Part B about 1 h. In all about 5–7 h single-threaded, with the formal run's pause at
 `stop_after_hours` and checkpointed resume (section 4.9, item 13). Cache only, no download.
 
-*Code checks before the formal run (synthetic data only).* Y and L give the same curve when the anchors are equally
-spaced in x on a straight line; S has no negative s; P's σ equals 47 pc within 1% for synthetic clouds drawn with σ =
-47 pc about a known curve (K24's χ²₂ argument; the sign convention of the factor 0.5 checked); R's weights equal X's at
-K24's column-(6) medians; the T8-P likelihood is a fixed density in v_z (its normalisation does not depend on ω₀); the
-tie-break order; T5's known-answer injection uses the stated vector. On the real data before the formal run only the
-load check.
+*Code checks before the formal run (synthetic data only).* Y and X give the same curve as L when the anchors are
+equally spaced on a straight line; C equals variant 10's curve; s is the x–y arc length in every option; P's σ equals
+47 pc within 1% for 10⁵ synthetic clouds drawn with σ = 47 pc about a known curve (K24's χ²₂ argument); R's weights
+equal X's at K24's column-(6) medians; with the divisor fixed, changing ω₀ changes only the model v_z (the data vector
+and the eq. 13 constant are unchanged); the tie-break order and the width condition; the T5 known-answer injection uses
+the stated vector. On the real data before the formal run only the load check.
 
-*Switch and code.* A new part `"conv"` (Part A) and `"t8p"` (Part B) in `PARAMS["parts"]`, run alone in a formal run
+*Switch and code.* New parts `"conv"` (Part A) and `"t8p"` (Part B) in `PARAMS["parts"]`, run alone in a formal run
 (the other parts' results are read, never written); results `results/rconv.json` and `results/t8p.json` (each below 1
-MB), keys `R_CONV` and `T8_P` in `summary.json` (other keys byte-identical); `wave011.py` gains the Y baseline, the S
-extent, the P σ and the R weights as options (defaults unchanged, so the formal results reproduce), tests, conclusion
-checks, a web section, section 8 knobs. None of this exists yet.
+MB), keys `R_CONV` and `T8_P` in `summary.json` (other keys byte-identical); `wave011.py` gains the C, Y and X
+baselines, the P σ and the R weights as options (defaults unchanged, so the formal results reproduce), tests,
+conclusion checks, a web section, section 8 knobs. None of this exists yet.
 
 ## 5. Results
 
@@ -535,7 +550,7 @@ goalposts, and one likelihood problem in T8. Triage (each point checked against 
 | # | Point | Verified | Action |
 |---|---|---|---|
 | 1 | T8: with ω₀ free, the fourth component is v_z/ω₀ at fixed σ, and the likelihood has no −Σ w_k ln ω₀ normalisation, so a larger ω₀ shrinks every velocity residual at no cost; amendment 11's "cancels in every comparison" is false for T8. The free-ω₀ posteriors (113 under K24's priors, against K24's 67.7; 138 piled against the broad bound of 150) would be artefacts | yes (`wave011.py` `Model.evaluate`; `run.py` `setups`, `col7` and `col7_broad` with `divisor=None`). A post-hoc check (`explore/t8_jacobian.py`, 2026-11-21, posterior modes, not in `results/`): without the term the mode is ω₀ = 117 (K24's priors) and 150, the upper bound (broad); **with** the term it runs to 4.2 and to 30, the lower bound, because K24's truncation tanh(x²) is bounded, so a small ω₀ turns every v_z residual into a capped outlier while the normalisation keeps growing | **Accepted, post hoc (2026-11-21):** the free-ω₀ likelihood of eq. 13 with K24's bounded outlier function is ill-posed in ω₀: without the normalisation it is not a density of v_z, and with the normalisation it grows without bound as ω₀ → 0, because every v_z residual is then capped by tanh(x²) (this part is analytic). In the explored mode searches the posterior went to a bound under the broad priors in both forms, and under K24's Gaussian priors the modes are 117 without and 4.2 with the normalisation; the searches show boundary-seeking, not a proof that the formal likelihood has no finite-ω₀ information. The T8 label "prior-driven" is computed by the rule but **withdrawn as uninformative** (it reflects the likelihood's construction, not the data), and the derived ρ₀ and solar periods are not reported as results. Only the variant with the divisor fixed at 74 (ω₀ = 71 +10/−8, close to K24's 67.7) is meaningful; it was fitted under K24's priors only, so whether the data or the prior sets it is not tested. How K24 handled this is not stated in eq. 13. T8 does not enter the overall reading, which is unchanged |
-| 2 | The clouds-only fit (column (3)) is not reproduced either (x₀ −1.5σ, y₀ −2.1σ, δ −2.1σ, φ +3.7σ), so a geometry or convention difference sits upstream of every test (grid u ∈ [−0.2, 1.4], fixed weights, fixed σ = 47 pc); the same shift appears in columns (4) and (6); column (4) is one parameter away from "not reproduced" | yes (`t1_t2.json` `col3_for_reference`: 2 of 6 inside) | **Accepted limitation**: section 5 says T3–T5 refer to our implementation; finding the convention that reproduces column (3) is registered as an open question (section 7) |
+| 2 | The clouds-only fit (column (3)) is not reproduced either (counted parameters outside: A −1.4σ, p −1.4σ, δ −2.1σ, φ +3.7σ; anchors x₀ −1.5σ, y₀ −2.1σ; corrected 2026-11-21, T-056 gate 1: the anchors are not among the six counted parameters), so a geometry or convention difference sits upstream of every test (grid u ∈ [−0.2, 1.4], fixed weights, fixed σ = 47 pc); the same shift appears in columns (4) and (6); column (4) is one parameter away from "not reproduced" | yes (`t1_t2.json` `col3_for_reference`: 2 of 6 inside) | **Accepted limitation**: section 5 says T3–T5 refer to our implementation; finding the convention that reproduces column (3) is registered as an open question (section 7) |
 | 3 | The T5 known-answer mocks inject K24's column-(6) medians (ω₀t = −0.38) while the analysis curve and the position cut come from our column-(3) median, which differs by ~100 pc and ~0.5 rad; the mocks are much noisier than the data (data b̂ interval 3× narrower than a typical mock's; the B = 0.84 "pass" has interval [−0.57, 0.72]) | yes (`run.py` `t5_known_answer`; `t5.json`) | **Accepted**: the check's failure means the check is not informative about the data, not that b̂ on the data is biased by the mock amount. The b̂ label would be "undetermined" anyway (lower end 0.388 < 0.4). Section 5 wording changed accordingly |
 | 4 | T3 searches harder on the data than in each mock (22/20 starts against 4/2); the likelihood surface is rugged. The mock 2ΔlnL distribution is not a scaled χ²₁ (median 3.5 against 2.0 for the same mean), so p_cal = 0.033 is approximate; the empirical tail (0 of 100 mocks reach 20.2) is stronger | yes (`run.py` `t3_mocks`; `t3.json`) | **Accepted limitation** (pre-registered numbers of starts); direction of the bias unknown |
 | 5 | T3's preference for travelling rests on few clusters: without the Orion box (which removes 58 of 125 clusters, far more than the Orion complex) 2ΔlnL = 1.2 and for the low-σ_vz half 2.3, against about 11 and 9.5 expected pro rata | yes (`t6.json`) | **Accepted**; stated in section 5 |
