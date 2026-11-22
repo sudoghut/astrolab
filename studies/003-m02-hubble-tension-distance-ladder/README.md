@@ -2110,6 +2110,51 @@ as recorded; R2-RE's row stays the headline, and `summary.json` `R2_host` and th
 **As expected.** The addendum forecast a power of roughly 0.2–0.45 (0.317), "undetermined (underpowered)"
 as the most likely reading (it is) and a p value of about 0.03–0.15 (0.052).
 
+### R2-RE-GTP (addendum 2026-11-22, T-060)
+
+Run of 2026-11-22, standalone (`gtp_check` and `gtp_only` true, set back to false afterwards), single-threaded as
+R2-RE-GT, cache only: 1,736 s, of which 1,510 s for the 36 pointwise checks. A first attempt was refused before any
+data was loaded by a bug in the preflight thread check (fixed; log.md). Numbers: `results/r2_re_gtp.json` and the 12
+`results/r2_re_gtp_sims_<ν>_<τ>.json`. Reported, non-decisive: no verdict, label, reading, sub-label or gloss changes.
+
+**Checks.** All passed: R2-RE-G's and R2-RE-GT's reproduction checks on the data; the eight recorded k (1,047, 501,
+1,806, 1,476, 422, 326, 254, 453) recomputed exactly; the reused counts of R2-RE-GT's THAT/T050/T105 and R2-RE-G's
+VHAT/V050/V105 equal their records; all 36 pointwise checks of the 12 new sets passed.
+
+**Statement: "t-tail comparison: model-limited (p_fix from 0.0112 to 0.1211)"** (already determined by values seen
+before the addendum, as disclosed there; the disclosed lower end 0.0127 was not the minimum: ν = 30 at τ = 0.05 gives
+0.0112 on its own inner stream, within about 1.4σ of binomial noise of the Gaussian's 0.0127). The calibrated p values
+span 0.015–0.078. No ν is flagged anti-conservative: the 18 sizes of the refitted test lie in
+0.040–0.050, every Clopper–Pearson interval includes or lies below 0.05.
+
+| ν | p_fix at τ = 0.05 / τ̂_obs / 0.105 | size of the refitted test (true τ = 0.05 / τ̂_obs / 0.105) | p_cal (same) |
+|---|---|---|---|
+| 3 | 0.037 / 0.074 / 0.121 | 0.040 / 0.044 / 0.042 | 0.071 / 0.077 / 0.078 |
+| 4 | 0.025 / 0.052 / 0.090 | 0.041 / 0.046 / 0.044 | 0.046 / 0.050 / 0.051 |
+| 6 | 0.017 / 0.032 / 0.055 | 0.042 / 0.045 / 0.048 | 0.028 / 0.030 / 0.030 |
+| 10 | 0.013 / 0.021 / 0.036 | 0.045 / 0.047 / 0.050 | 0.020 / 0.021 / 0.022 |
+| 30 | 0.011 / 0.016 / 0.025 | 0.047 / 0.046 / 0.046 | 0.018 / 0.017 / 0.015 |
+| ∞ | 0.013 / 0.016 / 0.023 | 0.045 / 0.048 / 0.048 | 0.016 / 0.017 / 0.017 |
+
+- p_fix labels: all "excluded" for ν ≥ 10 and ν = ∞; at ν = 6 "excluded" except τ = 0.105 ("not excluded", 0.055); at
+  ν = 4 as recorded (0.025 excluded, 0.052 undetermined (Monte Carlo), 0.090 not excluded); at ν = 3 "excluded" only at
+  τ = 0.05.
+- **p_cal, the calibrated p value of the refitted plug-in test**, is at most 0.030 for every ν ≥ 6 (largest over the
+  three true τ: 0.030, 0.022, 0.018, 0.017 for ν = 6, 10, 30, ∞), 0.051 at ν = 4 and 0.078 at ν = 3 (the largest of the
+  18 values, not a composite-null p value; the grid is coarse and stops at ν = 3, so heavier tails would raise it
+  further: the upper end is set by where the grid stops, not by the data). The cells share ε_s and, within a ν, the
+  same t draws rescaled, so the flatness of p_cal across τ partly reflects these common random numbers.
+
+**Reading (post hoc).** The answer to "does R2-RE-G's exclusion of diffuse scatter rest on Gaussian tails alone?"
+depends on how heavy the tails are allowed to be: for host effects with ν ≥ 6 (including the Gaussian), the calibrated
+test excludes diffuse scatter of R2-RE's size (p_cal ≤ 0.03) at every checked scale; at ν = 4 it is on the boundary
+(0.05), and at ν = 3 it does not (0.08). These data (one value of G) cannot fix ν: under variance matching a t₃ draw puts most of the variance into a few
+large host effects, close to the one-offset-host alternative. R2-RE-GT's sub-label "t₄ diffuse undetermined (Monte
+Carlo)" stays as recorded; the profile adds that diffuse scatter is excluded unless the host effects are about as
+heavy-tailed as t₄ or heavier (the crossover lies between ν = 4 and 6). The
+refitted test is not anti-conservative anywhere on the grid (sizes 0.040–0.050). The headline (R2-RE) and every earlier
+label stay as recorded. An outside constraint on ν (from host-level residuals not used in G) is registered as T-062.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-14 (a subagent that saw the pre-registration, code and results, not
@@ -2257,6 +2302,24 @@ the full stage, `shape.py` is unchanged since the code review, and the label fol
 | 9 | Literature on heavy-tailed or outlier treatment in the ladder (Efstathiou 2014, arXiv:1311.3461; Cardona, Kunz & Pettorino 2017, arXiv:1611.06088; Feeney, Mortlock & Dalmasso 2018, arXiv:1707.00007, Student-t tails with H0 fairly insensitive; Follin & Knox 2018, arXiv:1707.01175; Efstathiou 2020, arXiv:2007.10716; Mörtsell et al. 2022, arXiv:2105.11461; Wojtak & Hjorth 2022, arXiv:2206.08160; Freedman et al. 2024, arXiv:2408.06153); none singles out N5584 | no; the IDs were given by the referee from memory, unverified (Wojtak & Hjorth 2022 is cited in section 7) | Noted; not used |
 | 10 | Most important additional test: profile p_T,obs and its size over ν (3, 4, 6, 10, 30, ∞) and τ across τ̂_obs's REML interval with the existing machinery, reporting the supremum p next to the plug-in value (about 10–20 min) | – | Registered as T-060 (backlog), a reported, non-decisive sensitivity |
 
+### Referee, R2-RE-GTP (independent subagent, 2026-11-22)
+
+The referee saw the R2-RE-G, R2-RE-GT and R2-RE-GTP addenda with their amendments, `shape.py`, the `gtp_*` path of
+`run.py`, the tests and the results files, not sections 5–7. It re-derived all 18 p_cal counts from the saved k_s and
+found them equal to the record, checked the streams, the variance matching and the ν = ∞ path, and found no bug that
+changes a reported number. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | "Model-limited" is close to true by construction: under variance matching a small ν puts the variance into a few large host effects, close to the one-offset-host alternative, and one G value cannot measure ν. The grid stops at ν = 3, so the upper end (p_fix 0.121, p_cal 0.078) is set by where the grid stops, not a bound | yes | **Accepted**; section 5 says so and states the conditional reading (excluded for ν ≥ 6, not for ν ≤ 3–4) |
+| 2 | The statement's range uses p_fix; the calibrated range (0.015–0.078) should stand next to it, since p_fix at ν = 3, τ = 0.105 is a simple-null p above the data's τ̂ | yes | **Accepted**; both ranges given in section 5 (the registered statement is unchanged) |
+| 3 | The addendum's "already known" lower end (0.0127) was not the minimum: ν = 30, τ = 0.05 gives 0.0112 on its own inner stream (about 1.4σ of binomial noise); p_fix is not monotone in ν at that level | yes | **Accepted**; corrected in section 5 |
+| 4 | The size is that of the label "excluded" (upper Clopper–Pearson bound below 0.05, effective level about 0.047), so the anti-conservative flag could miss a test rejecting slightly above 0.05 at nominal p < 0.05; the observed sizes (0.040–0.050) and p_cal ≈ p_plug show no miscalibration | yes | Noted (as registered for R2-RE-GT) |
+| 5 | The cells share ε_s and, within a ν, the same t draws rescaled: the flatness of p_cal across τ is partly common random numbers, not replication | yes | **Accepted**; stated in section 5 |
+| 6 | The thread check now compares only the libraries present in both snapshots (weaker than before); no effect here, as all eight recorded k reproduced exactly | yes | Noted (it is R2-RE-GT's own comparison) |
+| 7 | Literature: Feeney, Mortlock & Dalmasso 2018 (arXiv:1707.00007; abstract checked by the referee), Riess et al. 2022 (arXiv:2112.04510), Efstathiou 2020 (arXiv:2007.10716), Wojtak & Hjorth 2022 (arXiv:2206.08160), Freedman et al. 2019 (arXiv:1907.05922), Anand et al. 2022 (arXiv:2108.00007); none estimates ν for host-level offsets | the first by the referee; the others unverified | Noted; not used |
+| 8 | Most important additional test: constrain ν from outside the 37 G-defining hosts (for example Cepheid−TRGB distance differences of shared hosts, or leave-N5584-out residuals) and report p_cal integrated over that ν (and τ) | – | Registered as T-062 (backlog) |
+
 ## 7. Open questions
 
 - Why the public `lstsq_results.txt` differs from the printed baseline (a later or variant fit).
@@ -2305,7 +2368,10 @@ the full stage, `shape.py` is unchanged since the code review, and the label fol
   **not decided**. Under t₄ diffuse scatter of the fitted size p_T,obs = 0.052, with a Monte Carlo interval
   (0.049–0.056) that contains 0.05, and the test is underpowered (0.317); the p value moves across 0.05 with the
   tail weight (ν = 3: 0.074; ν = 10: 0.021) and the scale (τ = 0.05: 0.025; 0.105: 0.090). So whether R2-RE-G's
-  sub-label rests on Gaussian tails alone stays open; these data do not fix the tail of diffuse host scatter. If
+  sub-label rests on Gaussian tails alone stays open; these data do not fix the tail of diffuse host scatter.
+  Profiled by R2-RE-GTP (2026-11-22, T-060): the calibrated p is at most 0.03 for host effects with ν ≥ 6 (Gaussian
+  included), 0.05 at ν = 4 and 0.08 at ν = 3, so diffuse scatter is excluded unless the tails are about as heavy as t₄
+  or heavier; an outside constraint on ν is T-062. If
   an offset is real, JWST Cepheids in N5584 (Riess et al. 2023) point to the SN 2007af side or chance.
 
 ## 8. Exploring via chat
