@@ -359,7 +359,10 @@ are labelled post hoc throughout.**
 *K24's text, rechecked (arXiv v1 PDF, Methods pp. 10–14 and Extended Data Tables 1–2, read 2026-11-21).*
 - σ: "σ² is calculated as 0.5 times the standard deviation of d²_min" (after eq. 11), where d²_min = Σᵢ d²_cloud,i
   (s_min) for the clouds, said to be χ²-distributed with two degrees of freedom; this gives "a radius of the Wave of 47
-  pc". For clusters "the scatter parameter σ remains the same as in the molecular cloud discussion". When σ is
+  pc". For clusters "the scatter parameter σ remains the same as in the molecular cloud discussion". The notation is
+  ambiguous: a single sum over clouds is one number, with no standard deviation, and the χ²₂ statement fits the squared
+  3-D distance of one cloud to the curve (two components perpendicular to it), so we read d²_min as the per-cloud
+  values d²_cloud,i(s_min) = Δx² + Δy² + Δz² and the standard deviation as taken over the clouds. When σ is
   evaluated (once, or at every parameter vector) is not stated, nor whether the standard deviation is weighted.
 - Baseline: "a quadratic function in x and y described by three anchor points" (x₀, y₀), (x₁, y₁), (x₂, y₂); "s = 0
   pc at the beginning of the Wave (near CMa OB1)". The parametrisation of the quadratic and whether the curve extends
@@ -404,14 +407,17 @@ have their posterior median inside K24's 16–84% interval (Extended Data Table 
 all 12 shape and anchor parameters; and the **width ratio**, the median over the six counted parameters of our
 16–84% half-width divided by K24's. `results/rconv.json` reports all sixteen counts, differences and ratios.
 
-*Choice of the convention (fixed now).* Conventions whose width ratio lies in [2/3, 3/2] are ranked first: among them
-the one with the largest count is chosen; only if none lies in that range, the one with the largest count among all
-(its label is then at most "partly reproduced"). Ties are broken by the fewest departures
-from the formal run (L, F, W), then by the index. Labels (each says "best of 16 conventions, post hoc"):
+*Choice of the convention (fixed now).* (i) If no convention has a count ≥ 3, Part A reads "not reproduced under any
+candidate convention" and stops. (ii) Otherwise, among the conventions with a count ≥ 3 whose width ratio lies in
+[2/3, 3/2], the one with the largest count is chosen; (iii) if none of the conventions with a count ≥ 3 has its width
+ratio in that range, the one with the largest count among them is chosen (its label is then "partly reproduced", with
+the reason). Ties are broken by the number of factors that differ from the formal run (L, F, W), fewest first, then by
+the index. Labels (each says "best of 16 conventions, post hoc"):
 - **"column (3) reproduced under <convention>"** if its count is ≥ 5 and its width ratio lies in [2/3, 3/2];
 - **"column (3) partly reproduced under <convention>"** if its count is 3–4, or ≥ 5 with the width ratio outside
   [2/3, 3/2] (then the reason is stated);
-- **"column (3) not reproduced under any candidate convention"** if ≤ 2; then Part A stops here and nothing is rerun.
+- **"column (3) not reproduced under any candidate convention"** in case (i) (every one of the 16 counts ≤ 2); then
+  Part A stops here and nothing is rerun.
 
 *Reruns under the chosen convention (only if reproduced or partly reproduced).* σ is 47 pc for every cluster fit and
 for T5 under every convention (K24 print 47 pc and say the clusters keep it; under P only the column-(3) clouds
@@ -435,7 +441,7 @@ against 0.5σ) → **"data-driven"**, **"partly data-driven"** or **"prior-drive
 and the Sun's vertical period under both priors. Because the tanh cap lets the likelihood plateau at large ω₀, the
 broad-prior posterior's distance from the 150 km s⁻¹ kpc⁻¹ bound is reported; under the broad priors only, if its
 median lies within 5% of a bound's value (above 142.5 or below 31.5 km s⁻¹ kpc⁻¹), T8-P is "prior-driven (posterior
-at the bound)". The withdrawn T8 stays withdrawn.
+at the bound)", and this takes precedence over the width and shift rule. The withdrawn T8 stays withdrawn.
 
 *Expected outcome (stated now).* Part A: we expect Y, X or P to move the anchors by about 100 pc; the count could reach
 4–6, but P may raise it only by widening the posteriors, which the width condition catches; an even chance that column
