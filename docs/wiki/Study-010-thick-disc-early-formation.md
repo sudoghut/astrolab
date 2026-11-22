@@ -320,6 +320,30 @@ changed, and the original fits reproduce every recorded mock.
 - **The metal-richest bin [0.1, 0.3) stays unresolvable** (power 0.30–0.70). Its mixtures still
   smear the generating model's sharp young edge.
 
+**How large would the age errors have to be? (R1-ERR, T-054, 2026-11-22).** A further pre-registration
+(README section 2.7) asked whether XR22's idealised split, observed with errors f times the catalogue's
+quoted ones and fitted as the data are (with the quoted errors), could produce the data's dips in the
+three metal-poor bins. 3,600 power mocks (f = 1.2, 1.5, 2.0, 2.81; both error mechanisms; three
+variants), 4.2 h; all reproduction checks passed.
+
+- **The label is "robust up to f = 1.5 (one bin explainable from f = 2.0: [-0.3, -0.1))".** Up to 1.5
+  times the quoted errors no mock of any set reaches the data's dip depth (0 of 50 in all 36 sets): the
+  blurred split still leaves valleys far deeper than the data's.
+- **From about twice the quoted errors** the bin with the smallest gap, [−0.3, −0.1), no longer tells
+  the two readings apart (50 of 50 mocks reach the data's d). At 2.81 times that bin's split is blurred
+  out completely in the selection-term variants (no valley), and the bin [−0.5, −0.3) starts to reach
+  in term N and Full; Full reads "sensitive at f = 2.81".
+- **What this means.** The "not reproduced" of R1-SEL-FIT does not need the quoted errors to be exact:
+  XR22's split would need age errors about twice as large as quoted to look like the data. At such
+  scales XR22's own 0.82 Gyr width would leave no room for the extra error, and an independent check
+  with 11 wide binaries found the quoted errors consistent; whether f ≈ 2 is plausible is outside this
+  test. A skewed, prior-shaped error kernel remains untested.
+- **A caveat from the independent referee.** The idealised split is younger than the data and its gap
+  starts at 7 Gyr, while the data's dips lie at 7.5–9.8 Gyr; a split shaped more like the data could
+  fill its dip at a smaller error scale, and refitting the data with larger errors deepens its dips.
+  So "robust up to 1.5" is about XR22's idealised split; a calibration with the error scale in the fit
+  and a data-matched split is registered (T-059).
+
 Exploring via chat: `python -m astrolab explore 010 --tag <topic> --set key=value`
 reruns any fit with changed parameters (for example the J_φ cut, the error cut or the high-α
 threshold) without touching the formal results; see the study README section 8.
@@ -349,6 +373,10 @@ threshold) without touching the formal results; see the study README section 8.
 
 Newest first.
 
+- 2026-11-22: R1-ERR (T-054, pre-registered README 2.7): error-scale power test of R1-SEL-FIT (3,600
+  mocks with errors 1.2–2.81 times the quoted ones; reproduction checks passed after rerunning with the
+  default thread settings). "Robust up to f = 1.5 (one bin explainable from f = 2.0: [-0.3, -0.1))";
+  Full reads "sensitive at f = 2.81" (part 3 updated). Independent referee done.
 - 2026-11-21: R1-SEL-FIT (T-049, pre-registered README 2.6): R1-SEL rerun with data-independent
   starts in every mock fit (5,400 mocks; all reproduction checks passed). d* stays 0.25; 4 of 5 bins
   resolvable in every variant, none almost disjoint, so "not reproduced (robust; selection-term
@@ -518,6 +546,13 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 - **R1-SEL 的"无法判定"保持不变**，作为那一部分预注册的结果。R1-SEL-FIT 是用改进的模拟拟合所做的重跑，不是更正；R1-SEL 在两个标签之间的分界是由模拟优化器决定的。
 - **最富金属的箱 [0.1, 0.3) 仍不可分辨**（功效 0.30–0.70）：混合模型仍会抹平生成模型陡峭的年轻端边缘。
 
+**年龄误差要多大才行？（R1-ERR，T-054，2026-11-22）。** 又一次预注册（README 第 2.7 节）问：XR22 理想化的分界，如果观测误差是星表给出误差的 f 倍、而拟合仍按数据的方式（用给出的误差）进行，能否在三个贫金属箱中产生数据中的下凹？3,600 个功效模拟（f = 1.2、1.5、2.0、2.81；两种误差机制；三个变体），4.2 小时；复现检查全部通过。
+
+- **标签为"robust up to f = 1.5 (one bin explainable from f = 2.0: [-0.3, -0.1))"**（到 f = 1.5 都稳健；从 f = 2.0 起有一个箱可解释）。在给出误差的 1.5 倍以内，没有一组的任何模拟达到数据的下凹深度（全部 36 组都是 50 个中 0 个）：模糊后的分界留下的谷仍远比数据的深。
+- **从约两倍的给出误差起**，间隙最小的箱 [−0.3, −0.1) 不再能区分两种解读（50 个模拟中 50 个达到数据的 d）。在 2.81 倍时，带选择项的变体中这个箱的分界被完全抹平（没有谷），而箱 [−0.5, −0.3) 在 N 项与 Full 中开始达到；Full 为"sensitive at f = 2.81"（在 f = 2.81 敏感）。
+- **这意味着什么。** R1-SEL-FIT 的"未复现"不要求给出的误差完全准确：XR22 的分界需要约为给出值两倍的年龄误差，才会看起来像数据。在这样的尺度下，XR22 自己的 0.82 Gyr 宽度没有给额外的误差留下余地，而一项用 11 对宽双星的独立检验发现给出的误差是一致的；f ≈ 2 是否可信不在本检验范围内。偏斜的、先验形状的误差核仍未检验。
+- **独立审稿的保留意见。** 理想化的分界比数据年轻，其间隙从 7 Gyr 开始，而数据的下凹在 7.5–9.8 Gyr；形状更像数据的分界可能在更小的误差尺度下就填平下凹，而用更大的误差重拟合数据会让它的下凹变深。所以"到 1.5 倍都稳健"针对的是 XR22 理想化的分界；把误差尺度放进拟合、并用与数据匹配的分界做的校准已登记（T-059）。
+
 对话探索：`python -m astrolab explore 010 --tag <主题> --set 键=值` 可用改变的参数（例如 J_φ 截断、误差截断或高 α 阈值）重跑任一拟合，不影响正式结果；见研究 README 第 8 节。
 
 ### 术语表
@@ -543,6 +578,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 按时间倒序。
 
+- 2026-11-22：R1-ERR（T-054，预注册见 README 2.7）：R1-SEL-FIT 的误差尺度功效检验（3,600 个模拟，误差为给出值的 1.2–2.81 倍；改用默认线程设置重跑后复现检查通过）。"robust up to f = 1.5 (one bin explainable from f = 2.0: [-0.3, -0.1))"；Full 为"sensitive at f = 2.81"（更新第三部分）。独立审稿已做。
 - 2026-11-21：R1-SEL-FIT（T-049，预注册见 README 2.6）：在每个模拟拟合中加入与数据无关的起点重跑 R1-SEL（5,400 次模拟；重现检查全部通过）。d* 仍为 0.25；每个变体 5 个箱中 4 个可分辨，没有几乎不相交的箱，所以为"未复现（稳健；对选择项稳健）"，下限 0.20 时相同。R1-SEL 的"无法判定"按记录保持不变（更新第三部分）。独立审稿：没有错误；结论以星表给出的年龄误差为前提（误差尺度检验 T-054）。
 - 2026-11-20：重新检验 R-SEL（T-031）及其独立审稿：R3-SEL 复现、稳健（跨度 6.09 Gyr）；R4-SEL 未复现（2.55 Gyr）；内禀离散-SEL 确认、不稳健（0.748 Gyr）；R1-SEL 无法判定，取决于一个功效受模拟拟合限制的箱（T-045）；更新第三部分。
 - 2026-11-20：诊断性重拟合（T-045，事后）：关键箱漏掉的模拟是模拟拟合的局部最优；用与数据无关的起点时功效为 1.00，所以如果零假设模拟与其他箱保持不变（未检验），R1-SEL 会读作"未复现"；预注册重跑登记为 T-049（更新第三部分）。
