@@ -1184,7 +1184,7 @@ correction of it: R1-SEL's label in section 5.1 stands as that block's pre-regis
 - **Label: R1-SEL-FIT is "not reproduced (robust; selection-term robust)"** (`label`), the outcome 2.6
   stated as expected. Every variant has 4 of 5 bins resolvable and none almost disjoint (data
   d = 0.367–0.580 against d* = 0.25), so the 2.1 rule gives "not reproduced" (`variants.<v>.verdict`).
-  Full gives the same verdict (robust), and so does S15 term N (selection-term robust). This holds under the catalogue's quoted age errors: the power mocks are drawn and fitted with them (f = 1), so a nearly disjoint latent split blurred by larger true errors is not excluded (referee, section 6, point 1; error-scale test T-054); and the power model is the most favourable shape, so the label means the data do not show XR22's idealised split (point 2).
+  Full gives the same verdict (robust), and so does S15 term N (selection-term robust). This holds under the catalogue's quoted age errors: the power mocks are drawn and fitted with them (f = 1), so a nearly disjoint latent split blurred by larger true errors is not excluded (referee, section 6, point 1; error-scale test T-054, section 5.3: robust up to 1.5 times the quoted errors); and the power model is the most favourable shape, so the label means the data do not show XR22's idealised split (point 2).
 - **Floor 0.20.** The label is the same (`label_floor_sensitivity`), with 4 of 5 bins resolvable in
   each variant (`floor_sensitivity.<v>`).
 - **The verdict does not depend on the metal-rich bins.** The three metal-poor bins have power 1.00 in
@@ -1277,6 +1277,99 @@ same as at floor 0.12.
   - The resolvability of bin [−0.1, 0.1) at floor 0.12 is narrow for S15 term E (power 0.84 under
     e = r·τ). This does not affect the verdict.
 
+### 5.3 R1-ERR: error-scale power test of R1-SEL-FIT (T-054; run 2026-11-21/22)
+
+Pre-registered in section 2.7 (2026-11-21). Run with `"parts": ["err"]` (`python -m astrolab run 010`) on
+an otherwise idle machine with the default thread settings (`threads`; the first, single-threaded
+attempt is described at the end of 2.7). One session, no stop: 4.21 h in all (`runtime_h`), of which
+the 3,600 mocks took 4.02 h (`mocks.elapsed_h_total`, against 2.7's 2.5–3.7 h), the projection staying at
+3.9–4.1 h against the 16 h limit. That is 4.01 s per mock on average: 5.76 s for S15 term E, 3.15 s for
+term N and 3.12 s for Full; 3.68, 4.00, 4.10 and 4.26 s at f = 1.2, 1.5, 2.0 and 2.81
+(`per_set[].mean_s_per_mock`). Cache only, no download.
+
+New files: `r1_err.json`, `provenance_err.json` and `run_info_err.json`. `r1_sel.json`, `r1_selfit.json`
+and every recorded label are unchanged; R1-ERR gives no R1 verdict.
+
+- **Checks (2.7): all passed.** (a) The 9 data fits of the metal-poor bins equal `r1_sel.json` within
+  10⁻⁹ (`checks.data_fit_mismatches` is empty). (b) The generator at f = 1 reproduces the recorded d and
+  valley flag of all 18 R1-SEL-FIT mocks (`checks.generator_f1`: 18 of 18). Every f is feasible (no
+  generator failure in any set), no set has a non-finite result, and no star was dropped by the redraw
+  limit (`per_set[].dropped_by_redraw_limit` = 0 everywhere).
+- **Label: R1-ERR is "robust up to f = 1.5 (one bin explainable from f = 2.0: [-0.3, -0.1))"**
+  (`label`, case 5). In S15 term E, E(1.2) = E(1.5) = 0, E(2.0) = 1 (bin [−0.3, −0.1)) and
+  E(2.81) = 0 (`variants.S15E.per_f`), so no f has E ≥ 2 and X = 1.5. The median rule gives the same
+  label (`label_median_rule`). The outcome is one of those 2.7 listed as foreseeable ("robust up to
+  f = 1.5"), and the hand estimate there (recovered d below 0.37 at f ≤ 1.5, bin [−0.3, −0.1) first to
+  reach) held.
+- **Reported labels (they do not qualify the primary).** S15 term N: "robust up to f = 1.5 (one bin
+  explainable from f = 2.0: [-0.3, -0.1), [-0.5, -0.3))" (bin [−0.3, −0.1) at f = 2.0, bin
+  [−0.5, −0.3) at f = 2.81). Full: **"sensitive at f = 2.81"**: at f = 2.81 bin [−0.5, −0.3) reaches in
+  3 of 50 mocks (e = r·τ, exactly the threshold; 95% interval 0.013–0.165) and bin [−0.3, −0.1) in 35 of
+  50 (e = r·τ). By the median rule both read "robust up to f = 1.5 (one bin explainable from f = 2.0:
+  [-0.3, -0.1))".
+
+Per bin in S15 term E: data d (R1-SEL-FIT), the median fitted d of the 50 power mocks under e = r·τ / e = r·A
+(`per_set[].d_pct_5_50_80_95`, 50th), and n_reach of 50 under each mechanism. A median of 1 means that no
+mock had a valley.
+
+| Bin | Data d | f = 1.2 | f = 1.5 | f = 2.0 | f = 2.81 |
+|---|---|---|---|---|---|
+| [−0.7, −0.5) | 0.410 | 0.028 / 0.025; 0, 0 | 0.052 / 0.053; 0, 0 | 0.141 / 0.147; 0, 0 | 0.357 / 0.381; 0, 0 |
+| [−0.5, −0.3) | 0.579 | 0.027 / 0.025; 0, 0 | 0.092 / 0.086; 0, 0 | 0.286 / 0.222; 0, 0 | 0.471 / 0.494; 1, 0 (3 without a valley) |
+| [−0.3, −0.1) | 0.502 | 0.112 / 0.117; 0, 0 | 0.252 / 0.256; 0, 0 | 0.614 / 0.688; **50, 50** | 1 / 1; 0, 0 (all 50 without a valley) |
+| E(f) | – | 0 | 0 | 1 | 0 |
+
+- **The ladder is not monotone in bin [−0.3, −0.1).** At f = 2.0 every mock's valley is shallower than
+  the data's (d 0.56–0.75). At f = 2.81 the blurred split has no valley at all in S15 (all 200 mocks of
+  term E and term N; Full: 50 of 50 under e = r·A, 15 of 50 under e = r·τ). A dip that is
+  not there does not reproduce the data's dip, so 2.7 counts these mocks out of n_reach; this is why
+  E(2.81) = 0 in S15 term E. X is defined over every f′ ≤ f, so E(2.81) = 0 does not raise X above 1.5.
+  So in term E bin [−0.3, −0.1) is explainable at f = 2.0 only, although the pre-registered qualifier
+  reads "from f = 2.0". That term E reads "robust" and Full "sensitive at f = 2.81" rests on bin
+  [−0.5, −0.3) reaching in 1 against 3 of 50 mocks, within the 50-mock precision of 2.7 (referee, point 2).
+- **Other per-set numbers.** n_reach is 0 of 50 (95% interval 0–0.071) in every set at f ≤ 1.5. The fit
+  chose K = 4 in every mock at f ≥ 1.5 (K = 3 in some mocks of bin [−0.7, −0.5) at f = 1.2). No mock's NLL rises
+  with K after the better-fit rule (`nonmonotone` = 0); under fit (o) alone it does in 1,020 of 3,600
+  (`o_nonmonotone`), so the data-independent starts mattered here as in 2.6. The mean pass rates of the
+  S15 mocks (0.83–0.94) track the data's S15 fractions (0.872, 0.909, 0.935), a little lower at larger f.
+- **The power model is younger than the data.** The mocks' median observed age is 6.3–6.6, 5.4–5.5 and
+  4.7–4.8 Gyr in the three bins, against the data's 8.85, 7.43 and 6.02 Gyr; their 5th percentile is
+  about 1.9–2.0 Gyr against 2.4–4.2 Gyr (`age_pct_5_50_95_median_over_mocks`, `data_age_pct_5_50_95`).
+  The idealised split puts more weight in its young uniform component than the data have. Their
+  95th percentile reaches the data's at f = 2.0 in the two lower bins (14.5 against 14.3 Gyr; 12.73
+  against 12.72 Gyr) and passes it at f = 2.81 there (15.4, 13.4 Gyr); in bin [−0.3, −0.1) it stays at or
+  below the data's (11.2 against 11.27 Gyr). This is reported, not part of any rule.
+- **The 2.1 verdict R1 would read at f** (`variants.<v>.per_f.<f>.r1_verdict_at_f`; power at d* = 0.25
+  in the R1-ERR bins, the rest from R1-SEL-FIT): "not reproduced" in every variant at f = 1.2 and 1.5. At f = 2.0 it is "undetermined" in S15 term E, where bin [−0.3, −0.1) loses its
+  power at 0.25 (0.00) and bin [−0.5, −0.3) keeps 0.28 / 0.80, and "not reproduced" in term N and Full.
+  At f = 2.81 it is "undetermined" in every variant.
+- **Companion data refit (not decisive).** Refitting the data bins with f × e_Age lowers their d: in
+  S15 term E 0.342 / 0.574 / 0.417 at f = 1.2, 0.246 / 0.546 / 0.348 at 1.5, 0.078 / 0.465 / 0.227 at
+  2.0 and 0.057 / 0.271 / 0.160 at 2.81 (`companion_refits`; K = 4 and a valley in every refit). So if the
+  true errors were twice the quoted ones and the fit knew it, two of the three bins would show a valley
+  below d* = 0.25, and at f = 2.81 all three would in term N and Full. Without a mock calibration at that
+  f this does not show an almost-disjoint split.
+- **Reading (post hoc, 2026-11-22; no verdict).**
+  - R1-SEL-FIT's "not reproduced" does not rest on the quoted errors being exact. If the true errors are
+    up to 1.5 times the quoted ones, XR22's idealised split, fitted as the data are fitted, leaves valleys
+    far deeper than the data's in all three metal-poor bins (n_reach 0 of 50 in all 36 sets), under both
+    error mechanisms and in all three variants.
+  - At about twice the quoted errors, the bin with the smallest gap, [−0.3, −0.1), no longer separates
+    the two readings: the blurred split reaches the data's d there. At 2.81 the two other bins come
+    close (term N and Full reach in [−0.5, −0.3)). At these scales 2.7 already noted that XR22's own
+    0.82 Gyr width would leave no room for the added error variance (f ≳ 1.4), and the mocks' observed
+    ages are wider than the data's. f_max = 2.81 is a heuristic upper value, not a supported scale.
+  - So the remaining room for XR22's split is an age error at least about twice as large as quoted.
+    Whether that is plausible is outside R1-ERR (2.7; Shariat, El-Badry & Bhattacharjee 2025, 11 wide
+    pairs, find the quoted errors consistent).
+  - This is a statement about XR22's idealised split, not about every split (referee, point 1). The
+    power model is younger than the data and its gap starts at the 7.0 Gyr young edge, while the data's
+    valleys lie at 7.5–9.8 Gyr; n_reach compares depth, not position. A split with more stars at 7–10 Gyr
+    could fill its valley at a smaller f. The companion refits point the same way: with f in the fit the
+    data's valleys deepen (below 0.25 in all three bins of term N and Full at f = 2.81, at 9.6–10.9 Gyr),
+    so R1-SEL-FIT's "not reproduced" plausibly needs f ≲ 2 (referee, point 3). Neither is calibrated; a
+    test with f in the likelihood and a data-matched power model is registered as T-059.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-16 (a subagent that saw README sections 1-4, the code, the results, the
@@ -1333,6 +1426,24 @@ the label, and found every rule of 2.6 evaluated as written. Triage:
 | 8 | Literature: Shariat, El-Badry & Bhattacharjee 2025 (arXiv:2510.08675; 11 wide pairs do not exclude f > 1) and Chen, Sun & Ye 2025 (arXiv:2510.10092; age-scale shift) bear on point 1; young α-rich stars (Chiappini et al. 2015, Martig et al. 2015) and Kepler/APOKASC age distributions (Silva Aguirre et al. 2018, Miglio et al. 2021) on point 6 | the two 2025 papers are cited in this README; the others unverified (IDs given by the referee) | Noted; not used |
 | 9 | Most important additional test: an error-scale power test for R1 (mocks drawn with f·e_Age, f ∈ {1.2, 1.5, 2.0, f_max}, fitted with f = 1), or more cheaply refit the data bins at several f | – | Registered as T-054 |
 
+### Referee of R1-ERR (2026-11-22)
+
+The independent referee was a subagent. It saw README sections 2.0, 2.6 and 2.7, the code of the block,
+the tests and the three results files (`r1_err.json`, `r1_selfit.json`, `r1_sel.json`), but not sections
+5–8 or `log.md`. It made only short inspections of the JSON. It found no bug and found every rule of 2.7
+applied as written, with the label following from the per-set numbers. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The generating model does not look like the data at any f: the mocks are 1.3–2.5 Gyr younger in median observed age, because the power model puts 58–85% of the stars uniformly on 1.5–7 Gyr; the data's valleys sit at 9.8, 7.5 and 9.3 Gyr while the mocks' gap starts at the 7.0 Gyr young edge, and n_reach compares depth only, not position. A split with more stars at 7–10 Gyr could fill the valley at a smaller f, so the true threshold could lie below 2.0 | yes (`age_pct_5_50_95_median_over_mocks`, `r1_sel.json` power models, `r1_selfit.json` `valley_t`) | **Accepted limitation** (as point 2 of the R1-SEL-FIT referee): R1-ERR's label is about XR22's idealised split, not about every split; stated in section 5.3's reading; see point 8 |
+| 2 | The primary label at f = 2.81 hangs on the no-valley rule and on binomial noise: bin [−0.3, −0.1) has no valley in 50 of 50 mocks (so E(2.81) = 0 in term E), and primary and Full differ by 1 against 3 of 50 in bin [−0.5, −0.3), within the stated precision. "Explainable from f = 2.0" suggests the bin stays explainable at larger f, which it does not in term E. The ladder does not sample 2.0–2.81 | yes | **Accepted**: the label text is the pre-registered one and stands; section 5.3 states that bin [−0.3, −0.1) is explainable at f = 2.0 only in term E and loses its valley at 2.81, and that "sensitive at f = 2.81" (Full) against "robust" (term E) is within 50-mock precision. X = 1.5 does not depend on f = 2.81 |
+| 3 | The companion refits point to sensitivity: with f in the likelihood the data's d falls below 0.25 in all three metal-poor bins of term N and Full at f = 2.81, with valleys moving to 9.6–11 Gyr; read together, R1-SEL-FIT's "not reproduced" plausibly needs f ≲ 2 | yes (`companion_refits`, valley ages 9.6–10.9 Gyr at 2.81) | **Accepted** as a reading, not a verdict (no mock calibration at that f, as 2.7 states); section 5.3 says so |
+| 4 | The mocks' 95th percentile of observed age matches the data only at f ≈ 2.0 (two lower bins) or 2.81 (top bin); at f = 1.2 the mocks are too narrow on the old side, so either the old width exceeds 0.82 Gyr or f > 1 | yes | **Accepted** as a diagnostic, not a bound; reported in section 5.3 |
+| 5 | Under e = r·τ the S15 pass rate falls with f (bin [−0.7, −0.5) 0.861 → 0.828 against the data's 0.872), and the fitter receives e = r·τ from the true age (inherited from SEL-2) | yes | **Accepted limitation**; no effect on the label (it holds under both mechanisms) |
+| 6 | Code and rules: f scales only the deviate, e unchanged, no star dropped; `err_counts`, `err_explainable`, `err_label` match 2.7 and its amendments; checks passed; no moved goalposts | – | No action |
+| 7 | Literature: Shariat, El-Badry & Bhattacharjee 2025 (arXiv:2510.08675) find XR22's quoted errors consistent with 11 wide pairs, which disfavours a random-error f much above 1.5, but pairs share [Fe/H] and model systematics and cannot see age-scale distortions that depend on age or [Fe/H]; other photometric subgiant and giant ages underestimate their errors by 2–5× | the 2025 paper is cited in 2.7; the "2–5×" statement is from the referee's search snippet, not verified | Noted; not used |
+| 8 | Most important additional test: calibrate R1 at f = 2.0 and 2.81 with f in the likelihood (null and power mocks drawn with f·e and fitted with f), with a power model built from the data's f-deconvolved fit and matched to the observed-age marginal, comparing valley position as well as d | – | Registered as T-059 (backlog) |
+
 ## 7. Open questions
 
 - **A selection term consistent with the error mechanism (T-031, done).** Re-tested in section 5.1
@@ -1352,6 +1463,12 @@ the label, and found every rule of 2.6 evaluated as written. Triage:
   age errors (f = 1), so whether a nearly disjoint latent split blurred by larger true errors would
   look like the data's dip is untested (referee, section 6). An error-scale power test (mocks drawn
   with f·e_Age, f ∈ {1.2, 1.5, 2.0, f_max}, fitted with f = 1) is registered as T-054.
+  **Closed by R1-ERR (T-054, 2026-11-22, section 5.3).** R1-ERR reads "robust up to f = 1.5 (one bin
+  explainable from f = 2.0: [-0.3, -0.1))": up to 1.5 times the quoted errors the blurred split leaves
+  valleys far deeper than the data's in all three metal-poor bins; from about twice the quoted errors
+  bin [−0.3, −0.1) no longer separates the readings (Full reads "sensitive at f = 2.81"). A
+  prior-shaped (skewed) error kernel stays untested, since no specification of XR22's age-posterior
+  shapes is available here.
 - **Which error generator is right.** Open points from section 5.1, readings 2–4:
   - Term N fails recovery only under the τ-keyed generator, whose pools carry the age dependence
     of the pass fraction that the errors themselves create.
