@@ -330,11 +330,11 @@ variants), 4.2 h; all reproduction checks passed.
   times the quoted errors no mock of any set reaches the data's dip depth (0 of 50 in all 36 sets): the
   blurred split still leaves valleys far deeper than the data's.
 - **From about twice the quoted errors** the bin with the smallest gap, [−0.3, −0.1), no longer tells
-  the two readings apart (50 of 50 mocks reach the data's d). At 2.81 times that bin's split is blurred
+  the two readings apart (47–50 of 50 mocks reach the data's d). At 2.81 times that bin's split is blurred
   out completely in the selection-term variants (no valley), and the bin [−0.5, −0.3) starts to reach
   in term N and Full; Full reads "sensitive at f = 2.81".
-- **What this means.** The "not reproduced" of R1-SEL-FIT does not need the quoted errors to be exact:
-  XR22's split would need age errors about twice as large as quoted to look like the data. At such
+- **What this means (post hoc).** The "not reproduced" of R1-SEL-FIT does not need the quoted errors to be exact:
+  XR22's idealised split would need age errors about twice as large as quoted to look like the data. At such
   scales XR22's own 0.82 Gyr width would leave no room for the extra error, and an independent check
   with 11 wide binaries found the quoted errors consistent; whether f ≈ 2 is plausible is outside this
   test. A skewed, prior-shaped error kernel remains untested.
@@ -549,8 +549,8 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 **年龄误差要多大才行？（R1-ERR，T-054，2026-11-22）。** 又一次预注册（README 第 2.7 节）问：XR22 理想化的分界，如果观测误差是星表给出误差的 f 倍、而拟合仍按数据的方式（用给出的误差）进行，能否在三个贫金属箱中产生数据中的下凹？3,600 个功效模拟（f = 1.2、1.5、2.0、2.81；两种误差机制；三个变体），4.2 小时；复现检查全部通过。
 
 - **标签为"robust up to f = 1.5 (one bin explainable from f = 2.0: [-0.3, -0.1))"**（到 f = 1.5 都稳健；从 f = 2.0 起有一个箱可解释）。在给出误差的 1.5 倍以内，没有一组的任何模拟达到数据的下凹深度（全部 36 组都是 50 个中 0 个）：模糊后的分界留下的谷仍远比数据的深。
-- **从约两倍的给出误差起**，间隙最小的箱 [−0.3, −0.1) 不再能区分两种解读（50 个模拟中 50 个达到数据的 d）。在 2.81 倍时，带选择项的变体中这个箱的分界被完全抹平（没有谷），而箱 [−0.5, −0.3) 在 N 项与 Full 中开始达到；Full 为"sensitive at f = 2.81"（在 f = 2.81 敏感）。
-- **这意味着什么。** R1-SEL-FIT 的"未复现"不要求给出的误差完全准确：XR22 的分界需要约为给出值两倍的年龄误差，才会看起来像数据。在这样的尺度下，XR22 自己的 0.82 Gyr 宽度没有给额外的误差留下余地，而一项用 11 对宽双星的独立检验发现给出的误差是一致的；f ≈ 2 是否可信不在本检验范围内。偏斜的、先验形状的误差核仍未检验。
+- **从约两倍的给出误差起**，间隙最小的箱 [−0.3, −0.1) 不再能区分两种解读（50 个模拟中 47–50 个达到数据的 d）。在 2.81 倍时，带选择项的变体中这个箱的分界被完全抹平（没有谷），而箱 [−0.5, −0.3) 在 N 项与 Full 中开始达到；Full 为"sensitive at f = 2.81"（在 f = 2.81 敏感）。
+- **这意味着什么（事后）。** R1-SEL-FIT 的"未复现"不要求给出的误差完全准确：XR22 理想化的分界需要约为给出值两倍的年龄误差，才会看起来像数据。在这样的尺度下，XR22 自己的 0.82 Gyr 宽度没有给额外的误差留下余地，而一项用 11 对宽双星的独立检验发现给出的误差是一致的；f ≈ 2 是否可信不在本检验范围内。偏斜的、先验形状的误差核仍未检验。
 - **独立审稿的保留意见。** 理想化的分界比数据年轻，其间隙从 7 Gyr 开始，而数据的下凹在 7.5–9.8 Gyr；形状更像数据的分界可能在更小的误差尺度下就填平下凹，而用更大的误差重拟合数据会让它的下凹变深。所以"到 1.5 倍都稳健"针对的是 XR22 理想化的分界；把误差尺度放进拟合、并用与数据匹配的分界做的校准已登记（T-059）。
 
 对话探索：`python -m astrolab explore 010 --tag <主题> --set 键=值` 可用改变的参数（例如 J_φ 截断、误差截断或高 α 阈值）重跑任一拟合，不影响正式结果；见研究 README 第 8 节。

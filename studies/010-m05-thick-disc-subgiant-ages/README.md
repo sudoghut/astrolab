@@ -1320,7 +1320,7 @@ mock had a valley.
 | E(f) | – | 0 | 0 | 1 | 0 |
 
 - **The ladder is not monotone in bin [−0.3, −0.1).** At f = 2.0 every mock's valley is shallower than
-  the data's (d 0.56–0.75). At f = 2.81 the blurred split has no valley at all in S15 (all 200 mocks of
+  the data's (d 0.54–0.76). At f = 2.81 the blurred split has no valley at all in S15 (all 200 mocks of
   term E and term N; Full: 50 of 50 under e = r·A, 15 of 50 under e = r·τ). A dip that is
   not there does not reproduce the data's dip, so 2.7 counts these mocks out of n_reach; this is why
   E(2.81) = 0 in S15 term E. X is defined over every f′ ≤ f, so E(2.81) = 0 does not raise X above 1.5.
@@ -1334,7 +1334,7 @@ mock had a valley.
   S15 mocks (0.83–0.94) track the data's S15 fractions (0.872, 0.909, 0.935), a little lower at larger f.
 - **The power model is younger than the data.** The mocks' median observed age is 6.3–6.6, 5.4–5.5 and
   4.7–4.8 Gyr in the three bins, against the data's 8.85, 7.43 and 6.02 Gyr; their 5th percentile is
-  about 1.9–2.0 Gyr against 2.4–4.2 Gyr (`age_pct_5_50_95_median_over_mocks`, `data_age_pct_5_50_95`).
+  about 1.8–2.0 Gyr against 2.4–4.2 Gyr (`age_pct_5_50_95_median_over_mocks`, `data_age_pct_5_50_95`).
   The idealised split puts more weight in its young uniform component than the data have. Their
   95th percentile reaches the data's at f = 2.0 in the two lower bins (14.5 against 14.3 Gyr; 12.73
   against 12.72 Gyr) and passes it at f = 2.81 there (15.4, 13.4 Gyr); in bin [−0.3, −0.1) it stays at or
@@ -1359,7 +1359,7 @@ mock had a valley.
     close (term N and Full reach in [−0.5, −0.3)). At these scales 2.7 already noted that XR22's own
     0.82 Gyr width would leave no room for the added error variance (f ≳ 1.4), and the mocks' observed
     ages are wider than the data's. f_max = 2.81 is a heuristic upper value, not a supported scale.
-  - So the remaining room for XR22's split is an age error at least about twice as large as quoted.
+  - So the remaining room for XR22's idealised split is an age error about twice as large as quoted.
     Whether that is plausible is outside R1-ERR (2.7; Shariat, El-Badry & Bhattacharjee 2025, 11 wide
     pairs, find the quoted errors consistent).
   - This is a statement about XR22's idealised split, not about every split (referee, point 1). The
@@ -1435,7 +1435,7 @@ applied as written, with the label following from the per-set numbers. Triage:
 
 | # | Point | Verified | Action |
 |---|---|---|---|
-| 1 | The generating model does not look like the data at any f: the mocks are 1.3–2.5 Gyr younger in median observed age, because the power model puts 58–85% of the stars uniformly on 1.5–7 Gyr; the data's valleys sit at 9.8, 7.5 and 9.3 Gyr while the mocks' gap starts at the 7.0 Gyr young edge, and n_reach compares depth only, not position. A split with more stars at 7–10 Gyr could fill the valley at a smaller f, so the true threshold could lie below 2.0 | yes (`age_pct_5_50_95_median_over_mocks`, `r1_sel.json` power models, `r1_selfit.json` `valley_t`) | **Accepted limitation** (as point 2 of the R1-SEL-FIT referee): R1-ERR's label is about XR22's idealised split, not about every split; stated in section 5.3's reading; see point 8 |
+| 1 | The generating model does not look like the data at any f: the mocks are 1.3–2.5 Gyr younger in median observed age, because the power model puts 57–85% of the stars uniformly on 1.5–7 Gyr; the data's valleys sit at 9.8, 7.5 and 9.3 Gyr while the mocks' gap starts at the 7.0 Gyr young edge, and n_reach compares depth only, not position. A split with more stars at 7–10 Gyr could fill the valley at a smaller f, so the true threshold could lie below 2.0 | yes (`age_pct_5_50_95_median_over_mocks`, `r1_sel.json` power models, `r1_selfit.json` `valley_t`) | **Accepted limitation** (as point 2 of the R1-SEL-FIT referee): R1-ERR's label is about XR22's idealised split, not about every split; stated in section 5.3's reading; see point 8 |
 | 2 | The primary label at f = 2.81 hangs on the no-valley rule and on binomial noise: bin [−0.3, −0.1) has no valley in 50 of 50 mocks (so E(2.81) = 0 in term E), and primary and Full differ by 1 against 3 of 50 in bin [−0.5, −0.3), within the stated precision. "Explainable from f = 2.0" suggests the bin stays explainable at larger f, which it does not in term E. The ladder does not sample 2.0–2.81 | yes | **Accepted**: the label text is the pre-registered one and stands; section 5.3 states that bin [−0.3, −0.1) is explainable at f = 2.0 only in term E and loses its valley at 2.81, and that "sensitive at f = 2.81" (Full) against "robust" (term E) is within 50-mock precision. X = 1.5 does not depend on f = 2.81 |
 | 3 | The companion refits point to sensitivity: with f in the likelihood the data's d falls below 0.25 in all three metal-poor bins of term N and Full at f = 2.81, with valleys moving to 9.6–11 Gyr; read together, R1-SEL-FIT's "not reproduced" plausibly needs f ≲ 2 | yes (`companion_refits`, valley ages 9.6–10.9 Gyr at 2.81) | **Accepted** as a reading, not a verdict (no mock calibration at that f, as 2.7 states); section 5.3 says so |
 | 4 | The mocks' 95th percentile of observed age matches the data only at f ≈ 2.0 (two lower bins) or 2.81 (top bin); at f = 1.2 the mocks are too narrow on the old side, so either the old width exceeds 0.82 Gyr or f > 1 | yes | **Accepted** as a diagnostic, not a bound; reported in section 5.3 |
