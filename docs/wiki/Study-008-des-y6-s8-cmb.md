@@ -4,10 +4,10 @@
 
 *Paper: DES Collaboration (T. M. C. Abbott et al.) 2026, "Dark Energy Survey Year 6 Results: Cosmological Constraints from Galaxy Clustering and Weak Lensing", arXiv:2601.14559 (v2). Study:
 [`studies/008-m03-s8-des-y6-cmb-parameter-difference`](https://github.com/sudoghut/astrolab/tree/main/studies/008-m03-s8-des-y6-cmb-parameter-difference) (web page: [online](https://sudoghut.github.io/astrolab/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/)).
-Status: reproduced. Last updated: 2026-11-20 (see the changelog at the end). The source of this page lives in the main repository at
+Status: reproduced. Last updated: 2026-11-22 (see the changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：S8 张力减弱了吗？DES Y6 与 CMB 的比较。状态：已复现。论文：DES Collaboration（T. M. C. Abbott 等）2026，arXiv:2601.14559（v2）。研究：[`studies/008-m03-s8-des-y6-cmb-parameter-difference`](https://github.com/sudoghut/astrolab/tree/main/studies/008-m03-s8-des-y6-cmb-parameter-difference)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/)）。最后更新：2026-11-20（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：S8 张力减弱了吗？DES Y6 与 CMB 的比较。状态：已复现。论文：DES Collaboration（T. M. C. Abbott 等）2026，arXiv:2601.14559（v2）。研究：[`studies/008-m03-s8-des-y6-cmb-parameter-difference`](https://github.com/sudoghut/astrolab/tree/main/studies/008-m03-s8-des-y6-cmb-parameter-difference)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/008-m03-s8-des-y6-cmb-parameter-difference/web/)）。最后更新：2026-11-22（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -380,6 +380,15 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
   where the CMB tail is thinly sampled. These are means and Gaussian summaries, descriptive only, and
   do not test φ; the known-answer test of φ needs a flow environment and waits for the user's
   consent. Numbers in the study README, section 5.
+- **Update 2026-11-22, R6-SHUF-KA (T-047 flow part, pre-registered): no bias of φ detected.** On a
+  6-D synthetic family whose exact values are known (n₆ 1.81, n_S 0.93, n₅ 0.37, φ = 0.611; a Σmν-like
+  column coupled to a curved pair through a latent variable), the same flow pipeline as R6-SHUF, ten
+  seeds × three variants, recovers φ with b̄ = +0.020 and I_b = [−0.006, 0.045], which contains 0. Corrected by
+  this, R6-SHUF's φ interval is [0.610, 0.693], so its label holds (the pre-registered qualifier). The
+  flows read each n_σ 0.07–0.12σ low on this family, and these offsets largely cancel in φ; the
+  independent referee noted that the transfer to the data rests on that cancellation and that the
+  margin is 0.01. A test on a surrogate of the data's own difference is registered (T-063). Numbers:
+  [`results/r6_ka.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_ka.json).
 - **"Easing", measured on one ruler.** Against the same CMB chain, the previous generation sits at
   1.4–3.1σ (DES Y3 2.83σ, KiDS-1000 2.92–3.14σ, HSC Y3 2023 1.44–1.93σ) and the other current probes
   at 0.2–1.7σ (KiDS-Legacy 1.04σ, HSC Y3 2025 1.74σ, ACT lensing 0.18σ, eROSITA 1.51σ above the CMB);
@@ -414,6 +423,9 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
 
 Newest first.
 
+- 2026-11-22: R6-SHUF-KA (T-047 flow part, pre-registered): known-answer test of φ; no bias detected
+  (I_b = [−0.006, 0.045]); R6-SHUF's label holds after the correction; referee: transfer rests on
+  cancellation of per-variant offsets; T-063 registered (part 3 updated).
 - 2026-11-20: T-047 first part (exploration, post hoc): conditional means in Σmν bins; DES's Σmν
   is tied linearly to the other five parameters jointly (R² = 0.87), and in the lowest Σmν bin the
   (A_s, Ωm) mean offsets are similar to the marginal ones (part 3 updated).
@@ -637,6 +649,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 - **2026-11-18 更新，R6-NOMNU（T-040，预注册）：完整空间的数字主要随 Σmν 而来。** 不含 Σmν 的 5 维流（A_s、h、n_s、Ωb、Ωm；相同的行，五次训练，5 维已知答案门控通过）给出 0.52σ（s = 0.04），而 6 维为 1.70σ：预注册标签为"完整空间的偏移主要来自 Σmν 方向"（有效 χ² 3.65 对 10.97）。独立审稿（事后，我们用不训练流的短检查复核）进一步说明：6 维数字主要来自 Σmν 与它在 DES 中的相关共同作用（打乱 DES 的 Σmν 列后，kNN 的 6 维估计从 1.27–1.57σ 降到约 0.8σ），部分来自先验形状（DES 的 Σmν 接近其先验；DES 的 Σmν 取自先验时 1 维差异仍为 1.05σ）。所以 D26 的完整空间 1.8σ 主要随 Σmν 而来，主要通过它的相关，部分通过它相对先验的位置；其余五个参数上的差异约为 0.5σ（其中一些在 DES 中本身也由先验主导；在受数据约束的 (A_s, Ωm) 上为 0.40σ）。只用一个种群的流（`pop_size = 1`）训练快约九倍，但在 5 维偏低。预注册的打乱与先验替换检查已登记（T-044）。数字见 [`results/r6_nomnu.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_nomnu.json)。
 - **2026-11-20 更新，R6-SHUF（T-044，预注册）：主要是 DES 自身 Σmν 的相关。** 用相同的 6 维流、逐种子与 R6 配对，分别在打乱 DES 的 Σmν 列（保留它的分布，切断它与 DES 其他参数的联系）和把 DES 的 Σmν 换成先验抽样的情形下训练。打乱使差异从 1.70σ 降到 0.91σ；换成先验降到 0.55σ，接近不含 Σmν 的 0.52σ。Σmν 增加的部分中，比例 φ = 0.67（预注册区间 0.64–0.70）随打乱而去：预注册标签为"Σmν 增加的部分主要通过它与其他 DES 参数的相关"。约三分之一来自 DES 的 Σmν 分布相对其先验的差别，DES 的 Σmν 取先验后只剩约 0.03σ（这一余项把 CMB 链的 Σmν、第六维与其他残差合在一起）。独立审稿（事后，我们已复核）发现标签对训练离散稳健，但接近已知答案门控所能保证的边缘（按门控的均值偏差修正后区间为 0.60–0.67）；由哪些 DES 参数承担这种相关，没有检验。φ 的已知答案检验已登记（T-047）。数字见 [`results/r6_shuf.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_shuf.json)。
 - **2026-11-20 更新，条件均值（T-047 第一部分，探索，事后；不训练流）。** 我们按 Σmν 分箱（DES 的五分位数），比较两条链中其他五个参数的条件均值。在 DES 链中 Σmν 与其他五个参数共同线性相关（R² = 0.87），尽管除 Ωm 外两两相关系数都很小，所以打乱它破坏的是联合关系，而不是某一对。在 CMB 权重所在处（Σmν < 0.24 eV，95%），Ωm（−0.21σ，边缘分布 +0.34σ）与 A_s（−0.67σ 对 −0.75σ）的均值偏移以及 (A_s, Ωm) 的高斯二维偏移（0.33σ 对 0.32σ）都与边缘分布的相近。更高的 Σmν 处偏移增大，CMB 的 Ωm、h、Ωb 条件均值变化比 DES 大（A_s 两者都在变），而那里 CMB 尾部样本很少。这些是均值与高斯概括，只作描述，不检验 φ；φ 的已知答案检验需要流的环境，等待用户同意。数字见研究 README 第 5 节。
+- **2026-11-22 更新，R6-SHUF-KA（T-047 流的部分，预注册）：未检测到 φ 的偏差。** 在一个精确值已知的 6 维合成分布族上（n₆ 1.81、n_S 0.93、n₅ 0.37，φ = 0.611；一列类似 Σmν 的量通过潜变量与弯曲的一对耦合），用与 R6-SHUF 相同的流流程、十个种子 × 三个变体，回收的 φ 偏差 b̄ = +0.020，I_b = [−0.006, 0.045]，包含 0。以此修正后，R6-SHUF 的 φ 区间为 [0.610, 0.693]，所以它的标签成立（预注册的限定语）。流在这个族上把每个 n_σ 低估 0.07–0.12σ，这些偏移在 φ 中大部分抵消；独立审稿指出迁移到数据依赖于这种抵消，余量为 0.01。在数据自身差异的替代分布上的检验已登记（T-063）。数字见 [`results/r6_ka.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_ka.json)。
 - **用同一把尺子量"减弱"。** 对同一条 CMB 链，上一代为 1.4–3.1σ（DES Y3 2.83σ，KiDS-1000 2.92–3.14σ，HSC Y3 2023 1.44–1.93σ），当前其他探针为 0.2–1.7σ（KiDS-Legacy 1.04σ，HSC Y3 2025 1.74σ，ACT 透镜 0.18σ，eROSITA 在 CMB 之上 1.51σ）；DES Y6 3x2pt 为 2.67σ。逐个巡天看：KiDS 移动很大（2.9–3.1σ 到 1.0σ），DES 移动很小（2.83σ 到 2.67σ），HSC 几乎没动（1.4–1.9σ 到 1.74σ）。所以"减弱"主要是 KiDS 的结果，而不是所有巡天的普遍变化。（若较早的论文给出的是众数（mode，最可能值）而不是均值，KiDS-1000 3x2pt 为 2.93σ 而不是 3.14σ。）
 
 ### 术语表
@@ -663,6 +676,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 
 按时间倒序。
 
+- 2026-11-22：R6-SHUF-KA（T-047 流的部分，预注册）：φ 的已知答案检验；未检测到偏差（I_b = [−0.006, 0.045]）；经修正后 R6-SHUF 的标签成立；审稿：迁移依赖于各变体偏移的抵消；登记 T-063（第三部分更新）。
 - 2026-11-20：T-047 第一部分（探索，事后）：Σmν 分箱中的条件均值；DES 的 Σmν 与其他五个参数共同线性相关（R² = 0.87），最低 Σmν 箱中 (A_s, Ωm) 的均值偏移与边缘分布的相近（第三部分更新）。
 - 2026-11-20：R6-SHUF（T-044）：打乱 DES 的 Σmν 使 6 维流的值降到 0.91σ，换成先验降到 0.55σ；φ = 0.67，"主要通过它与其他 DES 参数的相关"；审稿（事后）：接近门控标定的边缘；登记 T-047（第三部分更新）。
 - 2026-11-18：R6-NOMNU（T-040）：不含 Σmν 的 5 维流给出 0.52σ，"主要来自 Σmν 方向"；审稿（事后）：Σmν 与它在 DES 中的相关共同作用，部分来自先验形状；登记 T-044（第三部分更新）。
