@@ -568,8 +568,8 @@ only, numpy, no flow): three search grids over the family's parameters, all with
 other boxes: (i) u's box [−0.1, 1.9] with edge 0.1, μ₁ ∈ {0.6, 0.9, 1.2}, a ∈ {1, 2, 3}, c ∈ {0.9, 1.9} (18 members,
 200,000 draws each); (ii) u's box [lo, lo + 2] with edge 0.1, lo ∈ {0.1, 0.3, 0.5}, a ∈ {1, 1.5, 2}, c ∈ {1.0, 1.4},
 μ₁ ∈ {0.6, 0.9} (36 members, 150,000 draws); (iii) lo ∈ {−0.1, 0, 0.05}, edge ∈ {0.1, 0.2, 0.3}, a ∈ {2, 2.5, 3},
-c ∈ {1.4, 1.9}, μ₁ ∈ {0.6, 0.9} (108 members, 100,000 draws); grids (ii) and (iii) were printed only for members with
-n₆ ≈ 1.3–2.1 and n₅ ≈ 0.3–0.8 (iii: also n_S ≈ 0.7–1.3). Among the members of (iii) with n₆ within 0.2 of the data's
+c ∈ {1.4, 1.9}, μ₁ ∈ {0.6, 0.9} (108 members, 100,000 draws); grid (ii) was printed only for members with n₆ ≈
+1.3–2.1 and n₅ ≈ 0.3–0.8, grid (iii) only for n₆ ≈ 1.4–2.1, n_S ≈ 0.7–1.3 and n₅ ≈ 0.3–0.8. Among the members of (iii) with n₆ within 0.2 of the data's
 1.70 and φ within 0.05 of R6-SHUF's band edge 0.60 (two: φ 0.603 with n_S 0.81, and φ 0.610 with n_S 0.92), the one
 whose n_S is closest to the data's 0.909 was chosen; so the choice used R6-SHUF's band edge and n_S. Its exact values
 at 2,000,000 draws with seeds 999 and 998 agree within 0.0002 (n₅ within 0.0004); this agreement is tighter than the
@@ -610,11 +610,13 @@ from `results/r6_shuf.json` (`quantities.phi.mean` and `.s`, five seeds), whose 
 
 *Qualifier of R6-SHUF (reported; fixed now).* Except under rules 1–3, with the half-width w = 2√(s_φ,R6²/5 + s_b²/10)
 (the two seed sets are independent) and I_φ,corr = (φ̄_R6 − b̄) ± w, read in this order:
-- φ̄_R6 − w < 0.60, i.e. the interval would reach below 0.60 even with no bias → **"known-answer correction not
-  decisive (test too noisy: w = ..)"**; this says nothing about R6-SHUF's label;
 - I_φ,corr ⊂ [0.60, ∞) → "R6-SHUF's label holds after the known-answer correction";
 - I_φ,corr ⊂ (−∞, 0.40] → "R6-SHUF's label reverses after the known-answer correction";
+- otherwise, if φ̄_R6 − w < 0.60 (the interval would reach below 0.60 even with no bias) → **"known-answer correction
+  not decisive (test too noisy: w = ..)"**, which says nothing about R6-SHUF's label;
 - otherwise → "R6-SHUF's label is not decided after the known-answer correction".
+So a noisy test never overrides a decisive correction, and a "not decided" due only to the test's noise is labelled as
+such.
 It is reported next to R6-SHUF's label (section 5, the root tables, `STATUS.md`, the claim, the wiki), which stays as
 recorded. Caveats stated with it: the family is one synthetic member near φ = 0.61, not the chains; its n₆, n_S and n₅
 (1.81, 0.93, 0.37) differ from the data's (1.70, 0.91, 0.52); and DS breaks all of u's correlations, while R6-SHUF's
@@ -626,8 +628,9 @@ n_v,exact with s; s_b; I_b; w; I_φ,corr.
 
 *Expected outcome (stated now).* On the synthetic gates the flow values scattered by about 0.13 (6-D) and 0.06 (5-D)
 per seed, more than on the chains; with ∂φ/∂n₆ ≈ 0.27, ∂φ/∂n_S ≈ −0.69 and ∂φ/∂n₅ ≈ 0.42 at the exact point, s_b ≈
-0.10 is expected (not 0.04), so the half-width of I_b is about 0.06 and w ≈ 0.07. Then "test too noisy" applies if
-s_b ≳ 0.10 (φ̄_R6 − w < 0.60 for w > 0.071), and otherwise "holds" needs b̄ ≲ 0. R6's gates and the R6-NOMNU referee
+0.10 is expected (not 0.04), so the half-width of I_b is about 0.06 and w ≈ 0.07. Then, unless the bias is large
+enough to make the corrected interval decisive, "test too noisy" applies if s_b ≳ 0.10 (φ̄_R6 − w < 0.60 for w >
+0.071), and otherwise "holds" needs b̄ ≲ 0. R6's gates and the R6-NOMNU referee
 (item 5) suggest flows biased high at small n_σ (n₅ ≈ 0.37 and n_S ≈ 0.93 more than n₆ ≈ 1.81), which would lower φ̂
 (a negative b); the gate offsets (+0.025, +0.009, −0.028) are mixed. Our guess: "no bias of φ detected" as the label,
 and "test too noisy" or "holds" as the qualifier, about equally likely.
