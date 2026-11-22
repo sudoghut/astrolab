@@ -3,6 +3,12 @@
 按时间倒序追加：做了什么、发现什么、走过哪些死路（dead ends）、下一步。
 术语第一次出现时，在括号中注明英文原文。
 
+## 2026-11-22（R2-RE-GT 正式运行，T-057）
+
+- 功效阶段（power stage）：PARAMS 设为 `gt_check = true`、`gt_only = true`、`gt_stage = "power"`（只为正式运行，运行后改回，提交 f7edb86），单线程（OMP/MKL/OPENBLAS_NUM_THREADS=1），仅用缓存，252 秒。复现检查通过（τ̂_obs 0.076699、δ̂ 0.336337、z_obs 3.635444，M 的秩 37 中 36）。功效不足：min(R_OANY, R_OANYVN) = 0.317 < 0.8，所以按规则 (2) 读作"undetermined (underpowered)"（无法判定（功效不足））；检验大小 max(R_THAT, R_T050, R_T105) = 0.046，不偏大（anti-conservative）。p_T,obs 尚未计算。按预注册，下面这一行在完整阶段之前写入并提交：
+
+R2-RE-GT power stage (n = 10000): power = min(R_OANY 0.3840, R_OANYVN 0.3172) = 0.3172 (underpowered); size = R_THAT 0.0461, R_T050 0.0410, R_T105 0.0442 (max 0.0461); reported R_TC 0.0386, R_VHAT 0.0207; status evaluated
+
 ## 2026-11-21（R2-RE-GT 预注册，T-057）
 
 - 预注册增补 R2-RE-GT（形状检验 G 在重尾分散零假设下，回应 R2-RE-G 独立审稿第 2、8 点）：宿主效应取 ν = 4 的 Student-t，尺度 s = τ̂/√2（方差匹配），每次模拟重新拟合 τ；功效与检验大小在计算 p_T,obs 之前固定并提交；G_obs 已由 R2-RE-G 得知，这一点在补充中写明。闸门 1 一轮（没有严重问题；小问题：ν = 3、10 的尺度、沿用 R2-RE-G 的程序性保护、对 R2-RE-G 保存模拟的免费复现检查、各结果的注释、为何用方差匹配而附 EM 拟合尺度的敏感度）；Codex 一轮（没有严重问题）。预注册通过双闸；下一步写代码（`shape.py` 的 T 零假设）。
