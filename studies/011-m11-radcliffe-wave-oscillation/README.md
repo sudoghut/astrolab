@@ -347,7 +347,76 @@ before any fit to the data.
 
 ## 5. Results
 
-Filled after running. Link to `web/index.html` and key numbers in `results/`.
+Formal run of 2026-11-21 (`results/`, page `web/index.html`). It paused at 10 h by the pre-registered
+rule (section 4.9) and was resumed from its checkpoints: 36,004 s + 1,617 s, about 10.5 h in all,
+single-threaded. Load check: weighted mean v_z = −2.18 km/s (limit 3), pass. All numbers below are in
+`results/summary.json` unless another file is named.
+
+**Overall reading (section 2): "mixed".** Support: T1 (column (4) partly reproduced) and T3 (standing
+excluded). Do not support: T6 (fragile). Undetermined: T4 and T5.
+
+| Test | Result | Label |
+|---|---|---|
+| T1 column (4) | 3 of 6 medians inside K24's 16–84%: A 214 ± 11 (K24 217), δ 605 (624), γ 1.44 (1.40) inside; p 4420 ± 200 (4752), s₀ 490 ± 90 (673), φ 0.14 ± 0.14 (−0.23) outside. Inliers vs the table's flag: 78 both, 1 ours only, 11 table only (`t1_t2.json`) | partly reproduced |
+| T1 column (6) | 2 of 6 inside (A, s₀); p 4420 (4780), δ 630 (740), γ 1.38 (1.46), φ 0.12 (−0.15) outside | not reproduced |
+| T2 | B = 0.84 (0.78–0.91), K24 0.84 (+0.07/−0.06); P(B > 0.95) = 0.065; P(B < 0.5) = 5×10⁻⁵; ω₀t = −0.35 (−0.53 to −0.14) | (no label) |
+| T3 standing | 2ΔlnL = 20.24; mock mean m = 4.45 (d = 1), calibrated p = 0.033, p_raw = 7×10⁻⁶, p_boot = 0.0099 (0 of 100 mocks reach it) | standing excluded |
+| T3 B = 1 | 2ΔlnL = 6.39; m = 3.45 (d = 2), calibrated p = 0.157, p_raw = 0.041, p_boot = 0.178 | pure travelling not disfavoured |
+| T4 | R_obs = 0.377 over 75 inliers of the B = 0.5 fit; p = 0.299; power from B = 1 mocks 0.41 (B-free mocks 0.33) | undetermined (power < 0.8) |
+| T5 wavelengths | k_z/k_vz = 0.75, 95% interval 0.62–4.09 (98 clusters kept) | undetermined |
+| T5 b̂ | b̂ = 0.53, interval 0.39–0.61 (contains neither 0 nor 0.68); Δ = 1.07 rad, ρ = 0.71. Known-answer check **failed** at B = 1 (median mock b̂ 0.42, interval 0.04–0.76, not above 0.4), so the label is undetermined by rule | undetermined |
+| T6 | 9 of 15 variants change at least one label (table below) | fragile |
+| T7 | −2 ln L_max: (a) B = 1 460.0, (b) v_z = 0 449.3, (c) B = 0.5 435.8 (79 clouds); (a) is the worst of the three | CO does not distinguish |
+| T8 | ω₀ = 113 (+18/−16) km s⁻¹ kpc⁻¹ under K24's priors, 138 (+8/−15) under broad priors; broad half-width 0.089 in ln ω₀ (limit 0.085); shift −2.2σ | prior-driven |
+
+**T6 variants** (labels: T3 standing / T3 B = 1 / T4 / T5 wavelengths / T5 b̂; `t6.json`). The main
+run's labels are the same under the full and the reduced rule: standing excluded / not disfavoured /
+undetermined / undetermined / undetermined.
+
+| Variant | Clusters | 2ΔlnL standing, B = 1 | Changed labels |
+|---|---|---|---|
+| 1 outlier rule 3σ | 125 | 53.5, 14.1 | T3 standing → excluded strongly; B = 1 → disfavoured (calibrated p 0.007, p_boot 0.030); T4 → not excluded by the phases (p 0.058, power 0.99) |
+| 2 no outlier model | 125 | 57.6, 13.3 | T3 standing → excluded strongly |
+| 3 no kernel weights | 125 | 5.4, 0.01 | T3 standing → not excluded (calibrated p 0.27) |
+| 4 bandwidth 50 pc | 125 | 17.5, 5.1 | none |
+| 5 bandwidth 200 pc | 125 | 24.8, 7.6 | none |
+| 6 w☉ = 7.25 km/s | 125 | 20.4, 6.0 | none |
+| 7 Orion left out | 67 | 1.2, 1.9 | T3 standing → not excluded (calibrated p 0.61) |
+| 8 leave out Cantat-Gaudin+2020 | 88 | 12.3, 3.5 | T3 standing → not excluded (0.096) |
+| 8 leave out Hao+2022 | 102 | 15.2, 4.7 | T3 standing → not excluded (0.065); T4 → not excluded by the phases (p 0.16, power 0.84) |
+| 8 leave out He+2022 | 82 | 14.8, 5.9 | T3 standing → not excluded (0.068) |
+| 8 leave out Liu+2019 | 120 | 18.4, 6.1 | none |
+| 8 leave out Sim+2019 | 110 | 15.2, 2.7 | T3 standing → not excluded (0.064) |
+| 8 leave out Castro-Ginard+2021 and Szilágyi+2021 | 123 | 20.5, 1.8 | none |
+| 9 σ_vz below the median | 59 | 2.3, 1.6 | T3 standing → not excluded (0.47) |
+| 10 chord anchor u₁ | 125 | 21.2, 5.7 | none |
+
+No variant changes a T5 label (both stay undetermined; the failed main-run known-answer check makes
+every variant's b̂ undetermined by rule).
+
+**Reported alongside (not labels).**
+- T3 with residual resampling instead of Gaussian mocks (section 4.3): standing p_cal 0.028 and p_boot
+  0.0099 (excluded); B = 1 p_cal 0.019, p_boot 0.030 (disfavoured). The pre-registered label uses the
+  Gaussian mocks. T4 with residual mocks: p = 0.84, power 0.02.
+- T5 with ω₀ = 68 km s⁻¹ kpc⁻¹: b̂ = 0.56 (0.39–0.65).
+- T5 known-answer coverage over all 20 mocks: 0.85 at B = 0.5 (covers 0), 0.40 at B = 0.84 (covers
+  0.68), 0.00 at B = 1 (above 0.4); mean mock b̂ −0.16, 0.31, 0.39 at the three injections: b̂ is biased
+  low by about 0.3–0.6 at large B, as anticipated in section 4.9.
+- T8 with the v_z/ω₀ divisor fixed at 74: ω₀ = 71 (+10/−8) km s⁻¹ kpc⁻¹. ρ₀ = 0.24 (K24 priors) and
+  0.35 (broad) M☉ pc⁻³; the Sun's vertical period 55 and 45 Myr.
+- MCMC: every chain (columns 3–7, broad and divisor variants) was rerun at 12,000 steps and is still
+  flagged `chain_short`: the longest autocorrelation time is 199–467 steps, so the 8,000 post-burn
+  steps are 17–40 τ, below the 50 τ target. Medians are reported as they are; the T1 comparisons and
+  T8 widths carry this caveat.
+
+**What this means.** With K24's own data and model, our fit finds B ≈ 0.84 like theirs, and the
+likelihood ratio prefers a travelling-type wave over a standing one in the main analysis. But that
+preference rests on a minority of the clusters: leaving out the Orion region (58 clusters) or the
+kernel weights removes it (2ΔlnL 1.2 and 5.4), and so does leaving out any of four source catalogues
+or the clusters with larger v_z errors. The phase-spread test (T4) has too little power to decide,
+and the model-free b̂ (T5) cannot be read because the known-answer check fails at B = 1. Our column (4)
+reproduction matches 3 of K24's 6 shape parameters; the wavelength p comes out about 330 pc
+(1.6σ) shorter and the phase φ differs by 0.37 rad, so the remaining tests refer to our implementation.
 
 ## 6. Referee notes
 
