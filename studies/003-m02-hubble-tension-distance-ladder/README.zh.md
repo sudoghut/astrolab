@@ -938,6 +938,8 @@ R2-RE-D 的 `TIE_D` 相同）。
 3. "检查"还包括：G_obs 与 R2-RE-G 的记录值比较（相对 10⁻⁸），以及复用的计数：对六组中的每一组，复用的 k_s 中"excluded"的个数必须等于 R2-RE-GT 与 R2-RE-G 记录的 `n_excluded`。顺序为：数据上的复现、G_obs、18 个 p_fix 及八个记录的 k、36 个逐点检查（12 组新模拟 × 3）、12 组新的外层模拟、复用的计数；第一个失败使本部分停止为"not evaluable (<原因>)"，不写出任何模拟文件。
 4. 若 τ̂_obs < 10⁻³，τ̂_obs 处的 p_fix 按零计算（R2-RE-G 的零规则）；外层模拟不加改动地使用 R2-RE-GT 的 `gt_simulate`（每块 500 次，相同的 ε_s），t_s 用该 ν 的种子基数。
 5. p_cal 的"undetermined (Monte Carlo)"标签照实报告；p_cal 的极值取自未被标为反保守的 ν（被标记的 ν 的三个 τ 都不计入）。
+6. （代码的闸门 1 审查。）更正运行时间：R2-RE-GT 的逐点检查每个约 41 秒（3 个 123 秒），所以 36 个检查约 25 分钟；加上 12 组外层模拟（约 4 分钟）与载入数据，单线程共约 30–35 分钟，而不是 10 分钟。没有运行时间保护；这一估计不改变任何规则。
+7. 正式运行在以下情况下拒绝开始：`gtp_nus`、`gtp_t_seeds`、`gtp_inner_seeds`、`gtp_n_sims` 与复用的 `gt_*`/`g_*` 随机数流不等于预注册值（`shape.GTP_PREREGISTERED`），或 R2-RE-G 的 `r2_re_g.json` 不是含 p_G 的已评估记录。陈述中的 p 值写到四位小数。"not evaluable"结果（包括"host step not evaluable"）是第一次正式结果，并带有 `settings`；结论复核还核对新模拟文件的随机数流。
 
 ## 3. 数据（附大小估计）
 
@@ -1498,7 +1500,7 @@ R4 以及宿主识别精确复现了 2026-11-14 的数字）。数字：
   `--set r4_draws=1000` 需要几分钟；`--set re_check=false` 跳过 R2-RE）。
 - R2-RE-G 的正式运行分两个阶段（README 第 2 节，2026-11-21 增补）：(1) 把 `g_check` 与 `g_only` 设为 true、`g_stage` 设为 "power"，运行 `python -m astrolab run 003-m02-hubble-tension-distance-ladder`（只用缓存，约 17 分钟）：它写出 `r2_re_g_power.json`，并在日志中写一行功效、检验水平与功效曲线（`shape.power_log_line`）；其中没有任何内容用到数据上的 G。(2) 把这一行原样、作为一行粘贴进 log.md 并在分支上提交（代码只检查这一行是否出现在 log.md 中；提交是操作者的步骤）。(3) 把 `g_stage` 设为 "full" 再运行一次（约 18 分钟），线程环境与 `g_*` 取值与第 (1) 步相同；第 (1) 步的功效行没有出现在 log.md 中时它拒绝启动。它重新计算功效阶段（计数必须与功效记录相同，否则为规则 (1)），然后计算 G_obs、p_G 与解读。(4) 把 `g_only` 改回 false、`g_stage` 改回 "full"，并在 log.md 中写明日期。
 - R2-RE-GT 的正式运行分两个阶段（README 第 2 节，2026-11-21 增补，T-057），线程环境与 R2-RE-G 的正式运行相同（`OMP_NUM_THREADS`、`MKL_NUM_THREADS`、`OPENBLAS_NUM_THREADS` = 1）：(1) 把 `gt_check` 与 `gt_only` 设为 true、`gt_stage` 设为 "power"，运行 `python -m astrolab run 003-m02-hubble-tension-distance-ladder`（只用缓存，约 10 分钟）：它写出 `r2_re_gt_power.json`，并记录一行功效、检验大小以及只报告的 TC 与 VHAT 拒绝率（`shape.gt_power_log_line`）；其中没有任何内容用到数据上的 p_T。(2) 把这一行原样、作为一行粘贴到 log.md 中，并在分支上提交。(3) 把 `gt_stage` 设为 "full" 再运行一次（约 10 分钟），线程环境与 `gt_*`、`g_*` 取值都与 (1) 相同；功效行不在 log.md 中时它拒绝启动。它重新计算功效阶段（计数必须与功效记录相同，否则适用规则 (1)），然后检查 G_obs 与 k = 326，计算 p_T,obs、其敏感度、解读、子标签与注释。(4) 把 `gt_check` 与 `gt_only` 改回 false、`gt_stage` 改回 "full"，并在 log.md 中写明日期。
-- R2-RE-GTP 的正式运行（README 第 2 节，2026-11-22 增补，T-060），单线程（`OMP_NUM_THREADS`、`MKL_NUM_THREADS`、`OPENBLAS_NUM_THREADS` = 1，与 R2-RE-GT 相同）：(1) 把 `gtp_check` 与 `gtp_only` 设为 true，运行 `python -m astrolab run 003-m02-hubble-tension-distance-ladder`（只用缓存，约 10 分钟）；它在写出任何文件之前检查八个记录的 k 值以及 R2-RE-GT 与 R2-RE-G 复用的计数。(2) 把两者改回 false，并在 log.md 中写明日期。
+- R2-RE-GTP 的正式运行（README 第 2 节，2026-11-22 增补，T-060），单线程（`OMP_NUM_THREADS`、`MKL_NUM_THREADS`、`OPENBLAS_NUM_THREADS` = 1，与 R2-RE-GT 相同）：(1) 把 `gtp_check` 与 `gtp_only` 设为 true，运行 `python -m astrolab run 003-m02-hubble-tension-distance-ladder`（只用缓存，约 30–35 分钟，大部分是 36 个逐点检查）；它在写出任何模拟文件之前检查八个记录的 k 值以及 R2-RE-GT 与 R2-RE-G 复用的计数，失败时写出"not evaluable"结果，作为第一次正式结果。(2) 把两者改回 false，并在 log.md 中写明日期。
 - `run.py` 未涵盖的分析：写一个带 `def main(ctx)` 的脚本 `explore/<name>.py`，用
   `python -m astrolab explore 003-m02-hubble-tension-distance-ladder --tag <topic> --script explore/<name>.py` 运行。
   已有：`explore/diag_hosts.py`（哪些检查把 L 的哪一列与哪个宿主联系起来）。

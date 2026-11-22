@@ -1486,10 +1486,10 @@ def test_gtp_statement_rule():
     pre = shape.GTP_PROFILE
     assert shape.gtp_statement([E] * 18, [0.01] * 18) == pre + "excluded across the profile"
     assert shape.gtp_statement([N] * 18, [0.2] * 18) == pre + "not excluded across the profile"
-    assert shape.gtp_statement([E] * 17 + [N], [0.01] * 17 + [0.2]) == pre + "model-limited (p_fix from 0.010 to 0.200)"
+    assert shape.gtp_statement([E] * 17 + [N], [0.01] * 17 + [0.2]) == pre + "model-limited (p_fix from 0.0100 to 0.2000)"
     # mixes with Monte Carlo-undetermined points are model-limited too; min and max over all points
-    assert shape.gtp_statement([E] * 17 + [U], [0.01] * 17 + [0.05]) == pre + "model-limited (p_fix from 0.010 to 0.050)"
-    assert shape.gtp_statement([N, U], [0.3, 0.05]) == pre + "model-limited (p_fix from 0.050 to 0.300)"
+    assert shape.gtp_statement([E] * 17 + [U], [0.01] * 17 + [0.05]) == pre + "model-limited (p_fix from 0.0100 to 0.0500)"
+    assert shape.gtp_statement([N, U], [0.3, 0.05]) == pre + "model-limited (p_fix from 0.0500 to 0.3000)"
 
 
 def test_gtp_refit_record():
@@ -1647,7 +1647,7 @@ def test_run_gtp_only_saves_and_updates_only_its_summary_key(tmp_path, monkeypat
     monkeypatch.setattr(run, "anchor_rows", lambda nz, cls, y: (np.arange(3), None))
     monkeypatch.setattr(run, "recorded_reml_grid", lambda: [0.0])
     fake = {"stage": "full", "status": "evaluated", "statement": "t-tail comparison: model-limited (p_fix from "
-            "0.010 to 0.100)", "p_fix_min": 0.01, "p_fix_max": 0.1, "p_cal_min": 0.02, "p_cal_max": 0.09,
+            "0.0100 to 0.1000)", "p_fix_min": 0.01, "p_fix_max": 0.1, "p_cal_min": 0.02, "p_cal_max": 0.09,
             "anti_conservative_nu": []}
     monkeypatch.setattr(run.shape, "run_gtp", lambda *a, **k: (fake, {"3_0.05": {"k": [1, 2]}}))
     ctx = _Ctx(tmp_path)
@@ -1665,3 +1665,13 @@ def test_run_gtp_only_saves_and_updates_only_its_summary_key(tmp_path, monkeypat
     assert set(ctx2.saved) == {"r2_re_gtp", "summary"}
     assert ctx2.saved["r2_re_gtp"]["status"] == "not evaluable (host step not evaluable)"
     assert (tmp_path / "summary.json").read_text(encoding="utf-8") != old_text
+
+
+def test_main_gtp_formal_run_needs_preregistered_params(tmp_path, monkeypatch):
+    run = _load("run003_gtp_prereg", "run.py")
+    for k, v in (("gtp_check", True), ("gtp_only", True), ("gtp_n_sims", 200)):
+        monkeypatch.setitem(run.PARAMS, k, v)
+    with pytest.raises(RuntimeError, match="differ from the pre-registered values \(gtp_n_sims\)"):
+        run.main(_Ctx(tmp_path))
+    assert {k: run.PARAMS[k] for k in shape.GTP_PREREGISTERED if k != "gtp_n_sims"} == {
+        k: v for k, v in shape.GTP_PREREGISTERED.items() if k != "gtp_n_sims"}
