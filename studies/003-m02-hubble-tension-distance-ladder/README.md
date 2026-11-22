@@ -2134,20 +2134,20 @@ span 0.015–0.078. No ν is flagged anti-conservative: the 18 sizes of the refi
 | 6 | 0.017 / 0.032 / 0.055 | 0.042 / 0.045 / 0.048 | 0.028 / 0.030 / 0.030 |
 | 10 | 0.013 / 0.021 / 0.036 | 0.045 / 0.047 / 0.050 | 0.020 / 0.021 / 0.022 |
 | 30 | 0.011 / 0.016 / 0.025 | 0.047 / 0.046 / 0.046 | 0.018 / 0.017 / 0.015 |
-| ∞ | 0.013 / 0.016 / 0.023 | 0.045 / 0.048 / 0.048 | 0.016 / 0.017 / 0.017 |
+| ∞ | 0.013 / 0.016 / 0.023 | 0.045 / 0.048 / 0.048 | 0.016 / 0.016 / 0.016 |
 
 - p_fix labels: all "excluded" for ν ≥ 10 and ν = ∞; at ν = 6 "excluded" except τ = 0.105 ("not excluded", 0.055); at
   ν = 4 as recorded (0.025 excluded, 0.052 undetermined (Monte Carlo), 0.090 not excluded); at ν = 3 "excluded" only at
   τ = 0.05.
-- **p_cal, the calibrated p value of the refitted plug-in test**, is at most 0.030 for every ν ≥ 6 (largest over the
-  three true τ: 0.030, 0.022, 0.018, 0.017 for ν = 6, 10, 30, ∞), 0.051 at ν = 4 and 0.078 at ν = 3 (the largest of the
+- **p_cal, the calibrated p value of the refitted plug-in test**, is at most 0.031 for every ν ≥ 6 (largest over the
+  three true τ: 0.030, 0.022, 0.018, 0.016 for ν = 6, 10, 30, ∞), 0.051 at ν = 4 and 0.078 at ν = 3 (the largest of the
   18 values, not a composite-null p value; the grid is coarse and stops at ν = 3, so heavier tails would raise it
   further: the upper end is set by where the grid stops, not by the data). The cells share ε_s and, within a ν, the
   same t draws rescaled, so the flatness of p_cal across τ partly reflects these common random numbers.
 
 **Reading (post hoc).** The answer to "does R2-RE-G's exclusion of diffuse scatter rest on Gaussian tails alone?"
 depends on how heavy the tails are allowed to be: for host effects with ν ≥ 6 (including the Gaussian), the calibrated
-test excludes diffuse scatter of R2-RE's size (p_cal ≤ 0.03) at every checked scale; at ν = 4 it is on the boundary
+test excludes diffuse scatter of R2-RE's size (p_cal ≤ 0.031) at every checked scale; at ν = 4 it is on the boundary
 (0.05), and at ν = 3 it does not (0.08). These data (one value of G) cannot fix ν: under variance matching a t₃ draw puts most of the variance into a few
 large host effects, close to the one-offset-host alternative. R2-RE-GT's sub-label "t₄ diffuse undetermined (Monte
 Carlo)" stays as recorded; the profile adds that diffuse scatter is excluded unless the host effects are about as
@@ -2369,9 +2369,10 @@ changes a reported number. Triage:
   (0.049–0.056) that contains 0.05, and the test is underpowered (0.317); the p value moves across 0.05 with the
   tail weight (ν = 3: 0.074; ν = 10: 0.021) and the scale (τ = 0.05: 0.025; 0.105: 0.090). So whether R2-RE-G's
   sub-label rests on Gaussian tails alone stays open; these data do not fix the tail of diffuse host scatter.
-  Profiled by R2-RE-GTP (2026-11-22, T-060): the calibrated p is at most 0.03 for host effects with ν ≥ 6 (Gaussian
-  included), 0.05 at ν = 4 and 0.08 at ν = 3, so diffuse scatter is excluded unless the tails are about as heavy as t₄
-  or heavier; an outside constraint on ν is T-062. If
+  Profiled by R2-RE-GTP (2026-11-22, T-060): "model-limited". Post hoc and conditional on ν: the calibrated p is at
+  most 0.031 for host effects with ν ≥ 6 (Gaussian included), 0.05 at ν = 4 and 0.08 at ν = 3, so diffuse scatter is
+  excluded unless the tails are about as heavy as t₄ or heavier (three checked τ only); the question stays open until ν
+  is constrained from outside G (T-062). If
   an offset is real, JWST Cepheids in N5584 (Riess et al. 2023) point to the SN 2007af side or chance.
 
 ## 8. Exploring via chat
