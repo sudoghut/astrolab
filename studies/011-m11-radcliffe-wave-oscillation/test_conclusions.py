@@ -257,3 +257,127 @@ def test_overall_reading():
     both_not = s["T1"]["col4"] == "not reproduced" and s["T1"]["col6"] == "not reproduced"
     assert ("qualifier" in s["overall"]) == both_not
     assert math.isfinite(s["T3"]["two_dlnL_standing"])
+
+
+# ---------------------------------------------------------------------------------------------
+# README 4.10 (T-056, post hoc): R-CONV and T8-P, re-derived from the saved files
+
+SFX = " (best among these 16 candidate conventions, post hoc)"
+COUNTED = ("A", "p", "delta", "s0", "gamma", "phi")
+
+
+def _median(xs):
+    xs = sorted(xs)
+    n = len(xs)
+    return xs[n // 2] if n % 2 else 0.5 * (xs[n // 2 - 1] + xs[n // 2])
+
+
+def test_rconv_choice_and_labels():
+    rc = load("rconv")
+    k24 = rc["k24_column3"]
+    rows = rc["conventions"]
+    assert rc["complete_set"] == (sorted(r["index"] for r in rows) == list(range(16)))
+    if rc["params"]["parts"] == ["conv"] and rc["params"].get("conv_indices") == list(range(16)):
+        assert rc["complete_set"]
+    for r in rows:
+        b, s, w = r["index"] // 4, (r["index"] // 2) % 2, r["index"] % 2
+        assert r["name"] == f"{'LCYX'[b]}-{'FP'[s]}-{'WR'[w]}"
+        assert r["n_factors_differing"] == (b != 0) + (s != 0) + (w != 0)
+        n = 0
+        ratios = []
+        for k in COUNTED:
+            o, t = r["parameters"][k], k24[k]
+            inside = t["median"] - t["minus"] <= o["median"] <= t["median"] + t["plus"]
+            assert inside == r["inside"][k]
+            n += inside
+            ratios.append(0.5 * (o["p84"] - o["p16"]) / (0.5 * (t["plus"] + t["minus"])))
+        assert n == r["count"]
+        assert r["width_ratio"] == pytest.approx(_median(ratios), rel=1e-9)
+        for k, o in r["parameters"].items():
+            dd = o["median"] - k24[k]["median"]
+            want = dd / k24[k]["plus"] if dd > 0 else dd / k24[k]["minus"]
+            assert r["sigma_scaled_differences"][k] == pytest.approx(want, rel=1e-9, abs=1e-12)
+    cand = [r for r in rows if r["count"] >= 3]
+    ch = rc["choice"]
+    if not cand:
+        assert ch["chosen"] is None and rc["reruns"] is None
+        assert rc["label"] == "column (3) not reproduced under any candidate convention" + SFX
+        return
+    inw = [r for r in cand if 2 / 3 <= r["width_ratio"] <= 1.5]
+    pool = inw or cand
+    best = sorted(pool, key=lambda r: (-r["count"], r["n_factors_differing"], r["index"]))[0]
+    assert ch["chosen"] == best["index"] and ch["case"] == ("ii" if inw else "iii")
+    status = "reproduced" if best["count"] >= 5 and 2 / 3 <= best["width_ratio"] <= 1.5 else "partly reproduced"
+    assert rc["label"] == f"column (3) {status} under {best['name']}" + SFX
+    assert rc["reruns"] is not None and rc["reruns"]["convention"] == best["name"]
+
+
+def test_rconv_reruns():
+    rc = load("rconv")
+    rr = rc["reruns"]
+    if rr is None:
+        pytest.skip("no convention chosen: nothing rerun (README 4.10)")
+    qual = f"under {rr['convention']}, post hoc"
+    for col in ("col4", "col6"):
+        t = rr["t1"][col]
+        n = sum(t["parameters"][k]["inside_k24_1sigma"] for k in COUNTED)
+        for k in COUNTED:
+            r = t["parameters"][k]
+            assert r["inside_k24_1sigma"] == (r["k24"]["median"] - r["k24"]["minus"] <= r["ours"]["median"]
+                                              <= r["k24"]["median"] + r["k24"]["plus"])
+        want = "reproduced" if n >= 5 else ("partly reproduced" if n >= 3 else "not reproduced")
+        assert t["n_inside_of_6"] == n and t["label"] == want
+        assert t["label_qualified"] == f"{want} {qual}" == rr["labels"]["T1_" + col]
+    t5 = rr["t5"]
+    ka = t5["known_answer"]
+    ok = True
+    for B, row in ka["injections"].items():
+        lo, hi = row["median_mock_interval"]
+        this = (lo is not None and lo > 0.4) if float(B) >= 1.0 else (lo is not None and lo <= 2 * float(B) - 1 <= hi)
+        assert this == row["pass"]
+        ok &= this
+    assert sorted(float(b) for b in ka["injections"]) == [0.5, 0.84, 1.0]
+    assert ok == ka["passed"] == rr["labels"]["T5_known_answer_passed"]
+    # the injection: the chosen convention's column-(3) median, omega0 t from its column-(5) median
+    chosen = [r for r in rc["conventions"] if r["index"] == rr["index"]][0]
+    for k in ("x0", "y0", "x1", "y1", "x2", "y2", "A", "p", "s0", "phi", "delta", "gamma"):
+        assert ka["injected_vector"][k] == pytest.approx(chosen["parameters"][k]["median"], rel=1e-3, abs=1e-2)
+    assert ka["injected_vector"]["w0t"] == pytest.approx(rr["col5"]["median"]["w0t"], abs=1e-9)
+    wl = _wl_want(*t5["k_ratio_interval"])
+    assert t5["wavelengths_label"] == wl and rr["labels"]["T5_wavelengths"] == f"{wl} ({qual})"
+    bl = _bhat_want(*t5["bhat_interval"], wl, ka["passed"])
+    assert t5["bhat_label"] == bl and rr["labels"]["T5_bhat"] == f"{bl} ({qual})"
+
+
+def test_t8p_label():
+    t = load("t8p")
+    pb, pk = t["ln_omega0_broad_prior"], t["ln_omega0_k24_prior"]
+    half = 0.5 * (pb["p84"] - pb["p16"])
+    assert half == pytest.approx(t["halfwidth_broad"])
+    shift = (pk["median"] - pb["median"]) / half
+    assert shift == pytest.approx(t["median_shift_in_sigma_broad"])
+    med = 1000 * math.exp(pb["median"])
+    assert med == pytest.approx(t["broad_median_omega0_kms_kpc"])
+    lo, hi = t["broad_bounds_kms_kpc"]
+    narrow, stable = half < 0.5 * 0.17, abs(shift) < 0.5
+    rule = "data-driven" if narrow and stable else ("prior-driven" if not narrow and not stable else "partly data-driven")
+    at_bound = med > 0.95 * hi or med < 1.05 * lo
+    assert t["at_bound"] == at_bound and t["width_shift_rule_label"] == rule
+    assert t["label"] == ("prior-driven (posterior at the bound)" if at_bound else rule)
+    assert t["divisor_kms_kpc"] == 74.0 and t["convention"] == "L-F-W"
+    for k in ("k24_priors", "broad_priors"):
+        assert set(t[k]) >= {"omega0_kms_kpc", "rho0_msun_pc3", "sun_period_myr"}
+
+
+def test_standalone_summary_keys():
+    s = load("summary")
+    if "R_CONV" in s:
+        rc = load("rconv")
+        assert s["R_CONV"]["label"] == rc["label"]
+        assert s["R_CONV"]["counts"] == {r["name"]: r["count"] for r in rc["conventions"]}
+        assert s["R_CONV"]["reruns"] == (rc["reruns"]["labels"] if rc["reruns"] else None)
+    if "T8_P" in s:
+        t = load("t8p")
+        assert s["T8_P"]["label"] == t["label"] and s["T8_P"]["at_bound"] == t["at_bound"]
+    if "R_CONV" not in s and "T8_P" not in s:
+        pytest.skip("R-CONV and T8-P have not been run (README 4.10)")

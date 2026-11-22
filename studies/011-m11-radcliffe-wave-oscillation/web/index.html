@@ -49,6 +49,12 @@
     <div id="details"></div>
   </section>
 
+  <section id="posthoc-sec" hidden>
+    <h2><span class="en">Post-hoc checks (README 4.10, T-056): R-CONV and T8-P</span><span class="zh">事后检验（README 4.10，T-056）：R-CONV 与 T8-P</span></h2>
+    <p class="legend"><span class="en">Added after the formal results were seen, so every label here is post hoc. They are reported next to the formal labels above, which stay as recorded. R-CONV asks which of 16 conventions (baseline L, C, Y, X × scatter σ fixed F or per-evaluation P × weights fixed W or recomputed R) reproduces K24's clouds-only column (3); T8-P frees ω₀ with the v_z divisor fixed at 74 km s⁻¹ kpc⁻¹.</span><span class="zh">这些检验是在看到正式结果之后加的，所以这里每个标签都是事后（post hoc）的。它们与上面的正式标签并列报告，正式标签保持不变。R-CONV 问 16 种约定（基线 L、C、Y、X × 弥散 σ 固定 F 或逐次计算 P × 权重固定 W 或重算 R）中哪一种能复现 K24 只用云的第 (3) 列；T8-P 在 v_z 除数固定为 74 km s⁻¹ kpc⁻¹ 时放开 ω₀。</span></p>
+    <div id="posthoc"></div>
+  </section>
+
   <section id="skylinks" class="card" hidden></section>
 </main>
 <script src="../../../atlas/web/skylinks.js"></script>
@@ -142,7 +148,7 @@
       s.T6.changes.length ? s.T6.changes.map(c => esc(`${c.variant}: ${c.label}`)).join('<br>') : '');
     if (s.T7) rows += row('T7', '¹²CO velocities', '¹²CO 速度', lab(s.T7.label), `−2lnL (a, b, c) = ${s.T7.m2lnL.map(x => f(x, 1)).join(', ')}. ${L('The rule has one direction only; the B = 1 model (a) fits the CO velocities worst.', '规则只有一个方向；B = 1 模型 (a) 对 CO 速度拟合得最差。')}`);
     if (s.T8) rows += row('T8', 'potential set by the data?', '引力势由数据决定吗？', lab(s.T8.label),
-      `ω₀ = ${f(s.T8.omega0_k24.median, 1)} (K24 ${L('priors', '先验')}), ${f(s.T8.omega0_broad.median, 1)} (${L('broad', '宽先验')}) km s⁻¹ kpc⁻¹.${L(' <b>Withdrawn as uninformative</b> (referee, README section 6 point 1): with ω₀ free the likelihood is ill-posed in ω₀ (no ln ω₀ normalisation; with it, unbounded as ω₀ → 0), and in mode searches the posterior goes to a bound (broad priors) or to 117 and 4.2 km s⁻¹ kpc⁻¹ without and with the normalisation (K24's priors); only the divisor-74 variant is meaningful (ω₀ ≈ 71).', ' <b>作为无信息撤回</b>（审稿，README 第 6 节第 1 点）：ω₀ 自由时似然对 ω₀ 是病态的（ill-posed；缺少 ln ω₀ 归一化项，加上后 ω₀ → 0 时无界），众数搜索中后验在宽先验下跑到边界，在 K24 先验下不加与加归一化时分别为 117 与 4.2 km s⁻¹ kpc⁻¹；只有除数为 74 的变体有意义（ω₀ ≈ 71）。')}`);
+      `ω₀ = ${f(s.T8.omega0_k24.median, 1)} (K24 ${L('priors', '先验')}), ${f(s.T8.omega0_broad.median, 1)} (${L('broad', '宽先验')}) km s⁻¹ kpc⁻¹.${L(' <b>Withdrawn as uninformative</b> (referee, README section 6 point 1): with ω₀ free the likelihood is ill-posed in ω₀ (no ln ω₀ normalisation; with it, unbounded as ω₀ → 0), and in mode searches the posterior goes to a bound (broad priors) or to 117 and 4.2 km s⁻¹ kpc⁻¹ without and with the normalisation (K24\'s priors); only the divisor-74 variant is meaningful (ω₀ ≈ 71).', ' <b>作为无信息撤回</b>（审稿，README 第 6 节第 1 点）：ω₀ 自由时似然对 ω₀ 是病态的（ill-posed；缺少 ln ω₀ 归一化项，加上后 ω₀ → 0 时无界），众数搜索中后验在宽先验下跑到边界，在 K24 先验下不加与加归一化时分别为 117 与 4.2 km s⁻¹ kpc⁻¹；只有除数为 74 的变体有意义（ω₀ ≈ 71）。')}`);
     document.getElementById('labels').innerHTML = rows;
     document.getElementById('labels-sec').hidden = false;
 
@@ -189,10 +195,56 @@
         [['k24_priors', L("K24's priors", 'K24 的先验')], ['broad_priors', L('broad priors', '宽先验')]].map(([k, nm]) =>
           `${nm} (${L('withdrawn', '已撤回')}): ω₀ ${pr(t8[k], 'omega0_kms_kpc')} km s⁻¹ kpc⁻¹`).join('<br>') +
         `<br>${L('divisor fixed at 74 (K24 priors only)', '除数固定为 74（只用 K24 先验）')}: ω₀ ${pr(t8.variant_divisor_fixed, 'omega0_kms_kpc')} km s⁻¹ kpc⁻¹; ρ₀ ${pr(t8.variant_divisor_fixed, 'rho0_msun_pc3')} M☉ pc⁻³; ${L("Sun's period", '太阳周期')} ${pr(t8.variant_divisor_fixed, 'sun_period_myr')} Myr` +
-        `<br>${L('half-width (broad, ln ω₀)', '半宽（宽先验，ln ω₀）')} ${f(t8.halfwidth_broad)} vs 0.085; ${L('median shift', '中位数移动')} ${f(t8.median_shift_in_sigma_broad, 2)}σ<br>${L(' <b>Withdrawn as uninformative</b> (referee, README section 6 point 1): with ω₀ free the likelihood is ill-posed in ω₀ (no ln ω₀ normalisation; with it, unbounded as ω₀ → 0), and in mode searches the posterior goes to a bound (broad priors) or to 117 and 4.2 km s⁻¹ kpc⁻¹ without and with the normalisation (K24's priors); only the divisor-74 variant is meaningful (ω₀ ≈ 71).', ' <b>作为无信息撤回</b>（审稿，README 第 6 节第 1 点）：ω₀ 自由时似然对 ω₀ 是病态的（ill-posed；缺少 ln ω₀ 归一化项，加上后 ω₀ → 0 时无界），众数搜索中后验在宽先验下跑到边界，在 K24 先验下不加与加归一化时分别为 117 与 4.2 km s⁻¹ kpc⁻¹；只有除数为 74 的变体有意义（ω₀ ≈ 71）。')}</p></details>`;
+        `<br>${L('half-width (broad, ln ω₀)', '半宽（宽先验，ln ω₀）')} ${f(t8.halfwidth_broad)} vs 0.085; ${L('median shift', '中位数移动')} ${f(t8.median_shift_in_sigma_broad, 2)}σ<br>${L(' <b>Withdrawn as uninformative</b> (referee, README section 6 point 1): with ω₀ free the likelihood is ill-posed in ω₀ (no ln ω₀ normalisation; with it, unbounded as ω₀ → 0), and in mode searches the posterior goes to a bound (broad priors) or to 117 and 4.2 km s⁻¹ kpc⁻¹ without and with the normalisation (K24\'s priors); only the divisor-74 variant is meaningful (ω₀ ≈ 71).', ' <b>作为无信息撤回</b>（审稿，README 第 6 节第 1 点）：ω₀ 自由时似然对 ω₀ 是病态的（ill-posed；缺少 ln ω₀ 归一化项，加上后 ω₀ → 0 时无界），众数搜索中后验在宽先验下跑到边界，在 K24 先验下不加与加归一化时分别为 117 与 4.2 km s⁻¹ kpc⁻¹；只有除数为 74 的变体有意义（ω₀ ≈ 71）。')}</p></details>`;
     }
     document.getElementById('details').innerHTML = det;
     document.getElementById('details-sec').hidden = false;
+  }
+
+  function renderPostHoc(rc, tp) {
+    if (!rc && !tp) return;
+    const zhStatus = {"reproduced": "复现", "partly reproduced": "部分复现"};
+    const convLabel = (lb, ch) => {
+      if (!ch || ch.chosen === null || ch.chosen === undefined) {
+        return `<span class="lab bad">${L(esc(lb), '第 (3) 列在任何候选约定下都未复现（这 16 个候选约定中最好的，事后）')}</span>`;
+      }
+      const cls = ch.status === 'reproduced' ? 'good' : 'mid';
+      return `<span class="lab ${cls}">${L(esc(lb), `第 (3) 列在 ${esc(ch.chosen_name)} 下${zhStatus[ch.status] || esc(ch.status)}（这 16 个候选约定中最好的，事后）`)}</span>`;
+    };
+    const qualLab = (s, conv) => {
+      const base = String(s).replace(/ \(?under .*, post hoc\)?$/, '');
+      return `${lab(base)} <span class="muted">${L('under ' + esc(conv) + ', post hoc', '在 ' + esc(conv) + ' 下，事后')}</span>`;
+    };
+    let h = '';
+    if (rc) {
+      const ch = rc.choice;
+      h += `<h3>R-CONV</h3><p>${convLabel(rc.label, ch)}` + (ch.reason ? ` <span class="muted">(${esc(ch.reason)})</span>` : '') +
+        (rc.complete_set ? '' : ` <em>${L('(not all 16 conventions: an exploration)', '（不是全部 16 种约定：探索运行）')}</em>`) + '</p>';
+      h += `<div class="wrap"><table><tr><th>${L('index', '编号')}</th><th>${L('convention', '约定')}</th><th>${L('count (of 6)', '计数（6 个中）')}</th><th>${L('width ratio', '宽度比')}</th><th>${L('σ (P) at the median, pc', '中位数处的 σ（P），pc')}</th><th>${L('chain', '链')}</th></tr>` +
+        rc.conventions.map(r => `<tr${r.index === ch.chosen ? ' style="font-weight:600"' : ''}><td>${r.index}</td><td>${esc(r.name)}${r.index === ch.chosen ? ' ✓' : ''}</td><td class="num">${r.count}</td><td class="num">${f(r.width_ratio, 2)}</td><td class="num">${f(r.sigma_P_at_median_pc, 1)}</td><td>${r.chain.chain_short ? L('short', '过短') : L('ok', '正常')}</td></tr>`).join('') + '</table></div>';
+      h += `<p class="muted">${L("Count: how many of A, p, δ, s₀, γ, φ have our column-(3) median inside K24's 16–84% interval. Width ratio: median over those six of our 16–84% half-width over K24's; the choice needs it in [2/3, 3/2].", '计数：A、p、δ、s₀、γ、φ 中我们第 (3) 列中位数落在 K24 的 16–84% 区间内的个数。宽度比：这六个参数上我们 16–84% 半宽与 K24 半宽之比的中位数；选择时要求它在 [2/3, 3/2] 内。')}</p>`;
+      const rr = rc.reruns;
+      if (rr) {
+        const ka = rr.t5.known_answer;
+        h += `<p>${L('Reruns under', '在以下约定下重跑')} ${esc(rr.convention)} (σ = ${f(rr.sigma_pc_cluster_fits, 0)} pc ${L('in every cluster fit', '用于所有星团拟合')}):<br>` +
+          `T1 ${L('column 4', '第 4 列')}: ${qualLab(rr.labels.T1_col4, rr.convention)} (${rr.t1.col4.n_inside_of_6}/6) · T1 ${L('column 6', '第 6 列')}: ${qualLab(rr.labels.T1_col6, rr.convention)} (${rr.t1.col6.n_inside_of_6}/6)<br>` +
+          `T5: ${qualLab(rr.labels.T5_wavelengths, rr.convention)} · ${qualLab(rr.labels.T5_bhat, rr.convention)}; b̂ = ${f(rr.t5.bhat, 2)} ${iv(rr.t5.bhat_interval, 2)}, k_z/k_vz ${iv(rr.t5.k_ratio_interval, 2)}<br>` +
+          `${L("known-answer check on this convention's own curve", '在该约定自身曲线上的已知答案检验')}: ${ka.passed ? L('pass', '通过') : L('fail', '未通过')} — ` +
+          Object.entries(ka.injections).map(([B, r]) => `B = ${B}: ${L('median mock', '中位模拟')} ${f(r.median_mock_bhat, 2)} ${iv(r.median_mock_interval, 2)} ${r.pass ? '✓' : '✗'}, ${L('mean b̂', '平均 b̂')} ${f(r.mean_bhat, 2)}, ${L('coverage', '覆盖率')} ${f(r.coverage_or_above_bT_fraction, 2)}`).join('; ') + '</p>';
+      }
+    }
+    if (tp) {
+      const pr = (o, k, d = 1) => `${f(o[k].median, d)} +${f(o[k].plus, d)}/−${f(o[k].minus, d)}`;
+      const zhT8 = {"prior-driven (posterior at the bound)": "由先验决定（后验在边界上）"};
+      const tl = `<span class="lab ${tp.label === 'data-driven' ? 'good' : (tp.label === 'partly data-driven' ? 'mid' : 'bad')}">${L(esc(tp.label), esc(zhT8[tp.label] || ZH[tp.label] || tp.label))}</span>`;
+      h += `<h3>T8-P</h3><p>${tl} <span class="muted">(${L('post hoc', '事后')})</span></p><p class="num">` +
+        `${L("K24's priors", 'K24 的先验')}: ω₀ ${pr(tp.k24_priors, 'omega0_kms_kpc')} km s⁻¹ kpc⁻¹; ρ₀ ${pr(tp.k24_priors, 'rho0_msun_pc3', 3)} M☉ pc⁻³; ${L("Sun's period", '太阳周期')} ${pr(tp.k24_priors, 'sun_period_myr')} Myr<br>` +
+        `${L('broad priors', '宽先验')}: ω₀ ${pr(tp.broad_priors, 'omega0_kms_kpc')} km s⁻¹ kpc⁻¹; ρ₀ ${pr(tp.broad_priors, 'rho0_msun_pc3', 3)} M☉ pc⁻³; ${L("Sun's period", '太阳周期')} ${pr(tp.broad_priors, 'sun_period_myr')} Myr<br>` +
+        `${L('half-width (broad, ln ω₀)', '半宽（宽先验，ln ω₀）')} ${f(tp.halfwidth_broad)} vs ${f(tp.width_frac * tp.k24_prior_sigma)}; ${L('median shift', '中位数移动')} ${f(tp.median_shift_in_sigma_broad, 2)}σ; ` +
+        `${L('broad-prior median', '宽先验中位数')} ${f(tp.broad_median_omega0_kms_kpc, 1)} ${L('vs the bound thresholds', '对比边界阈值')} ${iv(tp.bound_thresholds_kms_kpc, 1)} (${L('distance to 150', '距 150')}: ${f(tp.distance_to_upper_bound.median_kms_kpc, 1)})</p>`;
+    }
+    document.getElementById('posthoc').innerHTML = h;
+    document.getElementById('posthoc-sec').hidden = false;
   }
 
   get('summary').then(async s => {
@@ -202,6 +254,8 @@
     }
     const [t12, t3, t4, t5, t6, t7, t8] = await Promise.all(['t1_t2', 't3', 't4', 't5', 't6', 't7', 't8'].map(opt));
     render(s, t12, t3, t4, t5, t6, t7, t8);
+    const [rc, tp] = await Promise.all(['rconv', 't8p'].map(opt));
+    renderPostHoc(rc, tp);   // L() writes both languages; CSS shows one
   }).catch(e => {
     document.getElementById('status').innerHTML =
       L('Not yet run. The pre-registration (README sections 1–4) is fixed; results will appear here after the formal run. ',

@@ -466,6 +466,44 @@ MB), keys `R_CONV` and `T8_P` in `summary.json` (other keys byte-identical); `wa
 baselines, the P σ and the R weights as options (defaults unchanged, so the formal results reproduce), tests,
 conclusion checks, a web section, section 8 knobs. None of this exists yet.
 
+*Amendments before any R-CONV or T8-P fit (2026-11-21).* These settle implementation choices that this addendum left
+open, fixed while writing the code and before any R-CONV or T8-P fit to the data; no rule, threshold or label above
+changes.
+1. **Seeds.** The column-(3) chain of convention i starts from the integer seed drawn first from NumPy's generator
+   seeded with the sequence (`seed`, 3000 + i). Every other new chain gets its seed from (`seed`, its name) as in the
+   formal run: `conv<NN>_col4`, `conv<NN>_col5`, `conv<NN>_col6` for the reruns, `t8p_k24` and `t8p_broad` for Part B.
+   The K24-prior chain of Part B is therefore a new chain of the formal `col7_div` setup, not a copy of it. Walkers
+   start around K24's medians of the column fitted, as in the formal run.
+2. **Y and X curves.** The independent coordinate (x for Y, y for X) runs linearly in the grid parameter t, from
+   t = −0.2 to 1.4 with t = 0 at anchor 0 and t = 1 at anchor 2, on 2,000 points equally spaced in t; s is the
+   trapezoid integral of the analytic x–y speed, as for L. Equal coordinates of anchors (for example x₀ = x₁) count as
+   not monotonic.
+3. **σ under P.** The standard deviation is the population one (ddof = 0) over all clouds, unweighted. If it is zero or
+   not finite, the likelihood is zero. The kernel weights (W or R) still multiply each cloud's term of eq. 11, as in
+   section 4.1. In the three cluster reruns σ is 47 pc under every convention.
+4. **Weights under W and R.** Under C, Y and X the fixed weights W come from each object's s on that convention's own
+   curve at K24's column-(6) medians (as amendment 9 of section 4.9 does for variant 10). Under R the weights of each set
+   (clusters, clouds) are recomputed from that set's own closest points (clusters 4-D with the divisor 74, clouds 3-D) and
+   normalised to the number of objects in the set, as in section 4.1.
+5. **Width ratio.** K24's half-width is (plus + minus)/2 as printed in Extended Data Table 2 column (3); ours is
+   (p84 − p16)/2; δ and γ in linear units, as the table prints them. Both ends of [2/3, 3/2] are inside.
+6. **Reruns.** T5 includes section 4.4's ω₀ = 68 sensitivity check. The known-answer injection keeps the adopted ω₀,
+   μ₀ and r₀ (74 km s⁻¹ kpc⁻¹, 1.3 kpc⁻¹, 3.7 kpc) of the column-(3) fit, and each selected cluster is placed as in
+   amendment 7 of section 4.9, on the injected model of the chosen convention's curve. The clusters are selected on that
+   curve by the √3 × 47 pc position cut.
+7. **Names in labels.** A convention is written `<baseline>-<σ>-<weights>`, for example `Y-P-W`, in the labels and in
+   `rconv.json`. The rerun labels end with "under <convention>, post hoc".
+8. **T8-P bound rule.** The broad-prior median of ω₀ is exp(median of ln ω₀); "within 5% of a bound" uses strict
+   inequalities, median > 0.95 × 150 = 142.5 or median < 1.05 × 30 = 31.5 km s⁻¹ kpc⁻¹. ρ₀ and the Sun's period use 2,000
+   posterior draws, as in T8.
+9. **Standalone runs.** A formal run takes `parts = ["conv"]` or `["t8p"]` alone, R-CONV with all 16 conventions, and
+   refuses to start unless `summary.json` exists and re-serialises byte-identically. It writes `rconv.json` or `t8p.json`
+   (with the load check and `params`), puts `R_CONV` or `T8_P` into `summary.json` before `overall`, and keeps its
+   records apart (`provenance_conv.json`, `run_info_conv.json`; `_t8p`; a paused attempt `_convpaused`, `_t8ppaused`).
+   Checkpoints go to `s011_checkpoints/<conv|t8p>/<key>`, so a finished part never deletes the other's. An exploration
+   may fit a subset of the conventions (`conv_indices`); then `rconv.json` says `complete_set: false` and the choice is
+   over that subset.
+
 ## 5. Results
 
 Formal run of 2026-11-21 (`results/`, page `web/index.html`). It paused at 10 h by the pre-registered
@@ -588,6 +626,9 @@ How a coding agent answers "what if" questions about this study without touching
 | Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
 |---|---|---|---|
 | `parts` | which tests to run (`t1t2`, `t3`, `t4`, `t5`, `t6`, `t7`, `t8`); the column-(3)–(6) chains always run | any subset | cache only (the two tables, 16 KB) |
+| `parts` = `["conv"]` or `["t8p"]` | README 4.10's post-hoc R-CONV (16 column-(3) conventions, the choice, the reruns) or T8-P (ω₀ with the divisor fixed at 74); standalone: never with the other parts, which are only read | one of them (both together only in an exploration) | cache only |
+| `conv_indices` | which conventions R-CONV fits (index = baseline·4 + σ·2 + weights; baseline L, C, Y, X; σ F, P; weights W, R) | any subset in an exploration; a formal run needs all 16 | cache only |
+| `conv_seed_offset`, `conv_min_count`, `conv_repro_count`, `conv_width_range`, `t8p_bound_frac` | R-CONV seeds and choice rule, T8-P bound rule (pre-registered values, README 4.10) | changed only in an exploration | cache only |
 | `variants` | T6 variants to run | any subset of the ten names | cache only |
 | `bandwidth_pc` | kernel bandwidth of the weights (pc) | 30–300 | cache only |
 | `sigma_pc` | common scatter σ of the likelihood and the mock noise (pc) | 30–80 | cache only |
@@ -609,6 +650,18 @@ How a coding agent answers "what if" questions about this study without touching
   takes about 45 minutes in all, `parts='["t7"]'` about 50 minutes, and `parts='["t8"]'` (for example with
   a new `sun_vz_kms`) about 70 minutes. Rerunning the same date, tag and PARAMS resumes from the
   exploration's checkpoints; delete that folder by hand when done.
+- **R-CONV and T8-P (README 4.10, post hoc).** Formal procedure: after the formal full run (its `summary.json` must
+  exist), set `"parts": ["conv"]` in `PARAMS` (committed, with a line in `log.md`), run
+  `python -m astrolab run 011-m11-radcliffe-wave-oscillation`, and rerun the same command after each pause at
+  `stop_after_hours` until it completes (it resumes from `s011_checkpoints/conv/<key>` and deletes that folder when done);
+  then the same with `["t8p"]`; then set `parts` back to the default list. Only `rconv.json` or `t8p.json`, the
+  `R_CONV` or `T8_P` key of `summary.json` and the `_conv` / `_t8p` records are written. Runtime, measured on synthetic
+  data of the real size (79 clouds, 2,000 grid points) while the machine was busy: one column-(3) likelihood takes
+  0.7–1.4 ms depending on the convention (L-F-W fastest; C, X and P slowest). Every formal chain was rerun with doubled
+  steps, so each chain is taken as 48 × 18,000 evaluations: about 10–20 minutes per column-(3) chain, 2.7–5.4 hours for
+  the sixteen; the reruns about 0.8 hours (columns (4)–(6) about 45 minutes, T5 and its known-answer check a few
+  minutes); Part B about 0.7 hours. In all about 3.5–6 hours (R-CONV) plus 0.7 hours (T8-P) on one core. A quick look:
+  `--set parts='["conv"]' conv_indices='[0, 9]' mcmc_steps=1500 mcmc_burn=500` (about 25 minutes with the reruns, labelled as a subset).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --script explore/<name>.py`.
   Existing: `explore/age_scatter.py` (wiki Part 3 exploration "Age and birth in the Wave": RMS of the z
@@ -636,13 +689,25 @@ How a coding agent answers "what if" questions about this study without touching
   - `results/t8.json`: `ln_omega0_k24_prior`, `ln_omega0_broad_prior`, `halfwidth_broad`,
     `median_shift_in_sigma_broad`, `label`, and for `k24_priors`, `broad_priors`, `variant_divisor_fixed`:
     `omega0_kms_kpc`, `rho0_msun_pc3`, `sun_period_myr`.
+  - `results/rconv.json` (README 4.10): `conventions` (per convention: `index`, `name`, `count`, `inside`,
+    `sigma_scaled_differences`, `width_ratio`, `halfwidth_ratios`, `parameters`, `sigma_P_at_median_pc`, `chain`),
+    `choice` (`case`, `chosen`, `chosen_name`, `label`, `reason`), `label`, `complete_set`, `k24_column3`, `reruns`
+    (`t1`, `col5`, `t5` with `known_answer` incl. `injected_vector`, `labels`, `chains`, `chain_short`).
+  - `results/t8p.json` (README 4.10): `ln_omega0_k24_prior`, `ln_omega0_broad_prior`, `halfwidth_broad`,
+    `median_shift_in_sigma_broad`, `broad_median_omega0_kms_kpc`, `label`, `at_bound`, `width_shift_rule_label`,
+    `bound_thresholds_kms_kpc`, `distance_to_upper_bound`, `k24_priors` and `broad_priors` (`omega0_kms_kpc`,
+    `rho0_msun_pc3`, `sun_period_myr`, `mu0_kpc`, `r0_pc`), `chains`.
   - `results/summary.json`: every label, `overall` (`reading`, `support`, `do_not_support`,
-    `undetermined_or_not_evaluable`, `qualifier`), `load_check`, `timing`, `chain_short`.
+    `undetermined_or_not_evaluable`, `qualifier`), `load_check`, `timing`, `chain_short`; after the standalone runs also
+    `R_CONV` (`label`, `case`, `chosen`, `reason`, `counts`, `width_ratios`, `reruns`, `chain_short`) and `T8_P`
+    (`label`, `at_bound`, `halfwidth_broad`, `median_shift_in_sigma_broad`, `omega0_k24`, `omega0_broad`).
 - Example questions:
   - "Is T5's verdict sensitive to the wavelength band?" → `--set t5_band='[0.7, 1.4]' parts='["t5"]'` (about 45 minutes).
   - "What if the Wave's scatter were 35 pc?" → `--set sigma_pc=35` (new fits; hours).
   - "Do older clusters scatter more?" → `--script explore/age_scatter.py`.
   - "How much does the Sun's period depend on its vertical velocity?" → `--set sun_vz_kms=7.25 parts='["t8"]'` (about 70 minutes; only the divisor-74 variant is meaningful, section 6 point 1).
   - "Does T8 need the ln ω₀ normalisation?" → `--script explore/t8_jacobian.py`.
+  - "Which baseline, σ and weight convention reproduces K24's column (3)?" → the formal R-CONV run above (`parts=["conv"]`).
+  - "Is ω₀ set by the data once the divisor is fixed?" → the formal T8-P run (`parts=["t8p"]`, about 0.7 hours).
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.

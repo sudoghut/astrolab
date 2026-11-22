@@ -174,6 +174,68 @@ def t8_label(halfwidth_broad, prior_sigma, median_shift_sigma, *, width_frac=0.5
     return "partly data-driven"
 
 
+# ---------------------------------------------------------------------------------------------
+# README 4.10 (T-056, post hoc): R-CONV choice of the convention, T8-P
+
+RCONV_SUFFIX = " (best among these 16 candidate conventions, post hoc)"
+T8P_AT_BOUND = "prior-driven (posterior at the bound)"
+
+
+def half_width(p16, p84) -> float:
+    return 0.5 * (p84 - p16)
+
+
+def width_ratio(ours: dict, k24: dict) -> float:
+    """Median over the counted parameters of our 16-84% half-width over K24's.
+
+    ours[name] = (p16, p84); k24[name] = (plus, minus) as printed (half-width (plus + minus)/2)."""
+    r = [half_width(*ours[n]) / (0.5 * (k24[n][0] + k24[n][1])) for n in ours]
+    return float(np.median(r))
+
+
+def width_in(ratio, lo=2.0 / 3.0, hi=1.5) -> bool:
+    return bool(ratio is not None and np.isfinite(ratio) and lo <= ratio <= hi)
+
+
+def rconv_choose(rows, *, min_count=3, repro_count=5, ratio_range=(2.0 / 3.0, 1.5)) -> dict:
+    """README 4.10 choice rule. rows: dicts with index, name, count, width_ratio, n_factors_differing.
+
+    (i) no count >= 3: "not reproduced under any candidate convention", nothing chosen;
+    (ii) among count >= 3 with the width ratio in [2/3, 3/2], the largest count;
+    (iii) if none of those has its ratio in range, the largest count among count >= 3.
+    Ties: fewest factors differing from (L, F, W), then the lowest index."""
+    lo, hi = ratio_range
+    cand = [r for r in rows if r["count"] >= min_count]
+    if not cand:
+        return {"case": "i", "chosen": None, "label": "column (3) not reproduced under any candidate convention"
+                + RCONV_SUFFIX, "reason": f"every count <= {min_count - 1}", "status": "not reproduced"}
+    inw = [r for r in cand if width_in(r["width_ratio"], lo, hi)]
+    pool, case = (inw, "ii") if inw else (cand, "iii")
+    best = min(pool, key=lambda r: (-r["count"], r["n_factors_differing"], r["index"]))
+    ok_w = width_in(best["width_ratio"], lo, hi)
+    reasons = []
+    if best["count"] < repro_count:
+        reasons.append(f"count {best['count']} of 6 (3-4)")
+    if not ok_w:
+        reasons.append(f"width ratio {best['width_ratio']:.3f} outside [2/3, 3/2]")
+    status = "reproduced" if not reasons else "partly reproduced"
+    return {"case": case, "chosen": best["index"], "chosen_name": best["name"],
+            "label": f"column (3) {status} under {best['name']}" + RCONV_SUFFIX,
+            "reason": "; ".join(reasons) or None, "status": status}
+
+
+def t8p_label(halfwidth_broad, prior_sigma, median_shift_sigma, broad_median_omega0, bounds, *,
+              bound_frac=0.05, width_frac=0.5, shift_max=0.5) -> dict:
+    """README 4.10 Part B: section 2's T8 rule, except that a broad-prior median of omega0 within
+    bound_frac of a bound's value (above (1 - f) hi or below (1 + f) lo) gives "prior-driven (posterior at
+    the bound)", which takes precedence."""
+    lo, hi = bounds
+    at_bound = bool(broad_median_omega0 > (1.0 - bound_frac) * hi or broad_median_omega0 < (1.0 + bound_frac) * lo)
+    rule = t8_label(halfwidth_broad, prior_sigma, median_shift_sigma, width_frac=width_frac, shift_max=shift_max)
+    return {"label": T8P_AT_BOUND if at_bound else rule, "at_bound": at_bound, "width_shift_rule_label": rule,
+            "bound_thresholds": [(1.0 + bound_frac) * lo, (1.0 - bound_frac) * hi]}
+
+
 def overall_reading(t1_col4, t3_standing, t4, t5_bhat, t6) -> dict:
     """README section 2 'Overall reading', mechanically from the labels."""
     support = {
