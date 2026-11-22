@@ -1376,7 +1376,8 @@ recorded points include "excluded" (ν = ∞ at all three τ; ν = 4 at 0.05; ν
 at τ̂_obs; ν = 4 at 0.105), so it can only read "model-limited", with its lower end 0.0127 (ν = ∞, τ = 0.05) already
 known. What is new is the upper end of the fixed-τ p values, the size of the refitted test at ν = 3, 6, 10, 30, and
 its calibrated p value there. Not yet computed: any simulation or inner draw at ν = 6 or 30, any outer simulation at
-ν = 3 or 10, any fixed-τ p at ν = 3 or 10 other than at τ̂_obs; no code for this addendum exists.
+ν = 3 or 10, any fixed-τ p at ν = 3 or 10 other than at τ̂_obs, and p_cal at ν = ∞ under V050 and V105
+(derivable from R2-RE-G's committed k_s but never computed; only VHAT's p_dbl was); no code for this addendum exists.
 
 *Grid.* ν ∈ {3, 4, 6, 10, 30, ∞} (∞: Gaussian host effects) × τ ∈ {0.05, τ̂_obs, 0.105} mag, the three values that
 R2-RE-G and R2-RE-GT checked (close to R2-RE's 68% interval 0.048–0.105). The statistic G, z_j, M, W, the design, the
@@ -1416,7 +1417,9 @@ three simulations pass R2-RE-GT's pointwise checks (y_s built in full: the 37 on
 profile"; any other mix (including "excluded" or "not excluded" together with "undetermined (Monte Carlo)" points) →
 **"t-tail comparison: model-limited (p_fix from <min> to <max>)"**, min and max over all 18 points. Reported with it:
 the 18 p_fix with labels; per ν, p_plug, the three sizes and the three p_cal; the ν values at which the refitted test
-is flagged anti-conservative at any τ; and the largest and smallest p_cal over the grid. The largest p_fix is "the
+is flagged anti-conservative at any τ (their p_plug, sizes and p_cal are still listed, marked, and left out of the
+p_cal extremes); per ν, max over τ of p_cal(ν, τ), labelled "at the three checked τ only"; and the largest and
+smallest p_cal over the unflagged ν. The largest p_fix is "the
 largest of 18 model-specific p values", not a p value for a composite null (the grid is coarse and ν, τ are
 not integrated over). The statement is attached in section 5 to R2-RE-GT's sub-label as its profile; it is not a
 reading and does not replace the sub-label.
@@ -1424,7 +1427,8 @@ reading and does not replace the sub-label.
 *Expected outcome (stated now).* p_fix grows with heavier tails and larger τ: the largest at ν = 3, τ = 0.105, likely
 about 0.10–0.13. The size of the refitted test should stay near or below 0.05 at ν ≥ 4; at ν = 3 it may exceed 0.05
 (heavier tails make one large draw inflate G and τ̂ together), and then ν = 3 is flagged. p_cal should be close to
-p_plug where the size is near 0.05, and larger where the test is conservative.
+p_plug where the size is near 0.05 (already seen at ν = 4: 0.046–0.051 against p_plug 0.052), and larger where the
+test is conservative.
 
 *Runtime.* R2-RE-GT's outer sets took about 18 s each for 10,000 simulations (single thread); 12 new sets about 4 min,
 the inner p and checks under 1 min, data loading and host identification 2–3 min: about 10 min single-threaded.
