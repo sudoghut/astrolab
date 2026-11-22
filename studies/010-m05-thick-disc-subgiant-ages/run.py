@@ -1045,7 +1045,6 @@ def orig_seq_rng(P, index):
 
 def main_sel(ctx, P, store_root=None):
     """The R-SEL re-test (README 2.5). Writes r1_sel.json, r34_sel.json and sel.json."""
-    from astrolab import config
 
     t_start = time.time()
     C = Ctx(P)
@@ -1652,7 +1651,6 @@ def selfit_mock_check(results, sets, recorded):
 
 def main_selfit(ctx, P, store_root=None, recorded=None):
     """R1-SEL-FIT (README 2.6, T-049). Writes r1_selfit.json; r1_sel.json is read, never written."""
-    from astrolab import config
 
     t_start = time.time()
     if hasattr(ctx, "record_suffix"):
@@ -2016,7 +2014,6 @@ def _store_root(ctx, store_root, name):
 
 def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
     """R1-ERR (README 2.7, T-054). Writes r1_err.json; r1_sel.json and r1_selfit.json are read, never written."""
-    from astrolab import config
 
     t_start = time.time()
     if hasattr(ctx, "record_suffix"):
