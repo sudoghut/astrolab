@@ -1526,6 +1526,9 @@ How a coding agent answers "what if" questions about this study without touching
   plus mocks (`--set sel_n_mock=2` for a quick run; at 50 per set the mocks took 6 h of compute and
   the interrupted run 10 h in all). Its mocks are
   checkpointed in the cache under a key of the code and PARAMS, so an override starts a new folder;
+  since 2026-11-22 (T-058) an exploration's R-SEL, R1-SEL-FIT and R1-ERR checkpoints go to a sibling root
+  (`s010_sel_mocks_explore`, `s010_selfit_mocks_explore`, `s010_err_mocks_explore`, each under
+  `<date>-<tag>`), never into the formal folders, so pruning exploration checkpoints cannot touch them;
   it needs about 6 GB of memory at peak (section 5.1). Since 2026-11-20 (T-046, after the R-SEL
   run; the code change gives a new checkpoint key) a refused file replace is retried for about 25 s
   before the run stops, and on a resume the projection counts mocks already checkpointed as

@@ -1048,3 +1048,20 @@ def test_err_exploration_checkpoints_are_separate(tmp_path):
     formal = types.SimpleNamespace(results=str(R.HERE / "results"))
     explore = types.SimpleNamespace(results=str(tmp_path / "2026-11-21-x"), max_save_bytes=1_000_000)
     assert R._is_formal(formal) and not R._is_formal(explore)
+
+
+def test_exploration_checkpoint_roots_are_separate(tmp_path, monkeypatch):
+    """T-058: R-SEL, R1-SEL-FIT and R1-ERR put an exploration's checkpoints in a sibling root, never the formal one."""
+    import types
+    from astrolab import config
+    monkeypatch.setattr(config, "cache_dir", lambda: tmp_path / "cache")
+    formal = types.SimpleNamespace(results=str(run.HERE / "results"))
+    explore = types.SimpleNamespace(results=str(tmp_path / "2026-11-22-x"), max_save_bytes=1_000_000)
+    for name in ("s010_sel_mocks", "s010_selfit_mocks", "s010_err_mocks"):
+        assert run._store_root(formal, None, name) == tmp_path / "cache" / name
+        assert run._store_root(explore, None, name) == tmp_path / "cache" / f"{name}_explore" / "2026-11-22-x"
+        assert run._store_root(explore, tmp_path / "given", name) == tmp_path / "given"
+    src = (run.HERE / "run.py").read_text(encoding="utf-8")
+    for name in ("s010_sel_mocks", "s010_selfit_mocks", "s010_err_mocks"):
+        assert src.count(f'_store_root(ctx, store_root, "{name}")') == 1
+        assert src.count(f'"{name}"') == 1          # no other path builds the formal root

@@ -1079,7 +1079,7 @@ def main_sel(ctx, P, store_root=None):
             src, dst = Path(res_dir) / f"{name}.json", Path(res_dir) / f"orig_{name}.json"
             if src.exists() and not dst.exists():
                 shutil.copy2(src, dst)
-    root = Path(store_root) if store_root else config.cache_dir() / "s010_sel_mocks"
+    root = _store_root(ctx, store_root, "s010_sel_mocks")
     store = selaux.MockStore(root, _sel_key(P, df))   # refuses a stopped run without consent
     ctx.log(f"R-SEL checkpoints: {store.dir} ({'resumed with consent' if store.resumed else 'new or continued'})")
     memory = {}
@@ -1694,7 +1694,7 @@ def main_selfit(ctx, P, store_root=None, recorded=None):
         ctx.save("r1_selfit", out)
         return {"R1-SEL-FIT": out["status"]}
     sets = selaux.selfit_sets(nbins, mechs, sens_bins)
-    root = Path(store_root) if store_root else config.cache_dir() / "s010_selfit_mocks"
+    root = _store_root(ctx, store_root, "s010_selfit_mocks")
     store = selaux.MockStore(root, _sel_key(P, df))
     ctx.log(f"R1-SEL-FIT checkpoints: {store.dir}")
 
@@ -2002,6 +2002,18 @@ def _is_formal(ctx):
             and Path(res).resolve() == (HERE / "results").resolve())
 
 
+def _store_root(ctx, store_root, name):
+    """Checkpoint root of a mock block (R-SEL, R1-SEL-FIT, R1-ERR): an explicit store_root (tests) as given;
+    the formal run's `<cache>/<name>`; an exploration's own `<cache>/<name>_explore/<date>-<tag>`, so that an
+    exploration never writes into (or is pruned together with) the formal checkpoints (T-058)."""
+    from astrolab import config
+    if store_root:
+        return Path(store_root)
+    if _is_formal(ctx):
+        return config.cache_dir() / name
+    return config.cache_dir() / f"{name}_explore" / Path(ctx.results).name
+
+
 def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
     """R1-ERR (README 2.7, T-054). Writes r1_err.json; r1_sel.json and r1_selfit.json are read, never written."""
     from astrolab import config
@@ -2071,9 +2083,7 @@ def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
     if gen["mismatches"]:
         return fail("not evaluable (reproduction): the f = 1 generator differs from the recorded R1-SEL-FIT mocks")
     sets = selaux.err_sets(P["err_f"], bins, P["mechs"])
-    root = Path(store_root) if store_root else config.cache_dir() / "s010_err_mocks"
-    if store_root is None and not _is_formal(ctx):  # an exploration never writes into the formal checkpoints
-        root = config.cache_dir() / "s010_err_mocks_explore" / Path(ctx.results).name
+    root = _store_root(ctx, store_root, "s010_err_mocks")
     store = selaux.MockStore(root, _sel_key(P, df), name="R1-ERR", rule="README 2.7")   # refuses a stopped run without consent
     ctx.log(f"R1-ERR checkpoints: {store.dir} ({'resumed with consent' if store.resumed else 'new or continued'})")
 
