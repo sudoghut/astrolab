@@ -110,7 +110,7 @@ PARAMS = {
     # load check (README 3)
     "load_check_max_abs_vz": 3.0,
     # running ("conv" and "t8p" are standalone parts, README 4.10 and section 8)
-    "parts": ["t8p"],
+    "parts": ["t1t2", "t3", "t4", "t5", "t6", "t7", "t8"],
     "timing_evals": 100,
     "stop_after_hours": 10.0,                 # pause (checkpointed) after this long; 0 = no limit
     "checkpoint_subdir": "s011_checkpoints",
