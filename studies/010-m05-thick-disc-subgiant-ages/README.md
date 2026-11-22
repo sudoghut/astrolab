@@ -961,8 +961,9 @@ is reported next to R1-SEL-FIT and R1-ERR as a further qualifier, not as a verdi
   metal-poor bins stay resolvable ([−0.1, 0.1), resolvable in R1-SEL-FIT, counts as the third). At f = 2.81, term E's bin [−0.5, −0.3) has d = 0.271, also above 0.25: "reproduced at 2.81" is impossible
   in term E too, so **the primary label can only read "not reproduced" or "undetermined" at each f**. Term N and Full
   cannot read "reproduced at 2.0" either (their bin [−0.5, −0.3) has d = 0.430 and 0.421 at 2.0); at 2.81 (all three
-  bins below 0.25: 0.063, 0.242, 0.145 and 0.054, 0.232, 0.142) they can read "reproduced at 2.81" only if every q_s
-  of bin [−0.5, −0.3) exceeds 0.242 / 0.232, i.e. d* stays near its cap, the power holds and the edges fall in
+  bins below 0.25: 0.063, 0.242, 0.145 and 0.054, 0.232, 0.142) they can read "reproduced at 2.81" only if each bin's
+  d* (per bin, as in 2.1) exceeds that bin's data d: in bin [−0.5, −0.3) every q_s above 0.242 / 0.232, and in the
+  other two bins every q_s above their data d, i.e. d* stays near its cap, the power holds and the edges fall in
   6.5–9.5 Gyr. Term E's bin [−0.7, −0.5) has its data valley at 10.975 Gyr at 2.81, at the edge of 2.1's 5–11 Gyr
   window. The open parts: deconvolving mocks with large f may create valleys in unimodal null mocks
   (lowering d*), and larger f may reduce power. Our guess: term E "not reproduced at 2.0; not reproduced at 2.81",
