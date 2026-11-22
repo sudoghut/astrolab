@@ -890,7 +890,14 @@ is reported next to R1-SEL-FIT and R1-ERR as a further qualifier, not as a verdi
   much smaller valley depths at f = 2.0 and 2.81 (S15 term E 0.078, 0.465, 0.227 and 0.057, 0.271, 0.160; term N and
   Full below 0.25 in all three metal-poor bins at 2.81), but no mock calibration was done at those f, so they decide
   nothing. Its referee (section 6, R1-ERR point 8) named this as the most important additional test: draw the null
-  and power mocks with f·e, fit them with f, and read the 2.1 verdict at each f.
+  and power mocks with f·e, fit them with f, and read the 2.1 verdict at each f. The referee also asked for a power
+  model built from the data's fit at f and matched to the observed ages, and for a comparison of valley positions.
+  **The data-matched power model is omitted:** 2.1 defines power against XR22's idealised split, and R1-ERRCAL keeps
+  R1-SEL-FIT's primary power model so that "resolvable" means the same as in R1-SEL-FIT. Its direction is stated: the
+  idealised split has a wide gap (young edge 7.0 Gyr, old means 10.1–11.7 Gyr), while a split shaped like the data's
+  fits at f (valleys at 9.6–11 Gyr, more stars at 7–10 Gyr; R1-ERR referee point 1) would be harder to resolve, so
+  keeping the idealised split makes "resolvable" easier and moves outcomes towards "not reproduced" rather than
+  "undetermined". Valley positions are reported (below).
 
 - **Seen before this addendum (disclosure).** Everything in sections 5–7 and `log.md`, in particular all R1-ERR
   results: the per-set d of every mock (fitted with f = 1), the labels, the 36 companion data refits at f = 1.2, 1.5,
@@ -898,9 +905,9 @@ is reported next to R1-SEL-FIT and R1-ERR as a further qualifier, not as a verdi
   (skew-normal or split-normal) with f ≠ 1, and any d* at f ≠ 1.
 
 - **Scales and bins.** f ∈ {2.0, 2.81} (the two R1-ERR values at which the companion refits turned; f_max = 2.81 is a
-  heuristic upper value, 2.0). The three metal-poor bins [−0.7, −0.5), [−0.5, −0.3), [−0.3, −0.1) in the three
-  variants (S15 term E, primary; term N; Full). The metal-rich bins are not run (their data show no valley at f = 1;
-  that a fit with f could create one is not tested here).
+  heuristic upper value, see 2.0), in this order. The three metal-poor bins [−0.7, −0.5), [−0.5, −0.3), [−0.3, −0.1) in the three
+  variants (S15 term E, primary; term N; Full), in the order S15E, S15N, Full as in R1-ERR. The metal-rich bins are
+  not run (their data show no valley at f = 1; that a fit with f could create one is not tested here).
 
 - **Data fits at f.** For each variant, bin and f: the K = 1–4 mixtures by `run.onedim` with f (40 starts on the
   stream `default_rng([seed, 1000 + b, code, 50, round(100·f)])`, R1-ERR's companion refits; K by BIC and the K = 5
@@ -909,6 +916,8 @@ is reported next to R1-SEL-FIT and R1-ERR as a further qualifier, not as a verdi
   (8 starts each: 3 deterministic + 5 seeded perturbations of the first, bounds as recorded, the variant's selection
   term), their perturbations drawn from the same stream after the mixture fits. Valley, d, valley age and the
   young-side edge (97.5th percentile of the latent mass younger than the valley) from the K fit as in 2.1.
+  `run.r1_data_refit` is extended, not replaced: the mixture fits and K are computed first, exactly as now, so check
+  (a) holds, and the null fits follow on the same stream.
 
 - **Mocks.** For each (f, variant, bin): four null sets (skew-normal and split-normal at f × the two error mechanisms)
   and two power sets (the primary power model of R1-SEL-FIT, floor 0.12, as recorded in `r1_sel.json`, × the two
@@ -924,12 +933,19 @@ is reported next to R1-SEL-FIT and R1-ERR as a further qualifier, not as a verdi
 - **Decision rules (fixed now), per f and variant.** d*(f) = min(0.25, q₁, …, q₄) per bin as in 2.1 (q_s the 3rd
   smallest null d of set s, ties counted; 0.25 if fewer than 3 mocks of the set have a valley); a bin is resolvable if
   its power (a valley and d < d*(f)) is ≥ 0.80 under both mechanisms; almost disjoint if the data fit at f has a
-  valley with d < d*(f). Verdict at f (the 2.1 rule on the three metal-poor bins): **"reproduced at f"** if all three
-  bins are resolvable and almost disjoint and the median young-side edge of the three lies in 6.5–9.5 Gyr;
-  **"undetermined at f"** if fewer than three are resolvable; **"not reproduced at f"** otherwise.
-  - *Label R1-ERRCAL* (S15 term E, primary): "at f = 2.0: <verdict>; at f = 2.81: <verdict>", preceded by
-    "not evaluable (reproduction)" if check (a) fails, or "not evaluable (non-finite)" if any mock of a set used has a
-    non-finite result (`selaux.nonfinite`). Term N and Full give the same label, reported next to it.
+  valley with d < d*(f). Verdict at f: the 2.1 rule on all five bins, with the three metal-poor bins from R1-ERRCAL
+  at f and the two metal-rich bins taken from R1-SEL-FIT (resolvable or not, and not almost disjoint, as their data
+  show no valley), as R1-ERR's amendment 4 does for "the 2.1 verdict R1 would read at f"; the metal-rich bins are not
+  calibrated at f, which is stated with the verdict. So **"reproduced at f"** if at least three bins are resolvable, at
+  least three of them almost disjoint (only the metal-poor bins can be) and the median young-side edge of the almost-
+  disjoint bins lies in 6.5–9.5 Gyr; **"undetermined at f"** if fewer than three bins are resolvable; **"not
+  reproduced at f"** otherwise.
+  - *Label R1-ERRCAL* (S15 term E, primary): "at f = 2.0: <verdict>; at f = 2.81: <verdict>". The whole label is
+    replaced by "not evaluable (reproduction)" if check (a) fails. Per f, the verdict is replaced by "not evaluable
+    (non-finite)" if any mock of a set at that f has a non-finite result (`selaux.nonfinite`), and by "not evaluable
+    (generator)" if the generator fails (a `RuntimeError` of `mocks.catalogue_sel` or of the latent sampler) in a set
+    at that f; the failing mock is checkpointed with `gen_fail`, no further mock of that f and variant is run, and
+    the other f is unaffected. Term N and Full give the same label, reported next to it.
   - *Reading (fixed now).* "Reproduced at f" means: if the true errors were f times the quoted ones, the data's dips,
     deconvolved with those errors, are as deep as an almost-disjoint split, and the test could see such a split.
     "Not reproduced at f" keeps R1-SEL-FIT's reading at that scale. Neither says that f is plausible; R1-ERR's
@@ -943,9 +959,12 @@ is reported next to R1-SEL-FIT and R1-ERR as a further qualifier, not as a verdi
 - **What the outcome can be (stated now).** At f = 2.0, S15 term E's bin [−0.5, −0.3) has data d = 0.465 at f, above
   any d* ≤ 0.25, so "reproduced at 2.0" is impossible in term E; "not reproduced at 2.0" if the three bins stay
   resolvable. At f = 2.81, term E's bin [−0.5, −0.3) has d = 0.271, also above 0.25: "reproduced at 2.81" is impossible
-  in term E too, so **the primary label can only read "not reproduced" or "undetermined" at each f**; term N and Full
-  (all three bins below 0.25 at 2.81) can read "reproduced at 2.81" if d* stays near its cap, the power holds and the
-  edges fall in 6.5–9.5 Gyr. The open parts: deconvolving mocks with large f may create valleys in unimodal null mocks
+  in term E too, so **the primary label can only read "not reproduced" or "undetermined" at each f**. Term N and Full
+  cannot read "reproduced at 2.0" either (their bin [−0.5, −0.3) has d = 0.430 and 0.421 at 2.0); at 2.81 (all three
+  bins below 0.25: 0.063, 0.242, 0.145 and 0.054, 0.232, 0.142) they can read "reproduced at 2.81" only if every q_s
+  of bin [−0.5, −0.3) exceeds 0.242 / 0.232, i.e. d* stays near its cap, the power holds and the edges fall in
+  6.5–9.5 Gyr. Term E's bin [−0.7, −0.5) has its data valley at 10.975 Gyr at 2.81, at the edge of 2.1's 5–11 Gyr
+  window. The open parts: deconvolving mocks with large f may create valleys in unimodal null mocks
   (lowering d*), and larger f may reduce power. Our guess: term E "not reproduced at 2.0; not reproduced at 2.81",
   term N and Full split between "reproduced" and "undetermined" at 2.81.
 
