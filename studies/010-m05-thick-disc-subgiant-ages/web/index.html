@@ -71,6 +71,11 @@
   <h3><span class="en">Companion data refits at f (reported, not decisive)</span><span class="zh">在 f 下重拟合数据（仅报告，不作判决）</span></h3>
   <div class="scroll"><table id="errcomp"></table></div>
   <p class="muted" id="errerr"></p>
+  <h2><span class="en">R1-ERRCAL · R1's verdict if the true errors were f × e_Age and the fit knew it (T-059)</span><span class="zh">R1-ERRCAL · 若真实误差为 f × e_Age 且拟合已知此尺度，R1 的判决（T-059）</span></h2>
+  <p><span class="en">Pre-registered in README 2.8. For f = 2.0 and 2.81 the three metal-poor bins are refitted with f (mixtures as R1-ERR's companion refits, plus the skew-normal and split-normal nulls at f); null mocks (from the nulls at f) and power mocks (R1-SEL-FIT's primary power model) are drawn with true errors f × e_Age and fitted with f by R1-SEL-FIT's procedure. Per f, d* (per bin), resolvability and "almost disjoint" follow the 2.1 rules, and the 2.1 verdict uses all five bins, the two metal-rich bins taken from R1-SEL-FIT (not calibrated at f). It qualifies R1-SEL-FIT and R1-ERR; it is not a verdict on XR22's claim and does not say that f is plausible.</span><span class="zh">预注册见 README 2.8。对 f = 2.0 与 2.81，用 f 重新拟合三个贫金属箱（混合模型同 R1-ERR 的伴随重拟合，另加 f 下的偏正态与分段正态零假设）；零假设模拟（取自 f 下的零假设拟合）与功效模拟（R1-SEL-FIT 的主功效模型）都以 f × e_Age 的真实误差抽取，并按 R1-SEL-FIT 的流程用 f 拟合。每个 f 下，d*（逐箱）、可分辨与"几乎不相交"沿用 2.1 的规则，2.1 判决用全部五个箱，两个富金属箱取自 R1-SEL-FIT（未在 f 下校准）。它是 R1-SEL-FIT 与 R1-ERR 的限定语，不是对 XR22 结论的判决，也不说明 f 是否合理。</span></p>
+  <p id="errcallab"></p>
+  <div class="scroll"><table id="errcaltab"></table></div>
+  <p class="muted" id="errcalerr"></p>
 
   <p class="muted" id="err"></p>
   <section id="skylinks" class="card" hidden></section>
@@ -241,6 +246,8 @@ function renderAll() {
   catch (e) { document.getElementById('selfiterr').innerHTML = L('Could not render R1-SEL-FIT: ', '无法显示 R1-SEL-FIT：') + esc(e); }
   try { errpart(); }
   catch (e) { document.getElementById('errerr').innerHTML = L('Could not render R1-ERR: ', '无法显示 R1-ERR：') + esc(e); }
+  try { errcalpart(); }
+  catch (e) { document.getElementById('errcalerr').innerHTML = L('Could not render R1-ERRCAL: ', '无法显示 R1-ERRCAL：') + esc(e); }
 }
 
 // R1-ERR labels in Chinese (README 2.7 wording)
@@ -311,6 +318,59 @@ function errpart() {
     : '';
 }
 
+// R1-ERRCAL labels in Chinese (README 2.8 wording)
+const errcalz = v => String(v)
+  .replace(/at f = ([\d.]+): /g, 'f = $1 时：').replace(/not evaluable \(generator\)/g, '不可评估（生成器）')
+  .replace(/not evaluable \(non-finite\)/g, '不可评估（非有限值）').replace(/not evaluable \(reproduction\)/g, '不可评估（重现）')
+  .replace(/^evaluated$/, '已评估').replace(/no label \(exploration with (\d+) mocks per set; the label needs 50\)/, '无标签（每组 $1 次模拟的探索；标签需要 50 次）')
+  .replace(/not reproduced/g, '未复现').replace(/undetermined/g, '无法判定').replace(/reproduced/g, '复现').replace(/; /g, '；');
+const errcalv = v => L(esc(v), esc(errcalz(v)));
+
+function errcalpart() {
+  const R = D.errcal;
+  const lab = document.getElementById('errcallab'), tab = document.getElementById('errcaltab');
+  if (!R) {
+    lab.innerHTML = L('<b>R1-ERRCAL</b>: not yet run (pre-registered; results will appear here as r1_errcal.json).',
+                      '<b>R1-ERRCAL</b>：尚未运行（已预注册；结果写入 r1_errcal.json 后显示在这里）。');
+    tab.innerHTML = '';
+    return;
+  }
+  let txt = `<b>R1-ERRCAL</b> (S15E): ${errcalv(R.label)}`;
+  if (R.labels) txt += ' · ' + ['S15N', 'Full'].map(v => `${esc(v)}: ${errcalv(R.labels[v])}`).join(' · ');
+  if (R.computed_labels_not_used) txt += ' · ' + L('computed (not used): ', '计算所得（不采用）：') + errcalv(R.computed_labels_not_used.S15E);
+  txt += ' · ' + L('status: ', '状态：') + errcalv(R.status);
+  lab.innerHTML = txt;
+  if (!R.variants) { tab.innerHTML = ''; return; }
+  const yn = x => x ? L('yes', '是') : L('no', '否');
+  const rr = [];
+  for (const v of ['S15E', 'S15N', 'Full']) {
+    for (const fv of R.f) {
+      const key = String(fv).includes('.') ? String(fv) : `${fv}.0`;
+      const pf = R.variants[v].per_f[key];
+      if (!pf) continue;
+      if (pf.status !== 'evaluated') {
+        rr.push(row([`<b>${esc(v)}</b>`, esc(key), '–', errcalv(pf.status), '–', '–', '–', '–', '–', '–']));
+        continue;
+      }
+      pf.bins.forEach((b, i) => {
+        const pset = R.per_set.filter(s => s.variant === v && s.f === fv && s.bin === R.bins[i] && s.kind === 'power');
+        const vt = pset.map(s => f(s.median_valley_t_mocks)).join(' / ');
+        rr.push(row([i === 0 ? `<b>${esc(v)}</b>` : '', i === 0 ? esc(key) : '', esc(b.bin_name),
+          `${f(b.d, 3)}${b.valley ? '' : L(' (no valley)', '（无谷）')}`, f(b.d_star, 3),
+          `${f(b.power.rtau)} / ${f(b.power.rA)}`, yn(b.resolvable), yn(b.almost_disjoint),
+          `${vt} (${f(b.valley_t)})`, i === 0 ? verdict(pf.verdict) : '']));
+      });
+      const mr = (pf.metal_rich_from_r1_selfit || []).map(b => `${esc(b.bin_name)}: ${b.resolvable ? L('resolvable', '可分辨') : L('not resolvable', '不可分辨')}`).join(' · ');
+      rr.push(row(['', '', `<span class="muted">${L('metal-rich (R1-SEL-FIT)', '富金属（R1-SEL-FIT）')}</span>`, `<span class="muted">${mr}</span>`, '', '', '', '', '', '']));
+    }
+  }
+  tab.innerHTML =
+    head([L('variant', '变体'), 'f', '[Fe/H]', L('data d at f', 'f 下的数据 d'), 'd*', L('power r·τ / r·A', '功效 r·τ / r·A'),
+          L('resolvable', '可分辨'), L('almost disjoint', '几乎不相交'),
+          L('median valley age of power mocks r·τ / r·A (data at f), Gyr', '功效模拟谷位置中位数 r·τ / r·A（f 下的数据），Gyr'),
+          L('2.1 verdict at f', '该 f 下的 2.1 判决')]) + rr.join('');
+}
+
 function selfit() {
   const R = D.selfit;
   if (!R) return;
@@ -333,8 +393,9 @@ function selfit() {
 }
 
 Promise.all(['summary', 'r1', 'r2', 'r34', 'r56', 'r7'].map(getJ)).then(([summary, r1d, r2d, r34d, r56d, r7d]) => {
-  D = {summary, r1: r1d, r2: r2d, r34: r34d, r56: r56d, r7: r7d, sel: null, selfit: null, err: null};
+  D = {summary, r1: r1d, r2: r2d, r34: r34d, r56: r56d, r7: r7d, sel: null, selfit: null, err: null, errcal: null};
   getJ('r1_err').then(x => { D.err = x; renderAll(); }).catch(() => { /* not yet run: errpart() says so */ });
+  getJ('r1_errcal').then(x => { D.errcal = x; renderAll(); }).catch(() => { /* not yet run: errcalpart() says so */ });
   getJ('r1_selfit').then(x => { D.selfit = x; renderAll(); })
     .catch(e => { document.getElementById('selfiterr').innerHTML = L('R1-SEL-FIT results not available yet: ', '尚无 R1-SEL-FIT 的结果：') + esc(e); });
   Promise.all(['r1_sel', 'r34_sel'].map(getJ)).then(([a, b]) => { D.sel = {r1: a, r34: b}; renderAll(); })

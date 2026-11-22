@@ -1051,17 +1051,350 @@ def test_err_exploration_checkpoints_are_separate(tmp_path):
 
 
 def test_exploration_checkpoint_roots_are_separate(tmp_path, monkeypatch):
-    """T-058: R-SEL, R1-SEL-FIT and R1-ERR put an exploration's checkpoints in a sibling root, never the formal one."""
+    """T-058, T-059: R-SEL, R1-SEL-FIT, R1-ERR and R1-ERRCAL put an exploration's checkpoints in a sibling root."""
     import types
     from astrolab import config
     monkeypatch.setattr(config, "cache_dir", lambda: tmp_path / "cache")
     formal = types.SimpleNamespace(results=str(run.HERE / "results"))
     explore = types.SimpleNamespace(results=str(tmp_path / "2026-11-22-x"), max_save_bytes=1_000_000)
-    for name in ("s010_sel_mocks", "s010_selfit_mocks", "s010_err_mocks"):
+    for name in ("s010_sel_mocks", "s010_selfit_mocks", "s010_err_mocks", "s010_errcal_mocks"):
         assert run._store_root(formal, None, name) == tmp_path / "cache" / name
         assert run._store_root(explore, None, name) == tmp_path / "cache" / f"{name}_explore" / "2026-11-22-x"
         assert run._store_root(explore, tmp_path / "given", name) == tmp_path / "given"
     src = (run.HERE / "run.py").read_text(encoding="utf-8")
-    for name in ("s010_sel_mocks", "s010_selfit_mocks", "s010_err_mocks"):
+    for name in ("s010_sel_mocks", "s010_selfit_mocks", "s010_err_mocks", "s010_errcal_mocks"):
         assert src.count(f'_store_root(ctx, store_root, "{name}")') == 1
         assert src.count(f'"{name}"') == 1          # no other path builds the formal root
+
+
+# ---------------------------------------------------------------------------------------------
+# R1-ERRCAL (README 2.8, T-059)
+# ---------------------------------------------------------------------------------------------
+def test_errcal_params_sets_and_key():
+    P = run.PARAMS
+    assert P["errcal_f"] == [2.0, 2.81] and P["errcal_bins"] == [0, 1, 2] and P["errcal_n_mock"] == 50
+    assert P["errcal_seed_tag"] == 59 and P["errcal_seed_tag_indep"] == 159 and P["errcal_stop_h"] == 16.0
+    assert P["parts"] == ["err"]                                    # the committed default is unchanged
+    assert "errcal_stop_h" in selaux.NO_KEY_PARAMS and "parts" in selaux.NO_KEY_PARAMS
+    sets = selaux.errcal_sets(P["errcal_f"], P["errcal_bins"], P["mechs"])
+    assert len(sets) == 108 and [s["k"] for s in sets] == list(range(108))
+    nest = [(f, v, b, kind, m) for f in (2.0, 2.81) for v in ("S15E", "S15N", "Full") for b in (0, 1, 2)
+            for kind in ("null_sn", "null_sp", "power") for m in ("rtau", "rA")]
+    assert [(s["f"], s["variant"], s["bin"], s["kind"], s["mech"]) for s in sets] == nest
+    assert len({s["group"] for s in sets}) == 6                      # (variant, f) projection groups
+    assert all(s["floor"] == "primary" for s in sets) and len(sets) * P["errcal_n_mock"] == 5400
+    src = {"run.py": "x"}
+    k0 = selaux.checkpoint_key(dict(P), src, b"d")
+    assert selaux.checkpoint_key({**P, "errcal_stop_h": 30.0, "parts": ["errcal"]}, src, b"d") == k0
+    assert selaux.checkpoint_key({**P, "errcal_f": [2.0]}, src, b"d") != k0
+    text = (HERE / "run.py").read_text(encoding="utf-8")
+    assert selaux.strip_params(text.replace('"errcal_stop_h": 16.0', '"errcal_stop_h": 20.0')) == selaux.strip_params(text)
+
+
+def test_errcal_parts_validation(monkeypatch):
+    for bad in (["errcal", "err"], ["errcal", "selfit"], ["orig", "errcal"], ["sel", "errcal"]):
+        monkeypatch.setitem(run.PARAMS, "parts", bad)
+        with pytest.raises(ValueError):
+            run.main(None)
+
+
+def test_errcal_streams():
+    """README 2.8: mock j of set k draws its catalogue and fit (o) from [seed, 59, k, j], fit (i) from
+    [seed, 159, k, j]; the tags are used by no other part."""
+    P = dict(run.PARAMS)
+    for k, j in ((0, 0), (107, 49), (12, 3)):
+        a, b = run.errcal_rngs(P["seed"], P, k, j)
+        assert np.array_equal(a.random(4), np.random.default_rng([P["seed"], 59, k, j]).random(4))
+        assert np.array_equal(b.random(4), np.random.default_rng([P["seed"], 159, k, j]).random(4))
+    tags = [P[k] for k in ("sel_seed_tag", "selfit_seed_tag", "err_seed_tag", "err_seed_tag_indep")]
+    assert not {59, 159} & set(tags)
+
+
+def test_errcal_model_with_f_has_kernel_width_f_e(monkeypatch):
+    """README 2.8: every R1-ERRCAL mock is fitted with f; the model's kernels (and term E) are those of the
+    errors f x e, so its likelihood is the likelihood at f."""
+    import dataclasses
+    C = run.Ctx(dict(run.PARAMS))
+    D, pools = _synthetic_D(C, variant="S15E")
+    seen = []
+    orig = run.onedim
+
+    def spy(*a, **kw):
+        model = orig(*a, **kw)
+        seen.append((kw.get("f", 1.0), kw, model))
+        return model
+    monkeypatch.setattr(run, "onedim", spy)
+    rngs = (np.random.default_rng(5), np.random.default_rng(6))
+    res = run.r1_mock_errcal(C, D, "null_sp", "rtau", rngs, pools, 2, 2.0)
+    assert res["gen_fail"] is False and not selaux.nonfinite({k: res[k] for k in run.USED_FIELDS})
+    assert len(seen) == 1
+    f, kw, model = seen[0]
+    assert f == 2.0
+    scaled = dataclasses.replace(model.cells, e=model.cells.e * 2.0)
+    K1, P1 = m0.kernels(C.grid, scaled, f=1.0, sel=kw["sel"], ptab=kw["ptab"])
+    assert np.allclose(model.K, K1, rtol=1e-12, atol=0) and np.allclose(model.P, P1, rtol=1e-12, atol=1e-15)
+    th = np.array([9.0, np.log(2.0)])
+    p = m0.mix_cells(C.grid, th, 1)
+    direct = m0.OneD(C.grid, scaled, f=1.0, sel=kw["sel"], ptab=kw["ptab"]).ll_p(p)
+    assert model.ll_p(p) == pytest.approx(direct, rel=1e-12)
+    # R1-ERR's mocks keep f = 1 in the fit
+    seen.clear()
+    run.r1_mock_err(C, D, "rtau", (np.random.default_rng(5), np.random.default_rng(6)), pools, 2, 2.0)
+    assert seen[0][0] == 1.0
+
+
+@pytest.mark.parametrize("kind", ["null_sn", "power"])
+def test_errcal_f1_is_the_selfit_fit_path(kind):
+    """README 2.8: at f = 1 an R1-ERRCAL mock is R1-SEL-FIT's mock (generator and fits) on the same streams."""
+    C = run.Ctx(dict(run.PARAMS))
+    D, pools = _synthetic_D(C)
+    mk = lambda: (np.random.default_rng(5), np.random.default_rng(6))
+    ref = run.r1_mock_selfit(C, D, kind, "rA", "primary", mk(), pools, 8)
+    new = run.r1_mock_errcal(C, D, kind, "rA", mk(), pools, 8, 1.0)
+    assert {k: new[k] for k in ref} == ref and new["gen_fail"] is False
+    assert selaux._jsonable_result(new) == new
+
+
+def test_errcal_cut_per_f_and_variant(tmp_path):
+    """README 2.8: a generator failure stops further mocks of that f and variant only."""
+    sets = selaux.errcal_sets([2.0, 2.81], [0], ["rtau"])           # 18 sets: 3 per (f, variant)
+    fail_k = 4                                                       # f = 2.0, S15N, null_sp
+    calls = []
+
+    def run_one(s, rng):
+        calls.append(s["k"])
+        j = calls.count(s["k"]) - 1
+        if s["k"] == fail_k and j == 1:
+            return {"gen_fail": True, "d": None, "valley": None, "k": None, "pass_rate": None}
+        return {"gen_fail": False, "d": 0.01, "valley": True, "k": 3, "pass_rate": None}
+    st = selaux.MockStore(tmp_path, "c")
+    res, _, log = selaux.run_mock_sets(sets, 4, st, run_one, lambda k, j: selaux.mock_rng(0, 59, k, j), 16.0,
+                                       log=lambda m: None, cut=run.errcal_cut)
+    st.release()
+    assert [len(res[k]) for k in range(18)] == [4, 4, 4, 4, 2, 1] + [4] * 12
+    assert log[-1]["mocks_left"] == 0
+
+
+def test_errcal_data_check():
+    P = dict(run.PARAMS)
+    rerr = {"companion_refits": {"S15E": {"2.0": [{"bin": [-0.7, -0.5], "d": 0.0777, "k": 4},
+                                                  {"bin": [-0.5, -0.3], "d": 0.465, "k": 3}]}}}
+    x = {"variant": "S15E", "f": 2.0, "d": 0.0777, "k": 4}
+    assert run.errcal_data_check(x, rerr, P, 0) == []
+    assert run.errcal_data_check({**x, "d": 0.0777 + 2e-9}, rerr, P, 0) == ["S15E_0@f=2.0.d"]
+    assert run.errcal_data_check({**x, "k": 3}, rerr, P, 0) == ["S15E_0@f=2.0.k"]
+    assert run.errcal_data_check(x, rerr, P, 2) == ["S15E_2@f=2.0.missing"]
+    assert run.errcal_data_check({**x, "f": 2.81}, rerr, P, 0) == ["S15E_0@f=2.81.missing"]
+    assert selaux.errcal_label([2.0, 2.81], {}, reproduction_ok=False) == "not evaluable (reproduction)"
+    assert (selaux.errcal_label([2.0, 2.81], {2.0: "not reproduced", 2.81: "undetermined"})
+            == "at f = 2.0: not reproduced; at f = 2.81: undetermined")
+
+
+def _errcal_case(null_d=None, power_d=0.01, data=None, rich=(True, False), fail=None, nan=None, drop=None,
+                 power_valid=True):
+    """Synthetic R1-ERRCAL set results. null_d(s): list of 50 (d, valley) for a null set (default: no valley);
+    power_d: d of every power mock (with a valley), or a callable s -> list of (d, valley); data(f, v, b) ->
+    (d, valley, edge) of the data fit at f (default: d 0.1, a valley, edge 8.0); rich: resolvable flags
+    of the two metal-rich bins in R1-SEL-FIT; fail(s) -> index of a generator failure; nan: (k, j) with a
+    non-finite d; drop: k of a set left incomplete without a failure."""
+    P = dict(run.PARAMS)
+    sets = selaux.errcal_sets(P["errcal_f"], P["errcal_bins"], P["mechs"])
+    res = {}
+    for s in sets:
+        if s["kind"] == "power":
+            rows = power_d(s) if callable(power_d) else [(power_d, True)] * 50
+        else:
+            rows = null_d(s) if null_d else [(1.0, False)] * 50
+        rr = []
+        for j, (d, v) in enumerate(rows):
+            if fail is not None and fail(s) == j:
+                rr.append({"gen_fail": True, "d": None, "valley": None, "k": None, "pass_rate": None,
+                           "dropped": 0, "drawn": 10})
+                break
+            rr.append({"gen_fail": False, "d": d, "valley": v, "k": 3, "pass_rate": 0.9, "valley_t": 9.5 if v else None,
+                       "i_used_k1": False, "i_used_k2": True, "i_used_k3": False, "i_used_k4": False, "i_used_k5": -1,
+                       "nonmonotone": 0, "o_nonmonotone": 1, "dropped": 0, "drawn": 100})
+        res[s["k"]] = rr
+    if nan is not None:
+        res[nan[0]][nan[1]]["d"] = float("nan")
+    if drop is not None:
+        res[drop] = res[drop][:10]
+    data = data or (lambda f, v, b: (0.1, True, 8.0))
+    dfit = {}
+    for f in P["errcal_f"]:
+        for v in selaux.R1_VARIANTS:
+            for b in P["errcal_bins"]:
+                d, val, edge = data(f, v, b)
+                dfit[(f, v, b)] = {"f": f, "variant": v, "bin": P["r1_bins"][b], "n": 1000, "d": d, "k": 4,
+                                   "valley": val, "edge": edge if val else None, "valley_t": 9.6 if val else None}
+    rfit = _fake_rfit()
+    for v in selaux.R1_VARIANTS:
+        for i, b in enumerate((3, 4)):
+            rfit["variants"][v]["bins"][b]["resolvable"] = rich[i]
+    pmodels = {(v, b): {"valid": power_valid} for v in selaux.R1_VARIANTS for b in P["errcal_bins"]}
+    times = {s["k"]: [1.0] * len(res[s["k"]]) for s in sets}
+    return run.errcal_evaluate(P, sets, res, times, dfit, rfit, pmodels), sets
+
+
+def test_errcal_rules_reproduced_and_not():
+    out, _ = _errcal_case()
+    want = "at f = 2.0: reproduced; at f = 2.81: reproduced"
+    assert out["label"] == want and out["labels"] == {v: want for v in selaux.R1_VARIANTS}
+    pf = out["variants"]["S15E"]["per_f"]["2.0"]
+    assert pf["n_resolvable"] == 4 and pf["n_almost_disjoint"] == 3 and pf["median_edge"] == 8.0
+    b0 = pf["bins"][0]
+    assert b0["d_star"] == 0.25 and b0["power"] == {"rtau": 1.0, "rA": 1.0} and b0["almost_disjoint"]
+    row = out["per_set"][0]                                          # null_sn r*tau of f = 2.0, S15E, bin 0
+    assert row["q_s"] == 0.25 and row["fpr_at_d_star"] == 0.0 and row["frac_valley"] == 0.0
+    assert row["d_pct_5_50_80_95"] == [1.0] * 4 and row["d_pct_5_50_80_95_valley_only"] is None
+    prow = out["per_set"][4]
+    assert prow["power_at_d_star"] == 1.0 and prow["median_valley_t_mocks"] == 9.5 and prow["data_valley_t"] == 9.6
+    assert prow["k_chosen"]["3"] == 50 and prow["i_used_by_k"]["2"] == 50 and prow["nonmonotone"] == 0
+    # data d above d* in two bins: one almost-disjoint bin left -> not reproduced
+    out, _ = _errcal_case(data=lambda f, v, b: (0.465, True, 8.0) if b > 0 else (0.08, True, 8.0))
+    assert out["label"] == "at f = 2.0: not reproduced; at f = 2.81: not reproduced"
+    # median edge outside 6.5-9.5 Gyr -> not reproduced
+    out, _ = _errcal_case(data=lambda f, v, b: (0.1, True, 10.0))
+    assert out["variants"]["S15E"]["verdicts"]["2.0"] == "not reproduced"
+    # data without a valley is never almost disjoint
+    out, _ = _errcal_case(data=lambda f, v, b: (1.0, False, None) if b == 1 else (0.1, True, 8.0))
+    assert out["variants"]["S15E"]["verdicts"]["2.81"] == "not reproduced"
+
+
+def test_errcal_dstar_ties_power_and_undetermined():
+    # null valleys: the 3rd smallest d (ties counted) sets q_s; d* = min(0.25, q_1..q_4)
+    nd = lambda s: [(0.05, True)] * 3 + [(1.0, False)] * 47 if (s["kind"] == "null_sp" and s["mech"] == "rA") else [(1.0, False)] * 50
+    # power d = 0.05 with d* = 0.05: d < d* fails -> no bin resolvable; metal-rich: one resolvable -> undetermined
+    out, _ = _errcal_case(null_d=nd, power_d=0.05)
+    b = out["variants"]["S15E"]["per_f"]["2.0"]["bins"][0]
+    assert b["d_star"] == 0.05 and b["q"]["null_sp_rA"] == 0.05 and b["applied"] == "null_sp_rA"
+    assert b["power"] == {"rtau": 0.0, "rA": 0.0} and not b["resolvable"]
+    assert out["label"] == "at f = 2.0: undetermined; at f = 2.81: undetermined"
+    # two null valleys only: fewer than 3 -> q_s = 0.25
+    nd2 = lambda s: [(0.01, True)] * 2 + [(1.0, False)] * 48 if s["kind"] != "power" else None
+    out, _ = _errcal_case(null_d=nd2)
+    assert out["variants"]["S15E"]["per_f"]["2.0"]["bins"][0]["d_star"] == 0.25
+    # power exactly 0.80 under both mechanisms is resolvable; 0.78 under one is not
+    p80 = lambda s: [(0.01, True)] * 40 + [(1.0, False)] * 10
+    out, _ = _errcal_case(power_d=p80)
+    assert out["variants"]["S15E"]["per_f"]["2.0"]["bins"][0]["resolvable"]
+
+
+def test_errcal_two_disjoint_of_three_resolvable_is_not_reproduced():
+    p78 = lambda s: [(0.01, True)] * (39 if (s["bin"] == 0 and s["mech"] == "rA") else 40) + \
+        [(1.0, False)] * (11 if (s["bin"] == 0 and s["mech"] == "rA") else 10)
+    out, _ = _errcal_case(power_d=p78)
+    pf = out["variants"]["S15E"]["per_f"]["2.0"]
+    assert pf["n_resolvable"] == 3 and pf["n_almost_disjoint"] == 2 and pf["verdict"] == "not reproduced"
+    # an invalid power model makes a bin not resolvable, as in R1-SEL-FIT
+    out, _ = _errcal_case(power_valid=False)
+    assert out["label"] == "at f = 2.0: undetermined; at f = 2.81: undetermined"
+
+
+def test_errcal_generator_failure_and_nonfinite_per_f_and_variant():
+    # a failure in S15N at f = 2.81 (set 4 of its group, mock 7): only that f and variant
+    fail = lambda s: 7 if (s["variant"] == "S15N" and s["f"] == 2.81 and s["bin"] == 0 and s["kind"] == "null_sp"
+                           and s["mech"] == "rtau") else None
+    out, sets = _errcal_case(fail=fail)
+    assert out["labels"]["S15N"] == "at f = 2.0: reproduced; at f = 2.81: not evaluable (generator)"
+    assert out["labels"]["S15E"] == out["labels"]["Full"] == "at f = 2.0: reproduced; at f = 2.81: reproduced"
+    assert out["variants"]["S15N"]["per_f"]["2.81"]["gen_fail"] == 1
+    # a non-finite d in Full at f = 2.0
+    k = next(s["k"] for s in sets if s["variant"] == "Full" and s["f"] == 2.0 and s["bin"] == 2 and s["kind"] == "power")
+    out, _ = _errcal_case(nan=(k, 3))
+    assert out["labels"]["Full"] == "at f = 2.0: not evaluable (non-finite); at f = 2.81: reproduced"
+    assert out["label"] == "at f = 2.0: reproduced; at f = 2.81: reproduced"
+    # an incomplete set without a generator failure is an error, not a label
+    with pytest.raises(RuntimeError):
+        _errcal_case(drop=17)
+
+
+def test_r1_data_refit_mixture_part_unchanged_by_null_fits():
+    """README 2.8: r1_data_refit with nulls=True computes the mixtures and K first, exactly as R1-ERR's
+    companion refit (nulls=False), then the null fits with f on the same stream."""
+    P = dict(run.PARAMS, nstart_r1_data=3, nstart=4)
+    C = run.Ctx(P)
+    rng = np.random.default_rng(21)
+    n = 2500
+    tau = mocks.latent_power(11.0, 0.82, 0.4, 7.0, n, rng)
+    rel = rng.uniform(0.03, 0.14, n)
+    age = np.clip(tau * (1 + rel * rng.standard_normal(n)), 0.2, 19.8)
+    import pandas as pd
+    df = pd.DataFrame({"age": age, "eage": age * rel, "feh": rng.uniform(-0.69, -0.51, n)})
+    F = {"valid": np.ones(n, bool), "s15": rel < 0.15}
+    a = run.r1_data_refit(C, df, F, 0, "Full", None, 2.0)
+    b = run.r1_data_refit(C, df, F, 0, "Full", None, 2.0, nulls=True)
+    assert {k: b[k] for k in a} == a
+    assert set(b) >= {"edge", "skewnorm", "splitnorm", "null_converged", "fits", "_starts", "_p"}
+    assert sorted(b["_starts"]) == ([1, 2, 3, 4, 5] if b["k"] == 4 else [1, 2, 3, 4])
+    assert len(b["skewnorm"]) == 3 and len(b["splitnorm"]) == 3
+    # the null fits are r1_null_fits on the model at f, on the stream after the mixture fits
+    m = (F["valid"]) & (df["feh"].to_numpy() >= -0.7) & (df["feh"].to_numpy() < -0.5)
+    model = run.onedim(C, age[m], (age * rel)[m], False, f=2.0, sel="none")
+    rng2 = np.random.default_rng([P["seed"], 1000, selaux.R1_CODES["Full"], 50, 200])
+    fits = run.fit_mixtures(C, model, model.cells.A, model.cells.w, P["kmax"], nstart=3, rng=rng2)
+    kb, _ = run.choose_k(fits, model.cells.nstar)
+    run.shape_from_fits(C, model, fits, kb, model.cells.A, model.cells.w, rng=rng2, nstart=3)
+    sn, sp = run.r1_null_fits(P, model, rng2)
+    assert list(sn.x) == b["skewnorm"] and list(sp.x) == b["splitnorm"]
+
+
+def test_main_errcal_wiring(tmp_path, monkeypatch):
+    """main_errcal end to end on synthetic inputs (data refits and mocks stubbed): check (a) failure gives
+    "not evaluable (reproduction)" for every variant; with matching refits an exploration (2 mocks per set)
+    runs all 108 sets through the checkpoints with the README 2.8 streams and gives no label."""
+    import pandas as pd
+    import types
+    rng = np.random.default_rng(3)
+    n = 6000
+    age = rng.uniform(1.0, 14.0, n)
+    rel = rng.uniform(0.03, 0.14, n)
+    df = pd.DataFrame({"id": np.arange(n), "age": age, "eage": age * rel, "feh": rng.uniform(-0.69, -0.11, n),
+                       "efeh": 0.05, "afe": 0.1, "eafe": 0.02, "jphi": 1800.0, "mk": 2.0})
+    P = dict(run.PARAMS, n_rows=n, errcal_n_mock=2, parts=["errcal"])
+    monkeypatch.setattr(run, "load", lambda ctx, P_: df)
+    pm = {"mu_old": 11.0, "s_old": 0.82, "w_old": 0.4, "young": [1.5, 7.0], "valid": True}
+    rec = {"data_fits": {f"{v}_{b}": {"n": 100, "power_models": {"primary": pm}} for v in selaux.R1_VARIANTS
+                         for b in range(5)}}
+    rfit = _fake_rfit()
+    dval = lambda f, v, b: 0.1 + 0.01 * b + (0.001 if v == "Full" else 0.0) + f / 100
+    rerr = {"companion_refits": {v: {selaux.ffmt(f): [{"bin": P["r1_bins"][b], "d": dval(f, v, b), "k": 4}
+                                                      for b in (0, 1, 2)] for f in (2.0, 2.81)}
+                                 for v in selaux.R1_VARIANTS}}
+
+    def fake_refit(C, df_, F, b, v, coef, f, nulls=False):
+        assert nulls
+        return {"f": f, "variant": v, "bin": P["r1_bins"][b], "n": 100, "d": dval(f, v, b), "k": 4, "valley": True,
+                "edge": 8.0, "valley_t": 9.6, "skewnorm": [9.0, 0.5, 0.0], "splitnorm": [9.0, 0.5, 0.5],
+                "_starts": {1: np.zeros(2)}, "_p": None}
+    monkeypatch.setattr(run, "r1_data_refit", fake_refit)
+    saved = {}
+    ctx = types.SimpleNamespace(save=lambda name, obj: saved.__setitem__(name, json.loads(json.dumps(obj, default=float))),
+                                log=lambda m: None, record_suffix=None)
+    bad = json.loads(json.dumps(rerr))
+    bad["companion_refits"]["S15N"]["2.81"][1]["d"] += 1e-6
+    out = run.main_errcal(ctx, P, store_root=tmp_path, recorded=rec, recorded_fit=rfit, recorded_err=bad)
+    assert ctx.record_suffix == "_errcal"
+    r = saved["r1_errcal"]
+    assert r["label"] == "not evaluable (reproduction)" and r["checks"]["data_fit_mismatches"] == ["S15N_1@f=2.81.d"]
+    assert r["labels"] == {v: "not evaluable (reproduction)" for v in selaux.R1_VARIANTS}
+    assert out["R1-ERRCAL"] == "not evaluable (reproduction)"
+    seen = []
+
+    def fake_mock(C, D, kind, mech, rngs, pools, nstart, f):
+        seen.append((D["variant"], kind, mech, f, float(rngs[0].random()), float(rngs[1].random())))
+        return {"gen_fail": False, "d": 0.01 if kind == "power" else 1.0, "valley": kind == "power", "k": 3,
+                "pass_rate": 0.9, "valley_t": 9.5 if kind == "power" else None, "nonmonotone": 0}
+    monkeypatch.setattr(run, "r1_mock_errcal", fake_mock)
+    saved.clear()
+    out = run.main_errcal(ctx, P, store_root=tmp_path, recorded=rec, recorded_fit=rfit, recorded_err=rerr)
+    r = saved["r1_errcal"]
+    assert r["status"].startswith("no label (exploration with 2") and r["label"] == r["status"]
+    assert r["computed_labels_not_used"]["S15E"] == "at f = 2.0: reproduced; at f = 2.81: reproduced"
+    assert len(seen) == 216 and len(r["per_set"]) == 108 and r["seed_tags"] == [59, 159]
+    sets = selaux.errcal_sets([2.0, 2.81], [0, 1, 2], ["rtau", "rA"])
+    s9 = sets[9]
+    want = (np.random.default_rng([0, 59, 9, 0]).random(), np.random.default_rng([0, 159, 9, 0]).random())
+    assert (s9["variant"], s9["kind"], s9["mech"], s9["f"]) == seen[9][:4] and seen[9][4:] == want
+    assert r["data_fits"]["2.81"]["Full"][2]["d"] == dval(2.81, "Full", 2)
+    assert len(json.dumps(r)) < 1024 ** 2

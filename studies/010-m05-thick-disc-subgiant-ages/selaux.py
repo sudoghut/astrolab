@@ -74,6 +74,21 @@ def err_sets(fs, bins, mechs):
     return sets
 
 
+def errcal_sets(fs, bins, mechs):
+    """README 2.8 (R1-ERRCAL): the null and power sets, numbered k = 0, 1, ... in the loop nest f (in the
+    given order) > variant (S15E, S15N, Full) > bin > set (null skew-normal r*tau, r*A, split-normal
+    r*tau, r*A, power r*tau, r*A). The projection group is the (variant, f) pair."""
+    sets = []
+    for f in fs:
+        for v in R1_VARIANTS:
+            for b in bins:
+                for kind in R1_KINDS:
+                    for mech in mechs:
+                        sets.append({"k": len(sets), "tag": "ERRCAL", "f": float(f), "variant": v, "bin": int(b),
+                                     "kind": kind, "mech": mech, "floor": "primary", "group": f"{v}@f={float(f)}"})
+    return sets
+
+
 def better_fit(nll_o, nll_i, tol=0.01):
     """README 2.6: the data-independent fit (i) replaces the original (o) only if its NLL is finite and
     lower by more than tol (the 2.0 start-selection tie rule); returns "i" or "o"."""
@@ -180,7 +195,7 @@ class StopRun(RuntimeError):
     """Raised when the runtime projection exceeds the stop limit (SEL-8)."""
 
 
-NO_KEY_PARAMS = ("parts", "sel_stop_h", "selfit_stop_h", "err_stop_h")   # change no mock: not in the checkpoint key
+NO_KEY_PARAMS = ("parts", "sel_stop_h", "selfit_stop_h", "err_stop_h", "errcal_stop_h")   # change no mock: not in the checkpoint key
 _PARAMS_RE = re.compile(r"^PARAMS = \{\n.*?^\}\n", re.S | re.M)
 
 
@@ -648,3 +663,20 @@ def err_label(ladder, E, cut_f, bins_by_f, *, min_bins=2, n_bins=3, reproduction
     if quals:
         out["label"] += f" ({'; '.join(quals)})"
     return out
+
+
+# --------------------------------------------------------------------------------------------
+# R1-ERRCAL (README 2.8, T-059): calibration of R1 with the error scale f in the fit
+# --------------------------------------------------------------------------------------------
+ERRCAL_GENERATOR = "not evaluable (generator)"
+ERRCAL_NONFINITE = "not evaluable (non-finite)"
+ERRCAL_REPRODUCTION = "not evaluable (reproduction)"
+
+
+def errcal_label(fs, verdicts, reproduction_ok=True):
+    """README 2.8 label of one variant: "at f = 2.0: <verdict>; at f = 2.81: <verdict>" (f in the given
+    order; verdicts: f -> the 2.1 verdict at f or a "not evaluable (...)" replacement). The whole label is
+    "not evaluable (reproduction)" if check (a) failed."""
+    if not reproduction_ok:
+        return ERRCAL_REPRODUCTION
+    return "; ".join(f"at f = {ffmt(f)}: {verdicts[float(f)]}" for f in fs)

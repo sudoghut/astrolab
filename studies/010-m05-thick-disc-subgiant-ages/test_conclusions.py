@@ -549,3 +549,83 @@ def test_err_label():
     assert r["f1_row"]["S15E"]["E"] == 0
     for p in r["mocks"]["projections"]:              # the run stops before remaining mocks above the limit
         assert p["mocks_left"] == 0 or p["projection_h"] <= p["limit_h"]
+
+
+# ---------------------------------------------------------------------------------------------
+# R1-ERRCAL (README 2.8, T-059)
+# ---------------------------------------------------------------------------------------------
+ERRCAL_F = [2.0, 2.81]
+ERRCAL_KINDS = ("null_sn", "null_sp", "power")
+
+
+def test_errcal_label():
+    """R1-ERRCAL (README 2.8): check (a) against R1-ERR's companion refits, 108 sets numbered in the loop
+    nest, and per f and variant d* (3rd smallest null d with a valley, ties counted, cap 0.25), resolvable
+    (power >= 0.80 under both mechanisms), almost disjoint (data fit at f), the five-bin 2.1 verdict with
+    the metal-rich bins from R1-SEL-FIT, and the label, re-derived from the saved per-mock d values."""
+    r = load("r1_errcal")
+    fz = lambda f: str(float(f))
+    if r["status"].startswith("not evaluable (reproduction)"):
+        assert r["checks"]["data_fit_mismatches"]
+        assert r["label"] == "not evaluable (reproduction)"
+        assert all(x == r["label"] for x in r["labels"].values())
+        return
+    assert r["status"] == "evaluated" and r["n_mock"] == NMOCK and r["checks"]["data_fit_mismatches"] == []
+    assert r["seed_tags"] == [59, 159] and r["f"] == ERRCAL_F and r["bins"] == [0, 1, 2]
+    err, selfit = load("r1_err"), load("r1_selfit")
+    for f in ERRCAL_F:                                # check (a), re-derived
+        for v in ERR_VARIANTS:
+            for b in (0, 1, 2):
+                x, c = r["data_fits"][fz(f)][v][b], err["companion_refits"][v][fz(f)][b]
+                assert x["bin"] == c["bin"] and abs(x["d"] - c["d"]) <= 1e-9 and x["k"] == c["k"]
+    sets = r["per_set"]
+    nest = [(f, v, b, kind, m) for f in ERRCAL_F for v in ERR_VARIANTS for b in (0, 1, 2) for kind in ERRCAL_KINDS
+            for m in ERR_MECHS]
+    assert [s["k"] for s in sets] == list(range(108))
+    assert [(s["f"], s["variant"], s["bin"], s["kind"], s["mech"]) for s in sets] == nest
+    by = {(s["f"], s["variant"], s["bin"], s["kind"], s["mech"]): s for s in sets}
+    for v in ERR_VARIANTS:
+        verdicts = {}
+        for f in ERRCAL_F:
+            ss = [by[(f, v, b, kind, m)] for b in (0, 1, 2) for kind in ERRCAL_KINDS for m in ERR_MECHS]
+            if any(s["gen_fail"] for s in ss):
+                verdicts[f] = "not evaluable (generator)"
+                continue
+            assert all(len(s["d"]) == NMOCK for s in ss)
+            nonfin = any(d is None or d != d or d in (float("inf"), float("-inf")) for s in ss for d in s["d"])
+            nonfin |= any(not isinstance(x, bool) for s in ss for x in s["valley"])
+            for s in ss:
+                assert sum(s["k_chosen"].values()) == NMOCK
+                mp = s["mean_pass_rate"]
+                assert (mp is None) == (v == "Full")
+                nonfin |= mp is not None and not (mp == mp and abs(mp) != float("inf"))
+            if nonfin:
+                verdicts[f] = "not evaluable (non-finite)"
+                continue
+            rows = []
+            for b in (0, 1, 2):
+                q = []
+                for kind in ("null_sn", "null_sp"):
+                    for m in ERR_MECHS:
+                        s = by[(f, v, b, kind, m)]
+                        ds = sorted(d for d, val in zip(s["d"], s["valley"]) if val)
+                        q.append(ds[2] if len(ds) >= 3 else 0.25)
+                dstar = min([0.25] + q)
+                power = {m: sum(1 for d, val in zip(by[(f, v, b, "power", m)]["d"], by[(f, v, b, "power", m)]["valley"])
+                                if val and d < dstar) / NMOCK for m in ERR_MECHS}
+                resolvable = all(p >= 0.80 for p in power.values()) and r["power_models"][v][b]["valid"]
+                x = r["data_fits"][fz(f)][v][b]
+                disj = bool(x["valley"] and x["d"] < dstar)
+                saved = r["variants"][v]["per_f"][fz(f)]["bins"][b]
+                assert saved["d_star"] == dstar and saved["power"] == power
+                assert saved["resolvable"] == resolvable and saved["almost_disjoint"] == disj
+                rows.append({"resolvable": resolvable, "almost_disjoint": disj, "edge": x["edge"]})
+            for b in (3, 4):                           # metal-rich bins from R1-SEL-FIT, never almost disjoint
+                B = selfit["variants"][v]["bins"][b]
+                rows.append({"resolvable": B["resolvable"], "almost_disjoint": False, "edge": B["edge"]})
+            verdicts[f] = _r1_verdict(rows)
+        want = "; ".join(f"at f = {fz(f)}: {verdicts[f]}" for f in ERRCAL_F)
+        assert r["labels"][v] == want and r["variants"][v]["label"] == want
+    assert r["label"] == r["labels"]["S15E"]
+    for p in r["mocks"]["projections"]:              # the run stops before remaining mocks above the limit
+        assert p["mocks_left"] == 0 or p["projection_h"] <= p["limit_h"]
