@@ -2047,7 +2047,9 @@ def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
             ctx.log(f"R1-ERR data {v} bin {b}: K={D['shape']['k']} d={D['shape']['d']:.3f}")
     out = {"status": None, "n_mock": nmock, "seed_tags": [int(P["err_seed_tag"]), int(P["err_seed_tag_indep"])],
            "checks": {"data_fit_mismatches": mism},
-           "threads": {k: os.environ.get(k) for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")}}
+           "threads": {**{k: os.environ.get(k) for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")},
+                       "cpu_count": os.cpu_count(),
+                       "note": "settings of the last session; every session of a run must use the same settings"}}
 
     def fail(status):
         out["status"] = status
@@ -2071,7 +2073,7 @@ def main_err(ctx, P, store_root=None, recorded=None, recorded_fit=None):
     sets = selaux.err_sets(P["err_f"], bins, P["mechs"])
     root = Path(store_root) if store_root else config.cache_dir() / "s010_err_mocks"
     if store_root is None and not _is_formal(ctx):  # an exploration never writes into the formal checkpoints
-        root = root / "explore" / Path(ctx.results).name
+        root = config.cache_dir() / "s010_err_mocks_explore" / Path(ctx.results).name
     store = selaux.MockStore(root, _sel_key(P, df), name="R1-ERR", rule="README 2.7")   # refuses a stopped run without consent
     ctx.log(f"R1-ERR checkpoints: {store.dir} ({'resumed with consent' if store.resumed else 'new or continued'})")
 
