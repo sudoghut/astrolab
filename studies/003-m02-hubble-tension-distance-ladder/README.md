@@ -1558,7 +1558,9 @@ results reproduce exactly, only timing fields changed). Numbers: `results/r2_re_
   criterion X barely conditions the τ part (p = 0.26 in the 37 simulations where X drops N5584, 0.24 in
   the other 363), as the section 2 caveat said. *Outcome of T-048 (2026-11-21, R2-RE-D, next
   subsection):* reading (3), "tested diffuse model(s) not excluded (τ = 0.077, 0.105)"; this bullet stays
-  as written (the addendum replaces it only under reading (2)).
+  as written (the addendum replaces it only under reading (2)). *Outcome of T-055 (2026-11-21,
+  R2-RE-G):* "undetermined (underpowered)" (power 0.49): no powered shape test separates the two
+  pictures; Gaussian diffuse scatter is excluded by G (p_G 0.016) but not independently of R2-RE-D.
 - **Status of R2.** Unchanged, as fixed in section 2: the R2-RE headline row ("no host-selection
   effect detected"), the R2-RE-ROB and R2-RE-N5584 labels, `summary.json` `R2_host` and the claim's
   verdict stay as recorded.
@@ -1685,6 +1687,42 @@ over all 10,000 simulations [`Q_raw.share`], not a p value.
   values and N5584's reduced system 103 s, τ̂_N 22 s, five Cholesky factors 1.9 s, pass 1 52 s, pass 2
   (with the other 36 reduced systems) 3,668 s, statistics and KDE 2 s (`seconds`).
 
+### R2-RE-G (addendum 2026-11-21, T-055)
+
+Run of 2026-11-21 in two stages, standalone mode (`g_check` and `g_only` true; `g_stage` "power", then
+"full"; set back to false, false and "full" afterwards), single-threaded, cache only, no data downloaded.
+Power stage 764 s, committed with its power line in `log.md` before the full stage; full stage 797 s.
+Numbers: `results/r2_re_g.json` (`results/r2_re_g_power.json` for the power record).
+
+**Checks (rule (1)).** All passed (`rule1` empty): τ̂_obs = 0.0766988, δ̂ = 0.33634, σ_δ = 0.09252,
+z_obs = 3.6354 reproduced (REML grid to 1.0 × 10⁻¹¹; W·y against the 37 one-column GLS fits to
+1.5 × 10⁻¹²); M has rank 36 of 37 (one eigenvalue clipped, as expected: a common shift of all
+calibrator hosts is degenerate with H0); every pointwise check passed; no Cholesky factor failed; the
+full stage reproduced every count and `k_sha256` of the power stage.
+
+**Power and size (fixed before G was read).** Power = min(R_OANY 0.535, R_OANYVN 0.491) = **0.491**, below
+0.8. Size at the three τ: R_VHAT 0.048 (95% interval 0.044–0.052), R_V050 0.045 (0.041–0.049), R_V105
+0.048 (0.044–0.053); none anti-conservative. Power curve (O_any on C): z_alt 2.5 → 0.19, 3 → 0.32,
+4 → 0.65, 4.5 → 0.797, 5 → 0.90; the smallest z with power ≥ 0.8 is 5.0. With z_obs − 1 (reported) the
+power is 0.22.
+
+**Observed.** G_obs = 0.305: N5584's z = 3.64 carries 30% of Σ_j z_j² = 43.4 (next |z|: N1365 −2.33,
+N3982 −2.03). Under V(τ̂_obs), p_G = 326/20,000 = **0.016** (0.015–0.018), label "excluded"; at fixed τ:
+0.013 (τ = 0.05), 0.023 (0.105), 0.011 (C), all "excluded". Double-bootstrap check p_dbl = 0.016. Reverse
+p (how typical the data are of one σ-matched offset host): 0.62 under O_any, 0.62 under O(δ̂). The
+joint fit with all 37 offsets is rank deficient, as expected (reported, not used).
+
+**Reading (rule (2)): "undetermined (underpowered)"**, with the sub-label "diffuse excluded; test
+underpowered against the σ-matched alternative". As fixed in the addendum (reading (2)): no powered shape
+test separates one offset host from diffuse host scatter on these data (power 0.49, size ≤ 0.048, power
+≥ 0.8 only from z ≈ 5). R2-RE-D's reading and gloss stay as recorded, and R2-RE's row stays the headline.
+The sub-label says the concentration of the calibrator offsets in one host is unusual under Gaussian
+diffuse scatter of the fitted size (and at τ = 0.05 and 0.105), and the data look typical of one offset
+host; it is not a separate reading, and it is not independent of R2-RE-D (referee, section 6).
+
+**As expected.** The addendum forecast G_obs ≈ 0.2–0.35, power ≈ 0.2–0.6 and "undetermined
+(underpowered)" as the most likely reading; all three held.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-14 (a subagent that saw the pre-registration, code and results, not
@@ -1790,6 +1828,26 @@ swapped) from the saved pairs and reproduced it (0.016, 0.061, 0.077, 0.070). Tr
 | 9 | Literature: Riess et al. 2023, JWST "Crowded No More" (arXiv:2307.15806: Cepheids in NGC 5584 agree with HST) bears on whether an N5584 offset is Cepheid crowding; Feeney, Mortlock & Dalmasso 2018 (arXiv:1707.00007, Student-t outlier likelihoods) is the natural intermediate model; others (Efstathiou 2020, Freedman et al. 2024, Uddin et al. 2023) | unverified (identifiers from the referee) | Noted |
 | 10 | Most important additional test: a composite shape test with the statistic G = max_j z_j²/Σ_j z_j² (host-offset z-scores from the GLS under C), calibrated under V(τ) with τ refitted in each simulation and under O_any with σ-matched δ, with its power reported before the data are read | – | Registered as T-055 (new pre-registration) |
 
+### Referee, R2-RE-G (independent subagent, 2026-11-21)
+
+The referee saw the R2-RE-G addendum and the definitions it relies on, `shape.py`, the `g_*` paths of
+`run.py`, `test_shape.py`, the conclusion checks and the results files, not sections 5–7 or the log; it
+ran only short single-threaded checks on the saved files. It found no bug that could change G_obs, p_G,
+the power, the size or the reading, and reproduced p_G (P(G_s ≥ G_obs) = 0.0162 under VHAT), the
+near-uniform calibration of p_boot under VHAT (0.0101, 0.0505, 0.1028 at 0.01, 0.05, 0.1) and the GLS
+algebra. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | Bookkeeping: at the time of review `run.py` PARAMS still read `g_check` true, `g_only` true; a plain full run would redo the power stage | yes | **Fixed**: set back to false, false, "full" with a log note; the values used are stored in `r2_re_g.json` `settings` |
+| 2 | The null is a Gaussian random effect: "diffuse excluded" means Gaussian diffuse scatter is excluded; heavy-tailed diffuse scatter (e.g. Student-t, ν = 4, as R2-RE-N5584 used) also concentrates G and is not in the null family | yes (`shape.py` simulation of V(τ)) | **Accepted**: section 5 says "Gaussian"; a t₄ null for G is registered as T-057 |
+| 3 | The statistic was proposed after R2-RE-D, -ROB, -N5584 and -SEL had all singled out N5584; the maximum over 37 hosts removes host choice, not statistic choice; p_G is correlated with R2-RE-D's p_D and p_J, so the sub-label is not a fresh detection; p_rev 0.62 says the data are typical of one offset host, but rule (2) declines to decide | yes | **Accepted**; stated in section 5 |
+| 4 | σ-matching to z_obs, the maximum of 37, makes the power optimistic (z_obs − 1 gives 0.22) | yes | Accepted; reinforces "underpowered" |
+| 5 | C: host-specific errors in C move G; N5584's four calibrator rows (duplicate light curves of SN 2007af) give σ_δ = 0.093, close to single-row hosts, so no sign that z is inflated by under-correlated duplicates. JWST Cepheids in N5584 agree with HST (0.02 ± 0.03 mag; Riess et al. 2023), so a real offset would point to the SN side or chance | partly (σ_δ values in `r2_re_g.json`); the JWST number from the referee | Noted (interpretation, open question) |
+| 6 | Size is checked at three τ only, as pre-registered; no τ̂ reached the REML grid's upper bound | yes (`n_tau_bound` 0 in every set) | No action |
+| 7 | Literature: Riess et al. 2023 (arXiv:2307.15806), Riess et al. 2024 (arXiv:2401.04773), Feeney, Mortlock & Dalmasso 2018 (arXiv:1707.00007), Cardona, Kunz & Pettorino 2017 (arXiv:1611.06088), Follin & Knox 2018 (arXiv:1707.01175), Efstathiou 2020/2021, Wojtak & Hjorth 2022, Uddin et al. 2023, Murakami et al. 2023 | unverified except arXiv:2307.15806 (cited in R2-RE-D's referee notes) | Noted |
+| 8 | Most important additional test: calibrate G under a heavy-tailed diffuse null (host effects t_ν, ν = 4, scale fitted) next to a matched one-offset alternative | – | Registered as T-057 |
+
 ## 7. Open questions
 
 - Why the public `lstsq_results.txt` differs from the printed baseline (a later or variant fit).
@@ -1829,6 +1887,10 @@ swapped) from the saved pairs and reproduced it (0.016, 0.061, 0.077, 0.070). Tr
 - A Cepheid-only per-host comparison for R3 (μ from fits without each host's SN rows).
 - R4 suggests the CCHP selection is a low but ordinary draw: is there a property of those hosts
   (for example the TRGB-friendly, low-extinction halos) that correlates with their SN magnitudes?
+- Is the one-host picture distinguishable from heavy-tailed diffuse host scatter? R2-RE-G (T-055)
+  excludes Gaussian diffuse scatter (p_G 0.016) but is underpowered (0.49) and its null is Gaussian; a
+  Student-t (ν = 4) diffuse null for G is registered as T-057. If an offset is real, JWST Cepheids in
+  N5584 (Riess et al. 2023) point to the SN 2007af side or chance.
 
 ## 8. Exploring via chat
 

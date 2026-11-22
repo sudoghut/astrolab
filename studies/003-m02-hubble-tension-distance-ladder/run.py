@@ -59,9 +59,9 @@ PARAMS = {
     # R2-RE-G (README section 2, addendum 2026-11-21, T-055): composite shape test of one offset host against
     # diffuse host scatter. g_check stays false until the formal stages (README amendment 2026-11-21); g_only:
     # standalone mode; g_stage "power" (writes only r2_re_g_power.json) then "full" (README section 8)
-    "g_check": True, "g_seed_base": 400_000, "g_host_seed_base": 500_000, "g_inner_seed": 600_000,
+    "g_check": False, "g_seed_base": 400_000, "g_host_seed_base": 500_000, "g_inner_seed": 600_000,
     "g_n_sims": 10_000, "g_n_inner": 20_000, "g_power_min": 0.8, "g_z_curve": [2.5, 3.0, 4.0, 4.5, 5.0],
-    "g_taus_rep": [0.05, 0.105], "g_max_minutes": 120, "g_min_sims": 5_000, "g_only": True, "g_stage": "power",
+    "g_taus_rep": [0.05, 0.105], "g_max_minutes": 120, "g_min_sims": 5_000, "g_only": False, "g_stage": "full",
     "g_rerun_reason": "",       # a g_only full stage after a formal outcome needs a reason, also present in log.md
 }
 
