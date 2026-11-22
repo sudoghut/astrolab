@@ -7,6 +7,8 @@
 
 - 完整阶段（full stage）：`gt_stage` 改为 "full"（提交 56e0dbe；与功效阶段相同的单线程设置与 gt_*/g_* 取值），281 秒，仅用缓存。复现了功效阶段的每个计数与 `k_sha256`，VHAT、OANY、OANYVN 复现 R2-RE-G 保存的模拟，真实数据检查通过（G_obs 与记录值相同，高斯内层 k = 326）。p_T,obs = (1+1047)/(1+20000) = 0.052，95% 区间 0.049–0.056 包含 0.05：子标签"t₄ diffuse undetermined (Monte Carlo)"；判读"undetermined (underpowered)"；R2-RE-G 子标签的注释"t₄ comparison undetermined (Monte Carlo)"。敏感度（描述性）：ν = 3 时 0.074、ν = 10 时 0.021，τ = 0.05 时 0.025、0.105 时 0.090，EM 尺度 0.092。结果提交 0c19594。
 - 运行后 PARAMS 改回 `gt_check = false`、`gt_only = false`、`gt_stage = "full"`（2026-11-22，正式运行结束；默认值即预注册的值）。
+- 收尾（结果、注释、审稿分拣、开放问题、总表、结论条目、Wiki、T-060 登记）通过双闸：闸门 1 一轮（小问题：按标签计的条件拒绝率、变基后的提交号、模拟文件大小、中文"标题结论"），Codex 一轮（没有严重问题）。
+- 独立审稿（referee，子智能体）：没有错误；p_T,obs 落在 0.05 边界上，受零假设尾部与尺度限制（0.021–0.092），不是受蒙特卡洛误差限制；对 ν 与 τ 的剖面登记为 T-060。
 - 功效阶段（power stage）：PARAMS 设为 `gt_check = true`、`gt_only = true`、`gt_stage = "power"`（只为正式运行，运行后改回，提交 3abe9fe），单线程（OMP/MKL/OPENBLAS_NUM_THREADS=1），仅用缓存，252 秒。复现检查通过（τ̂_obs 0.076699、δ̂ 0.336337、z_obs 3.635444，M 的秩 37 中 36）。功效不足：min(R_OANY, R_OANYVN) = 0.317 < 0.8，所以按规则 (2) 读作"undetermined (underpowered)"（无法判定（功效不足））；检验大小 max(R_THAT, R_T050, R_T105) = 0.046，不偏大（anti-conservative）。p_T,obs 尚未计算。按预注册，下面这一行在完整阶段之前写入并提交：
 
 R2-RE-GT power stage (n = 10000): power = min(R_OANY 0.3840, R_OANYVN 0.3172) = 0.3172 (underpowered); size = R_THAT 0.0461, R_T050 0.0410, R_T105 0.0442 (max 0.0461); reported R_TC 0.0386, R_VHAT 0.0207; status evaluated
