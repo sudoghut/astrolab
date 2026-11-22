@@ -63,6 +63,14 @@ PARAMS = {
     "g_n_sims": 10_000, "g_n_inner": 20_000, "g_power_min": 0.8, "g_z_curve": [2.5, 3.0, 4.0, 4.5, 5.0],
     "g_taus_rep": [0.05, 0.105], "g_max_minutes": 120, "g_min_sims": 5_000, "g_only": False, "g_stage": "full",
     "g_rerun_reason": "",       # a g_only full stage after a formal outcome needs a reason, also present in log.md
+    # R2-RE-GT (README section 2, addendum 2026-11-21, T-057): the shape test G against heavy-tailed (Student-t)
+    # diffuse host scatter. gt_check stays false until the formal stages; gt_only: standalone mode; gt_stage
+    # "power" (writes only r2_re_gt_power.json) then "full" (README section 8). Reuses g_seed_base (eps_s),
+    # g_host_seed_base (O_any's host), g_inner_seed (E_in) and g_taus_rep (T050, T105, the fixed-tau sensitivities)
+    "gt_check": False, "gt_only": False, "gt_stage": "full", "gt_seed_base": 410_000, "gt_inner_seed": 610_000,
+    "gt_inner_seeds_rep": [611_000, 612_000], "gt_nu": 4, "gt_nu_rep": [3, 10], "gt_n_sims": 10_000,
+    "gt_n_inner": 20_000, "gt_power_min": 0.8, "gt_max_minutes": 120, "gt_min_sims": 5_000,
+    "gt_rerun_reason": "",      # a gt_only full stage after a formal outcome needs a reason, also present in log.md
 }
 
 DR = "PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/"
@@ -755,13 +763,165 @@ def run_g_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, grid_m2l, grid
                  grid_source=grid_source)
 
 
+# ---------------------------------------------------------------- R2-RE-GT (addendum 2026-11-21, T-057)
+def save_gt(ctx, gt_out, sims):
+    """R2-RE-GT's full-stage files: r2_re_gt.json and the seven r2_re_gt_sims_<model>.json (always all of them)."""
+    ctx.save("r2_re_gt", gt_out)
+    for k, v in sims.items():
+        ctx.save(f"r2_re_gt_sims_{k}", v)
+
+
+def formal_gt_done(path=None):
+    """shape.gt_formal_done: the formal full stage's results/r2_re_gt.json exists (README R2-RE-GT)."""
+    return shape.gt_formal_done(path)
+
+
+def recorded_g_sims(P):
+    """R2-RE-G's committed r2_re_g_sims_<model>.json for VHAT, OANY, OANYVN (the reproduction reference) and
+    R2-RE-G's thread settings (shape.read_g_sims)."""
+    return shape.read_g_sims(P)
+
+
+def gt_not_run(P, status, stage):
+    keys = shape.gt_sim_keys([float(t) for t in P["g_taus_rep"]])
+    out = {"stage": stage, "status": status}
+    if stage == "full":
+        out["reading"] = status if status.startswith("not evaluable") else None
+    return out, {k: {"model": k, "status": status} for k in keys}
+
+
+def save_gt_stubs(ctx, P, status):
+    """A full study run whose R2-RE-GT block does not run: write its records only where no R2-RE-GT file exists, so
+    a formal result is never overwritten. Returns the record whose summary goes into summary.json."""
+    p_out, _ = gt_not_run(P, status, "power")
+    gt_out, sims = gt_not_run(P, status, "full")
+    files = {"r2_re_gt_power": p_out, "r2_re_gt": gt_out, **{f"r2_re_gt_sims_{k}": v for k, v in sims.items()}}
+    for name, obj in files.items():
+        if not (ctx.results / f"{name}.json").exists():
+            ctx.save(name, obj)
+    path = ctx.results / "r2_re_gt.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else gt_out
+
+
+def run_gt(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, stage, grid_m2l, g_saved, power_rec=None,
+           grid_source=shape.GT_REML_GRID_SOURCE, recorded=None):
+    """One stage of the R2-RE-GT block (README section 2, addendum 2026-11-21, T-057). Returns (out, sims); sims is
+    None in the power stage."""
+    if not ident["host_step_evaluable"]:
+        out, sims = gt_not_run(P, "not evaluable (host step not evaluable)", stage)
+        return out, (sims if stage == "full" else None)
+    calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]
+    fns_g = {"reml_tau": reml_tau, "reml_m2l": reml_m2l, "fit": fit, "with_re": with_re,
+             "is_fit_failure": is_fit_failure}
+    return shape.run_gt_stage(stage, L, y, C, rows_a, calib_groups, col_host[:NH], P, fns_g, ctx.log, grid_m2l,
+                              g_saved, power_rec=power_rec, grid_source=grid_source,
+                              expected_col=N5584_COLUMN if P["n5584_host"] == "N5584" else None, recorded=recorded)
+
+
+def run_gt_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, grid_m2l, grid_source, g_saved, save_power):
+    """Both stages in one process (a full study run, or an exploration without a power record, both only after the
+    formal full stage): the power record is saved and logged before the full stage computes p_T,obs."""
+    p_out, _ = run_gt(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, "power", grid_m2l, g_saved,
+                      grid_source=grid_source)
+    save_power(p_out)
+    ctx.log(shape.gt_power_log_line(p_out))
+    return run_gt(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, "full", grid_m2l, g_saved, power_rec=p_out,
+                  grid_source=grid_source)
+
+
+def gt_preflight(ctx, P):
+    """The checks of a gt_only run before any data is loaded (README R2-RE-GT: R2-RE-G's safeguards). Returns
+    (g_saved, power_rec): R2-RE-G's saved simulations and, for a formal full stage, the power record."""
+    if not P["gt_check"]:
+        raise ValueError("gt_only needs gt_check = true")
+    if P["gt_stage"] not in ("power", "full"):
+        raise ValueError(f"gt_stage must be 'power' or 'full', not {P['gt_stage']!r}")
+    exploring = getattr(ctx, "max_save_bytes", None) is not None
+    full = P["gt_stage"] == "full"
+    if full and exploring and not formal_gt_done():
+        raise RuntimeError("an exploration may run only gt_stage = 'power' until the formal full stage's "
+                           "results/r2_re_gt.json is committed (README section 8)")
+    g_saved, g_threads = recorded_g_sims(P)
+    if not exploring:
+        # R2-RE-G's saved G_s and tau_s are reproduced exactly only with its thread settings
+        bad = shape.thread_problems(g_threads, shape.thread_settings()) if g_threads is not None else []
+        if bad:
+            raise RuntimeError("R2-RE-GT refused: the thread settings differ from R2-RE-G's formal run ("
+                               + "; ".join(bad) + "); its saved simulations would not be reproduced bit for bit")
+    power_rec = None
+    if full:
+        sum_path = ctx.results / "summary.json"
+        if sum_path.exists():
+            onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_GT", None)
+        elif not exploring:
+            raise RuntimeError("gt_only updates summary.json's R2_RE_GT key: run the full study first")
+        pw_path = ctx.results / "r2_re_gt_power.json"
+        if not exploring:
+            # the first formal outcome stands: a rerun needs a reason, present in log.md before it starts
+            why = P["gt_rerun_reason"]
+            if shape.formal_outcome(ctx.results / "r2_re_gt.json") and not (
+                    isinstance(why, str) and why.strip() and why in study_log_text()):
+                raise RuntimeError("results/r2_re_gt.json already holds a formal R2-RE-GT outcome: a rerun needs "
+                                   "PARAMS gt_rerun_reason, a non-empty text also present in log.md")
+            if not pw_path.exists():
+                raise RuntimeError("the full stage needs results/r2_re_gt_power.json: run gt_stage = 'power' "
+                                   "first and commit its power line to log.md")
+            power_rec = json.loads(pw_path.read_text(encoding="utf-8"))
+            bad = shape.gt_power_record_problems(power_rec, shape.gt_stage_settings(P))
+            if bad:
+                raise RuntimeError("R2-RE-GT full stage refused: " + "; ".join(bad))
+            if shape.gt_power_log_line(power_rec) not in study_log_text():
+                raise RuntimeError("R2-RE-GT full stage refused: the power stage's line (shape.gt_power_log_line) "
+                                   "is not present in log.md; add it (and commit it) first (README section 8)")
+    return g_saved, power_rec
+
+
+def run_gt_only(ctx, P, L, y, C, nz, cls, col_host, ident, g_saved):
+    """The standalone R2-RE-GT stage(s) after host identification."""
+    rows_a, _ = anchor_rows(nz, cls, y)
+    grid, src = recorded_reml_grid(), shape.GT_REML_GRID_SOURCE + " (committed file, standalone mode)"
+    if P["gt_stage"] == "power":
+        p_out, _ = run_gt(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, "power", grid, g_saved,
+                          grid_source=src)
+        ctx.save("r2_re_gt_power", p_out)
+        ctx.log(shape.gt_power_log_line(p_out))
+        return {"R2_RE_GT_power": {k: p_out.get(k) for k in ("status", "n_sims", "power", "size", "reported")}}
+    pw_path = ctx.results / "r2_re_gt_power.json"
+    if pw_path.exists():
+        power_rec = json.loads(pw_path.read_text(encoding="utf-8"))
+        gt_out, sims = run_gt(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, "full", grid, g_saved,
+                              power_rec=power_rec, grid_source=src)
+    else:               # an exploration (empty folder) after the formal full stage: both stages in this process
+        gt_out, sims = run_gt_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, grid, src, g_saved,
+                                   lambda o: ctx.save("r2_re_gt_power", o))
+    sum_path = ctx.results / "summary.json"
+    new = (onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_GT", shape.gt_summary(gt_out))
+           if sum_path.exists() else {"R2_RE_GT": shape.gt_summary(gt_out)})
+    save_gt(ctx, gt_out, sims)         # only after the summary check passed: no half-written result
+    ctx.save("summary", new)
+    return new
+
+
 def main(ctx):
     P = dict(PARAMS)
     t0 = time.perf_counter()
     d_only = bool(P["d_only"])
     g_only = bool(P["g_only"])
+    gt_only = bool(P["gt_only"])
     if d_only and g_only:
         raise ValueError("d_only and g_only cannot both be true")
+    if gt_only and (d_only or g_only):
+        raise ValueError("gt_only cannot be combined with d_only or g_only")
+    g_saved_gt = None
+    if gt_only:
+        # standalone R2-RE-GT (README section 2, addendum 2026-11-21, T-057): power stage -> r2_re_gt_power.json
+        # (records provenance_gtp / run_info_gtp) only; full stage -> r2_re_gt*.json and summary.json's R2_RE_GT key
+        ctx.record_suffix = "_gtp" if P["gt_stage"] == "power" else "_gt"
+        g_saved_gt, _ = gt_preflight(ctx, P)
+    if P["gt_check"] and not (gt_only or d_only or g_only) and not formal_gt_done():
+        raise RuntimeError("gt_check = true outside gt_only would compute p_T on the data before the formal two-stage "
+                           "R2-RE-GT run: run gt_only = true with gt_stage = 'power', then 'full', or set gt_check = "
+                           "false (README section 8)")
     if g_only:
         # standalone R2-RE-G (README section 2, addendum 2026-11-21, T-055): power stage -> r2_re_g_power.json
         # (records provenance_gp / run_info_gp) only; full stage -> r2_re_g*.json and summary.json's R2_RE_G key
@@ -797,7 +957,7 @@ def main(ctx):
                 if shape.power_log_line(power_rec) not in study_log_text():
                     raise RuntimeError("R2-RE-G full stage refused: the power stage's line (shape.power_log_line) "
                                        "is not present in log.md; add it (and commit it) first (README section 8)")
-    if P["g_check"] and not g_only and not d_only and not formal_g_done():
+    if P["g_check"] and not g_only and not d_only and not gt_only and not formal_g_done():
         raise RuntimeError("g_check = true outside g_only would compute G on the data before the formal two-stage "
                            "R2-RE-G run: run g_only = true with g_stage = 'power', then 'full', or set g_check = false "
                            "(README section 8)")
@@ -812,7 +972,7 @@ def main(ctx):
             onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_D", None)
         elif getattr(ctx, "max_save_bytes", None) is None:      # an exploration starts from an empty folder
             raise RuntimeError("d_only updates summary.json's R2_RE_D key: run the full study first")
-    save = (lambda name, obj: None) if (d_only or g_only) else ctx.save
+    save = (lambda name, obj: None) if (d_only or g_only or gt_only) else ctx.save
     C, L, y, lsq = load(ctx)
     hosts = [h for h, *_ in TABLE6]
     hosts = list(dict.fromkeys(hosts))
@@ -969,6 +1129,9 @@ def main(ctx):
         save_g(ctx, g_out, sims)       # only after the summary check passed: no half-written result
         ctx.save("summary", new)
         return new
+
+    if gt_only:             # standalone R2-RE-GT: rows_a and one stage of the block
+        return run_gt_only(ctx, P, L, y, C, nz, cls, col_host, ident, g_saved_gt)
 
     # ---- R2 anchor step
     rows_a, achk = anchor_rows(nz, cls, y)
@@ -1232,6 +1395,22 @@ def main(ctx):
     if sims_g is not None:
         save_g(ctx, g_out, sims_g)
 
+    # ---- R2-RE-GT (README section 2, addendum 2026-11-21, T-057): runs after the R2-RE-G block under the same
+    # condition (only after its formal full stage, see main's gate); R2-RE-G's simulations of this run when its
+    # block ran, else its committed files, are the reproduction reference
+    sims_gt = None
+    if not P["gt_check"]:
+        gt_out = save_gt_stubs(ctx, P, "not run (PARAMS)")
+    elif not (P["re_check"] and ident["host_step_evaluable"]) or re.get("status") != "evaluated":
+        gt_out = save_gt_stubs(ctx, P, "not evaluable (R2-RE not run or host step not evaluable)")
+    else:
+        g_saved_gt = shape.check_g_sims(sims_g, P) if sims_g is not None else recorded_g_sims(P)[0]
+        gt_out, sims_gt = run_gt_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, re["reml"]["grid_m2l"],
+                                      "R2-RE's REML grid of the same run (r2_re.json reml.grid_m2l)", g_saved_gt,
+                                      lambda o: ctx.save("r2_re_gt_power", o))
+    if sims_gt is not None:
+        save_gt(ctx, gt_out, sims_gt)
+
     # One canonical qualified verdict for the host step (gate-2 review): states the labelling mode
     # and, when R4 ran, the empirical (random-subset) scale next to the C-propagated significance.
     qual = []
@@ -1299,6 +1478,7 @@ def main(ctx):
         "R2_RE_SEL": sel.summary(sel_out),
         "R2_RE_D": onehost.summary(d_out),
         "R2_RE_G": shape.summary(g_out),
+        "R2_RE_GT": shape.gt_summary(gt_out),
         "runtime_s": time.perf_counter() - t0,
     }
     ctx.save("summary", summary)
