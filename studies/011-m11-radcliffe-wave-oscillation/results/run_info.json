@@ -1,0 +1,15 @@
+{
+ "study": "011-m11-radcliffe-wave-oscillation",
+ "finished_at": "2026-11-22T00:48:04+00:00",
+ "seconds": 1616.83,
+ "outputs": [
+  "t1_t2.json",
+  "t3.json",
+  "t4.json",
+  "t5.json",
+  "t6.json",
+  "t7.json",
+  "t8.json",
+  "summary.json"
+ ]
+}
