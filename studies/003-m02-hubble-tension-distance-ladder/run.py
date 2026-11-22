@@ -878,9 +878,12 @@ def gtp_preflight(ctx, P):
             if f.get("status") != "evaluated" or len(f.get("k", [])) != int(P["gtp_n_sims"]):
                 raise RuntimeError(f"{prefix}{key}.json: not an evaluated record of {P['gtp_n_sims']} simulations")
             reused[nk][tk] = np.asarray(f["k"], dtype=np.int64)
-    if gt_rec.get("settings", {}).get("threads") != shape.thread_settings() and not exploring:
+    # the same comparison as R2-RE-GT's stages (shape.thread_problems: the environment strictly, the thread pools for
+    # the libraries loaded in both snapshots), not dict equality (fixed 2026-11-22 after a refused first attempt)
+    bad_thr = shape.thread_problems(gt_rec.get("settings", {}).get("threads"), shape.thread_settings())
+    if bad_thr and not exploring:
         raise RuntimeError("R2-RE-GTP refused: the thread settings differ from R2-RE-GT's formal run (its recorded k "
-                           "would not be reproduced bit for bit)")
+                           "would not be reproduced bit for bit): " + "; ".join(bad_thr))
     sum_path = ctx.results / "summary.json"
     if sum_path.exists():
         onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_GTP", None)
