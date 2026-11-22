@@ -845,14 +845,15 @@ run took about 10.5 hours (paused at 10 h as pre-registered and resumed); number
   clusters' v_z pattern shows a travelling wave (Part 2, Stage C) is supported only in this fragile form.
 - *Update 2026-11-22 (T-056, post hoc).* **No reading of K24's Methods reproduces their clouds-only fit:** sixteen
   conventions (four forms of the curved baseline, σ fixed at 47 pc or from the spread of the clouds' squared
-  distances, fixed or recomputed weights) all put the same two of six parameters inside K24's ranges (the start s₀
-  and the damping γ), with the same offsets (wave amplitude about 2σ too short in δ, phase φ 3–4σ larger, the first
-  anchor about 2σ off). So the difference is shared by all of them: it lies in the data, the likelihood or a convention
+  distances, fixed or recomputed weights) all put the same two of six parameters inside K24's ranges (where the
+  envelope peaks, s₀, and how fast the wavelength shrinks, γ), with the same offsets (envelope width δ about 2σ
+  shorter, phase φ 3–4σ larger, the first anchor about 2σ off). So the difference is shared by all of them: it lies in the data, the likelihood or a convention
   none of them varies (where along the curve s = 0 sits, a vertical offset of the Sun); K24 fit only clouds with a
   measured velocity, as we do, and whether the clouds are the same is checked next (T-061). **With the velocity divisor
-  fixed (T8-P), ω₀ is "prior-driven":** on their own the data prefer 59 (+12/−10) km s⁻¹ kpc⁻¹ and constrain it about as
-  tightly as K24's prior does; that prior (centred on 91) pulls the result to 71, close to K24's 67.7. So K24's ω₀, and
-  the local density read from it, rests about equally on prior and data.
+  fixed (T8-P), ω₀ is "prior-driven":** under broad priors the data prefer 59 (+12/−10) km s⁻¹ kpc⁻¹ and constrain it about as
+  tightly as K24's prior does; that prior (centred on 91) pulls the result to 71, close to K24's 67.7. So in our fit with
+  the divisor fixed, prior and data weigh about equally; with B = 1 fixed, ω₀ mainly tracks the clusters' ratio of
+  velocity to height amplitude, so it is not a clean measure of the local density.
 
 ### Glossary
 
@@ -1265,7 +1266,7 @@ K24 在扣除银河系自转后拟合一个刚体的盘面内速度：v_x,plane 
 - *T7。* 按规则 CO 不能区分，但 B = 1 模型对云速度的拟合是三个版本中最差的（比 v_z = 0 差 10.6）。
 - *T8。* 撤回（独立审稿，事后）：ω₀ 自由时，在 K24 有界的离群函数下，σ 固定的 v_z/ω₀ 使似然对 ω₀ 是病态的（ill-posed；缺少 ln ω₀ 归一化项，加上后 ω₀ → 0 时似然无界增大；在探索的众数搜索中，宽先验下后验跑到上限，加上归一化后跑到下限）。除数固定时 ω₀ = 71（+10/−8）km s⁻¹ kpc⁻¹，接近 K24 的 67.7（只在 K24 先验下拟合）。
 - *这意味着什么。* K24 的数据与模型确实给出 B ≈ 0.84 和似然对行波的偏好，但这一偏好依赖少数星团（主要是猎户座区域）与核加权；直接的相位检验与 b̂ 检验无法判定。论文明说的"星团的 v_z 图样显示行波"（第二部分环节 C）只在这种不稳健的形式下得到支持。
-- *2026-11-22 更新（T-056，事后）。* **对 K24 方法部分的任何读法都不能复现他们只用云的拟合：** 十六种约定（弯曲基线的四种形式，σ 固定为 47 pc 或由云的平方距离的离散得到，权重固定或重算）都使六个参数中同样两个落在 K24 的范围内（起点 s₀ 与阻尼 γ），偏移也相同（δ 约短 2σ，相位 φ 约大 3–4σ，第一个锚点约偏 2σ）。所以差别是它们共有的：在数据、似然，或者它们都没有改变的某个约定中（s = 0 在曲线上的位置、太阳的竖直偏移）；K24 与我们一样只拟合有速度测量的云，云是否相同是下一步要核对的（T-061）。**速度除数固定时（T8-P），ω₀ "由先验决定"：** 单靠数据偏好 59 (+12/−10) km s⁻¹ kpc⁻¹，约束与 K24 的先验相当；该先验（中心 91）把结果拉到 71，接近 K24 的 67.7。所以 K24 的 ω₀ 以及由它读出的局部密度，先验与数据各占约一半分量。
+- *2026-11-22 更新（T-056，事后）。* **对 K24 方法部分的任何读法都不能复现他们只用云的拟合：** 十六种约定（弯曲基线的四种形式，σ 固定为 47 pc 或由云的平方距离的离散得到，权重固定或重算）都使六个参数中同样两个落在 K24 的范围内（包络峰值的位置 s₀，以及波长缩短的快慢 γ），偏移也相同（包络宽度 δ 约短 2σ，相位 φ 约大 3–4σ，第一个锚点约偏 2σ）。所以差别是它们共有的：在数据、似然，或者它们都没有改变的某个约定中（s = 0 在曲线上的位置、太阳的竖直偏移）；K24 与我们一样只拟合有速度测量的云，云是否相同是下一步要核对的（T-061）。**速度除数固定时（T8-P），ω₀ "由先验决定"：** 在宽先验下数据偏好 59 (+12/−10) km s⁻¹ kpc⁻¹，约束与 K24 的先验相当；该先验（中心 91）把结果拉到 71，接近 K24 的 67.7。所以在我们除数固定的拟合中，先验与数据分量相当；固定 B = 1 时，ω₀ 主要跟随星团速度与高度振幅之比，不是局部密度的干净量度。
 
 ### 术语表
 
@@ -1284,9 +1285,9 @@ K24 在扣除银河系自转后拟合一个刚体的盘面内速度：v_x,plane 
 
 ### 研究进展
 
-- 2026-11-22：R-CONV 与 T8-P（T-056，事后）：16 种约定下第 (3) 列都未复现；T8-P 由先验决定（数据偏好 59 km/s/kpc）；更新第三部分；独立审稿已做；逐云诊断登记为 T-061。
 按时间倒序。
 
+- 2026-11-22：R-CONV 与 T8-P（T-056，事后）：16 种约定下第 (3) 列都未复现；T8-P 由先验决定（数据偏好 59 km/s/kpc）；更新第三部分；独立审稿已做；逐云诊断登记为 T-061。
 - 2026-11-21：正式运行与收尾：第三部分补写结果（总体判读"混合"；T3 排除驻波但不稳健；T4、T5 无法判定；独立审稿发现 ω₀ 自由的似然对 ω₀ 病态，T8 撤回；后续 T-056）。
 - 2026-11-21：第三部分初稿（八项检验 T1–T8 与三项探索；读取了两张公开表的列与行数，未做拟合；闸门 1 审查：T3 改为嵌套模型的剖面似然检验，因为 ω₀t 自由时驻波多一个有效参数；T4 的噪声加在全部四个分量上，用 2φ_k 的圆统计量并检查功效；T5 的 Λ(s) 取自只用云的拟合，两个波长各自放开；第二轮：B 不折叠（B 与 1 − B 向相反方向传播），B = 1 按 2 个自由度的 χ² 分布（那里 ω₀t 并入 φ）并做自助法检查，T4 对每个模拟重新求最近点，T5 报告振幅比且星团选择不含速度；第三轮：T5 的标签增加"无法判定"，宽区间不能算作支持，T4 在 B = 0.5 的曲线上求最近点，ω 在参考 s 处计算；第四轮：T5 由 (z, v_z) 相位—振幅矩阵的奇异值读出 b̂ = 2B − 1（不再拿 K24 的 B = 0.84 对照纯 B = 1），标签互不重叠，T4 的保守性改为正确的理由；第五轮：b̂ 取自共用一个波长的拟合（波长不同时不适用），A ≥ 0，加已知答案检验；闸门 1 通过（第六轮，小问题：已知答案检验的通过条件，标签带方向，Δ 与 ρ 为拟合常数）；闸门 2（Codex）第一轮：给 T1、T3、T4、T7 与 T8 补上建议阈值，T5 用 95% 区间；它认为 b̂ 依赖 ω₀t，经数值检验不成立（矩阵中 v_z 一行为 (−sin ω₀t, (2B − 1) cos ω₀t)，奇异值对任何 ω₀t 都是 1 与 |2B − 1|）；第二轮：Codex 同意这个推导；B = 1 处的已知答案检验改为检查标签而不是覆盖，因为 b̂ 以 1 为上界；T8 的 σ 已定义；第三轮：没有严重问题（通过双闸；小问题：写明已知答案检验的汇总规则）；预注册审查：T5 的星团集合按位置选择（全部 125 个作为变体），与 README 第 4.4 节一致）；w☉ = 7.8 km/s 改为 K24 引用的 Kerr & Lynden-Bell 1986（原误作 Schönrich 等 2010）。
 - 2026-11-21：第二部分闸门 2 审查：不再把带保留措辞的句子编码为明说的蕴涵式；星团诞生于波中（K24："suggesting"）成为新缺口 `gap_born`；振荡一步改引方法部分明确的"we find that"；"B closer to 1 indicates"前提并入明说的偏好；26 个前提、五个缺口。
