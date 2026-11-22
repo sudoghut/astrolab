@@ -1433,3 +1433,235 @@ def test_gt_check_false_full_run_keeps_formal_files(tmp_path):
     assert set(ctx.saved) == {"r2_re_gt_power"} | {f"r2_re_gt_sims_{k}" for k in GT_SIM_KEYS}
     out, sims = run.gt_not_run(run.PARAMS, "not run (PARAMS)", "full")
     assert shape.gt_summary(out) == {"status": "not run (PARAMS)", "reading": None} and set(sims) == set(GT_SIM_KEYS)
+
+
+# ==== R2-RE-GTP (README section 2, addendum 2026-11-22, T-060) =====================================================
+def test_gtp_params_and_seeds():
+    run = _load("run003_gtp_params", "run.py")
+    P = run.PARAMS
+    assert (P["gtp_check"], P["gtp_only"], P["gtp_nus"], P["gtp_t_seeds"], P["gtp_inner_seeds"], P["gtp_n_sims"],
+            P["gtp_rerun_reason"]) == (False, False, [3, 4, 6, 10, 30, "inf"],
+                                       {3: 430_000, 6: 440_000, 10: 450_000, 30: 460_000},
+                                       {6: 613_000, 30: 614_000}, 10_000, "")
+    assert [shape.gtp_inner_seed(v, P) for v in (3, 4, 6, 10, 30)] == [611_000, 610_000, 613_000, 612_000, 614_000]
+    assert [shape.gtp_t_seed(v, P) for v in (3, 6, 10, 30)] == [430_000, 440_000, 450_000, 460_000]
+    assert [shape.gtp_nu_key(v) for v in P["gtp_nus"]] == ["3", "4", "6", "10", "30", "inf"]
+    # the new seeds collide with no earlier block (R2-RE-GT's list plus 410,000-419,999 and 610,000-612,000)
+    used = [(0, 0), (10_000, 11_999), (20_000, 21_999), (50_000, 50_999), (100_000, 109_999), (200_000, 209_999),
+            (300_000, 300_199), (400_000, 409_999), (410_000, 419_999), (500_000, 509_999), (600_000, 600_000),
+            (610_000, 612_000)]
+    for lo, hi in [(430_000, 439_999), (440_000, 449_999), (450_000, 459_999), (460_000, 469_999),
+                   (613_000, 613_000), (614_000, 614_000)]:
+        assert all(hi < a or lo > b for a, b in used)
+    assert shape.GTP_RECORDED_K == {("4", "tau_obs"): 1047, ("4", "0.05"): 501, ("4", "0.105"): 1806,
+                                    ("3", "tau_obs"): 1476, ("10", "tau_obs"): 422,
+                                    ("inf", "tau_obs"): 326, ("inf", "0.05"): 254, ("inf", "0.105"): 453}
+    # the recorded k agree with the committed R2-RE-GT and R2-RE-G records (when present)
+    res = HERE / "results"
+    if (res / "r2_re_gt.json").exists() and (res / "r2_re_g.json").exists():
+        gt = json.loads((res / "r2_re_gt.json").read_text(encoding="utf-8"))
+        g = json.loads((res / "r2_re_g.json").read_text(encoding="utf-8"))
+        if "p_T_obs" in gt and "p_G" in g:
+            sens = gt["sensitivities"]
+            found = {("4", "tau_obs"): gt["p_T_obs"]["k"], ("4", "0.05"): sens["fixed_tau"]["0.05"]["k"],
+                     ("4", "0.105"): sens["fixed_tau"]["0.105"]["k"], ("3", "tau_obs"): sens["nu"]["3"]["k"],
+                     ("10", "tau_obs"): sens["nu"]["10"]["k"], ("inf", "tau_obs"): g["p_G"]["k"],
+                     ("inf", "0.05"): g["p_G_fixed"]["V050"]["k"], ("inf", "0.105"): g["p_G_fixed"]["V105"]["k"]}
+            assert found == shape.GTP_RECORDED_K
+
+
+def test_gtp_variance_matching_new_nu():
+    """Var(b) = tau^2 for b = s t, s = tau sqrt((nu - 2) / nu): exactly in the scale, and the sample variance within
+    Monte Carlo error at the new nu (6 and 30; nu = 3's is checked loosely by test_gt_variance_matching)."""
+    tau = 0.08
+    for nu in (3, 4, 6, 10, 30):
+        assert abs(shape.gt_scale(tau, nu) ** 2 * nu / (nu - 2) - tau ** 2) < 1e-15
+    for nu, seed in ((6, 613_000), (30, 614_000)):
+        b = shape.gt_scale(tau, nu) * shape.t_draws(seed, nu, (40_000, 37))
+        assert abs(b.var() / tau ** 2 - 1) < 0.03, (nu, b.var() / tau ** 2)
+
+
+def test_gtp_statement_rule():
+    E, N, U = shape.EXCL, shape.NOT_EXCL, "undetermined (Monte Carlo)"
+    pre = shape.GTP_PROFILE
+    assert shape.gtp_statement([E] * 18, [0.01] * 18) == pre + "excluded across the profile"
+    assert shape.gtp_statement([N] * 18, [0.2] * 18) == pre + "not excluded across the profile"
+    assert shape.gtp_statement([E] * 17 + [N], [0.01] * 17 + [0.2]) == pre + "model-limited (p_fix from 0.010 to 0.200)"
+    # mixes with Monte Carlo-undetermined points are model-limited too; min and max over all points
+    assert shape.gtp_statement([E] * 17 + [U], [0.01] * 17 + [0.05]) == pre + "model-limited (p_fix from 0.010 to 0.050)"
+    assert shape.gtp_statement([N, U], [0.3, 0.05]) == pre + "model-limited (p_fix from 0.050 to 0.300)"
+
+
+def test_gtp_refit_record():
+    n_in = 20_000
+    k_s = np.array([10] * 10 + [5000] * 90)          # 10 of 100 clearly "excluded" (k = 10 of 20,000)
+    r = shape.gtp_refit_record(k_s, 1000, n_in)
+    assert r["n"] == 100 and r["n_excluded"] == 10 and abs(r["size"] - 0.1) < 1e-15
+    assert r["anti_conservative"] is False                 # CP interval of 10/100 contains 0.05
+    assert r["p_cal"]["count"] == 10 and abs(r["p_cal"]["p"] - 11 / 101) < 1e-15
+    r2 = shape.gtp_refit_record(np.array([10] * 300 + [5000] * 700), 10, n_in)
+    assert r2["anti_conservative"] is True and r2["p_cal"]["count"] == 300   # ties k_s = k_obs count
+    lo, hi = rob._cp(300, 1000)
+    assert r2["size_ci95"] == [lo, hi] and lo > 0.05
+
+
+def _gtp_inputs(lad, stages, n):
+    """Synthetic reused k_s and the records they must reproduce."""
+    rng = np.random.default_rng(7)
+    reused = {nk: {tk: rng.integers(0, 3000, n) for tk in shape.GTP_TAU_KEYS} for nk in ("4", "inf")}
+    models = {}
+    for nk, keys in shape.GTP_REUSED_SETS.items():
+        for tk, key in keys.items():
+            r = shape.gtp_refit_record(reused[nk][tk], 0, shape_n_in())
+            models[(nk, key)] = {"n": n, "n_excluded": r["n_excluded"]}
+    gt_rec = {"models": {key: v for (nk, key), v in models.items() if nk == "4"}}
+    g_rec = {"models": {key: v for (nk, key), v in models.items() if nk == "inf"}}
+    return reused, gt_rec, g_rec
+
+
+def shape_n_in():
+    return 20_000
+
+
+def _gtp(lad, stages, recorded=None, n=N_SIMS, reused=None, gt_rec=None, g_rec=None, log=None):
+    P = dict(lad["P"], gtp_n_sims=n, gtp_nus=[3, 4, 6, 10, 30, "inf"],
+             gtp_t_seeds={3: 430_000, 6: 440_000, 10: 450_000, 30: 460_000},
+             gtp_inner_seeds={6: 613_000, 30: 614_000})
+    r0, gt0, g0 = _gtp_inputs(lad, stages, n)
+    rc = dict(lad["rec"], g_obs=stages["full"]["observed"]["G_obs"], k={})
+    rc.update(recorded or {})
+    return shape.run_gtp(lad["L"], lad["y"], lad["C"], lad["rows_a"], lad["groups"], lad["labels"], P, lad["fns"],
+                         (lambda m: None) if log is None else log, lad["grid"],
+                         gt0 if gt_rec is None else gt_rec, g0 if g_rec is None else g_rec,
+                         r0 if reused is None else reused, recorded=rc)
+
+
+@pytest.fixture(scope="module")
+def gtp_out(lad, stages):
+    return _gtp(lad, stages)
+
+
+def test_gtp_synthetic_run(lad, stages, gtp_out):
+    out, sims = gtp_out
+    assert out["status"] == "evaluated", out["status"]
+    nus = ["3", "4", "6", "10", "30", "inf"]
+    assert set(out["p_fix"]) == set(nus) and all(set(out["p_fix"][a]) == set(shape.GTP_TAU_KEYS) for a in nus)
+    assert set(sims) == {f"{a}_{b}" for a in ("3", "6", "10", "30") for b in shape.GTP_TAU_KEYS}
+    for name, f in sims.items():
+        assert len(f["k"]) == N_SIMS and len(f["G"]) == N_SIMS and len(f["tau_hat"]) == N_SIMS
+    assert all(p["ok"] for p in out["checks"]["pointwise"]) and len(out["checks"]["pointwise"]) == 12 * 3
+    # p_plug is p_fix at tau_obs; every refit record has its size and p_cal, computed from the k_s
+    for a in nus:
+        assert out["p_plug"][a] == out["p_fix"][a]["tau_obs"]["p"]
+        for b in shape.GTP_TAU_KEYS:
+            r = out["refit"][a][b]
+            k_s = sims[f"{a}_{b}"]["k"] if a not in shape.GTP_REUSED_SETS else None
+            if k_s is not None:
+                assert r == shape.gtp_refit_record(k_s, out["p_fix"][a]["tau_obs"]["k"], 20_000)
+    labs = [out["p_fix"][a][b]["label"] for a in nus for b in shape.GTP_TAU_KEYS]
+    ps = [out["p_fix"][a][b]["p"] for a in nus for b in shape.GTP_TAU_KEYS]
+    assert out["statement"] == shape.gtp_statement(labs, ps)
+    assert out["p_fix_min"] == min(ps) and out["p_fix_max"] == max(ps)
+    ok = [a for a in nus if a not in out["anti_conservative_nu"]]
+    pc = [out["refit"][a][b]["p_cal"]["p"] for a in ok for b in shape.GTP_TAU_KEYS]
+    assert out["p_cal_max"] == (max(pc) if pc else None)
+    # nu = inf uses R2-RE-G's Gaussian inner draws (inner_k), nu = 4 R2-RE-GT's T_in
+    des, _ = shape.design(lad["L"], lad["y"], lad["C"], lad["rows_a"], lad["groups"], lad["fns"])
+    E_in = shape.inner_draws(lad["P"]["g_inner_seed"], 20_000, len(lad["groups"]))
+    g = out["observed"]["G_obs"]
+    assert out["p_fix"]["inf"]["0.05"]["k"] == shape.inner_k(g, 0.05, des, E_in)
+    inner4 = shape.TInner(des, E_in, shape.t_draws(610_000, 4, (20_000, len(lad["groups"]))), 4)
+    assert out["p_fix"]["4"]["0.105"]["k"] == inner4.k(g, 0.105)
+    s = shape.gtp_summary(out)
+    assert s["status"] == "evaluated" and s["statement"] == out["statement"]
+
+
+def test_gtp_recorded_k_mismatch_is_not_evaluable(lad, stages, gtp_out):
+    out, _ = gtp_out
+    k = {("4", "0.05"): out["p_fix"]["4"]["0.05"]["k"] + 1}
+    bad, sims = _gtp(lad, stages, recorded={"k": k})
+    assert bad["status"].startswith("not evaluable (reproduction check failed") and sims == {}
+    good, _ = _gtp(lad, stages, recorded={"k": {("4", "0.05"): out["p_fix"]["4"]["0.05"]["k"]}}, n=2)
+    assert good["status"] == "evaluated"
+
+
+def test_gtp_reused_count_mismatch_and_g_obs(lad, stages):
+    reused, gt_rec, g_rec = _gtp_inputs(lad, stages, N_SIMS)
+    gt_rec["models"]["THAT"]["n_excluded"] += 1
+    bad, _ = _gtp(lad, stages, reused=reused, gt_rec=gt_rec, g_rec=g_rec)
+    assert "THAT: n_excluded" in bad["status"]
+    bad2, _ = _gtp(lad, stages, recorded={"g_obs": stages["full"]["observed"]["G_obs"] * 1.001}, n=2)
+    assert bad2["status"].startswith("not evaluable (reproduction check failed: G_obs")
+
+
+def test_main_gtp_refusals(tmp_path, monkeypatch):
+    run = _load("run003_gtp_refuse", "run.py")
+    ctx = _Ctx(tmp_path)
+    monkeypatch.setitem(run.PARAMS, "gtp_check", True)
+    with pytest.raises(ValueError, match="only standalone"):
+        run.main(ctx)
+    monkeypatch.setitem(run.PARAMS, "gtp_check", False)
+    monkeypatch.setitem(run.PARAMS, "gtp_only", True)
+    with pytest.raises(ValueError, match="gtp_only needs gtp_check"):
+        run.main(ctx)
+    monkeypatch.setitem(run.PARAMS, "gtp_check", True)
+    monkeypatch.setitem(run.PARAMS, "gt_only", True)
+    with pytest.raises(ValueError, match="cannot be combined"):
+        run.main(ctx)
+
+
+def test_main_gtp_exploration_before_formal(tmp_path, monkeypatch):
+    run = _load("run003_gtp_explore", "run.py")
+    ctx = _Ctx(tmp_path)
+    ctx.max_save_bytes = 1_000_000
+    monkeypatch.setattr(run, "formal_gtp_done", lambda path=None: False)
+    for k, v in (("gtp_check", True), ("gtp_only", True)):
+        monkeypatch.setitem(run.PARAMS, k, v)
+    with pytest.raises(RuntimeError, match="only after the formal"):
+        run.main(ctx)
+
+
+def test_gtp_conclusion_check_on_synthetic_output(lad, stages, gtp_out):
+    """test_conclusions.check_r2_re_gtp accepts the synthetic output and rejects a changed statement."""
+    out, sims = gtp_out
+    tc = _load("tc003_gtp", "test_conclusions.py")
+    reused, _, _ = _gtp_inputs(lad, stages, N_SIMS)
+    o = json.loads(json.dumps(_jsonable(out)))
+    sm = json.loads(json.dumps(_jsonable(sims)))
+    ru = {a: {b: [int(k) for k in v] for b, v in d.items()} for a, d in reused.items()}
+    s = json.loads(json.dumps(_jsonable(shape.gtp_summary(out))))
+    tc.check_r2_re_gtp(o, sm, ru, s, recorded_k={})
+    bad = dict(o, statement=o["statement"] + " x")
+    with pytest.raises(AssertionError):
+        tc.check_r2_re_gtp(bad, sm, ru, dict(s, statement=bad["statement"]), recorded_k={})
+
+
+def test_run_gtp_only_saves_and_updates_only_its_summary_key(tmp_path, monkeypatch):
+    """run_gtp_only: r2_re_gtp.json, the new sims files and summary.json's R2_RE_GTP key (other keys unchanged); a
+    not-evaluable outcome writes no sims files."""
+    run = _load("run003_gtp_only", "run.py")
+    from astrolab.results import write_json
+    old = {"params": {"a": 1}, "R2_RE_GT": {"reading": "τ̂ x"}, "runtime_s": 1.5}
+    write_json(tmp_path / "summary.json", old)
+    old_text = (tmp_path / "summary.json").read_text(encoding="utf-8")
+    monkeypatch.setattr(run, "anchor_rows", lambda nz, cls, y: (np.arange(3), None))
+    monkeypatch.setattr(run, "recorded_reml_grid", lambda: [0.0])
+    fake = {"stage": "full", "status": "evaluated", "statement": "t-tail comparison: model-limited (p_fix from "
+            "0.010 to 0.100)", "p_fix_min": 0.01, "p_fix_max": 0.1, "p_cal_min": 0.02, "p_cal_max": 0.09,
+            "anti_conservative_nu": []}
+    monkeypatch.setattr(run.shape, "run_gtp", lambda *a, **k: (fake, {"3_0.05": {"k": [1, 2]}}))
+    ctx = _Ctx(tmp_path)
+    cls = {"calib": np.zeros(3, dtype=bool)}
+    new = run.run_gtp_only(ctx, run.PARAMS, None, np.zeros(3), None, np.zeros((3, run.NH), dtype=bool), cls,
+                           ["h"] * run.NH, {"host_step_evaluable": True}, ({}, {}, {}))
+    assert set(ctx.saved) == {"r2_re_gtp", "r2_re_gtp_sims_3_0.05", "summary"}
+    assert new["R2_RE_GTP"] == shape.gtp_summary(fake)
+    assert list(new) == ["params", "R2_RE_GT", "R2_RE_GTP", "runtime_s"]
+    assert {k: new[k] for k in old} == old
+    write_json(tmp_path / "summary.json", old)
+    ctx2 = _Ctx(tmp_path)
+    run.run_gtp_only(ctx2, run.PARAMS, None, np.zeros(3), None, np.zeros((3, run.NH), dtype=bool), cls,
+                     ["h"] * run.NH, {"host_step_evaluable": False}, ({}, {}, {}))
+    assert set(ctx2.saved) == {"r2_re_gtp", "summary"}
+    assert ctx2.saved["r2_re_gtp"]["status"] == "not evaluable (host step not evaluable)"
+    assert (tmp_path / "summary.json").read_text(encoding="utf-8") != old_text

@@ -1673,3 +1673,281 @@ def gt_power_log_line(p_out):
             + "reported " + ", ".join(f"R_{k} {r['rate']:.4f}" if r.get("rate") is not None else f"R_{k} {r['status']}"
                                       for k, r in rep.items())
             + f"; status {p_out['status']}")
+
+
+# ==== R2-RE-GTP =====================================================================================================
+# R2-RE-GTP (README section 2, addendum 2026-11-22, T-060): a reported, non-decisive profile of R2-RE-GT over the tail
+# weight nu in {3, 4, 6, 10, 30, inf} and the scale tau in {0.05, tau_hat_obs, 0.105}. Two kinds of number:
+# - p_fix(nu, tau): the fixed-tau p value on the data (Monte Carlo estimate of a simple-null p value), from the fixed
+#   inner draws at tau (finite nu: TInner with T_in drawn with nu; nu = inf: R2-RE-G's Gaussian inner_k);
+#   p_plug(nu) = p_fix(nu, tau_hat_obs) is also the data value of the tau-refitted plug-in test;
+# - for the refitted plug-in test at each nu, under outer simulations T_nu(tau) (tau refitted in each, k_s from the nu
+#   inner draws at tau_hat_s): size(nu, tau) (rate of "excluded", Clopper-Pearson interval; "anti-conservative" if the
+#   interval lies entirely above 0.05) and p_cal(nu, tau) = (1 + #{s: k_s <= k_obs(nu)}) / (1 + n), R2-RE-G's p_dbl
+#   generalised to nu. nu = 4 reuses R2-RE-GT's committed THAT/T050/T105 simulations and records; nu = inf reuses
+#   R2-RE-G's VHAT/V050/V105 and p_G / p_G_fixed. Nothing here changes R2-RE-G's or R2-RE-GT's functions or results.
+# ==================================================================================================================
+GTP_TAU_KEYS = ("0.05", "tau_obs", "0.105")
+GTP_REUSED_SETS = {"4": {"0.05": "T050", "tau_obs": "THAT", "0.105": "T105"},
+                   "inf": {"0.05": "V050", "tau_obs": "VHAT", "0.105": "V105"}}
+# the k of the eight recorded (nu, tau) pairs (R2-RE-GT p_T_obs / sensitivities; R2-RE-G p_G / p_G_fixed)
+GTP_RECORDED_K = {("4", "tau_obs"): 1047, ("4", "0.05"): 501, ("4", "0.105"): 1806,
+                  ("3", "tau_obs"): 1476, ("10", "tau_obs"): 422,
+                  ("inf", "tau_obs"): 326, ("inf", "0.05"): 254, ("inf", "0.105"): 453}
+GTP_PROFILE = "t-tail comparison: "
+
+
+def gtp_nu_key(nu):
+    """'3', '4', ..., 'inf' (JSON keys)."""
+    return "inf" if str(nu) == "inf" else f"{float(nu):g}"
+
+
+def gtp_tau_value(key, tau_obs):
+    return float(tau_obs) if key == "tau_obs" else float(key)
+
+
+def gtp_inner_seed(nu, P):
+    """The inner T_in seed of a finite nu: R2-RE-GT's (gt_inner_seed for gt_nu, gt_inner_seeds_rep for gt_nu_rep)
+    or gtp_inner_seeds."""
+    nk = gtp_nu_key(nu)
+    if nk == gtp_nu_key(P["gt_nu"]):
+        return int(P["gt_inner_seed"])
+    for n_r, s_r in zip(P["gt_nu_rep"], P["gt_inner_seeds_rep"]):
+        if nk == gtp_nu_key(n_r):
+            return int(s_r)
+    seeds = {gtp_nu_key(k): v for k, v in P["gtp_inner_seeds"].items()}
+    return int(seeds[nk])
+
+
+def gtp_t_seed(nu, P):
+    """The outer t_s seed base of a new finite nu (gtp_t_seeds)."""
+    seeds = {gtp_nu_key(k): v for k, v in P["gtp_t_seeds"].items()}
+    return int(seeds[gtp_nu_key(nu)])
+
+
+def gtp_statement(labels, ps):
+    """The summary statement from the 18 p_fix labels and values (README R2-RE-GTP)."""
+    if all(x == EXCL for x in labels):
+        return GTP_PROFILE + "excluded across the profile"
+    if all(x == NOT_EXCL for x in labels):
+        return GTP_PROFILE + "not excluded across the profile"
+    return GTP_PROFILE + f"model-limited (p_fix from {min(ps):.3f} to {max(ps):.3f})"
+
+
+def gtp_refit_record(k_s, k_obs, n_in):
+    """size and p_cal of the refitted plug-in test under one outer set: k_s the per-simulation k (inner draws of the
+    same nu at tau_hat_s), k_obs the data's k at tau_hat_obs."""
+    k_s = np.asarray(k_s, dtype=np.int64)
+    n = int(len(k_s))
+    cache = {}
+    n_ex = 0
+    for k in k_s:
+        k = int(k)
+        if k not in cache:
+            cache[k] = p_label(k, n_in)[0]
+        n_ex += cache[k] == EXCL
+    lo, hi = rob._cp(int(n_ex), n)
+    c = int(np.count_nonzero(k_s <= int(k_obs)))
+    lab, ci = p_label(c, n)
+    return {"n": n, "n_excluded": int(n_ex), "size": n_ex / n, "size_ci95": [lo, hi],
+            "anti_conservative": bool(lo > 0.05),
+            "p_cal": {"count": c, "n": n, "p": p_boot(c, n), "ci95": list(ci), "label": lab}}
+
+
+def gtp_summary(out):
+    """Short summary for summary.json (R2_RE_GTP)."""
+    s = {"status": out.get("status")}
+    for k in ("statement", "p_fix_min", "p_fix_max", "p_cal_min", "p_cal_max", "anti_conservative_nu"):
+        if k in out:
+            s[k] = out[k]
+    return s
+
+
+def gtp_pointwise(L, y, C, rows_a, groups, des, P, nu, tau, fns, n_pw=GT_N_POINTWISE):
+    """R2-RE-GT's pointwise checks for a new outer set: the first simulations built in full (y_s = y_hat + K_C eps_s
+    + Z b_s): the 37 one-column GLS z against the reduced form (Z_ATOL) and the reduced-form tau_hat against
+    reml_tau on reml_m2l (POINT_TAU_ATOL)."""
+    nh = des["n_hosts"]
+    eps = onehost.eps_block(P["g_seed_base"], np.arange(n_pw), des["n_a"])
+    tb = gt_scale(tau, nu) * t_block(gtp_t_seed(nu, P), np.arange(n_pw), nu, nh)
+    B = des["W"] @ des["Kc"]
+    rows = []
+    for s in range(n_pw):
+        z_red = B @ eps[:, s] + des["WH"] @ tb[:, s]
+        y_full = np.array(y, dtype=float)
+        y_full[rows_a] = des["yhat"] + des["Kc"] @ eps[:, s] + host_effect_y(tb[:, s], des)
+        d, sd = one_column_z(L, y_full, C, rows_a, groups, fns)
+        dz = float(np.max(np.abs(d / sd - z_red)))
+        t_red = tau_refit(v_of_z(z_red, des), des["lam"], fns["reml_tau"])["tau_hat"]
+        t_full = fns["reml_tau"](lambda t: fns["reml_m2l"](L, y_full, C, rows_a, groups, t), TAU_MAX, TAU_STEP,
+                                 interval=False)["tau_hat"]
+        z_ok, t_ok = bool(dz <= Z_ATOL), bool(abs(t_red - t_full) <= POINT_TAU_ATOL)
+        rows.append({"nu": gtp_nu_key(nu), "tau": float(tau), "s": s, "max_abs_dz": dz, "tau_reduced": t_red,
+                     "tau_reml_m2l": t_full, "z_ok": z_ok, "tau_ok": t_ok, "ok": z_ok and t_ok})
+    return rows
+
+
+def run_gtp(L, y, C, rows_a, groups, labels, P, fns, log, grid_m2l, gt_rec, g_rec, reused_k, recorded=None):
+    """R2-RE-GTP. gt_rec, g_rec: R2-RE-GT's and R2-RE-G's committed records (r2_re_gt.json, r2_re_g.json); reused_k:
+    {nu_key: {tau_key: k_s array}} from their committed simulations (nu = 4: THAT/T050/T105; inf: VHAT/V050/V105).
+    Returns (out, sims) with sims the 12 new outer sets' records ({} when not evaluable)."""
+    t_start = CLOCK()
+    rows_a = np.asarray(rows_a)
+    nh = len(groups)
+    n_in = int(P["gt_n_inner"])
+    n = int(P["gtp_n_sims"])
+    nus = [gtp_nu_key(v) for v in P["gtp_nus"]]
+    cols = [j for j, h in enumerate(labels) if h == P["n5584_host"]]
+    if len(cols) != 1:
+        raise RuntimeError(f"host {P['n5584_host']} labels {len(cols)} columns, expected 1")
+    col = cols[0]
+    rec = {"tau_obs": RECORDED_TAU_OBS, "delta_hat": RECORDED_DELTA, "sigma_delta": RECORDED_SIGMA_DELTA,
+           "z_obs": RECORDED_Z_OBS, "g_obs": GT_RECORDED_G_OBS, "k": dict(GTP_RECORDED_K)}
+    rec.update(recorded or {})
+    out = {"stage": "full",
+           "headline": "reported, non-decisive profile: no verdict, label, reading, sub-label or gloss changes; "
+                       "R2-RE's row stays the headline",
+           "settings": {"nus": nus, "taus": list(GTP_TAU_KEYS), "n_sims": n, "n_inner": n_in,
+                        **{k: P[k] for k in ("gtp_t_seeds", "gtp_inner_seeds", "gt_inner_seed", "gt_inner_seeds_rep",
+                                             "gt_nu", "gt_nu_rep", "gt_seed_base", "g_seed_base", "g_inner_seed",
+                                             "n5584_host")},
+                        "threads": thread_settings(),
+                        "reused": {"4": "R2-RE-GT THAT/T050/T105 simulations and p_T_obs/sensitivities",
+                                   "inf": "R2-RE-G VHAT/V050/V105 simulations and p_G/p_G_fixed"}}}
+    seconds, checks, reasons = {}, {}, []
+
+    def stop():
+        out["checks"], out["status"] = checks, "not evaluable (" + "; ".join(reasons) + ")"
+        seconds["block"] = CLOCK() - t_start
+        out["seconds"] = seconds
+        log("R2-RE-GTP: " + out["status"])
+        return out, {}
+
+    t0 = CLOCK()
+    des, problem = design(L, y, C, rows_a, groups, fns)
+    if problem:
+        reasons.append(problem)
+        return stop()
+    repro, bad, est_obs, _, _ = _gt_reproduce(L, y, C, rows_a, groups, col, des, grid_m2l, fns, rec)
+    checks["reproduction"] = repro
+    if bad:
+        reasons.append("reproduction check failed: " + "; ".join(bad))
+        return stop()
+    tau_obs = est_obs["tau_hat"]
+    t_in_obs = 0.0 if est_obs["at_zero"] else tau_obs
+    z_w = des["W"] @ y[rows_a]
+    g_obs, j_obs = g_stat(z_w)
+    g_obs = float(g_obs)
+    g_rel = abs(g_obs - rec["g_obs"]) / abs(rec["g_obs"])
+    checks["G_obs"] = {"G_obs": g_obs, "recorded": rec["g_obs"], "rel_diff": g_rel}
+    if not g_rel <= GT_G_OBS_RTOL:
+        reasons.append(f"reproduction check failed: G_obs {g_obs!r} vs recorded {rec['g_obs']!r}")
+        return stop()
+    seconds["design_and_reproduction"] = CLOCK() - t0
+    out["observed"] = {"G_obs": g_obs, "host_j_hat": labels[int(j_obs)], "tau_hat_obs": tau_obs}
+
+    # ---- p_fix on the data at the 18 points (inner draws once per nu)
+    t0 = CLOCK()
+    E_in = inner_draws(P["g_inner_seed"], n_in, nh)
+    taus = {tk: (t_in_obs if tk == "tau_obs" else gtp_tau_value(tk, tau_obs)) for tk in GTP_TAU_KEYS}
+    p_fix, inners = {}, {}
+    for nk in nus:
+        p_fix[nk] = {}
+        if nk == "inf":
+            for tk, t in taus.items():
+                p_fix[nk][tk] = _p_record(inner_k(g_obs, t, des, E_in), n_in, tau=t, nu="inf")
+            continue
+        nu = float(nk)
+        seed = gtp_inner_seed(nu, P)
+        inners[nk] = TInner(des, E_in, t_draws(seed, nu, (n_in, nh)), nu)
+        for tk, t in taus.items():
+            p_fix[nk][tk] = _p_record(inners[nk].k(g_obs, t), n_in, tau=t, nu=nu, scale=gt_scale(t, nu),
+                                      inner_t_seed=seed)
+    k_mism = [f"(nu {a}, {b}): k {p_fix[a][b]['k']} vs recorded {kr}" for (a, b), kr in rec["k"].items()
+              if a in p_fix and p_fix[a][b]["k"] != kr]
+    checks["recorded_k"] = {"pairs": {f"{a}|{b}": kr for (a, b), kr in rec["k"].items()}, "mismatches": k_mism}
+    seconds["p_fix"] = CLOCK() - t0
+    if k_mism:
+        reasons.append("reproduction check failed: " + "; ".join(k_mism))
+        return stop()
+
+    # ---- new outer sets: pointwise checks first, then the simulations
+    new = [nk for nk in nus if nk not in GTP_REUSED_SETS]
+    t0 = CLOCK()
+    pw = []
+    for nk in new:
+        for tk in GTP_TAU_KEYS:
+            pw += gtp_pointwise(L, y, C, rows_a, groups, des, P, float(nk), gtp_tau_value(tk, tau_obs), fns)
+    checks["pointwise"] = pw
+    seconds["pointwise"] = CLOCK() - t0
+    if not all(p["ok"] for p in pw):
+        reasons.append("pointwise check failed (" + ", ".join(f"nu {p['nu']} tau {p['tau']:g} s={p['s']}"
+                                                              for p in pw if not p["ok"]) + ")")
+        return stop()
+    B = des["W"] @ des["Kc"]
+    sims, ks, seconds_m = {}, {}, {}
+    for nk in new:
+        nu = float(nk)
+        ks[nk] = {}
+        for tk in GTP_TAU_KEYS:
+            t1 = CLOCK()
+            tau_t = gtp_tau_value(tk, tau_obs)
+            spec = {"tau": 0.0, "tau_t": tau_t, "offset": None}
+            arr = gt_simulate(spec, B, des, inners[nk], P["g_seed_base"], gtp_t_seed(nu, P), nu, 0, n, None,
+                              fns["reml_tau"])
+            ks[nk][tk] = arr["k"]
+            name = f"{nk}_{tk}"
+            sims[name] = {"nu": nu, "tau_key": tk, "tau_t": tau_t, "n": n, "seed_base": int(P["g_seed_base"]),
+                          "t_seed_base": gtp_t_seed(nu, P), "inner_seed": int(P["g_inner_seed"]),
+                          "inner_t_seed": gtp_inner_seed(nu, P), "n_inner": n_in,
+                          "G": [round(float(g), G_DECIMALS) for g in arr["G"]],
+                          "tau_hat": [round(float(t), TAU_DECIMALS) for t in arr["tau"]],
+                          "k": [int(k) for k in arr["k"]]}
+            seconds_m[name] = CLOCK() - t1
+            log(f"  R2-RE-GTP: nu {nk}, tau {tk}: {n} simulations, {seconds_m[name]:.0f} s")
+    seconds["simulations"] = seconds_m
+    inners.clear()
+
+    # ---- the refitted plug-in test per nu: size and p_cal at the three true tau
+    refit, rep_mism = {}, []
+    for nk in nus:
+        k_obs = p_fix[nk]["tau_obs"]["k"]
+        refit[nk] = {}
+        for tk in GTP_TAU_KEYS:
+            k_s = ks[nk][tk] if nk in ks else reused_k[nk][tk]
+            r = gtp_refit_record(k_s, k_obs, n_in)
+            if nk in GTP_REUSED_SETS:
+                key = GTP_REUSED_SETS[nk][tk]
+                src = (gt_rec if nk == "4" else g_rec)["models"][key]
+                r["source"] = ("R2-RE-GT " if nk == "4" else "R2-RE-G ") + key
+                if int(src["n_excluded"]) != r["n_excluded"] or int(src["n"]) != r["n"]:
+                    rep_mism.append(f"{key}: n_excluded {r['n_excluded']} vs recorded {src['n_excluded']}")
+            refit[nk][tk] = r
+    checks["reused_counts_reproduced"] = not rep_mism
+    checks["reused_count_mismatches"] = rep_mism
+    if rep_mism:
+        reasons.append("reproduction check failed: " + "; ".join(rep_mism))
+        return stop()
+
+    # ---- summary statement and extremes
+    labs = [p_fix[a][b]["label"] for a in nus for b in GTP_TAU_KEYS]
+    ps = [p_fix[a][b]["p"] for a in nus for b in GTP_TAU_KEYS]
+    ac = [a for a in nus if any(refit[a][b]["anti_conservative"] for b in GTP_TAU_KEYS)]
+    pc = [refit[a][b]["p_cal"]["p"] for a in nus if a not in ac for b in GTP_TAU_KEYS]
+    out.update({
+        "p_fix": p_fix,
+        "p_plug": {a: p_fix[a]["tau_obs"]["p"] for a in nus},
+        "refit": refit,
+        "p_cal_max_over_tau": {a: max(refit[a][b]["p_cal"]["p"] for b in GTP_TAU_KEYS) for a in nus},
+        "p_cal_max_over_tau_note": "at the three checked τ only",
+        "statement": gtp_statement(labs, ps),
+        "p_fix_min": min(ps), "p_fix_max": max(ps),
+        "p_fix_max_note": "the largest of 18 model-specific p values, not a p value for a composite null",
+        "p_cal_min": min(pc) if pc else None, "p_cal_max": max(pc) if pc else None,
+        "anti_conservative_nu": ac,
+        "checks": checks, "status": "evaluated"})
+    seconds["block"] = CLOCK() - t_start
+    out["seconds"] = seconds
+    log(f"R2-RE-GTP: {out['statement']}; p_cal over unflagged nu {out['p_cal_min']} to {out['p_cal_max']}; "
+        f"anti-conservative at nu {ac or 'none'}")
+    return out, sims
