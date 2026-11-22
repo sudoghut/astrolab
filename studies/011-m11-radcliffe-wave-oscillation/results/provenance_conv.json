@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-11-22T08:40:49+00:00",
+  "inputs": [
+    {
+      "source": "http",
+      "request": "https://dataverse.harvard.edu/api/access/datafile/7211931",
+      "retrieved_at": "2026-11-21T11:29:59+00:00",
+      "sha256": "6f980cc9ea64b3e4ed7f77514f3ef1940d2660941db940ff8a939a7d0c2bf522",
+      "bytes": 10888,
+      "cache_key": "c9b12ae47e5fc00113e64b93",
+      "label": "K24 young-cluster table (Dataverse doi:10.7910/DVN/XSCB9N, file 7211931)"
+    },
+    {
+      "source": "http",
+      "request": "https://dataverse.harvard.edu/api/access/datafile/7211929",
+      "retrieved_at": "2026-11-21T11:30:00+00:00",
+      "sha256": "8af04528e81ba88dd5a82b1ecb29b676160aa1c62543ce08ad093ed65d413afa",
+      "bytes": 5286,
+      "cache_key": "ab83b070987a69f456ffc114",
+      "label": "K24 12CO cloud table (Dataverse doi:10.7910/DVN/Q7F4PC, file 7211929)"
+    }
+  ]
+}
