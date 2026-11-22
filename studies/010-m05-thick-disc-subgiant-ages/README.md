@@ -941,10 +941,10 @@ is reported next to R1-SEL-FIT and R1-ERR as a further qualifier, not as a verdi
   disjoint bins lies in 6.5–9.5 Gyr; **"undetermined at f"** if fewer than three bins are resolvable; **"not
   reproduced at f"** otherwise.
   - *Label R1-ERRCAL* (S15 term E, primary): "at f = 2.0: <verdict>; at f = 2.81: <verdict>". The whole label is
-    replaced by "not evaluable (reproduction)" if check (a) fails. Per f, the verdict is replaced by "not evaluable
-    (non-finite)" if any mock of a set at that f has a non-finite result (`selaux.nonfinite`), and by "not evaluable
-    (generator)" if the generator fails (a `RuntimeError` of `mocks.catalogue_sel` or of the latent sampler) in a set
-    at that f; the failing mock is checkpointed with `gen_fail`, no further mock of that f and variant is run, and
+    replaced by "not evaluable (reproduction)" if check (a) fails. Per f and variant, the verdict is replaced by "not
+    evaluable (non-finite)" if any mock of that variant's sets at that f has a non-finite result (`selaux.nonfinite`), and by "not evaluable
+    (generator)" if the generator fails (a `RuntimeError` of `mocks.catalogue_sel` or of the latent sampler) in one of
+    its sets at that f; the failing mock is checkpointed with `gen_fail`, no further mock of that f and variant is run, and
     the other f is unaffected. Term N and Full give the same label, reported next to it.
   - *Reading (fixed now).* "Reproduced at f" means: if the true errors were f times the quoted ones, the data's dips,
     deconvolved with those errors, are as deep as an almost-disjoint split, and the test could see such a split.
@@ -957,8 +957,8 @@ is reported next to R1-SEL-FIT and R1-ERR as a further qualifier, not as a verdi
   null fits' parameters at f.
 
 - **What the outcome can be (stated now).** At f = 2.0, S15 term E's bin [−0.5, −0.3) has data d = 0.465 at f, above
-  any d* ≤ 0.25, so "reproduced at 2.0" is impossible in term E; "not reproduced at 2.0" if the three bins stay
-  resolvable. At f = 2.81, term E's bin [−0.5, −0.3) has d = 0.271, also above 0.25: "reproduced at 2.81" is impossible
+  any d* ≤ 0.25, so "reproduced at 2.0" is impossible in term E; "not reproduced at 2.0" if at least two of the three
+  metal-poor bins stay resolvable ([−0.1, 0.1), resolvable in R1-SEL-FIT, counts as the third). At f = 2.81, term E's bin [−0.5, −0.3) has d = 0.271, also above 0.25: "reproduced at 2.81" is impossible
   in term E too, so **the primary label can only read "not reproduced" or "undetermined" at each f**. Term N and Full
   cannot read "reproduced at 2.0" either (their bin [−0.5, −0.3) has d = 0.430 and 0.421 at 2.0); at 2.81 (all three
   bins below 0.25: 0.063, 0.242, 0.145 and 0.054, 0.232, 0.142) they can read "reproduced at 2.81" only if every q_s
@@ -966,7 +966,8 @@ is reported next to R1-SEL-FIT and R1-ERR as a further qualifier, not as a verdi
   6.5–9.5 Gyr. Term E's bin [−0.7, −0.5) has its data valley at 10.975 Gyr at 2.81, at the edge of 2.1's 5–11 Gyr
   window. The open parts: deconvolving mocks with large f may create valleys in unimodal null mocks
   (lowering d*), and larger f may reduce power. Our guess: term E "not reproduced at 2.0; not reproduced at 2.81",
-  term N and Full split between "reproduced" and "undetermined" at 2.81.
+  term N and Full split between "reproduced" and "not reproduced" at 2.81 (if one metal-poor bin loses power or its
+  d* falls below the data's d, the alternative is "not reproduced"; "undetermined" needs two bins to lose power).
 
 - **Unchanged.** The power models (R1-SEL-FIT's primary, true d ≤ 0.02), the generator (R1-ERR's at f), the fit
   procedure (R1-SEL-FIT's, with f), the valley rule, the 2.1 verdict rule, and every recorded label. No R1 verdict at
