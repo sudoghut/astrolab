@@ -48,6 +48,9 @@ def check_shuf(path):
     vals = phi.get("values")
     if not (isinstance(vals, list) and len(vals) == 5 and _num(phi.get("mean")) and _num(phi.get("s"))):
         return {"ok": False, "reason": "results/r6_shuf.json has no phi mean and s over five seeds"}
+    if not (all(_num(v) for v in vals) and abs(float(np.mean(vals)) - phi["mean"]) <= 1e-12
+            and abs(float(np.std(vals, ddof=1)) - phi["s"]) <= 1e-12):
+        return {"ok": False, "reason": "results/r6_shuf.json: phi mean or s does not match its five values"}
     fl = d.get("flows") or {}
     return {"ok": True, "phi_bar": float(phi["mean"]), "s_phi": float(phi["s"]), "n": len(vals),
             "label": d["label"], "versions": fl.get("versions"), "settings": fl.get("settings")}

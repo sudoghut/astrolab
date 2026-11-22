@@ -194,6 +194,11 @@ def test_check_shuf(tmp_path):
         assert not ka.check_shuf(tmp_path / "missing.json")["ok"]
         assert not ka.check_shuf(_shuf_file(tmp_path, label="between the two labels (not decided)"))["ok"]
         assert not ka.check_shuf(_shuf_file(tmp_path, phis=(0.6, 0.7)))["ok"]
+        f = _shuf_file(tmp_path)
+        d = json.loads(f.read_text(encoding="utf-8"))
+        d["quantities"]["phi"]["mean"] += 0.01
+        f.write_text(json.dumps(d), encoding="utf-8")
+        assert not ka.check_shuf(f)["ok"]
     finally:
         sys.path.remove(str(HERE))
     rec = HERE / "results" / "r6_shuf.json"
