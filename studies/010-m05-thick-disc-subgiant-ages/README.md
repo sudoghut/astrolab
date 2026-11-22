@@ -868,13 +868,16 @@ on XR22's claim.
   formal run, single-threaded (`OMP_NUM_THREADS`, `MKL_NUM_THREADS`, `OPENBLAS_NUM_THREADS` = 1), stopped
   at check (a) as "not evaluable (reproduction)": d and K of the 9 data fits matched, but the skew-normal
   and split-normal fits (and two K fits) differed from `r1_sel.json` by more than 10⁻⁹. Investigated as
-  this section requires: an exploration with the default thread settings (as in the runs that wrote
-  `r1_sel.json` and `r1_selfit.json`, whose thread settings were not recorded) passed check (a) and check
-  (b) (18 of 18); it was stopped before any R1-ERR mock was kept, and its checkpoints were deleted. The
-  cause is the thread count (multi-threaded BLAS changes the optimiser paths at the 10⁻¹² level), not the
-  code or the data. The formal run is therefore repeated with the default thread settings; `r1_err.json`
-  now records them (`threads`). The exploration also showed that an exploration wrote R1-ERR mock
-  checkpoints into the formal folder; they now go to `s010_err_mocks/explore/<date>-<tag>`.
+  this section requires: an exploration with the default thread settings passed check (a) and check (b)
+  (18 of 18). It then computed 10 R1-ERR power mocks (set 0 to 9, mock 0), which were not inspected, and
+  was stopped; its checkpoints and output were deleted. The runs that wrote `r1_sel.json` and
+  `r1_selfit.json` did not record their thread settings; that they used the default (multi-threaded)
+  settings is inferred from this reproduction. The cause is inferred to be the thread count (presumably
+  small floating-point differences amplified by the optimiser), not the code or the data. The formal run is therefore repeated with the default thread settings; `r1_err.json`
+  now records them (`threads`, with the CPU count); every session of the run must use the same settings,
+  and multi-threaded results need not be bitwise reproducible on another machine. The exploration also
+  showed that an exploration wrote R1-ERR mock checkpoints into the formal folder; they now go to
+  `s010_err_mocks_explore/<date>-<tag>`.
 
 ## 3. Data (with size estimate)
 
