@@ -997,3 +997,90 @@ def test_r2_re_gt_power_record():
     if "models" not in p:
         pytest.skip(f"r2_re_gt_power.json has no models ({p.get('status')})")
     check_r2_re_gt_power(p, path.stat().st_size)
+
+
+# ---------------------------------------------------------------- R2-RE-GTP (addendum 2026-11-22, T-060)
+GTP_NUS = ["3", "4", "6", "10", "30", "inf"]
+GTP_TAUS = ["0.05", "tau_obs", "0.105"]
+GTP_REUSED = {"4": ("r2_re_gt_sims_", {"0.05": "T050", "tau_obs": "THAT", "0.105": "T105"}),
+              "inf": ("r2_re_g_sims_", {"0.05": "V050", "tau_obs": "VHAT", "0.105": "V105"})}
+GTP_RECORDED_K = {("4", "tau_obs"): 1047, ("4", "0.05"): 501, ("4", "0.105"): 1806, ("3", "tau_obs"): 1476,
+                  ("10", "tau_obs"): 422, ("inf", "tau_obs"): 326, ("inf", "0.05"): 254, ("inf", "0.105"): 453}
+
+
+def check_r2_re_gtp(out, sims, reused, s, sizes=None, recorded_k=None):
+    """R2-RE-GTP (README section 2, addendum 2026-11-22): re-derive p_fix's p and labels, the eight recorded k, each
+    size and p_cal from the per-simulation k, the anti-conservative flags, the extremes, the statement and the
+    summary key. Reported only: nothing here concerns a verdict or label of R2-RE-G or R2-RE-GT."""
+    if sizes:
+        assert all(v < 1_000_000 for v in sizes.values()), sizes
+    assert s == {k: out[k] for k in ("status", "statement", "p_fix_min", "p_fix_max", "p_cal_min", "p_cal_max",
+                                     "anti_conservative_nu") if k in out}
+    if out["status"] != "evaluated":
+        assert out["status"].startswith("not evaluable (")
+        return
+    n_in = out["settings"]["n_inner"]
+    assert out["settings"]["nus"] == GTP_NUS and out["settings"]["taus"] == GTP_TAUS
+    for (a, b), k in (GTP_RECORDED_K if recorded_k is None else recorded_k).items():
+        assert out["p_fix"][a][b]["k"] == k, (a, b)
+    labs, ps = [], []
+    for a in GTP_NUS:
+        for b in GTP_TAUS:
+            r = out["p_fix"][a][b]
+            assert r["n_inner"] == n_in and r["p"] == (1 + r["k"]) / (1 + n_in)
+            assert r["label"] == _g_label(r["k"], n_in)
+            labs.append(r["label"])
+            ps.append(r["p"])
+        assert out["p_plug"][a] == out["p_fix"][a]["tau_obs"]["p"]
+    ac = []
+    for a in GTP_NUS:
+        k_obs = out["p_fix"][a]["tau_obs"]["k"]
+        for b in GTP_TAUS:
+            k_s = sims[f"{a}_{b}"]["k"] if a not in GTP_REUSED else reused[a][b]
+            n = len(k_s)
+            r = out["refit"][a][b]
+            k_ex, _ = _three_way_thresholds(n_in)
+            n_ex = sum(1 for k in k_s if k <= k_ex)
+            lo, hi = _sel_cp(n_ex, n)
+            assert r["n"] == n and r["n_excluded"] == n_ex and r["size"] == n_ex / n
+            assert abs(r["size_ci95"][0] - lo) < 1e-9 and abs(r["size_ci95"][1] - hi) < 1e-9
+            assert r["anti_conservative"] == (lo > 0.05)
+            c = sum(1 for k in k_s if k <= k_obs)
+            assert r["p_cal"]["count"] == c and r["p_cal"]["p"] == (1 + c) / (1 + n)
+            assert r["p_cal"]["label"] == _g_label(c, n)
+        if any(out["refit"][a][b]["anti_conservative"] for b in GTP_TAUS):
+            ac.append(a)
+        assert out["p_cal_max_over_tau"][a] == max(out["refit"][a][b]["p_cal"]["p"] for b in GTP_TAUS)
+    assert out["anti_conservative_nu"] == ac
+    pc = [out["refit"][a][b]["p_cal"]["p"] for a in GTP_NUS if a not in ac for b in GTP_TAUS]
+    assert out["p_cal_min"] == (min(pc) if pc else None) and out["p_cal_max"] == (max(pc) if pc else None)
+    assert out["p_fix_min"] == min(ps) and out["p_fix_max"] == max(ps)
+    pre = "t-tail comparison: "
+    if all(x == "excluded" for x in labs):
+        exp = pre + "excluded across the profile"
+    elif all(x == "not excluded" for x in labs):
+        exp = pre + "not excluded across the profile"
+    else:
+        exp = pre + f"model-limited (p_fix from {min(ps):.3f} to {max(ps):.3f})"
+    assert out["statement"] == exp
+
+
+def test_r2_re_gtp_profile():
+    """README section 2, addendum 2026-11-22 (R2-RE-GTP). Skips until the block has run."""
+    path = RESULTS / "r2_re_gtp.json"
+    if not path.exists():
+        pytest.skip("r2_re_gtp.json missing; the R2-RE-GTP block has not run")
+    out = load("r2_re_gtp")
+    sizes = {path.name: path.stat().st_size}
+    sims = {}
+    for a in GTP_NUS:
+        if a in GTP_REUSED:
+            continue
+        for b in GTP_TAUS:
+            sp = RESULTS / f"r2_re_gtp_sims_{a}_{b}.json"
+            if out["status"] == "evaluated":
+                assert sp.exists(), sp.name
+                sizes[sp.name] = sp.stat().st_size
+                sims[f"{a}_{b}"] = load(f"r2_re_gtp_sims_{a}_{b}")
+    reused = {a: {b: load(prefix + key)["k"] for b, key in keys.items()} for a, (prefix, keys) in GTP_REUSED.items()}
+    check_r2_re_gtp(out, sims, reused, load("summary")["R2_RE_GTP"], sizes)

@@ -71,6 +71,13 @@ PARAMS = {
     "gt_inner_seeds_rep": [611_000, 612_000], "gt_nu": 4, "gt_nu_rep": [3, 10], "gt_n_sims": 10_000,
     "gt_n_inner": 20_000, "gt_power_min": 0.8, "gt_max_minutes": 120, "gt_min_sims": 5_000,
     "gt_rerun_reason": "",      # a gt_only full stage after a formal outcome needs a reason, also present in log.md
+    # R2-RE-GTP (README section 2, addendum 2026-11-22, T-060): a reported, non-decisive profile of R2-RE-GT over nu
+    # and tau; runs only standalone (gtp_check and gtp_only true for the formal run, back to false afterwards).
+    # Reuses gt_* (nu = 4, the inner seeds of nu = 3 and 10) and g_* (eps_s, E_in) from R2-RE-GT and R2-RE-G
+    "gtp_check": False, "gtp_only": False, "gtp_nus": [3, 4, 6, 10, 30, "inf"],
+    "gtp_t_seeds": {3: 430_000, 6: 440_000, 10: 450_000, 30: 460_000},
+    "gtp_inner_seeds": {6: 613_000, 30: 614_000}, "gtp_n_sims": 10_000,
+    "gtp_rerun_reason": "",     # a formal rerun after a formal outcome needs a reason, also present in log.md
 }
 
 DR = "PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/"
@@ -829,6 +836,87 @@ def run_gt_both(ctx, P, L, y, C, nz, cls, rows_a, col_host, ident, grid_m2l, gri
                   grid_source=grid_source)
 
 
+# ---------------------------------------------------------------- R2-RE-GTP (addendum 2026-11-22, T-060)
+GTP_REUSED_FILES = {"4": ("r2_re_gt_sims_", {"0.05": "T050", "tau_obs": "THAT", "0.105": "T105"}),
+                    "inf": ("r2_re_g_sims_", {"0.05": "V050", "tau_obs": "VHAT", "0.105": "V105"})}
+
+
+def formal_gtp_done(path=None):
+    """The formal results/r2_re_gtp.json exists (any formal outcome)."""
+    return shape.formal_outcome(shape.STUDY_DIR / "results" / "r2_re_gtp.json" if path is None else path)
+
+
+def gtp_preflight(ctx, P):
+    """The checks of a gtp_only run before any data is loaded. Returns (gt_rec, g_rec, reused_k): R2-RE-GT's and
+    R2-RE-G's committed records and the k_s of their reused simulations (always read from this study's committed
+    results/, also in an exploration)."""
+    if not P["gtp_check"]:
+        raise ValueError("gtp_only needs gtp_check = true")
+    exploring = getattr(ctx, "max_save_bytes", None) is not None
+    if exploring and not formal_gtp_done():
+        raise RuntimeError("an exploration may run R2-RE-GTP only after the formal results/r2_re_gtp.json is committed "
+                           "(README section 8)")
+    res = shape.STUDY_DIR / "results"
+    if not formal_gt_done(res / "r2_re_gt.json"):
+        raise RuntimeError("R2-RE-GTP needs R2-RE-GT's formal results/r2_re_gt.json")
+    gt_rec = json.loads((res / "r2_re_gt.json").read_text(encoding="utf-8"))
+    g_rec = json.loads((res / "r2_re_g.json").read_text(encoding="utf-8"))
+    reused = {}
+    for nk, (prefix, keys) in GTP_REUSED_FILES.items():
+        reused[nk] = {}
+        for tk, key in keys.items():
+            f = json.loads((res / f"{prefix}{key}.json").read_text(encoding="utf-8"))
+            if f.get("status") != "evaluated" or len(f.get("k", [])) != int(P["gtp_n_sims"]):
+                raise RuntimeError(f"{prefix}{key}.json: not an evaluated record of {P['gtp_n_sims']} simulations")
+            reused[nk][tk] = np.asarray(f["k"], dtype=np.int64)
+    if gt_rec.get("settings", {}).get("threads") != shape.thread_settings() and not exploring:
+        raise RuntimeError("R2-RE-GTP refused: the thread settings differ from R2-RE-GT's formal run (its recorded k "
+                           "would not be reproduced bit for bit)")
+    sum_path = ctx.results / "summary.json"
+    if sum_path.exists():
+        onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_GTP", None)
+    elif not exploring:
+        raise RuntimeError("gtp_only updates summary.json's R2_RE_GTP key: run the full study first")
+    if not exploring:
+        why = P["gtp_rerun_reason"]
+        if formal_gtp_done(ctx.results / "r2_re_gtp.json") and not (
+                isinstance(why, str) and why.strip() and why in study_log_text()):
+            raise RuntimeError("results/r2_re_gtp.json already holds a formal R2-RE-GTP outcome: a rerun needs PARAMS "
+                               "gtp_rerun_reason, a non-empty text also present in log.md")
+    return gt_rec, g_rec, reused
+
+
+def run_gtp_only(ctx, P, L, y, C, nz, cls, col_host, ident, pre):
+    """The standalone R2-RE-GTP block after host identification: r2_re_gtp.json, the 12 new
+    r2_re_gtp_sims_<nu>_<tau>.json and summary.json's R2_RE_GTP key."""
+    gt_rec, g_rec, reused = pre
+    if not ident["host_step_evaluable"]:
+        out, sims = {"stage": "full", "status": "not evaluable (host step not evaluable)"}, {}
+    else:
+        rows_a, _ = anchor_rows(nz, cls, y)
+        calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]
+        fns_g = {"reml_tau": reml_tau, "reml_m2l": reml_m2l, "fit": fit, "with_re": with_re,
+                 "is_fit_failure": is_fit_failure}
+        out, sims = shape.run_gtp(L, y, C, rows_a, calib_groups, col_host[:NH], P, fns_g, ctx.log,
+                                  recorded_reml_grid(), gt_rec, g_rec, reused)
+    sum_path = ctx.results / "summary.json"
+    new = (onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_GTP", shape.gtp_summary(out))
+           if sum_path.exists() else {"R2_RE_GTP": shape.gtp_summary(out)})
+    ctx.save("r2_re_gtp", out)
+    for k, v in sims.items():
+        ctx.save(f"r2_re_gtp_sims_{k}", v)
+    ctx.save("summary", new)
+    return new
+
+
+def gtp_summary_from_file(results):
+    """summary.json's R2_RE_GTP in a full study run (R2-RE-GTP runs only standalone): from r2_re_gtp.json if present."""
+    path = Path(results) / "r2_re_gtp.json"
+    if path.exists():
+        return shape.gtp_summary(json.loads(path.read_text(encoding="utf-8")))
+    return {"status": "not run (standalone only, README R2-RE-GTP)"}
+
+
 def gt_preflight(ctx, P):
     """The checks of a gt_only run before any data is loaded (README R2-RE-GT: R2-RE-G's safeguards). Returns
     (g_saved, power_rec): R2-RE-G's saved simulations and, for a formal full stage, the power record."""
@@ -908,6 +996,17 @@ def main(ctx):
     d_only = bool(P["d_only"])
     g_only = bool(P["g_only"])
     gt_only = bool(P["gt_only"])
+    gtp_only = bool(P["gtp_only"])
+    if gtp_only and (d_only or g_only or gt_only):
+        raise ValueError("gtp_only cannot be combined with d_only, g_only or gt_only")
+    if P["gtp_check"] and not gtp_only:
+        raise ValueError("R2-RE-GTP runs only standalone: gtp_check = true needs gtp_only = true (README section 8)")
+    gtp_pre = None
+    if gtp_only:
+        # standalone R2-RE-GTP (README section 2, addendum 2026-11-22, T-060): r2_re_gtp*.json and summary.json's
+        # R2_RE_GTP key (records provenance_gtpp / run_info_gtpp)
+        ctx.record_suffix = "_gtpp"
+        gtp_pre = gtp_preflight(ctx, P)
     if d_only and g_only:
         raise ValueError("d_only and g_only cannot both be true")
     if gt_only and (d_only or g_only):
@@ -982,7 +1081,7 @@ def main(ctx):
             onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_D", None)
         elif getattr(ctx, "max_save_bytes", None) is None:      # an exploration starts from an empty folder
             raise RuntimeError("d_only updates summary.json's R2_RE_D key: run the full study first")
-    save = (lambda name, obj: None) if (d_only or g_only or gt_only) else ctx.save
+    save = (lambda name, obj: None) if (d_only or g_only or gt_only or gtp_only) else ctx.save
     C, L, y, lsq = load(ctx)
     hosts = [h for h, *_ in TABLE6]
     hosts = list(dict.fromkeys(hosts))
@@ -1142,6 +1241,8 @@ def main(ctx):
 
     if gt_only:             # standalone R2-RE-GT: rows_a and one stage of the block
         return run_gt_only(ctx, P, L, y, C, nz, cls, col_host, ident, g_saved_gt)
+    if gtp_only:            # standalone R2-RE-GTP
+        return run_gtp_only(ctx, P, L, y, C, nz, cls, col_host, ident, gtp_pre)
 
     # ---- R2 anchor step
     rows_a, achk = anchor_rows(nz, cls, y)
@@ -1489,6 +1590,7 @@ def main(ctx):
         "R2_RE_D": onehost.summary(d_out),
         "R2_RE_G": shape.summary(g_out),
         "R2_RE_GT": shape.gt_summary(gt_out),
+        "R2_RE_GTP": gtp_summary_from_file(ctx.results),
         "runtime_s": time.perf_counter() - t0,
     }
     ctx.save("summary", summary)

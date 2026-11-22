@@ -64,7 +64,7 @@ const f = (x, n = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '�
 const h0 = q => Math.pow(10, q / 5);
 const dh0 = (q, s) => h0(q) * Math.log(10) / 5 * s;
 const files = ['summary', 'r1', 'r2', 'r3', 'r4', 'cross_paper', 'host_identification', 'r2_re', 'r2_re_rob', 'r2_re_n5584', 'r2_re_sel'];
-const optional = ['r2_re_d', 'r2_re_g_power', 'r2_re_g', 'r2_re_gt_power', 'r2_re_gt'];   // R2-RE-D, R2-RE-G and R2-RE-GT (addenda 2026-11-21): shown once their results exist
+const optional = ['r2_re_d', 'r2_re_g_power', 'r2_re_g', 'r2_re_gt_power', 'r2_re_gt', 'r2_re_gtp'];   // R2-RE-D, R2-RE-G and R2-RE-GT (addenda 2026-11-21): shown once their results exist
 let D = null;
 
 function cls(v) {
@@ -290,6 +290,35 @@ function gtRows() {
   return rows;
 }
 
+// R2-RE-GTP rows (README section 2, addendum 2026-11-22, T-060): a reported, non-decisive profile of R2-RE-GT over
+// the tail weight ν and the scale τ (fixed-τ p values; size and calibrated p of the τ-refitted plug-in test per ν)
+function gtpStatement(v) {
+  const m = String(v).match(/^t-tail comparison: model-limited \(p_fix from (.*) to (.*)\)$/);
+  if (m) return L(v, `t 尾部比较：受模型限制（p_fix 从 ${m[1]} 到 ${m[2]}）`);
+  if (/excluded across the profile$/.test(v)) return L(v, /not excluded/.test(v) ? 't 尾部比较：整个剖面上未排除' : 't 尾部比较：整个剖面上排除');
+  return v;
+}
+function gtpRows() {
+  const g = D.r2_re_gtp;
+  const title = L('Profile of R2-RE-GT over the tail weight ν and the scale τ (reported, not a verdict)', 'R2-RE-GT 在尾部权重 ν 与尺度 τ 上的剖面（只报告，不是判定）');
+  if (!g) return [['R2-RE-GTP', title, '', '', 'not yet run', 'undetermined']];
+  if (g.status !== 'evaluated') return [['R2-RE-GTP', title, '', '', g.status, 'undetermined']];
+  const rows = [['R2-RE-GTP', title, '', '', null]];
+  const tl = {'0.05': 'τ = 0.05', 'tau_obs': `τ̂_obs = ${f(g.observed.tau_hat_obs, 4)}`, '0.105': 'τ = 0.105'};
+  for (const nu of g.settings.nus) {
+    const nn = nu === 'inf' ? L('Gaussian (ν = ∞)', '高斯（ν = ∞）') : `ν = ${nu}`;
+    const pf = ['0.05', 'tau_obs', '0.105'].map(k => `${tl[k]}: ${f(g.p_fix[nu][k].p, 3)}`).join('; ');
+    rows.push(['', L(`${nn}: fixed-τ p values on the data`, `${nn}：数据上固定 τ 的 p 值`), pf, '0.05', null]);
+    const rf = g.refit[nu];
+    const sz = ['0.05', 'tau_obs', '0.105'].map(k => `${f(100 * rf[k].size, 1)}%`).join(', ');
+    const pc = ['0.05', 'tau_obs', '0.105'].map(k => f(rf[k].p_cal.p, 3)).join(', ');
+    const ac = g.anti_conservative_nu.includes(nu);
+    rows.push(['', L(`${nn}: refitted plug-in test (p_plug ${f(g.p_plug[nu], 3)}): size, p_cal under the three true τ`, `${nn}：重新拟合的代入检验（p_plug ${f(g.p_plug[nu], 3)}）：三个真实 τ 下的检验水平与 p_cal`), `${sz}; ${pc}`, '—', ac ? L('anti-conservative', '反保守') : null, ac ? 'undetermined' : null]);
+  }
+  rows.push(['', L('Statement (already determined by values seen before the addendum; the largest p is one of 18 model-specific values, not a composite-null p)', '陈述（已由补充之前看过的值确定；最大的 p 是 18 个特定模型的值之一，不是复合零假设的 p）'), `p_cal ${f(g.p_cal_min, 3)}–${f(g.p_cal_max, 3)}`, '', gtpStatement(g.statement), 'undetermined']);
+  return rows;
+}
+
 function render() {
   if (!D) return;
   const S = D.summary, R1 = D.r1, A = D.r2.anchor_step, H = D.r2.host_step, R3 = D.r3, R4 = D.r4, X = D.cross_paper, I = D.host_identification;
@@ -341,6 +370,7 @@ function render() {
     ...dRows(),
     ...gRows(),
     ...gtRows(),
+    ...gtpRows(),
     ['', L('Host step, pre-registered labelling', '宿主一步，预注册的标注'), '', '', H.preregistered_verdict],
     ['R3', L('CCHP-side H0 on the same 10 hosts vs CCHP\'s 69.29', '同样 10 个宿主上 CCHP 一侧的 H0 对 CCHP 的 69.29'), `${f(R3.cchp_side_h0, 2)} (Δ ${f(R3.cchp_diff_mag, 4)} mag)`, '69.29 ± 0.02 mag', R3.cchp_match],
     ['', L('d = SH0ES − CCHP on the same hosts (descriptive)', 'd = 同宿主上 SH0ES − CCHP（只作描述）'), `${f(R3.d, 4)} ± ${f(R3.sigma_d, 4)} mag`, '—', null],
