@@ -385,6 +385,18 @@ R1、R2 和 R3/R4 给出判决（verdict）；R7、R5、R6 和年龄标尺包络
 
 - **代码（尚不存在）。** `PARAMS["parts"]` 新增部分 `"errcal"`，单独运行这一校准；PARAMS `errcal_f = [2.0, 2.81]`、`errcal_bins = [0, 1, 2]`、`errcal_n_mock = 50`、`errcal_seed_tag = 59`、`errcal_seed_tag_indep = 159`、`errcal_stop_h = 16`；存档键不含 `parts` 与 `errcal_stop_h`。离线测试：以 f 拟合的模拟等于模型在 f 下的似然；f = 1 时复现 R1-SEL-FIT 的拟合路径；组的编号与随机数流；在合成的组结果上的判定规则。
 
+- **任何 R1-ERRCAL 模拟之前的修订（2026-11-22）**（实现中的选择，T-059；上面的规则都不变）：
+  1. *功效模型与数据。* 主功效模型（下限 0.12）从 `r1_sel.json` 读取（`data_fits.<变体>_<箱>.power_models.primary`）；不重跑 f = 1 的数据拟合（R1-ERR 已重新拟合并检查过它们；JSON 精确保存浮点数）。f 下的每个数据拟合的星数必须与 `r1_sel.json` 中该箱与变体记录的星数相同；不同则作为代码错误停止运行（不给标签）。
+  2. *检查 (a)。* 对每个 f、变体与分箱，把 f 下数据拟合的 d（绝对 10⁻⁹）与 K 和 `r1_err.json` 的 `companion_refits.<变体>.<f>`（按分箱对应）比较；缺少记录算作不符。不符之处列在 `checks.data_fit_mismatches` 中；只要有不符，就不运行任何模拟，三个变体的标签都为"not evaluable (reproduction)"。
+  3. *f 下的零假设拟合。* 2.1 数据拟合中零假设拟合的代码原样移入一个函数（`run.r1_null_fits`），f = 1 的拟合（`r1_data_sel`）与 f 下的拟合都用它；在 f 下，它作用于以 f 构建的模型，在 K = 1–4 的拟合以及（选中 K = 4 时）K = 5 的拟合之后，用同一随机数流。
+  4. *拟合 (o) 的起点。* f 下数据拟合的每个 K 的混合模型（以及选中 K = 4 时的 K = 5 拟合）。若 f 下的数据拟合没有拟合 K = 5，模拟的 (o) K = 5 拟合用模拟自身数据的 3 个起点，与 R1-SEL-FIT 在数据拟合没有 K = 5 时的做法完全相同。
+  5. *"以 f 拟合"缩放的是什么。* 模型的核宽度与选择项都以 f·e 计算（`m0.kernels` 带 f，与 R1-ERR 的配套重拟合相同）：S15 E 项的通过比例表按 2.6 由模拟母样本的星表 e/A 构建，其各项以宽度 f·e 积分。S15 截断、格子压缩与星表误差仍是给出的 e（与生成器相同，2.7）。
+  6. *失败规则的顺序。* 对每个 f 与变体，先检查"not evaluable (generator)"，再检查"not evaluable (non-finite)"（`selaux.nonfinite` 作用于 d、valley、k 与 pass_rate，即规则用到的字段，与 2.6、2.7 相同）。失败的 f 与变体中在失败之前已运行的模拟保留并报告。没有生成器失败却不完整的组会使评估报错停止。
+  7. *可分辨*还要求功效模型有效，与 R1-SEL-FIT（`r1_sel_bins`）相同；`r1_sel.json` 中三个分箱的主功效模型都有效。富金属分箱以 R1-SEL-FIT 的 `resolvable`（主下限）、`almost_disjoint` 为假以及记录的边缘进入判定。
+  8. *标签文字。* f 写作 `str(float(f))`（2.0、2.81），判定写作"reproduced"、"not reproduced"或"undetermined"："at f = 2.0: not reproduced; at f = 2.81: undetermined"。`errcal_n_mock` ≠ 50（探索）时不给标签，与 2.6、2.7 相同（`computed_labels_not_used`）。
+  9. *报告项。* 每组：每次模拟的 d 与有无谷，按全部模拟与按有谷模拟的 d 百分位，有谷的比例，q_s 与 d* 下的通过比例（零假设组），d* 下的功效（功效组），选中的 K，(i) 的使用，NLL 随 K 上升，平均通过率，被重抽上限丢弃的星，以及每次模拟的平均用时。谷的位置：模拟拟合的结果现在也带谷的年龄（`valley_t`，新增字段，不改变 R1-SEL-FIT 或 R1-ERR 的任何数字）；每组只保存有谷模拟的中位数（`median_valley_t_mocks`），与 f 下数据拟合的谷位置（`data_valley_t`）并列。f 下的数据拟合（d、K、谷、边缘、峰、BIC、每个 K 的拟合、零假设参数与收敛情况）在 `data_fits.<f>.<变体>[箱]` 中。
+  10. *顺序与记录。* 18 个数据拟合在任何模拟之前运行，不存档，续跑时重算（约 30 分钟）。运行用默认线程设置，与 R1-ERR 一样记录在 `threads` 中。
+
 ## 3. 数据（附大小估计）
 
 | 输入 | 来源（服务 / 网址） | 选择条件 | 预估行数 / 大小 |
@@ -771,16 +783,18 @@ Lean 论证及其"引文 / 类型 / 内容"对照表，没有看到第 5-8 节�
 | `r2_feh`, `r2_jphi` | R2 样本窗口和 J_φ 截断 | −1 附近 ±0.1 dex；0–1000 | 只用缓存 |
 | `f_min` | 误差标度敏感度取值 | 0.6–1.0 | 只用缓存 |
 | `grid_step` | 潜在网格步长（Gyr） | 0.02–0.1 | 只用缓存 |
-| `parts` | 运行哪条流程：`["orig"]`（第 2.0–2.4 节；`r1/r2/r34/r56/r7/summary.json`）和/或 `["sel"]`（第 2.5 节 R-SEL；`r1_sel/r34_sel/sel.json`），或单独的 `["selfit"]`（第 2.6 节 R1-SEL-FIT；`r1_selfit.json`，记录 `provenance_selfit.json`、`run_info_selfit.json`；读取 `r1_sel.json`），或单独的 `["err"]`（第 2.7 节 R1-ERR；`r1_err.json`，记录 `provenance_err.json`、`run_info_err.json`；读取 `r1_sel.json` 与 `r1_selfit.json`）；入库的取值是 `["err"]`（T-054） | orig/sel 任一或两者；selfit 单独；err 单独 | 只用缓存 |
+| `parts` | 运行哪条流程：`["orig"]`（第 2.0–2.4 节；`r1/r2/r34/r56/r7/summary.json`）和/或 `["sel"]`（第 2.5 节 R-SEL；`r1_sel/r34_sel/sel.json`），或单独的 `["selfit"]`（第 2.6 节 R1-SEL-FIT；`r1_selfit.json`，记录 `provenance_selfit.json`、`run_info_selfit.json`；读取 `r1_sel.json`），或单独的 `["err"]`（第 2.7 节 R1-ERR；`r1_err.json`，记录 `provenance_err.json`、`run_info_err.json`；读取 `r1_sel.json` 与 `r1_selfit.json`），或单独的 `["errcal"]`（第 2.8 节 R1-ERRCAL；`r1_errcal.json`，记录 `provenance_errcal.json`、`run_info_errcal.json`；读取 `r1_sel.json`、`r1_selfit.json` 与 `r1_err.json`）；入库的取值是 `["err"]`（T-054） | orig/sel 任一或两者；selfit 单独；err 单独；errcal 单独 | 只用缓存 |
 | `selfit_seed_tag`, `selfit_nstart`, `selfit_stop_h` | R1-SEL-FIT：与数据无关起点的随机数流标记、每个 K 的起点数、停止上限（小时） | 45 与 8 为预注册值；12 小时 | 只用缓存 |
 | `err_f`, `err_bins`, `err_n_mock` | R1-ERR（第 2.7 节）：误差尺度阶梯、运行的 R1 箱、每组模拟数 | 预注册值 [1.2, 1.5, 2.0, 2.81]、[0, 1, 2]、50（快速运行用 2；标签需要 50） | 只用缓存 |
 | `err_reach_frac`, `err_min_bins` | R1-ERR：使一个箱可解释的达到数据 d 的模拟比例；"敏感"所需的箱数 | 0.05 与 2 为预注册值 | 只用缓存 |
 | `err_seed_tag`, `err_seed_tag_indep`, `err_stop_h` | R1-ERR：星表与拟合 (o) 的随机数流标记、拟合 (i) 的随机数流标记；停止上限（小时） | 54 与 154 为预注册值；16 小时 | 只用缓存 |
+| `errcal_f`, `errcal_bins`, `errcal_n_mock` | R1-ERRCAL（第 2.8 节）：误差尺度（以 f 拟合）、运行的 R1 箱、每组模拟数 | 预注册值 [2.0, 2.81]、[0, 1, 2]、50（快速运行用 2；标签需要 50） | 只用缓存 |
+| `errcal_seed_tag`, `errcal_seed_tag_indep`, `errcal_stop_h` | R1-ERRCAL：星表与拟合 (o) 的随机数流标记、拟合 (i) 的随机数流标记；停止上限（小时） | 59 与 159 为预注册值；16 小时 | 只用缓存 |
 | `sel_n_mock` | R-SEL 每组模拟数（判决需要 50） | 2–50 | 只用缓存 |
 | `sel_power_floor`, `sel_power_floor_sens` | R1-SEL 功效模型的下限及其敏感度取值 | 0.10–0.30 | 只用缓存 |
 | `sel_pass_width`, `sel_n_min` | 通过箱宽度（Gyr）与每个通过箱的最少母样本星数（SEL-0） | 0.5–2；100–500 | 只用缓存 |
 
-- 探索存档：自 2026-11-22 起（T-058），R-SEL 与 R1-SEL-FIT 的探索与 R1-ERR（自 T-054 起）一样，把模拟存档放在并列的根目录下（`s010_sel_mocks_explore`、`s010_selfit_mocks_explore`、`s010_err_mocks_explore`，各自在 `<日期>-<主题>` 下），从不写进正式文件夹，所以清理探索存档不会碰到正式存档。
+- 探索存档：自 2026-11-22 起（T-058），R-SEL 与 R1-SEL-FIT 的探索与 R1-ERR（自 T-054 起）一样，把模拟存档放在并列的根目录下（`s010_sel_mocks_explore`、`s010_selfit_mocks_explore`、`s010_err_mocks_explore`，各自在 `<日期>-<主题>` 下；R1-ERRCAL 的在 `s010_errcal_mocks_explore` 下，T-059），从不写进正式文件夹，所以清理探索存档不会碰到正式存档。
 - 带覆盖参数重跑：`python -m astrolab explore 010-m05-thick-disc-subgiant-ages --tag <topic> --set KEY=VALUE`
   （输出在 `explore/<date>-<topic>/`，不入库）。原流程需要 `--set 'parts=["orig"]'`；不跑模拟时
   （`--set n_mock=2 --set n_mock_reduced=2 --set n_boot=2 --set n_boot_r6=5`）一次运行约 30 min，
@@ -803,6 +817,7 @@ Lean 论证及其"引文 / 类型 / 内容"对照表，没有看到第 5-8 节�
   `R3`、`R4`、`robustness_fits`、`error_scale`；`intrinsic.<E|N>`；`sampleA_extra_E`；`fig2e_E`；
   `shared_full_fits`；`labels`）；`sel.json`（`pass_tables`、`data_pass_frac`、`r2_deconvolved`、
   `sel7`、`diagnostic`、`mock_pass_rates`、含运行时间预测的 `mocks`、`labels`、`memory_peak_mb`）。R1-SEL-FIT：`r1_selfit.json`（`status`、`label`、`label_floor_sensitivity`，与 `r1_sel.json` 同样的 `variants`、`floor_sensitivity`；`recorded_r1_sel`；`per_set`（有谷的次数、选中的 K、(o) 与新拟合下 NLL 在 K = 1–4 中随 K 上升的次数、每个 K 用 (i) 的次数、有无谷与是否通过的变化、每次模拟用时）；`data_fit_mismatches`、`mock_reproduction`；含运行时间预测的 `mocks`）。R1-SEL-FIT 运行（入库的默认流程）约需 5 小时模拟加约 25 分钟数据拟合，须在机器没有其他运行时进行。正式运行的模拟拟合时间为 5.29 小时（每次 3.53 s），经一次停止与续跑共计 5.30 小时（第 5.2 节）。12 小时的停止规则在第一组之后触发，这一组的模拟最慢（每次 10.9 s），所以重跑需要调高 `selfit_stop_h`，或经同意续跑。R1-ERR：`r1_err.json`（`status`；`label`（S15 项 E：`label`、`case`、`X`、`Y`、`Z`、`Z_bins`、`F_end`、`W3`、`all_bins_explainable_from`）与 `label_median_rule`；`checks`（`data_fit_mismatches`、`generator_f1`）；`ladder`、`bins`、`data_d`、`cut_f`、`feasible`；`f1_row`（由 `r1_selfit.json` 得到的 f = 1 下的 n_reach）；`variants.<S15E|S15N|Full>`，含 `label`、`label_median_rule` 与 `per_f.<f>`（`status`、`E`、`explainable_bins`、各箱 `n_reach`、`n_novalley`、`power_at_d_cap`、`r1_verdict_at_f`）；`per_set`（每次模拟的 `d` 与 `valley`、`n_reach` 及 `n_reach_cp95`、`n_novalley`、`n_d_ge_data_incl_novalley`、按全部模拟与按有谷模拟的 d 百分位、0.25 处的功效、选中的 K、(i) 的使用、NLL 随 K 上升、通过率、观测年龄百分位与数据的对比、被重抽上限丢弃的星、生成器失败、每次模拟用时）；`companion_refits.<variant>.<f>`；含运行时间预测的 `mocks`）。R1-ERR 运行（入库的默认流程）估计在机器没有其他运行时需 4–5 小时（第 2.7 节）；检查点在缓存文件夹 `s010_err_mocks` 中。`--set err_n_mock=2` 不给标签，仍需约 1.3 小时：9 个数据拟合、检查 (b) 与 36 个配套数据重拟合都完整运行，缩小的只是模拟组。
+- R1-ERRCAL（第 2.8 节）：正式运行为 `"parts": ["errcal"]`（单独运行；入库的默认值仍为 `["err"]`），用默认线程设置（记录在 `threads` 中），在机器没有其他运行时进行：f 下的数据拟合约 30 分钟，加 5,400 个模拟，共约 6–8 小时。检查点在缓存文件夹 `s010_errcal_mocks` 中（探索：`s010_errcal_mocks_explore/<日期>-<主题>`）。它写出 `r1_errcal.json`（`status`；`label`（S15 E 项）与 `labels.<变体>`；`checks.data_fit_mismatches`；含 f 下零假设参数的 `data_fits.<f>.<变体>`；`power_models`；`variants.<变体>`，含 `verdicts` 与 `per_f.<f>`（`status`、`verdict`、`median_edge`，各箱的 `d_star`、`q`、`power`、`fpr`、`resolvable`、`almost_disjoint`，以及取自 `r1_selfit.json` 的富金属分箱）；`per_set`；含运行时间预测的 `mocks`）以及记录 `provenance_errcal.json`、`run_info_errcal.json`。`--set errcal_n_mock=2` 不给标签，约需 1 小时（18 个数据拟合完整运行）。
 - 示例问题："R1 的谷在更严格的误差截断下还在吗？" → `--set cut=0.10`。
   "13 Gyr 均值对 J_φ 截断敏感吗？" → `--set r2_jphi=300`（R2 也报告 300 和 700）。
   "如果选择项以相对误差而不是 e 为条件会怎样？" → 一个 `explore/` 脚本

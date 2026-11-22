@@ -992,6 +992,46 @@ is reported next to R1-SEL-FIT and R1-ERR as a further qualifier, not as a verdi
   Offline tests: a mock fitted with f equals the model's likelihood at f; f = 1 reproduces R1-SEL-FIT's fit path; the
   set numbering and streams; the verdict rule on synthetic set results.
 
+- **Amendments before any R1-ERRCAL mock (2026-11-22)** (implementation choices, T-059; no rule above changes):
+  1. *Power models and data.* The primary power models (floor 0.12) are read from `r1_sel.json`
+     (`data_fits.<variant>_<bin>.power_models.primary`); the f = 1 data fits are not rerun (R1-ERR refitted
+     and checked them; JSON keeps the floats exactly). Each data fit at f must have the star count recorded
+     in `r1_sel.json` for that bin and variant; a difference stops the run as a code error (no label).
+  2. *Check (a).* For each f, variant and bin, d (absolute 10⁻⁹) and K of the data fit at f are compared
+     with `r1_err.json` `companion_refits.<variant>.<f>` (matched by bin); a missing record counts as a
+     mismatch. The mismatches are listed in `checks.data_fit_mismatches`; with any mismatch no mock is run
+     and the labels of all three variants read "not evaluable (reproduction)".
+  3. *Null fits at f.* The null-fit code of the 2.1 data fit is moved, unchanged, into one function
+     (`run.r1_null_fits`) used by both the f = 1 fit (`r1_data_sel`) and the fit at f; at f it runs on the
+     model built with f, after the K = 1–4 fits and (if K = 4 is chosen) the K = 5 fit, on the same stream.
+  4. *Starts of fit (o).* The data fit at f's mixture per K (and its K = 5 fit when it chose K = 4). When the
+     data fit at f did not fit K = 5, a mock's (o) K = 5 fit uses 3 starts from the mock's own data, exactly
+     as R1-SEL-FIT does when its data fit had no K = 5 fit.
+  5. *What "fitted with f" scales.* The model's kernel width and the selection term are computed with f·e
+     (`m0.kernels` with f, as in R1-ERR's companion refits): for S15 term E the pass table is built from the
+     mock parent's catalogue e/A, as in 2.6, and its terms are integrated with width f·e. The S15 cut, the
+     cell compression and the catalogue error stay the quoted e (as in the generator, 2.7).
+  6. *Order of the failure rules.* Per f and variant, "not evaluable (generator)" is checked first, then
+     "not evaluable (non-finite)" (`selaux.nonfinite` on d, valley, k and pass_rate, the fields the rules use,
+     as in 2.6 and 2.7). Mocks of a failing f and variant that ran before the failure are kept and reported.
+     A set that is incomplete without a generator failure stops the evaluation with an error.
+  7. *Resolvable* also needs a valid power model, as in R1-SEL-FIT (`r1_sel_bins`); every primary power model
+     of the three bins is valid in `r1_sel.json`. The metal-rich bins enter the verdict with R1-SEL-FIT's
+     `resolvable` (primary floor), `almost_disjoint` false and their recorded edge.
+  8. *Label text.* f is written as `str(float(f))` (2.0, 2.81) and the verdict as "reproduced",
+     "not reproduced" or "undetermined": "at f = 2.0: not reproduced; at f = 2.81: undetermined". With
+     `errcal_n_mock` ≠ 50 (an exploration) no label is given, as in 2.6 and 2.7 (`computed_labels_not_used`).
+  9. *Reported items.* Per set: the per-mock d and valley flags, d percentiles over all mocks and over mocks
+     with a valley, the fraction with a valley, q_s and the pass fraction at d* (null sets), the power at d*
+     (power sets), K chosen, use of (i), NLL rising with K, the mean pass rate, stars dropped by the redraw
+     limit, and the mean time per mock. Valley ages: the mock fit result now also carries the valley age
+     (`valley_t`, an added field that changes no number of R1-SEL-FIT or R1-ERR); per set only the median over
+     mocks with a valley is stored (`median_valley_t_mocks`), next to the data fit's at f (`data_valley_t`).
+     The data fits at f (d, K, valley, edge, peaks, BIC, fits per K, null parameters and convergence) are in
+     `data_fits.<f>.<variant>[bin]`.
+  10. *Order and records.* The 18 data fits run before any mock, are not checkpointed and are repeated on a
+      resume (about 30 min). The run uses the default thread settings, recorded in `threads` as in R1-ERR.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
@@ -1622,19 +1662,21 @@ How a coding agent answers "what if" questions about this study without touching
 | `r2_feh`, `r2_jphi` | R2 sample window and J_φ cut | ±0.1 dex around −1; 0–1000 | cache only |
 | `f_min` | error-scale sensitivity value | 0.6–1.0 | cache only |
 | `grid_step` | latent grid step (Gyr) | 0.02–0.1 | cache only |
-| `parts` | which pipeline runs: `["orig"]` (sections 2.0–2.4; `r1/r2/r34/r56/r7/summary.json`) and/or `["sel"]` (section 2.5 R-SEL; `r1_sel/r34_sel/sel.json`), or `["selfit"]` alone (section 2.6 R1-SEL-FIT; `r1_selfit.json`, records `provenance_selfit.json`, `run_info_selfit.json`; reads `r1_sel.json`), or `["err"]` alone (section 2.7 R1-ERR; `r1_err.json`, records `provenance_err.json`, `run_info_err.json`; reads `r1_sel.json` and `r1_selfit.json`); the committed value is `["err"]` (T-054) | either or both of orig/sel; selfit alone; err alone | cache only |
+| `parts` | which pipeline runs: `["orig"]` (sections 2.0–2.4; `r1/r2/r34/r56/r7/summary.json`) and/or `["sel"]` (section 2.5 R-SEL; `r1_sel/r34_sel/sel.json`), or `["selfit"]` alone (section 2.6 R1-SEL-FIT; `r1_selfit.json`, records `provenance_selfit.json`, `run_info_selfit.json`; reads `r1_sel.json`), or `["err"]` alone (section 2.7 R1-ERR; `r1_err.json`, records `provenance_err.json`, `run_info_err.json`; reads `r1_sel.json` and `r1_selfit.json`), or `["errcal"]` alone (section 2.8 R1-ERRCAL; `r1_errcal.json`, records `provenance_errcal.json`, `run_info_errcal.json`; reads `r1_sel.json`, `r1_selfit.json` and `r1_err.json`); the committed value is `["err"]` (T-054) | either or both of orig/sel; selfit alone; err alone; errcal alone | cache only |
 | `selfit_seed_tag`, `selfit_nstart`, `selfit_stop_h` | R1-SEL-FIT: stream tag of the data-independent starts, starts per K, stop limit (h) | 45 and 8 are pre-registered; 12 h | cache only |
 | `err_f`, `err_bins`, `err_n_mock` | R1-ERR (section 2.7): error-scale ladder, R1 bins run, mocks per set | pre-registered [1.2, 1.5, 2.0, 2.81], [0, 1, 2], 50 (2 for a quick run; the label needs 50) | cache only |
 | `err_reach_frac`, `err_min_bins` | R1-ERR: fraction of mocks reaching the data d that makes a bin explainable; bins needed for "sensitive" | 0.05 and 2 are pre-registered | cache only |
 | `err_seed_tag`, `err_seed_tag_indep`, `err_stop_h` | R1-ERR: stream tags of the catalogue and fit (o), and of fit (i); stop limit (h) | 54 and 154 are pre-registered; 16 h | cache only |
+| `errcal_f`, `errcal_bins`, `errcal_n_mock` | R1-ERRCAL (section 2.8): error scales (fitted with f), R1 bins run, mocks per set | pre-registered [2.0, 2.81], [0, 1, 2], 50 (2 for a quick run; the label needs 50) | cache only |
+| `errcal_seed_tag`, `errcal_seed_tag_indep`, `errcal_stop_h` | R1-ERRCAL: stream tags of the catalogue and fit (o), and of fit (i); stop limit (h) | 59 and 159 are pre-registered; 16 h | cache only |
 | `sel_n_mock` | R-SEL mocks per set (verdicts need 50) | 2–50 | cache only |
 | `sel_power_floor`, `sel_power_floor_sens` | R1-SEL power-model floor and its sensitivity value | 0.10–0.30 | cache only |
 | `sel_pass_width`, `sel_n_min` | pass-bin width (Gyr) and minimum parent count per pass bin (SEL-0) | 0.5–2; 100–500 | cache only |
 
 - Exploration checkpoints: since 2026-11-22 (T-058) R-SEL and R1-SEL-FIT explorations, like R1-ERR's
   since T-054, keep their mock checkpoints under a sibling root (`s010_sel_mocks_explore`,
-  `s010_selfit_mocks_explore`, `s010_err_mocks_explore`, each under `<date>-<tag>`), never in the formal
-  folders, so pruning exploration checkpoints cannot touch the formal ones.
+  `s010_selfit_mocks_explore`, `s010_err_mocks_explore`, each under `<date>-<tag>`; R1-ERRCAL's under
+  `s010_errcal_mocks_explore`, T-059), never in the formal folders, so pruning exploration checkpoints cannot touch the formal ones.
 - Rerun with an override: `python -m astrolab explore 010-m05-thick-disc-subgiant-ages --tag <topic> --set KEY=VALUE`
   (outputs in `explore/<date>-<topic>/`, not committed). The original pipeline needs
   `--set 'parts=["orig"]'`; without mocks
@@ -1690,6 +1732,16 @@ How a coding agent answers "what if" questions about this study without touching
   otherwise idle machine (section 2.7); its checkpoints are in the cache folder `s010_err_mocks`.
   `--set err_n_mock=2` gives no label and still takes about 1.3 h: the 9 data fits, check (b) and the 36
   companion data refits run in full, and only the mock sets shrink.
+- R1-ERRCAL (section 2.8): the formal run is `"parts": ["errcal"]` (run alone; the committed default stays
+  `["err"]`), with the default thread settings (recorded in `threads`), on an otherwise idle machine: about
+  30 min of data fits at f plus 5,400 mocks, about 6–8 h in all. Checkpoints go to the cache folder
+  `s010_errcal_mocks` (explorations: `s010_errcal_mocks_explore/<date>-<tag>`). It writes `r1_errcal.json`
+  (`status`; `label` (S15 term E) and `labels.<variant>`; `checks.data_fit_mismatches`; `data_fits.<f>.<variant>`
+  with the null parameters at f; `power_models`; `variants.<variant>` with `verdicts` and `per_f.<f>` (`status`,
+  `verdict`, `median_edge`, per-bin `d_star`, `q`, `power`, `fpr`, `resolvable`, `almost_disjoint`, and the
+  metal-rich bins from `r1_selfit.json`); `per_set`; `mocks` with the projections) and the records
+  `provenance_errcal.json`, `run_info_errcal.json`. `--set errcal_n_mock=2` gives no label and takes about
+  1 h (the 18 data fits run in full).
 - Example questions: "Does the R1 valley survive a stricter error cut?" → `--set cut=0.10`.
   "Is the 13 Gyr mean sensitive to the J_φ cut?" → `--set r2_jphi=300` (R2 also reports 300 and 700).
   "What if the selection term conditioned on relative error instead of e?" → an `explore/` script
