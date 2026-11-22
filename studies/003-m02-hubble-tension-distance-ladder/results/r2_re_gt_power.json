@@ -1,0 +1,464 @@
+{
+ "stage": "power",
+ "host": "N5584",
+ "column": 26,
+ "headline": "R2-RE's row stays the headline; this block attaches a label to R2-RE-G's sub-label",
+ "settings": {
+  "eps": "numpy.random.default_rng(g_seed_base + s).standard_normal(len(rows_a)), R2-RE-G's eps_s, the same for every model",
+  "t_host": "numpy.random.default_rng(gt_seed_base + s).standard_t(gt_nu, 37), common to every T model; b_s = tau sqrt((nu - 2) / nu) t_s",
+  "offset_host_any": "numpy.random.default_rng(g_host_seed_base + s).integers(0, 37) (R2-RE-G's)",
+  "inner": "z_i = A0_i + s T0_i: A0 = E_in (D Q sqrt(lam))^T, E_in = numpy.random.default_rng(g_inner_seed).standard_normal((gt_n_inner, 37)); T0 = T_in WH^T, T_in = numpy.random.default_rng(gt_inner_seed).standard_t(gt_nu, (gt_n_inner, 37)); s = tau_hat sqrt((nu - 2) / nu)",
+  "gt_seed_base": 410000,
+  "gt_inner_seed": 610000,
+  "gt_inner_seeds_rep": [
+   611000,
+   612000
+  ],
+  "gt_nu": 4,
+  "gt_nu_rep": [
+   3,
+   10
+  ],
+  "gt_n_sims": 10000,
+  "gt_n_inner": 20000,
+  "gt_power_min": 0.8,
+  "gt_max_minutes": 120,
+  "gt_min_sims": 5000,
+  "gt_only": true,
+  "gt_stage": "power",
+  "g_seed_base": 400000,
+  "g_host_seed_base": 500000,
+  "g_inner_seed": 600000,
+  "g_taus_rep": [
+   0.05,
+   0.105
+  ],
+  "n5584_host": "N5584",
+  "threads": {
+   "env": {
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1"
+   },
+   "threadpools": [
+    [
+     "mkl",
+     1
+    ],
+    [
+     "openmp",
+     1
+    ]
+   ]
+  },
+  "reml": "reml_tau(f, 0.5, 0.01, interval=False); τ̂ < 1e-3 counts as zero",
+  "eig_rtol": 1e-10,
+  "reml_grid_source": "results/r2_re.json reml.grid_m2l (R2-RE, 51 values at tau = 0, 0.01, ..., 0.50 mag) (committed file, standalone mode)"
+ },
+ "recorded": {
+  "tau_obs": 0.07669875579792439,
+  "delta_hat": 0.33634,
+  "sigma_delta": 0.09251604267299487,
+  "z_obs": 3.6354437025541553,
+  "tau_n": 0.03137144323410943,
+  "em_scale": 0.07521926289752753
+ },
+ "sim_keys": [
+  "THAT",
+  "T050",
+  "T105",
+  "OANY",
+  "OANYVN",
+  "TC",
+  "VHAT"
+ ],
+ "decisive": [
+  "THAT",
+  "T050",
+  "T105",
+  "OANY",
+  "OANYVN"
+ ],
+ "design": {
+  "n_rows": 3489,
+  "n_hosts": 37,
+  "n_columns_X": 47,
+  "rank_M": 36,
+  "n_eigenvalues_clipped": 1,
+  "lambda_max": 185.52751152659394,
+  "lambda_min_unclipped": -3.397282492378385e-14,
+  "M_jj_min": 11.768623224536997
+ },
+ "runtime_guard": {
+  "timed_sims": 1000,
+  "seconds_per_sim": 0.001768105699971784,
+  "n_sets": 7,
+  "n_requested": 10000,
+  "projected_minutes": 2.0627899833004144,
+  "max_minutes": 120,
+  "min_sims": 5000,
+  "reduced": false,
+  "n": 10000
+ },
+ "n_sims": 10000,
+ "power": {
+  "R_OANY": 0.384,
+  "R_OANYVN": 0.3172,
+  "power": 0.3172,
+  "power_min": 0.8,
+  "powered": false
+ },
+ "size": {
+  "R_THAT": 0.0461,
+  "R_T050": 0.041,
+  "R_T105": 0.0442,
+  "size": 0.0461,
+  "taus": {
+   "THAT": 0.07669875579825007,
+   "T050": 0.05,
+   "T105": 0.105
+  },
+  "note": "under t₄ host effects at τ = 0.05, τ̂_obs and 0.105 only"
+ },
+ "reported": {
+  "TC": {
+   "rate": 0.0386,
+   "ci95": [
+    0.034909251363381515,
+    0.0425624546717509
+   ],
+   "status": "evaluated"
+  },
+  "VHAT": {
+   "rate": 0.0207,
+   "ci95": [
+    0.01799971066261999,
+    0.02368422502591554
+   ],
+   "status": "evaluated"
+  }
+ },
+ "checks": {
+  "reproduction": {
+   "reml_grid_n": 51,
+   "tau_hat_obs": 0.07669875579825007,
+   "tau_hat_obs_refined": true,
+   "tau_hat_obs_at_zero": false,
+   "tau_hat_obs_at_upper_bound": false,
+   "delta_hat": 0.33633686472077073,
+   "sigma_delta": 0.09251604267299487,
+   "z_obs": 3.6354437025541553,
+   "sigma_delta_from_M_rel_diff": 3.0000824520492244e-16,
+   "reml_grid_max_abs_diff": 1.028865881380625e-11,
+   "mismatches": []
+  },
+  "cholesky_failed": {},
+  "pointwise": [
+   {
+    "model": "THAT",
+    "s": 0,
+    "max_abs_dz": 1.903532886871062e-12,
+    "tau_reduced": 0.057500206128608004,
+    "tau_reml_m2l": 0.0575002061333556,
+    "z_ok": true,
+    "tau_ok": true,
+    "ok": true
+   },
+   {
+    "model": "THAT",
+    "s": 1,
+    "max_abs_dz": 2.9485303087994907e-12,
+    "tau_reduced": 0.09886052126249881,
+    "tau_reml_m2l": 0.09886052136081798,
+    "z_ok": true,
+    "tau_ok": true,
+    "ok": true
+   },
+   {
+    "model": "THAT",
+    "s": 2,
+    "max_abs_dz": 2.2573054536678683e-12,
+    "tau_reduced": 0.07708151774409984,
+    "tau_reml_m2l": 0.0770815177447475,
+    "z_ok": true,
+    "tau_ok": true,
+    "ok": true
+   }
+  ],
+  "r2_re_g_simulations_reproduced": {
+   "VHAT": {
+    "n_compared": 10000,
+    "max_abs_dG": 4.9986594558709685e-06,
+    "max_abs_dtau": 4.999720276954722e-07,
+    "n_G_off": 0,
+    "n_tau_off": 0,
+    "ok": true
+   },
+   "OANY": {
+    "n_compared": 10000,
+    "max_abs_dG": 4.9984851838713595e-06,
+    "max_abs_dtau": 4.999711889497327e-07,
+    "n_G_off": 0,
+    "n_tau_off": 0,
+    "ok": true
+   },
+   "OANYVN": {
+    "n_compared": 10000,
+    "max_abs_dG": 4.99987263738455e-06,
+    "max_abs_dtau": 4.999611357137113e-07,
+    "n_G_off": 0,
+    "n_tau_off": 0,
+    "ok": true
+   }
+  }
+ },
+ "rule1": [],
+ "status": "evaluated",
+ "models": {
+  "THAT": {
+   "description": "T(τ̂_obs): t₄ diffuse host scatter at the fitted τ (size at τ̂_obs)",
+   "decisive": true,
+   "status": "evaluated",
+   "tau": 0.0,
+   "offset": null,
+   "n": 10000,
+   "n_excluded": 461,
+   "n_not_excluded": 9485,
+   "n_undetermined": 54,
+   "rate": 0.0461,
+   "ci95": [
+    0.04207264525973847,
+    0.05039427420529059
+   ],
+   "quantiles_5_50_95": {
+    "G": [
+     0.10521695673127304,
+     0.16305094534803932,
+     0.3126370551403092
+    ],
+    "tau_hat": [
+     0.0,
+     0.07013337954708329,
+     0.12723451476174485
+    ]
+   },
+   "n_tau_zero": 1451,
+   "n_tau_bound": 0,
+   "k_sha256": "ee8aac87412d26a357b3c6fa5385e4acb29952b6fb3b0d0ba0f6be72a99080a3",
+   "tau_t": 0.07669875579825007
+  },
+  "T050": {
+   "description": "T(0.05): t₄ diffuse host scatter (size at τ = 0.05)",
+   "decisive": true,
+   "status": "evaluated",
+   "tau": 0.0,
+   "offset": null,
+   "n": 10000,
+   "n_excluded": 410,
+   "n_not_excluded": 9527,
+   "n_undetermined": 63,
+   "rate": 0.041,
+   "ci95": [
+    0.037197798489541654,
+    0.045072363258940235
+   ],
+   "quantiles_5_50_95": {
+    "G": [
+     0.1033805996576986,
+     0.15569815493774475,
+     0.27312646471278024
+    ],
+    "tau_hat": [
+     0.0,
+     0.04351384153647866,
+     0.10053718447300265
+    ]
+   },
+   "n_tau_zero": 3054,
+   "n_tau_bound": 0,
+   "k_sha256": "f24e15900b88113572015b13344921d22a93696c806d26d605a7e6dd603273f7",
+   "tau_t": 0.05
+  },
+  "T105": {
+   "description": "T(0.105): t₄ diffuse host scatter (size at τ = 0.105)",
+   "decisive": true,
+   "status": "evaluated",
+   "tau": 0.0,
+   "offset": null,
+   "n": 10000,
+   "n_excluded": 442,
+   "n_not_excluded": 9484,
+   "n_undetermined": 74,
+   "rate": 0.0442,
+   "ci95": [
+    0.04025478359440086,
+    0.0484133381863033
+   ],
+   "quantiles_5_50_95": {
+    "G": [
+     0.10781187440057131,
+     0.17342131262036709,
+     0.3651880912361328
+    ],
+    "tau_hat": [
+     0.008310156776327399,
+     0.0971446304885928,
+     0.15976027294470638
+    ]
+   },
+   "n_tau_zero": 481,
+   "n_tau_bound": 0,
+   "k_sha256": "600fc27d973b4b671c29f681dc3091b945e03ab6e9588d4ca154190e97c5a609",
+   "tau_t": 0.105
+  },
+  "OANY": {
+   "description": "O_any on C (R2-RE-G's): one host drawn uniformly, σ-matched offset z_obs σ_δ,k",
+   "decisive": true,
+   "status": "evaluated",
+   "tau": 0.0,
+   "offset": "any",
+   "n": 10000,
+   "n_excluded": 3840,
+   "n_not_excluded": 5886,
+   "n_undetermined": 274,
+   "rate": 0.384,
+   "ci95": [
+    0.37445249558937654,
+    0.3936151087318672
+   ],
+   "quantiles_5_50_95": {
+    "G": [
+     0.13510392901396417,
+     0.27019469699705445,
+     0.46393486422788194
+    ],
+    "tau_hat": [
+     0.0,
+     0.0658783987867077,
+     0.11862860495167966
+    ]
+   },
+   "n_tau_zero": 1861,
+   "n_tau_bound": 0,
+   "k_sha256": "445be50a3877718ea61f2c5a8a95ae8479b4c832b0c087f48ce3f91d22d9230a",
+   "z_alt": 3.6354437025541553,
+   "n_jhat_is_offset_host": 8668,
+   "tau_t": null
+  },
+  "OANYVN": {
+   "description": "O_any on V(τ̂_N) (R2-RE-G's): one σ-matched offset host plus a small diffuse term",
+   "decisive": true,
+   "status": "evaluated",
+   "tau": 0.03137144323410943,
+   "offset": "any",
+   "n": 10000,
+   "n_excluded": 3172,
+   "n_not_excluded": 6582,
+   "n_undetermined": 246,
+   "rate": 0.3172,
+   "ci95": [
+    0.30808291248332514,
+    0.32642365559141345
+   ],
+   "quantiles_5_50_95": {
+    "G": [
+     0.1311348340152296,
+     0.2592380201390949,
+     0.4529968492036566
+    ],
+    "tau_hat": [
+     0.0,
+     0.07333010694691816,
+     0.12537121722144784
+    ]
+   },
+   "n_tau_zero": 1380,
+   "n_tau_bound": 0,
+   "k_sha256": "ebb62379b29c54bfacf5956fa6f4b14b256a6857764fa27a3211b43e11b6873a",
+   "z_alt": 3.6354437025541553,
+   "n_jhat_is_offset_host": 8435,
+   "tau_t": null
+  },
+  "TC": {
+   "description": "C: no excess scatter, tested with the t₄ null (reported)",
+   "decisive": false,
+   "status": "evaluated",
+   "tau": 0.0,
+   "offset": null,
+   "n": 10000,
+   "n_excluded": 386,
+   "n_not_excluded": 9554,
+   "n_undetermined": 60,
+   "rate": 0.0386,
+   "ci95": [
+    0.034909251363381515,
+    0.0425624546717509
+   ],
+   "quantiles_5_50_95": {
+    "G": [
+     0.10235953873508338,
+     0.15250375412373396,
+     0.25072157440066306
+    ],
+    "tau_hat": [
+     0.0,
+     0.0,
+     0.07673214203532633
+    ]
+   },
+   "n_tau_zero": 5463,
+   "n_tau_bound": 0,
+   "k_sha256": "6efe64a401bce8d55afa03b7418b5a21098cd551f58aa0b94217d66c13620386",
+   "tau_t": null
+  },
+  "VHAT": {
+   "description": "R2-RE-G's Gaussian V(τ̂_obs), tested with the t₄ null (reported)",
+   "decisive": false,
+   "status": "evaluated",
+   "tau": 0.07669875579825007,
+   "offset": null,
+   "n": 10000,
+   "n_excluded": 207,
+   "n_not_excluded": 9753,
+   "n_undetermined": 40,
+   "rate": 0.0207,
+   "ci95": [
+    0.01799971066261999,
+    0.02368422502591554
+   ],
+   "quantiles_5_50_95": {
+    "G": [
+     0.10336981006104795,
+     0.15505745831271295,
+     0.26132207924635836
+    ],
+    "tau_hat": [
+     0.0,
+     0.07316522798303504,
+     0.12207162874331169
+    ]
+   },
+   "n_tau_zero": 1112,
+   "n_tau_bound": 0,
+   "k_sha256": "02bec16fce355b665b08ac6289e3258c0d2d1112003418719f2e51e2ca19a4e4",
+   "tau_t": null
+  }
+ },
+ "seconds": {
+  "design": 0.8984081000089645,
+  "reproduction": 0.5020329999970272,
+  "factors": 0.7775116999982856,
+  "pointwise": 123.96815820003394,
+  "simulations": {
+   "THAT": 17.418197599996347,
+   "T050": 17.192594999971334,
+   "T105": 17.10578429995803,
+   "OANY": 18.12204579997342,
+   "OANYVN": 17.299165799980983,
+   "TC": 18.12452209996991,
+   "VHAT": 17.197058200021274
+  },
+  "records": 2.0356314000091515,
+  "block": 250.82321959995897
+ }
+}
