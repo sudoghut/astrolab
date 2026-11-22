@@ -394,7 +394,7 @@ in the order listed):
   values), used in eq. 11 including its ln(2πσ²) term. P is a reading of K24's words, not a way to reach 47 pc: at
   K24's medians it gives about 60 pc on our curve (above), and a larger σ flattens the likelihood towards the priors,
   which is why the width condition below is part of the label.
-- **Weights (X / R).** X: fixed, from each object's s under K24's column-(6) medians (section 4.1). R: recomputed at
+- **Weights (W / R).** W: fixed, from each object's s under K24's column-(6) medians (section 4.1). R: recomputed at
   each parameter vector from that vector's s (same kernel, bandwidth 100 pc); for clusters, from the s of the 4-D
   closest point.
 
@@ -404,8 +404,10 @@ have their posterior median inside K24's 16–84% interval (Extended Data Table 
 all 12 shape and anchor parameters; and the **width ratio**, the median over the six counted parameters of our
 16–84% half-width divided by K24's. `results/rconv.json` reports all sixteen counts, differences and ratios.
 
-*Choice of the convention (fixed now).* The convention with the largest count; ties broken by the fewest departures
-from the formal run (L, F, X), then by the index. Labels (each says "best of 16 conventions, post hoc"):
+*Choice of the convention (fixed now).* Conventions whose width ratio lies in [2/3, 3/2] are ranked first: among them
+the one with the largest count is chosen; only if none lies in that range, the one with the largest count among all
+(its label is then at most "partly reproduced"). Ties are broken by the fewest departures
+from the formal run (L, F, W), then by the index. Labels (each says "best of 16 conventions, post hoc"):
 - **"column (3) reproduced under <convention>"** if its count is ≥ 5 and its width ratio lies in [2/3, 3/2];
 - **"column (3) partly reproduced under <convention>"** if its count is 3–4, or ≥ 5 with the width ratio outside
   [2/3, 3/2] (then the reason is stated);
@@ -424,15 +426,16 @@ the coverage and mean b̂ per injection are reported either way. These labels ar
 the formal labels, the overall reading and T6 stay as recorded. T3, T4, T6, T7 are not rerun.
 
 *Part B, T8-P: ω₀ with the divisor fixed (post hoc).* The column-(7) setup (ω₀, μ₀, r₀ free) with the v_z divisor
-**fixed at 74 km s⁻¹ kpc⁻¹**, under the formal run's convention (L, F, X). Then ω₀ enters only the model mean of v_z
+**fixed at 74 km s⁻¹ kpc⁻¹**, under the formal run's convention (L, F, W). Then ω₀ enters only the model mean of v_z
 (through the frequency ω(z_max, r) of eq. 3), and the likelihood's dependence on ω₀ is through the model alone, so the
 withdrawn T8's problem (ω₀ rescaling the data's velocity component) is absent. MCMC as section 4.2 under K24's priors
 (the formal `col7_div`, rerun so both chains come from this run) and under the broad priors of section 2 (new).
 Section 2's T8 rule applied unchanged (half-width of the broad-prior ln ω₀ posterior against 0.085; median shift
 against 0.5σ) → **"data-driven"**, **"partly data-driven"** or **"prior-driven"**, reported as T8-P (post hoc) with ρ₀
 and the Sun's vertical period under both priors. Because the tanh cap lets the likelihood plateau at large ω₀, the
-broad-prior posterior's distance from the 150 km s⁻¹ kpc⁻¹ bound is reported; if its median lies within 5% of either
-bound, T8-P is "prior-driven (posterior at the bound)". The withdrawn T8 stays withdrawn.
+broad-prior posterior's distance from the 150 km s⁻¹ kpc⁻¹ bound is reported; under the broad priors only, if its
+median lies within 5% of a bound's value (above 142.5 or below 31.5 km s⁻¹ kpc⁻¹), T8-P is "prior-driven (posterior
+at the bound)". The withdrawn T8 stays withdrawn.
 
 *Expected outcome (stated now).* Part A: we expect Y, X or P to move the anchors by about 100 pc; the count could reach
 4–6, but P may raise it only by widening the posteriors, which the width condition catches; an even chance that column
@@ -447,7 +450,7 @@ in all); the reruns about 1–1.5 h; Part B about 1 h. In all about 5–7 h sing
 *Code checks before the formal run (synthetic data only).* Y and X give the same curve as L when the anchors are
 equally spaced on a straight line; C equals variant 10's curve; s is the x–y arc length in every option; P's σ equals
 47 pc within 1% for 10⁵ synthetic clouds drawn with σ = 47 pc about a known curve (K24's χ²₂ argument); R's weights
-equal X's at K24's column-(6) medians; with the divisor fixed, changing ω₀ changes only the model v_z (the data vector
+equal W's at K24's column-(6) medians; with the divisor fixed, changing ω₀ changes only the model v_z (the data vector
 and the eq. 13 constant are unchanged); the tie-break order and the width condition; the T5 known-answer injection uses
 the stated vector. On the real data before the formal run only the load check.
 
