@@ -1038,6 +1038,46 @@ correlations Ωm +0.39 / +0.76, h +0.06 / −0.80, Ωb +0.00 / +0.83, n_s +0.05 
   TensorFlow environment, which was removed after T-044 and is reinstalled only with the user's
   consent. Exploration output was deleted after these numbers were copied.
 
+**R6-SHUF-KA (addendum 2026-11-22, section 2.9, T-047 flow part): no bias of φ detected (I_b = [−0.006, 0.045]);
+qualifier: R6-SHUF's label holds after the known-answer correction.** Run of 2026-11-22 (`python -m astrolab run
+008` with `r6_ka` true, set back to false afterwards; 04:44–09:58, 18,812 s against the estimated 6.0–6.7 h; no other
+study run on the machine; R1–R5 unchanged; R6, R6-NOMNU and R6-SHUF read from their recorded files, not retrained;
+numbers in `results/r6_ka.json`). Each flow training took 421–1,214 s.
+
+| Variant | exact (recomputed) | n̂ per seed (k = 15–24) | mean offset n̄ − exact | s |
+|---|---|---|---|---|
+| D6 (6-D) | 1.8087 | 1.726, 1.632, 1.742, 1.712, 1.713, 1.794, 1.753, 1.704, 1.734, 1.851 | −0.073 | 0.058 |
+| DS (u permuted) | 0.9263 | 0.793, 0.706, 0.872, 0.803, 0.880, 0.853, 0.798, 0.836, 0.790, 0.771 | −0.116 | 0.052 |
+| D5 (u dropped) | 0.3652 | 0.268, 0.270, 0.229, 0.331, 0.289, 0.296, 0.337, 0.229, 0.183, 0.244 | −0.098 | 0.048 |
+
+- **Label (pre-registered, rule 4): "no bias of φ detected (I_b = [−0.006, 0.045])".** Rules 1–3 do not apply: the
+  recomputed exact values (1.80867, 0.92631, 0.36518; φ_exact = 0.61127) are within 3·10⁻⁵ of the registered ones; the
+  versions and flow settings equal those in `results/r6.json` and `results/r6_shuf.json`; R6-SHUF's record carries its
+  label; all 30 trainings are finite, converged and not lower bounds; Ê_k = 1.362–1.606 (all > 0.20); s_b = 0.040 ≤
+  0.30. φ̂_k = 0.640, 0.680, 0.575, 0.658, 0.585, 0.628, 0.675, 0.589, 0.609, 0.672; b̄ = +0.020, s_b = 0.040, I_b =
+  b̄ ± 0.025 = [−0.006, 0.045], which contains 0.
+- **Qualifier (pre-registered): "R6-SHUF's label holds after the known-answer correction".** w = 2√(0.0366²/5 +
+  0.0400²/10) = 0.041; I_φ,corr = (0.6712 − 0.0197) ± 0.041 = [0.610, 0.693] ⊂ [0.60, ∞). The "test too noisy" branch
+  does not arise (φ̄_R6 − w = 0.630 ≥ 0.60). The lower end is 0.010 above 0.60.
+- **Against the expected outcome (section 2.9).** The label is the guessed one and the qualifier one of the two
+  guessed. The test was less noisy than expected (s_b = 0.040 against about 0.10) because each variant's n̂ scattered by
+  only about 0.05 per seed (s = 0.058, 0.052, 0.048), against the 0.13 seen on the 6-D synthetic gates; the offsets are
+  nearly uncorrelated between variants (r ≤ 0.26), so this is not a cancellation within a seed. The expected sign was not
+  borne out: section 2.9 expected flows biased high at small n_σ (a negative b); here all three variants read low, and
+  b̄ is a small residual (+0.020, not significant) of offsets of −0.07 to −0.12σ that largely cancel in the ratio
+  (linearised: 0.27·δ₆ − 0.69·δ_S + 0.42·δ₅ = +0.020).
+- **Limits (as stated in section 2.9, and the referee's points 1–3, section 6).** One synthetic family near φ = 0.61, not
+  the chains; its n₆, n_S and n₅ (1.81, 0.93, 0.37) differ from the data's (1.70, 0.91, 0.52), so the n₅ end in
+  particular is not matched; DS breaks all of u's correlations, while R6-SHUF's (S) keeps the CMB chain's; u is coupled
+  to the curved pair through one latent variable. The bias of φ is transferred to the data, not measured on it. The
+  mean offsets of the individual n_σ (each about 4–7 standard errors from 0) are a finding about this family (post hoc,
+  descriptive): the flows underestimate each n_σ here, unlike R6's gates (offsets +0.025, +0.009, −0.028), so the
+  per-variant bias depends on the distribution, and b̄ ≈ 0 rests on its cancellation between variants on this family.
+  Post hoc margins (not rules): with the same offsets scaled to the data's Ē = 1.17 the corrected lower end is 0.606;
+  with a t quantile (9 degrees of freedom) in place of 2 it is 0.605; both stay above 0.60. If the data's offsets
+  followed the gates' pattern instead, the correction would differ by an amount of the size of the margin; a known-answer
+  test on a surrogate of the data's own difference is registered as T-063.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-15 (subagent with the pre-registration, code and results only; it read
@@ -1125,6 +1165,23 @@ was using the machine. Triage:
 | 10 | Literature: Raveri & Doux 2021 (arXiv:2105.03324) report flow/KDE shift estimators agreeing with the exact tension within about 0.5σ in difficult cases, usually 0.2σ or better (the referee's web search; not checked by us); Lemos et al. 2021 (arXiv:2012.09554, not read) | no | Context only; not used. |
 | 11 | Most important next test: a known-answer test of φ itself (a synthetic family in which the Σmν-like box is correlated with the curved pair on the "DES" side, exact n₆, n_S and n₅ known; recover φ within about 0.05 with the same pipeline), and first, without flows, DES's conditional (A_s, Ωm) means in Σmν bins against the CMB | – | Registered as T-047. |
 
+### Referee, R6-SHUF-KA (independent subagent, 2026-11-22)
+
+The referee saw README sections 1–4, the code (`r6ka.py`, `flowshift.py`'s `ka_*` functions and `ka` job, `run.py`'s
+`r6_ka` block, `test_r6ka.py`, the conclusion check, `explore/t047_ka_design.py`) and the results, not sections 5–8 or
+`log.md`; no flow was trained. It recomputed every summary number from the per-seed values (b̄ = 0.0197, s_b = 0.0400,
+I_b = [−0.0056, 0.0450], w = 0.0414, I_φ,corr = [0.6101, 0.6929]) and the exact values (within 3·10⁻⁵). Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | **Transfer to the data is the weak point.** The per-variant offsets here (−0.073, −0.116, −0.098; s.e. ≈ 0.017) are 3–10 times the gates' and of the other sign for n₆; b̄ ≈ 0 is a residual of their cancellation (δ₆ − δ_S ≈ +0.043, the size of R6-SHUF's 0.045 flip threshold). The lower end of I_φ,corr is 0.010 above 0.60; scaled to the data's Ē it is about 0.607, with a t quantile 0.605 | yes (our recomputation: 0.606 and 0.605) | **Accepted** (post hoc, section 5): the margins are stated next to the qualifier, which stays as registered; T-063 registered. |
+| 2 | DS makes u independent of everything; R6-SHUF's (S) keeps the CMB-side correlations; (SS) ≈ (S) supports that this matters little but it is not tested on the family | yes (as section 2.9 discloses) | Accepted limitation (section 5). |
+| 3 | n₅ (0.37) and Ê (1.36–1.61) differ from the data's (0.52; 1.03–1.38), and ∂φ/∂n₅ ≈ 0.42; the coupling runs through one latent (corr(u, x₁) ≈ 0.78), while DES's Σmν is tied to five parameters jointly (R² 0.87, section 5) | yes | Accepted limitation (section 5); covered by T-063. |
+| 4 | No code bugs: `ka_*` equal the explore script, seeds and permutation as registered, rule and qualifier order as registered; minor: `r6ka.plan()` catches only `RuntimeError`, so another exception from a flow job would abort the run instead of being recorded under rule 2 (not triggered) | yes (`r6ka.py`) | Noted; not changed after the run (no effect on this result). |
+| 5 | s_b = 0.04 (expected 0.10) because the per-variant scatter is about 0.05 and the offsets are weakly correlated (r ≤ 0.26), not because of cancellation within a seed; no rule moved | yes (our recomputation: r = 0.26, −0.04, 0.01) | **Accepted**; section 5's explanation corrected before it was recorded. |
+| 6 | Literature: Raveri & Doux 2021 (arXiv:2105.03324; the referee checked the abstract) find flow estimators within 0.5σ of the exact value in difficult cases and generally within 0.2σ, larger than the 0.045 that would move R6-SHUF's label, so φ relies on cancellation between variants; Raveri, Zacharegkas & Hu 2020 (arXiv:1912.04880) and Lemos et al. 2021 (arXiv:2012.09554) not verified | first by the referee; others no | Context only; not used. |
+| 7 | Most important next test: a known-answer test on a surrogate built from the data's own 6-D difference (for example a Gaussian mixture or the trained D6 flow fitted to it), with (S) built as R6-SHUF does; cheaper: two or three sibling family members spanning n₅ ≈ 0.3–0.6 and corr(u, ·) ≈ 0.4–0.8, reporting the qualifier as family-dependent if b̄ moves by ≳ 0.01 | – | Registered as T-063 (backlog). |
+
 ## 7. Open questions
 
 1. The full-space 1.8σ: R6 (2026-11-18) brackets it at 1.6–1.9σ but is not evaluable because one flow
@@ -1139,7 +1196,11 @@ was using the machine. Triage:
    I_φ = [0.601, 0.669]); a known-answer test of φ is registered as T-047. Its no-flow first part
    (conditional means, 2026-11-20, post hoc; section 5) finds DES's Σmν tied linearly to the other
    five parameters jointly (R² = 0.87), not to one of them, and in the lowest Σmν bin (A_s, Ωm) mean
-   offsets similar to the marginal ones (descriptive; not a test of φ).
+   offsets similar to the marginal ones (descriptive; not a test of φ). Its flow part, R6-SHUF-KA
+   (2026-11-22, pre-registered), detects no bias of φ on a synthetic family (I_b = [−0.006, 0.045]),
+   and R6-SHUF's label holds after the correction (I_φ,corr = [0.610, 0.693]); the flows read each
+   n_σ 0.07–0.12σ low there, so the transfer to the data rests on cancellation between variants
+   (referee); a known-answer test on a surrogate of the data's own difference is T-063.
 2. How much does the S8 difference change with a lensing-inclusive or Planck-PR4-based CMB
    (D26 reports 1.0σ in full space against Planck 2018 alone)?
 3. Do KiDS-1000 and HSC Y3 (2023) quote means or modes? R5 shows a 0.1–0.2σ dependence.
