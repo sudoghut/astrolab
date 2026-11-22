@@ -1929,10 +1929,60 @@ test separates one offset host from diffuse host scatter on these data (power 0.
 ≥ 0.8 only from z ≈ 5). R2-RE-D's reading and gloss stay as recorded, and R2-RE's row stays the headline.
 The sub-label says the concentration of the calibrator offsets in one host is unusual under Gaussian
 diffuse scatter of the fitted size (and at τ = 0.05 and 0.105), and the data look typical of one offset
-host; it is not a separate reading, and it is not independent of R2-RE-D (referee, section 6).
+host; it is not a separate reading, and it is not independent of R2-RE-D (referee, section 6). Gloss from
+R2-RE-GT (T-057, next subsection): "t₄ comparison undetermined (Monte Carlo)".
 
 **As expected.** The addendum forecast G_obs ≈ 0.2–0.35, power ≈ 0.2–0.6 and "undetermined
 (underpowered)" as the most likely reading; all three held.
+
+### R2-RE-GT (addendum 2026-11-21, T-057)
+
+Run of 2026-11-22 in two stages, standalone mode (`gt_check` and `gt_only` true; `gt_stage` "power", then
+"full"; set back to false, false and "full" afterwards), single-threaded as R2-RE-G's formal run, cache only, no
+data downloaded. Power stage 252 s, committed with its power line in `log.md` before the full stage; full stage
+281 s. Numbers: `results/r2_re_gt.json` (`results/r2_re_gt_power.json` for the power record).
+
+**Checks (rule (1)).** All passed (`rule1` empty): R2-RE-G's reproduction checks (τ̂_obs = 0.0766988, δ̂ = 0.33634,
+σ_δ = 0.09252, z_obs = 3.6354; REML grid to 1.0 × 10⁻¹¹); the three pointwise checks of THAT (z to 2.9 × 10⁻¹²);
+no Cholesky factor failed; VHAT, OANY and OANYVN reproduce R2-RE-G's saved G_s and τ̂_s in all 10,000 simulations
+each (amendment 4); the full stage reproduced every count and `k_sha256` of the power stage; on the real data
+W·y matches the 37 one-column fits to 1.5 × 10⁻¹², G_obs equals the recorded value exactly and R2-RE-G's Gaussian
+inner draws give k = 326 again (amendment 6).
+
+**Power and size (fixed before p_T,obs was computed).** Power = min(R_OANY 0.384, R_OANYVN 0.317) = **0.317**,
+below 0.8. Size under t₄ host effects: R_THAT 0.046 (95% interval 0.042–0.050), R_T050 0.041 (0.037–0.045),
+R_T105 0.044 (0.040–0.048); none anti-conservative. Reported: under C (no excess) the T test rejects 3.9% (TC), and
+under R2-RE-G's Gaussian V(τ̂_obs) 2.1% (VHAT): conservative when the truth is Gaussian. Under THAT the 95th
+percentile of G_s is 0.313 (median 0.163); under OANY the median G_s is 0.270, and ĵ_s is the offset host in
+8,668 of 10,000 simulations.
+
+**Observed.** G_obs = 0.305 (N5584, as in R2-RE-G). Under T(τ̂_obs), p_T,obs = (1 + 1,047)/(1 + 20,000) =
+**0.052** (95% interval of k/N_in 0.049–0.056), which contains 0.05: label **"undetermined (Monte Carlo)"**.
+Reported, not decisive (`sensitivities`; descriptive, only ν = 4 at the three checked τ has a size check):
+
+| Inner null | p | Label |
+|---|---|---|
+| t₄ at τ̂_obs (decisive) | 0.052 (0.049–0.056) | undetermined (Monte Carlo) |
+| t₃ at τ̂_obs | 0.074 (0.070–0.078) | not excluded |
+| t₁₀ at τ̂_obs | 0.021 (0.019–0.023) | excluded |
+| t₄ at τ = 0.05 | 0.025 (0.023–0.027) | excluded |
+| t₄ at τ = 0.105 | 0.090 (0.086–0.094) | not excluded |
+| t₄ with R2-RE-N5584's EM scale s = 0.0752 (variance 0.0113) | 0.092 (0.088–0.096) | not excluded |
+| Gaussian at τ̂_obs (R2-RE-G, for comparison) | 0.016 | excluded |
+
+**Reading (rule (2)): "undetermined (underpowered)"**, with the sub-label **"t₄ diffuse undetermined (Monte
+Carlo)"**. R2-RE-G's sub-label "diffuse excluded" is glossed **"t₄ comparison undetermined (Monte Carlo)"**: the
+data's concentration of the offsets in N5584 sits at the 5% point of what t₄ diffuse host scatter of the fitted size
+produces, so whether R2-RE-G's sub-label rests on Gaussian tails alone is not decided by this test. The p value
+moves across 0.05 with the tail weight (ν = 3 against ν = 10) and with the scale (τ = 0.05 against 0.105): the answer
+depends on the tail weight and scale assumed for diffuse host scatter, which these data do not fix. The
+"Monte Carlo" in the label is the registered wording; the Monte Carlo error of p_T,obs (about ±0.003) is small
+against these model choices, so the result is limited by the null's tail and scale, not by the number of draws
+(referee, section 6; a profile over ν and τ is T-060). All earlier verdicts, labels, readings and sub-labels stay
+as recorded; R2-RE's row stays the headline, and `summary.json` `R2_host` and the claim's verdict are unchanged.
+
+**As expected.** The addendum forecast a power of roughly 0.2–0.45 (0.317), "undetermined (underpowered)"
+as the most likely reading (it is) and a p value of about 0.03–0.15 (0.052).
 
 ## 6. Referee notes
 
@@ -2059,6 +2109,28 @@ algebra. Triage:
 | 7 | Literature: Riess et al. 2023 (arXiv:2307.15806), Riess et al. 2024 (arXiv:2401.04773), Feeney, Mortlock & Dalmasso 2018 (arXiv:1707.00007), Cardona, Kunz & Pettorino 2017 (arXiv:1611.06088), Follin & Knox 2018 (arXiv:1707.01175), Efstathiou 2020/2021, Wojtak & Hjorth 2022, Uddin et al. 2023, Murakami et al. 2023 | unverified except arXiv:2307.15806 (abstract checked 2026-11-18; R2-RE-N5584 referee notes, row 6) | Noted |
 | 8 | Most important additional test: calibrate G under a heavy-tailed diffuse null (host effects t_ν, ν = 4, scale fitted) next to a matched one-offset alternative | – | Registered as T-057 |
 
+### Referee, R2-RE-GT (independent subagent, 2026-11-22)
+
+The referee saw the R2-RE-GT addendum with its amendments, the R2-RE-G addendum it builds on, `shape.py`
+(the R2-RE-GT block and the R2-RE-G functions it calls), the `gt_*` paths of `run.py`, `test_shape.py`, the
+conclusion checks, the results files and the power line in `log.md`, not sections 5–7; it ran only short checks on
+the saved files. It found no code or statistics bug: the t scale gives Var(b) = τ² for every ν, inner and outer
+draws have the same covariance, rules (1)–(5) run in the registered order, the power stage was committed before
+the full stage, `shape.py` is unchanged since the code review, and the label follows from the numbers. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | "Monte Carlo" in the sub-label names the wrong source of uncertainty: the Monte Carlo error of p_T,obs is about ±0.003, while ν (0.021–0.074) and τ or the scale (0.025–0.092) move it far more; more inner draws would only settle the ν = 4 plug-in value | yes (`sensitivities`) | **Accepted**: the registered label stands; section 5 says the result sits on the 0.05 boundary and that the answer depends on the tail weight and scale, which the data do not fix |
+| 2 | The registered variance matching gives s = 0.054; the t₄ likelihood fit of R2-RE-N5584 gives s = 0.075 (host variance 1.9 τ̂²) and p = 0.092, "not excluded". REML τ̂² is unbiased for Var(b) on average (mean τ̂_s² 0.00600 against 0.00588 in THAT), but a t₄ fit prefers a wider distribution | yes (`sensitivities.em_scale`; THAT sims) | **Accepted**; reported next to the sub-label in section 5 (table); the registered choice stands |
+| 3 | The plug-in test is calibrated on average over τ̂ but not conditionally: in THAT the rejection rate is 6.2% at τ̂ = 0, 5.6% at 0.001–0.05, 3.6% at 0.05–0.08, 3.1% at 0.08–0.11 and 9.8% above 0.11; the data (τ̂ = 0.077) sit in the conservative range, and one large t draw inflates τ̂ and G together | yes (THAT sims, by τ̂_s bins; our recomputation agrees) | **Accepted limitation**: the size (max 0.046) is honest as registered; conditional on τ̂ near the data's the test is conservative, which pushes p_T,obs up, not down |
+| 4 | Calibrated checks from the committed sims agree with the plug-in: P(k_s ≤ k_obs) = 0.050 in THAT (T050 0.046, T105 0.051); P(G_s ≥ G_obs) = 0.056 (T050 0.027, T105 0.093) | yes (recomputed) | Noted: supports "on the boundary" at ν = 4 and τ ≈ τ̂_obs, and again a factor of about 3 across τ |
+| 5 | With power 0.317 against an offset as large as observed, and τ̂ absorbing the offset under OANY (median 0.066 at a true diffuse τ = 0), "not excluded" or "undetermined" carries almost no weight against one offset host | yes (`models.OANY.quantiles_5_50_95.tau_hat`) | **Accepted**; this is reading (2), "undetermined (underpowered)", as forecast |
+| 6 | Under Gaussian truth the t₄ test rejects 2.1% (VHAT) and under C 3.9% (TC): it gives up about half its level | yes | Noted; expected (section 5) |
+| 7 | The size is checked only at ν = 4 and three τ; under a supremum-p convention over ν ≥ 3 and τ in [0.05, 0.105] p ≥ 0.09, "not excluded"; ν = 4 was taken from R2-RE-N5584 after G_obs was known (disclosed) | yes | **Accepted**; the sensitivities are reported as descriptive, as registered |
+| 8 | Minor: all T models share t_s and all p values share one T_in (rates correlated, size conditional on T_in); sims files 0.38–0.46 MB | yes | No action |
+| 9 | Literature on heavy-tailed or outlier treatment in the ladder (Efstathiou 2014, arXiv:1311.3461; Cardona, Kunz & Pettorino 2017, arXiv:1611.06088; Feeney, Mortlock & Dalmasso 2018, arXiv:1707.00007, Student-t tails with H0 fairly insensitive; Follin & Knox 2018, arXiv:1707.01175; Efstathiou 2020, arXiv:2007.10716; Mörtsell et al. 2022, arXiv:2105.11461; Wojtak & Hjorth 2022, arXiv:2206.08160; Freedman et al. 2024, arXiv:2408.06153); none singles out N5584 | no; the IDs were given by the referee from memory, unverified (Wojtak & Hjorth 2022 is cited in section 7) | Noted; not used |
+| 10 | Most important additional test: profile p_T,obs and its size over ν (3, 4, 6, 10, 30, ∞) and τ across τ̂_obs's REML interval with the existing machinery, reporting the supremum p next to the plug-in value (about 10–20 min) | – | Registered as T-060 (backlog), a reported, non-decisive sensitivity |
+
 ## 7. Open questions
 
 - Why the public `lstsq_results.txt` differs from the printed baseline (a later or variant fit).
@@ -2103,8 +2175,12 @@ algebra. Triage:
 - Is the one-host picture distinguishable from heavy-tailed diffuse host scatter? R2-RE-G (T-055)
   excludes Gaussian diffuse scatter (p_G 0.016; a sub-label, not independent of R2-RE-D) but is
   underpowered (0.49) and its null is Gaussian; a
-  Student-t (ν = 4) diffuse null for G is registered as T-057. If an offset is real, JWST Cepheids in
-  N5584 (Riess et al. 2023) point to the SN 2007af side or chance.
+  Student-t (ν = 4) diffuse null for G is registered as T-057. Answered by R2-RE-GT (2026-11-22, T-057):
+  **not decided**. Under t₄ diffuse scatter of the fitted size p_T,obs = 0.052, with a Monte Carlo interval
+  (0.049–0.056) that contains 0.05, and the test is underpowered (0.317); the p value moves across 0.05 with the
+  tail weight (ν = 3: 0.074; ν = 10: 0.021) and the scale (τ = 0.05: 0.025; 0.105: 0.090). So whether R2-RE-G's
+  sub-label rests on Gaussian tails alone stays open; these data do not fix the tail of diffuse host scatter. If
+  an offset is real, JWST Cepheids in N5584 (Riess et al. 2023) point to the SN 2007af side or chance.
 
 ## 8. Exploring via chat
 

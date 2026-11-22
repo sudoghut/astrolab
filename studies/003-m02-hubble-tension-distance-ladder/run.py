@@ -67,7 +67,7 @@ PARAMS = {
     # diffuse host scatter. gt_check stays false until the formal stages; gt_only: standalone mode; gt_stage
     # "power" (writes only r2_re_gt_power.json) then "full" (README section 8). Reuses g_seed_base (eps_s),
     # g_host_seed_base (O_any's host), g_inner_seed (E_in) and g_taus_rep (T050, T105, the fixed-tau sensitivities)
-    "gt_check": True, "gt_only": True, "gt_stage": "full", "gt_seed_base": 410_000, "gt_inner_seed": 610_000,
+    "gt_check": False, "gt_only": False, "gt_stage": "full", "gt_seed_base": 410_000, "gt_inner_seed": 610_000,
     "gt_inner_seeds_rep": [611_000, 612_000], "gt_nu": 4, "gt_nu_rep": [3, 10], "gt_n_sims": 10_000,
     "gt_n_inner": 20_000, "gt_power_min": 0.8, "gt_max_minutes": 120, "gt_min_sims": 5_000,
     "gt_rerun_reason": "",      # a gt_only full stage after a formal outcome needs a reason, also present in log.md
