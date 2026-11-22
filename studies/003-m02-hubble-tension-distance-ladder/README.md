@@ -2370,7 +2370,7 @@ changes a reported number. Triage:
   tail weight (ν = 3: 0.074; ν = 10: 0.021) and the scale (τ = 0.05: 0.025; 0.105: 0.090). So whether R2-RE-G's
   sub-label rests on Gaussian tails alone stays open; these data do not fix the tail of diffuse host scatter.
   Profiled by R2-RE-GTP (2026-11-22, T-060): "model-limited". Post hoc and conditional on ν: the calibrated p is at
-  most 0.031 for host effects with ν ≥ 6 (Gaussian included), 0.05 at ν = 4 and 0.08 at ν = 3, so diffuse scatter is
+  most 0.031 for host effects with ν ≥ 6 (Gaussian included), 0.051 at ν = 4 (Monte Carlo-undetermined) and 0.08 at ν = 3, so diffuse scatter is
   excluded unless the tails are about as heavy as t₄ or heavier (three checked τ only); the question stays open until ν
   is constrained from outside G (T-062). If
   an offset is real, JWST Cepheids in N5584 (Riess et al. 2023) point to the SN 2007af side or chance.
