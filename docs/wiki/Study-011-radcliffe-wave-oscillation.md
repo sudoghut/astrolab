@@ -828,16 +828,17 @@ run took about 10.5 hours (paused at 10 h as pre-registered and resumed); number
   standing-wave mocks put it more often than travelling ones.
 - *T5.* Undetermined: b̂ = 0.53 (0.39–0.61), and the known-answer check fails at B = 1. The referee found
   the check's mocks injected on K24's curve while the analysis used ours, so the failure says the check
-  is not informative rather than that b̂ is biased.
+  is not informative, not that b̂ on the data is biased by the mock amount.
 - *T6.* Fragile: 9 of 15 variants change a label. Without the Orion box (58 of 125 clusters) 2ΔlnL
   drops from 20.2 to 1.2; without kernel weights to 5.4; leaving out any of four source catalogues, or
   the clusters with larger v_z errors, also removes the exclusion.
 - *T7.* CO does not distinguish by the rule, but the B = 1 model fits the cloud velocities worst of
   the three versions (by 10.6 against v_z = 0).
 - *T8.* Withdrawn (independent referee, post hoc): with ω₀ free, v_z/ω₀ at fixed σ under K24's bounded
-  outlier function makes the likelihood improper in ω₀ (posterior pushed to the upper prior edge; with
-  the ln ω₀ normalisation added, to the lower edge). With the divisor fixed, ω₀ = 71 (+10/−8) km s⁻¹
-  kpc⁻¹, close to K24's 67.7.
+  outlier function makes the likelihood degenerate in ω₀ (under the broad priors the posterior is pushed to the
+  upper bound, and with the ln ω₀ normalisation added to the lower bound; under K24's priors it is set
+  by the prior). With the divisor fixed, ω₀ = 71 (+10/−8) km s⁻¹
+  kpc⁻¹, close to K24's 67.7 (fitted under K24's priors only).
 - *What this means.* K24's data and model do give B ≈ 0.84 and a likelihood preference for a
   travelling wave, but that preference rests on a minority of the clusters (chiefly the Orion region)
   and on the kernel weighting; the direct phase and b̂ tests cannot decide. The stated premise that the
@@ -863,7 +864,7 @@ run took about 10.5 hours (paused at 10 h as pre-registered and resumed); number
 
 Newest first.
 
-- 2026-11-21: formal run and close-out: part 3 results added (overall reading "mixed"; T3's exclusion of the standing wave fragile; T4, T5 undetermined; T8 withdrawn after the independent referee found the free-ω₀ likelihood improper; follow-ups T-056).
+- 2026-11-21: formal run and close-out: part 3 results added (overall reading "mixed"; T3's exclusion of the standing wave fragile; T4, T5 undetermined; T8 withdrawn after the independent referee found the free-ω₀ likelihood degenerate in ω₀; follow-ups T-056).
 - 2026-11-21: part 3 drafted (eight tests T1–T8 and three explorations; the two public tables' columns and row counts read, no fit; gate-1 review: T3 recast as nested profile-likelihood tests, because with ω₀t free a standing wave has one more effective parameter; T4 noise on all four components, a circular statistic on 2φ_k and a power check; T5 takes Λ(s) from the clouds-only fit and frees each wavelength); round 2: B is not folded (B and 1 − B travel in opposite directions), B = 1 is referred to χ² with two degrees of freedom (ω₀t merges into φ there) and bootstrapped, T4 recomputes each mock's closest point, T5 reports the amplitude ratio and uses no velocity in its cluster set; round 3: T5 labels get an undetermined band, so a wide interval cannot count as support, T4 closest points on the B = 0.5 curve, ω at the reference s; round 4: T5 reads b̂ = 2B − 1 from the singular values of the (z, v_z) phase–amplitude matrix (so K24's B = 0.84 is not judged against pure B = 1) with non-overlapping labels, T4's conservativeness explained correctly; round 5: b̂ from a fit with one shared wavelength (not applicable when the wavelengths differ), A ≥ 0, a known-answer check; gate-1 passed (round 6, minors: pass rule of the known-answer check, labels directional, Δ and ρ constants of the fit); gate-2 (Codex) round 1: proposed thresholds for T1, T3, T4, T7 and T8 and 95% intervals in T5; its claim that b̂ depends on ω₀t was checked numerically and rejected (the v_z row of the matrix is (−sin ω₀t, (2B − 1) cos ω₀t), so the singular values are 1 and |2B − 1| for any ω₀t); round 2: Codex agreed with the derivation; the known-answer check at B = 1 asks for the label, not coverage, since b̂ is bounded by 1; σ in T8 defined; round 3: no serious issues (passed the dual gate; minor: the known-answer aggregation rule stated); pre-registration review: T5's cluster set is chosen by position (all 125 as a variant), matching README section 4.4; w☉ = 7.8 km/s attributed to Kerr & Lynden-Bell 1986 as cited by K24 (was Schönrich et al. 2010).
 - 2026-11-21: part 2 gate-2 review: no hedged sentence is encoded as a stated implication any more; the clusters' birth in the Wave (K24: "suggesting") is a new gap, `gap_born`; the oscillation step quotes the Methods' categorical "we find that"; the "B closer to 1 indicates" premise is folded into the stated preference; 26 premises, five gaps.
 - 2026-11-21: part 2 gate-1 review: travelling versus standing now also depends on gaps (the same cluster v_z, and a phase spread that may be noise near a standing wave's nodes: new `gap_phase_noise`); the oscillation claim now comes after the B = 1 adoption (Figure 1 is the B = 1 fit); potential parameters as a `LIT` premise, the x–y selection as a premise, CO agreement tagged `STAT`; 27 premises, four gaps; Chinese term 银盘中平面密度 (midplane density).
@@ -1249,10 +1250,10 @@ K24 在扣除银河系自转后拟合一个刚体的盘面内速度：v_x,plane 
 - *T2。* B = 0.84（0.78–0.91），与 K24 相同。
 - *T3。* 主拟合中驻波被排除（2ΔlnL = 20.2，校准 p = 0.033，p_boot = 0.0099）；纯 B = 1 不被反对（p_boot 0.18）。
 - *T4。* 无法判定：相位离散检验的功效为 0.41（需要 0.8）。观测的 R 落在驻波模拟比行波模拟更常出现的位置。
-- *T5。* 无法判定：b̂ = 0.53（0.39–0.61），已知答案检查在 B = 1 未通过。审稿人发现检查的模拟注入在 K24 的曲线上，而分析用我们的曲线，所以未通过说明检查没有信息量，而不是 b̂ 有偏。
+- *T5。* 无法判定：b̂ = 0.53（0.39–0.61），已知答案检查在 B = 1 未通过。审稿人发现检查的模拟注入在 K24 的曲线上，而分析用我们的曲线，所以未通过说明检查没有信息量，而不是说数据上的 b̂ 偏低模拟那么多。
 - *T6。* 不稳健：15 个变体中 9 个改变标签。去掉猎户座框（125 个星团中的 58 个）后 2ΔlnL 从 20.2 降到 1.2；去掉核权重降到 5.4；去掉四个来源星表中的任何一个，或去掉 v_z 误差较大的星团，驻波也不再被排除。
 - *T7。* 按规则 CO 不能区分，但 B = 1 模型对云速度的拟合是三个版本中最差的（比 v_z = 0 差 10.6）。
-- *T8。* 撤回（独立审稿，事后）：ω₀ 自由时，在 K24 有界的离群函数下，σ 固定的 v_z/ω₀ 使似然对 ω₀ 不是正常密度（后验被推到先验上限；加上 ln ω₀ 归一化后又被推到下限）。除数固定时 ω₀ = 71（+10/−8）km s⁻¹ kpc⁻¹，接近 K24 的 67.7。
+- *T8。* 撤回（独立审稿，事后）：ω₀ 自由时，在 K24 有界的离群函数下，σ 固定的 v_z/ω₀ 使似然对 ω₀ 退化（degenerate；宽先验下后验被推到上限，加上 ln ω₀ 归一化后又被推到下限；K24 先验下由先验决定）。除数固定时 ω₀ = 71（+10/−8）km s⁻¹ kpc⁻¹，接近 K24 的 67.7（只在 K24 先验下拟合）。
 - *这意味着什么。* K24 的数据与模型确实给出 B ≈ 0.84 和似然对行波的偏好，但这一偏好依赖少数星团（主要是猎户座区域）与核加权；直接的相位检验与 b̂ 检验无法判定。论文明说的"星团的 v_z 图样显示行波"（第二部分环节 C）只在这种不稳健的形式下得到支持。
 - *下一步。* 第 (3) 列的约定与正常的 T8 似然登记为 T-056。
 
@@ -1275,7 +1276,7 @@ K24 在扣除银河系自转后拟合一个刚体的盘面内速度：v_x,plane 
 
 按时间倒序。
 
-- 2026-11-21：正式运行与收尾：第三部分补写结果（总体判读"混合"；T3 排除驻波但不稳健；T4、T5 无法判定；独立审稿发现 ω₀ 自由的似然不是正常密度，T8 撤回；后续 T-056）。
+- 2026-11-21：正式运行与收尾：第三部分补写结果（总体判读"混合"；T3 排除驻波但不稳健；T4、T5 无法判定；独立审稿发现 ω₀ 自由的似然对 ω₀ 退化，T8 撤回；后续 T-056）。
 - 2026-11-21：第三部分初稿（八项检验 T1–T8 与三项探索；读取了两张公开表的列与行数，未做拟合；闸门 1 审查：T3 改为嵌套模型的剖面似然检验，因为 ω₀t 自由时驻波多一个有效参数；T4 的噪声加在全部四个分量上，用 2φ_k 的圆统计量并检查功效；T5 的 Λ(s) 取自只用云的拟合，两个波长各自放开；第二轮：B 不折叠（B 与 1 − B 向相反方向传播），B = 1 按 2 个自由度的 χ² 分布（那里 ω₀t 并入 φ）并做自助法检查，T4 对每个模拟重新求最近点，T5 报告振幅比且星团选择不含速度；第三轮：T5 的标签增加"无法判定"，宽区间不能算作支持，T4 在 B = 0.5 的曲线上求最近点，ω 在参考 s 处计算；第四轮：T5 由 (z, v_z) 相位—振幅矩阵的奇异值读出 b̂ = 2B − 1（不再拿 K24 的 B = 0.84 对照纯 B = 1），标签互不重叠，T4 的保守性改为正确的理由；第五轮：b̂ 取自共用一个波长的拟合（波长不同时不适用），A ≥ 0，加已知答案检验；闸门 1 通过（第六轮，小问题：已知答案检验的通过条件，标签带方向，Δ 与 ρ 为拟合常数）；闸门 2（Codex）第一轮：给 T1、T3、T4、T7 与 T8 补上建议阈值，T5 用 95% 区间；它认为 b̂ 依赖 ω₀t，经数值检验不成立（矩阵中 v_z 一行为 (−sin ω₀t, (2B − 1) cos ω₀t)，奇异值对任何 ω₀t 都是 1 与 |2B − 1|）；第二轮：Codex 同意这个推导；B = 1 处的已知答案检验改为检查标签而不是覆盖，因为 b̂ 以 1 为上界；T8 的 σ 已定义；第三轮：没有严重问题（通过双闸；小问题：写明已知答案检验的汇总规则）；预注册审查：T5 的星团集合按位置选择（全部 125 个作为变体），与 README 第 4.4 节一致）；w☉ = 7.8 km/s 改为 K24 引用的 Kerr & Lynden-Bell 1986（原误作 Schönrich 等 2010）。
 - 2026-11-21：第二部分闸门 2 审查：不再把带保留措辞的句子编码为明说的蕴涵式；星团诞生于波中（K24："suggesting"）成为新缺口 `gap_born`；振荡一步改引方法部分明确的"we find that"；"B closer to 1 indicates"前提并入明说的偏好；26 个前提、五个缺口。
 - 2026-11-21：第二部分闸门 1 审查：行波相对驻波现在也依赖缺口（同样的星团 v_z，以及在驻波波节附近可能由噪声造成的相位分布：新增 `gap_phase_noise`）；振荡的结论改在取 B = 1 之后（图 1 是 B = 1 的拟合）；引力势参数作为 `LIT` 前提，x–y 选样作为前提，CO 一致改标 `STAT`；27 个前提、四个缺口；中文术语统一为"银盘中平面密度"。
