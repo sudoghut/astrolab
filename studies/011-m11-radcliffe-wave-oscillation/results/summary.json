@@ -220,6 +220,68 @@
    "minus": 14.93279846191406
   }
  },
+ "R_CONV": {
+  "label": "column (3) not reproduced under any candidate convention (best among these 16 candidate conventions, post hoc)",
+  "case": "i",
+  "chosen": null,
+  "reason": "every count <= 2",
+  "complete_set": true,
+  "counts": {
+   "L-F-W": 2,
+   "L-F-R": 2,
+   "L-P-W": 2,
+   "L-P-R": 2,
+   "C-F-W": 2,
+   "C-F-R": 2,
+   "C-P-W": 2,
+   "C-P-R": 2,
+   "Y-F-W": 2,
+   "Y-F-R": 2,
+   "Y-P-W": 2,
+   "Y-P-R": 2,
+   "X-F-W": 2,
+   "X-F-R": 2,
+   "X-P-W": 2,
+   "X-P-R": 2
+  },
+  "width_ratios": {
+   "L-F-W": 1.1769551101885192,
+   "L-F-R": 1.1798293084576756,
+   "L-P-W": 1.0766950043695804,
+   "L-P-R": 1.0716311708115747,
+   "C-F-W": 1.189217973356422,
+   "C-F-R": 1.1702583197440584,
+   "C-P-W": 1.0959615986465316,
+   "C-P-R": 1.086001233436144,
+   "Y-F-W": 1.190895418325466,
+   "Y-F-R": 1.1823275566974651,
+   "Y-P-W": 1.1038342474668577,
+   "Y-P-R": 1.0945380856692122,
+   "X-F-W": 1.2033560163276857,
+   "X-F-R": 1.1710080507147167,
+   "X-P-W": 1.117045041148701,
+   "X-P-R": 1.1197266353247999
+  },
+  "reruns": null,
+  "chain_short": [
+   "L-F-W:col3",
+   "L-F-R:col3",
+   "L-P-W:col3",
+   "L-P-R:col3",
+   "C-F-W:col3",
+   "C-F-R:col3",
+   "C-P-W:col3",
+   "C-P-R:col3",
+   "Y-F-W:col3",
+   "Y-F-R:col3",
+   "Y-P-W:col3",
+   "Y-P-R:col3",
+   "X-F-W:col3",
+   "X-F-R:col3",
+   "X-P-W:col3",
+   "X-P-R:col3"
+  ]
+ },
  "overall": {
   "reading": "mixed",
   "labels": {
