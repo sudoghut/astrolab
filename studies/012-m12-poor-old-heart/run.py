@@ -307,8 +307,11 @@ def mock_inputs(mh, P):
         lf = df[snr > P["lf_snr_min"]]
         lf_rule = f"plx/err > {P['lf_snr_min']} (all metallicities: fewer than {P['lf_min_stars']} metal-poor)"
     lfs = M.LFSample(lf["g"], lf["bp_rp"], lf["bp"], lf["parallax"], lf["b"], zp=P["plx_zp_mas"])
-    errs = M.ErrSampler(df["g"].to_numpy(float), df["parallax_error"].to_numpy(float))
-    return lfs, errs, {"lf_rule": lf_rule, "lf_stars": int(len(lf)), "err_stars": int(len(df))}
+    # README 4.12 item 8 needs only G and sigma_plx (4.13 item 7): stars without BP or BP - RP stay in
+    e = mh[["g", "parallax_error"]].dropna()
+    e = e[e["parallax_error"] > 0]
+    errs = M.ErrSampler(e["g"].to_numpy(float), e["parallax_error"].to_numpy(float))
+    return lfs, errs, {"lf_rule": lf_rule, "lf_stars": int(len(lf)), "err_stars": int(len(e))}
 
 
 def sim_cuts(load):
@@ -713,7 +716,7 @@ def f_bright(mh, P):
     snr = pc / s["parallax_error"].to_numpy(float)
     g, c = s["g"].to_numpy(float), s["bp_rp"].to_numpy(float)
     ok = np.isfinite(snr) & (snr > P["t6_snr_min"])
-    m = ok & np.isfinite(g) & np.isfinite(c)          # README 4.13 item 7: no photometry, left out
+    m = ok & np.isfinite(g) & np.isfinite(c)          # README 4.13 item 7: no G or BP - RP, left out
     mg = g[m] - 1.5 * (c[m] - 1.0) + 5.0 * np.log10(pc[m] / 100.0)
     return {"f_bright": float(np.mean(mg < P["t6_mg_max"])) if m.any() else None, "n_used": int(m.sum()),
             "n_no_photometry": int((ok & ~m).sum()),

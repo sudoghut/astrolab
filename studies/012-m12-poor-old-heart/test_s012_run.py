@@ -268,6 +268,20 @@ def test_f_bright_skips_missing_photometry(tmp_path, monkeypatch):
     assert r["n_used"] == 1 and r["n_no_photometry"] == 2 and r["f_bright"] in (0.0, 1.0)
 
 
+def test_err_sampler_keeps_stars_without_colour(tmp_path, monkeypatch):
+    run, _ = _setup(tmp_path, monkeypatch)
+    rng = np.random.default_rng(3)
+    n = 800
+    mh = pd.DataFrame({"mh": rng.uniform(-2.5, -0.6, n), "parallax": rng.uniform(0.2, 0.9, n),
+                       "parallax_error": rng.uniform(0.01, 0.03, n), "g": rng.uniform(10, 14, n),
+                       "bp_rp": rng.uniform(1.2, 2.0, n), "b": rng.uniform(5, 20, n)})
+    mh["bp"] = mh["g"] + 0.5
+    mh.loc[:99, "bp"] = np.nan
+    mh.loc[100:149, "bp_rp"] = np.nan
+    _, _, rec = run.mock_inputs(mh, dict(run.PARAMS))
+    assert rec["err_stars"] == n and rec["lf_stars"] <= n - 150
+
+
 def test_too_few_rows_stop(tmp_path, monkeypatch):
     run, ctx = _setup(tmp_path, monkeypatch)
     monkeypatch.setattr(run, "MIN_MH_ROWS", 1_000_000)        # the pre-registered threshold
