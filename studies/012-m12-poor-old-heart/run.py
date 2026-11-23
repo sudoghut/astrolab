@@ -233,7 +233,7 @@ def _load_and_check(paths, P, ctx, rec):
 
 
 def gaia_addition(ctx, mh, quantities):
-    """README 3 (optional TAP row) and 4.13: fetch the missing T2 columns from gaiadr3.gaia_source for the
+    """README 3 (optional TAP row) and 4.13: fetch the missing T2 columns from Gaia DR3 (ADDITION_TABLE on ADDITION_SERVICE) for the
     stars with [M/H] < ADDITION_MH_MAX, on sorted source_id lists of ADDITION_CHUNK (each query returns at
     most one row per listed id, so max_rows is the list length). Stars above the limit get NaN. A returned
     id that was not asked for, or a duplicated one, stops the run. Returns (mh with the columns, record)."""

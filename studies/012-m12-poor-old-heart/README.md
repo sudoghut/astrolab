@@ -510,10 +510,16 @@ Sections 1–4.12 are unchanged except as stated here.
 8. **Service (2026-11-23, after this amendment passed review).** The first live query found the ESA Gaia
    archive already in its downtime (every TAP request returned an "ESDC Archives downtime" page, two days
    before the announced 2026-11-25). The addition is therefore served by NOIRLab Astro Data Lab's mirror of
-   the same table (`ctx.tap` service `datalab`, table `gaia_dr3.gaia_source`, same column names and values;
-   Gaia DR3 does not change), with everything else in items 3–7 unchanged. Seen while testing the mirror:
-   the six columns of the first three stars of the first list (the first 2,000-id list took 5.7 s; it is
-   cached and reused by the run). The provenance records the mirror.
+   the same table (`ctx.tap` service `datalab`, table `gaia_dr3.gaia_source`, same column names; the values are
+   Gaia DR3's, not compared with the ESA archive here because it is offline). This replaces item 3's table
+   and item 5's timing for the addition (the `--refresh` caution of item 5 now concerns only the two Zenodo
+   files); everything else in items 3–7 is unchanged. Every id comes from Gaia DR3, so `n_unmatched` is
+   expected to be 0; a non-zero count would point to an incomplete mirror. Seen while testing the mirror
+   (two queries through `fetch.tap`: the first 5 ids, 39 s, and the first 2,000-id list, 5.7 s): the six
+   columns of the first three stars, and, as a check for sentinel values on that cached list, the ranges of
+   the five columns (no NULL; σ_ϖ > 0; G 8.1–15.4, BP − RP 1.00–3.47, BP ≤ 15.50, ϖ −1.11 to 0.97 mas). The
+   run reuses that cached list, so its provenance entry carries the diagnostic's note; the others record the
+   mirror.
 
 ## 5. Results
 
