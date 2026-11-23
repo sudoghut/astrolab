@@ -354,8 +354,9 @@ sessions; all reproduction checks passed).
   shallower than an almost-disjoint split's (valley depth 0.42–0.47 against 0.25). At 2.81 times it comes
   down to 0.271 in the primary variant and 0.242 / 0.232 in the others, so the variants differ by
   0.01–0.02 around the threshold.
-- **What this means (post hoc).** R1-SEL-FIT's "not reproduced" holds up to about twice the quoted errors
-  whether or not the fit knows the error scale. Beyond that it depends on the variant, and the test
+- **What this means (post hoc).** When the fit knows the error scale, R1 still reads "not reproduced" at
+  twice the quoted errors (with the quoted errors in the fit, R1-ERR found one bin explainable from that
+  scale). Beyond that it depends on the variant, and the test
   constrains less than its rule suggests: the null mocks never lower the threshold, and the power is
   near 1 everywhere.
 - **A caveat from the independent referee.** At these error scales most data fits (15 of 18) put a component at the
@@ -582,7 +583,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 **把误差尺度放进拟合（R1-ERRCAL，T-059，2026-11-23）。** 下一次预注册（README 第 2.8 节）问：若真实误差是给出值的 2.0 或 2.81 倍、且拟合知道这一点，R1 会读作什么？零假设与功效模拟用这样的误差生成并以之拟合（5,400 个模拟，三次会话共 8.1 小时；复现检查全部通过）。
 
 - **主变体的标签为"at f = 2.0: not reproduced; at f = 2.81: not reproduced"**（两个 f 下都未复现）；另两个变体在 2.81 读作"复现"。在两倍的给出误差下，箱 [−0.5, −0.3) 的下凹仍远浅于几乎不相交的分界（谷深 0.42–0.47，阈值 0.25）。在 2.81 倍时，主变体降到 0.271，另两个为 0.242 / 0.232，所以各变体在阈值附近相差 0.01–0.02。
-- **这意味着什么（事后）。** 无论拟合是否知道误差尺度，R1-SEL-FIT 的"未复现"在约两倍的给出误差以内都成立。超过这个尺度就取决于变体，而且这项检验的约束力比其规则看上去的要弱：零假设模拟从未降低阈值，功效处处接近 1。
+- **这意味着什么（事后）。** 拟合知道误差尺度时，R1 在两倍的给出误差下仍读作"未复现"（拟合用给出的误差时，R1-ERR 发现从这个尺度起有一个箱可解释）。超过这个尺度就取决于变体，而且这项检验的约束力比其规则看上去的要弱：零假设模拟从未降低阈值，功效处处接近 1。
 - **独立审稿的保留意见。** 在这样的误差尺度下，大多数数据拟合（18 个中 15 个）把一个成分放在允许的最窄宽度（0.1 Gyr），窄峰会让下凹显得更深。以同一尺度生成并拟合的模拟看不到这一点；用比生成时更大的尺度拟合模拟的检验，以及数据下凹深度的不确定度，已登记（T-064）。数据的下凹也比 XR22 理想化分界的模拟的晚（9.6–11 Gyr 对 8.1–9.4 Gyr）。
 
 对话探索：`python -m astrolab explore 010 --tag <主题> --set 键=值` 可用改变的参数（例如 J_φ 截断、误差截断或高 α 阈值）重跑任一拟合，不影响正式结果；见研究 README 第 8 节。
