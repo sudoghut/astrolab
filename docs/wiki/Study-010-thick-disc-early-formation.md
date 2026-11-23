@@ -4,10 +4,10 @@
 
 *Paper: Xiang & Rix 2022, "A time-resolved picture of our Milky Way's early formation history", Nature 603, 599, arXiv:2203.12110. Study:
 [`studies/010-m05-thick-disc-subgiant-ages`](https://github.com/sudoghut/astrolab/tree/main/studies/010-m05-thick-disc-subgiant-ages) (web page: [online](https://sudoghut.github.io/astrolab/studies/010-m05-thick-disc-subgiant-ages/web/)).
-Status: concluded (2026-11-16). Last updated: 2026-11-20 (see the changelog at the end). The source of this page lives in the main repository at
+Status: concluded (2026-11-16). Last updated: 2026-11-23 (see the changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：银河系的盘何时开始形成？二十五万颗亚巨星的年龄。状态：已结束（2026-11-16）。论文：Xiang & Rix 2022，Nature 603, 599，arXiv:2203.12110。研究：[`studies/010-m05-thick-disc-subgiant-ages`](https://github.com/sudoghut/astrolab/tree/main/studies/010-m05-thick-disc-subgiant-ages)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/010-m05-thick-disc-subgiant-ages/web/)）。最后更新：2026-11-20（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：银河系的盘何时开始形成？二十五万颗亚巨星的年龄。状态：已结束（2026-11-16）。论文：Xiang & Rix 2022，Nature 603, 599，arXiv:2203.12110。研究：[`studies/010-m05-thick-disc-subgiant-ages`](https://github.com/sudoghut/astrolab/tree/main/studies/010-m05-thick-disc-subgiant-ages)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/010-m05-thick-disc-subgiant-ages/web/)）。最后更新：2026-11-23（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -344,6 +344,26 @@ variants), 4.2 h; all reproduction checks passed.
   So "robust up to 1.5" is about XR22's idealised split; a calibration with the error scale in the fit
   and a data-matched split is registered (T-059).
 
+**With the error scale in the fit (R1-ERRCAL, T-059, 2026-11-23).** The next pre-registration (README
+section 2.8) asked what R1 would read if the true errors were 2.0 or 2.81 times the quoted ones and the fit
+knew it: null and power mocks drawn with those errors and fitted with them (5,400 mocks, 8.1 h over three
+sessions; all reproduction checks passed).
+
+- **The label is "at f = 2.0: not reproduced; at f = 2.81: not reproduced"** in the primary variant; the two
+  other variants read "reproduced" at 2.81. At twice the quoted errors the bin [−0.5, −0.3) keeps a dip far
+  shallower than an almost-disjoint split's (valley depth 0.42–0.47 against 0.25). At 2.81 times it comes
+  down to 0.271 in the primary variant and 0.242 / 0.232 in the others, so the variants differ by
+  0.01–0.02 around the threshold.
+- **What this means (post hoc).** R1-SEL-FIT's "not reproduced" holds up to about twice the quoted errors
+  whether or not the fit knows the error scale. Beyond that it depends on the variant, and the test
+  constrains less than its rule suggests: the null mocks never lower the threshold, and the power is
+  near 1 everywhere.
+- **A caveat from the independent referee.** At these error scales the data fits put a component at the
+  narrowest width allowed (0.1 Gyr), and narrow peaks make dips look deeper. Mocks drawn and fitted with
+  the same scale cannot see that; a check with mocks fitted at a larger scale than they were drawn with,
+  and an uncertainty on the data's dip depth, are registered (T-064). The dips of the data also lie later
+  (9.6–11 Gyr) than those of XR22's idealised split (8.1–9.4 Gyr).
+
 Exploring via chat: `python -m astrolab explore 010 --tag <topic> --set key=value`
 reruns any fit with changed parameters (for example the J_φ cut, the error cut or the high-α
 threshold) without touching the formal results; see the study README section 8.
@@ -372,6 +392,12 @@ threshold) without touching the formal results; see the study README section 8.
 ### Changelog
 
 Newest first.
+
+- 2026-11-23: R1-ERRCAL (T-059, pre-registered README 2.8): R1 calibrated at f = 2.0 and 2.81 with the
+  error scale in the fit (5,400 mocks; reproduction checks passed; the first session was ended for lack of
+  system memory and resumed with the user's consent). "At f = 2.0: not reproduced; at f = 2.81: not
+  reproduced" (term N and Full: reproduced at 2.81, margins 0.01–0.02) (part 3 updated). Independent
+  referee done; mismatched-scale check registered (T-064).
 
 - 2026-11-22: R1-ERR (T-054, pre-registered README 2.7): error-scale power test of R1-SEL-FIT (3,600
   mocks with errors 1.2–2.81 times the quoted ones; reproduction checks passed after rerunning with the
@@ -553,6 +579,12 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 - **这意味着什么（事后）。** R1-SEL-FIT 的"未复现"不要求给出的误差完全准确：XR22 理想化的分界需要约为给出值两倍的年龄误差，才会看起来像数据。在这样的尺度下，XR22 自己的 0.82 Gyr 宽度没有给额外的误差留下余地，而一项用 11 对宽双星的独立检验发现给出的误差是一致的；f ≈ 2 是否可信不在本检验范围内。偏斜的、先验形状的误差核仍未检验。
 - **独立审稿的保留意见。** 理想化的分界比数据年轻，其间隙从 7 Gyr 开始，而数据的下凹在 7.5–9.8 Gyr；形状更像数据的分界可能在更小的误差尺度下就填平下凹，而用更大的误差重拟合数据会让它的下凹变深。所以"到 1.5 倍都稳健"针对的是 XR22 理想化的分界；把误差尺度放进拟合、并用与数据匹配的分界做的校准已登记（T-059）。
 
+**把误差尺度放进拟合（R1-ERRCAL，T-059，2026-11-23）。** 下一次预注册（README 第 2.8 节）问：若真实误差是给出值的 2.0 或 2.81 倍、且拟合知道这一点，R1 会读作什么？零假设与功效模拟用这样的误差生成并以之拟合（5,400 个模拟，三次会话共 8.1 小时；复现检查全部通过）。
+
+- **主变体的标签为"at f = 2.0: not reproduced; at f = 2.81: not reproduced"**（两个 f 下都未复现）；另两个变体在 2.81 读作"复现"。在两倍的给出误差下，箱 [−0.5, −0.3) 的下凹仍远浅于几乎不相交的分界（谷深 0.42–0.47，阈值 0.25）。在 2.81 倍时，主变体降到 0.271，另两个为 0.242 / 0.232，所以各变体在阈值附近相差 0.01–0.02。
+- **这意味着什么（事后）。** 无论拟合是否知道误差尺度，R1-SEL-FIT 的"未复现"在约两倍的给出误差以内都成立。超过这个尺度就取决于变体，而且这项检验的约束力比其规则看上去的要弱：零假设模拟从未降低阈值，功效处处接近 1。
+- **独立审稿的保留意见。** 在这样的误差尺度下，数据拟合把一个成分放在允许的最窄宽度（0.1 Gyr），窄峰会让下凹显得更深。以同一尺度生成并拟合的模拟看不到这一点；用比生成时更大的尺度拟合模拟的检验，以及数据下凹深度的不确定度，已登记（T-064）。数据的下凹也比 XR22 理想化分界的晚（9.6–11 Gyr 对 8.1–9.4 Gyr）。
+
 对话探索：`python -m astrolab explore 010 --tag <主题> --set 键=值` 可用改变的参数（例如 J_φ 截断、误差截断或高 α 阈值）重跑任一拟合，不影响正式结果；见研究 README 第 8 节。
 
 ### 术语表
@@ -577,6 +609,8 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 ### 研究进展
 
 按时间倒序。
+
+- 2026-11-23：R1-ERRCAL（T-059，预注册见 README 2.8）：把误差尺度放进拟合，在 f = 2.0 与 2.81 下校准 R1（5,400 个模拟；复现检查通过；第一次会话因系统内存不足被终止，经用户同意续跑）。"at f = 2.0: not reproduced; at f = 2.81: not reproduced"（N 项与 Full 在 2.81 复现，余量 0.01–0.02）（更新第三部分）。独立审稿已做；尺度不匹配的检验已登记（T-064）。
 
 - 2026-11-22：R1-ERR（T-054，预注册见 README 2.7）：R1-SEL-FIT 的误差尺度功效检验（3,600 个模拟，误差为给出值的 1.2–2.81 倍；改用默认线程设置重跑后复现检查通过）。"robust up to f = 1.5 (one bin explainable from f = 2.0: [-0.3, -0.1))"；Full 为"sensitive at f = 2.81"（更新第三部分）。独立审稿已做。
 - 2026-11-21：R1-SEL-FIT（T-049，预注册见 README 2.6）：在每个模拟拟合中加入与数据无关的起点重跑 R1-SEL（5,400 次模拟；重现检查全部通过）。d* 仍为 0.25；每个变体 5 个箱中 4 个可分辨，没有几乎不相交的箱，所以为"未复现（稳健；对选择项稳健）"，下限 0.20 时相同。R1-SEL 的"无法判定"按记录保持不变（更新第三部分）。独立审稿：没有错误；结论以星表给出的年龄误差为前提（误差尺度检验 T-054）。
