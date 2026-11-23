@@ -711,9 +711,12 @@ def f_bright(mh, P):
     s = mh[mh["mh"] < -1.5]
     pc = s["parallax"].to_numpy(float) + P["plx_zp_mas"]
     snr = pc / s["parallax_error"].to_numpy(float)
-    m = np.isfinite(snr) & (snr > P["t6_snr_min"])
-    mg = s["g"].to_numpy(float)[m] - 1.5 * (s["bp_rp"].to_numpy(float)[m] - 1.0) + 5.0 * np.log10(pc[m] / 100.0)
+    g, c = s["g"].to_numpy(float), s["bp_rp"].to_numpy(float)
+    ok = np.isfinite(snr) & (snr > P["t6_snr_min"])
+    m = ok & np.isfinite(g) & np.isfinite(c)          # README 4.13 item 7: no photometry, left out
+    mg = g[m] - 1.5 * (c[m] - 1.0) + 5.0 * np.log10(pc[m] / 100.0)
     return {"f_bright": float(np.mean(mg < P["t6_mg_max"])) if m.any() else None, "n_used": int(m.sum()),
+            "n_no_photometry": int((ok & ~m).sum()),
             "note": "the plx/err > 5 cut favours nearer stars (README 4.8)"}
 
 

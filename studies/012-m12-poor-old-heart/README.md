@@ -94,7 +94,7 @@ T2b's shape label, T3 (c) and T6 are reported separately and do not enter the re
 |---|---|---|---|
 | R22 metallicity file `xp_gc_mh.csv` | Zenodo record 7035810 (version v0.1; concept DOI 10.5281/zenodo.7035809, the one R22 cite), CC BY 4.0, via `ctx.http` (`https://zenodo.org/records/7035810/files/xp_gc_mh.csv`; the exact download URL is confirmed on the record page at implementation), MD5 7257c98622573a4a625571fc973859c5 | all rows | about 1.5 million rows ("1.5 million stars"), 98.5 MB |
 | R22 kinematics file `xp_gc_kinematics.csv` | same record, `https://zenodo.org/records/7035810/files/xp_gc_kinematics.csv`, MD5 b220c27aacff1f2f03d5a1f2b5fca147 | all rows | about 1.2 million rows ("1.2 million stars"; R22 Section II.2: 1.58 million with RVS velocities, 1.25 million with RVS velocities and ϖ/σ_ϖ ≥ 5; Section II.4: orbits for about 1.25 million, with δv_RVS < 5 km/s), 115.3 MB |
-| Optional: Gaia DR3 `source_id, l, b, parallax, parallax_error, phot_g_mean_mag, bp_rp` for the stars with [M/H] < −0.5 (the [M/H] < −1.5 stars for T2 and T6, plus the −1.5 to −0.5 stars for the reference fits and the T2b control population) | Gaia archive TAP, `gaiadr3.gaia_source`, via `ctx.tap`, queries on `source_id` lists of 2,000, sized first with `ctx.count` | only if load check L2 finds these columns missing, and only with the user's agreement | the number of [M/H] < −0.5 stars, recorded at load (10⁵–10⁶ rows × 7 columns, about 10–40 MB, with proportionally more queries, about 50–500, counted first); if the user agrees only to the [M/H] < −1.5 stars (about 20,000 rows, 1–2 MB, about 10 queries), the reference fits and the control population are "not computed", the empirical luminosity function uses the [M/H] < −1.5 stars with ϖ/σ_ϖ > 10 (the isochrone variant if fewer than 500), and nothing else changes |
+| Optional: Gaia DR3 `source_id, l, b, parallax, parallax_error, phot_g_mean_mag, bp_rp` for the stars with [M/H] < −0.5 (the [M/H] < −1.5 stars for T2 and T6, plus the −1.5 to −0.5 stars for the reference fits and the T2b control population) | Gaia archive TAP, `gaiadr3.gaia_source`, via `ctx.tap`, queries on `source_id` lists of 2,000, sized first with `ctx.count` | only if load check L2 finds these columns missing, and only with the user's agreement (as run: section 4.13 — six columns without l, b, no count queries) | the number of [M/H] < −0.5 stars, recorded at load (10⁵–10⁶ rows × 7 columns, about 10–40 MB, with proportionally more queries, about 50–500, counted first); if the user agrees only to the [M/H] < −1.5 stars (about 20,000 rows, 1–2 MB, about 10 queries), the reference fits and the control population are "not computed", the empirical luminosity function uses the [M/H] < −1.5 stars with ϖ/σ_ϖ > 10 (the isochrone variant if fewer than 500), and nothing else changes |
 
 **The exception and the budget mechanism.** The two files exceed the 50 MB single-download limit and
 together the 200 MB study budget. The user agreed on 2026-11-21 to download them once, keep them in the
@@ -488,7 +488,7 @@ Sections 1–4.12 are unchanged except as stated here.
    −1.5 to −0.5, the T2b control −1.0 to −0.5, the LF below −1.0, T6 below −1.5), except two inputs that
    section 3 and 4.12 define on all stars of the file, which now use the stars with [M/H] < −0.5: L6's
    histograms of ϖ, ϖ/σ_ϖ, BP and BP − RP and the ϖ/σ_ϖ < 1 fraction rule (4.12 item 3; l and b still
-   use every star; the more distant metal-poor stars can only raise that fraction), and the mock
+   use every star; the fraction on this subset can differ from the whole file's in either direction), and the mock
    parallax-error sampler of 4.12 item 8 (and the LF fallback "all metallicities" in `run.mock_inputs`).
    T4's noise variants select the T2 sample on perturbed [M/H]; a star from [M/H] ≥ −0.5 scattered below
    −1.5 (a 5σ jump at 0.2 dex, about 0.3 stars expected) has no parallax and is left out.
@@ -502,6 +502,9 @@ Sections 1–4.12 are unchanged except as stated here.
    at most the chunk size with `max_rows` equal to the list length, an unmatched id recorded, the pipeline
    completes on the merged columns), `test_gaia_addition_duplicate_stops` and
    `test_gaia_addition_unasked_id_stops`.
+7. **f_bright without photometry (gate-2 review of this amendment).** The archive can return a parallax with
+   no G or BP − RP. Such stars are left out of f_bright (section 4.8) instead of counting as faint, and their
+   number is recorded (`t6.json`: `n_no_photometry`); T2 already leaves them out (4.12 item 4).
 
 ## 5. Results
 

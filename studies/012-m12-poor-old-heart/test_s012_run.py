@@ -260,6 +260,14 @@ def test_gaia_addition_unasked_id_stops(tmp_path, monkeypatch):
     assert s["status"].startswith("stopped at load: L2 Gaia addition")
 
 
+def test_f_bright_skips_missing_photometry(tmp_path, monkeypatch):
+    run, _ = _setup(tmp_path, monkeypatch)
+    mh = pd.DataFrame({"mh": [-2.0, -2.0, -2.0], "parallax": [0.5, 0.5, 0.5], "parallax_error": [0.01] * 3,
+                       "g": [10.0, np.nan, 10.0], "bp_rp": [1.0, 1.0, np.nan]})
+    r = run.f_bright(mh, dict(run.PARAMS))
+    assert r["n_used"] == 1 and r["n_no_photometry"] == 2 and r["f_bright"] in (0.0, 1.0)
+
+
 def test_too_few_rows_stop(tmp_path, monkeypatch):
     run, ctx = _setup(tmp_path, monkeypatch)
     monkeypatch.setattr(run, "MIN_MH_ROWS", 1_000_000)        # the pre-registered threshold
