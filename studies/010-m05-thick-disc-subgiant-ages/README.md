@@ -1609,9 +1609,10 @@ New files: `r1_errcal.json`, `provenance_errcal.json` and `run_info_errcal.json`
     therefore means dips below 0.25 with a median edge before 9.5 Gyr, not an 8 Gyr split of XR22's
     shape (referee, point 4; 2.8 kept the idealised split and stated the direction of that choice).
     Bin [−0.7, −0.5)'s valley at 10.93–10.98 Gyr lies on the last cells of the 5–11 Gyr window.
-  - Taken with R1-ERR: R1-SEL-FIT's "not reproduced" holds up to about twice the quoted errors, whether
-    the fit uses the quoted errors (R1-ERR, robust up to 1.5) or knows the error scale (R1-ERRCAL at
-    2.0). At 2.81 times the quoted errors it depends on the selection-term variant. f = 2.81 is a
+  - Taken with R1-ERR: when the fit uses the quoted errors, R1-SEL-FIT's "not reproduced" is robust up to
+    1.5 times them, and from 2.0 one bin becomes explainable (R1-ERR). When the fit knows the error scale,
+    R1 still reads "not reproduced" at 2.0 in every variant (R1-ERRCAL). At 2.81 times the quoted errors it
+    depends on the selection-term variant. f = 2.81 is a
     heuristic upper value (2.0), and Shariat, El-Badry & Bhattacharjee 2025 find the quoted errors
     consistent with 11 wide pairs.
 
