@@ -1569,8 +1569,10 @@ New files: `r1_errcal.json`, `provenance_errcal.json` and `run_info_errcal.json`
 
 - **Other per-set numbers.**
   - Null sets: a valley appears in 0–52% of the mocks. In bins [−0.5, −0.3) and [−0.3, −0.1) it appears
-    in 0–3 of 50 in every set except one (S15 term E, f = 2.81, bin [−0.5, −0.3), split-normal with
-    e = r·τ: 3 of 50, q_s = 0.839). Where a null mock has a valley, its d is 0.36 or more.
+    in 0–2 of 50 in every set except two with 3 of 50 (both f = 2.81, bin [−0.5, −0.3), split-normal: S15 term E
+    with e = r·τ, q_s = 0.839; term N with e = r·A, q_s = 0.885). Wherever q_s is defined it is at least
+    0.358; single null mocks reach lower (smallest valley d 0.142, in bin [−0.7, −0.5) of term N at f = 2.81,
+    where the false-positive rate at d* is 0.02 in two sets).
   - Power mocks: median d is 0.003–0.060. Their median valley ages are 8.1–9.4 Gyr; the data's at f
     are 9.6–11.0 Gyr.
   - The fit chose K = 4 in 4,240 of the 5,400 mocks, K = 3 in 1,152 and K = 2 in 8. No mock's NLL
@@ -1591,8 +1593,11 @@ New files: `r1_errcal.json`, `provenance_errcal.json` and `run_info_errcal.json`
     all 18 cases, so at both f the verdict comes down to "data d < 0.25 in three bins and median edge
     ≤ 9.5 Gyr" (referee, point 1).
   - The deep dips at f are partly a property of the deconvolution itself:
-    - in every data fit at f, one component (the oldest in the two upper bins, an old component at
-      7.3–7.7 Gyr in bin [−0.3, −0.1)) sits at the lower width bound, σ = 0.10 Gyr;
+    - in 15 of the 18 data fits at f one component sits at the lower width bound, σ = 0.10 Gyr: the
+      oldest in bin [−0.3, −0.1) (9.9–10.1 Gyr) and in bin [−0.5, −0.3) at 2.81 (10.6 Gyr), and in bin
+      [−0.7, −0.5) the one at 7.7 Gyr (f = 2.0) or 11.4 Gyr (2.81). The exceptions are the three fits of bin
+      [−0.5, −0.3) at f = 2.0, whose narrowest width is 0.30–0.31 Gyr and whose dips are the shallow ones
+      (d 0.42–0.47);
     - in bin [−0.7, −0.5) another component sits at the upper bound of the mean, 25 Gyr;
     - a narrow peak lowers d by construction.
 
@@ -1693,10 +1698,10 @@ resumed. It recomputed every label from the per-set d values and the data fits. 
 
 | # | Point | Verified | Action |
 |---|---|---|---|
-| 1 | The null threshold never applies: d* is the 0.25 cap in all 18 (f, variant, bin) cases. The few null mocks with a valley have d ≈ 0.36–0.9. So the verdict reduces to "data d < 0.25 and median edge ≤ 9.5 Gyr", and the calibration only shows that smooth unimodal latents rarely give valleys | yes (`d_star` 0.25 everywhere; q_s ≥ 0.358 where defined) | **Accepted limitation**; stated in section 5.4's reading |
-| 2 | The data fits at f look over-deconvolved: the chosen K = 4 fits put a component at the lower width bound σ = 0.10 Gyr (`m0.py` `fit_mixture` bounds) in every case, and in bin [−0.7, −0.5) one at the mean's upper bound (25 Gyr, giving the "peak" at 19.975 Gyr). A narrow peak lowers d mechanically. Mocks drawn and fitted with the same f never test a fit with an f larger than the true one, and age pile-ups from isochrone grids or priors could give such spikes too | yes (log σ = ln 0.1 in all 18 data fits at f; μ = 25 in bin [−0.7, −0.5)) | **Accepted**; stated in section 5.4; the test is registered as T-064 |
+| 1 | The null threshold never applies: d* is the 0.25 cap in all 18 (f, variant, bin) cases. The few null mocks with a valley have d ≈ 0.36–0.9 (the referee's figure; in fact q_s ≥ 0.358 wherever defined, single mocks down to 0.142). So the verdict reduces to "data d < 0.25 and median edge ≤ 9.5 Gyr", and the calibration only shows that smooth unimodal latents rarely give valleys | yes, except the range of single mocks (`d_star` 0.25 everywhere; q_s ≥ 0.358 where defined; smallest valley d 0.142) | **Accepted limitation**; stated in section 5.4's reading |
+| 2 | The data fits at f look over-deconvolved: the chosen K = 4 fits put a component at the lower width bound σ = 0.10 Gyr (`m0.py` `fit_mixture` bounds) in every case (in fact 15 of 18: not in bin [−0.5, −0.3) at f = 2.0), and in bin [−0.7, −0.5) one at the mean's upper bound (25 Gyr, giving the "peak" at 19.975 Gyr). A narrow peak lowers d mechanically. Mocks drawn and fitted with the same f never test a fit with an f larger than the true one, and age pile-ups from isochrone grids or priors could give such spikes too | yes in 15 of 18 (log σ = ln 0.1; the exceptions are bin [−0.5, −0.3) at f = 2.0, narrowest σ 0.30–0.31 Gyr, the shallow dips); μ = 25 in bin [−0.7, −0.5) | **Accepted**; stated in section 5.4; the test is registered as T-064 |
 | 3 | The margins are small and the data's d has no uncertainty: bin [−0.5, −0.3) passes by 0.008 (term N) and 0.018 (Full) and fails by 0.021 (term E); the median edges are 0.125 / 0.175 Gyr below 9.5. The outcome is set by f, and f is not constrained | yes | **Accepted**; stated in section 5.4. A bootstrap of the data's d is part of T-064 |
-| 4 | The data do not look like the power model: power-mock d 0.003–0.07 with valleys at 8.1–9.4 Gyr, data d 0.05–0.27 with valleys at 9.6–11.0 Gyr and edges at 9.1–9.8 Gyr. Power is 0.9–1.0 everywhere, so "resolvable" carries no information. "Reproduced at 2.81" means "dips below 0.25", not an 8 Gyr split of XR22's shape | yes (`median_valley_t_mocks`, `data_valley_t`) | **Accepted limitation**; 2.8 kept the idealised split by design and stated the direction; section 5.4 says what the reading means |
+| 4 | The data do not look like the power model: power-mock median d 0.003–0.06 with valleys at 8.1–9.4 Gyr, data d 0.05–0.27 with valleys at 9.6–11.0 Gyr and edges at 9.0–9.8 Gyr. Power is 0.9–1.0 everywhere, so "resolvable" carries no information. "Reproduced at 2.81" means "dips below 0.25", not an 8 Gyr split of XR22's shape | yes (`median_valley_t_mocks`, `data_valley_t`) | **Accepted limitation**; 2.8 kept the idealised split by design and stated the direction; section 5.4 says what the reading means |
 | 5 | The metal-rich bins are taken at f = 1; this changes no verdict, since the three metal-poor bins alone are resolvable at both f | yes | No action |
 | 6 | Records defect (`run.py`, `r1_errcal` record): `mocks.resumed` is false and `resumes` empty because only a 16 h stop counts as a resume; the two interruptions are invisible in `r1_errcal.json` except through `elapsed_h_total` 8.13 against `runtime_h` 2.07; `threads` holds the last session only | yes | **Accepted**; the interruptions are documented in section 5.4 and `log.md`; the code is not changed after the run |
 | 7 | Resume: no bias or duplication. Each mock (k, j) has its own streams and one atomically written checkpoint; the checkpoint key hashes PARAMS, the code and the catalogue; the data-fit guard compares the full data and null fits exactly. 3,334 checkpointed mocks at the last start, 41 more than the 3,293 of the last progress line before the kill | yes (progress lines are printed per set, so up to 48 mocks can follow the last one) | No action |
@@ -1732,7 +1737,7 @@ resumed. It recomputed every label from the per-set d values and the data fits. 
 - **Calibration with the error scale in the fit (T-059, done).** R1-ERRCAL (section 5.4) reads "at f = 2.0:
   not reproduced; at f = 2.81: not reproduced" in S15 term E, and "reproduced at 2.81" in term N and Full, by
   margins of 0.01–0.02 in d. Open: whether fitting with too large an f creates dips from smooth latents (the
-  data fits at f have components at the width bound), and the data's d has no uncertainty. A mismatched-f null
+  data fits at f, 15 of 18, have a component at the width bound), and the data's d has no uncertainty. A mismatched-f null
   with a bootstrap of the data's d is registered as T-064.
 - **Which error generator is right.** Open points from section 5.1, readings 2–4:
   - Term N fails recovery only under the τ-keyed generator, whose pools carry the age dependence
