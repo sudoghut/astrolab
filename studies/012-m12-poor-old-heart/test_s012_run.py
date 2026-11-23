@@ -76,10 +76,23 @@ class FakeCtx:
         self.saved = []
         self.record_suffix = ""
         self.calls = []
+        self.taps = []
+        self.gaia = None
 
     def http(self, url, **kw):
         self.calls.append((url, kw))
         return self.files[url]
+
+    def tap(self, adql, service="gaia", **kw):
+        """Serves the Gaia addition from self.gaia (a frame with Gaia's column names); records each call."""
+        import re
+        self.taps.append((adql, service, kw))
+        m = re.fullmatch(r"SELECT (.+) FROM gaiadr3\.gaia_source WHERE source_id IN \((.+)\)", adql)
+        assert m, adql
+        cols = [c.strip() for c in m.group(1).split(",")]
+        ids = [int(x) for x in m.group(2).split(",")]
+        assert len(ids) <= kw["max_rows"]
+        return self.gaia[self.gaia["source_id"].isin(ids)][cols].reset_index(drop=True)
 
     def save(self, name, obj):
         from astrolab.results import write_json
@@ -162,6 +175,7 @@ def test_pause_and_resume(tmp_path, monkeypatch):
 
 def test_missing_t2_columns_stop(tmp_path, monkeypatch):
     run, ctx = _setup(tmp_path, monkeypatch)
+    monkeypatch.setitem(run.PARAMS, "gaia_addition", False)
     # drop the parallax error column from the metallicity file
     url = run.FILES["mh"]["url"]
     df = pd.read_csv(ctx.files[url]).drop(columns=["parallax_error"])
@@ -171,6 +185,53 @@ def test_missing_t2_columns_stop(tmp_path, monkeypatch):
     assert s["status"].startswith("stopped at load") and "TAP" in s["status"]
     load = json.loads((ctx.results / "load.json").read_text(encoding="utf-8"))
     assert "parallax_error" in load["L2"]["t2_columns_missing"]
+
+
+GAIA_NAMES = ["parallax", "parallax_error", "phot_g_mean_mag", "bp_rp", "phot_bp_mean_mag"]
+
+
+def test_gaia_addition(tmp_path, monkeypatch):
+    """README 4.13: the T2 columns missing from the metallicity file are fetched for [M/H] < -0.5 only, on
+    sorted source_id lists of ADDITION_CHUNK, and the pipeline runs on the merged columns."""
+    run, ctx = _setup(tmp_path, monkeypatch)
+    url = run.FILES["mh"]["url"]
+    full = pd.read_csv(ctx.files[url])
+    full.drop(columns=GAIA_NAMES).rename(columns={"mh": "mh_xgboost_rgb"}).to_csv(ctx.files[url], index=False)
+    monkeypatch.setitem(run.FILES["mh"], "md5", D.md5_of(ctx.files[url]))
+    ctx.gaia = full[["source_id", *GAIA_NAMES]].iloc[::-1].copy()      # archive order differs from the file's
+    ctx.gaia = ctx.gaia[ctx.gaia["source_id"] != full.loc[full["mh"] < -0.5, "source_id"].iloc[0]]  # one unmatched
+    monkeypatch.setattr(run, "ADDITION_CHUNK", 400)
+    s = run.main(ctx)
+    assert s["status"] == "complete", s
+    poor = np.sort(full.loc[full["mh"] < -0.5, "source_id"].to_numpy())
+    asked = []
+    for adql, service, kw in ctx.taps:
+        ids = [int(x) for x in adql.split("IN (")[1].rstrip(")").split(",")]
+        assert service == "gaia" and len(ids) <= 400 and kw["max_rows"] == len(ids)
+        asked += ids
+    assert asked == poor.tolist()                                     # sorted, each once, only [M/H] < -0.5
+    assert len(ctx.taps) == -(-poor.size // 400)
+    load = json.loads((ctx.results / "load.json").read_text(encoding="utf-8"))
+    add = load["L2"]["addition"]
+    assert add["n_ids"] == poor.size and add["n_unmatched"] == 1 and add["n_queries"] == len(ctx.taps)
+    assert load["L2"]["t2_columns_missing"] == [] and "parallax" in load["L2"]["t2_columns_missing_in_file"]
+    assert load["L2"]["mapping_mh"]["mh"] == "mh_xgboost_rgb"
+    # the merged values are the archive's for the poor stars and NaN above -0.5 (T2 uses [M/H] < -1.5)
+    t1 = json.loads((ctx.results / "t1.json").read_text(encoding="utf-8"))
+    assert t1["counts"]["lt_m1p5"] == 300
+
+
+def test_gaia_addition_duplicate_stops(tmp_path, monkeypatch):
+    run, ctx = _setup(tmp_path, monkeypatch)
+    url = run.FILES["mh"]["url"]
+    full = pd.read_csv(ctx.files[url])
+    full.drop(columns=GAIA_NAMES).to_csv(ctx.files[url], index=False)
+    monkeypatch.setitem(run.FILES["mh"], "md5", D.md5_of(ctx.files[url]))
+    g = full[["source_id", *GAIA_NAMES]].copy()
+    poor0 = int(full.loc[full["mh"] < -0.5, "source_id"].min())
+    ctx.gaia = pd.concat([g, g[g["source_id"] == poor0]])                # a duplicated row
+    s = run.main(ctx)
+    assert s["status"].startswith("stopped at load: L2 Gaia addition")
 
 
 def test_too_few_rows_stop(tmp_path, monkeypatch):

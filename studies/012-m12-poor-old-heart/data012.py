@@ -44,7 +44,8 @@ def check_md5(paths: dict, expected: dict) -> dict:
 
 MH_CANDIDATES = {
     "source_id": {"sourceid", "gaiasourceid", "gaiadr3sourceid", "dr3sourceid"},
-    "mh": {"mh", "mhxgboost", "mhxgb", "xgbmh", "xgboostmh", "mhpred", "mhxp", "metallicity", "feh"},
+    "mh": {"mh", "mhxgboost", "mhxgb", "xgbmh", "xgboostmh", "mhpred", "mhxp", "metallicity", "feh",
+           "mhxgboostrgb"},   # R22's file name, README 4.13 item 1 (2026-11-23)
     "mh_err": {"mherr", "emh", "mherror", "sigmamh", "mhsigma", "mhuncertainty", "mhstd", "mherrxgboost"},
     "teff": {"teff", "teffxgboost", "teffxgb", "xgbteff", "xgboostteff", "teffpred"},
     "logg": {"logg", "loggxgboost", "loggxgb", "xgblogg", "xgboostlogg", "loggpred"},

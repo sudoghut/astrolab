@@ -453,6 +453,48 @@ run: None yet.")
     finds T2 columns missing, the run stops and asks for the user's decision on the optional TAP
     addition (`PARAMS["t2_missing_ok"]` is set only if the user declines it).
 
+### 4.13 Amendments after the download, before any fit (2026-11-23)
+
+The formal first run of 2026-11-23 downloaded the two files (L1: both MD5s match) and stopped at L2. **Seen
+before this amendment:** the column headers of both files (metallicity file: `source_id, ra, dec,
+teff_xgboost, logg_xgboost, mh_xgboost_rgb`; kinematics file: `source_id, x, y, z, v_x, v_y, v_z, j_r, j_phi,
+j_z, r_apo, ecc`), the first data row of each, and, to size the TAP addition for the user, the number of rows
+of the metallicity file and of stars below three [M/H] values (1,586,888 rows; 469,041 below −0.5, 100,458
+below −1.0, 30,589 below −1.5; no non-finite [M/H]). No other value was looked at and no fit was made.
+Sections 1–4.12 are unchanged except as stated here.
+
+1. **L2 name of [M/H].** `mh_xgboost_rgb` (normalised `mhxgboostrgb`) is added to the [M/H] candidates in
+   `data012.py`. It is the file's only metallicity column, and no other column matches any [M/H] candidate, so
+   the mapping is not ambiguous. The kinematics columns map with the existing lists.
+2. **The user's decision on the TAP addition.** The metallicity file has no ϖ, σ_ϖ, G, BP − RP or BP; it has
+   ra, dec (l, b by 4.12 item 2). On 2026-11-23 the user agreed in chat to the full addition (offered: the
+   full addition, the [M/H] < −1.5 stars only, or none). `PARAMS["gaia_addition"]` is true; `t2_missing_ok`
+   stays false.
+3. **The addition as run.** `gaiadr3.gaia_source`, columns `source_id, parallax, parallax_error,
+   phot_g_mean_mag, bp_rp, phot_bp_mean_mag`, for the stars with [M/H] < −0.5 after L3 (469,041), on sorted
+   `source_id` lists of 2,000 (235 queries) through `ctx.tap`, charged to the study budget. Against
+   section 3's row: (a) `phot_bp_mean_mag` is fetched, as 4.12 item 5 already states; (b) l and b are not
+   fetched: they come from the file's ra, dec for every star (4.12 item 2); (c) there is no `ctx.count`: a
+   query lists at most 2,000 distinct `source_id`s and `gaia_source` has one row per `source_id`, so it
+   returns at most that many rows, and `max_rows` is set to the list length so the guard refuses anything
+   larger; the total is bounded by 469,041 rows × 6 columns (about 23 MB as 8-byte values). A count per
+   list would double the number of queries and add nothing.
+4. **Stars without the columns.** Stars with [M/H] ≥ −0.5 get no ϖ or photometry (NaN), and stars the
+   archive does not return (none expected) are left out by 4.12 item 4; the numbers are recorded
+   (`load.json: L2.addition`). A duplicated `source_id` in the reply, or one not asked for, stops the run.
+   Every test that uses these columns selects stars below −0.5 (the T2 sample below −1.5, the reference fits
+   −1.5 to −0.5, the T2b control −1.0 to −0.5, the LF below −1.0, T6 below −1.5), except two inputs that
+   section 3 and 4.12 define on all stars of the file, which now use the stars with [M/H] < −0.5: L6's
+   histograms of ϖ, ϖ/σ_ϖ, BP and BP − RP (4.12 item 3; l and b still use every star), and the mock
+   parallax-error sampler of 4.12 item 8 (and the LF fallback "all metallicities" in `run.mock_inputs`).
+5. **When.** The queries run before 2026-11-25, when the Gaia archive goes offline until the DR4 release
+   day; their results are cached (Gaia DR3 does not change), so later runs and explorations read the
+   cache. If they cannot finish in time, the run is repeated after the release day with nothing changed.
+6. **Code and tests.** `run.gaia_addition` (called from the load step after L3, before l and b are
+   computed); `test_s012_run.py`: `test_gaia_addition` (only [M/H] < −0.5, sorted, each id once, lists of
+   at most the chunk size with `max_rows` equal to the list length, an unmatched id recorded, the pipeline
+   completes on the merged columns) and `test_gaia_addition_duplicate_stops`.
+
 ## 5. Results
 
 Filled after running. Link to `web/index.html` and key numbers in `results/`.
@@ -479,6 +521,7 @@ How a coding agent answers "what if" questions about this study without touching
 | `t4_noise_dex`, `t4_shift_dex` | T4 noise and shift | 0.05–0.3 | cache only |
 | `t6_m_giant`, `t6_f` | T6 mass per giant and factor | any positive | cache only |
 | `stop_after_hours` | pause (checkpointed) after this many hours; 0 = no limit | 0–24 | cache only |
+| `gaia_addition` | fetch the missing T2 columns from Gaia DR3 for [M/H] < −0.5 (section 4.13) | true (user consent 2026-11-23); false with `t2_missing_ok` = true is the decline route | cache after the first run (about 23 MB, 235 queries) |
 | `first_download` | allow the one consented download of the two Zenodo files | `false` except in the single formal first run | new data: 213.8 MB, only with the user's recorded consent |
 
 - **The first download.** The two files are downloaded once, under the user's exception of 2026-11-21 (T-021,

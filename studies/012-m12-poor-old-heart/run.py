@@ -49,8 +49,9 @@ CAP_CONSENT = ("user consent 2026-11-21 (TODO.md T-021, studies/012 log.md 2026-
 # this dict in memory. The defaults are the pre-registered values (README sections 2-4 and 4.12);
 # changing one in the committed file is a change to the pre-registration.
 PARAMS = {
-    "first_download": True,           # True only for the one consented download (README section 8)
+    "first_download": False,          # True only for the one consented download (README section 8)
     "t2_missing_ok": False,           # True only after the user declines the TAP addition (README 3)
+    "gaia_addition": True,            # the optional Gaia DR3 TAP addition, user consent 2026-11-23 (README 4.13)
     "seed": 20261121,
     "subsample_seed": 12012,
     # frame (README 4.1)
@@ -125,6 +126,12 @@ FLOORS = {"t2a_boot": 200, "t2a_mocks": 100, "t2b_boot": 200, "t2b_mocks": 100, 
 # README section 2: the run stops if the metallicity file is not R22's sample (fewer than 1.0 million rows
 # after L3). A module constant (not a PARAMS knob) so no exploration can lower it; tests patch it.
 MIN_MH_ROWS = 1_000_000
+# README 3 (optional TAP row) and 4.13: the Gaia DR3 addition for the stars with [M/H] < -0.5, queried on
+# sorted source_id lists of 2,000. Module constants (not PARAMS knobs); tests patch ADDITION_CHUNK.
+ADDITION_MH_MAX = -0.5
+ADDITION_CHUNK = 2000
+ADDITION_COLS = {"parallax": "parallax", "parallax_error": "parallax_error", "g": "phot_g_mean_mag",
+                 "bp_rp": "bp_rp", "bp": "phot_bp_mean_mag"}
 ALL_PARTS = ["t1", "t2", "t3", "t4", "t5", "t6"]
 # a formal run uses these pre-registered sizes (README 4.3, 4.10)
 FORMAL_FIXED = {"parts": ALL_PARTS, "grid_nodes": 300, "ext_a_grid": [0.0, 5.0, 0.05],
@@ -189,7 +196,8 @@ def _load_and_check(paths, P, ctx, rec):
                  "t2_columns_missing": [q for q in t2_need if not map_mh[q]] + ([] if have_lb else ["l, b"]),
                  "kin_missing_t3": [q for q in ("jr", "jphi", "jz", "rapo") if not map_kin[q]],
                  "kin_missing_t5": [q for q in ("ecc", "rapo") if not map_kin[q]]}
-    if rec["L2"]["t2_columns_missing"] and not P["t2_missing_ok"]:
+    add_q = [q for q in t2_need if not map_mh[q]] if (P["gaia_addition"] and have_lb) else []
+    if rec["L2"]["t2_columns_missing"] and not P["t2_missing_ok"] and not add_q:
         raise D.StopRun(
             f"L2: the metallicity file lacks {rec['L2']['t2_columns_missing']}. README 3: T2 and the "
             "parallax-based part of T6 then need the optional Gaia TAP addition, which needs the user's "
@@ -204,6 +212,10 @@ def _load_and_check(paths, P, ctx, rec):
                         f"{MIN_MH_ROWS:,}: not R22's sample; stop (README section 2), the reading is fixed by "
                         "a dated amendment")
     kin, rec["L3_kin"] = D.drop_duplicates(kin, "kinematics file")
+    if add_q:
+        mh, rec["L2"]["addition"] = gaia_addition(ctx, mh, add_q)
+        rec["L2"]["t2_columns_missing_in_file"] = rec["L2"]["t2_columns_missing"]
+        rec["L2"]["t2_columns_missing"] = []
     mh = D.add_galactic(mh)
     mh["mh_row"] = np.arange(len(mh))
     joined, rec["L4"] = D.join(kin.drop(columns=[c for c in ("mh",) if c in kin]), mh, cols=("mh", "mh_row"))
@@ -215,6 +227,41 @@ def _load_and_check(paths, P, ctx, rec):
     rec["rows"] = {"mh": len(mh), "kin": len(kin), "joined": len(joined)}
     ctx.log(f"load: {len(mh):,} metallicity rows, {len(kin):,} kinematics rows, join {rec['L4']['fraction']:.4f}")
     return mh, kin, joined, rec
+
+
+def gaia_addition(ctx, mh, quantities):
+    """README 3 (optional TAP row) and 4.13: fetch the missing T2 columns from gaiadr3.gaia_source for the
+    stars with [M/H] < ADDITION_MH_MAX, on sorted source_id lists of ADDITION_CHUNK (each query returns at
+    most one row per listed id, so max_rows is the list length). Stars above the limit get NaN. A returned
+    id that was not asked for, or a duplicated one, stops the run. Returns (mh with the columns, record)."""
+    ids = np.sort(mh.loc[mh["mh"] < ADDITION_MH_MAX, "source_id"].to_numpy(np.int64))
+    cols = ["source_id"] + [ADDITION_COLS[q] for q in quantities]
+    n_q = -(-ids.size // ADDITION_CHUNK)
+    ctx.log(f"Gaia DR3 addition: {ids.size:,} stars with [M/H] < {ADDITION_MH_MAX}, {n_q} queries of "
+            f"<= {ADDITION_CHUNK:,} source_ids, columns {cols[1:]}")
+    frames = []
+    for i in range(n_q):
+        chunk = ids[i * ADDITION_CHUNK:(i + 1) * ADDITION_CHUNK]
+        adql = (f"SELECT {', '.join(cols)} FROM gaiadr3.gaia_source "
+                f"WHERE source_id IN ({', '.join(str(int(x)) for x in chunk)})")
+        frames.append(ctx.tap(adql, "gaia", label=f"Gaia DR3 addition {i + 1}/{n_q}", max_rows=int(chunk.size),
+                              release="Gaia DR3"))
+    got = (pd.concat(frames, ignore_index=True) if frames
+           else pd.DataFrame({c: pd.Series(dtype=float) for c in cols}))
+    got = got[cols].rename(columns={ADDITION_COLS[q]: q for q in quantities})
+    got["source_id"] = got["source_id"].astype("int64")
+    if got["source_id"].duplicated().any() or not got["source_id"].isin(ids).all():
+        raise D.StopRun("L2 Gaia addition: the archive returned a duplicated source_id or one not asked for")
+    for q in quantities:
+        got[q] = pd.to_numeric(got[q], errors="coerce").astype(float)
+    out = mh.merge(got, on="source_id", how="left", validate="one_to_one")
+    rec = {"consent": "user consent 2026-11-23 (studies/012 log.md 2026-11-23; README 4.13)",
+           "table": "gaiadr3.gaia_source", "mh_max": ADDITION_MH_MAX, "chunk": ADDITION_CHUNK,
+           "quantities": list(quantities), "columns": cols[1:], "n_ids": int(ids.size), "n_queries": n_q,
+           "n_rows": int(len(got)), "n_unmatched": int(ids.size - len(got)),
+           "n_finite": {q: int(np.isfinite(out[q].to_numpy(float)).sum()) for q in quantities}}
+    ctx.log(f"Gaia DR3 addition: {len(got):,} rows for {ids.size:,} ids")
+    return out, rec
 
 
 def t2_arrays(df, lo, hi):
