@@ -234,6 +234,32 @@ def test_gaia_addition_duplicate_stops(tmp_path, monkeypatch):
     assert s["status"].startswith("stopped at load: L2 Gaia addition")
 
 
+def test_gaia_addition_unasked_id_stops(tmp_path, monkeypatch):
+    run, ctx = _setup(tmp_path, monkeypatch)
+    url = run.FILES["mh"]["url"]
+    full = pd.read_csv(ctx.files[url])
+    full.drop(columns=GAIA_NAMES).to_csv(ctx.files[url], index=False)
+    monkeypatch.setitem(run.FILES["mh"], "md5", D.md5_of(ctx.files[url]))
+    g = full[["source_id", *GAIA_NAMES]].copy()
+    rich = int(full.loc[full["mh"] >= -0.5, "source_id"].iloc[0])     # never asked for
+    poor0 = int(full.loc[full["mh"] < -0.5, "source_id"].min())
+    extra = g[g["source_id"] == rich].copy()
+    extra["source_id"] = poor0                                          # served under the first list
+    real_tap = ctx.tap
+
+    def tap(adql, service="gaia", **kw):
+        out = real_tap(adql, service, **kw)
+        if str(poor0) in adql.split("IN (")[1].split(",")[0]:
+            extra2 = extra.copy()
+            extra2["source_id"] = rich
+            out = pd.concat([out, extra2[out.columns]], ignore_index=True)
+        return out
+    ctx.tap = tap
+    ctx.gaia = g
+    s = run.main(ctx)
+    assert s["status"].startswith("stopped at load: L2 Gaia addition")
+
+
 def test_too_few_rows_stop(tmp_path, monkeypatch):
     run, ctx = _setup(tmp_path, monkeypatch)
     monkeypatch.setattr(run, "MIN_MH_ROWS", 1_000_000)        # the pre-registered threshold

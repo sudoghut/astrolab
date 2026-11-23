@@ -461,6 +461,8 @@ teff_xgboost, logg_xgboost, mh_xgboost_rgb`; kinematics file: `source_id, x, y, 
 j_z, r_apo, ecc`), the first data row of each, and, to size the TAP addition for the user, the number of rows
 of the metallicity file and of stars below three [M/H] values (1,586,888 rows; 469,041 below −0.5, 100,458
 below −1.0, 30,589 below −1.5; no non-finite [M/H]). No other value was looked at and no fit was made.
+The count below −1.5 is T1's own N(< −1.5) and an input of T6; it was seen before the formal run, and no
+rule or threshold is changed here (T1's and T6's rules are those of sections 2 and 4.2, 4.8).
 Sections 1–4.12 are unchanged except as stated here.
 
 1. **L2 name of [M/H].** `mh_xgboost_rgb` (normalised `mhxgboostrgb`) is added to the [M/H] candidates in
@@ -485,15 +487,21 @@ Sections 1–4.12 are unchanged except as stated here.
    Every test that uses these columns selects stars below −0.5 (the T2 sample below −1.5, the reference fits
    −1.5 to −0.5, the T2b control −1.0 to −0.5, the LF below −1.0, T6 below −1.5), except two inputs that
    section 3 and 4.12 define on all stars of the file, which now use the stars with [M/H] < −0.5: L6's
-   histograms of ϖ, ϖ/σ_ϖ, BP and BP − RP (4.12 item 3; l and b still use every star), and the mock
+   histograms of ϖ, ϖ/σ_ϖ, BP and BP − RP and the ϖ/σ_ϖ < 1 fraction rule (4.12 item 3; l and b still
+   use every star; the more distant metal-poor stars can only raise that fraction), and the mock
    parallax-error sampler of 4.12 item 8 (and the LF fallback "all metallicities" in `run.mock_inputs`).
+   T4's noise variants select the T2 sample on perturbed [M/H]; a star from [M/H] ≥ −0.5 scattered below
+   −1.5 (a 5σ jump at 0.2 dex, about 0.3 stars expected) has no parallax and is left out.
 5. **When.** The queries run before 2026-11-25, when the Gaia archive goes offline until the DR4 release
    day; their results are cached (Gaia DR3 does not change), so later runs and explorations read the
-   cache. If they cannot finish in time, the run is repeated after the release day with nothing changed.
+   cache. If they cannot finish in time, the run is repeated after the release day with nothing changed
+   (completed queries stay cached). While the archive is offline, `--refresh` must not be used: it would
+   query all 235 lists again and fail.
 6. **Code and tests.** `run.gaia_addition` (called from the load step after L3, before l and b are
    computed); `test_s012_run.py`: `test_gaia_addition` (only [M/H] < −0.5, sorted, each id once, lists of
    at most the chunk size with `max_rows` equal to the list length, an unmatched id recorded, the pipeline
-   completes on the merged columns) and `test_gaia_addition_duplicate_stops`.
+   completes on the merged columns), `test_gaia_addition_duplicate_stops` and
+   `test_gaia_addition_unasked_id_stops`.
 
 ## 5. Results
 
@@ -521,7 +529,7 @@ How a coding agent answers "what if" questions about this study without touching
 | `t4_noise_dex`, `t4_shift_dex` | T4 noise and shift | 0.05–0.3 | cache only |
 | `t6_m_giant`, `t6_f` | T6 mass per giant and factor | any positive | cache only |
 | `stop_after_hours` | pause (checkpointed) after this many hours; 0 = no limit | 0–24 | cache only |
-| `gaia_addition` | fetch the missing T2 columns from Gaia DR3 for [M/H] < −0.5 (section 4.13) | true (user consent 2026-11-23); false with `t2_missing_ok` = true is the decline route | cache after the first run (about 23 MB, 235 queries) |
+| `gaia_addition` | fetch the missing T2 columns from Gaia DR3 for [M/H] < −0.5 (section 4.13) | true (user consent 2026-11-23); false with `t2_missing_ok` = true is the decline route. Since only [M/H] < −0.5 has parallaxes, `t2_mh_range`, `control_mh` and `ref_bins` above −0.5 leave no stars | cache after the first run (about 23 MB, 235 queries) |
 | `first_download` | allow the one consented download of the two Zenodo files | `false` except in the single formal first run | new data: 213.8 MB, only with the user's recorded consent |
 
 - **The first download.** The two files are downloaded once, under the user's exception of 2026-11-21 (T-021,
