@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-11-23T13:14:54+00:00",
+  "inputs": [
+    {
+      "source": "http",
+      "request": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J/other/Nat/603.599/table1&-out=Id,Age,e_Age,[Fe/H],e_[Fe/H],[alpha/Fe],e_[alpha/Fe],JPHI,MKcomb&-out.max=300000",
+      "release": "Xiang & Rix 2022",
+      "retrieved_at": "2026-11-15T13:07:34+00:00",
+      "sha256": "23149a1bf56c29b8c7030eb920071d1d1550bfc79d3eed49c7930b6e0d6e9f78",
+      "bytes": 16064297,
+      "cache_key": "15b4ca0808fa80275373832f",
+      "label": "XR22 subgiant catalogue (VizieR J/other/Nat/603.599/table1, CfA mirror)"
+    }
+  ]
+}
