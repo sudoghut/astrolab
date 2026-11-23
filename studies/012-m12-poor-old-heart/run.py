@@ -49,7 +49,7 @@ CAP_CONSENT = ("user consent 2026-11-21 (TODO.md T-021, studies/012 log.md 2026-
 # this dict in memory. The defaults are the pre-registered values (README sections 2-4 and 4.12);
 # changing one in the committed file is a change to the pre-registration.
 PARAMS = {
-    "first_download": False,          # True only for the one consented download (README section 8)
+    "first_download": True,           # True only for the one consented download (README section 8)
     "t2_missing_ok": False,           # True only after the user declines the TAP addition (README 3)
     "seed": 20261121,
     "subsample_seed": 12012,
