@@ -205,6 +205,7 @@ README 第 8 节的入口，用 `python -m astrolab explore` 运行，不属于�
 5. **时间。** 查询在 2026-11-25 之前进行（Gaia 档案从那天起下线到 DR4 发布日）；结果存入缓存（Gaia DR3 不会改变），之后的运行与探索读取缓存。若来不及完成，就在发布日之后不作任何改动地重新运行（已完成的查询留在缓存中）。档案下线期间不得使用 `--refresh`：它会重新查询全部 235 个列表并失败。
 6. **代码与测试。** `run.gaia_addition`（在加载步骤中 L3 之后、计算 l 与 b 之前调用）；`test_s012_run.py`：`test_gaia_addition`（只取 [M/H] < −0.5、排序、每个 id 一次、每个列表至多一批的大小且 `max_rows` 等于列表长度、记录未匹配的 id、在合并后的列上流水线完成）、`test_gaia_addition_duplicate_stops` 与 `test_gaia_addition_unasked_id_stops`。
 7. **没有测光的星与 f_bright（本修订闸门 2 的审查）。** 档案可能返回有视差而没有 G 或 BP − RP 的星。这样的星不计入 f_bright（第 4.8 节），而不是算作暗星，其中通过 f_bright 的 ϖ_corr/σ_ϖ > 5 截断的星数记录在 `t6.json` 的 `n_no_photometry`；T2 已经排除它们（4.12 第 4 项）。模拟的视差误差抽样（4.12 第 8 项）只需要 G 与 σ_ϖ，所以没有 BP 或 BP − RP 的星仍留在其中（`err_stars` 为其星数）。
+8. **服务（2026-11-23，本修订通过审查之后）。** 第一次实际查询发现 ESA Gaia 档案已经进入停机（每个 TAP 请求都返回"ESDC Archives downtime"页面，比宣布的 2026-11-25 早两天）。因此补充改由 NOIRLab Astro Data Lab 的同一表的镜像（mirror）提供（`ctx.tap` 服务 `datalab`，表 `gaia_dr3.gaia_source`，列名与数值相同；Gaia DR3 不会改变），第 3–7 项其余内容不变。测试镜像时看到的：第一个列表前三颗星的六列（第一个 2,000 个 id 的列表用时 5.7 秒；它已缓存，运行时重用）。来源记录写明镜像。
 
 ## 5. 结果
 

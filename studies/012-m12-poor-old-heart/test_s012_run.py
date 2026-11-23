@@ -87,7 +87,7 @@ class FakeCtx:
         """Serves the Gaia addition from self.gaia (a frame with Gaia's column names); records each call."""
         import re
         self.taps.append((adql, service, kw))
-        m = re.fullmatch(r"SELECT (.+) FROM gaiadr3\.gaia_source WHERE source_id IN \((.+)\)", adql)
+        m = re.fullmatch(r"SELECT (.+) FROM gaia_dr3\.gaia_source WHERE source_id IN \((.+)\)", adql)
         assert m, adql
         cols = [c.strip() for c in m.group(1).split(",")]
         ids = [int(x) for x in m.group(2).split(",")]
@@ -207,7 +207,7 @@ def test_gaia_addition(tmp_path, monkeypatch):
     asked = []
     for adql, service, kw in ctx.taps:
         ids = [int(x) for x in adql.split("IN (")[1].rstrip(")").split(",")]
-        assert service == "gaia" and len(ids) <= 400 and kw["max_rows"] == len(ids)
+        assert service == "datalab" and len(ids) <= 400 and kw["max_rows"] == len(ids)
         asked += ids
     assert asked == poor.tolist()                                     # sorted, each once, only [M/H] < -0.5
     assert len(ctx.taps) == -(-poor.size // 400)

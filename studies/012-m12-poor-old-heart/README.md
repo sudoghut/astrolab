@@ -507,6 +507,13 @@ Sections 1–4.12 are unchanged except as stated here.
    number of them among the stars passing f_bright's ϖ_corr/σ_ϖ > 5 cut is recorded (`t6.json`:
    `n_no_photometry`); T2 already leaves them out (4.12 item 4). The mock parallax-error sampler (4.12 item 8)
    needs only G and σ_ϖ, so stars without BP or BP − RP stay in it (`err_stars` counts its stars).
+8. **Service (2026-11-23, after this amendment passed review).** The first live query found the ESA Gaia
+   archive already in its downtime (every TAP request returned an "ESDC Archives downtime" page, two days
+   before the announced 2026-11-25). The addition is therefore served by NOIRLab Astro Data Lab's mirror of
+   the same table (`ctx.tap` service `datalab`, table `gaia_dr3.gaia_source`, same column names and values;
+   Gaia DR3 does not change), with everything else in items 3–7 unchanged. Seen while testing the mirror:
+   the six columns of the first three stars of the first list (the first 2,000-id list took 5.7 s; it is
+   cached and reused by the run). The provenance records the mirror.
 
 ## 5. Results
 

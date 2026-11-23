@@ -130,6 +130,10 @@ MIN_MH_ROWS = 1_000_000
 # sorted source_id lists of 2,000. Module constants (not PARAMS knobs); tests patch ADDITION_CHUNK.
 ADDITION_MH_MAX = -0.5
 ADDITION_CHUNK = 2000
+# README 4.13 item 8: the ESA archive went into its announced downtime early (2026-11-23), so the addition is
+# served by NOIRLab Astro Data Lab's mirror of the same Gaia DR3 table.
+ADDITION_SERVICE = "datalab"
+ADDITION_TABLE = "gaia_dr3.gaia_source"
 ADDITION_COLS = {"parallax": "parallax", "parallax_error": "parallax_error", "g": "phot_g_mean_mag",
                  "bp_rp": "bp_rp", "bp": "phot_bp_mean_mag"}
 ALL_PARTS = ["t1", "t2", "t3", "t4", "t5", "t6"]
@@ -241,10 +245,10 @@ def gaia_addition(ctx, mh, quantities):
     frames = []
     for i in range(n_q):
         chunk = ids[i * ADDITION_CHUNK:(i + 1) * ADDITION_CHUNK]
-        adql = (f"SELECT {', '.join(cols)} FROM gaiadr3.gaia_source "
+        adql = (f"SELECT {', '.join(cols)} FROM {ADDITION_TABLE} "
                 f"WHERE source_id IN ({', '.join(str(int(x)) for x in chunk)})")
-        frames.append(ctx.tap(adql, "gaia", label=f"Gaia DR3 addition {i + 1}/{n_q}", max_rows=int(chunk.size),
-                              release="Gaia DR3"))
+        frames.append(ctx.tap(adql, ADDITION_SERVICE, label=f"Gaia DR3 addition {i + 1}/{n_q}",
+                              max_rows=int(chunk.size), release="Gaia DR3 (Data Lab mirror)"))
     got = (pd.concat(frames, ignore_index=True) if frames
            else pd.DataFrame({c: pd.Series(dtype=float) for c in cols}))
     got = got[cols].rename(columns={ADDITION_COLS[q]: q for q in quantities})
@@ -255,7 +259,7 @@ def gaia_addition(ctx, mh, quantities):
         got[q] = pd.to_numeric(got[q], errors="coerce").astype(float)
     out = mh.merge(got, on="source_id", how="left", validate="one_to_one")
     rec = {"consent": "user consent 2026-11-23 (studies/012 log.md 2026-11-23; README 4.13)",
-           "table": "gaiadr3.gaia_source", "mh_max": ADDITION_MH_MAX, "chunk": ADDITION_CHUNK,
+           "service": ADDITION_SERVICE, "table": ADDITION_TABLE, "mh_max": ADDITION_MH_MAX, "chunk": ADDITION_CHUNK,
            "quantities": list(quantities), "columns": cols[1:], "n_ids": int(ids.size), "n_queries": n_q,
            "n_rows": int(len(got)), "n_unmatched": int(ids.size - len(got)),
            "n_finite": {q: int(np.isfinite(out[q].to_numpy(float)).sum()) for q in quantities}}
