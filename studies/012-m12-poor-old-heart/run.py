@@ -200,9 +200,8 @@ def _load_and_check(paths, P, ctx, rec):
     if rec["L2"]["t2_columns_missing"] and not P["t2_missing_ok"] and not add_q:
         raise D.StopRun(
             f"L2: the metallicity file lacks {rec['L2']['t2_columns_missing']}. README 3: T2 and the "
-            "parallax-based part of T6 then need the optional Gaia TAP addition, which needs the user's "
-            "agreement (and BP magnitudes are not in that addition: the mocks' BP < 15.5 cut would need a "
-            "dated amendment). Ask the user; if they decline, rerun with t2_missing_ok=true (T2 and f_bright "
+            "parallax-based part of T6 then need the optional Gaia TAP addition (PARAMS gaia_addition, "
+            "README 4.13; it needs l, b or ra, dec in the file and the user's agreement). Ask the user; if they decline, rerun with t2_missing_ok=true (T2 and f_bright "
             "'undetermined (data not in the files)').")
     mh = D.read_mapped(paths["mh"], map_mh)
     kin = D.read_mapped(paths["kin"], map_kin)
