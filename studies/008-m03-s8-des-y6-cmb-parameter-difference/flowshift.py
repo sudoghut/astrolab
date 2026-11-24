@@ -8,7 +8,8 @@ tensiometer, getdist), one job per process, started by r6flow.py:
 where <job> is "meta", "exact", "gate <seed>" or "case <name> <seed>" (R6), or "exact <gate>" and
 "gate <gate> <seed>" for a named gate in cfg["gates"] (R6-NOMNU, README 2.7), and "shuf <variant> <seed>"
 and "knn <seed>" for the Sigma m_nu column variants of R6-SHUF (README 2.8), and "ka <variant> <seed>" for
-the synthetic family of R6-SHUF-KA (README 2.9). It never touches the network
+the synthetic family of R6-SHUF-KA (README 2.9), and "ka2 <variant> <seed>" for the surrogate of R6-SHUF-KA2
+(README 2.10). It never touches the network
 or the project folder: it reads the job folder's input.npz (the chains' columns and weights) and
 writes one JSON file atomically. The pure helpers (gate_summary, case_summary, finite) are also
 used by r6flow.py in the project environment. Order (README 2.6): the known-answer gate first; only
@@ -334,6 +335,113 @@ def ka_exact(g, n=2_000_000, seed=999):
     out["phi"] = (out["6"] - out["S"]) / (out["6"] - out["5"])
     return out
 
+# ------------------------------------------------------------------ R6-SHUF-KA2 (README 2.10) ----
+# The surrogate of the data's 6-D difference: Gaussian mixtures fitted to the DES and CMB chains (surrogate_t063.json,
+# standardised units). The functions of explore/t063_surrogate_design.py (the pre-registration's design script),
+# copied with a sur_ prefix (test_r6ka2.py checks identical draws and densities). Variants "6" (a - c), "S" (the DES
+# Sigma m_nu column permuted before the difference: DES's Sigma m_nu marginal times its five-parameter marginal),
+# "5" (Sigma m_nu dropped).
+
+SUR_MNU = 2                              # Sigma m_nu in R6's order (a_s_1e9, h0, mnu, n_s, omega_b, omega_m)
+
+
+def sur_sample(m, n, rng):
+    """Draw order: one uniform per row for the component, then a standard normal (n, d) block."""
+    w, mu, L = np.asarray(m["w"]), np.asarray(m["mu"]), np.asarray(m["L"])
+    comp = np.minimum(np.searchsorted(np.cumsum(w), rng.random(n), side="right"), len(w) - 1)
+    z = rng.standard_normal((n, mu.shape[1]))
+    return mu[comp] + np.einsum("nij,nj->ni", L[comp], z)
+
+
+def _sur_gauss_list(w, mu, cov):
+    return [(float(a), np.asarray(b), np.asarray(c)) for a, b, c in zip(w, mu, cov)]
+
+
+def sur_components(md, mc, variant):
+    """(weight, mean, covariance) of the difference's mixture for variant '6', 'S' or '5'."""
+    wd, mud, Ld = np.asarray(md["w"]), np.asarray(md["mu"]), np.asarray(md["L"])
+    wc, muc, Lc = np.asarray(mc["w"]), np.asarray(mc["mu"]), np.asarray(mc["L"])
+    Cd, Cc = Ld @ np.swapaxes(Ld, 1, 2), Lc @ np.swapaxes(Lc, 1, 2)
+    if variant == "S":
+        rest = [j for j in range(mud.shape[1]) if j != SUR_MNU]
+        a = []
+        for i in range(len(wd)):
+            for i2 in range(len(wd)):
+                m = mud[i].copy()
+                m[SUR_MNU] = mud[i2][SUR_MNU]
+                C = np.zeros_like(Cd[i])
+                C[np.ix_(rest, rest)] = Cd[i][np.ix_(rest, rest)]
+                C[SUR_MNU, SUR_MNU] = Cd[i2][SUR_MNU, SUR_MNU]
+                a.append((wd[i] * wd[i2], m, C))
+    elif variant in ("6", "5"):
+        a = _sur_gauss_list(wd, mud, Cd)
+    else:
+        raise ValueError(f"unknown variant {variant!r}")
+    out = [(wa * wb, ma - mb, Ca + Cb) for wa, ma, Ca in a for wb, mb, Cb in _sur_gauss_list(wc, muc, Cc)]
+    if variant == "5":
+        keep = [j for j in range(mud.shape[1]) if j != SUR_MNU]
+        out = [(w, m[keep], C[np.ix_(keep, keep)]) for w, m, C in out]
+    return out
+
+
+def sur_logp(x, comps, chunk=50_000):
+    """log density of the mixture at the rows of x."""
+    pre = []
+    for w, m, C in comps:
+        L = np.linalg.cholesky(C)
+        pre.append((np.log(w) - np.log(np.diag(L)).sum() - 0.5 * len(m) * np.log(2 * np.pi), m, L))
+    res = np.empty(len(x))
+    for s in range(0, len(x), chunk):
+        xs = x[s:s + chunk]
+        acc = np.empty((len(pre), len(xs)))
+        for i, (c0, m, L) in enumerate(pre):
+            y = np.linalg.solve(L, (xs - m).T)
+            acc[i] = c0 - 0.5 * np.sum(y * y, axis=0)
+        mx = acc.max(axis=0)
+        res[s:s + chunk] = mx + np.log(np.exp(acc - mx).sum(axis=0))
+    return res
+
+
+def sur_rows(md, mc, n, seed, variant, perm_seed=None):
+    """The variant's rows (standardised units): DES draws then CMB draws from default_rng(seed); "S": the DES
+    Sigma m_nu column permuted with default_rng(perm_seed).permutation(n) before the difference; "5": no Sigma m_nu."""
+    if variant not in ("6", "S", "5"):
+        raise ValueError(f"unknown variant {variant!r}")
+    rng = np.random.default_rng(seed)
+    a = sur_sample(md, n, rng)
+    c = sur_sample(mc, n, rng)
+    if variant == "S":
+        a[:, SUR_MNU] = a[np.random.default_rng(perm_seed).permutation(n), SUR_MNU]
+    d = a - c
+    return np.delete(d, SUR_MNU, axis=1) if variant == "5" else d
+
+
+def sur_exact(md, mc, n=2_000_000, seed=999, perm_seed=1000):
+    """README 2.10: Monte Carlo estimates of the closed-form densities' n_sigma for "6", "S", "5", and phi."""
+    out = {}
+    for v in ("6", "S", "5"):
+        comps = sur_components(md, mc, v)
+        x = sur_rows(md, mc, n, seed, v, perm_seed)
+        l0 = sur_logp(np.zeros((1, x.shape[1])), comps)[0]
+        out[v] = ka_nsig(float(np.mean(sur_logp(x, comps) > l0)))
+    out["phi"] = (out["6"] - out["S"]) / (out["6"] - out["5"])
+    return out
+
+
+def sur_names(columns, v):
+    return [c for i, c in enumerate(columns) if not (v == "5" and i == SUR_MNU)]
+
+
+def sur_train_rows(ka2, n, variant, k):
+    """README 2.10 method: the rows a flow is trained on at seed k, in R6's units (the standardised difference times
+    the scale; the centre cancels): D6 rows from default_rng(offsets[0] + k), the (S) permutation from
+    default_rng(offsets[1] + k)."""
+    mx = ka2["mixtures"]
+    d = sur_rows(mx["des_3x2pt"], mx["cmb"], n, ka2["offsets"][0] + k, variant, ka2["offsets"][1] + k)
+    scale = np.asarray(ka2["scale"], dtype=float)
+    return d * (np.delete(scale, SUR_MNU) if variant == "5" else scale)
+
+
 
 def run_job(job, inp, cfg):
     """One unit of work in its own process (so TensorFlow memory is freed when it exits):
@@ -380,6 +488,13 @@ def run_job(job, inp, cfg):
             z6 = ka_sample(cfg["n"], np.random.default_rng(ka["offsets"][0] + k), ka["family"])
             x = ka_variant(z6, variant, np.random.default_rng(ka["offsets"][1] + k) if variant == "S" else None)
             out = one_shift(x, ka_names(variant), k, cfg["estimate"], None, True)
+            return {**out, "variant": variant}
+        if job[0] == "ka2":
+            # README 2.10: one flow on variant job[1] ("6", "S" or "5") of the surrogate at seed job[2]
+            ka2 = cfg["ka2"]
+            variant, k = job[1], int(job[2])
+            x = sur_train_rows(ka2, cfg["n"], variant, k)
+            out = one_shift(x, sur_names(ka2["columns"], variant), k, cfg["estimate"], None, True)
             return {**out, "variant": variant}
         name, k = job[1], int(job[2])
         case = cfg["cases"][name]

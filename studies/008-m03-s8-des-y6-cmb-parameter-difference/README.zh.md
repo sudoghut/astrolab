@@ -744,6 +744,7 @@ DES 的每个箱占 0.20 的权重（有效样本量（effective sample size, ES
 | `r6_shuf_prior`, `r6_shuf_knn_k` | (P) 使用的 Σmν 先验范围；描述性 kNN（k 近邻，k-nearest neighbour）值的 k | 先验取自链文件头；k 10–200 | 只用缓存 |
 | `r6_shuf_retrain` | 重新训练 R6-SHUF，而不是读取 `results/r6_shuf.json` | `False`（默认值）；只有在 `r6_ka` 为 false 时才可为 `True` | 只用缓存 |
 | `r6_ka`、`r6_ka_seeds`、`r6_ka_family`、`r6_ka_exact`、`r6_ka_seed_offsets` | 运行 R6-SHUF-KA（README 2.9）：十个种子 × 合成分布族上的三个流；分布族；预注册的精确值；D6 行与 (S) 置换的生成器 | `r6_ka` 为 `False`（只在正式运行时为 true，在 venv-tf 中约 6–7 小时，R6、R6-NOMNU 与 R6-SHUF 只读取）；其余为预注册值（对话探索可以用更少的种子，例如 `--set r6_ka=True --set r6_ka_seeds=[15,16]`，约 80 分钟，只写入它自己的文件夹；至少两个种子） | 不下载 |
+| `r6_ka2`、`r6_ka2_seeds`、`r6_ka2_file`、`r6_ka2_sha256`、`r6_ka2_exact`、`r6_ka2_seed_offsets` | 运行 R6-SHUF-KA2（README 2.10）：十个种子 × 两条链的高斯混合替代分布上的三个流；入库的替代分布及其哈希；预注册的精确值；D6 行与 (S) 置换的生成器 | `r6_ka2` 为 `False`（只在正式运行时为 true，在 venv-tf 中约 5–6.5 小时，R6、R6-NOMNU、R6-SHUF 与 R6-SHUF-KA 只读取；与 `r6_ka` 或 `r6_shuf_retrain` 同时为 true 时拒绝运行）；其余为预注册值（对话探索可以用更少的种子，例如 `--set r6_ka2=True --set r6_ka2_seeds=[25,26]`，约 80 分钟加上精确值的计算，只写入它自己的文件夹；至少两个种子）；替代分布从不重新拟合（拟合方式见 `explore/t063_surrogate_design.py`） | 不下载 |
 
 - 带覆盖参数重跑：`python -m astrolab explore 008-m03-s8-des-y6-cmb-parameter-difference --tag <topic> --set KEY=VALUE`
   （输出在 `explore/<date>-<topic>/`，不入库；从缓存运行约 70 s：默认只读取 R6、R6-NOMNU 与 R6-SHUF，不重跑）。

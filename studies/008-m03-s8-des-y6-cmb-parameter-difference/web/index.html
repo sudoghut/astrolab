@@ -54,6 +54,9 @@
   <h2><span class="en">R6-SHUF-KA · A known-answer test of φ on a synthetic family (addendum 2026-11-22)</span><span class="zh">R6-SHUF-KA · 在合成分布族上对 φ 的已知答案检验（补充 2026-11-22）</span></h2>
   <div class="scroll"><table id="r6k"></table></div>
   <p class="muted" id="r6knote"></p>
+  <h2><span class="en">R6-SHUF-KA2 · The same test on a surrogate of the data (addendum 2026-11-24)</span><span class="zh">R6-SHUF-KA2 · 在数据的替代分布上做同样的检验（补充 2026-11-24）</span></h2>
+  <div class="scroll"><table id="r6k2"></table></div>
+  <p class="muted" id="r6k2note"></p>
   <p class="muted" id="err"></p>
   <section id="skylinks" class="card" hidden></section>
 </main>
@@ -127,6 +130,7 @@ function render(d) {
   renderR6N(d.r6n);
   renderR6S(d.r6s);
   renderR6K(d.r6k);
+  renderR6K2(d.r6k2);
   document.getElementById('r4note').innerHTML = L(
     'The Gaussian full-space numbers depend on the parametrization (post hoc, after the referee): 0.32σ in (A_s, Ωm) but 2.21σ in (S8, Ωm), and 1.48σ for the six parameters with S8 in place of A_s. None of them is a test of D26\'s flow-based 1.8σ.',
     '全空间的高斯近似数字依赖参数化（审稿后事后补做）：(A_s, Ωm) 上 0.32σ，(S8, Ωm) 上 2.21σ，以 S8 代替 A_s 的六参数为 1.48σ。它们都不是对 D26 基于归一化流的 1.8σ 的检验。');
@@ -278,10 +282,61 @@ function renderR6K(x) {
       + (q.qualifier ? `R6-SHUF 的限定语：<b>${r6kLabel(q.qualifier)}</b>（修正后的 φ ${f(q.phi_corrected)} ± ${f(q.w)}）。R6-SHUF 的标签按记录保留；分布族只是 φ = 0.61 附近的一个合成成员，不是链本身，所以对数据而言偏差是迁移过来的，而不是测得的。` : ''));
 }
 
+// R6-SHUF-KA2 (README 2.10, T-063): the same three flows per seed on a Gaussian-mixture surrogate of the two chains;
+// the label, the qualifier of R6-SHUF and the comparison with R6-SHUF-KA (reported; earlier labels stay as recorded)
+const R6K2_Q = {
+  "R6-SHUF's label holds after the surrogate correction": '替代分布修正后 R6-SHUF 的标签成立',
+  "R6-SHUF's label reverses after the surrogate correction": '替代分布修正后 R6-SHUF 的标签反转',
+  "R6-SHUF's label is not decided after the surrogate correction": '替代分布修正后 R6-SHUF 的标签无法判定',
+};
+function r6k2Label(v) {
+  if (!v) return '—';
+  let m = String(v).match(/^flows (over|under)estimate φ on the surrogate \(bias (.*)\)$/);
+  if (m) return L(esc(v), `流在替代分布上${m[1] === 'over' ? '高估' : '低估'} φ（偏差 ${m[2]}）`);
+  m = String(v).match(/^no bias of φ detected on the surrogate \(I_b = (.*)\)$/);
+  if (m) return L(esc(v), `在替代分布上未检出 φ 的偏差（I_b = ${m[1]}）`);
+  m = String(v).match(/^surrogate correction not decisive \(test too noisy: w = (.*)\)$/);
+  if (m) return L(esc(v), `替代分布修正不具决定性（检验太噪：w = ${m[1]}）`);
+  m = String(v).match(/^the bias of φ differs between the family and the surrogate \(Δb = (.*)\)$/);
+  if (m) return L(esc(v), `φ 的偏差在分布族与替代分布之间不同（Δb = ${m[1]}）`);
+  m = String(v).match(/^no difference in the bias of φ detected between the family and the surrogate \(Δb = (.*)\)$/);
+  if (m) return L(esc(v), `未检出分布族与替代分布之间 φ 的偏差有差别（Δb = ${m[1]}）`);
+  if (R6K2_Q[v]) return L(esc(v), R6K2_Q[v]);
+  if (/^not evaluable/.test(v)) return L(esc(v), '无法评估');
+  return esc(v);
+}
+function renderR6K2(x) {
+  const t = document.getElementById('r6k2'), note = document.getElementById('r6k2note');
+  if (!x) {
+    t.innerHTML = '';
+    note.innerHTML = L('Not yet run (pre-registered in README 2.10; results will appear here as r6_ka2.json).', '尚未运行（已在 README 2.10 预注册；结果写入 r6_ka2.json 后显示在这里）。');
+    return;
+  }
+  const ex = (x.exact || {}).recomputed || {};
+  const nums = x.numbers || {};
+  let h = `<tr><th>${L('seed', '种子')}</th><th>n̂₆</th><th>n̂_S</th><th>n̂₅</th><th>φ̂</th><th>b = φ̂ − φ_exact</th></tr>`;
+  h += `<tr><td>${L('exact (surrogate)', '精确值（替代分布）')}</td><td>${f(ex.n6)}</td><td>${f(ex.S)}</td><td>${f(ex.n5)}</td><td>${f(ex.phi)}</td><td>—</td></tr>`;
+  for (const [k, r] of Object.entries(x.per_seed || {})) {
+    const phi = (nums.phi || {})[k];
+    h += `<tr><td>${k}</td><td>${f(r['6'])}</td><td>${f(r.S)}</td><td>${f(r['5'])}</td><td>${f(phi)}</td><td>${phi === undefined || phi === null ? '—' : f(phi - ex.phi)}</td></tr>`;
+  }
+  t.innerHTML = h;
+  const ib = nums.interval_b || [], q = x.qualifier || {}, c = x.comparison || {};
+  note.innerHTML = L(
+    `Label (pre-registered): <b>${r6k2Label(x.label)}</b>` + (ib.length ? ` (b̄ = ${f(nums.b_bar)}, s_b = ${f(nums.s_b)}, I_b = [${f(ib[0])}, ${f(ib[1])}]).` : ` (${esc(x.reason || '')}).`)
+      + (q.qualifier ? ` Qualifier of R6-SHUF: <b>${r6k2Label(q.qualifier)}</b> (corrected φ ${f(q.phi_corrected)} ± ${f(q.w)}).` : '')
+      + (c.reading ? ` Comparison with R6-SHUF-KA: <b>${r6k2Label(c.reading)}</b>.` : '')
+      + ' The surrogate is a Gaussian mixture fitted to each chain; its n_σ (1.38, 0.67, 0.33) are lower than the flows read on the data (1.70, 0.91, 0.52), so the bias is transferred, not measured, for the data; earlier labels stay as recorded.',
+    `标签（预注册）：<b>${r6k2Label(x.label)}</b>` + (ib.length ? `（b̄ = ${f(nums.b_bar)}，s_b = ${f(nums.s_b)}，I_b = [${f(ib[0])}, ${f(ib[1])}]）。` : `（${esc(x.reason || '')}）。`)
+      + (q.qualifier ? `R6-SHUF 的限定语：<b>${r6k2Label(q.qualifier)}</b>（修正后的 φ ${f(q.phi_corrected)} ± ${f(q.w)}）。` : '')
+      + (c.reading ? `与 R6-SHUF-KA 的比较：<b>${r6k2Label(c.reading)}</b>。` : '')
+      + '替代分布是对每条链拟合的高斯混合；它的 n_σ（1.38、0.67、0.33）低于流在数据上读出的值（1.70、0.91、0.52），所以对数据而言偏差是迁移过来的，而不是测得的；之前的标签按记录保留。');
+}
+
 let data = null;
 const getOpt = n => get(n).catch(() => null);
-Promise.all([...['r1', 'r2', 'r3', 'r4', 'r5'].map(get), getOpt('r6'), getOpt('r6_nomnu'), getOpt('r6_shuf'), getOpt('r6_ka')])
-  .then(([r1, r2, r3, r4, r5, r6, r6n, r6s, r6k]) => { data = {r1, r2, r3, r4, r5, r6, r6n, r6s, r6k}; render(data); i18n.onLangChange(() => render(data)); })
+Promise.all([...['r1', 'r2', 'r3', 'r4', 'r5'].map(get), getOpt('r6'), getOpt('r6_nomnu'), getOpt('r6_shuf'), getOpt('r6_ka'), getOpt('r6_ka2')])
+  .then(([r1, r2, r3, r4, r5, r6, r6n, r6s, r6k, r6k2]) => { data = {r1, r2, r3, r4, r5, r6, r6n, r6s, r6k, r6k2}; render(data); i18n.onLangChange(() => render(data)); })
   .catch(e => { document.getElementById('err').innerHTML = L('Could not load results (run the study first?): ', '无法加载结果（是否已运行研究？）：') + esc(e); });
 </script>
 </body>

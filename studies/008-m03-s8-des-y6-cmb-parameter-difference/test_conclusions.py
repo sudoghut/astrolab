@@ -358,3 +358,73 @@ def test_r6_ka_rule():
     if rs.get("ok"):
         assert rs["phi_bar"] == shuf["quantities"]["phi"]["mean"] and rs["s_phi"] == shuf["quantities"]["phi"]["s"]
     check_r6_ka(x)
+
+
+KA2_SEEDS = list(range(25, 35))
+KA2_EXACT = {"n6": 1.3768, "S": 0.6678, "n5": 0.3341}
+
+
+def check_r6_ka2(x):
+    """README 2.10 (R6-SHUF-KA2): re-derive the label, the qualifier and the comparison from the saved per-seed flows,
+    the exact values and the recorded R6-SHUF and R6-SHUF-KA numbers, independently of r6ka2.py."""
+    import math
+    assert x["summary"]["label"] == x["label"]
+    if x["label"].startswith("not evaluable"):
+        assert "qualifier" not in x and "comparison" not in x
+        return
+    assert x["surrogate"]["ok"]
+    ex = x["exact"]
+    assert ex["ok"] and all(abs(ex["recomputed"][k] - KA2_EXACT[k]) <= 0.005 for k in KA2_EXACT)
+    fl = x["flows"]
+    n = {}
+    for v in ("6", "S", "5"):
+        reps = fl[v]
+        assert [r["seed"] for r in reps] == KA2_SEEDS and all(_good_rep(r) for r in reps)
+        n[v] = {r["seed"]: r["n_sigma"] for r in reps}
+    e = {k: n["6"][k] - n["5"][k] for k in KA2_SEEDS}
+    assert min(e.values()) > 0.20
+    b = [(n["6"][k] - n["S"][k]) / e[k] - ex["recomputed"]["phi"] for k in KA2_SEEDS]
+    m = sum(b) / len(b)
+    s = math.sqrt(sum((v - m) ** 2 for v in b) / (len(b) - 1))
+    assert s <= 0.30
+    lo, hi = m - 2 * s / math.sqrt(len(b)), m + 2 * s / math.sqrt(len(b))
+    exp = (f"flows overestimate φ on the surrogate (bias {m:+.3f})" if lo > 0
+           else f"flows underestimate φ on the surrogate (bias {m:+.3f})" if hi < 0
+           else f"no bias of φ detected on the surrogate (I_b = [{lo:.3f}, {hi:.3f}])")
+    assert x["label"] == exp
+    rs = x["records"]["r6_shuf"]
+    w = 2 * math.sqrt(rs["s_phi"] ** 2 / rs["n"] + s ** 2 / len(b))
+    c = rs["phi_bar"] - m
+    if c - w >= 0.60:
+        q = "R6-SHUF's label holds after the surrogate correction"
+    elif c + w <= 0.40:
+        q = "R6-SHUF's label reverses after the surrogate correction"
+    elif rs["phi_bar"] - w < 0.60:
+        q = f"surrogate correction not decisive (test too noisy: w = {w:.3f})"
+    else:
+        q = "R6-SHUF's label is not decided after the surrogate correction"
+    assert x["qualifier"]["qualifier"] == q and abs(x["qualifier"]["w"] - w) < 1e-12
+    rk = x["records"]["r6_ka"]
+    if not rk.get("ok"):
+        assert x["comparison"]["reading"] == "not evaluable"
+        return
+    d = m - rk["b_bar"]
+    sig = math.sqrt(s ** 2 / len(b) + rk["s_b"] ** 2 / rk["n"])
+    cr = (f"the bias of φ differs between the family and the surrogate (Δb = {d:+.3f})" if abs(d) > 2 * sig
+          else f"no difference in the bias of φ detected between the family and the surrogate (Δb = {d:+.3f} ± {sig:.3f})")
+    assert x["comparison"]["reading"] == cr
+
+
+def test_r6_ka2_rule():
+    """README 2.10: skips until R6-SHUF-KA2 has run; R6-SHUF's and R6-SHUF-KA's records are the ones it read."""
+    path = RESULTS / "r6_ka2.json"
+    if not path.exists():
+        pytest.skip("r6_ka2.json missing; R6-SHUF-KA2 has not run")
+    x = load("r6_ka2")
+    shuf, ka = load("r6_shuf"), load("r6_ka")
+    rs, rk = x["records"]["r6_shuf"], x["records"]["r6_ka"]
+    if rs.get("ok"):
+        assert rs["phi_bar"] == shuf["quantities"]["phi"]["mean"] and rs["s_phi"] == shuf["quantities"]["phi"]["s"]
+    if rk.get("ok"):
+        assert rk["b_bar"] == ka["numbers"]["b_bar"] and rk["s_b"] == ka["numbers"]["s_b"]
+    check_r6_ka2(x)
