@@ -638,7 +638,8 @@ and the RMS distance; read in section 5, without a label.
 each:
 - **(c)** the origin of s as a free parameter c: s′ = s − c replaces s wherever s enters the model (Λ, ζ, and the
   validity mask p − γs′ > 0), with c ~ U(−400, 400) pc and the other priors unchanged (s₀ is then measured from the
-  shifted origin, as K24's s₀ is from theirs). Because ζ depends only on s₀ + c, c is identified through Λ alone. The
+  shifted origin, as K24's s₀ is from theirs). Because ζ depends only on s₀ + c, c enters the fit only through Λ, where it is constrained jointly with p, γ and
+  the anchors; the posterior correlations of c with s₀, p and γ are reported. The
   grid, the curve's extent and the fixed weights (computed as in the formal run, with c = 0) are unchanged; c < −291 pc
   puts the origin before the grid's start, which is allowed. Walkers start around c = 0 with a ball scale of 100 pc.
   Because the data fix s₀ + c near the envelope's peak (about 500 pc in our fit), the N(680, 200) prior on s₀ induces a
