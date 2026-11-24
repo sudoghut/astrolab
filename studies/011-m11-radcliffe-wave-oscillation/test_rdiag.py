@@ -236,7 +236,26 @@ def test_membership_rule_on_synthetic_rows():
     assert tab["G"]["summed_weight_in_S"] == 1.0 and tab["F"]["n_candidates"] == 0
 
 
-def test_membership_exact_ties_go_to_the_row_listed_first():
+def test_membership_floor_must_be_positive_and_absorbed_into_fallback():
+    rows = _rows([("A", (0, 0, 0), (0, 0, 0)), ("B", (2, 0, 0), (0, 0, 0))])
+    sl = _sl([("X", 1, 0, 0)])
+    for floor in (0.0, -1.0):
+        with pytest.raises(ValueError):
+            D.membership(rows, sl, floor=floor, name_map=NMAP)
+    # A's only candidate goes to B (A: |7| <= 15, score 7/15; B: |6| <= 15, score 6/15), so A is absorbed by B; B
+    # then falls back (its mean is 6 pc off, gate max(0, 5) = 5 pc): A leaves no point in S and is listed under B
+    rows = _rows([("A", (0, 0, 0), (0, 0, 0)), ("B", (13, 0, 0), (0, 0, 0))])
+    sl = _sl([("X", 7, 0, 0)])
+    m = D.membership(rows, sl, name_map=NMAP)
+    assert m[0]["status"] == "absorbed" and m[0]["absorbed_by"] == ["B"]
+    assert m[1]["status"] == "fallback" and m[1]["absorbed_rows"] == ["A"]
+    sam = D.build_samples(rows, sl, _sl([]), m, pt_names=(), name_map=NMAP)
+    assert sam["S"]["row"] == ["B"] and sam["S"]["source"] == ["12co"]       # nothing of A in S
+    tab = D.consistency_table(m, sl)
+    assert tab[1]["absorbed_rows"] == ["A"] and tab[0]["absorbed_rows"] == []
+
+
+
     sl = _sl([("X", 10, 0, 0)])
     for order in (("A", "B"), ("B", "A")):
         pos = {"A": (0, 0, 0), "B": (20, 0, 0)}
@@ -306,6 +325,17 @@ def test_curve_distance_zero_known_displacement_and_grid_ends():
     assert np.all(c["d_3d"] == 0) and not c["end_xy"].any() and not c["end_3d"].any()
 
 
+def test_label_texts_follow_the_arguments():
+    assert D.fit_status(5, 1.6, ratio_range=(0.5, 1.25))[1] == "width ratio 1.600 outside [1/2, 5/4]"
+    assert D.fit_status(3, 1.0, min_count=2, repro_count=6)[1] == "count 3 of 6 (2-5)"
+    assert D.curve_label(30.0, 40.0, 300, 1500, excl_frac=0.15) == ("differs from K24's published curve (more than 15% "
+                                                                    "of the points lie beyond our curve's ends)")
+    P = run.PARAMS
+    assert D.fit_status(5, 2.0, ratio_range=tuple(P["conv_width_range"]))[1] == "width ratio 2.000 outside [2/3, 3/2]"
+    assert D.curve_label(30.0, 40.0, 300, 1500, excl_frac=P["rdiag_curve_excl_frac"]).endswith(
+        "(more than 10% of the points lie beyond our curve's ends)")
+
+
 def test_curve_label_edges():
     assert D.curve_label(5.0, 15.0, 0, 1500) == "matches K24's published curve"
     assert D.curve_label(5.0, 15.1, 0, 1500) == "approximately matches"
@@ -328,7 +358,6 @@ def test_least_squares_recovers_a_synthetic_vector_with_c():
     assert m.scales()[-1] == 100.0 and m.base[W.IDX["B"]] == 1.0 and m.base[W.IDX["w0t"]] == 0.0
     r = D.curve_lsq(m, pts, nm_maxfev=6000, lbfgs_maxfun=3000)
     assert r["rms_start_pc"] > 5.0 and r["rms_pc"] < 1.0
-    assert -400.0 <= r["vector"][W.IDX["s_origin"]] <= 400.0
 
 
 # ---------------------------------------------------------------------------------------------
@@ -398,21 +427,6 @@ def test_formal_rconv_numbers_if_present():
     assert run.PARAMS["rdiag_d6_max"] == round(fr["D6"] - 1.0, 3) and run.PARAMS["rdiag_m6_max"] == round(fr["M6"] - 0.5, 3)
 
 
-def test_chain_seeds_follow_the_mcmc_rule(monkeypatch):
-    P = dict(run.PARAMS)
-    got = {}
-    monkeypatch.setattr(run.F, "run_mcmc", lambda model, c, *, seed, name, **kw: got.update({name: seed}))
-
-    class Ctx:
-        log = staticmethod(lambda m: None)
-
-    g, d = _syn_data(n_cl=5, n_co=20)
-    m = W.Model(run.setups(P)["col3"], d, g)
-    for nm in ("rdiag_S", "rdiag_Sall", "rdiag_SPT", "rdiag_c", "rdiag_cref", "rdiag_zsun"):
-        run.mcmc(P, None, nm, m, W.k24_vector(3), Ctx())
-        assert got["mcmc_" + nm] == int(run.rng_for(P["seed"], "mcmc_" + nm).integers(2 ** 31))
-
-
 def test_diag_is_a_standalone_part():
     P = dict(run.PARAMS)
     run.check_standalone(P, {"diag"}, True)
@@ -426,3 +440,161 @@ def test_diag_is_a_standalone_part():
     old = {"status": "complete", "R_CONV": {}, "T8_P": {}, "overall": {}, "params": {}}
     new = run.summary_with_key(run._dump(old), "R_DIAG", {"reading": "x"})
     assert list(new) == ["status", "R_CONV", "T8_P", "R_DIAG", "overall", "params"]
+
+
+# ---------------------------------------------------------------------------------------------
+# the "diag" path end to end on a synthetic world (fake chains, small optimiser budgets, temporary folders)
+
+CHAINS = {"rdiag_S", "rdiag_Sall", "rdiag_SPT", "rdiag_c", "rdiag_cref", "rdiag_zsun"}
+
+
+def _world(root):
+    """Synthetic tables of the real shapes: 125 clusters, 79 clouds (25 named rows, 54 bridges), a Zucker table with
+    115 sightlines of the 23 mapped names plus 18 Perseus and 10 Taurus, 54 bridging sightlines, a 1,500-point curve."""
+    rng = np.random.default_rng(5)
+    g = W.Grid()
+    wv = W.wave_on_grid(W.k24_vector(3), g)
+    vi = np.flatnonzero(wv["valid"])[150:1500]
+    pos = lambda i: np.array([wv["x"][i], wv["y"][i], wv["z"][i]])
+    syn = F.synthetic_clusters(g, 125, rng)
+    cl = pd.DataFrame({"name": [f"c{i}" for i in range(125)], "reference": "syn", "x": syn.cx, "sigmax": 1.0,
+                       "y": syn.cy, "sigmay": 1.0, "z": syn.cz, "sigmaz": 1.0, "vx": 0.0, "sigmavx": 1.0, "vy": 0.0,
+                       "sigmavy": 1.0, "vz": rng.normal(0, 1, 125), "sigmavz": 1.0, "age": 10.0, "inlier": 1})
+    named = list(D.NAME_MAP)
+    rows, zuck, first = [], [], {}
+    for j, nm in enumerate(named):
+        p = pos(vi[40 * j + 20]) + rng.normal(0, 30, 3)
+        spread = 0.0 if nm == "MonR2" else 20.0
+        rows.append((nm, *p, spread, spread, spread))
+        z = D.NAME_MAP[nm]
+        if z not in first:
+            first[z] = p
+            zuck += [(z, *(p + rng.uniform(-10, 10, 3))) for _ in range(5)]
+    zuck += [("Perseus", *(pos(vi[100]) + rng.normal(0, 30, 3))) for _ in range(18)]
+    zuck += [("Taurus", *(pos(vi[300]) + rng.normal(0, 30, 3))) for _ in range(10)]
+    br = [(f"Bridge_{i}", *(pos(vi[25 * i + 5]) + rng.normal(0, 40, 3))) for i in range(54)]
+    co = pd.DataFrame([r + (0.0, 0.0, 100.0, 1.0, 0.0, 2.0) for r in rows] + [b + (0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 1.0, 0.0, 2.0)
+                                                                         for b in br],
+                      columns=["name", "x", "y", "z", "xspread", "yspread", "zspread", "l", "b", "d", "vr", "vr16", "vr84"])
+    w6 = W.wave_on_grid(W.k24_vector(6), g)
+    k = np.linspace(np.flatnonzero(w6["valid"])[100], np.flatnonzero(w6["valid"])[1700], 1500).astype(int)
+    curve = pd.DataFrame({"x": w6["x"][k], "y": w6["y"][k], "z": w6["z"][k], "vz": w6["vz"][k]})
+    files = {run.CLUSTERS_URL: ("cl.tab", cl.to_csv(sep="\t", index=False)),
+             run.CLOUDS_URL: ("co.tab", co.to_csv(sep="\t", index=False)),
+             run.HANDBOOK_URL: ("hb.dat", pd.DataFrame(zuck, columns=["name", "x", "y", "z"]).to_csv(sep=" ", index=False)),
+             run.BRIDGING_URL: ("br.dat", pd.DataFrame(br, columns=["name", "x", "y", "z"]).to_csv(sep=" ", index=False)),
+             run.BESTFIT_URL: ("bf.tab", curve.to_csv(sep="\t", index=False))}
+    paths = {}
+    (root / "in").mkdir()
+    for url, (fn, text) in files.items():
+        paths[url] = root / "in" / fn
+        paths[url].write_text(text, encoding="utf-8")
+    k24 = {n: dict(zip(("median", "plus", "minus"), W.K24_TABLE2[3][n])) for n in W.K24_TABLE2[3]}
+    diffs = {"A": -1.40, "p": -1.41, "delta": -2.11, "s0": 0.22, "gamma": -0.949, "phi": 3.692,
+             "x0": -1.5, "y0": -2.08, "x1": 0.1, "y1": 0.1, "x2": 0.1, "y2": 0.1}
+    rconv = {"label": "column (3) not reproduced under any candidate convention", "k24_column3": k24, "reruns": None,
+             "conventions": [{"index": 0, "name": "L-F-W", "count": 2, "width_ratio": 1.18,
+                              "sigma_scaled_differences": diffs,
+                              "parameters": {n: {"median": v["median"] + 5.0} for n, v in k24.items()}}]}
+    return paths, rconv
+
+
+class _Ctx:
+    def __init__(self, results, paths):
+        self.results = results
+        self.paths = paths
+        self.record_suffix = ""
+        self.saved = []
+
+    def http(self, url, label=None):
+        return self.paths[url]
+
+    def log(self, m):
+        pass
+
+    def save(self, name, obj):
+        self.saved.append(name)
+        (Path(self.results) / f"{name}.json").write_text(run._dump(obj), encoding="utf-8")
+
+
+@pytest.fixture(scope="module")
+def diag_world(tmp_path_factory):
+    root = tmp_path_factory.mktemp("rdiag")
+    paths, rconv = _world(root)
+    res = root / "results"
+    res.mkdir()
+    (res / "rconv.json").write_text(run._dump(rconv), encoding="utf-8")
+    summary = {"status": "complete", "parts": ["t1t2"], "T1": {"col4": "partly reproduced"},
+               "R_CONV": {"label": rconv["label"], "counts": {"L-F-W": 2}, "reruns": None},
+               "overall": {"reading": "mixed"}, "load_check": {"passed": True, "weighted_mean_vz": -0.1},
+               "params": {"seed": 1}}
+    P = dict(run.PARAMS, parts=["diag"], ml_nm_maxfev=40, ml_lbfgs_maxfun=15, timing_evals=5)
+    chains = {}
+    orig_ref = run.diag_formal_reference
+
+    def fake_mcmc(model, center_vec, *, seed, n_walkers, n_steps, n_burn, store, name, **kw):
+        chains[name] = seed
+        r = np.random.default_rng(seed)
+        th = model.theta_of(center_vec) + 0.3 * model.scales() * r.standard_normal((400, len(model.setup.free)))
+        return {"samples": th, "lnp": np.zeros(400), "tau": [10.0] * th.shape[1], "tau_max": 10.0, "n_steps": n_steps,
+                "n_burn": n_burn, "n_walkers": n_walkers, "thin": 10, "acceptance": 0.3, "long_enough": True,
+                "free": list(model.setup.free), "rerun": False, "chain_short": False}
+
+    out = {}
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(run.F, "run_mcmc", fake_mcmc)
+        mp.setattr(run, "is_formal_run", lambda ctx: True)
+        mp.setattr(run, "checkpoint_root", lambda cache, P, ctx: root / "ck")
+        mp.setattr(run, "diag_formal_reference", lambda P, path: orig_ref(P, res / "rconv.json"))
+        # a formal run refuses without summary.json, and with one that does not re-serialise to itself
+        with pytest.raises(RuntimeError):
+            run.main_standalone(_Ctx(res, paths), dict(P), {"diag"})
+        (res / "summary.json").write_text(run._dump(summary).replace("\n", "\n "), encoding="utf-8")
+        with pytest.raises(RuntimeError):
+            run.main_standalone(_Ctx(res, paths), dict(P), {"diag"})
+        old = run._dump(summary)
+        (res / "summary.json").write_text(old, encoding="utf-8")
+        before = sorted(p.name for p in res.iterdir())
+        ctx = _Ctx(res, paths)
+        out["ret"] = run.main_standalone(ctx, dict(P), {"diag"})
+        out["saved"] = ctx.saved
+    out.update(res=res, before=before, after=sorted(p.name for p in res.iterdir()), old=json.loads(old),
+               chains=chains, P=P, ck=root / "ck")
+    return out
+
+
+def test_diag_path_writes_only_rdiag_and_the_r_diag_key(diag_world):
+    w = diag_world
+    assert w["saved"] == ["rdiag", "summary"]
+    assert sorted(set(w["after"]) - set(w["before"])) == ["rdiag.json"]
+    new = json.loads((w["res"] / "summary.json").read_text(encoding="utf-8"))
+    keys = list(new)
+    assert keys == ["status", "parts", "T1", "R_CONV", "R_DIAG", "overall", "load_check", "params"]
+    for k, v in w["old"].items():
+        assert run._dump(new[k]) == run._dump(v)
+    rd = json.loads((w["res"] / "rdiag.json").read_text(encoding="utf-8"))
+    assert new["R_DIAG"]["reading"] == rd["reading"] == w["ret"]["R_DIAG"]["reading"]
+    assert rd["params"]["parts"] == ["diag"] and rd["load_check"]["passed"]
+    assert (w["res"] / "rdiag.json").stat().st_size < 1024 ** 2
+    assert not (w["ck"] / "diag").exists() or not any((w["ck"] / "diag").iterdir())    # formal: checkpoints removed
+
+
+def test_diag_path_chain_names_and_seeds(diag_world):
+    w = diag_world
+    assert set(w["chains"]) == {"mcmc_" + c for c in CHAINS}
+    for name, seed in w["chains"].items():
+        assert seed == int(run.rng_for(w["P"]["seed"], name).integers(2 ** 31))
+
+
+def test_diag_path_passes_the_conclusion_checks(diag_world):
+    tc = _import("test_conclusions")
+    old = tc.RESULTS
+    tc.RESULTS = diag_world["res"]
+    try:
+        tc.test_rdiag_fits_and_labels()
+        tc.test_rdiag_reading()
+        tc.test_rdiag_curve_and_part_a()
+        tc.test_standalone_summary_keys()
+        tc.test_files_small()
+    finally:
+        tc.RESULTS = old

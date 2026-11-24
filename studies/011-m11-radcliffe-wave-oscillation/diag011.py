@@ -7,6 +7,7 @@ imports run.
 from __future__ import annotations
 
 import math
+from fractions import Fraction
 
 import numpy as np
 
@@ -37,7 +38,12 @@ def membership(rows, sightlines, *, k=3.0, floor=5.0, name_map=None):
     (compared exactly; ties to the row listed first). Gate: a row whose candidates all went to other rows is
     absorbed (dropped); otherwise it passes if it keeps >= 1 sightline whose mean lies within max(sig_a, floor)
     of p on every axis, else it falls back to its own 12CO point (no candidates, or the mean outside).
-    Returns one record per row: candidates, kept, status (pass | fallback | absorbed), absorbed_by, reason."""
+    Returns one record per row: candidates, kept, status (pass | fallback | absorbed), absorbed_by, reason, and
+    absorbed_rows (the rows it absorbed). A row absorbed by a row that then falls back leaves no point in S; the
+    fallback row lists it under absorbed_rows. floor must be > 0 (a zero spread would give a zero tolerance and
+    undefined scores)."""
+    if not floor > 0:
+        raise ValueError(f"the membership floor must be > 0 (got {floor!r})")
     name_map = NAME_MAP if name_map is None else name_map
     sx = np.column_stack([np.asarray(sightlines["x"], float), np.asarray(sightlines["y"], float),
                           np.asarray(sightlines["z"], float)])
@@ -63,7 +69,7 @@ def membership(rows, sightlines, *, k=3.0, floor=5.0, name_map=None):
         kept = [j for j in cands[i] if owner[j] == i]
         rec = {"name": r["name"], "mapped": name_map[r["name"]], "p": [float(a) for a in r["p"]],
                "sig": [float(a) for a in r["sig"]], "candidates": cands[i], "kept": kept,
-               "absorbed_by": None, "reason": None}
+               "absorbed_by": None, "reason": None, "absorbed_rows": []}
         if not cands[i]:
             rec.update(status="fallback", reason="no candidates")
         elif not kept:
@@ -78,6 +84,9 @@ def membership(rows, sightlines, *, k=3.0, floor=5.0, name_map=None):
             else:
                 rec.update(status="fallback", reason="mean of the kept sightlines outside max(spread, floor)")
         out.append(rec)
+    for rec in out:                                  # README 4.11 amendment 3: who absorbed whom
+        for b in rec["absorbed_by"] or []:
+            out[[r["name"] for r in rows].index(b)]["absorbed_rows"].append(rec["name"])
     return out
 
 
@@ -123,6 +132,7 @@ def consistency_table(members, zucker, w_s=None, s_rows=None, w79=None):
         kept = rec["kept"]
         row = {"name": rec["name"], "mapped": rec["mapped"], "n_candidates": len(rec["candidates"]),
                "n_kept": len(kept), "status": rec["status"], "reason": rec["reason"], "absorbed_by": rec["absorbed_by"],
+               "absorbed_rows": list(rec.get("absorbed_rows", [])),
                "mean_minus_p": None, "sd_over_spread": None}
         if kept:
             pts = sx[kept]
@@ -204,7 +214,7 @@ def curve_label(median_xy, p95_xy, n_excl_xy, n_total, *, match_median=5.0, matc
     else:
         lab = "differs from K24's published curve"
     if n_excl_xy > excl_frac * n_total:
-        lab += " (more than 10% of the points lie beyond our curve's ends)"
+        lab += f" (more than {round(100.0 * excl_frac, 6):g}% of the points lie beyond our curve's ends)"
     return lab
 
 
@@ -292,6 +302,11 @@ def d6_m6(diffs):
     return float(sum(a.values())), a[name], name
 
 
+def _frac(x):
+    """2/3 for 0.666..., 3/2 for 1.5 (the registered wording of the width range)."""
+    return str(Fraction(float(x)).limit_denominator(1000))
+
+
 def fit_status(count, ratio, *, repro_count=5, min_count=3, ratio_range=(2.0 / 3.0, 1.5)):
     """R-CONV's thresholds (README 4.10) applied to one fit: (status, reason)."""
     lo, hi = ratio_range
@@ -300,9 +315,9 @@ def fit_status(count, ratio, *, repro_count=5, min_count=3, ratio_range=(2.0 / 3
         return "not reproduced", None
     reasons = []
     if count < repro_count:
-        reasons.append(f"count {count} of 6 (3-4)")
+        reasons.append(f"count {count} of 6 ({min_count}-{repro_count - 1})")
     if not ok_w:
-        reasons.append(f"width ratio {ratio:.3f} outside [2/3, 3/2]")
+        reasons.append(f"width ratio {ratio:.3f} outside [{_frac(lo)}, {_frac(hi)}]")
     return ("reproduced", None) if not reasons else ("partly reproduced", "; ".join(reasons))
 
 

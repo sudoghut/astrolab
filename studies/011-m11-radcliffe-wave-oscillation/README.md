@@ -708,10 +708,12 @@ label above changes.
    are disclosed because they were seen.
 2. **(z☉) weights.** The fixed weights of the (z☉) fit are recomputed by the formal rule from the shifted clouds, as
    amendment 9 of section 4.9 does for variants (largest change 0.106 against the 79-row weights; recorded as
-   `weights_max_abs_change`). For (c) and c-ref they are the formal weights, as stated above.
+   `weights_max_abs_change`). For (c) and c-ref they are the formal weights, as stated above. The addendum did not
+   say which weights (z☉) uses; this recomputation is a choice made when writing the code.
 3. **Membership edge cases.** A row whose candidates went to several other rows is listed as absorbed by all of them; a
-   fallback row's own sightlines stay out of S (they are not handed to another row). Neither case occurs on the real
-   tables.
+   fallback row's own sightlines stay out of S (they are not handed to another row). A row absorbed by a row that then
+   falls back leaves no point in S at all; it is recorded under the fallback row (`absorbed_rows` in the consistency
+   table, `absorbed_into_fallback` in `rdiag.json`). None of these cases occurs on the real tables.
 4. **Part A's ln prior** is the same unnormalised Gaussian log prior as the log posterior's; Part C (ii)'s bound on c is
    the prior range of (c), [−400, 400] pc.
 5. **Cost.** One column-(3) likelihood takes about 0.73 ms on the 79 rows and 1.05–1.12 ms on S (about 1.5 times, not
@@ -925,7 +927,7 @@ How a coding agent answers "what if" questions about this study without touching
 | `parts` | which tests to run (`t1t2`, `t3`, `t4`, `t5`, `t6`, `t7`, `t8`); the column-(3)–(6) chains always run | any subset | cache only (the two tables, 16 KB; `["diag"]` also reads the three R-DIAG files of section 3, 113,017 bytes) |
 | `parts` = `["conv"]` or `["t8p"]` | README 4.10's post-hoc R-CONV (16 column-(3) conventions, the choice, the reruns) or T8-P (ω₀ with the divisor fixed at 74); standalone: never with the other parts, which are only read | one of them (both together only in an exploration) | cache only |
 | `parts` = `["diag"]` | README 4.11's post-hoc R-DIAG (Part A per-cloud terms, Part B the reconstructed sightline sample S with S_all and S+PT, Part C K24's published curve, Part D the origin of s free with c-ref and z☉ = 20.8 pc, the reading); standalone like `conv` | alone in a formal run; with `conv` / `t8p` only in an exploration | the two tables plus the three R-DIAG files (Zucker 2020, Alves 2020 bridging sightlines, K24's curve; 113,017 bytes via `ctx.http`, cached after the first run); needs `results/rconv.json` |
-| `rdiag_member_k`, `rdiag_member_floor_pc`, `rdiag_pt_names`, `rdiag_s_all_n`, `rdiag_pt_n` | R-DIAG Part B: tolerance k max(spread, floor) per axis (3, 5 pc), the gate max(spread, floor), the names added in S+PT, and the stop checks (S_all = 169, S+PT − S = 28) | k 2–4, floor 0–20 pc in an exploration (the stop checks then need the new counts) | cache only |
+| `rdiag_member_k`, `rdiag_member_floor_pc`, `rdiag_pt_names`, `rdiag_s_all_n`, `rdiag_pt_n` | R-DIAG Part B: tolerance k max(spread, floor) per axis (3, 5 pc), the gate max(spread, floor), the names added in S+PT, and the stop checks (S_all = 169, S+PT − S = 28) | k 2–4, floor > 0 (up to 20 pc) in an exploration; k and the floor change only S, so the stop checks still pass (only a change to `rdiag_pt_names` changes S+PT − S and then needs a new `rdiag_pt_n`) | cache only |
 | `rdiag_map_prior_draws`, `rdiag_top_n`, `rdiag_c_prior_pc`, `rdiag_c_scale_pc`, `rdiag_cref_s0_prior_pc`, `rdiag_c_halfwidth_max_pc`, `rdiag_zsun_pc`, `rdiag_d6_max`, `rdiag_m6_max`, `rdiag_curve_*` | R-DIAG Parts A, C, D and the reading: MAP starts (2 + 19), the ten largest Δᵢ, c ~ U(−400, 400) pc (also Part C's bound on c) with scale 100 pc, c-ref's flat s₀ U(−1,000, 3,000), the data-driven limit 100 pc, z☉ 20.8 pc, D₆ ≤ 8.781 and M₆ ≤ 3.192, the curve-label thresholds 5 / 15 / 20 pc and 10% (pre-registered values, README 4.11) | changed only in an exploration | cache only |
 | `conv_indices` | which conventions R-CONV fits (index = baseline·4 + σ·2 + weights; baseline L, C, Y, X; σ F, P; weights W, R) | any subset in an exploration; a formal run needs all 16 | cache only |
 | `conv_seed_offset`, `conv_min_count`, `conv_repro_count`, `conv_width_range`, `t8p_bound_frac` | R-CONV seeds and choice rule, T8-P bound rule (pre-registered values, README 4.10) | changed only in an exploration | cache only |
