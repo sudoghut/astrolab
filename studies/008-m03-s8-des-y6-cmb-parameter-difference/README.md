@@ -709,7 +709,7 @@ run never refits. Three variants, each a Gaussian mixture with a closed-form den
 Draws (as `sample` and `rows` in `explore/t063_surrogate_design.py`): for a row block from a generator, all DES rows
 first, then all CMB rows; each mixture draw is one uniform per row for the component (`searchsorted(cumsum(w), u,
 side="right")`, the index clipped to K − 1) followed by a standard-normal block (n, 6), mapped by the component's mean
-and Cholesky factor. Exact values: n_σ = √2 erf⁻¹(P(log p(X) > log p(0))) from 2,000,000 rows from
+and Cholesky factor. Exact values (Monte Carlo estimates of the closed-form densities' n_σ): n_σ = √2 erf⁻¹(P(log p(X) > log p(0))) from 2,000,000 rows from
 `default_rng(999)`, DS from the same rows with the DES Σmν column permuted by `default_rng(1000).permutation`:
 **n₆ = 1.3768, n_S = 0.6678, n₅ = 0.3341, φ_exact = 0.6800**. With seeds 998/997 they were 1.3798, 0.6684, 0.3348.
 The Monte Carlo standard errors at 2,000,000 rows are about 0.0008, 0.0006 and 0.0004, so the n₆ difference (0.003) is
@@ -740,7 +740,7 @@ cancels in the difference); the DS rows are the same draws with the DES Σmν co
 `default_rng(9000 + k).permutation(N)` before the difference; the D5 rows are the D6 rows without Σmν. A flow is
 trained on each with R6's settings and call (tensiometer defaults, `pop_size` not passed, `estimate_shift(tol=0.02,
 max_iter=1000, step=100000)`, TensorFlow seeded with k), giving n̂₆,k, n̂_S,k, n̂₅,k; φ̂_k = (n̂₆,k − n̂_S,k)/(n̂₆,k −
-n̂₅,k); b_k = φ̂_k − φ_exact. Environment as R6-SHUF-KA: the versions and flow settings must equal those recorded in
+n̂₅,k); b_k = φ̂_k − φ_exact; b̄ and s_b are the mean and the sample standard deviation (ddof = 1) over the ten seeds. Environment as R6-SHUF-KA: the versions and flow settings must equal those recorded in
 `results/r6.json` and `results/r6_shuf.json` (and are reported against `results/r6_ka.json`'s). Inputs to the qualifier: φ̄_R6 and s_φ,R6 (unrounded)
 from `results/r6_shuf.json` (`quantities.phi.mean` and `.s`), whose `label` must be the recorded "what Σmν adds is
 mainly through its correlations with the other DES parameters"; for the comparison, b̄_KA and s_b,KA from
@@ -757,7 +757,7 @@ mainly through its correlations with the other DES parameters"; for the comparis
 3. Any Ê_k = n̂₆,k − n̂₅,k ≤ 0.20, or s_b > 0.30 → "not evaluable" (R6-SHUF's limits).
 4. Otherwise I_b = b̄ ± 2 s_b/√10: I_b ⊂ (0, ∞) → **"flows overestimate φ on the surrogate (bias b̄)"**; I_b ⊂
    (−∞, 0) → **"flows underestimate φ on the surrogate (bias b̄)"**; otherwise → **"no bias of φ detected on the
-   surrogate (I_b = [..])"**. (The factor 2, not a t quantile with 9 degrees of freedom, as in section 2.9; the
+   surrogate (I_b = [..])"**. (Numbers in the label text rounded to three decimals; decisions use unrounded values. The factor 2, not a t quantile with 9 degrees of freedom, as in section 2.9; the
    interval with t₀.₉₇₅,₉ = 2.26 is reported beside it, descriptive.)
 
 *Qualifier of R6-SHUF (reported; fixed now).* Except under rules 1–3, exactly as section 2.9's with this test's b̄ and
