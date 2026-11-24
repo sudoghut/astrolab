@@ -239,6 +239,9 @@ def test_membership_rule_on_synthetic_rows():
 def test_membership_floor_must_be_positive_and_absorbed_into_fallback():
     rows = _rows([("A", (0, 0, 0), (0, 0, 0)), ("B", (2, 0, 0), (0, 0, 0))])
     sl = _sl([("X", 1, 0, 0)])
+    for k in (0.0, -2.0, float("nan"), float("inf")):
+        with pytest.raises(ValueError):
+            D.membership(rows, sl, k=k, name_map=NMAP)
     for floor in (0.0, -1.0):
         with pytest.raises(ValueError):
             D.membership(rows, sl, floor=floor, name_map=NMAP)

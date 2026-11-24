@@ -42,6 +42,8 @@ def membership(rows, sightlines, *, k=3.0, floor=5.0, name_map=None):
     absorbed_rows (the rows it absorbed). A row absorbed by a row that then falls back leaves no point in S; the
     fallback row lists it under absorbed_rows. floor must be > 0 (a zero spread would give a zero tolerance and
     undefined scores)."""
+    if not (math.isfinite(k) and k > 0):
+        raise ValueError(f"the membership factor k must be finite and > 0 (got {k!r})")
     if not floor > 0:
         raise ValueError(f"the membership floor must be > 0 (got {floor!r})")
     name_map = NAME_MAP if name_map is None else name_map
