@@ -636,7 +636,8 @@ each:
   Because the data fix s₀ + c near the envelope's peak (about 500 pc in our fit), the N(680, 200) prior on s₀ induces a
   prior on c of roughly N(−180, 200) pc. So a reference chain **(c-ref)** is run with the same setup but s₀ flat in
   U(−1,000, 3,000) pc, and c is read as **"data-driven"** if c-ref's 16–84% half-width of c is at most 100 pc (half of
-  that induced prior width), otherwise as **"prior-dominated"**; both chains' c posteriors are reported.
+  that induced prior width), otherwise as **"prior-dominated"**; both chains' c posteriors are reported. c-ref's count and labels are not
+  reported or used (it is not a third variant); its walkers start as in (c), around K24's column-(3) medians with c = 0.
 - **(z☉)** every cloud's z increased by 20.8 pc (the model has no free vertical offset, so A and φ absorb it).
 MCMC as section 4.2 (13 free parameters for (c) and c-ref), seeds by the `mcmc` rule with the names `rdiag_c`,
 `rdiag_cref` and `rdiag_zsun`;
