@@ -1189,6 +1189,8 @@ def check_r2_re_nu(chk, out, s, gtp):
     p = wf[0] + wf[1]
     assert abs(out["P_le4"] - p) < 1e-12 and abs(out["P_le4_inv_nu"] - (wi[0] + wi[1])) < 1e-12
     inside = out["stage1"]["scale_reference_inside_interval"]
+    lo, hi = out["stage1"]["interval_68"]
+    assert inside == (lo <= 0.0767 and (isinstance(hi, str) or 0.0767 <= hi))     # amendment 2: open upper end
     if p < 0.05 or p > 0.95:
         base = NU_LIGHT if p < 0.05 else NU_HEAVY
         suffix = inside is False
