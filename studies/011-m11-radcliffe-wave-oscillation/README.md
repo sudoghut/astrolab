@@ -858,6 +858,64 @@ its prior width), and with B = 1 and ω₀t = 0 fixed ω₀ effectively measures
 partly standing component or the tanh outlier truncation would bias; it is not a clean measure of the midplane
 density. The withdrawn T8 stays withdrawn.
 
+### 5.2 R-DIAG (post hoc, addendum 4.11, T-061; run 2026-11-24)
+
+A standalone run (`parts` ["diag"], commit ed915e7; set back to the default with the results, commit 028fc1f), threads
+not limited, cache only: 6,617 s (1.8 h). Load check passed (weighted mean v_z −2.18 km/s). Samples as registered: S 149
+points (95 sightlines, no fallback row, NorthAmericaNebula absorbed by NorthAmerica), S_all 169, S+PT 177. Numbers:
+`results/rdiag.json`, `summary.json` key `R_DIAG`. All post hoc; the formal labels, the overall reading, T6 and R-CONV
+stay as recorded.
+
+**Reading (by the rule of section 4.11): "the reconstructed sightline sample accounts for part of the column-(3)
+difference"** (from S: D₆ 7.659 ≤ 8.781 and M₆ 2.674 ≤ 3.192). Part of this gain may come from the larger total kernel
+weight of S rather than from the sample itself (section 6, point 3; a control is registered as T-065).
+
+| Fit | Points | Count (inside) | D₆ | M₆ | Width ratio | Label |
+|---|---|---|---|---|---|---|
+| formal L-F-W (R-CONV, for reference) | 79 | 2 (s₀, γ) | 9.781 | 3.692 (φ) | 1.18 | not reproduced |
+| S | 149 | 3 (δ, s₀, γ) | 7.659 | 2.674 (φ) | 1.07 | partly reproduced |
+| S_all (reported only) | 169 | 3 (A, s₀, γ) | 7.159 | 3.256 (p) | 1.01 | partly reproduced |
+| S+PT | 177 | 4 (A, δ, s₀, γ) | 4.738 | 1.724 (φ) | 1.05 | partly reproduced |
+| (c) origin free | 79 | 3 (A, p, s₀) | 6.516 | 1.866 (δ) | 1.21 | partly reproduced by the rule; **withdrawn as uninformative** (section 6, point 1) |
+| (z☉) +20.8 pc | 79 | 1 (p) | 17.598 | 8.503 (φ) | 0.98 | not reproduced |
+
+- **Part B.** With S, δ moves from −2.1σ to −0.4σ; A comes inside only with S+PT (−0.5σ; −1.4σ in S); φ stays
+  outside (+2.7σ in S, +1.7σ in S+PT, against +3.7σ formally) and the first anchor stays about −1.7σ / −2.4σ off in x₀ /
+  y₀. The anchors slide along the curve with the origin (section 6, point 2), so their σ-differences are not read as
+  geometry differences. S_all has σ_P = 130 pc at its median (a few far sightlines dominate a likelihood with no
+  outlier cap); it is reported only, as registered.
+- **Part A.** At K24's column-(3) medians our 79-row ln L is 108.9 lower than at our MAP point (ln posterior −807.57
+  from 21 starts). The 54 bridging sightlines carry 77.4 of this and the named rows 31.5; the largest single terms are
+  four bridging sightlines near l ≈ 222°, b ≈ −6° (4.2–4.7 each), IC5146 (4.5) and S106 (3.7). The bridging rows are
+  the same in S, so S does not touch most of the per-object difference.
+- **Part C.** Our curve at K24's column-(6) medians **matches K24's published curve**: x–y distance median 0.80 pc, 95th
+  percentile 1.30 pc (maximum 2.26 pc), no point excluded at our curve's ends; in 3-D the median is 66 pc (the
+  published z depends on which posterior point K24 drew). The least-squares fit of our curve to the published points
+  reaches an RMS of 0.68 pc (from 70.2 pc). Because the origin c is degenerate with p, γ, φ and s₀ (section 6, point 1),
+  only this RMS is read, not the fitted parameters or c.
+- **Part D.** (c): c = −245 (+140/−101) pc; the reference chain c-ref (s₀ flat) gives −216 (+152/−121) pc, half-width
+  137 pc > 100 pc, so c is **"prior-dominated"** and Part D does not enter the reading. Post hoc (referee): c is exactly
+  degenerate with p, γ, φ and s₀ (the curve, ζ and the validity mask are unchanged under p′ = (p + γc)²/p, γ′ = γ(p +
+  γc)/p, φ′ = φ − 2πc/(p + γc), s₀′ = s₀ + c), so the likelihood is flat in c and c is set by the priors alone: c-ref
+  could not have been "data-driven", and section 4.11's statement that c "is constrained jointly with p, γ and the
+  anchors" was wrong. The (c) label is computed by the rule but withdrawn as uninformative. By the referee's
+  computation (not saved), no single c brings p, γ, φ and s₀ inside together, so the origin of s does not account for
+  the difference. (z☉): with z shifted by +20.8 pc and the weights recomputed (largest change 0.106) the fit moves
+  further away (φ +8.5σ); the model has no free z offset, so a large change is expected and says little.
+- **Chains.** Every chain was extended from 4,000 to 12,000 steps by the rule and every one still carries the "chain
+  short" flag (τ_max 180–244, 8,000 post-burn steps, 33–44τ). With about 1,500 independent samples per chain the
+  medians' Monte Carlo error is about 0.03 posterior σ, far below the margins of S (1.12 in D₆, 0.52 in M₆).
+- **Seen before the run.** The short-chain exploration disclosed in section 4.11 (amendment 1) had printed S
+  "reproduced" (count 5) and (c) "reproduced" with a c-ref half-width of 92 pc; the formal run gives S count 3 and a
+  c-ref half-width of 137 pc. The formal numbers replace the exploration's.
+
+**Reading (post hoc).** With K24's per-sightline cloud positions (S), column (3) moves from 2 to 3 of 6 parameters
+inside K24's ranges (4 with the Perseus and Taurus points), and D₆ from 9.8 to 7.7 (4.7), mostly through the envelope
+width δ; the phase φ and the first anchor stay off. So the input sample is part of the column-(3) difference, but not
+all of it, and part of the gain may be the larger total weight of 149 points against the priors (T-065). The origin of
+s cannot explain the rest (it is exactly degenerate), and a fixed z☉ shift makes it worse. Most of the per-object
+difference at K24's medians sits in the 54 bridging sightlines, which S does not change.
+
 ## 6. Referee notes
 
 ### Referee of the formal run (2026-11-21)
@@ -900,6 +958,26 @@ T8-P likelihood, and found both labels applied as written. Triage:
 | 8 | Literature: Alves et al. 2020 (arXiv:2001.08748), Zucker et al. 2020 (arXiv:2001.00591), Edenhofer et al. 2024 (arXiv:2308.01295), Zhu et al. 2024 (arXiv:2402.15346), Li & Chen 2022 (arXiv:2112.08390), McKee et al. 2015 (arXiv:1509.05334) | Alves et al. 2020 is cited in the wiki; the others are the referee's IDs, not verified | Noted; not used |
 | 9 | Most important additional test: on the 79 clouds, ln L and the per-cloud d² at K24's column-(3) medians against our MAP (L-F-W); then refits with the origin of s shifted by ±200 pc and with z + 20.8 pc | – | Registered as T-061 |
 
+### Referee of R-DIAG (2026-11-24)
+
+The independent referee was a subagent. It saw README sections 1–4 (with 4.11 and its amendments), `diag011.py`,
+`wave011.py`, `fit011.py`, the diag part of `run.py`, `test_rdiag.py` and `results/rdiag.json`, not sections 5–7 or
+log.md. It ran `test_rdiag.py` (21 passed) and recomputed every label from `rdiag.json`: all match the rules of section
+4.11, with no threshold moved. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The origin c is exactly degenerate: Λ(s) is a Möbius function of s, and p′ = (p + γc)²/p, γ′ = γ(p + γc)/p, φ′ = φ − 2πc/(p + γc), s₀′ = s₀ + c give the same curve, ζ and validity mask for any c (numerically 1e−7 pc at c = −245). The likelihood is flat in c, its posterior comes from the priors on p, γ, φ, s₀, c-ref could never be "data-driven", and Part C (ii)'s parameters are one point of a flat valley | yes (analytic, from `wave011.wave_on_grid`: ζ depends on s − c − s₀, and p − γ(s − c) = (p′ − γ′s)·p/(p + γc)) | **Accepted, post hoc (2026-11-24):** the (c) label is computed by the rule but withdrawn as uninformative; section 4.11's "constrained jointly" is wrong; only the RMS of Part C (ii) is read. The reading is unchanged (c-ref was "prior-dominated", so Part D was not used). By the referee's computation (not saved), no single c brings p, γ, φ and s₀ inside together |
+| 2 | Anchor 0 is nearly degenerate with the origin too: our anchor 0 lies on K24's curve about 128 pc before theirs along it, so the x₀/y₀ offsets are mostly a slide along the curve | the referee's computation | **Accepted:** anchor σ-differences are not read as geometry differences (section 5.2) |
+| 3 | Kernel weights are normalised to the number of points, so S carries a total weight of 149 against 79 at fixed σ; the likelihood weighs about 1.9 times more against tight priors, and the main gain (δ) may come from data weight rather than the sample | yes (section 4.11, Part B; README 4.1) | **Accepted limitation:** the reading is qualified in section 5.2; a weight control (the 79-row chain with every weight × 149/79) is registered as T-065 |
+| 4 | Part A: the bridging sightlines carry 77.4 of the 108.9 between K24's medians and our MAP point, and they are the same in S | yes (`rdiag.json` `part_a`) | **Accepted;** stated in section 5.2 |
+| 5 | S_all has σ_P = 130 pc at its median; far sightlines dominate, so its p (−3.3σ) is not interpretable | yes | Noted; S_all is reported only, as registered |
+| 6 | (z☉) shifts the data by +20.8 pc with no free offset in the model, so a large change (φ +8.5σ) was expected | yes | Noted in section 5.2 |
+| 7 | Every chain is flagged short (τ_max 180–244, 33–44τ), but about 1,500 independent samples give a Monte Carlo error of about 0.03σ, far below the margins (1.12 in D₆, 0.52 in M₆) | yes | Noted; the labels are unaffected |
+| 8 | c-ref reaches towards the −400 pc bound (16th percentile −337), so its half-width (137 pc) is truncated by the bound | yes | Noted; "prior-dominated" holds, conservatively |
+| 9 | Literature: Zucker et al. 2020 (arXiv:2001.00591), Alves et al. 2020 (arXiv:2001.08748), Edenhofer et al. 2024 (arXiv:2308.01295); none explains the φ/δ difference directly | – | Noted |
+| 10 | Most important additional test: the weight control of point 3 | – | Registered as T-065 |
+
 ## 7. Open questions
 
 - Which convention reproduces K24's clouds-only fit (column (3))? Candidates: the curve starting at
@@ -910,7 +988,12 @@ T8-P likelihood, and found both labels applied as written. Triage:
   recomputed weights) reproduces column (3); all give the same two inside and four outside. Still open: the origin of
   s and the form of Λ(s), a z offset of the Sun, and whether our 79 clouds and their positions are K24's (a per-cloud
   diagnostic at K24's medians, T-061); also held fixed in all conventions: the ln(2πσ²) constant of eq. 11 (it matters
-  only under P) and priors centred near K24's results, which attenuate our offsets.
+  only under P) and priors centred near K24's results, which attenuate our offsets. **Partly answered by R-DIAG
+  (2026-11-24, T-061, section 5.2):** with the reconstructed per-sightline sample column (3) is partly reproduced (3 of
+  6; 4 with Perseus and Taurus), while φ and the first anchor stay off; the origin of s cannot help (it is exactly
+  degenerate with p, γ, φ and s₀), and a fixed z☉ shift makes it worse. Still open: whether the gain comes from the
+  sample or from its larger total kernel weight (T-065), and the 54 bridging sightlines, which carry most of the
+  per-object difference at K24's medians.
 - T8 needs a likelihood that is proper in ω₀ when the v_z divisor is fitted (for example an untruncated
   velocity term, or a fixed divisor with ω₀ entering only through the frequency); as pre-registered it
   is uninformative (section 6, point 1). **Answered by T8-P (2026-11-22, T-056, section 5.1):** with the divisor
