@@ -697,8 +697,8 @@ affine image of a difference in R6's units and every n_σ is unchanged by the ma
 replacement by weight (`default_rng(7000)` for DES, `default_rng(7001)` for CMB); a full-covariance Gaussian mixture is
 fitted to them with scikit-learn 1.5.1's `GaussianMixture` (n_init 4, max_iter 2000, tol 10⁻⁵, reg_covar 10⁻⁶,
 random_state 0) for K = 1–8; the K with the lowest BIC is kept (K = 8 for both). The fitted weights, means and
-Cholesky factors and the standardisation are committed as `surrogate_t063.json` (copied from the design output;
-SHA-256 of its bytes with `\n` line endings `ba050dc4b15c945c2185398c21b97d0c8116208afc872bd71c842592323aff76`), so the
+Cholesky factors and the standardisation are committed as `surrogate_t063.json` (the design output's content; its
+keys `exact`/`exact_check` renamed `exact_design`/`exact_check_design` and a note added; SHA-256 of its bytes with `\n` line endings `ba050dc4b15c945c2185398c21b97d0c8116208afc872bd71c842592323aff76`), so the
 run never refits. Three variants, each a Gaussian mixture with a closed-form density, in standardised units:
 - **D6**: a − c, a drawn from the DES mixture and c from the CMB mixture (64 components);
 - **DS**: as D6, but a's Σmν drawn independently of a's other five (the DES mixture's Σmν marginal times its
@@ -706,12 +706,16 @@ run never refits. Three variants, each a Gaussian mixture with a closed-form den
   correlations, as R6-SHUF's (S) does; its rows are the D6 rows with the DES Σmν column permuted before the
   difference, as R6-SHUF's (S) (which gives the product asymptotically);
 - **D5**: Σmν dropped (the five-parameter marginal of D6).
-Draws: for a row block from a generator, all DES rows first, then all CMB rows; each mixture draw is one uniform per
-row for the component (`searchsorted` on the cumulative weights) followed by a standard-normal block (n, 6), mapped by
-the component's mean and Cholesky factor. Exact values: n_σ = √2 erf⁻¹(P(log p(X) > log p(0))) from 2,000,000 rows from
+Draws (as `sample` and `rows` in `explore/t063_surrogate_design.py`): for a row block from a generator, all DES rows
+first, then all CMB rows; each mixture draw is one uniform per row for the component (`searchsorted(cumsum(w), u,
+side="right")`, the index clipped to K − 1) followed by a standard-normal block (n, 6), mapped by the component's mean
+and Cholesky factor. Exact values: n_σ = √2 erf⁻¹(P(log p(X) > log p(0))) from 2,000,000 rows from
 `default_rng(999)`, DS from the same rows with the DES Σmν column permuted by `default_rng(1000).permutation`:
-**n₆ = 1.3768, n_S = 0.6678, n₅ = 0.3341, φ_exact = 0.6800**. With seeds 998/997 they were 1.3798, 0.6684, 0.3348
-(differences within the Monte Carlo standard errors of about 0.002; not the precision of the rule below). The run
+**n₆ = 1.3768, n_S = 0.6678, n₅ = 0.3341, φ_exact = 0.6800**. With seeds 998/997 they were 1.3798, 0.6684, 0.3348.
+The Monte Carlo standard errors at 2,000,000 rows are about 0.0008, 0.0006 and 0.0004, so the n₆ difference (0.003) is
+about 2.7 standard errors of a difference, a chance fluctuation of that size among three comparisons being not
+unusual; the Monte Carlo error of φ_exact is about 0.001. These are not the precision of the rule below, which compares
+a recomputation with the same seeds (deterministic). The run
 recomputes them from the committed file with the same code and generators; a difference above 0.005 in any of them is
 rule 1.
 
@@ -721,7 +725,13 @@ rule 1.
 reproduces) and so shortens the difference, or the flows read the data high, or both; this addendum cannot tell which.
 So the surrogate matches the data's structure (its two chains, the DES-side and CMB-side correlations, (S) as
 R6-SHUF builds it) better than R6-SHUF-KA's family, but not its n_σ values; n₅ in particular is not matched by either
-test (0.33 and 0.37 against 0.52).
+test (0.33 and 0.37 against 0.52). Two further limits of the transfer: the data's rows are partly discrete (each side's
+100,000 rows are resampled from chains with ESS about 10,000, so each DES row appears about ten times, paired with
+different CMB rows), while the surrogate's rows are continuous draws, so a flow bias tied to that structure is not
+tested; and the mixtures have no hard prior edges (the DES mixture puts 4.2% of its Σmν mass outside the prior [0.06,
+0.6] eV, the CMB mixture 0.8%), so behaviour at those edges is not tested either. The DES mixture's linear R² of Σmν on
+the other five parameters is 0.867 (the chain's: 0.87, section 5), a check made by the gate-1 reviewer after the
+draft.
 
 *Method.* Seeds k = 25–34 (ten seeds; as TensorFlow seeds they overlap none used by R6, R6-NOMNU, R6-SHUF, R6-SHUF-KA
 or the gates: 0–4, 10–12, 15–24). For seed k: N = 100,000 D6 rows from `default_rng(8000 + k)` (DES block, then CMB
@@ -731,28 +741,35 @@ cancels in the difference); the DS rows are the same draws with the DES Σmν co
 trained on each with R6's settings and call (tensiometer defaults, `pop_size` not passed, `estimate_shift(tol=0.02,
 max_iter=1000, step=100000)`, TensorFlow seeded with k), giving n̂₆,k, n̂_S,k, n̂₅,k; φ̂_k = (n̂₆,k − n̂_S,k)/(n̂₆,k −
 n̂₅,k); b_k = φ̂_k − φ_exact. Environment as R6-SHUF-KA: the versions and flow settings must equal those recorded in
-`results/r6.json`, `results/r6_shuf.json` and `results/r6_ka.json`. Inputs to the qualifier: φ̄_R6 and s_φ,R6 (unrounded)
-from `results/r6_shuf.json`, whose label must be the recorded one; for the comparison, b̄_KA and s_b,KA from
-`results/r6_ka.json`, whose label must be the recorded one.
+`results/r6.json` and `results/r6_shuf.json` (and are reported against `results/r6_ka.json`'s). Inputs to the qualifier: φ̄_R6 and s_φ,R6 (unrounded)
+from `results/r6_shuf.json` (`quantities.phi.mean` and `.s`), whose `label` must be the recorded "what Σmν adds is
+mainly through its correlations with the other DES parameters"; for the comparison, b̄_KA and s_b,KA from
+`results/r6_ka.json` (`numbers.b_bar` and `numbers.s_b`), whose `label` must be the recorded "no bias of φ detected
+(I_b = [-0.006, 0.045])".
 
 *Label R6-SHUF-KA2 (rules in order; the first that applies decides).*
-1. The versions or flow settings differ from the recorded ones; `surrogate_t063.json`'s hash differs from the one
-   above; an exact value differs from the numbers above by more than 0.005; or `results/r6_shuf.json` or
-   `results/r6_ka.json` is missing or its label differs from the recorded one → "not evaluable".
+1. The versions or flow settings differ from the recorded ones (those of `results/r6.json` and
+   `results/r6_shuf.json`); `surrogate_t063.json`'s hash differs from the one above; one of n₆, n_S, n₅ recomputed
+   differs from the numbers above by more than 0.005 (φ_exact is then computed from the recomputed three); or
+   `results/r6_shuf.json` is missing or its label differs from the recorded one → "not evaluable". (A missing or
+   changed `results/r6_ka.json` makes only the comparison below "not evaluable".)
 2. Any training fails, is non-finite, has not converged or is a lower bound → "not evaluable".
 3. Any Ê_k = n̂₆,k − n̂₅,k ≤ 0.20, or s_b > 0.30 → "not evaluable" (R6-SHUF's limits).
 4. Otherwise I_b = b̄ ± 2 s_b/√10: I_b ⊂ (0, ∞) → **"flows overestimate φ on the surrogate (bias b̄)"**; I_b ⊂
    (−∞, 0) → **"flows underestimate φ on the surrogate (bias b̄)"**; otherwise → **"no bias of φ detected on the
-   surrogate (I_b = [..])"**.
+   surrogate (I_b = [..])"**. (The factor 2, not a t quantile with 9 degrees of freedom, as in section 2.9; the
+   interval with t₀.₉₇₅,₉ = 2.26 is reported beside it, descriptive.)
 
 *Qualifier of R6-SHUF (reported; fixed now).* Except under rules 1–3, exactly as section 2.9's with this test's b̄ and
 s_b: w = 2√(s_φ,R6²/5 + s_b²/10), I_φ,corr = (φ̄_R6 − b̄) ± w, read in order: ⊂ [0.60, ∞) → "R6-SHUF's label holds after
 the surrogate correction"; ⊂ (−∞, 0.40] → "R6-SHUF's label reverses after the surrogate correction"; otherwise, if
 φ̄_R6 − w < 0.60 → "surrogate correction not decisive (test too noisy: w = ..)"; otherwise → "R6-SHUF's label is not
 decided after the surrogate correction". It is reported next to R6-SHUF's label and R6-SHUF-KA's qualifier, which
-stay as recorded.
+stay as recorded; neither qualifier supersedes the other, and both are shown wherever R6-SHUF's label appears
+(section 5, the root tables, `STATUS.md`, the claim, the wiki).
 
-*Comparison with R6-SHUF-KA (reported; fixed now).* Except under rules 1–3: Δb = b̄ − b̄_KA with standard error
+*Comparison with R6-SHUF-KA (reported; fixed now).* Except under rules 1–3, and "not evaluable" if
+`results/r6_ka.json` is missing or its label differs from the recorded one: Δb = b̄ − b̄_KA with standard error
 σ_Δ = √(s_b²/10 + s_b,KA²/10) (independent seed sets): |Δb| > 2σ_Δ → "the bias of φ differs between the family and the
 surrogate (Δb = ..)"; otherwise → "no difference in the bias of φ detected between the family and the surrogate (Δb =
 .. ± ..)". (The R6-SHUF-KA referee suggested reading a move of b̄ by ≳ 0.01 as a dependence on the distribution; with
@@ -762,13 +779,14 @@ s_b ≈ 0.04 per test, σ_Δ ≈ 0.018, so a move of 0.01 cannot be resolved by 
 n_v,exact with s, and their comparison with R6-SHUF-KA's (−0.073, −0.116, −0.098); s_b; I_b; w; I_φ,corr; Δb and σ_Δ;
 the surrogate's exact values next to the data's flow values.
 
-*Expected outcome (stated now).* R6-SHUF-KA's s_b = 0.040 suggests s_b ≈ 0.04 here too (I_b half-width ≈ 0.025,
-w ≈ 0.041; the "test too noisy" branch would need s_b ≳ 0.10). At the surrogate's exact point (E = n₆ − n₅ = 1.04,
+*Expected outcome (stated now).* R6-SHUF-KA's s_b = 0.040 with per-variant scatter of about 0.05, and the larger
+sensitivities here (below; |∂φ/∂n_S| about 1.4 times the family's), suggest s_b ≈ 0.04–0.06 (I_b half-width ≈
+0.025–0.04, w ≈ 0.041–0.050; the "test too noisy" branch would need s_b ≳ 0.10). At the surrogate's exact point (E = n₆ − n₅ = 1.04,
 smaller than the family's 1.44) ∂φ/∂n₆ ≈ 0.31, ∂φ/∂n_S ≈ −0.96 and ∂φ/∂n₅ ≈ 0.65, so equal offsets weigh more than on
 the family. Linearised, R6-SHUF-KA's mean offsets (−0.073, −0.116, −0.098) would give b ≈ +0.025, and R6's gate offsets
 (n₆ +0.025, n_S −0.028, n₅ +0.009) b ≈ +0.040; both positive, mainly through n_S. Our guess: "no bias of φ detected on
 the surrogate" or "flows overestimate φ", about equally likely, with b̄ of a few hundredths; the qualifier "holds" if
-b̄ ≲ 0.03 and "not decided" above (φ̄_R6 − 0.60 − w ≈ 0.030); "no difference detected" in the comparison.
+b̄ ≲ 0.02–0.03 (φ̄_R6 − 0.60 − w for the w above) and "not decided" above; "no difference detected" in the comparison.
 
 *Runtime.* R6-SHUF-KA's 30 trainings took 18,812 s (5.2 h; 421–1,214 s each); 30 trainings here ≈ 5–6.5 h in venv-tf
 (`TF_USE_LEGACY_KERAS=1`, through the project venv's subprocess as for R6), plus the exact values (the design script's fits and two
@@ -779,7 +797,8 @@ alone; R1–R5 run as usual; R6, R6-NOMNU, R6-SHUF and R6-SHUF-KA read, not reru
 1.3768, "S": 0.6678, "n5": 0.3341}`, `"r6_ka2_seed_offsets": [8000, 9000]`; output `results/r6_ka2.json`, and a key
 `r6_ka2` in the run summary. Code checks before the formal run (no flow): the mixture densities against direct sums of
 Gaussian densities and the DS density's marginals against the DES mixture's; DS rows have the product marginals;
-identical draws under the TF environment's numpy (2.5.5) and the project's (1.26.4); the rule order, the qualifier and
+under the TF environment's numpy (2.5.5) and the project's (1.26.4), bit-identical generator streams and mapped
+rows equal within 10⁻¹² (a failure blocks the formal run until explained); the rule order, the qualifier and
 the comparison. None of this code exists yet apart from the design script.
 
 ## 3. Data (with size estimate)
