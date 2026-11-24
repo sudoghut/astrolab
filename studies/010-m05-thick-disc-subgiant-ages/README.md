@@ -1087,7 +1087,8 @@ verdicts, not as a verdict on XR22's claim.
     e = r·τ, e = r·A, split-normal e = r·τ, e = r·A); mock j of set k draws its catalogue and fit (o) from
     `default_rng([seed, 64, k, j])` and fit (i) from `default_rng([seed, 164, k, j])`. No other mock stream uses
     tags 64 or 164 (numpy treats trailing zeros as absent, so mock 0 of set 0 shares its seed with the original
-    R1's set 64, `default_rng([seed, 64])`; the uses are unrelated, as for tag 59 in 2.8).
+    R1's set 64, `default_rng([seed, 64])`; the uses are unrelated, as for tag 59 in 2.8; likewise part B's replicate b = 0, j = 0 below shares its seed with
+    the original R1's set 65).
   - *Recorded per mock* (added fields; no number of R1-SEL-FIT, R1-ERR or R1-ERRCAL changes): d, valley,
     valley age, young-side edge, K, how often fit (i) was used, and for the chosen K fit the number of
     components at each bound of `m0.fit_mixture`: log σ within 10⁻⁶ of ln 0.1 or of ln 10, μ within 10⁻⁶ of
@@ -1124,7 +1125,7 @@ verdicts, not as a verdict on XR22's claim.
 | not reproduced | not reproduced | unchanged; the null at g adds nothing against "not reproduced" |
 | not reproduced | undetermined | **power lost under the null at g**: with the mismatched threshold fewer than three bins are resolvable, so "not reproduced at 2.81" is not calibrated against that null; the bins that lost power are named |
 
-The rule cannot turn "not reproduced" into "reproduced": a lower d*_mm only removes almost-disjoint or
+An R1-ERRMM verdict "not evaluable (…)" gives no reading at that g. The rule cannot turn "not reproduced" into "reproduced": a lower d*_mm only removes almost-disjoint or
 resolvable bins. No reading says which f is true.
 
 - **Part B: bootstrap of the data's d at F = 2.81.** For each metal-poor bin, B = 100 replicates, shared by the
@@ -1159,7 +1160,7 @@ resolvable bins. No reading says which f is true.
     R1-ERRCAL's at 2.81 is reported (a failed replicate counts as not equal); R1-ERRCAL's 2.81 verdict is
     called **stable under resampling** if that fraction is at least 0.80 and **unstable** otherwise. If
     replicate 100's verdict differs from R1-ERRCAL's, that is stated and the fraction is also given against
-    replicate 100's verdict. With `errmm_n_boot` ≠ 100 (an exploration) no reading is given.
+    replicate 100's verdict; if replicate 100 fails, that is stated and no fraction against it is given. With `errmm_n_boot` ≠ 100 (an exploration) no reading is given.
 
 - **Checks.** (a) Before any mock: `r1_errcal.json` has status "evaluated" and its `params` equal the current
   PARAMS except `parts` and the `errmm_*` keys; for each variant and bin the K = 1–4 mixture fits at 1.5 made
@@ -1176,7 +1177,7 @@ resolvable bins. No reading says which f is true.
   Term E's label reads "not reproduced" or, if two metal-poor bins lose power, "undetermined" for each g; it
   cannot read "reproduced". For term N and Full each of these cut-offs lies below the data's d in its bin, so a
   bin can lose power only where it has already stopped being almost disjoint: they read "reproduced" for a given
-  g if and only if d*_mm stays above the data's d in all three metal-poor bins (above 0.0627 / 0.2419 / 0.1449
+  g if and only if d*_mm stays above the data's d in all three metal-poor bins (about 0.0627 / 0.2419 / 0.1449
   in term N, 0.0537 / 0.2316 / 0.1422 in Full), and "not reproduced" or "undetermined" otherwise. Our guess:
   with g = 1.0 the fit at 2.81 over-deconvolves and produces valleys in some null mocks, but rarely three as deep
   as 0.24 in a set of 50, so term N and Full keep "reproduced" at g = 1.5 and possibly lose it at g = 1.0; the
@@ -1189,8 +1190,8 @@ resolvable bins. No reading says which f is true.
   so a mismatched null at 2.0 could only add "undetermined".
 
 - **Runtime and machine.** R1-ERRCAL's null mocks at 2.81 took 9.36 s (term E), 3.11 s (term N) and 2.98 s
-  (Full) on average, 5.15 s overall. Estimate: 3,600 mocks ≈ 5–6 h, 909 replicates × 3 variants ≈ 2–4 h, the
-  nine fits at 1.5 about 15 min; 7–10 h in all, on an otherwise idle machine (no other study running), with the
+  (Full) on average, 5.15 s overall. Estimate: 3,600 mocks ≈ 5–6 h, 303 replicates × 3 variants (909 fits) ≈ 1–2 h,
+  the nine fits at 1.5 about 15 min; 6.5–8.5 h in all, on an otherwise idle machine (no other study running), with the
   default thread settings recorded as in 2.8 (`threads`). R1-ERRCAL's first session was ended by Claude Code
   for lack of memory; the peak memory of the run is recorded (`selaux.peak_memory_mb`). Checkpoints per mock
   and per replicate in the system cache (`s010_errmm_mocks`, explorations under
