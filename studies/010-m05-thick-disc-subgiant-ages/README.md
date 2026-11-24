@@ -1048,114 +1048,157 @@ verdicts, not as a verdict on XR22's claim.
   component sits at the lower width bound σ = 0.10 Gyr (and in bin [−0.7, −0.5) one at the mean's upper bound,
   25 Gyr), and a narrow peak lowers d by construction. Mocks drawn and fitted with the same f cannot show whether
   a fit that assumes too large an f creates such dips. If a unimodal latent drawn with the quoted errors (or
-  1.5 times them) and fitted with f = 2.81 often shows a valley with d < 0.25, the "reproduced at 2.81"
+  1.5 times them) and fitted with f = 2.81 often shows a valley as deep as the data's, the "reproduced at 2.81"
   readings of term N and Full (section 5.4) may come from the assumed f rather than the data. The referee also
   noted that the data's d has no uncertainty in the rule, while term N and Full pass by 0.008 and 0.018 in
   bin [−0.5, −0.3) and term E fails by 0.021.
 
 - **Seen before this addendum (disclosure).** Everything in sections 5–7 and `log.md`, in particular all of
   R1-ERRCAL's results: the 18 data and null fits at f (parameters, d, K, valley ages, edges), every mock's d and
-  valley flag (fitted with the f it was drawn with), d*, power and the labels. **Not seen:** any mock drawn with
-  one f and fitted with another (other than R1-ERR's, all fitted with f = 1), any null fit at f = 1.5, any
-  bootstrap of the data, and the component parameters of any mock fit.
+  valley flag (fitted with the f it was drawn with), including the per-mock d of its power sets (so the power
+  as a function of a lower threshold could be computed, and was, by the gate-1 review of this addendum: see
+  "What the outcome can be"), d*, power and the labels. **Not seen:** any mock drawn with one f and fitted with
+  another (other than R1-ERR's, all fitted with f = 1), any null fit at f = 1.5, any bootstrap of the data, and
+  the component parameters of any mock fit.
 
 - **Part A: mismatched-f null.** Pairs (g, F) of the draw scale g and the fit scale F: (1.0, 2.81) and
   (1.5, 2.81), in this order. The three metal-poor bins [−0.7, −0.5), [−0.5, −0.3), [−0.3, −0.1) in the three
   variants S15E (primary), S15N, Full, in this order.
   - *Generating models.* The two unimodal null families of the variant and bin fitted **at g**: at g = 1.0 the
     null fits recorded in `r1_sel.json` (`data_fits.<variant>_<bin>.skewnorm`, `.splitnorm`; the null
-    parameters behind R1-SEL-FIT's null mocks); at g = 1.5 new null fits, made by `run.r1_data_refit` with
-    `nulls=True` at f = 1.5 (R1-ERR's companion refit at 1.5, then the null fits on the same stream, exactly as
-    R1-ERRCAL's data fits at f).
+    parameters behind R1-SEL-FIT's and R1-ERR's null mocks); at g = 1.5 new null fits, made by
+    `run.r1_data_refit` with `nulls=True` at f = 1.5 (the K = 1–4 mixture fits of R1-ERR's companion refit at
+    1.5, then the null fits on the same stream, exactly as R1-ERRCAL's data fits at f).
   - *Catalogues.* R1-ERR's generator with true errors g·e (2.7: only the deviate is scaled; the catalogue error
     and the S15 cut on e/A as recorded), under both error mechanisms.
   - *Fits.* Every mock is fitted **with F**, by R1-ERRCAL's procedure (2.8): the model built with F (kernels
     and, for term E, the selection term from the mock parent's pass table, at width F·e), fit (o) from the data
-    fit at F (its mixture per K and, when it chose K = 4, its K = 5 fit) plus 2 perturbations, fit (i) from 8
-    data-independent starts per K, the better-fit rule with tie 0.01, BIC, the K = 5 rule and the 2.1
-    mode-matching rule.
+    fit at F plus 2 perturbations, fit (i) from 8 data-independent starts per K, the better-fit rule with tie
+    0.01, BIC, the K = 5 rule and the 2.1 mode-matching rule. The starts of fit (o) are R1-ERRCAL's data fit at
+    2.81 as recorded in `r1_errcal.json` (`data_fits["2.81"].<variant>[bin]`: `fits` with keys "1"–"4" read as
+    K = 1–4, and `k5` as K = 5; all nine chose K = 4 and have a K = 5 fit); JSON keeps the floats exactly.
   - *Sets.* Per (g, F, variant, bin) four null sets (skew-normal and split-normal × e = r·τ, e = r·A), 50 mocks
-    each: 2 × 3 × 3 × 4 = 72 sets, 3,600 mocks. No power sets are drawn: the power at F is R1-ERRCAL's
-    (the per-mock d and valley flags of its power sets in `r1_errcal.json`), evaluated at the new threshold.
-    Sets are numbered k = 0…71 in the loop nest pair > variant > bin > set (skew-normal e = r·τ, e = r·A,
-    split-normal e = r·τ, e = r·A); mock j of set k draws its catalogue and fit (o) from
-    `default_rng([seed, 64, k, j])` and fit (i) from `default_rng([seed, 164, k, j])`. Tags 64 and 164 are
-    used by no other stream.
+    each: 2 × 3 × 3 × 4 = 72 sets, 3,600 mocks. No power sets are drawn: the power at F is R1-ERRCAL's (the
+    per-mock d and valley flags of its power sets at 2.81, `r1_errcal.json` `per_set`), evaluated at the new
+    threshold. This is deliberate: "resolvable" keeps R1-ERRCAL's meaning (an idealised split with true errors
+    2.81·e). Power mocks drawn at g < F and fitted with F would probably be sharpened further and show equal or
+    higher power, so keeping R1-ERRCAL's power can only make a bin unresolvable more easily, which matters only
+    through "undetermined". Sets are numbered k = 0…71 in the loop nest pair > variant > bin > set (skew-normal
+    e = r·τ, e = r·A, split-normal e = r·τ, e = r·A); mock j of set k draws its catalogue and fit (o) from
+    `default_rng([seed, 64, k, j])` and fit (i) from `default_rng([seed, 164, k, j])`. No other mock stream uses
+    tags 64 or 164 (numpy treats trailing zeros as absent, so mock 0 of set 0 shares its seed with the original
+    R1's set 64, `default_rng([seed, 64])`; the uses are unrelated, as for tag 59 in 2.8).
   - *Recorded per mock* (added fields; no number of R1-SEL-FIT, R1-ERR or R1-ERRCAL changes): d, valley,
-    valley age, young-side edge, K, and for the chosen K fit the number of components at the lower width bound
-    (log σ within 10⁻⁶ of ln 0.1) and at the mean's upper bound (μ within 10⁻⁶ of 25 Gyr).
+    valley age, young-side edge, K, how often fit (i) was used, and for the chosen K fit the number of
+    components at each bound of `m0.fit_mixture`: log σ within 10⁻⁶ of ln 0.1 or of ln 10, μ within 10⁻⁶ of
+    −5 or of 25 Gyr.
+  - *Reported per set* (no verdict): the fraction with a valley; with a valley and d < 0.25; with a valley and
+    d below the data's d at 2.81 in that bin and variant; the d percentiles (5, 50, 80, 95) over all mocks and
+    over mocks with a valley; q_s; K chosen; use of fit (i); NLL rising with K; the mean pass rate; the median
+    valley age of mocks with a valley; the fraction of mocks whose chosen fit has a component at σ = 0.1 Gyr,
+    and at μ = 25 Gyr (and at the other two bounds); the mean time per mock. These answer the referee's
+    question descriptively, including dips that the 2.1 rule (3 of 50) does not count.
 
 - **Decision rule A (fixed now), per pair and variant.** Per bin, d*_mm = min(0.25, q₁, …, q₄) over the four
-  mismatched null sets (q_s the 3rd smallest null d of set s with a valley, ties counted; 0.25 if fewer than 3
-  mocks of the set have a valley), as 2.1 does for its own null sets. Resolvable: R1-ERRCAL's power sets at F
-  (both mechanisms) have power (a valley and d < d*_mm) ≥ 0.80, and the power model is valid. Almost disjoint:
-  R1-ERRCAL's data fit at F has a valley with d < d*_mm. The five-bin verdict at F is the 2.1 rule with the
-  metal-rich bins from R1-SEL-FIT, exactly as in 2.8 (amendment 7), with d*_mm in place of R1-ERRCAL's d*.
+  mismatched null sets (q_s the 3rd smallest d among the mocks of set s with a valley, ties counted; 0.25 if
+  fewer than 3 mocks of the set have a valley), as 2.1 does for its own null sets. Resolvable: R1-ERRCAL's power
+  sets at F have power (fraction with a valley and d < d*_mm) ≥ 0.80 under both mechanisms, and the power
+  model is valid. Almost disjoint: R1-ERRCAL's data fit at F has a valley with d < d*_mm. The five-bin verdict
+  at F is the 2.1 rule with the metal-rich bins from R1-SEL-FIT, exactly as in 2.8 (amendment 7), with d*_mm in
+  place of R1-ERRCAL's d*.
   - *Label R1-ERRMM* (S15 term E, primary): "nulls drawn at f = 1.0: <verdict at 2.81>; nulls drawn at
     f = 1.5: <verdict at 2.81>", the verdict being "reproduced", "not reproduced" or "undetermined". Term N and
     Full give the same label, reported next to it. The failure rules are R1-ERRCAL's, per pair and variant: a
     generator failure (`RuntimeError` of `mocks.catalogue_sel` or of the latent sampler) gives "not evaluable
-    (generator)" for that pair and variant and stops its further mocks; a non-finite d, valley, k or pass_rate
-    gives "not evaluable (non-finite)". If check (a) below fails, the whole label is "not evaluable
-    (reproduction)".
-  - *Reading (fixed now).* For a variant whose R1-ERRCAL verdict at 2.81 is "reproduced": if R1-ERRMM reads
-    "reproduced" for both g, its "reproduced at 2.81" is **robust to an f mismatch** (a unimodal latent with
-    true errors g·e, fitted with 2.81, rarely gives dips as deep as the data's); if it reads anything else for
-    some g, that reading is **f-mismatch sensitive** at that g (dips as deep as the data's arise from
-    over-deconvolution of a unimodal latent when the true errors are g·e). For a variant read "not reproduced"
-    at 2.81 the rule cannot give "reproduced" (a lower d* only removes almost-disjoint bins); its label is
-    reported with that remark. Neither reading says which f is true.
+    (generator)" for that pair and variant, is checkpointed with `gen_fail`, and stops its further mocks; else
+    a non-finite d, valley, k or pass_rate gives "not evaluable (non-finite)"; a set incomplete without a
+    generator failure stops the evaluation with an error. If check (a) fails, the whole label (and reading B)
+    is "not evaluable (reproduction)". With `errmm_n_mock` ≠ 50 (an exploration) no label is given, as in 2.8
+    amendment 8.
+  - *Reading A (fixed now)*, from R1-ERRCAL's verdict at 2.81 and R1-ERRMM's verdict at g:
 
-- **Part B: bootstrap of the data's d at F = 2.81.** For each variant and metal-poor bin, B = 100 replicates.
-  Replicate j resamples, with replacement, the bin's parent at its own size (the stars of the bin with finite
-  Age, e_Age > 0 and finite [Fe/H]: the parent from which term E's pass table is built and the S15 sample is
-  cut); the S15 sample of the replicate is the resampled stars with e_Age/Age < 0.15 and Age > 0, and term E's
-  pass table is rebuilt from the resampled parent, as for a mock. The
-  resample is fitted at F = 2.81 by the mock procedure above (fit (o) from the data fit at 2.81 plus 2
-  perturbations, fit (i) from 8 data-independent starts), so a replicate costs about one mock fit. Replicate
-  j of variant v and bin b draws its resample and fit (o) from `default_rng([seed, 65, code_v, b, j])` and
-  fit (i) from `default_rng([seed, 165, code_v, b, j])` (code_v as in `selaux.R1_CODES`; tags 65 and 165 are
-  used by no other stream). Replicate "−1", the unresampled data fitted by the same procedure, is recorded to
-  show how the cheaper procedure compares with R1-ERRCAL's 40-start data fit.
-  - *Recorded:* per replicate d, valley, valley age, edge, K and the bound counts; per (variant, bin) the 16th,
-    50th and 84th percentiles and the standard deviation of d (d = 1 without a valley) and the fraction of
-    replicates with a valley and d < 0.25.
+| R1-ERRCAL at 2.81 | R1-ERRMM at g | Reading at g |
+|---|---|---|
+| reproduced | reproduced | **robust to an f mismatch**: unimodal latents with true errors g·e, fitted with 2.81, rarely give dips as deep as the data's |
+| reproduced | not reproduced or undetermined | **f-mismatch sensitive**: such latents give dips as deep as the data's in some bin; the bins where d*_mm ≤ the data's d, and the set whose q_s set d*_mm, are named |
+| not reproduced | not reproduced | unchanged; the null at g adds nothing against "not reproduced" |
+| not reproduced | undetermined | **power lost under the null at g**: with the mismatched threshold fewer than three bins are resolvable, so "not reproduced at 2.81" is not calibrated against that null; the bins that lost power are named |
+
+The rule cannot turn "not reproduced" into "reproduced": a lower d*_mm only removes almost-disjoint or
+resolvable bins. No reading says which f is true.
+
+- **Part B: bootstrap of the data's d at F = 2.81.** For each metal-poor bin, B = 100 replicates, shared by the
+  three variants. The bin's parent is the stars of the bin with finite Age, e_Age > 0 and finite [Fe/H]
+  (`run.flags` `valid`), in catalogue row order, of size n_parent; it is the same for all three variants.
+  Replicate j (j = 0…99) draws `idx = rng.integers(0, n_parent, n_parent)` from `default_rng([seed, 65, b, j])`;
+  the replicate's parent is those rows. Its S15 sample is the resampled stars with e_Age/Age < 0.15 and
+  Age > 0; for term E the pass table is rebuilt from the replicate's parent, as for a mock; Full uses the whole
+  replicate parent. Each variant fits the replicate at F = 2.81 by the mock procedure above (fit (o) from the
+  data fit at 2.81 plus 2 perturbations on `default_rng([seed, 65, b, j, 1 + code_v])`, fit (i) from 8
+  data-independent starts on `default_rng([seed, 165, b, j, 1 + code_v])`, code_v as in `selaux.R1_CODES`), so a
+  replicate costs about one mock fit per variant. The unresampled data fitted by the same procedure is
+  replicate j = 100 (idx = all rows in order, no draw; its fit streams as above with j = 100). It shows how the
+  cheaper procedure compares with R1-ERRCAL's 40-start data fit, and is not one of the 100. The pass rate of a
+  replicate is its S15 size over n_parent (none for Full). Order: all of part A first, then part B per bin, per
+  replicate j = 100, 0, 1, …, 99, per variant S15E, S15N, Full; one checkpoint per (bin, j, variant) and one
+  stop clock for both parts.
+  - *Caveats (stated now).* Fit (o) starts at the data's 2.81 solution, which may anchor replicates and
+    understate the spread (the use of fit (i) is reported); pairing replicate j across the three bins is
+    arbitrary, as the bins hold different stars; the three variants share resamples, so their differences are
+    not inflated by resampling.
+  - *Failures.* A `RuntimeError` of a replicate's fit (e.g. no K = 5 fit) is recorded as `fit_fail`; a
+    replicate with a fit failure or a non-finite d, valley, k or pass_rate in any of the three bins is
+    "failed" for that variant. If more than 5 of the 100 replicates fail for a variant, its reading B is "not
+    evaluable (fits)".
+  - *Recorded:* per replicate, bin and variant: d, valley, valley age, edge, K, use of fit (i), the bound counts
+    and the pass rate; per (variant, bin) the 16th, 50th and 84th percentiles and the standard deviation of d
+    (d = 1 without a valley) over the non-failed replicates, and the fraction with a valley and d < 0.25.
   - *Reading B (fixed now).* Replicate j's verdict at 2.81 is the 2.8 verdict with replicate j's d, valley and
-    edge in each metal-poor bin (the same j in all three bins), R1-ERRCAL's d*(2.81) and resolvability, and the
-    metal-rich bins from R1-SEL-FIT. The fraction of replicates whose verdict equals R1-ERRCAL's at 2.81 is
-    reported per variant; R1-ERRCAL's 2.81 verdict is called **stable under resampling** if that fraction is
-    at least 0.80, and **unstable** otherwise. If replicate −1's verdict differs from R1-ERRCAL's, that is
-    stated and the fraction is also given against replicate −1's verdict.
+    edge in each metal-poor bin, R1-ERRCAL's d*(2.81) (0.25 in all nine cases) and resolvability, and the
+    metal-rich bins from R1-SEL-FIT. Per variant the fraction of the 100 replicates whose verdict equals
+    R1-ERRCAL's at 2.81 is reported (a failed replicate counts as not equal); R1-ERRCAL's 2.81 verdict is
+    called **stable under resampling** if that fraction is at least 0.80 and **unstable** otherwise. If
+    replicate 100's verdict differs from R1-ERRCAL's, that is stated and the fraction is also given against
+    replicate 100's verdict. With `errmm_n_boot` ≠ 100 (an exploration) no reading is given.
 
-- **Checks.** (a) The data fits at 2.81 are taken from `r1_errcal.json` (`data_fits.2.81.<variant>[bin]`: fits
-  per K, K = 5 fit, d, K, edge); the null fits at 1.5 must reproduce R1-ERR's companion refits at 1.5
-  (`r1_err.json` `companion_refits.<variant>.1.5`, d within 10⁻⁹ and the same K), and each must have the star
-  count recorded in `r1_sel.json`. A mismatch stops the run before any mock and gives "not evaluable
-  (reproduction)". (b) The offline tests check that a mock with g = F reproduces `run.r1_mock_errcal`'s result
-  exactly.
+- **Checks.** (a) Before any mock: `r1_errcal.json` has status "evaluated" and its `params` equal the current
+  PARAMS except `parts` and the `errmm_*` keys; for each variant and bin the K = 1–4 mixture fits at 1.5 made
+  before the null fits reproduce R1-ERR's companion refits at 1.5 (`r1_err.json` `companion_refits.<variant>.1.5`,
+  matched by bin: d within 10⁻⁹ and the same K), and each has the star count recorded in `r1_sel.json`. A
+  failure stops the run before any mock and gives "not evaluable (reproduction)". The checkpoint key also
+  covers the SHA-256 of the four results files read. (b) The offline tests check that a mock with g = F, the
+  same D (the null parameters and fit (o) starts at F) and the same streams reproduces `run.r1_mock_errcal`'s
+  result exactly.
 
-- **What the outcome can be (stated now).** Term E's label reads "not reproduced" for both g (its 2.81 verdict
-  is "not reproduced", and a lower d* cannot change that). Term N and Full read "reproduced" for a given g only
-  if d*_mm stays above 0.242 (term N) or 0.232 (Full) in bin [−0.5, −0.3), above 0.063 / 0.054 in bin
-  [−0.7, −0.5) and above 0.145 / 0.142 in bin [−0.3, −0.1), and the power at d*_mm stays ≥ 0.80. Our guess:
-  with g = 1.0 the fit at 2.81 over-deconvolves and produces valleys in some null mocks, but rarely three with
-  d < 0.24 in a set of 50, so term N and Full keep "reproduced" at g = 1.5 and possibly lose it at g = 1.0;
-  the bootstrap finds the 2.81 verdicts of all three variants unstable (margins of 0.008–0.021 in d against
-  a resampling spread we expect to be a few hundredths).
+- **What the outcome can be (stated now).** From R1-ERRCAL's power sets at 2.81 (seen, see the disclosure), the
+  power of a bin falls below 0.80 only if d*_mm is at or below 0.013 / 0.020 / 0.075 (term E, bins
+  [−0.7, −0.5) / [−0.5, −0.3) / [−0.3, −0.1)), 0.005 / 0.011 / 0.062 (term N) or 0.005 / 0.026 / 0.042 (Full).
+  Term E's label reads "not reproduced" or, if two metal-poor bins lose power, "undetermined" for each g; it
+  cannot read "reproduced". For term N and Full each of these cut-offs lies below the data's d in its bin, so a
+  bin can lose power only where it has already stopped being almost disjoint: they read "reproduced" for a given
+  g if and only if d*_mm stays above the data's d in all three metal-poor bins (above 0.0627 / 0.2419 / 0.1449
+  in term N, 0.0537 / 0.2316 / 0.1422 in Full), and "not reproduced" or "undetermined" otherwise. Our guess:
+  with g = 1.0 the fit at 2.81 over-deconvolves and produces valleys in some null mocks, but rarely three as deep
+  as 0.24 in a set of 50, so term N and Full keep "reproduced" at g = 1.5 and possibly lose it at g = 1.0; the
+  bootstrap finds the 2.81 verdicts of all three variants unstable (margins of 0.008–0.021 in d against a
+  resampling spread we expect to be a few hundredths).
 
-- **Unchanged.** The generator, the fit procedure at F, the valley rule, the 2.1 verdict rule, R1-ERRCAL's
-  power sets and data fits, and every recorded label. The pair (1.0, 2.0) the referee also named is not run:
-  every variant reads "not reproduced at 2.0" in R1-ERRCAL, and a lower d* cannot change that.
+- **Unchanged.** The generator, the fit procedure at F, the valley rule, the 2.1 verdict rule, R1-ERRCAL's power
+  sets and data fits, and every recorded label. The pair (1.0, 2.0) the referee also named is not run: no
+  variant can read "reproduced" at 2.0 (bin [−0.5, −0.3) has data d 0.421–0.465 at 2.0, above any d* ≤ 0.25),
+  so a mismatched null at 2.0 could only add "undetermined".
 
-- **Runtime and machine.** R1-ERRCAL's mocks at 2.81 took 4.69 s on average (term E about 1.9 times term N
-  and Full). Estimate: 3,600 mocks ≈ 4–6 h, 900 bootstrap replicates ≈ 1–2 h, the nine null fits at 1.5 about
-  15 min; 5–8 h in all, on an otherwise idle machine (no other study running), with the default thread
-  settings recorded as in 2.8 (`threads`). Checkpoints per mock and per replicate in the system cache
-  (`s010_errmm_mocks`, explorations under `s010_errmm_mocks_explore/<date>-<tag>`), keyed by PARAMS and code;
-  the projection rule with groups per (pair, variant) and per bootstrap variant, and a stop at 16 h (resuming
-  needs the user's consent). The null fits at 1.5 are written to the checkpoint folder by the first session
-  and must be reproduced exactly by a later one, as in 2.8 amendment 11. No label is computed until every set
-  has its 50 mocks and every (variant, bin) its 100 replicates. Cache only, no download.
+- **Runtime and machine.** R1-ERRCAL's null mocks at 2.81 took 9.36 s (term E), 3.11 s (term N) and 2.98 s
+  (Full) on average, 5.15 s overall. Estimate: 3,600 mocks ≈ 5–6 h, 909 replicates × 3 variants ≈ 2–4 h, the
+  nine fits at 1.5 about 15 min; 7–10 h in all, on an otherwise idle machine (no other study running), with the
+  default thread settings recorded as in 2.8 (`threads`). R1-ERRCAL's first session was ended by Claude Code
+  for lack of memory; the peak memory of the run is recorded (`selaux.peak_memory_mb`). Checkpoints per mock
+  and per replicate in the system cache (`s010_errmm_mocks`, explorations under
+  `s010_errmm_mocks_explore/<date>-<tag>`), keyed by PARAMS, code and the files read; the projection rule with
+  groups per (pair, variant) and one group for part B, and a stop at 16 h (resuming needs the user's consent).
+  The fits at 1.5 are written to the checkpoint folder by the first session and must be reproduced exactly by
+  a later one, as in 2.8 amendment 11. No label is computed until every set has its 50 mocks and every bin its
+  101 replicates in each variant. Cache only, no download.
 
 - **Reporting.** `r1_errmm.json`, `provenance_errmm.json`, `run_info_errmm.json`; `r1_sel.json`,
   `r1_selfit.json`, `r1_err.json` and `r1_errcal.json` are read, never written. Section 5 reports R1-ERRMM in a
@@ -1165,10 +1208,11 @@ verdicts, not as a verdict on XR22's claim.
 - **Code (none exists yet).** A new part `"errmm"` in `PARAMS["parts"]` runs only this check, alone; PARAMS
   `errmm_pairs = [[1.0, 2.81], [1.5, 2.81]]`, `errmm_bins = [0, 1, 2]`, `errmm_n_mock = 50`,
   `errmm_seed_tag = 64`, `errmm_seed_tag_indep = 164`, `errmm_n_boot = 100`, `errmm_boot_f = 2.81`,
-  `errmm_boot_tag = 65`, `errmm_boot_tag_indep = 165`, `errmm_stop_h = 16`; the checkpoint key leaves out
-  `parts` and `errmm_stop_h`. Offline tests: a mock with g = F equals `run.r1_mock_errcal`'s; the bound counts
-  on a constructed fit; the set numbering and streams; the resampling (size, parent, S15 cut, pass table);
-  decision rule A and reading B on synthetic results.
+  `errmm_boot_tag = 65`, `errmm_boot_tag_indep = 165`, `errmm_boot_max_fail = 5`, `errmm_stop_h = 16`; the
+  checkpoint key leaves out `parts` and `errmm_stop_h`. Offline tests: a mock with g = F equals
+  `run.r1_mock_errcal`'s; the bound counts on a constructed fit; the set numbering and streams; the resampling
+  (size, parent, S15 cut, pass table, replicate 100); decision rule A, reading A and reading B on synthetic
+  results.
 
 ## 3. Data (with size estimate)
 
