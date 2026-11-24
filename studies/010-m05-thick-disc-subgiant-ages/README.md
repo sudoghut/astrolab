@@ -1085,10 +1085,11 @@ verdicts, not as a verdict on XR22's claim.
     higher power, so keeping R1-ERRCAL's power can only make a bin unresolvable more easily, which matters only
     through "undetermined". Sets are numbered k = 0…71 in the loop nest pair > variant > bin > set (skew-normal
     e = r·τ, e = r·A, split-normal e = r·τ, e = r·A); mock j of set k draws its catalogue and fit (o) from
-    `default_rng([seed, 64, k, j])` and fit (i) from `default_rng([seed, 164, k, j])`. No other mock stream uses
-    tags 64 or 164 (numpy treats trailing zeros as absent, so mock 0 of set 0 shares its seed with the original
-    R1's set 64, `default_rng([seed, 64])`; the uses are unrelated, as for tag 59 in 2.8; likewise part B's replicate b = 0, j = 0 below shares its seed with
-    the original R1's set 65).
+    `default_rng([seed, 64, k, j])` and fit (i) from `default_rng([seed, 164, k, j])`. Tags 64, 164, 65 and 165 are new:
+    no earlier part uses them as a stream tag. Two seeds coincide with earlier streams, because numpy treats
+    trailing zeros as absent: mock 0 of set 0 here and the original R1's set 64 (`default_rng([seed, 64])`), and
+    part B's resample b = 0, j = 0 and the original R1's set 65 (`default_rng([seed, 65])`). The uses are
+    unrelated (as for tag 59 in 2.8), so the coincidence does not matter.
   - *Recorded per mock* (added fields; no number of R1-SEL-FIT, R1-ERR or R1-ERRCAL changes): d, valley,
     valley age, young-side edge, K, how often fit (i) was used, and for the chosen K fit the number of
     components at each bound of `m0.fit_mixture`: log σ within 10⁻⁶ of ln 0.1 or of ln 10, μ within 10⁻⁶ of
@@ -1125,8 +1126,11 @@ verdicts, not as a verdict on XR22's claim.
 | not reproduced | not reproduced | unchanged; the null at g adds nothing against "not reproduced" |
 | not reproduced | undetermined | **power lost under the null at g**: with the mismatched threshold fewer than three bins are resolvable, so "not reproduced at 2.81" is not calibrated against that null; the bins that lost power are named |
 
-An R1-ERRMM verdict "not evaluable (…)" gives no reading at that g. The rule cannot turn "not reproduced" into "reproduced": a lower d*_mm only removes almost-disjoint or
-resolvable bins. No reading says which f is true.
+An R1-ERRMM verdict "not evaluable (…)" gives no reading at that g. The table covers every case that can occur:
+R1-ERRCAL's d*(2.81) is the cap 0.25 in all nine (variant, bin) cases, and d*_mm ≤ 0.25 by definition, so
+d*_mm is never higher than R1-ERRCAL's d*; and R1-ERRCAL's 2.81 verdicts are "reproduced" (term N, Full) or
+"not reproduced" (term E), never "undetermined". The rule cannot turn "not reproduced" into "reproduced": a
+threshold that is equal or lower only keeps or removes almost-disjoint and resolvable bins. No reading says which f is true.
 
 - **Part B: bootstrap of the data's d at F = 2.81.** For each metal-poor bin, B = 100 replicates, shared by the
   three variants. The bin's parent is the stars of the bin with finite Age, e_Age > 0 and finite [Fe/H]
