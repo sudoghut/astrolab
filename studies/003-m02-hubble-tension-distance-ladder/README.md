@@ -1596,7 +1596,8 @@ treated exactly as R2-RE's REML treats it.
   (τ̂ < 10⁻³) and bound rule.
 - **Gate, fixed now.** If the interval's lower end is 0, or τ̂_HF < **0.02 mag**, the outcome is **"ν not evaluable (no
   excess scatter in the Hubble flow)"** and Stage 2, the known-answer check and p_int are not computed. *Why 0.02 mag:*
-  the median Hubble-flow σ in C is 0.133 mag, so at τ_HF = 0.02 the effects add 2.3% to a typical SN's variance and
+  the median Hubble-flow σ in C is 0.133 mag (the median of √C_ii over the 277 Hubble-flow rows of `rows_a`, per row,
+  not per group), so at τ_HF = 0.02 the effects add 2.3% to a typical SN's variance and
   their scale is 0.15 of the noise; the tail shape of effects that small cannot be read from about 240 SNe. It is also
   about a quarter of the calibrators' τ̂ = 0.077 (one sixteenth of the variance). The threshold was chosen after seeing
   C's Hubble-flow σ (item 3), before any residual. If the lower end is "not determined" (the `brentq` search fails),
@@ -1683,7 +1684,8 @@ in at most 10 of them. If (a), (b) or (c) fails, the outcome is **"ν not determ
 part named ((a): mislabels; (b): no power at this τ_HF; (c): heteroscedasticity); otherwise, if (d) or (e) fails or more
 than 10 truncated mocks failed, **"ν not determinable (selection)"**. In all these cases L(ν) on the data and p_int
 are not computed. Reported: the four mean P_s, the label counts per injection, the fraction of t₃ mocks with
-P_s > 0.95 (M5), the quantiles of P_s and τ̂_s, the fraction of mocks that would pass the Stage-1 gate, the number of
+P_s > 0.95 (M5), the quantiles of P_s and τ̂_s, the fraction of mocks with τ̂_s ≥ 0.02 (a proxy for passing the Stage-1 gate, labelled "proxy" in the output: the
+mock refits use `interval=False`, so the interval's lower end is not checked), the number of
 rejected attempts and of "truncation failed" mocks, and the ESS and k̂ quantiles.
 
 *Integrated p (computed only when label 4, 5 or 6 is reached).* p_int = Σ_ν w(ν)·p_cal(ν, τ) with the recorded
