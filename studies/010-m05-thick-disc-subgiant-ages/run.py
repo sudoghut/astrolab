@@ -2552,6 +2552,14 @@ def _sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def errmm_boot_left_s(b_left, a_times, b_times):
+    """README 2.9 projection of part B's remaining fits: b_left (variant -> fits without a checkpoint) times the
+    mean time of the part-B fits known so far, or, before any, times the variant's mean part-A mock time."""
+    if b_times:
+        return sum(b_left.values()) * float(np.mean(b_times))
+    return sum(n * float(np.mean(a_times[v])) for v, n in b_left.items() if n and a_times.get(v))
+
+
 def errmm_params_ok(P, rec_params):
     """README 2.9 check (a): r1_errcal.json's params equal the current PARAMS except parts and errmm_* keys."""
     keep = lambda d: {k: v for k, v in d.items() if k != "parts" and not k.startswith("errmm_")}
@@ -2600,7 +2608,10 @@ def errmm_evaluate_a(P, sets, results, times, rcal, rfit, pmodels, data_d):
         dd = data_d[(s["variant"], s["bin"])]
         row = {**{k: s[k] for k in ("k", "g", "F", "variant", "bin", "kind", "mech")}, "bin_name": names[s["bin"]],
                "n_run": len(rr), "complete": len(rr) == nmock, "gen_fail": sum(1 for r in rr if r.get("gen_fail")),
-               "d": [r["d"] for r in rr], "valley": [r["valley"] for r in rr], "data_d": dd}
+               "d": [r["d"] for r in rr], "valley": [r["valley"] for r in rr], "data_d": dd,
+               # README 2.9 per-mock records (the checkpoints keep every field)
+               **{f"mock_{f_}": [r.get(f_) for r in rr] for f_ in ("k", "valley_t", "edge", "n_sig_lo", "n_sig_hi",
+                                                                  "n_mu_lo", "n_mu_hi")}}
         if ok:
             n = float(len(ok))
             vt = [r["valley_t"] for r in ok if r["valley"] and r.get("valley_t") is not None]
@@ -2731,7 +2742,7 @@ def errmm_evaluate_b(P, boot, rcal, rfit):
         per_bin = []
         for b in bins:
             rr = [boot[(v, b, j)] for j in range(nboot)]
-            ok = [r for r in rr if used(r)]
+            ok = [boot[(v, b, j)] for j in range(nboot) if vj[j] is not None]   # non-failed replicates (2.9)
             ds = [r["d"] for r in ok]
             per_bin.append({
                 "bin": list(P["r1_bins"][b]), "bin_name": names[b], "n_used": len(ok),
@@ -2741,7 +2752,9 @@ def errmm_evaluate_b(P, boot, rcal, rfit):
                 "i_used_any": sum(1 for r in ok if any(r.get(f"i_used_k{K}") for K in range(1, int(P["kmax"]) + 1))),
                 **{f"frac_{b_}": (sum(1 for r in ok if (r.get(b_) or 0) > 0) / len(ok)) if ok else None
                    for b_ in ("n_sig_lo", "n_sig_hi", "n_mu_lo", "n_mu_hi")},
-                "replicates": {k_: [r.get(k_) for r in rr] for k_ in ("d", "valley", "valley_t", "edge", "k")},
+                "replicates": {k_: [r.get(k_) for r in rr] for k_ in (
+                    "d", "valley", "valley_t", "edge", "k", "pass_rate", "fit_fail", "n_sig_lo", "n_sig_hi", "n_mu_lo",
+                    "n_mu_hi", "i_used_k1", "i_used_k2", "i_used_k3", "i_used_k4", "i_used_k5")},
                 "unresampled": {k_: boot[(v, b, nboot)].get(k_) for k_ in ("d", "valley", "valley_t", "edge", "k",
                                                                           "fit_fail", "n")},
                 "errcal_data_d": cal[names[b]]["d"]})
@@ -2837,6 +2850,7 @@ def main_errmm(ctx, P, store_root=None, recorded=None):
     if bad:
         out["status"] = "not evaluable (reproduction): inputs or fits at g differ from the recorded results"
         out["label"] = selaux.errmm_label(pairs, {}, reproduction_ok=False)
+        out["bootstrap"] = {v: {"reading": selaux.ERRCAL_REPRODUCTION} for v in selaux.R1_VARIANTS}
         out["labels"] = {v: out["label"] for v in selaux.R1_VARIANTS}
         out.update({"runtime_h": (time.time() - t_start) / 3600, "params": P})
         ctx.save("r1_errmm", out)
@@ -2869,17 +2883,31 @@ def main_errmm(ctx, P, store_root=None, recorded=None):
     def make_rng(k, j):
         return errmm_rngs(seed, P, k, j)
     kb0 = len(sets)                                   # part B checkpoints: k = kb0 + 3 * bin index + variant index
+    order = [nboot] + list(range(nboot))
+    bkeys = [(ib, b, j, iv, v) for ib, b in enumerate(bins) for j in order for iv, v in enumerate(selaux.R1_VARIANTS)]
+    bckpt = {}                                        # part-B checkpoints at the start (T-046: never counted as left)
+    for ib, b, j, iv, v in bkeys:
+        rec0 = store.get(kb0 + 3 * ib + iv, j)
+        if rec0 is not None:
+            bckpt[(ib, j, iv)] = float(rec0["seconds"])
+    b_left0 = {v: sum(1 for ib, b, j, iv, v2 in bkeys if v2 == v and (ib, j, iv) not in bckpt)
+               for v in selaux.R1_VARIANTS}
+
+    def a_extra(known):                               # README 2.9: one stop clock for parts A and B
+        a_times = {v: [t for st in known.values() if st["group"].startswith(v + "@") for t in st["times"]]
+                   for v in selaux.R1_VARIANTS}
+        return errmm_boot_left_s(b_left0, a_times, list(bckpt.values()))
     try:
         results, state, proj_log = selaux.run_mock_sets(sets, nmock, store, run_one, make_rng, P["errmm_stop_h"],
-                                                        ctx.log, cut=errmm_cut, name="R1-ERRMM", rule="README 2.9")
+                                                        ctx.log, cut=errmm_cut, name="R1-ERRMM", rule="README 2.9",
+                                                        extra_s=a_extra)
         memory["part_a"] = selaux.peak_memory_mb()
         ctx.log(f"R1-ERRMM part A done; peak memory {memory['part_a']} MB")
         # ---- part B: per bin, per replicate j = nboot, 0, ..., nboot - 1, per variant; one stop clock
-        boot, btimes = {}, []
-        Pd = {v: {"variant": v} for v in selaux.R1_VARIANTS}
-        order = [nboot] + list(range(nboot))
-        nb_total = len(bins) * len(order) * 3
-        done_b = 0
+        a_times = {v: [t for s in sets if s["variant"] == v for t in state[s["k"]]["times"]] for v in selaux.R1_VARIANTS}
+        boot = {}
+        btimes = list(bckpt.values())                 # checkpointed fits count with their recorded times
+        b_left = dict(b_left0)
         limit = lambda: store.limit_h if store.limit_h is not None else float(P["errmm_stop_h"])
         for ib, b in enumerate(bins):
             Ab, Eb = parent[b]
@@ -2893,18 +2921,19 @@ def main_errmm(ctx, P, store_root=None, recorded=None):
                         if idx is None:
                             idx = errmm_resample(len(Ab), j, nboot, rs)
                         t = time.time()
-                        res = selaux._jsonable_result(errmm_boot_fit(C, dict(Pd[v], _starts=starts[(v, b)]),
+                        res = selaux._jsonable_result(errmm_boot_fit(C, {"variant": v, "_starts": starts[(v, b)]},
                                                                      Ab[idx], Eb[idx], v, (ro, ri), nstart, Fb))
                         dt = time.time() - t
                         store.put(k, j, res, dt)
                         recb = {"result": res, "seconds": dt}
+                        btimes.append(dt)
+                        if (ib, j, iv) not in bckpt:
+                            b_left[v] -= 1
                     boot[(v, b, j)] = recb["result"]
-                    btimes.append(float(recb["seconds"]))
-                    done_b += 1
                 if j % 10 == 9 or j == nboot - 1:
                     el = store.elapsed_s()
-                    left = nb_total - done_b
-                    proj = (el + left * float(np.mean(btimes))) / 3600
+                    left = sum(b_left.values())
+                    proj = (el + errmm_boot_left_s(b_left, a_times, btimes)) / 3600
                     proj_log.append({"after": f"bootstrap bin {b} j={j}", "elapsed_h": el / 3600,
                                      "projection_h": proj, "replicates_left": left, "limit_h": limit()})
                     ctx.log(f"R1-ERRMM bootstrap bin {b} j={j}: projection {proj:.2f} h (elapsed {el / 3600:.2f} h, "
@@ -2923,8 +2952,6 @@ def main_errmm(ctx, P, store_root=None, recorded=None):
                      "resumed": store.resumed, "resumes": store.resumes(),
                      "stop_limit_h": store.limit_h if store.limit_h is not None else P["errmm_stop_h"],
                      "boot_mean_s": float(np.mean(btimes)) if btimes else None}
-    except selaux.StopRun:
-        raise
     finally:
         store.release()
     ev = errmm_evaluate_a(P, sets, results, {k: st["times"] for k, st in state.items()}, rcal, rfit, pmodels, data_d)
@@ -2934,11 +2961,18 @@ def main_errmm(ctx, P, store_root=None, recorded=None):
         out["computed_labels_not_used"] = ev["labels"]
         out["label"] = f"no label (exploration with {nmock} mocks per set; the label needs 50)"
         out["labels"] = {v: out["label"] for v in selaux.R1_VARIANTS}
+        out["computed_readings_not_used"] = {v: out["variants"][v]["readings"] for v in selaux.R1_VARIANTS}
+        for v in selaux.R1_VARIANTS:
+            out["variants"][v]["readings"] = {g: None for g in out["variants"][v]["readings"]}
+            for pp in out["variants"][v]["per_pair"].values():
+                if "reading" in pp:
+                    pp["reading"] = None
     if nboot != 100:                               # README 2.9: reading B needs 100 replicates
         for v in selaux.R1_VARIANTS:
             out["bootstrap"][v]["computed_reading_not_used"] = out["bootstrap"][v]["reading"]
             out["bootstrap"][v]["reading"] = f"no reading (exploration with {nboot} replicates; the reading needs 100)"
-    out["status"] = "evaluated" if (nmock == 50 and nboot == 100) else "exploration (no label)"
+    out["status"] = ("evaluated" if nmock == 50 else f"exploration (part A: {nmock} mocks per set, no label)") + \
+        ("" if nboot == 100 else f"; exploration (part B: {nboot} replicates, no reading)")
     out["mocks"] = mock_info
     out["memory_peak_mb"] = memory
     out.update({"runtime_h": (time.time() - t_start) / 3600, "params": P})
