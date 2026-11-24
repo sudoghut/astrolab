@@ -1,0 +1,240 @@
+{
+ "stage": "check",
+ "settings": {
+  "nu_grid": [
+   3,
+   4,
+   6,
+   10,
+   30,
+   "inf"
+  ],
+  "nu_tau_gate": 0.02,
+  "nu_group_corr": 0.3,
+  "nu_group_corr_sens": 0.45,
+  "nu_q_prior_frac": 0.1,
+  "nu_n_is": 4000,
+  "nu_n_is_escalate": 32000,
+  "nu_is_seed": 730000,
+  "nu_is_seed_escalate": 740000,
+  "nu_n_mocks": 200,
+  "nu_n_is_mock": 2000,
+  "nu_cut_sigma": 3.5,
+  "nu_cut_attempts": 100,
+  "nu_mock_seeds": {
+   "eps": 700000,
+   "t3": 710000,
+   "t10": 720000,
+   "het": 780000,
+   "trunc_joint": 1000000,
+   "is_t3": 750000,
+   "is_t10": 760000,
+   "is_het": 800000,
+   "is_trunc": 810000
+  },
+  "nu_profile_m": [
+   0.5,
+   0.75,
+   1,
+   1.5,
+   2
+  ],
+  "nu_profile_seed": 770000,
+  "nu_vbase_seed": 820000,
+  "nu_group_sens_seed": 830000,
+  "threads": {
+   "env": {
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1"
+   },
+   "threadpools": [
+    [
+     "mkl",
+     1
+    ],
+    [
+     "openmp",
+     1
+    ]
+   ]
+  }
+ },
+ "headline": "reported, non-decisive: no verdict, label, reading, sub-label, gloss or statement of R2 through R2-RE-GTP changes; R2-RE's row stays the headline",
+ "transfer_assumption": "the per-SN excess scatter of Hubble-flow SNe beyond C has the same tail shape ν as the calibrator host effects (an assumption, not a result)",
+ "checks": {
+  "row_classes": {
+   "n_hf": 277,
+   "n_rows_a": 3489,
+   "hf_all_in_rows_a": true,
+   "ok": true
+  },
+  "grouping": {
+   "threshold": 0.3,
+   "n_groups": 242,
+   "largest_group": 3,
+   "count_check": {
+    "n_groups": 242,
+    "n_cid": 238,
+    "tolerance": 11,
+    "ok": true
+   },
+   "cid": {
+    "n_rows_used": 277,
+    "n_cid": 238,
+    "columns_read": [
+     "CID",
+     "USED_IN_SH0ES_HF"
+    ]
+   },
+   "sensitivity": {
+    "threshold": 0.45,
+    "n_groups": 261,
+    "largest_group": 3
+   }
+  },
+  "design": {
+   "n_g": 242,
+   "rank_M": 241,
+   "n_zero_eigenvalues": 1,
+   "lam_min_raw": 5.2353739794009713e-14,
+   "lam_max": 174.87323424953453
+  },
+  "r2_re_reproduction": {
+   "tau_hat_obs": 0.07669875579825007,
+   "recorded": 0.07669875579792439,
+   "reml_grid_max_abs_diff": 1.028865881380625e-11,
+   "mismatches": []
+  },
+  "reduced_form": [
+   {
+    "tau": 0.01,
+    "abs_diff": 2.7870067365043383e-12,
+    "ok": true
+   },
+   {
+    "tau": 0.05,
+    "abs_diff": 1.3553602684623911e-12,
+    "ok": true
+   },
+   {
+    "tau": 0.014202401641761288,
+    "abs_diff": 2.001981913579698e-12,
+    "ok": true
+   }
+  ]
+ },
+ "seconds": {
+  "design_and_reproduction": 2.5573059000307694,
+  "stage1": 101.62170369992964,
+  "total": 104.1819303999655
+ },
+ "stage1": {
+  "main": {
+   "tau_hat": 0.014202401641761288,
+   "m2l_min": -4431.502311450189,
+   "refined": true,
+   "refine_error": null,
+   "other_local_minima": [],
+   "at_zero": false,
+   "at_upper_bound": false,
+   "interval_68": [
+    0.0,
+    0.03902685066330902
+   ],
+   "grid_m2l": [
+    -4431.4743652079615,
+    -4431.495294849503,
+    -4431.476647788877,
+    -4431.202565234438,
+    -4430.391944412955,
+    -4428.773592066102,
+    -4426.139383235068,
+    -4422.366708763852,
+    -4417.416336466201,
+    -4411.3167133158295,
+    -4404.14400749042,
+    -4396.003458093675,
+    -4387.014427233395,
+    -4377.299597404608,
+    -4366.977821909713,
+    -4356.159827638954,
+    -4344.945976332023,
+    -4333.425422087867,
+    -4321.67616140379,
+    -4309.765615027404,
+    -4297.751494956572,
+    -4285.682794741317,
+    -4273.600801452053,
+    -4261.540068937531,
+    -4249.529319418603,
+    -4237.592258144359,
+    -4225.7482968441,
+    -4214.013188249635,
+    -4202.399577580603,
+    -4190.917478636575,
+    -4179.574682733,
+    -4168.377108621369,
+    -4157.329101051813,
+    -4146.433684961686,
+    -4135.692781526086,
+    -4125.107391557729,
+    -4114.677751034029,
+    -4104.403462879511,
+    -4094.2836085503372,
+    -4084.3168424553573,
+    -4074.5014718019966,
+    -4064.835524069903,
+    -4055.3168039843863,
+    -4045.9429415788936,
+    -4036.7114326947935,
+    -4027.6196730620763,
+    -4018.6649869307666,
+    -4009.844651075615,
+    -4001.155914872024,
+    -3992.596017035464,
+    -3984.1621995273904
+   ],
+   "m2l_at_interval": [
+    -4431.4743652079615,
+    -4430.502310252253
+   ],
+   "delta_m2l_at_zero": 0.02794624222769926
+  },
+  "tau_hat_HF": 0.014202401641761288,
+  "interval_68": [
+   0.0,
+   0.03902685066330902
+  ],
+  "ratio_to_tau_obs": 0.1851712129357075,
+  "tau_obs_reference": 0.07669875579792439,
+  "upper_end": 0.03902685066330902,
+  "delta_m2l_at_zero": 0.02794624222769926,
+  "n_groups": 242,
+  "grouping_045": {
+   "n_groups": 261,
+   "tau_hat": 0.0,
+   "interval_68": [
+    0.0,
+    0.021212981095546007
+   ],
+   "at_zero": true,
+   "at_upper_bound": false,
+   "delta_m2l_at_zero": 0.0
+  },
+  "vbase": {
+   "tau_obs": 0.07669875579825007,
+   "tau_hat": 0.012977679804525308,
+   "interval_68": [
+    0.0,
+    0.03858299513800575
+   ],
+   "at_zero": false,
+   "at_upper_bound": false,
+   "delta_m2l_at_zero": 0.01942385175425443
+  }
+ },
+ "gate": "gate",
+ "outcome": "ν not evaluable (no excess scatter in the Hubble flow)",
+ "status": "final: ν not evaluable (no excess scatter in the Hubble flow)"
+}
