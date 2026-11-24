@@ -1659,18 +1659,17 @@ with u_s = B ε_s + M b_s, B = ZᵀP K_C (K_C the lower Cholesky factor of C on 
 - **(i) Heteroscedastic Gaussian (S2):** b_g ~ N(0, d_g) with d_g ∝ c_g, c_g the mean of C_ii over group g's rows, scaled
   so that the mean of d_g over the groups is τ̂_HF² (variance-matched); draws `default_rng(780_000 + s).standard_normal(n_g)`
   times √d_g.
-- **(ii) t₃ truncated at 3.5σ (S2):** start from the t₃ mock's ε_s and t_s. The residual is the GLS residual of the mock
-  under C with all global parameters refitted, r = C_a P (K_C ε_s + Z b_s) on `rows_a` (the same projection as the data
-  fit), and σ_i = √C_ii, on the Hubble-flow rows; a group fails the cut if any of its rows has |r_i| > 3.5σ_i. The t
-  values of the failing groups are redrawn (in group order, from one `default_rng(790_000 + s)` stream of `standard_t(3)`
-  draws) and the cut is applied again, up to 100 rounds. If a group still exceeds 3.5σ after these rounds (the noise
-  alone can exceed it: a design-only estimate gives a probability of about 0.12 per mock), the whole mock is rejected
-  and redrawn: attempt k = 0, 1, …, 99 draws ε (3,489 values) and then t (n_g values, `standard_t(3)`) from one
-  `default_rng(1_000_000 + 1_000·s + k)` and is accepted if no group exceeds 3.5σ (no t redraws inside an attempt).
-  Only a mock with no accepted attempt after these 100 is "truncation failed" and left out (more than 10 such mocks:
-  "ν not determinable (selection)"). This keeps the design fixed and mimics a sample from which SNe beyond 3.5σ were
-  removed (rejection at the level of the whole mock); it uses the SH0ES-system residual and C's diagonal, not
-  Pantheon+'s own fit and uncertainties, so it approximates the cut of item 6.
+- **(ii) t₃ truncated at 3.5σ (S2), by whole-mock rejection (exact conditioning):** the residual is the GLS residual of
+  the mock under C with all global parameters refitted, r = C_a P (K_C ε + Z b) on `rows_a` (the same projection as the
+  data fit), and σ_i = √C_ii, on the Hubble-flow rows; a mock passes the cut if no group has a row with |r_i| > 3.5σ_i.
+  Attempt 0 is the plain t₃ mock's (ε_s, t_s); attempts k = 1, …, 99 draw ε (3,489 values) and then t (n_g values,
+  `standard_t(3)`) together from one `default_rng(1_000_000 + 1_000·s + k)`. The first attempt that passes is the mock
+  (the noise alone can exceed the cut: a design-only estimate gives a probability of about 0.12 per attempt). A mock with
+  no passing attempt among these 100 is "truncation failed" and left out (more than 10 such mocks: "ν not determinable
+  (selection)"). Mocks accepted at k ≥ 1 lose the common random numbers with the plain t₃ mocks, which is harmless for
+  the comparison of means. This keeps the design fixed and draws from the mock distribution conditioned on no SN beyond
+  3.5σ; it uses the SH0ES-system residual and C's diagonal, not Pantheon+'s own fit and uncertainties, so it approximates
+  the cut of item 6.
 In each mock: τ̂_s refitted by the reduced form (`reml_tau(f, 0.5, 0.01, interval=False)`, the zero rule), then L_s(ν)
 at τ̂_s for the six ν with one stream of N = 2,000 and the same estimator (seeds 750,000 + 10s + j for t₃, 760,000 + 10s
 + j for t₁₀, 800,000 + 10s + j for (i), 810,000 + 10s + j for (ii)), and P_s(ν ≤ 4) with flat weights (if τ̂_s < 10⁻³,
@@ -1685,7 +1684,7 @@ part named ((a): mislabels; (b): no power at this τ_HF; (c): heteroscedasticity
 than 10 truncated mocks failed, **"ν not determinable (selection)"**. In all these cases L(ν) on the data and p_int
 are not computed. Reported: the four mean P_s, the label counts per injection, the fraction of t₃ mocks with
 P_s > 0.95 (M5), the quantiles of P_s and τ̂_s, the fraction of mocks that would pass the Stage-1 gate, the number of
-redraw rounds, of whole-mock rejections and of "truncation failed" mocks, and the ESS and k̂ quantiles.
+rejected attempts and of "truncation failed" mocks, and the ESS and k̂ quantiles.
 
 *Integrated p (computed only when label 4, 5 or 6 is reached).* p_int = Σ_ν w(ν)·p_cal(ν, τ) with the recorded
 R2-RE-GTP values, never recomputed: **primary at τ̂_obs**, p_cal from `r2_re_gtp.json` `refit.<ν>.tau_obs.p_cal.p`
@@ -1748,8 +1747,9 @@ on a synthetic factorised system (diagonal C on the Hubble-flow rows, single-row
 per-SN one-dimensional quadrature of the Gaussian–t convolution (log Λ within three Monte Carlo standard errors, at ν = 3
 and 10); ν = 10⁶ against the Gaussian closed form; the k̂ estimator against known generalized Pareto samples; the
 variance matching (sample variance of b = τ²) and the heteroscedastic scaling (mean d_g = τ²); the grouping (connected
-components) and its count check (main grouping only); the truncation loop (the t redraws, then the whole-mock
-rejection with its seeds; no residual beyond 3.5σ in an accepted mock; both limits and the "truncation failed" count);
+components) and its count check (main grouping only); the truncation (whole-mock rejection: attempt 0 is the plain
+mock, then the seeds of attempts 1–99; no residual beyond 3.5σ in an accepted mock; the attempt limit and the
+"truncation failed" count);
 the `usecols` read of `Pantheon+SH0ES.dat` (no other column is read); the 1/ν
 weights listed above; the gate, the label order, the scale condition, the pass rule and the p_int arithmetic from the
 recorded keys; the check record contains no L(ν), weights, label or p_int computed on the data. On the real data before
@@ -1760,11 +1760,11 @@ then "full", only for the formal runs, back afterwards with dated notes in log.m
 run, which copies `R2_RE_NU` from an existing `r2_re_nu.json`), `"nu_grid": [3, 4, 6, 10, 30, "inf"]`, `"nu_tau_gate":
 0.02`, `"nu_group_corr": 0.3`, `"nu_group_corr_sens": 0.45`, `"nu_q_prior_frac": 0.1`, `"nu_n_is": 4_000`,
 `"nu_n_is_escalate": 32_000`, `"nu_is_seed": 730_000`, `"nu_is_seed_escalate": 740_000`, `"nu_n_mocks": 200`,
-`"nu_n_is_mock": 2_000`, `"nu_cut_sigma": 3.5`, `"nu_cut_rounds": 100`, `"nu_cut_attempts": 100`, `"nu_mock_seeds":
-{"eps": 700_000, "t3": 710_000, "t10": 720_000, "het": 780_000, "trunc": 790_000, "trunc_joint": 1_000_000, "is_t3":
+`"nu_n_is_mock": 2_000`, `"nu_cut_sigma": 3.5`, `"nu_cut_attempts": 100`, `"nu_mock_seeds":
+{"eps": 700_000, "t3": 710_000, "t10": 720_000, "het": 780_000, "trunc_joint": 1_000_000, "is_t3":
 750_000, "is_t10": 760_000, "is_het": 800_000, "is_trunc": 810_000}`, `"nu_profile_m": [0.5, 0.75, 1, 1.5, 2]`,
 `"nu_profile_seed": 770_000`, `"nu_vbase_seed": 820_000`, `"nu_group_sens_seed": 830_000`, `"nu_rerun_reason": ""`.
-Seeds 700,000–839,999 and 1,000,000–1,199,099 collide with none used before (R2-RE-GTP's list plus 430,000–469,999,
+Seeds 700,000–789,999, 800,000–839,999 and 1,000,000–1,199,099 collide with none used before (R2-RE-GTP's list plus 430,000–469,999,
 613,000 and 614,000). A formal run uses one thread (`OMP_NUM_THREADS`,
 `MKL_NUM_THREADS`, `OPENBLAS_NUM_THREADS` = 1) and refuses to start unless the `nu_*` values equal those above. Results
 `results/r2_re_nu_check.json` and `results/r2_re_nu.json` (each below 1 MB); a new module or a block appended to
