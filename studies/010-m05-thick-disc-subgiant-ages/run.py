@@ -83,7 +83,7 @@ PARAMS = {
     # R1-SEL-FIT, T-049; r1_selfit.json) alone, or "err" alone (README 2.7 R1-ERR, T-054; r1_err.json),
     # or "errcal" alone (README 2.8 R1-ERRCAL, T-059; r1_errcal.json), or "errmm" alone (README 2.9 R1-ERRMM,
     # T-064; r1_errmm.json); no part overwrites another part's files
-    "parts": ["errmm"],
+    "parts": ["err"],
     # R-SEL (README 2.5): pass tables (SEL-0), power floor and edge loop (SEL-3), mocks and stop (SEL-8)
     "sel_slices": [[-1.2, -0.6], [-0.6, 0.0], [0.0, 0.5]], "sel_pass_width": 1.0,
     "sel_pass_width_alt": 0.5, "sel_n_min": 200,
