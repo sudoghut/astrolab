@@ -64,7 +64,7 @@ const f = (x, n = 3) => (x === null || x === undefined || Number.isNaN(x)) ? '�
 const h0 = q => Math.pow(10, q / 5);
 const dh0 = (q, s) => h0(q) * Math.log(10) / 5 * s;
 const files = ['summary', 'r1', 'r2', 'r3', 'r4', 'cross_paper', 'host_identification', 'r2_re', 'r2_re_rob', 'r2_re_n5584', 'r2_re_sel'];
-const optional = ['r2_re_d', 'r2_re_g_power', 'r2_re_g', 'r2_re_gt_power', 'r2_re_gt', 'r2_re_gtp'];   // R2-RE-D, R2-RE-G, R2-RE-GT (addenda 2026-11-21) and R2-RE-GTP (2026-11-22): shown once their results exist
+const optional = ['r2_re_d', 'r2_re_g_power', 'r2_re_g', 'r2_re_gt_power', 'r2_re_gt', 'r2_re_gtp', 'r2_re_nu_check', 'r2_re_nu'];   // R2-RE-D, R2-RE-G, R2-RE-GT (addenda 2026-11-21), R2-RE-GTP (2026-11-22) and R2-RE-NU (2026-11-24): shown once their results exist
 let D = null;
 
 function cls(v) {
@@ -319,6 +319,77 @@ function gtpRows() {
   return rows;
 }
 
+// R2-RE-NU rows (README section 2, addendum 2026-11-24, T-062): an outside constraint on the tail weight ν from the
+// Hubble-flow supernovae, conditional on the transfer assumption (reported, non-decisive)
+const NU_COND_ZH = '（如果哈勃流效应与校准效应的 ν 相同）';
+const NU_LBL = {
+  'ν not evaluable (no excess scatter in the Hubble flow)': 'ν 不可评估（哈勃流中没有超出 C 的散布）',
+  'ν not determinable (selection)': '本方法无法确定 ν（选择效应）',
+  'ν constrained to the light-tail side (P(ν ≤ 4) < 0.05)': 'ν 被约束在轻尾一侧（P(ν ≤ 4) < 0.05）',
+  'ν constrained to the heavy-tail side (P(ν ≤ 4) > 0.95)': 'ν 被约束在重尾一侧（P(ν ≤ 4) > 0.95）',
+  'ν weakly constrained': 'ν 约束很弱',
+};
+const NU_PART_ZH = {'mislabels': '错标', 'no power at this τ_HF': '在此 τ_HF 下没有功效', 'heteroscedasticity': '异方差', 'Monte Carlo': '蒙特卡洛'};
+function nuLabel(v) {
+  if (!v) return '';
+  let en = String(v), rest = en, zh = '';
+  const cond = ' (if Hubble-flow and calibrator effects share ν)', scale = ' (scale differs: transfer not supported)';
+  const hasScale = rest.endsWith(scale);
+  if (hasScale) rest = rest.slice(0, -scale.length);
+  const hasCond = rest.endsWith(cond);
+  if (hasCond) rest = rest.slice(0, -cond.length);
+  if (NU_LBL[rest]) zh = NU_LBL[rest];
+  else {
+    let m = rest.match(/^ν not determinable by this method \((.*)\)$/);
+    if (m) zh = `本方法无法确定 ν（${m[1].split('; ').map(p => NU_PART_ZH[p] || p).join('；')}）`;
+    m = rest.match(/^ν not evaluable \((.*)\)$/);
+    if (m) zh = `ν 不可评估（${m[1]}）`;
+  }
+  if (!zh) return en;
+  return L(en, zh + (hasCond ? NU_COND_ZH : '') + (hasScale ? '（尺度不同：不支持迁移）' : ''));
+}
+function nuRows() {
+  const c = D.r2_re_nu_check, g = D.r2_re_nu;
+  const title = L('Outside constraint on the tail weight ν from the Hubble-flow supernovae (reported, not a verdict; assumes Hubble-flow and calibrator effects share ν)', '由哈勃流超新星对尾部权重 ν 的外部约束（只报告，不是判定；假设哈勃流效应与校准效应的 ν 相同）');
+  if (!c && !g) return [['R2-RE-NU', title, '', '', 'not yet run', 'undetermined']];
+  const rows = [['R2-RE-NU', title, '', '', null]];
+  const s1 = (c && c.stage1) || (g && g.stage1) || {};
+  if (s1.tau_hat_HF !== undefined && s1.tau_hat_HF !== null) {
+    const iv = (s1.interval_68 || []).map(x => typeof x === 'number' ? f(x, 4) : x).join(', ');
+    rows.push(['', L('Stage 1: excess per-SN scatter τ̂_HF beyond C, 68% interval (gate: τ̂_HF ≥ 0.02 mag and lower end above 0)', '第一阶段：每颗超新星超出 C 的散布 τ̂_HF 及 68% 区间（门槛：τ̂_HF ≥ 0.02 mag 且下端大于 0）'),
+      `${f(s1.tau_hat_HF, 4)} [${iv}]`, '≥ 0.02', null]);
+  }
+  if (c && c.mock_summary) {
+    const ms = c.mock_summary, mp = k => ms[k] ? f(ms[k].mean_P, 3) : '—';
+    const ka = c.known_answer ? c.known_answer.outcome : null;
+    rows.push(['', L('Known-answer check on mocks: mean P(ν ≤ 4) for t₃, t₁₀, heteroscedastic, truncated t₃', '模拟样本上的已知答案检验：t₃、t₁₀、异方差、截断 t₃ 的平均 P(ν ≤ 4)'),
+      `${mp('t3')}, ${mp('t10')}, ${mp('het')}, ${mp('trunc')}`, L('Δ ≥ 0.10', 'Δ ≥ 0.10'),
+      ka === 'passed' ? L('passed', '通过') : ka ? L(ka, ka.replace(/^failed/, '未通过')) : null, ka === 'passed' ? 'ok' : 'undetermined']);
+  }
+  if (!g) {
+    rows.push(['', L('Label', '标签'), '', '', c.outcome ? nuLabel(c.outcome) : L('check stage done; full stage not yet run', '检查阶段已完成；完整阶段尚未运行'), 'undetermined']);
+    return rows;
+  }
+  if (g.P_le4 !== undefined) {
+    rows.push(['', L('P(ν ≤ 4) with a flat prior on ν ∈ {3, 4, 6, 10, 30, ∞} (uniform in 1/ν in brackets)', 'ν ∈ {3, 4, 6, 10, 30, ∞} 上平坦先验下的 P(ν ≤ 4)（括号内为 1/ν 均匀先验）'),
+      `${f(g.P_le4, 3)} (${f(g.P_le4_inv_nu, 3)})`, L('prior 1/3', '先验 1/3'), null]);
+    const sn = g.sensitivities || {};
+    const sp = k => sn[k] && sn[k].P_le4 !== undefined ? f(sn[k].P_le4, 3) : '—';
+    rows.push(['', L('Sensitivities of P(ν ≤ 4): scale profile, calibrator effect in the base covariance, grouping at 0.45', 'P(ν ≤ 4) 的敏感度：尺度剖面、基础协方差中加入校准效应、0.45 分组'),
+      `${sp('profile')}, ${sp('vbase')}, ${sp('grouping_045')}`, '—', null]);
+  }
+  if (g.p_int) {
+    const rd = g.p_int_reading || {};
+    const rt = rd.reading === 'below 0.05' ? L('below 0.05: diffuse host scatter of R2-RE\'s size excluded by G at the 5% level (reported, non-decisive)', '低于 0.05：R2-RE 大小的分散宿主离散在 5% 水平上被 G 排除（只报告，不作判定）')
+      : rd.reading === 'at or above 0.05' ? L('at or above 0.05: not excluded', '不低于 0.05：未排除')
+      : L('not read against 0.05', '不与 0.05 比较');
+    rows.push(['', L('p_int: R2-RE-GTP\'s calibrated p integrated over the Hubble-flow-informed ν (bound over the three checked τ in brackets; prior only 0.0352)', 'p_int：R2-RE-GTP 的校准 p 值对哈勃流给出的 ν 积分（括号内为三个检查过的 τ 上的界；只用先验时为 0.0352）'),
+      `${f(g.p_int.primary, 4)} (${f(g.p_int.bound, 4)})`, '0.05', rt, 'undetermined']);
+  }
+  rows.push(['', L('Label', '标签'), '', '', nuLabel(g.label), 'undetermined']);
+  return rows;
+}
+
 function render() {
   if (!D) return;
   const S = D.summary, R1 = D.r1, A = D.r2.anchor_step, H = D.r2.host_step, R3 = D.r3, R4 = D.r4, X = D.cross_paper, I = D.host_identification;
@@ -371,6 +442,7 @@ function render() {
     ...gRows(),
     ...gtRows(),
     ...gtpRows(),
+    ...nuRows(),
     ['', L('Host step, pre-registered labelling', '宿主一步，预注册的标注'), '', '', H.preregistered_verdict],
     ['R3', L('CCHP-side H0 on the same 10 hosts vs CCHP\'s 69.29', '同样 10 个宿主上 CCHP 一侧的 H0 对 CCHP 的 69.29'), `${f(R3.cchp_side_h0, 2)} (Δ ${f(R3.cchp_diff_mag, 4)} mag)`, '69.29 ± 0.02 mag', R3.cchp_match],
     ['', L('d = SH0ES − CCHP on the same hosts (descriptive)', 'd = 同宿主上 SH0ES − CCHP（只作描述）'), `${f(R3.d, 4)} ± ${f(R3.sigma_d, 4)} mag`, '—', null],

@@ -21,6 +21,7 @@ from scipy import linalg, optimize
 from astrolab import infer
 
 import n5584
+import nu
 import onehost
 import rob
 import sel
@@ -78,9 +79,25 @@ PARAMS = {
     "gtp_t_seeds": {3: 430_000, 6: 440_000, 10: 450_000, 30: 460_000},
     "gtp_inner_seeds": {6: 613_000, 30: 614_000}, "gtp_n_sims": 10_000,
     "gtp_rerun_reason": "",     # a formal rerun after a formal outcome needs a reason, also present in log.md
+    # R2-RE-NU (README section 2, addendum 2026-11-24, T-062): an outside constraint on the tail weight nu from the
+    # Hubble-flow rows; reported, non-decisive. Runs only standalone (nu_check and nu_only true, nu_stage "check" then
+    # "full", for the formal runs only, back afterwards); a full study run copies R2_RE_NU from r2_re_nu.json
+    "nu_check": False, "nu_only": False, "nu_stage": "check",
+    "nu_grid": [3, 4, 6, 10, 30, "inf"], "nu_tau_gate": 0.02, "nu_group_corr": 0.3, "nu_group_corr_sens": 0.45,
+    "nu_q_prior_frac": 0.1, "nu_n_is": 4_000, "nu_n_is_escalate": 32_000, "nu_is_seed": 730_000,
+    "nu_is_seed_escalate": 740_000, "nu_n_mocks": 200, "nu_n_is_mock": 2_000, "nu_cut_sigma": 3.5,
+    "nu_cut_attempts": 100,
+    "nu_mock_seeds": {"eps": 700_000, "t3": 710_000, "t10": 720_000, "het": 780_000, "trunc_joint": 1_000_000,
+                      "is_t3": 750_000, "is_t10": 760_000, "is_het": 800_000, "is_trunc": 810_000},
+    "nu_profile_m": [0.5, 0.75, 1, 1.5, 2], "nu_profile_seed": 770_000, "nu_vbase_seed": 820_000,
+    "nu_group_sens_seed": 830_000,
+    "nu_rerun_reason": "",      # a formal rerun after a formal outcome needs a reason, also present in log.md
 }
 
 DR = "PantheonPlusSH0ES/DataRelease/main/SH0ES_Data/"
+# R2-RE-NU's count check: the cached Pantheon+SH0ES.dat (0.58 MB, the URL study 002 fetched it from), read with
+# usecols CID and USED_IN_SH0ES_HF only (nu.read_hf_cid_count)
+PANTHEON_DAT = "https://raw.githubusercontent.com/CobayaSampler/sn_data/master/PantheonPlus/Pantheon+SH0ES.dat"
 RAW = "https://raw.githubusercontent.com/" + DR
 MEDIA = "https://media.githubusercontent.com/media/" + DR
 F_C = "allc_shoes_ceph_topantheonwt6.0_112221.fits"
@@ -931,6 +948,121 @@ def gtp_summary_from_file(results):
     return {"status": "not run (standalone only, README R2-RE-GTP)"}
 
 
+# ---------------------------------------------------------------- R2-RE-NU (addendum 2026-11-24, T-062)
+def formal_nu_done(path=None):
+    """The formal results/r2_re_nu.json exists (any formal outcome of the full stage)."""
+    return shape.formal_outcome(shape.STUDY_DIR / "results" / "r2_re_nu.json" if path is None else path)
+
+
+def formal_nu_check_done(path):
+    """path holds a formal check-stage record."""
+    path = Path(path)
+    if not path.exists():
+        return False
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    return rec.get("stage") == "check" and "settings" in rec
+
+
+def recorded_gtp():
+    """R2-RE-GTP's committed record (p_cal for p_int), read from this study's results/ (also in an exploration)."""
+    path = shape.STUDY_DIR / "results" / "r2_re_gtp.json"
+    if not path.exists():
+        raise RuntimeError("R2-RE-NU needs R2-RE-GTP's results/r2_re_gtp.json")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def nu_preflight(ctx, P):
+    """The checks of a nu_only run before any data is loaded. Returns (check_rec, gtp_rec): the check stage's record
+    for a full stage (None for the check stage, or for an exploration that runs both stages) and R2-RE-GTP's record."""
+    if not P["nu_check"]:
+        raise ValueError("nu_only needs nu_check = true")
+    if P["nu_stage"] not in ("check", "full"):
+        raise ValueError(f"nu_stage must be 'check' or 'full', not {P['nu_stage']!r}")
+    exploring = getattr(ctx, "max_save_bytes", None) is not None
+    if exploring and not formal_nu_done():
+        raise RuntimeError("an exploration may run R2-RE-NU only after the formal results/r2_re_nu.json is committed "
+                           "(README section 8): before it, nothing may be computed from the Hubble-flow rows of y")
+    if not exploring:
+        bad = nu.preregistered_problems(P)
+        if bad:
+            raise RuntimeError("R2-RE-NU formal run refused: PARAMS differ from the pre-registered values (" +
+                               ", ".join(bad) + ")")
+        thr = nu.one_thread_problems()
+        if thr:
+            raise RuntimeError("R2-RE-NU formal run refused: a formal run uses one thread (" + ", ".join(thr) + ")")
+    full = P["nu_stage"] == "full"
+    gtp_rec = recorded_gtp() if full else None
+    if full:
+        nu.gtp_p_cal(gtp_rec)                    # p_cal as the README quotes them, checked before any data is loaded
+    check_rec = None
+    why = P["nu_rerun_reason"]
+    has_reason = bool(isinstance(why, str) and why.strip() and why in study_log_text())
+    cp = ctx.results / "r2_re_nu_check.json"
+    if not exploring:
+        if not full and formal_nu_check_done(cp) and not has_reason:
+            raise RuntimeError("results/r2_re_nu_check.json already holds a formal R2-RE-NU check stage: a rerun needs "
+                               "PARAMS nu_rerun_reason, a non-empty text also present in log.md")
+        if full:
+            if formal_nu_done(ctx.results / "r2_re_nu.json") and not has_reason:
+                raise RuntimeError("results/r2_re_nu.json already holds a formal R2-RE-NU outcome: a rerun needs "
+                                   "PARAMS nu_rerun_reason, a non-empty text also present in log.md")
+            if not cp.exists():
+                raise RuntimeError("the full stage needs results/r2_re_nu_check.json: run nu_stage = 'check' first "
+                                   "and commit its line to log.md")
+            check_rec = json.loads(cp.read_text(encoding="utf-8"))
+            bad = nu.check_record_problems(check_rec, nu.json_like(nu.settings_of(P)))
+            if bad:
+                raise RuntimeError("R2-RE-NU full stage refused: " + "; ".join(bad))
+            if nu.check_log_line(check_rec) not in study_log_text():
+                raise RuntimeError("R2-RE-NU full stage refused: the check stage's line (nu.check_log_line) is not "
+                                   "present in log.md; add it (and commit it) first (README section 8)")
+            sum_path = ctx.results / "summary.json"
+            if not sum_path.exists():
+                raise RuntimeError("the R2-RE-NU full stage updates summary.json's R2_RE_NU key: run the full study "
+                                   "first")
+            onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_NU", None)
+    elif full and cp.exists():
+        check_rec = json.loads(cp.read_text(encoding="utf-8"))
+    return check_rec, gtp_rec
+
+
+def run_nu_only(ctx, P, L, y, C, nz, cls, pre):
+    """The standalone R2-RE-NU stage after host identification: the check stage writes r2_re_nu_check.json and logs
+    its line; the full stage writes r2_re_nu.json and summary.json's R2_RE_NU key (an exploration without a check
+    record runs both stages)."""
+    check_rec, gtp_rec = pre
+    rows_a, _ = anchor_rows(nz, cls, y)
+    hf_rows = np.flatnonzero(cls["hflow"])
+    calib_groups = [np.flatnonzero(cls["calib"] & nz[:, j]) for j in range(NH)]
+    fns = {"reml_tau": reml_tau, "reml_m2l": reml_m2l, "fit": fit, "with_re": with_re,
+           "is_fit_failure": is_fit_failure}
+    cid = nu.read_hf_cid_count(ctx.http(PANTHEON_DAT, label="Pantheon+SH0ES.dat (CID, USED_IN_SH0ES_HF only)"))
+    args = (L, y, C, rows_a, hf_rows, calib_groups, P, fns, ctx.log, recorded_reml_grid(), cid)
+    if P["nu_stage"] == "check":
+        rec = nu.run_check(*args)
+        ctx.save("r2_re_nu_check", rec)
+        ctx.log(nu.check_log_line(rec))
+        return {"R2_RE_NU_check": {k: rec.get(k) for k in ("status", "outcome", "gate")}}
+    if check_rec is None:               # an exploration (empty folder) after the formal run: both stages here
+        check_rec = nu.json_like(nu.run_check(*args))
+        ctx.save("r2_re_nu_check", check_rec)
+    out = nu.run_full(*args, check_rec, gtp_rec)
+    sum_path = ctx.results / "summary.json"
+    new = (onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_NU", nu.summary(out))
+           if sum_path.exists() else {"R2_RE_NU": nu.summary(out)})
+    ctx.save("r2_re_nu", out)          # only after the summary check passed: no half-written result
+    ctx.save("summary", new)
+    return new
+
+
+def nu_summary_from_file(results):
+    """summary.json's R2_RE_NU in a full study run (R2-RE-NU runs only standalone): from r2_re_nu.json if present."""
+    path = Path(results) / "r2_re_nu.json"
+    if path.exists():
+        return nu.summary(json.loads(path.read_text(encoding="utf-8")))
+    return {"status": "not run (standalone only, README R2-RE-NU)"}
+
+
 def gt_preflight(ctx, P):
     """The checks of a gt_only run before any data is loaded (README R2-RE-GT: R2-RE-G's safeguards). Returns
     (g_saved, power_rec): R2-RE-G's saved simulations and, for a formal full stage, the power record."""
@@ -1015,6 +1147,17 @@ def main(ctx):
         raise ValueError("gtp_only cannot be combined with d_only, g_only or gt_only")
     if P["gtp_check"] and not gtp_only:
         raise ValueError("R2-RE-GTP runs only standalone: gtp_check = true needs gtp_only = true (README section 8)")
+    nu_only = bool(P["nu_only"])
+    if nu_only and (d_only or g_only or gt_only or gtp_only):
+        raise ValueError("nu_only cannot be combined with d_only, g_only, gt_only or gtp_only")
+    if P["nu_check"] and not nu_only:
+        raise ValueError("R2-RE-NU runs only standalone: nu_check = true needs nu_only = true (README section 8)")
+    nu_pre = None
+    if nu_only:
+        # standalone R2-RE-NU (README section 2, addendum 2026-11-24, T-062): check stage -> r2_re_nu_check.json
+        # (records provenance_nuc / run_info_nuc); full stage -> r2_re_nu.json and summary.json's R2_RE_NU key
+        ctx.record_suffix = "_nuc" if P["nu_stage"] == "check" else "_nu"
+        nu_pre = nu_preflight(ctx, P)
     gtp_pre = None
     if gtp_only:
         # standalone R2-RE-GTP (README section 2, addendum 2026-11-22, T-060): r2_re_gtp*.json and summary.json's
@@ -1095,7 +1238,7 @@ def main(ctx):
             onehost.summary_with_key(sum_path.read_text(encoding="utf-8"), "R2_RE_D", None)
         elif getattr(ctx, "max_save_bytes", None) is None:      # an exploration starts from an empty folder
             raise RuntimeError("d_only updates summary.json's R2_RE_D key: run the full study first")
-    save = (lambda name, obj: None) if (d_only or g_only or gt_only or gtp_only) else ctx.save
+    save = (lambda name, obj: None) if (d_only or g_only or gt_only or gtp_only or nu_only) else ctx.save
     C, L, y, lsq = load(ctx)
     hosts = [h for h, *_ in TABLE6]
     hosts = list(dict.fromkeys(hosts))
@@ -1257,6 +1400,8 @@ def main(ctx):
         return run_gt_only(ctx, P, L, y, C, nz, cls, col_host, ident, g_saved_gt)
     if gtp_only:            # standalone R2-RE-GTP
         return run_gtp_only(ctx, P, L, y, C, nz, cls, col_host, ident, gtp_pre)
+    if nu_only:             # standalone R2-RE-NU
+        return run_nu_only(ctx, P, L, y, C, nz, cls, nu_pre)
 
     # ---- R2 anchor step
     rows_a, achk = anchor_rows(nz, cls, y)
@@ -1605,6 +1750,7 @@ def main(ctx):
         "R2_RE_G": shape.summary(g_out),
         "R2_RE_GT": shape.gt_summary(gt_out),
         "R2_RE_GTP": gtp_summary_from_file(ctx.results),
+        "R2_RE_NU": nu_summary_from_file(ctx.results),
         "runtime_s": time.perf_counter() - t0,
     }
     ctx.save("summary", summary)
