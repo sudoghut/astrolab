@@ -1131,6 +1131,9 @@ def diag_inputs(P, co, tables, ctx):
            "n_kept_sightlines": int(sum(len(m["kept"]) for m in members if m["status"] == "pass")),
            "fallback_rows": [m["name"] for m in members if m["status"] == "fallback"],
            "absorbed_rows": {m["name"]: m["absorbed_by"] for m in members if m["status"] == "absorbed"},
+           # README 4.11 amendment 3: rows absorbed by a row that then fell back leave no point in S
+           "absorbed_into_fallback": {m["name"]: m["absorbed_rows"] for m in members
+                                      if m["status"] == "fallback" and m["absorbed_rows"]},
            "bridge_rows_max_abs_diff_pc": max(dev) if dev else None,
            "named": named, "members": members, "samples": samples}
     ctx.log(f"R-DIAG samples: S {n['S']} ({out['n_kept_sightlines']} sightlines, fallback {out['fallback_rows']}, "
@@ -1336,7 +1339,8 @@ def diag_run(P, store, data, grid, mods, tables, inputs, formal, ctx):
         for s, r, i, x, y, z, w in zip(v["source"], v["row"], v["id"], v["x"], v["y"], v["z"], sw[k])]}
         for k, v in samples.items()},
         "n_kept_sightlines": inputs["n_kept_sightlines"], "fallback_rows": inputs["fallback_rows"],
-        "absorbed_rows": inputs["absorbed_rows"], "n_named_rows": inputs["n_named_rows"],
+        "absorbed_rows": inputs["absorbed_rows"], "absorbed_into_fallback": inputs["absorbed_into_fallback"],
+        "n_named_rows": inputs["n_named_rows"],
         "bridge_rows_max_abs_diff_pc": inputs["bridge_rows_max_abs_diff_pc"],
         "consistency_table": table, "fits": fits,
         "rule": {"k": P["rdiag_member_k"], "floor_pc": P["rdiag_member_floor_pc"], "name_map": D.NAME_MAP,

@@ -226,8 +226,8 @@ S 是我们的重建（K24 的子集不公开），所以前两种解读说明�
 
 *写代码时的修订与披露（2026-11-24，在 R-DIAG 正式运行之前）。* 上文的规则、阈值与标签都不变。
 1. **正式运行前已看到的内容。** 在真实输入上检查代码时，一次冒烟检查（smoke check）打印了 C 部分 (i)（x–y 中位数 0.80 pc，第 95 百分位 1.30 pc，标签 "matches"；三维中位数 66 pc）以及 v_K 与 v_P 处的 ln L（−913.88 与 −805.51）。一次检查数据通路的探索（链远未达到可解读的长度：32 个行走者、200 步；输出与检查点已删除）打印了初步标签：S "reproduced"（计数 5），S_all 与 S+PT "partly reproduced"，(c) "reproduced"（c ≈ −196 pc，c-ref 半宽 92 pc），(z☉) "not reproduced"。这些都由正式运行取代；因为已经看到，所以在此披露。
-2. **(z☉) 的权重。** (z☉) 拟合的固定权重按正式规则由平移后的云重新计算，同第 4.9 节修订 9 对变体的做法（与 79 行权重的最大差 0.106，记为 `weights_max_abs_change`）。(c) 与 c-ref 用正式权重，如上文所述。
-3. **成员规则的边界情形。** 候选归入多个其他行的行，列为被它们全部吸收；回退行自己的视线不进入 S（不交给其他行）。在真实表上这两种情形都没有出现。
+2. **(z☉) 的权重。** (z☉) 拟合的固定权重按正式规则由平移后的云重新计算，同第 4.9 节修订 9 对变体的做法（与 79 行权重的最大差 0.106，记为 `weights_max_abs_change`）。(c) 与 c-ref 用正式权重，如上文所述。补充没有说明 (z☉) 用哪种权重；这一重算是编写代码时做出的选择。
+3. **成员规则的边界情形。** 候选归入多个其他行的行，列为被它们全部吸收；回退行自己的视线不进入 S（不交给其他行）。被一个随后回退的行吸收的行在 S 中不留下任何点；它记在该回退行之下（一致性表中的 `absorbed_rows`，`rdiag.json` 中的 `absorbed_into_fallback`）。在真实表上这些情形都没有出现。
 4. **A 部分的 ln 先验**与对数后验所用的未归一化高斯对数先验相同；C 部分 (ii) 中 c 的界是 (c) 的先验范围 [−400, 400] pc。
 5. **开销。** 一次第 (3) 列似然在 79 行上约 0.73 ms，在 S 上 1.05–1.12 ms（约 1.5 倍，而不是 2–2.3 倍）；运行约需 1.5–2 小时。
 
@@ -363,7 +363,7 @@ S 是我们的重建（K24 的子集不公开），所以前两种解读说明�
 | `parts` | 运行哪些检验（`t1t2`、`t3`、`t4`、`t5`、`t6`、`t7`、`t8`）；第 (3)–(6) 列的链总会运行 | 任意子集 | 只用缓存（两张表，16 KB；`["diag"]` 还读取第 3 节中 R-DIAG 的三个文件，113,017 字节） |
 | `parts` = `["conv"]` 或 `["t8p"]` | README 4.10 的事后检验 R-CONV（16 种第 (3) 列约定、选择与重跑）或 T8-P（除数固定为 74 时的 ω₀）；单独运行：从不与其他部分一起运行，其他部分的结果只读 | 二者之一（只有探索时可以一起运行） | 只用缓存 |
 | `parts` = `["diag"]` | README 4.11 的事后诊断 R-DIAG（A 部分逐云项；B 部分重建的视线样本 S，及 S_all 与 S+PT；C 部分 K24 公布的曲线；D 部分 s 的起点自由（含参照链 c-ref）与 z☉ = 20.8 pc；解读）；与 `conv` 一样单独运行 | 正式运行时单独运行；只有探索时可与 `conv` / `t8p` 一起 | 两张表加 R-DIAG 的三个文件（Zucker 2020、Alves 2020 连接视线、K24 的曲线；经 `ctx.http` 共 113,017 字节，首次运行后进入缓存）；需要 `results/rconv.json` |
-| `rdiag_member_k`、`rdiag_member_floor_pc`、`rdiag_pt_names`、`rdiag_s_all_n`、`rdiag_pt_n` | R-DIAG B 部分：每个轴的容差 k max(spread, floor)（3、5 pc）、闸门 max(spread, floor)、S+PT 加入的名称，以及停止检查（S_all = 169，S+PT − S = 28） | 探索时 k 取 2–4、floor 取 0–20 pc（停止检查随之需要新的计数） | 只用缓存 |
+| `rdiag_member_k`、`rdiag_member_floor_pc`、`rdiag_pt_names`、`rdiag_s_all_n`、`rdiag_pt_n` | R-DIAG B 部分：每个轴的容差 k max(spread, floor)（3、5 pc）、闸门 max(spread, floor)、S+PT 加入的名称，以及停止检查（S_all = 169，S+PT − S = 28） | 探索时 k 取 2–4、floor > 0（至多 20 pc）；k 与 floor 只改变 S，所以停止检查仍然通过（只有改动 `rdiag_pt_names` 才会改变 S+PT − S，此时需要新的 `rdiag_pt_n`） | 只用缓存 |
 | `rdiag_map_prior_draws`、`rdiag_top_n`、`rdiag_c_prior_pc`、`rdiag_c_scale_pc`、`rdiag_cref_s0_prior_pc`、`rdiag_c_halfwidth_max_pc`、`rdiag_zsun_pc`、`rdiag_d6_max`、`rdiag_m6_max`、`rdiag_curve_*` | R-DIAG 的 A、C、D 部分与解读：最大后验（MAP）的起点数（2 + 19）、最大的十个 Δᵢ、c ~ U(−400, 400) pc（也是 C 部分 c 的边界）及尺度 100 pc、c-ref 的平坦 s₀ U(−1,000, 3,000)、由数据决定的上限 100 pc、z☉ 20.8 pc、D₆ ≤ 8.781 与 M₆ ≤ 3.192、曲线标签阈值 5 / 15 / 20 pc 与 10%（预注册的值，README 4.11） | 只在探索时改动 | 只用缓存 |
 | `conv_indices` | R-CONV 拟合哪些约定（编号 = 基线·4 + σ·2 + 权重；基线 L、C、Y、X；σ F、P；权重 W、R） | 探索时任意子集；正式运行需要全部 16 种 | 只用缓存 |
 | `conv_seed_offset`、`conv_min_count`、`conv_repro_count`、`conv_width_range`、`t8p_bound_frac` | R-CONV 的种子与选择规则、T8-P 的边界规则（预注册的值，README 4.10） | 只在探索时改动 | 只用缓存 |
