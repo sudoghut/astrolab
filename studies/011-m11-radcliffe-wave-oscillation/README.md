@@ -594,7 +594,8 @@ to `Mon_R2`; `NorthAmerica` and `NorthAmericaNebula` to `North_America`; `Northe
 - **S+PT** (reported): S plus all Perseus (18) and Taurus (10) sightlines (177 points), which K24 may have kept in the
   spatial fit.
 - **Consistency table** (reported): for each named row, the number of its candidates and kept sightlines, the mean of the
-  kept sightlines minus p_r and their standard deviation against σ_r, pass or fallback; and, under S, the summed kernel
+  kept sightlines minus p_r and, per axis, their population standard deviation (ddof = 0) divided by σ_r,a (not defined
+  when σ_r,a = 0), pass or fallback; and, under S, the summed kernel
   weight of each row's points next to that row's weight in the 79-row fit.
 
 *Fits.* For S, S_all and S+PT the column-(3) MCMC exactly as section 4.2 (L-F-W, σ = 47 pc fixed, B = 1, ω₀t = 0), with
@@ -626,7 +627,7 @@ points lie beyond our curve's ends)". The 3-D numbers are reported next to it (z
 published). (ii) A
 least-squares fit of our curve to the published points: the 12 shape and anchor parameters plus the origin shift c
 (below), B = 1 and ω₀t = 0, minimising the sum over the published points (ends excluded as in (i)) of the squared 3-D
-distance to our curve (the 3-D exclusion set of (i), fixed during the fit). At every evaluation each kept point is
+distance to our curve, each kept point with equal weight (the 3-D exclusion set of (i), fixed during the fit). At every evaluation each kept point is
 matched to its nearest valid grid point of that evaluation's curve (2,000 points, validity p − γs′ > 0); a vector with no
 usable curve scores 10¹². One start, K24's column-(6) medians with c = 0, then `fit011.optimise`'s Nelder–Mead (initial
 steps 0.5 × each parameter's scale, 100 pc for c) and L-BFGS-B; the anchors, A, p, s₀ and φ are unbounded, δ and γ are
@@ -652,8 +653,10 @@ count, differences, D₆, M₆, width ratio and labels as in Part B ("… with t
 hoc"); for (c) also the posterior of c.
 
 *Reading (post hoc, fixed now; uses S, not S_all or S+PT).*
-- **"the column-(3) difference comes from the input sample"** if S's label is "reproduced";
-- otherwise **"the input sample accounts for part of the column-(3) difference"** if S's label is "partly reproduced"
+- **"column (3) is reproduced with the reconstructed sightline sample: the difference is consistent with the input
+  sample"** if S's label is "reproduced";
+- otherwise **"the reconstructed sightline sample accounts for part of the column-(3) difference"** if S's label is
+  "partly reproduced"
   and S's D₆ ≤ 8.781 and its M₆ ≤ 3.192 (the formal fit's 9.781 and 3.692 less margins of 1 and 0.5, for the seed and
   chain-length noise: the 16 R-CONV conventions moved φ by about ±0.6σ);
 - otherwise the same two steps for Part D, taking whichever of (c) and (z☉) reaches the higher step (both named on a
@@ -661,7 +664,8 @@ hoc"); for (c) also the posterior of c.
   height"** or **"the origin of s or the Sun's height accounts for part of the column-(3) difference"** (naming the
   variant);
 - otherwise **"the column-(3) difference remains unexplained (input sample, origin and the Sun's height tested)"**.
-S_all, S+PT, Part A and Part C are reported next to it and do not enter it. Nothing else is rerun: the formal labels, the
+S is our reconstruction (K24's subsets are not public), so the first two readings are evidence that the sample matters,
+not proof that K24 used S. S_all, S+PT, Part A and Part C are reported next to it and do not enter it. Nothing else is rerun: the formal labels, the
 overall reading, T6, R-CONV and T8-P stay as recorded; if S reproduces column (3), rerunning columns (4) and (6) and T5
 with sightlines is a separate, later decision.
 
