@@ -2467,13 +2467,14 @@ Carlo)" stays as recorded; the profile adds that diffuse scatter is excluded unl
 heavy-tailed as t₄ or heavier (the crossover lies between ν = 4 and 6). The
 refitted test is not anti-conservative anywhere on the grid (sizes 0.040–0.050). The headline (R2-RE) and every earlier
 label stay as recorded. An outside constraint on ν (from host-level residuals not used in G) is registered as T-062.
+R2-RE-NU (T-062): ν not evaluable (no excess scatter in the Hubble flow); p_int not computed.
 
 ### R2-RE-NU (addendum 2026-11-24, T-062)
 
 Run of 2026-11-24 in two stages, standalone (`nu_check` and `nu_only` true, set back to false afterwards),
-single-threaded, cache only. Check stage 105 s (settings committed in 2c26aec; record `results/r2_re_nu_check.json`
+single-threaded, cache only. Check stage 104 s (settings committed in 2c26aec; record `results/r2_re_nu_check.json`
 in 885731a; its line pasted into log.md in 8b73ac2, before the full stage). The full stage (939cd93) found that line and,
-the check stage having given label 1, only wrote that label to `results/r2_re_nu.json` and the `R2_RE_NU` key of
+the check stage having given label 2, only wrote that label to `results/r2_re_nu.json` and the `R2_RE_NU` key of
 `summary.json`: no L(ν), weights or p_int were computed on the data. Reported, non-decisive: no verdict, label,
 reading, sub-label, gloss or statement of R2 through R2-RE-GTP changes, and R2-RE's row stays the headline.
 
@@ -2482,7 +2483,7 @@ reading, sub-label, gloss or statement of R2 through R2-RE-GTP changes, and R2-R
 has rank 241 = n_g − 1; R2-RE's τ̂_obs reproduced (REML grid to 1e-11); the reduced form equals the full REML to 3e-12
 at three τ.
 
-**Label: "ν not evaluable (no excess scatter in the Hubble flow)"** (label 1, at Stage 1's gate). τ̂_HF = 0.0142 mag,
+**Label: "ν not evaluable (no excess scatter in the Hubble flow)"** (label 2, Stage 1's gate). τ̂_HF = 0.0142 mag,
 68% interval [0, 0.039] (Δ(−2ℓ_R) at τ = 0 is 0.028): the lower end is 0 and τ̂_HF is below the gate of 0.02 mag, so
 both conditions of the gate fire; the known-answer check and Stage 2 were not run. Sensitivities (reported only):
 grouping at 0.45, τ̂_HF = 0 (interval [0, 0.021]); R2-RE's calibrator effect in the base covariance (V(τ̂_obs)),
@@ -2491,9 +2492,9 @@ grouping at 0.45, τ̂_HF = 0 (interval [0, 0.021]); R2-RE's calibrator effect i
 - **The gate in practice (referee, post hoc).** With about 240 groups at σ ≈ 0.13 mag, the interval's lower end leaves 0
   only when Δ(−2ℓ_R) at τ = 0 exceeds 1, i.e. for τ̂_HF of roughly 0.04 mag or more, so the 0.02 mag threshold did not
   bind; the rule was applied as written.
-- **Built into C.** C's SN block is Pantheon+, whose scatter model (the BS21 dust-based scatter, a gray floor tuned to a
-  reduced χ² of 1, 250 km/s peculiar velocities) was fitted to the Hubble-diagram scatter of these SNe after a 3.5σ
-  cut, so "no excess beyond C" largely restates how C was built. The block was low-information by design: **nothing
+- **Built into C.** C's SN block is Pantheon+, whose BS21 scatter model was fitted to the observed scatter of the Pantheon+ sample
+  (which contains these SNe), with a 3.5σ outlier cut; the gray floor that would bring the reduced χ² to 1 is zero for
+  BS21 (addendum, item 6). So "no excess beyond C" largely restates how C was built. The block was low-information by design: **nothing
   here is evidence about ν**, and R2-RE-GTP's question (which tail weight applies to the host effects) stays open.
 
 **Post hoc (referee; not a label).** The recorded Stage-1 REML grid gives Δ(−2ℓ_R) = 9.14 at τ_HF = 0.07 and 14.09 at
@@ -2502,7 +2503,7 @@ size in the Hubble flow beyond C is disfavoured at about 3.5σ (main covariance 
 interval is recorded, and its upper end, 0.0386, also excludes 0.0767). The pre-registered scale condition (S5) would
 have flagged "0.0767 outside [0, 0.039]", but it is evaluated only after the gate. Under C's scatter model, then,
 R2-RE's 0.077 mag excess is not a generic property of SNe: it points to the Cepheid side, the hosts, or SN behaviour
-specific to the calibrators (Wojtak & Hjorth 2022, arXiv:2206.08160, not verified here), and it weakens the assumption
+specific to the calibrators (Wojtak & Hjorth 2022, arXiv:2206.08160; verified by the R2-RE referee, section 6), and it weakens the assumption
 that Hubble-flow and calibrator effects share ν, on which this block rested. The like-for-like test (REML on the 77
 calibrator SN rows, SN side only, with the same group-per-SN design) is registered as T-066.
 
@@ -2681,11 +2682,11 @@ L(ν), weights or p_int were computed from the data. Triage:
 | # | Point | Verified | Action |
 |---|---|---|---|
 | 1 | The gate effectively sat at about 0.04 mag: the lower end is 0 whenever Δ(−2ℓ_R) at τ = 0 is below 1, which with about 240 groups at σ ≈ 0.13 mag needs τ̂ of roughly 0.04 mag; the 0.02 threshold and its rationale never bind. The rule was applied as written, and both conditions fire | yes (Δ at 0 is 0.028; τ̂ 0.0142 < 0.02) | **Accepted**; stated in section 5 |
-| 2 | A near-zero excess was close to built in: C's SN block is Pantheon+, whose scatter model (BS21, a gray floor tuned to a reduced χ² of 1, 250 km/s peculiar velocities) was fitted to these SNe after a 3.5σ cut; the addendum predicted the outcome. Whether C also carries a shared term between duplicate light curves of one SN (which would make the per-group effect partly redundant) is unchecked | the construction as cited in the addendum (item 6); the duplicate term not checked | **Accepted limitation**: low-information by design; nothing here is evidence about ν, and the ν question stays open (section 7) |
+| 2 | A near-zero excess was close to built in: C's SN block is Pantheon+, whose BS21 scatter model was fitted to the observed scatter of the Pantheon+ sample (which contains these SNe), with a 3.5σ outlier cut, and the gray floor that brings the reduced χ² to 1 is zero for BS21 (the referee's 250 km/s peculiar-velocity term rests on Peterson et al. 2022, unverified); the addendum predicted the outcome. Whether C also carries a shared term between duplicate light curves of one SN (which would make the per-group effect partly redundant) is unchecked | the construction as cited in the addendum (item 6); the duplicate term not checked | **Accepted limitation**: low-information by design; nothing here is evidence about ν, and the ν question stays open (section 7) |
 | 3 | The label hides a transfer-relevant result: Δ(−2ℓ_R) at τ_HF = 0.0767 is about 12 (grid 9.1 at 0.07, 14.1 at 0.08), so a Hubble-flow per-SN scatter of the calibrators' size is excluded at about 3.5σ under C; S5 would have flagged it but runs only after the gate. So R2-RE's excess is not a generic SN-side property, and the transfer assumption is in doubt | yes (`r2_re_nu_check.json`, `stage1.main.grid_m2l`: 9.14, 14.09; 12.45 by linear interpolation) | **Accepted, post hoc** (not a label): reported in section 5, next to R2-RE's reading; the like-for-like test is registered as T-066 |
 | 4 | The grouping is ambiguous (0.3 merges, 0.45 splits), but both give τ̂ below the gate (0.0142 and 0); the count check (242 against 238) only guards against regressions | yes | Noted |
 | 5 | Minor: `lo == 0.0` relies on the REML returning exactly 0.0 (it does); the Δ = 1 interval at the τ = 0 boundary ignores the χ̄² mixture, so the upper ends are slightly conservative; reading `summary.json` with a non-UTF-8 default encoding shows "Î½" (the file is correct) | yes | Noted; no change |
-| 6 | Literature: Brout et al. 2022 (arXiv:2202.04077), Brout & Scolnic 2021 (arXiv:2004.10206), Peterson et al. 2022 (arXiv:2110.03487), Carr et al. 2022 (arXiv:2112.01471), Scolnic et al. 2022 (arXiv:2112.03863), Wojtak & Hjorth 2022 (arXiv:2206.08160) | Brout et al. 2022 checked for the addendum (item 6); the others unverified | Noted |
+| 6 | Literature: Brout et al. 2022 (arXiv:2202.04077), Brout & Scolnic 2021 (arXiv:2004.10206), Peterson et al. 2022 (arXiv:2110.03487), Carr et al. 2022 (arXiv:2112.01471), Scolnic et al. 2022 (arXiv:2112.03863), Wojtak & Hjorth 2022 (arXiv:2206.08160) | Brout et al. 2022 checked for the addendum (item 6); Wojtak & Hjorth 2022 by the R2-RE referee (section 6); the others unverified | Noted |
 | 7 | Most important additional test: the same REML on the 77 calibrator SN rows alone, SN side only (calibrator distances fixed at the GLS solution), with the same group-per-SN design: no excess there would put R2-RE's 0.077 on the Cepheid or host side and refute the transfer assumption | – | Registered as T-066 (backlog) |
 
 ## 7. Open questions

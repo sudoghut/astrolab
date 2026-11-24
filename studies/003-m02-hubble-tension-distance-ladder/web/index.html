@@ -402,7 +402,7 @@ function nuRows() {
   if (gm && gm.length > 8 && typeof mn === 'number') {
     const t = 0.0767, i = Math.floor(t / 0.01), w = t / 0.01 - i, d = gm[i] + w * (gm[i + 1] - gm[i]) - mn;
     rows.push(['', L('Post hoc (referee; not a label): Δ(−2ℓ_R) at τ_HF = 0.0767, the calibrators\' host scale; a Hubble-flow scatter of that size beyond C is disfavoured at about √Δ σ', '事后（审稿；不是标签）：τ_HF = 0.0767（校准星的宿主尺度）处的 Δ(−2ℓ_R)；超出 C、同样大小的哈勃流散布约在 √Δ σ 上不受支持'),
-      f(d, 1), '—', L('R2-RE\'s excess is not a generic SN-side property under C (README section 5)', '在 C 下 R2-RE 的额外离散不是超新星一侧的一般性质（README 第 5 节）'), null]);
+      `${f(d, 1)} (√Δ ${f(Math.sqrt(Math.max(d, 0)), 1)})`, '—', L('R2-RE\'s excess is not a generic SN-side property under C (README section 5)', '在 C 下 R2-RE 的额外离散不是超新星一侧的一般性质（README 第 5 节）'), 'undetermined']);
   }
   return rows;
 }
