@@ -639,7 +639,7 @@ each:
 - **(c)** the origin of s as a free parameter c: s′ = s − c replaces s wherever s enters the model (Λ, ζ, and the
   validity mask p − γs′ > 0), with c ~ U(−400, 400) pc and the other priors unchanged (s₀ is then measured from the
   shifted origin, as K24's s₀ is from theirs). Because ζ depends only on s₀ + c, c enters the fit only through Λ, where it is constrained jointly with p, γ and
-  the anchors; the posterior correlations of c with s₀, p and γ are reported. The
+  the anchors [post hoc 2026-11-24: wrong, see section 6, R-DIAG referee point 1]; the posterior correlations of c with s₀, p and γ are reported. The
   grid, the curve's extent and the fixed weights (computed as in the formal run, with c = 0) are unchanged; c < −291 pc
   puts the origin before the grid's start, which is allowed. Walkers start around c = 0 with a ball scale of 100 pc.
   Because the data fix s₀ + c near the envelope's peak (about 500 pc in our fit), the N(680, 200) prior on s₀ induces a
@@ -879,11 +879,11 @@ weight of S rather than from the sample itself (section 6, point 3; a control is
 | (c) origin free | 79 | 3 (A, p, s₀) | 6.516 | 1.866 (δ) | 1.21 | partly reproduced by the rule; **withdrawn as uninformative** (section 6, point 1) |
 | (z☉) +20.8 pc | 79 | 1 (p) | 17.598 | 8.503 (φ) | 0.98 | not reproduced |
 
-- **Part B.** With S, δ moves from −2.1σ to −0.4σ; A comes inside only with S+PT (−0.5σ; −1.4σ in S); φ stays
+- **Part B.** With S, δ moves from −2.1σ to −0.4σ; among S and S+PT, A comes inside only with S+PT (−0.5σ; −1.4σ in S); φ stays
   outside (+2.7σ in S, +1.7σ in S+PT, against +3.7σ formally) and the first anchor stays about −1.7σ / −2.4σ off in x₀ /
   y₀. The anchors slide along the curve with the origin (section 6, point 2), so their σ-differences are not read as
-  geometry differences. S_all has σ_P = 130 pc at its median (a few far sightlines dominate a likelihood with no
-  outlier cap); it is reported only, as registered.
+  geometry differences. S_all has σ_P = 130 pc at its median (a few far sightlines dominate the uncapped d²
+  dispersion); it is reported only, as registered.
 - **Part A.** At K24's column-(3) medians our 79-row ln L is 108.9 lower than at our MAP point (ln posterior −807.57
   from 21 starts). The 54 bridging sightlines carry 77.4 of this and the named rows 31.5; the largest single terms are
   four bridging sightlines near l ≈ 222°, b ≈ −6° (4.2–4.7 each), IC5146 (4.5) and S106 (3.7). The bridging rows are
@@ -894,7 +894,8 @@ weight of S rather than from the sample itself (section 6, point 3; a control is
   reaches an RMS of 0.68 pc (from 70.2 pc). Because the origin c is degenerate with p, γ, φ and s₀ (section 6, point 1),
   only this RMS is read, not the fitted parameters or c.
 - **Part D.** (c): c = −245 (+140/−101) pc; the reference chain c-ref (s₀ flat) gives −216 (+152/−121) pc, half-width
-  137 pc > 100 pc, so c is **"prior-dominated"** and Part D does not enter the reading. Post hoc (referee): c is exactly
+  137 pc > 100 pc, so c is **"prior-dominated"**. Part D does not enter the reading (S already reached the second reading; c was also
+  prior-dominated). Post hoc (referee): c is exactly
   degenerate with p, γ, φ and s₀ (the curve, ζ and the validity mask are unchanged under p′ = (p + γc)²/p, γ′ = γ(p +
   γc)/p, φ′ = φ − 2πc/(p + γc), s₀′ = s₀ + c), so the likelihood is flat in c and c is set by the priors alone: c-ref
   could not have been "data-driven", and section 4.11's statement that c "is constrained jointly with p, γ and the
@@ -902,7 +903,7 @@ weight of S rather than from the sample itself (section 6, point 3; a control is
   computation (not saved), no single c brings p, γ, φ and s₀ inside together, so the origin of s does not account for
   the difference. (z☉): with z shifted by +20.8 pc and the weights recomputed (largest change 0.106) the fit moves
   further away (φ +8.5σ); the model has no free z offset, so a large change is expected and says little.
-- **Chains.** Every chain was extended from 4,000 to 12,000 steps by the rule and every one still carries the "chain
+- **Chains.** Every chain was rerun by the rule at twice the length (6,000 → 12,000 steps, burn-in 2,000 → 4,000) and every one still carries the "chain
   short" flag (τ_max 180–244, 8,000 post-burn steps, 33–44τ). With about 1,500 independent samples per chain the
   medians' Monte Carlo error is about 0.03 posterior σ, far below the margins of S (1.12 in D₆, 0.52 in M₆).
 - **Seen before the run.** The short-chain exploration disclosed in section 4.11 (amendment 1) had printed S
@@ -967,7 +968,7 @@ log.md. It ran `test_rdiag.py` (21 passed) and recomputed every label from `rdia
 
 | # | Point | Verified | Action |
 |---|---|---|---|
-| 1 | The origin c is exactly degenerate: Λ(s) is a Möbius function of s, and p′ = (p + γc)²/p, γ′ = γ(p + γc)/p, φ′ = φ − 2πc/(p + γc), s₀′ = s₀ + c give the same curve, ζ and validity mask for any c (numerically 1e−7 pc at c = −245). The likelihood is flat in c, its posterior comes from the priors on p, γ, φ, s₀, c-ref could never be "data-driven", and Part C (ii)'s parameters are one point of a flat valley | yes (analytic, from `wave011.wave_on_grid`: ζ depends on s − c − s₀, and p − γ(s − c) = (p′ − γ′s)·p/(p + γc)) | **Accepted, post hoc (2026-11-24):** the (c) label is computed by the rule but withdrawn as uninformative; section 4.11's "constrained jointly" is wrong; only the RMS of Part C (ii) is read. The reading is unchanged (c-ref was "prior-dominated", so Part D was not used). By the referee's computation (not saved), no single c brings p, γ, φ and s₀ inside together |
+| 1 | The origin c is exactly degenerate: Λ(s) is a Möbius function of s, and p′ = (p + γc)²/p, γ′ = γ(p + γc)/p, φ′ = φ − 2πc/(p + γc), s₀′ = s₀ + c give the same curve, ζ and validity mask for any c (numerically 1e−7 pc at c = −245). The likelihood is flat in c, its posterior comes from the priors on p, γ, φ, s₀, c-ref could never be "data-driven", and Part C (ii)'s parameters are one point of a flat valley | yes (analytic, from `wave011.wave_on_grid`: ζ depends on s − c − s₀, and p − γ(s − c) = (p′ − γ′s)·p/(p + γc)) | **Accepted, post hoc (2026-11-24):** the (c) label is computed by the rule but withdrawn as uninformative; section 4.11's "constrained jointly" is wrong; only the RMS of Part C (ii) is read. The reading is unchanged (Part D does not enter it: S already reached the second reading; c was also prior-dominated). By the referee's computation (not saved), no single c brings p, γ, φ and s₀ inside together |
 | 2 | Anchor 0 is nearly degenerate with the origin too: our anchor 0 lies on K24's curve about 128 pc before theirs along it, so the x₀/y₀ offsets are mostly a slide along the curve | the referee's computation | **Accepted:** anchor σ-differences are not read as geometry differences (section 5.2) |
 | 3 | Kernel weights are normalised to the number of points, so S carries a total weight of 149 against 79 at fixed σ; the likelihood weighs about 1.9 times more against tight priors, and the main gain (δ) may come from data weight rather than the sample | yes (section 4.11, Part B; README 4.1) | **Accepted limitation:** the reading is qualified in section 5.2; a weight control (the 79-row chain with every weight × 149/79) is registered as T-065 |
 | 4 | Part A: the bridging sightlines carry 77.4 of the 108.9 between K24's medians and our MAP point, and they are the same in S | yes (`rdiag.json` `part_a`) | **Accepted;** stated in section 5.2 |
