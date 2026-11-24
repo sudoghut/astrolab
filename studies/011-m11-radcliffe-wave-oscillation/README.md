@@ -554,9 +554,12 @@ Data Figs. 1–3).*
 - The gate-1 review of this addendum compared each named ¹²CO row with its mapped sightlines (positions only, no model):
   Cepheus's row (spread 19/12/14 pc) lies far from the mean of its 28 sightlines (only 10 are within 30 pc); Polaris's
   mean is 54 pc off in z; `MonR2` (spread 0) is one sightline of `Mon_R2`'s 6; the two North America rows are different
-  subsets of its 10 sightlines; Cygnus X, Orion, IC5146 and the single-sightline rows match. With the membership rule
-  below it found 103 sightlines at k = 3 (89 at k = 2), with MonR2, NorthAmerica and Orion_Lam still mismatched at
-  k = 3. It also computed, at K24's column-(3) medians and with the model only, the grid's s range (−291 to 4,042 pc) and
+  subsets of its 10 sightlines; Cygnus X, Orion, IC5146 and the single-sightline rows match. In round 1, with a
+  stricter check than the rule below (each sightline counted once per row, and the SD compared as well), it found 103
+  sightlines at k = 3 (89 at k = 2), with MonR2, NorthAmerica and Orion_Lam mismatched. In round 2 it applied the final
+  rule below to the tables (positions only): 95 distinct sightlines kept, every row passing the gate except
+  `NorthAmericaNebula`, whose candidates all go to `NorthAmerica` (absorbed); so S has 95 + 54 = 149 points. It also
+  computed, at K24's column-(3) medians and with the model only, the grid's s range (−291 to 4,042 pc) and
   the Λ pole p/γ = 3,204 pc.
 - No sightline was compared with a model curve, the published curve was not compared with our model, and nothing was
   fitted.
@@ -564,8 +567,8 @@ Data Figs. 1–3).*
 *Part A, per-object diagnostic on the 79 (descriptive).* The formal column-(3) setup (L-F-W, σ = 47 pc, the formal fixed
 weights). Three parameter vectors: K24's column-(3) medians v_K (the free parameters from Extended Data Table 2, B = 1,
 ω₀t = 0); our formal L-F-W posterior medians v_P (`rconv.json`, convention 0); and our maximum a posteriori point v_M
-(section 4.2's optimiser on the log posterior, the best of 21 starts: v_K, v_P and 19 prior draws by the `ml` rule of
-`run.py` with the name `rdiag_map`). At each: ln L, ln prior, ln posterior and σ_P (section 4.10); for each object its
+(section 4.2's optimiser, Nelder–Mead then L-BFGS-B, with the log posterior as objective from every start; the best of
+21 starts: v_K, v_P and 19 prior draws from `rng_for(seed, "ml_rdiag_map")`). At each: ln L, ln prior, ln posterior and σ_P (section 4.10); for each object its
 name, s, weight, d² and term tᵢ = wᵢ dᵢ²/(2σ²). Reported for both comparisons Δᵢ = tᵢ(v_K) − tᵢ(v_M) and Δᵢ = tᵢ(v_K) −
 tᵢ(v_P): the ten objects with the largest Δᵢ, the share of Σ max(Δᵢ, 0) they carry, and the sums over the 25 named rows
 and the 54 bridges. No label (the share has no calibrated reference).
@@ -577,13 +580,17 @@ to `Mon_R2`; `NorthAmerica` and `NorthAmericaNebula` to `North_America`; `Northe
 - **S, the reconstructed sample (primary).** For a named row r with position p_r and spreads σ_r,a (a = x, y, z), the
   tolerance is t_r,a = 3 max(σ_r,a, 5 pc). The candidates of r are the sightlines of its mapped name with |x_a − p_r,a| ≤
   t_r,a on every axis. A sightline that is a candidate of two rows goes to the row with the smaller maxₐ |x_a −
-  p_r,a|/t_r,a (ties to the row listed first in the ¹²CO table). **Gate per row:** r passes if it keeps at least one
-  sightline and the mean of its sightlines lies within max(σ_r,a, 5 pc) of p_r on every axis; a row that fails enters S
-  as its own single ¹²CO point (a "fallback row", listed). S is the passing rows' sightlines, the fallback rows' points
-  and the 54 bridging sightlines (from the bridging table). Its size is set by the rule (103 sightline candidates before
-  the gate in the review's check, three rows likely to fall back) and reported.
+  p_r,a|/t_r,a (ties to the row listed first in the ¹²CO table). **Gate per row:** a row that had candidates but keeps
+  none because all of them went to another row is **absorbed** by that row: it is dropped and listed ("absorbed by
+  <row>"). Every other row passes if it keeps at least one sightline and the mean of its sightlines lies within
+  max(σ_r,a, 5 pc) of p_r on every axis; a row that fails (no candidates at all, or the mean outside) enters S as its own
+  single ¹²CO point (a "fallback row", listed). S is the passing rows' sightlines, the fallback rows' points and the 54
+  bridging sightlines (from the bridging table). On the real tables the rule gives 95 sightlines, no fallback row and
+  one absorbed row (`NorthAmericaNebula` by `NorthAmerica`), so S has 149 points (gate-1 round 2, disclosed above); the
+  run recomputes and reports it.
 - **S_all** (reported): every sightline of the mapped names plus the 54 bridges, 169 points.
-- **S+PT** (reported): S plus all Perseus (18) and Taurus (10) sightlines, which K24 may have kept in the spatial fit.
+- **S+PT** (reported): S plus all Perseus (18) and Taurus (10) sightlines (177 points), which K24 may have kept in the
+  spatial fit.
 - **Consistency table** (reported): for each named row, the number of its candidates and kept sightlines, the mean of the
   kept sightlines minus p_r and their standard deviation against σ_r, pass or fallback; and, under S, the summed kernel
   weight of each row's points next to that row's weight in the 79-row fit.
@@ -598,19 +605,24 @@ each: T1's column-(3) count (how many of A, p, δ, s₀, γ, φ have their poste
 used), and the label by R-CONV's thresholds: **"column (3) reproduced with sample <S | S_all | S+PT>"** if the count is
 ≥ 5 and the width ratio lies in [2/3, 3/2]; **"column (3) partly reproduced with sample <…>"** if the count is 3–4, or
 ≥ 5 with the width ratio outside that range; **"column (3) not reproduced with sample <…>"** if the count is ≤ 2. Each
-label ends with "post hoc". The formal L-F-W fit has count 2, D₆ = 9.78 and M₆ = 3.69 (φ).
+label ends with "post hoc". The formal L-F-W fit (`rconv.json`, convention 0) has count 2, D₆ = 9.781 and M₆ = 3.692
+(φ).
 
 *Part C, K24's published curve (R-CURVE).* (i) Our model curve at K24's column-(6) medians (the formal L baseline, grid
 and extent, B = 1, ω₀t = 0, divisor 74): for each of the 1,500 published points, the nearest valid grid point of our
-curve in x–y (the projection depends only on the anchors and the baseline convention) and in 3-D. Points whose nearest
-point is a grid end are excluded and counted. Reported for the rest: median, 95th percentile and maximum of the x–y and
+curve in x–y (the projection depends only on the anchors and the baseline convention) and in 3-D. A point whose nearest
+point is the first or last valid grid point (as in section 4.9, item 8) is excluded, separately for the x–y and the 3-D
+nearest point; both counts are reported. Reported for the rest: median, 95th percentile and maximum of the x–y and
 3-D distances, the median absolute v_z difference at the 3-D nearest point, and our s of the published curve's first and
 last points. Label (from the x–y distances): **"matches K24's published curve"** if the median is ≤ 5 pc and the 95th
 percentile ≤ 15 pc; **"approximately matches"** if the median is ≤ 20 pc; otherwise **"differs from K24's published
-curve"**; the 3-D numbers are reported next to it (z depends on which posterior point was published). (ii) A
+curve"**; if more than 10% of the 1,500 points are excluded in x–y, the label is followed by "(more than 10% of the
+points lie beyond our curve's ends)". The 3-D numbers are reported next to it (z depends on which posterior point was
+published). (ii) A
 least-squares fit of our curve to the published points: the 12 shape and anchor parameters plus the origin shift c
 (below), B = 1 and ω₀t = 0, minimising the sum over the published points (ends excluded as in (i)) of the squared 3-D
-distance to our curve, started at K24's column-(6) medians with c = 0, Nelder–Mead then L-BFGS-B as section 4.2; c is
+distance to our curve (the 3-D exclusion set of (i), fixed during the fit), started at K24's column-(6) medians with
+c = 0, Nelder–Mead then L-BFGS-B as section 4.2; c is
 bounded to [−400, 400] pc. Reported: the fitted parameters, c, their differences from K24's column-(6) medians in K24's σ,
 and the RMS distance; read in section 5, without a label.
 
@@ -619,19 +631,27 @@ each:
 - **(c)** the origin of s as a free parameter c: s′ = s − c replaces s wherever s enters the model (Λ, ζ, and the
   validity mask p − γs′ > 0), with c ~ U(−400, 400) pc and the other priors unchanged (s₀ is then measured from the
   shifted origin, as K24's s₀ is from theirs). Because ζ depends only on s₀ + c, c is identified through Λ alone. The
-  grid, the curve's extent and the fixed weights (computed as in the formal run, with c = 0) are unchanged.
+  grid, the curve's extent and the fixed weights (computed as in the formal run, with c = 0) are unchanged; c < −291 pc
+  puts the origin before the grid's start, which is allowed. Walkers start around c = 0 with a ball scale of 100 pc.
+  Because the data fix s₀ + c near the envelope's peak (about 500 pc in our fit), the N(680, 200) prior on s₀ induces a
+  prior on c of roughly N(−180, 200) pc. So a reference chain **(c-ref)** is run with the same setup but s₀ flat in
+  U(−1,000, 3,000) pc, and c is read as **"data-driven"** if c-ref's 16–84% half-width of c is at most 100 pc (half of
+  that induced prior width), otherwise as **"prior-dominated"**; both chains' c posteriors are reported.
 - **(z☉)** every cloud's z increased by 20.8 pc (the model has no free vertical offset, so A and φ absorb it).
-MCMC as section 4.2 (13 free parameters for (c)), seeds by the `mcmc` rule with the names `rdiag_c` and `rdiag_zsun`;
+MCMC as section 4.2 (13 free parameters for (c) and c-ref), seeds by the `mcmc` rule with the names `rdiag_c`,
+`rdiag_cref` and `rdiag_zsun`;
 count, differences, D₆, M₆, width ratio and labels as in Part B ("… with the origin free / with z☉ = 20.8 pc, post
 hoc"); for (c) also the posterior of c.
 
 *Reading (post hoc, fixed now; uses S, not S_all or S+PT).*
 - **"the column-(3) difference comes from the input sample"** if S's label is "reproduced";
 - otherwise **"the input sample accounts for part of the column-(3) difference"** if S's label is "partly reproduced"
-  and S's D₆ < 9.78 and its M₆ < 3.69 (both below the formal fit's);
-- otherwise the same two steps for Part D, taking whichever of (c) and (z☉) reaches the higher step: **"the
-  column-(3) difference comes from the origin of s or the Sun's height"** or **"the origin of s or the Sun's height
-  accounts for part of the column-(3) difference"** (naming the variant);
+  and S's D₆ ≤ 8.781 and its M₆ ≤ 3.192 (the formal fit's 9.781 and 3.692 less margins of 1 and 0.5, for the seed and
+  chain-length noise: the 16 R-CONV conventions moved φ by about ±0.6σ);
+- otherwise the same two steps for Part D, taking whichever of (c) and (z☉) reaches the higher step (both named on a
+  tie), where (c) counts only if c is "data-driven": **"the column-(3) difference comes from the origin of s or the Sun's
+  height"** or **"the origin of s or the Sun's height accounts for part of the column-(3) difference"** (naming the
+  variant);
 - otherwise **"the column-(3) difference remains unexplained (input sample, origin and the Sun's height tested)"**.
 S_all, S+PT, Part A and Part C are reported next to it and do not enter it. Nothing else is rerun: the formal labels, the
 overall reading, T6, R-CONV and T8-P stay as recorded; if S reproduces column (3), rerunning columns (4) and (6) and T5
@@ -641,18 +661,19 @@ with sightlines is a separate, later decision.
 part of Cepheus get more weight than one row each, unless the kernel weights compensate (they largely do when a row's
 sightlines lie within about 100 pc in s; the consistency table shows it); we expect S to move the anchors and φ, with an
 even chance of at least a partial reproduction. Part C most likely "matches" or "approximately matches". Part D: z☉
-changes little (K24's own test); under (c) the data may move c by up to a few hundred pc, but s₀ then shifts with it, so
-the count is unlikely to reach 3.
+changes little (K24's own test); under (c) the s₀ prior pulls c towards about −180 pc, close to the −194 pc offset of
+K24's published first point, so a c near −200 pc from the main chain alone would mean little (hence c-ref; we expect
+"prior-dominated"); s₀ shifts with c, so the count is unlikely to reach 3.
 
 *Data and cost.* Three new files of 55,870, 9,894 and 47,253 bytes (113,017 in all) via `ctx.http`, far below the
-budget; added to section 3. Part A a few minutes; Part B three column-(3) chains on about 100, 169 and about 130 points
-(about 1.3–2.2 times the 79-row cost per evaluation, so about 15–45 minutes each with the doubling); Part C a few
-minutes; Part D two chains of 10–25 minutes. In all about 1.5–3 hours on one core, with the pause and checkpointed
+budget; added to section 3. Part A a few minutes; Part B three column-(3) chains on 149, 169 and 177 points (about 2–2.3
+times the 79-row cost per evaluation, so about 20–45 minutes each with the doubling); Part C a few minutes; Part D three
+chains of 10–25 minutes. In all about 2–3.5 hours on one core, with the pause and checkpointed
 resume of section 4.9, item 13. Run alone, after the other studies' runs.
 
 *Code checks before the run (synthetic data only, except the counts).* The name map and the membership rule on synthetic
-rows and sightlines (a sightline inside two rows, a row that falls back, ties); on the real tables S_all has 169 points
-and S+PT adds 28; with c = 0 and no z change the formal likelihood is reproduced to the bit; the shifted ζ with s₀′ = s₀ −
+rows and sightlines (a sightline inside two rows, an absorbed row, a row that falls back, ties); on the real tables S
+has 149 points, S_all 169 and S+PT 177; with c = 0 and no z change the formal likelihood is reproduced to the bit; the shifted ζ with s₀′ = s₀ −
 c reproduces the formal ζ to round-off; the per-object terms sum to −ln L minus the constant; the curve-distance code
 returns 0 for a curve against itself and the right distance for a curve displaced by a known vector, and flags grid ends;
 the least-squares fit recovers a synthetic vector (with c) from its own curve to under 1 pc RMS.
