@@ -407,6 +407,7 @@ def test_errmm_boot_left_s():
     assert run.errmm_boot_left_s({"S15E": 2, "Full": 1}, {}, [2.0, 4.0]) == pytest.approx(9.0)
     assert run.errmm_boot_left_s({"S15E": 2, "Full": 1, "S15N": 0}, {"S15E": [5.0], "Full": [1.0, 3.0]}, []) == \
         pytest.approx(12.0)
+    assert run.errmm_boot_left_s({"S15E": 1, "Full": 1}, {"S15E": [], "Full": [2.0, 4.0]}, []) == pytest.approx(6.0)
 
 
 def _committed(name):
@@ -459,5 +460,5 @@ def test_errmm_full_size_output_under_1_mb():
                         "i_used_k5": 0}
             for v in VARS for b in (0, 1, 2) for j in range(101)}
     out["bootstrap"] = run.errmm_evaluate_b(P, boot, rcal, _rfit())
-    size = len(json.dumps(out, default=float))
-    assert size < 1024 ** 2, size
+    size = len(json.dumps(out, default=float, indent=1, ensure_ascii=False))   # as ctx.save writes it
+    assert size < 0.9 * 1024 ** 2, size
