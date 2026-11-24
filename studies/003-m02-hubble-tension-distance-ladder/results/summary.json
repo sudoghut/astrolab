@@ -210,5 +210,14 @@
   "p_cal_max": 0.07829217078292171,
   "anti_conservative_nu": []
  },
+ "R2_RE_NU": {
+  "status": "final from the check stage",
+  "label": "ν not evaluable (no excess scatter in the Hubble flow)",
+  "tau_hat_HF": 0.014202401641761288,
+  "interval_68": [
+   0.0,
+   0.03902685066330902
+  ]
+ },
  "runtime_s": 33374.32105920001
 }

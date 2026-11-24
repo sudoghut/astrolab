@@ -5,6 +5,7 @@
 
 ## 2026-11-24（R2-RE-NU 预注册草稿，T-062）
 
+- R2-RE-NU 正式运行第 2 阶段（完整阶段，full stage）：`nu_stage` 设为 "full"，同样单线程、同样的 `nu_*` 取值；它在 log.md 中找到检查阶段的日志行后才开始，因检查阶段已得标签 1，只写入该标签（`r2_re_nu.json` 与 `summary.json` 的 `R2_RE_NU` 键：τ̂_HF 0.0142 mag，68% [0, 0.039]，"ν not evaluable (no excess scatter in the Hubble flow)"），不计算数据上的 L(ν)。之后 `nu_check` 与 `nu_only` 改回 false，`nu_stage` 改回 "check"（2026-11-24）。
 - R2-RE-NU 正式运行第 1 阶段（检查阶段，check stage）：`nu_check` 与 `nu_only` 设为 true，`nu_stage` 为 "check"（提交 2c26aec），单线程，仅用缓存，105 秒；检查记录 `r2_re_nu_check.json` 已提交（885731a）。各项检查通过（277 个哈勃流行；分 242 组，CID 238 个，容差 11；R2-RE 的 τ̂_obs 复现到 1e-11；约化形式一致）。第 1 阶段 τ̂_HF = 0.0142 mag，68% 区间 [0, 0.039]：区间下端为 0，且 τ̂_HF 小于闸门 0.02 mag，所以按预注册得标签 1"ν 不可评估（哈勃流中没有额外弥散）"（ν not evaluable, no excess scatter in the Hubble flow），已知答案检验不运行。检查阶段输出的日志行（原样粘贴）：
 
 R2-RE-NU check stage: τ̂_HF 0.0142 mag (68% [0.0, 0.03902685066330902]); gate gate; known-answer check not run; outcome ν not evaluable (no excess scatter in the Hubble flow)

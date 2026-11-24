@@ -82,7 +82,7 @@ PARAMS = {
     # R2-RE-NU (README section 2, addendum 2026-11-24, T-062): an outside constraint on the tail weight nu from the
     # Hubble-flow rows; reported, non-decisive. Runs only standalone (nu_check and nu_only true, nu_stage "check" then
     # "full", for the formal runs only, back afterwards); a full study run copies R2_RE_NU from r2_re_nu.json
-    "nu_check": True, "nu_only": True, "nu_stage": "full",
+    "nu_check": False, "nu_only": False, "nu_stage": "check",
     "nu_grid": [3, 4, 6, 10, 30, "inf"], "nu_tau_gate": 0.02, "nu_group_corr": 0.3, "nu_group_corr_sens": 0.45,
     "nu_q_prior_frac": 0.1, "nu_n_is": 4_000, "nu_n_is_escalate": 32_000, "nu_is_seed": 730_000,
     "nu_is_seed_escalate": 740_000, "nu_n_mocks": 200, "nu_n_is_mock": 2_000, "nu_cut_sigma": 3.5,
