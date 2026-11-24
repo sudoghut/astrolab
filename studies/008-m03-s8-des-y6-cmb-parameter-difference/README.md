@@ -666,6 +666,122 @@ was trained on the family (the code was run on synthetic rows without flows); no
 5. The flow job folder is keyed, as for R6, by a dummy input array, the configuration, `flowshift.py` and the TF
    environment's packages; the `ka` jobs draw their own rows.
 
+### 2.10 Addendum 2026-11-24: R6-SHUF-KA2, a known-answer test of φ on a surrogate of the data (T-063)
+
+Written after R6-SHUF-KA (section 2.9), its results (section 5) and its referee review (section 6), before any flow
+was trained on the surrogate below. It changes nothing above: the R6, R6-NOMNU, R6-SHUF and R6-SHUF-KA labels and
+R6-SHUF-KA's qualifier stay as recorded, and nothing is retrained. **It is a second known-answer test of the estimator
+of φ, on a distribution built from the data's own two chains, reported next to R6-SHUF's label and R6-SHUF-KA's
+qualifier; it is not a verdict on D26.**
+
+*Why.* R6-SHUF-KA found no bias of φ on one synthetic family (b̄ = +0.020, I_b = [−0.006, 0.045]), but there the
+flows read each n_σ 0.07–0.12σ low, and b̄ ≈ 0 is the residual of offsets that largely cancel in the ratio; the
+corrected interval's lower end is 0.010 above 0.60. Its referee (section 6, R6-SHUF-KA points 1, 3 and 7) asked for the
+test on a surrogate of the data's own 6-D difference, with (S) built as R6-SHUF builds it (the DES Σmν column
+permuted, the CMB chain's correlations kept), because the family's n₅, its coupling through one latent variable and
+its DS (all of u's correlations broken) differ from the data's.
+
+*Seen before this addendum.* Everything in sections 5–7 and log.md, in particular R6-SHUF's and R6-SHUF-KA's per-seed
+values and summaries. While drafting (no flow): `explore/t063_surrogate_design.py`, added in the same change, was
+written with the fit settings, K's range and the selection rule below, then run once (1,059 s); its output was read:
+the BIC of K = 1–8 for each chain (decreasing at every step for both, so K = 8, the top of the range, was selected for
+both), the effective sample sizes (ESS 10,472 DES, 10,401 CMB) and the exact values below. Nothing was changed after
+seeing them; in particular K's range was not extended although the BIC still fell at K = 8 (with 100,000 resampled
+rows of chains whose ESS is about 10,000, many rows repeat, which favours more components; the range was fixed in
+advance to bound the cost of the exact values).
+
+*The surrogate.* For each chain (DES 3x2pt and CMB; the six R6 parameters in R6's order A_s·10⁹, h₀, Σmν, n_s, Ω_b,
+Ω_m; rows and weights as R6, no burn-in for these nested-sampling chains): the columns are standardised with the DES
+chain's weighted mean and standard deviation (one affine map for both chains, so the surrogate's difference is an
+affine image of a difference in R6's units and every n_σ is unchanged by the map); 100,000 rows are drawn with
+replacement by weight (`default_rng(7000)` for DES, `default_rng(7001)` for CMB); a full-covariance Gaussian mixture is
+fitted to them with scikit-learn 1.5.1's `GaussianMixture` (n_init 4, max_iter 2000, tol 10⁻⁵, reg_covar 10⁻⁶,
+random_state 0) for K = 1–8; the K with the lowest BIC is kept (K = 8 for both). The fitted weights, means and
+Cholesky factors and the standardisation are committed as `surrogate_t063.json` (copied from the design output;
+SHA-256 of its bytes with `\n` line endings `ba050dc4b15c945c2185398c21b97d0c8116208afc872bd71c842592323aff76`), so the
+run never refits. Three variants, each a Gaussian mixture with a closed-form density, in standardised units:
+- **D6**: a − c, a drawn from the DES mixture and c from the CMB mixture (64 components);
+- **DS**: as D6, but a's Σmν drawn independently of a's other five (the DES mixture's Σmν marginal times its
+  five-parameter marginal, 64 components, convolved with the CMB mixture: 512 components); the CMB side keeps all its
+  correlations, as R6-SHUF's (S) does; its rows are the D6 rows with the DES Σmν column permuted before the
+  difference, as R6-SHUF's (S) (which gives the product asymptotically);
+- **D5**: Σmν dropped (the five-parameter marginal of D6).
+Draws: for a row block from a generator, all DES rows first, then all CMB rows; each mixture draw is one uniform per
+row for the component (`searchsorted` on the cumulative weights) followed by a standard-normal block (n, 6), mapped by
+the component's mean and Cholesky factor. Exact values: n_σ = √2 erf⁻¹(P(log p(X) > log p(0))) from 2,000,000 rows from
+`default_rng(999)`, DS from the same rows with the DES Σmν column permuted by `default_rng(1000).permutation`:
+**n₆ = 1.3768, n_S = 0.6678, n₅ = 0.3341, φ_exact = 0.6800**. With seeds 998/997 they were 1.3798, 0.6684, 0.3348
+(differences within the Monte Carlo standard errors of about 0.002; not the precision of the rule below). The run
+recomputes them from the committed file with the same code and generators; a difference above 0.005 in any of them is
+rule 1.
+
+*How close the surrogate is to the data (stated now, not a rule).* The surrogate's exact n₆, n_S and n₅ (1.38, 0.67,
+0.33) are lower than the flows' values on the data (1.70, 0.91, 0.52), while φ_exact (0.68) is close to R6-SHUF's
+φ̄ (0.67). Either the mixture smooths the chains (for example Σmν's prior edge at 0.06 eV, which no Gaussian
+reproduces) and so shortens the difference, or the flows read the data high, or both; this addendum cannot tell which.
+So the surrogate matches the data's structure (its two chains, the DES-side and CMB-side correlations, (S) as
+R6-SHUF builds it) better than R6-SHUF-KA's family, but not its n_σ values; n₅ in particular is not matched by either
+test (0.33 and 0.37 against 0.52).
+
+*Method.* Seeds k = 25–34 (ten seeds; as TensorFlow seeds they overlap none used by R6, R6-NOMNU, R6-SHUF, R6-SHUF-KA
+or the gates: 0–4, 10–12, 15–24). For seed k: N = 100,000 D6 rows from `default_rng(8000 + k)` (DES block, then CMB
+block, as above), multiplied column by column by the standardisation scale (so the flows see R6's units; the centre
+cancels in the difference); the DS rows are the same draws with the DES Σmν column permuted by
+`default_rng(9000 + k).permutation(N)` before the difference; the D5 rows are the D6 rows without Σmν. A flow is
+trained on each with R6's settings and call (tensiometer defaults, `pop_size` not passed, `estimate_shift(tol=0.02,
+max_iter=1000, step=100000)`, TensorFlow seeded with k), giving n̂₆,k, n̂_S,k, n̂₅,k; φ̂_k = (n̂₆,k − n̂_S,k)/(n̂₆,k −
+n̂₅,k); b_k = φ̂_k − φ_exact. Environment as R6-SHUF-KA: the versions and flow settings must equal those recorded in
+`results/r6.json`, `results/r6_shuf.json` and `results/r6_ka.json`. Inputs to the qualifier: φ̄_R6 and s_φ,R6 (unrounded)
+from `results/r6_shuf.json`, whose label must be the recorded one; for the comparison, b̄_KA and s_b,KA from
+`results/r6_ka.json`, whose label must be the recorded one.
+
+*Label R6-SHUF-KA2 (rules in order; the first that applies decides).*
+1. The versions or flow settings differ from the recorded ones; `surrogate_t063.json`'s hash differs from the one
+   above; an exact value differs from the numbers above by more than 0.005; or `results/r6_shuf.json` or
+   `results/r6_ka.json` is missing or its label differs from the recorded one → "not evaluable".
+2. Any training fails, is non-finite, has not converged or is a lower bound → "not evaluable".
+3. Any Ê_k = n̂₆,k − n̂₅,k ≤ 0.20, or s_b > 0.30 → "not evaluable" (R6-SHUF's limits).
+4. Otherwise I_b = b̄ ± 2 s_b/√10: I_b ⊂ (0, ∞) → **"flows overestimate φ on the surrogate (bias b̄)"**; I_b ⊂
+   (−∞, 0) → **"flows underestimate φ on the surrogate (bias b̄)"**; otherwise → **"no bias of φ detected on the
+   surrogate (I_b = [..])"**.
+
+*Qualifier of R6-SHUF (reported; fixed now).* Except under rules 1–3, exactly as section 2.9's with this test's b̄ and
+s_b: w = 2√(s_φ,R6²/5 + s_b²/10), I_φ,corr = (φ̄_R6 − b̄) ± w, read in order: ⊂ [0.60, ∞) → "R6-SHUF's label holds after
+the surrogate correction"; ⊂ (−∞, 0.40] → "R6-SHUF's label reverses after the surrogate correction"; otherwise, if
+φ̄_R6 − w < 0.60 → "surrogate correction not decisive (test too noisy: w = ..)"; otherwise → "R6-SHUF's label is not
+decided after the surrogate correction". It is reported next to R6-SHUF's label and R6-SHUF-KA's qualifier, which
+stay as recorded.
+
+*Comparison with R6-SHUF-KA (reported; fixed now).* Except under rules 1–3: Δb = b̄ − b̄_KA with standard error
+σ_Δ = √(s_b²/10 + s_b,KA²/10) (independent seed sets): |Δb| > 2σ_Δ → "the bias of φ differs between the family and the
+surrogate (Δb = ..)"; otherwise → "no difference in the bias of φ detected between the family and the surrogate (Δb =
+.. ± ..)". (The R6-SHUF-KA referee suggested reading a move of b̄ by ≳ 0.01 as a dependence on the distribution; with
+s_b ≈ 0.04 per test, σ_Δ ≈ 0.018, so a move of 0.01 cannot be resolved by ten seeds and is not used as the threshold.)
+
+*Reported, descriptive.* Per seed n̂₆,k, n̂_S,k, n̂₅,k, Ê_k, φ̂_k, b_k and the training times; the mean offsets n̄_v −
+n_v,exact with s, and their comparison with R6-SHUF-KA's (−0.073, −0.116, −0.098); s_b; I_b; w; I_φ,corr; Δb and σ_Δ;
+the surrogate's exact values next to the data's flow values.
+
+*Expected outcome (stated now).* R6-SHUF-KA's s_b = 0.040 suggests s_b ≈ 0.04 here too (I_b half-width ≈ 0.025,
+w ≈ 0.041; the "test too noisy" branch would need s_b ≳ 0.10). At the surrogate's exact point (E = n₆ − n₅ = 1.04,
+smaller than the family's 1.44) ∂φ/∂n₆ ≈ 0.31, ∂φ/∂n_S ≈ −0.96 and ∂φ/∂n₅ ≈ 0.65, so equal offsets weigh more than on
+the family. Linearised, R6-SHUF-KA's mean offsets (−0.073, −0.116, −0.098) would give b ≈ +0.025, and R6's gate offsets
+(n₆ +0.025, n_S −0.028, n₅ +0.009) b ≈ +0.040; both positive, mainly through n_S. Our guess: "no bias of φ detected on
+the surrogate" or "flows overestimate φ", about equally likely, with b̄ of a few hundredths; the qualifier "holds" if
+b̄ ≲ 0.03 and "not decided" above (φ̄_R6 − 0.60 − w ≈ 0.030); "no difference detected" in the comparison.
+
+*Runtime.* R6-SHUF-KA's 30 trainings took 18,812 s (5.2 h; 421–1,214 s each); 30 trainings here ≈ 5–6.5 h in venv-tf
+(`TF_USE_LEGACY_KERAS=1`, through the project venv's subprocess as for R6), plus the exact values (the design script's fits and two
+sets of exact values took 1,059 s), run when no other study is running. No data downloaded; the chains
+are not read by this block (the surrogate file replaces them). PARAMS: `"r6_ka2": False` (true only for the formal run,
+alone; R1–R5 run as usual; R6, R6-NOMNU, R6-SHUF and R6-SHUF-KA read, not rerun), `"r6_ka2_seeds": [25, …, 34]`,
+`"r6_ka2_file": "surrogate_t063.json"`, `"r6_ka2_sha256": "ba050dc4…aff76"` (in full), `"r6_ka2_exact": {"n6":
+1.3768, "S": 0.6678, "n5": 0.3341}`, `"r6_ka2_seed_offsets": [8000, 9000]`; output `results/r6_ka2.json`, and a key
+`r6_ka2` in the run summary. Code checks before the formal run (no flow): the mixture densities against direct sums of
+Gaussian densities and the DS density's marginals against the DES mixture's; DS rows have the product marginals;
+identical draws under the TF environment's numpy (2.5.5) and the project's (1.26.4); the rule order, the qualifier and
+the comparison. None of this code exists yet apart from the design script.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
