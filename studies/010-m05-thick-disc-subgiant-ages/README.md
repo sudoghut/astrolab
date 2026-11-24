@@ -1158,7 +1158,9 @@ resolvable bins. No reading says which f is true.
     edge in each metal-poor bin, R1-ERRCAL's d*(2.81) (0.25 in all nine cases) and resolvability, and the
     metal-rich bins from R1-SEL-FIT. Per variant the fraction of the 100 replicates whose verdict equals
     R1-ERRCAL's at 2.81 is reported (a failed replicate counts as not equal); R1-ERRCAL's 2.81 verdict is
-    called **stable under resampling** if that fraction is at least 0.80 and **unstable** otherwise. If
+    called **stable under resampling** if that fraction is at least 0.80 and **unstable** otherwise. Both words
+    are conditional on the registered fit procedure and on R1-ERRCAL's d* and resolvability, which are held fixed;
+    they do not describe the uncertainty of the whole analysis. If
     replicate 100's verdict differs from R1-ERRCAL's, that is stated and the fraction is also given against
     replicate 100's verdict; if replicate 100 fails, that is stated and no fraction against it is given. With `errmm_n_boot` ≠ 100 (an exploration) no reading is given.
 
@@ -1171,14 +1173,19 @@ resolvable bins. No reading says which f is true.
   same D (the null parameters and fit (o) starts at F) and the same streams reproduces `run.r1_mock_errcal`'s
   result exactly.
 
-- **What the outcome can be (stated now).** From R1-ERRCAL's power sets at 2.81 (seen, see the disclosure), the
+- **What the outcome can be (stated now).** The cut-offs below are a deterministic consequence of R1-ERRCAL's
+  recorded results (seen, see the disclosure), not of any R1-ERRMM result. From R1-ERRCAL's power sets at 2.81, the
   power of a bin falls below 0.80 only if d*_mm is at or below 0.013 / 0.020 / 0.075 (term E, bins
   [−0.7, −0.5) / [−0.5, −0.3) / [−0.3, −0.1)), 0.005 / 0.011 / 0.062 (term N) or 0.005 / 0.026 / 0.042 (Full).
   Term E's label reads "not reproduced" or, if two metal-poor bins lose power, "undetermined" for each g; it
   cannot read "reproduced". For term N and Full each of these cut-offs lies below the data's d in its bin, so a
   bin can lose power only where it has already stopped being almost disjoint: they read "reproduced" for a given
   g if and only if d*_mm stays above the data's d in all three metal-poor bins (about 0.0627 / 0.2419 / 0.1449
-  in term N, 0.0537 / 0.2316 / 0.1422 in Full), and "not reproduced" or "undetermined" otherwise. Our guess:
+  in term N, 0.0537 / 0.2316 / 0.1422 in Full), and "not reproduced" or "undetermined" otherwise. The 2.1 rule's
+  other condition, a median young-side edge of the almost-disjoint bins in 6.5–9.5 Gyr, uses the data fits' edges
+  at 2.81, which R1-ERRMM does not change: with all three metal-poor bins almost disjoint the median edge is
+  9.375 Gyr (term N: 9.375 / 9.775 / 9.075) and 9.325 Gyr (Full: 9.325 / 9.725 / 9.075), already inside the
+  range, as recorded in R1-ERRCAL. Our guess:
   with g = 1.0 the fit at 2.81 over-deconvolves and produces valleys in some null mocks, but rarely three as deep
   as 0.24 in a set of 50, so term N and Full keep "reproduced" at g = 1.5 and possibly lose it at g = 1.0; the
   bootstrap finds the 2.81 verdicts of all three variants unstable (margins of 0.008–0.021 in d against a
