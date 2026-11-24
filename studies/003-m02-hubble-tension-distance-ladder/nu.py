@@ -380,13 +380,11 @@ def gate(est, tau_gate):
 
 
 def scale_inside(interval, ref=SCALE_REF):
-    """Whether ref lies inside the 68% interval; None when its upper end is "not determined" (not covered by the
-    pre-registration: the full stage stops before L(nu))."""
+    """Whether ref lies inside the 68% interval. An upper end given as ">..." or "not determined" counts as open:
+    the interval is [lower end, inf) (README amendment 2 of 2026-11-24)."""
     lo, hi = interval
     if isinstance(hi, str):
-        if hi.startswith(">"):
-            return bool(lo <= ref)
-        return None
+        return bool(lo <= ref)
     return bool(lo <= ref <= hi)
 
 
