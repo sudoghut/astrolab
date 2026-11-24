@@ -902,8 +902,11 @@ How a coding agent answers "what if" questions about this study without touching
 
 | Knob (`PARAMS`) | Meaning | Safe range | Cache only, or new data (size)? |
 |---|---|---|---|
-| `parts` | which tests to run (`t1t2`, `t3`, `t4`, `t5`, `t6`, `t7`, `t8`); the column-(3)–(6) chains always run | any subset | cache only (the two tables, 16 KB) |
+| `parts` | which tests to run (`t1t2`, `t3`, `t4`, `t5`, `t6`, `t7`, `t8`); the column-(3)–(6) chains always run | any subset | cache only (the two tables, 16 KB; `["diag"]` also reads the three R-DIAG files of section 3, 113,017 bytes) |
 | `parts` = `["conv"]` or `["t8p"]` | README 4.10's post-hoc R-CONV (16 column-(3) conventions, the choice, the reruns) or T8-P (ω₀ with the divisor fixed at 74); standalone: never with the other parts, which are only read | one of them (both together only in an exploration) | cache only |
+| `parts` = `["diag"]` | README 4.11's post-hoc R-DIAG (Part A per-cloud terms, Part B the reconstructed sightline sample S with S_all and S+PT, Part C K24's published curve, Part D the origin of s free with c-ref and z☉ = 20.8 pc, the reading); standalone like `conv` | alone in a formal run; with `conv` / `t8p` only in an exploration | the two tables plus the three R-DIAG files (Zucker 2020, Alves 2020 bridging sightlines, K24's curve; 113,017 bytes via `ctx.http`, cached after the first run); needs `results/rconv.json` |
+| `rdiag_member_k`, `rdiag_member_floor_pc`, `rdiag_pt_names`, `rdiag_s_all_n`, `rdiag_pt_n` | R-DIAG Part B: tolerance k max(spread, floor) per axis (3, 5 pc), the gate max(spread, floor), the names added in S+PT, and the stop checks (S_all = 169, S+PT − S = 28) | k 2–4, floor 0–20 pc in an exploration (the stop checks then need the new counts) | cache only |
+| `rdiag_map_prior_draws`, `rdiag_top_n`, `rdiag_c_prior_pc`, `rdiag_c_scale_pc`, `rdiag_cref_s0_prior_pc`, `rdiag_c_halfwidth_max_pc`, `rdiag_zsun_pc`, `rdiag_d6_max`, `rdiag_m6_max`, `rdiag_curve_*` | R-DIAG Parts A, C, D and the reading: MAP starts (2 + 19), the ten largest Δᵢ, c ~ U(−400, 400) pc (also Part C's bound on c) with scale 100 pc, c-ref's flat s₀ U(−1,000, 3,000), the data-driven limit 100 pc, z☉ 20.8 pc, D₆ ≤ 8.781 and M₆ ≤ 3.192, the curve-label thresholds 5 / 15 / 20 pc and 10% (pre-registered values, README 4.11) | changed only in an exploration | cache only |
 | `conv_indices` | which conventions R-CONV fits (index = baseline·4 + σ·2 + weights; baseline L, C, Y, X; σ F, P; weights W, R) | any subset in an exploration; a formal run needs all 16 | cache only |
 | `conv_seed_offset`, `conv_min_count`, `conv_repro_count`, `conv_width_range`, `t8p_bound_frac` | R-CONV seeds and choice rule, T8-P bound rule (pre-registered values, README 4.10) | changed only in an exploration | cache only |
 | `variants` | T6 variants to run | any subset of the ten names | cache only |
@@ -941,6 +944,17 @@ How a coding agent answers "what if" questions about this study without touching
   the sixteen; the reruns about 0.8 hours (columns (4)–(6) about 45 minutes, T5 and its known-answer check a few
   minutes); Part B about 0.7 hours. In all about 3.5–6 hours (R-CONV) plus 0.7 hours (T8-P) on one core. A quick look:
   `--set parts='["conv"]' conv_indices='[0, 9]' mcmc_steps=1500 mcmc_burn=500` (about 25 minutes with the reruns, labelled as a subset).
+- **R-DIAG (README 4.11, post hoc).** Formal procedure: after R-CONV (`results/rconv.json` and `summary.json` must exist), set
+  `"parts": ["diag"]` in `PARAMS` (committed, with a line in `log.md`), run `python -m astrolab run 011-m11-radcliffe-wave-oscillation`,
+  rerun after each pause at `stop_after_hours` until it completes (it resumes from `s011_checkpoints/diag/<key>` and deletes that
+  folder when done), then set `parts` back to the default list. Only `rdiag.json`, the `R_DIAG` key of `summary.json` and the `_diag`
+  records are written (`_diagpaused` while paused). The run stops before any fit unless S_all has 169 points and S+PT 28 more than S;
+  the formal L-F-W numbers (count 2, D₆ 9.781, M₆ 3.692) and v_P are read from `rconv.json` convention 0 at run time. Runtime,
+  measured on the real inputs while the machine was busy: one column-(3) likelihood takes about 0.73 ms on the 79 rows and 1.05–1.12 ms
+  on S (149 points); the Part C distance sum about 9 ms. Taking each chain as 48 × 18,000 evaluations (doubled steps): S, S_all and S+PT
+  about 16–19 minutes each, (c), c-ref and (z☉) about 11–12 minutes each; the MAP (21 starts) about 2 minutes; the Part C fit about
+  1–2 minutes. In all about 1.5–2 hours on one core. A data-path check: `--set parts='["diag"]' mcmc_steps=200 mcmc_burn=100
+  mcmc_walkers=32 ml_nm_maxfev=300 ml_lbfgs_maxfun=100 rdiag_map_prior_draws=2` (about 1 minute; the chains are far too short to read).
 - Analyses `run.py` does not cover: a script `explore/<name>.py` with `def main(ctx)`, run with
   `python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --script explore/<name>.py`.
   Existing: `explore/age_scatter.py` (wiki Part 3 exploration "Age and birth in the Wave": RMS of the z
@@ -979,7 +993,17 @@ How a coding agent answers "what if" questions about this study without touching
   - `results/summary.json`: every label, `overall` (`reading`, `support`, `do_not_support`,
     `undetermined_or_not_evaluable`, `qualifier`), `load_check`, `timing`, `chain_short`; after the standalone runs also
     `R_CONV` (`label`, `case`, `chosen`, `reason`, `counts`, `width_ratios`, `reruns`, `chain_short`) and `T8_P`
-    (`label`, `at_bound`, `halfwidth_broad`, `median_shift_in_sigma_broad`, `omega0_k24`, `omega0_broad`).
+    (`label`, `at_bound`, `halfwidth_broad`, `median_shift_in_sigma_broad`, `omega0_k24`, `omega0_broad`); after R-DIAG also
+    `R_DIAG` (`reading`, `labels`, `n_points`, `counts`, `D6`, `c_median_pc`, `c_ref_halfwidth_pc`, `chain_short`).
+  - `results/rdiag.json` (README 4.11): `reading`, `reading_detail`, `labels` (`S`, `S_all`, `S+PT`, `c`, `zsun`, `c_reading`,
+    `curve`), `formal_reference` (rconv.json convention 0: `count`, `D6`, `M6`, thresholds), `v_P`, `part_a` (`vectors` K, P, M with
+    lnL, ln prior, ln posterior, σ_P; `map`; `comparisons` `K_minus_M` and `K_minus_P` with `top`, `share_of_positive_sum`,
+    `sum_named`, `sum_bridges`; `objects` per cloud s, weight, d², tᵢ at each vector), `part_b` (`samples` with their points and
+    weights, `consistency_table`, `fallback_rows`, `absorbed_rows`, `fits` per sample: `count`, `inside`, `sigma_scaled_differences`,
+    `D6`, `M6`, `width_ratio`, `parameters`, `sigma_P_at_median_pc`, `status`, `label`, `chain`), `part_c` (`comparison`: x–y and 3-D
+    distance statistics, exclusions, first and last points, `label`; `lsq_fit`: parameters, `c_pc`, σ-scaled differences from K24's
+    column (6), `rms_pc`), `part_d` (`c` with `c_posterior` incl. correlations, `zsun` with `weights_max_abs_change`, `c_ref`,
+    `c_reading`), `timing`, `chain_short`.
 - Example questions:
   - "Is T5's verdict sensitive to the wavelength band?" → `--set t5_band='[0.7, 1.4]' parts='["t5"]'` (about 45 minutes).
   - "What if the Wave's scatter were 35 pc?" → `--set sigma_pc=35` (new fits; hours).
@@ -988,5 +1012,8 @@ How a coding agent answers "what if" questions about this study without touching
   - "Does T8 need the ln ω₀ normalisation?" → `--script explore/t8_jacobian.py`.
   - "Which baseline, σ and weight convention reproduces K24's column (3)?" → the formal R-CONV run above (`parts=["conv"]`).
   - "Is ω₀ set by the data once the divisor is fixed?" → the formal T8-P run (`parts=["t8p"]`, about 0.7 hours).
+  - "Does column (3) depend on the input sample, the origin of s or the Sun's height?" → the formal R-DIAG run (`parts=["diag"]`,
+    about 1.5–2 hours); "what if the membership tolerance were k = 2?" → `--set parts='["diag"]' rdiag_member_k=2` (S changes; S_all
+    and S+PT − S do not, so the stop checks still pass).
 - Findings that change what we know go into `log.md` (and, for a paper study, the wiki article)
   on a branch.

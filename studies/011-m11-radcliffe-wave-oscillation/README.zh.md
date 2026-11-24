@@ -352,8 +352,11 @@ S 是我们的重建（K24 的子集不公开），所以前两种解读说明�
 
 | 旋钮（`PARAMS`） | 含义 | 安全范围 | 只用缓存，还是需要新数据（大小）？ |
 |---|---|---|---|
-| `parts` | 运行哪些检验（`t1t2`、`t3`、`t4`、`t5`、`t6`、`t7`、`t8`）；第 (3)–(6) 列的链总会运行 | 任意子集 | 只用缓存（两张表，16 KB） |
+| `parts` | 运行哪些检验（`t1t2`、`t3`、`t4`、`t5`、`t6`、`t7`、`t8`）；第 (3)–(6) 列的链总会运行 | 任意子集 | 只用缓存（两张表，16 KB；`["diag"]` 还读取第 3 节中 R-DIAG 的三个文件，113,017 字节） |
 | `parts` = `["conv"]` 或 `["t8p"]` | README 4.10 的事后检验 R-CONV（16 种第 (3) 列约定、选择与重跑）或 T8-P（除数固定为 74 时的 ω₀）；单独运行：从不与其他部分一起运行，其他部分的结果只读 | 二者之一（只有探索时可以一起运行） | 只用缓存 |
+| `parts` = `["diag"]` | README 4.11 的事后诊断 R-DIAG（A 部分逐云项；B 部分重建的视线样本 S，及 S_all 与 S+PT；C 部分 K24 公布的曲线；D 部分 s 的起点自由（含参照链 c-ref）与 z☉ = 20.8 pc；解读）；与 `conv` 一样单独运行 | 正式运行时单独运行；只有探索时可与 `conv` / `t8p` 一起 | 两张表加 R-DIAG 的三个文件（Zucker 2020、Alves 2020 连接视线、K24 的曲线；经 `ctx.http` 共 113,017 字节，首次运行后进入缓存）；需要 `results/rconv.json` |
+| `rdiag_member_k`、`rdiag_member_floor_pc`、`rdiag_pt_names`、`rdiag_s_all_n`、`rdiag_pt_n` | R-DIAG B 部分：每个轴的容差 k max(spread, floor)（3、5 pc）、闸门 max(spread, floor)、S+PT 加入的名称，以及停止检查（S_all = 169，S+PT − S = 28） | 探索时 k 取 2–4、floor 取 0–20 pc（停止检查随之需要新的计数） | 只用缓存 |
+| `rdiag_map_prior_draws`、`rdiag_top_n`、`rdiag_c_prior_pc`、`rdiag_c_scale_pc`、`rdiag_cref_s0_prior_pc`、`rdiag_c_halfwidth_max_pc`、`rdiag_zsun_pc`、`rdiag_d6_max`、`rdiag_m6_max`、`rdiag_curve_*` | R-DIAG 的 A、C、D 部分与解读：最大后验（MAP）的起点数（2 + 19）、最大的十个 Δᵢ、c ~ U(−400, 400) pc（也是 C 部分 c 的边界）及尺度 100 pc、c-ref 的平坦 s₀ U(−1,000, 3,000)、由数据决定的上限 100 pc、z☉ 20.8 pc、D₆ ≤ 8.781 与 M₆ ≤ 3.192、曲线标签阈值 5 / 15 / 20 pc 与 10%（预注册的值，README 4.11） | 只在探索时改动 | 只用缓存 |
 | `conv_indices` | R-CONV 拟合哪些约定（编号 = 基线·4 + σ·2 + 权重；基线 L、C、Y、X；σ F、P；权重 W、R） | 探索时任意子集；正式运行需要全部 16 种 | 只用缓存 |
 | `conv_seed_offset`、`conv_min_count`、`conv_repro_count`、`conv_width_range`、`t8p_bound_frac` | R-CONV 的种子与选择规则、T8-P 的边界规则（预注册的值，README 4.10） | 只在探索时改动 | 只用缓存 |
 | `variants` | 运行哪些 T6 变体 | 十个名字的任意子集 | 只用缓存 |
@@ -385,6 +388,16 @@ S 是我们的重建（K24 的子集不公开），所以前两种解读说明�
   （第 (4)–(6) 列约 45 分钟，T5 及其已知答案检查几分钟）；B 部分约 0.7 小时。单核合计约 3.5–6 小时（R-CONV）加
   0.7 小时（T8-P）。快速查看：`--set parts='["conv"]' conv_indices='[0, 9]' mcmc_steps=1500 mcmc_burn=500`
   （连同重跑约 25 分钟，标明为子集）。
+- **R-DIAG（README 4.11，事后）。** 正式步骤：在 R-CONV 之后（`results/rconv.json` 与 `summary.json` 必须存在），把 `PARAMS` 中的
+  `"parts"` 设为 `["diag"]`（提交，并在 `log.md` 写一行），运行 `python -m astrolab run 011-m11-radcliffe-wave-oscillation`，
+  每次在 `stop_after_hours` 暂停后重跑，直到完成（从 `s011_checkpoints/diag/<key>` 续跑，完成后删除该目录）；最后把 `parts`
+  改回默认列表。只写出 `rdiag.json`、`summary.json` 的 `R_DIAG` 键与 `_diag` 运行记录（暂停时为 `_diagpaused`）。除非 S_all 有
+  169 个点且 S+PT 比 S 多 28 个点，运行在任何拟合之前停止；正式 L-F-W 的数字（计数 2，D₆ 9.781，M₆ 3.692）与 v_P 在运行时从
+  `rconv.json` 的约定 0 读取。运行时间（在真实输入上测量，测量时机器较忙）：一次第 (3) 列似然在 79 行上约 0.73 ms，在 S（149 个点）上
+  1.05–1.12 ms；C 部分的距离和约 9 ms。每条链按 48 × 18,000 次计算（步数加倍）：S、S_all 与 S+PT 各约 16–19 分钟，(c)、c-ref 与
+  (z☉) 各约 11–12 分钟；最大后验点（21 个起点）约 2 分钟；C 部分的拟合约 1–2 分钟。单核合计约 1.5–2 小时。数据通路检查：
+  `--set parts='["diag"]' mcmc_steps=200 mcmc_burn=100 mcmc_walkers=32 ml_nm_maxfev=300 ml_lbfgs_maxfun=100
+  rdiag_map_prior_draws=2`（约 1 分钟；链太短，结果不可解读）。
 - `run.py` 没有覆盖的分析：在 `explore/<name>.py` 写带 `def main(ctx)` 的脚本，用
   `python -m astrolab explore 011-m11-radcliffe-wave-oscillation --tag <topic> --script explore/<name>.py` 运行。
   已有：`explore/age_scatter.py`（Wiki 第三部分的探索"年龄与在波中诞生"：按 10 与 20 Myr 分组，给出相对
@@ -422,7 +435,16 @@ S 是我们的重建（K24 的子集不公开），所以前两种解读说明�
   - `results/summary.json`：全部标签，`overall`（`reading`、`support`、`do_not_support`、
     `undetermined_or_not_evaluable`、`qualifier`），`load_check`、`timing`、`chain_short`；单独运行之后还有
     `R_CONV`（`label`、`case`、`chosen`、`reason`、`counts`、`width_ratios`、`reruns`、`chain_short`）与 `T8_P`
-    （`label`、`at_bound`、`halfwidth_broad`、`median_shift_in_sigma_broad`、`omega0_k24`、`omega0_broad`）。
+    （`label`、`at_bound`、`halfwidth_broad`、`median_shift_in_sigma_broad`、`omega0_k24`、`omega0_broad`）；R-DIAG 之后还有
+    `R_DIAG`（`reading`、`labels`、`n_points`、`counts`、`D6`、`c_median_pc`、`c_ref_halfwidth_pc`、`chain_short`）。
+  - `results/rdiag.json`（README 4.11）：`reading`、`reading_detail`、`labels`（`S`、`S_all`、`S+PT`、`c`、`zsun`、`c_reading`、
+    `curve`），`formal_reference`（rconv.json 约定 0：`count`、`D6`、`M6`、阈值），`v_P`，`part_a`（`vectors` K、P、M 的
+    lnL、ln 先验、ln 后验与 σ_P；`map`；`comparisons` 中 `K_minus_M` 与 `K_minus_P` 的 `top`、`share_of_positive_sum`、
+    `sum_named`、`sum_bridges`；`objects` 每朵云在每个向量处的 s、权重、d²、tᵢ），`part_b`（`samples` 及其点与权重、
+    `consistency_table`、`fallback_rows`、`absorbed_rows`，每个样本的 `fits`：`count`、`inside`、`sigma_scaled_differences`、
+    `D6`、`M6`、`width_ratio`、`parameters`、`sigma_P_at_median_pc`、`status`、`label`、`chain`），`part_c`（`comparison`：x–y 与
+    三维距离统计、排除数、首末点、`label`；`lsq_fit`：参数、`c_pc`、相对 K24 第 (6) 列按 σ 缩放的差、`rms_pc`），`part_d`（`c`
+    及含相关系数的 `c_posterior`，带 `weights_max_abs_change` 的 `zsun`，`c_ref`，`c_reading`），`timing`、`chain_short`。
 - 示例问题：
   - "T5 的结论对波长带敏感吗？" → `--set t5_band='[0.7, 1.4]' parts='["t5"]'`（约 45 分钟）。
   - "如果波的弥散是 35 pc 呢？" → `--set sigma_pc=35`（重新拟合；需数小时）。
@@ -431,4 +453,6 @@ S 是我们的重建（K24 的子集不公开），所以前两种解读说明�
   - "T8 需要 ln ω₀ 归一化项吗？" → `--script explore/t8_jacobian.py`。
   - "哪种基线、σ 与权重约定能复现 K24 的第 (3) 列？" → 上面的正式 R-CONV 运行（`parts=["conv"]`）。
   - "除数固定后 ω₀ 由数据决定吗？" → 正式 T8-P 运行（`parts=["t8p"]`，约 0.7 小时）。
+  - "第 (3) 列取决于输入样本、s 的起点还是太阳的高度？" → 正式 R-DIAG 运行（`parts=["diag"]`，约 1.5–2 小时）；"如果成员容差为
+    k = 2 呢？" → `--set parts='["diag"]' rdiag_member_k=2`（S 会变；S_all 与 S+PT − S 不变，所以停止检查仍然通过）。
 - 改变认识的发现写进 `log.md`（论文研究还要写进 Wiki 文章），照常走分支。
