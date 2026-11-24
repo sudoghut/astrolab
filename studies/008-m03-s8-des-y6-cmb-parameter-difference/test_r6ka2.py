@@ -163,6 +163,10 @@ def test_exact_values_reproduce_the_registered_ones():
     c = ka2.exact_check({"n6": 1.3768, "S": 0.6678, "n5": 0.3341, "phi": PHI_EXACT}, EXACT)
     assert c["ok"]
     assert not ka2.exact_check({"n6": 1.3768, "S": 0.6738, "n5": 0.3341, "phi": PHI_EXACT}, EXACT)["ok"]
+    # the rule-1 boundary (deterministic): a difference of 0.005 passes, 0.0051 fails (the 200,000-row estimate above
+    # is only a code-path check; the registered values are checked at full size by the opt-in slow test and the run)
+    assert ka2.exact_check({"n6": 1.3768, "S": 0.6678 + 0.005, "n5": 0.3341, "phi": PHI_EXACT}, EXACT)["ok"]
+    assert not ka2.exact_check({"n6": 1.3768, "S": 0.6678, "n5": 0.3341 - 0.0051, "phi": PHI_EXACT}, EXACT)["ok"]
 
 
 @pytest.mark.skipif(not __import__("os").environ.get("STUDY008_SLOW"), reason="slow (about 2 min): STUDY008_SLOW=1")
