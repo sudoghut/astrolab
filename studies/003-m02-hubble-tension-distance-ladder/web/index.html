@@ -396,6 +396,14 @@ function nuRows() {
       `${f(g.p_int.primary, 4)} (${f(g.p_int.bound, 4)})`, '0.05', rt, 'undetermined']);
   }
   rows.push(['', L('Label', '标签'), '', '', nuLabel(g.label), 'undetermined']);
+  // Post hoc (referee 2026-11-24, README section 5, not a label): Δ(−2ℓ_R) of Stage 1's REML grid (τ = 0, 0.01, ...)
+  // at R2-RE's calibrator scale 0.0767, by linear interpolation.
+  const gm = c && c.stage1 && c.stage1.main && c.stage1.main.grid_m2l, mn = gm ? c.stage1.main.m2l_min : null;
+  if (gm && gm.length > 8 && typeof mn === 'number') {
+    const t = 0.0767, i = Math.floor(t / 0.01), w = t / 0.01 - i, d = gm[i] + w * (gm[i + 1] - gm[i]) - mn;
+    rows.push(['', L('Post hoc (referee; not a label): Δ(−2ℓ_R) at τ_HF = 0.0767, the calibrators\' host scale; a Hubble-flow scatter of that size beyond C is disfavoured at about √Δ σ', '事后（审稿；不是标签）：τ_HF = 0.0767（校准星的宿主尺度）处的 Δ(−2ℓ_R)；超出 C、同样大小的哈勃流散布约在 √Δ σ 上不受支持'),
+      f(d, 1), '—', L('R2-RE\'s excess is not a generic SN-side property under C (README section 5)', '在 C 下 R2-RE 的额外离散不是超新星一侧的一般性质（README 第 5 节）'), null]);
+  }
   return rows;
 }
 
