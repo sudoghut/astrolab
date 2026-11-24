@@ -339,7 +339,7 @@ const errcalv = v => L(esc(v), esc(errcalz(v)));
 // R1-ERRMM labels and readings in Chinese (README 2.9 wording)
 const errmmz = v => String(v)
   .replace(/nulls drawn at f = ([\d.]+): /g, '以 f = $1 生成的零假设：').replace(/not evaluable \(generator\)/g, '不可评估（生成器）')
-  .replace(/not evaluable \(non-finite\)/g, '不可评估（非有限值）').replace(/not evaluable \(reproduction\)/g, '不可评估（重现）')
+  .replace(/not evaluable \(non-finite\)/g, '不可评估（非有限值）').replace(/not evaluable \(reproduction\)/g, '不可评估（复现检查）')
   .replace(/not evaluable \(fits\)/g, '不可评估（拟合）').replace(/^evaluated$/, '已评估')
   .replace(/robust to an f mismatch/g, '对 f 不匹配稳健').replace(/f-mismatch sensitive/g, '对 f 不匹配敏感')
   .replace(/power lost under the null at g/g, '在 g 下的零假设中失去功效').replace(/^unchanged$/, '不变')

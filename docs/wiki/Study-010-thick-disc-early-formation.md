@@ -375,7 +375,9 @@ and fitted as if the errors were 2.81 times larger (3,600 mocks), plus a bootstr
   mismatch").
 - **The bootstrap.** Resampling the stars gives the same verdict in 93 of 100 resamples for the primary
   variant and 91 for Full ("stable"), but only 69 for term N ("unstable"): its dip in bin [−0.5, −0.3)
-  (0.242 against the 0.25 threshold) crosses the threshold in 29% of resamples.
+  (0.242 against the 0.25 threshold) crosses the threshold in 29% of resamples. The resamples start from the
+  data's fit and the fit sits at a parameter bound, so this spread is a lower bound and Full's "stable" is
+  not firm (referee).
 - **A caveat from the independent referee (post hoc).** At 2.81 the data fits, and almost every resample,
   put a component at the narrowest width allowed (0.1 Gyr); the smooth null mocks rarely do. A one-peaked
   age distribution with a sharp old edge, fitted with too large an error scale, could produce such a spike
@@ -418,7 +420,7 @@ Newest first.
   and resumed with the user's consent; checks passed. "Nulls drawn at f = 1.0: not reproduced; nulls drawn at
   f = 1.5: not reproduced" (term N and Full: reproduced, robust to an f mismatch); bootstrap: stable for the
   primary variant and Full, unstable for term N (part 3 updated). Independent referee done: the nulls have no
-  sharp old edge while the fits rely on the width floor; wider-floor refit and sharp-edged null registered (T-067).
+  sharp old edge while the fits have components at the narrowest width allowed (post hoc); wider-floor refit and sharp-edged null registered (T-067).
 - 2026-11-23: R1-ERRCAL (T-059, pre-registered README 2.8): R1 calibrated at f = 2.0 and 2.81 with the
   error scale in the fit (5,400 mocks; reproduction checks passed; the first session was ended for lack of
   system memory and resumed with the user's consent). "At f = 2.0: not reproduced; at f = 2.81: not
@@ -614,7 +616,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 **用过大的误差尺度拟合（R1-ERRMM，T-064，2026-11-24）。** 这是审稿人要求的检验（README 第 2.9 与 5.5 节）：以给出的误差（或其 1.5 倍）生成平滑的单峰零假设模拟，再当作误差是 2.81 倍来拟合（3,600 个模拟），另对数据的下凹深度做自助法（每箱 100 个重抽样），两次会话共 7.3 小时。
 
 - **2.81 下的判决在这个零假设下成立。** 任何箱都没有零假设模拟下凹到数据那样深，所以主变体仍读作"未复现"，另两个读作"复现"（"对 f 不匹配稳健"）。
-- **自助法。** 对恒星重抽样后，主变体 100 次中 93 次、Full 91 次给出同样的判决（"稳定"），N 项只有 69 次（"不稳定"）：它在箱 [−0.5, −0.3) 的下凹（0.242，阈值 0.25）在 29% 的重抽样中越过阈值。
+- **自助法。** 对恒星重抽样后，主变体 100 次中 93 次、Full 91 次给出同样的判决（"稳定"），N 项只有 69 次（"不稳定"）：它在箱 [−0.5, −0.3) 的下凹（0.242，阈值 0.25）在 29% 的重抽样中越过阈值。重抽样从数据的拟合出发，拟合又落在参数边界上，所以这个离散是下限，Full 的"稳定"并不牢靠（审稿）。
 - **独立审稿的保留意见（事后）。** 在 2.81 下，数据拟合与几乎每个重抽样都把一个成分放在允许的最窄宽度（0.1 Gyr），平滑的零假设模拟很少如此。一个带陡峭老边缘的单峰年龄分布，用过大的误差尺度拟合，可能产生这样的尖峰和旁边的下凹，而这里检验的零假设没有这样的边缘。所以"稳健"只对平滑的单峰分布成立。审稿人的示意（把该成分加宽到 0.2 Gyr，不是重拟合）使起决定作用的下凹超过 0.25。加宽下限的重拟合与陡峭边缘的零假设已登记（T-067）。
 
 对话探索：`python -m astrolab explore 010 --tag <主题> --set 键=值` 可用改变的参数（例如 J_φ 截断、误差截断或高 α 阈值）重跑任一拟合，不影响正式结果；见研究 README 第 8 节。
@@ -642,7 +644,7 @@ Xiang 与 Rix（下称 XR22）用的是**亚巨星**（subgiant）：刚耗尽�
 
 按时间倒序。
 
-- 2026-11-24：R1-ERRMM（T-064，预注册见 README 2.9）：f 不匹配的零假设（以 f = 1.0 与 1.5 生成、以 2.81 拟合的 3,600 个模拟）与数据下凹深度的自助法；运行因系统内存不足被终止一次，经用户同意续跑；检查通过。"nulls drawn at f = 1.0: not reproduced; nulls drawn at f = 1.5: not reproduced"（N 项与 Full：复现，对 f 不匹配稳健）；自助法：主变体与 Full 稳定，N 项不稳定（更新第三部分）。独立审稿已做：零假设没有陡峭的老边缘，而拟合依赖宽度下限；加宽下限的重拟合与陡峭边缘的零假设已登记（T-067）。
+- 2026-11-24：R1-ERRMM（T-064，预注册见 README 2.9）：f 不匹配的零假设（以 f = 1.0 与 1.5 生成、以 2.81 拟合的 3,600 个模拟）与数据下凹深度的自助法；运行因系统内存不足被终止一次，经用户同意续跑；检查通过。"nulls drawn at f = 1.0: not reproduced; nulls drawn at f = 1.5: not reproduced"（N 项与 Full：复现，对 f 不匹配稳健）；自助法：主变体与 Full 稳定，N 项不稳定（更新第三部分）。独立审稿已做：零假设没有陡峭的老边缘，而拟合有成分落在允许的最窄宽度（事后）；加宽下限的重拟合与陡峭边缘的零假设已登记（T-067）。
 - 2026-11-23：R1-ERRCAL（T-059，预注册见 README 2.8）：把误差尺度放进拟合，在 f = 2.0 与 2.81 下校准 R1（5,400 个模拟；复现检查通过；第一次会话因系统内存不足被终止，经用户同意续跑）。"at f = 2.0: not reproduced; at f = 2.81: not reproduced"（N 项与 Full 在 2.81 复现，余量 0.01–0.02）（更新第三部分）。独立审稿已做；尺度不匹配的检验已登记（T-064）。
 
 - 2026-11-22：R1-ERR（T-054，预注册见 README 2.7）：R1-SEL-FIT 的误差尺度功效检验（3,600 个模拟，误差为给出值的 1.2–2.81 倍；改用默认线程设置重跑后复现检查通过）。"robust up to f = 1.5 (one bin explainable from f = 2.0: [-0.3, -0.1))"；Full 为"sensitive at f = 2.81"（更新第三部分）。独立审稿已做。

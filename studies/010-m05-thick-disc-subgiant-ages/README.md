@@ -1814,8 +1814,9 @@ running; Claude Code ended it because the system ran short of memory (neither th
 error). By then 1,942 mocks were checkpointed: the resumed session's first projection counts 72 replayed plus
 1,870 more checkpointed (`log.md` first gave 1,934, the count at the last progress line; corrected there). With
 the user's consent (2026-11-24) the stale lock was deleted, after checking that no study-010 process was running,
-and the run resumed at 12:25 from the checkpoints with the same PARAMS, alone on the machine. Check (a) passed
-again, and the run finished at 16:04 (13,143 s, `runtime_h` 3.65). Mocks and replicates took 7.28 h in all
+and the run resumed at 12:25 from the checkpoints with the same PARAMS, alone on the machine. The first session
+thus ran alongside study 012, contrary to 2.9's plan of an otherwise idle machine; the results are unaffected
+(each mock and replicate has its own deterministic streams, and check (a) passed in both sessions). The run finished at 16:04 (13,143 s, `runtime_h` 3.65). Mocks and replicates took 7.28 h in all
 (`mocks.elapsed_h_total`, against 2.9's estimate of 6.5–8.5 h). That is 6.25 s per mock on average (9.57 s
 for S15 term E, 4.88 s for term N, 4.31 s for Full; `per_set[].mean_s_per_mock`) and 4.04 s per replicate fit
 (`mocks.boot_mean_s`). Peak memory was 3,742 MB in part A and 5,144 MB in part B (`memory_peak_mb`). Cache
@@ -1825,7 +1826,7 @@ As for R1-ERRCAL, `mocks.resumed` is false and `mocks.resumes` is empty, because
 16 h rule, and `threads` holds the last session's settings (referee, point 8). The interruption is recorded
 here and in `log.md`.
 
-New files: `r1_errmm.json` (755 kB), `provenance_errmm.json` and `run_info_errmm.json`. The four files read
+New files: `r1_errmm.json` (699 kB), `provenance_errmm.json` and `run_info_errmm.json`. The four files read
 (`r1_sel.json`, `r1_selfit.json`, `r1_err.json`, `r1_errcal.json`; SHA-256 in `inputs_sha256`) and every
 recorded label are unchanged.
 
@@ -1837,7 +1838,7 @@ recorded label are unchanged.
   drawn at f = 1.5: reproduced" (`labels`). Reading A: "unchanged" for term E; "robust to an f mismatch" for
   term N and Full at both g. 2.9 guessed that term N and Full would keep "reproduced" at g = 1.5 and possibly
   lose it at 1.0; they kept it at both.
-- **Why.** Four bins are resolvable in every case (power at d*_mm 0.90–1.00: the three metal-poor bins and
+- **Why.** Four bins are resolvable in every case (the three metal-poor bins, with power 0.90–1.00 at d*_mm, and
   [−0.1, 0.1) from R1-SEL-FIT). d*_mm falls below the cap 0.25 only in bin [−0.7, −0.5) at g = 1.0, where the
   skew-normal null sets give valleys with q_s 0.224–0.261. There the data's d is far lower, so nothing changes.
   In the other two bins d*_mm is the cap. The verdicts are therefore R1-ERRCAL's at 2.81:
@@ -1856,7 +1857,7 @@ recorded label are unchanged.
     at 1.5; a valley with d < 0.25 occurs in 0–12% (g = 1.0) and 0–2% (1.5) of the mocks of a set. Their median
     valley ages are 9.35–9.55 Gyr; the data's at 2.81 are 10.93–10.98 Gyr.
   - Bin [−0.5, −0.3): valleys in 28–60% (g = 1.0) and 6–44% (1.5) of the mocks; q_s 0.651–0.899; no null
-    valley with d < 0.25. Median valley ages 8.7–9.05 Gyr; the data's 10.18–10.23 Gyr.
+    valley with d < 0.25. Median valley ages 8.73–9.05 Gyr; the data's 10.18–10.23 Gyr.
   - Bin [−0.3, −0.1): valleys in 0–1 of 50 mocks per set; q_s is undefined (cap).
   - No null mock in any set has a valley with d below the data's d in its bin and variant
     (`frac_valley_d_lt_data` 0 in all 72 sets); the smallest d among the 1,576 null mocks with a valley is 0.180.
@@ -1907,7 +1908,7 @@ recorded label are unchanged.
     Term E's "not reproduced" is stable (0.93). 2.9's guess that all three would be unstable held for term N
     only.
   - The nulls calibrate d at other ages than where the data dip (referee, point 3): null valleys at
-    9.35–9.55 Gyr and 8.7–9.05 Gyr against the data's 10.93–10.98 Gyr (last cells of the 5–11 Gyr window, in
+    9.35–9.55 Gyr and 8.73–9.05 Gyr against the data's 10.93–10.98 Gyr (last cells of the 5–11 Gyr window, in
     every replicate with a valley between 10.58 and 10.98 Gyr) and 10.18–10.23 Gyr. In bin [−0.7, −0.5) the 95th percentile
     of the replicates' young-side edge reaches 9.475 Gyr (term E), next to the 9.5 Gyr limit.
 
@@ -2059,7 +2060,8 @@ from the per-set and per-replicate records and found each as recorded. Triage:
   with a bootstrap of the data's d is registered as T-064.
   **Tested by R1-ERRMM (T-064, 2026-11-24, section 5.5).** Smooth unimodal nulls drawn with the quoted errors (or
   1.5 times them) and fitted with 2.81 never dip as deep as the data, so the 2.81 verdicts stand against that
-  null; the bootstrap finds term E's "not reproduced" and Full's "reproduced" stable and term N's unstable.
+  null; the bootstrap finds term E's "not reproduced" and Full's "reproduced" stable and term N's unstable; its spread is
+  a lower bound (the fit is anchored and sits at a parameter bound), so Full's 0.91 is not firm (referee).
 - **The width floor and sharp-edged latents (T-067).** Every data fit at 2.81 and nearly every bootstrap
   replicate has a component at the width floor σ = 0.1 Gyr, which the smooth nulls rarely reach. Whether term
   N's and Full's "reproduced at 2.81" survives a wider floor, and whether a unimodal latent with a sharp old
