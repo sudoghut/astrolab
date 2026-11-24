@@ -484,6 +484,35 @@ def test_truncation_whole_mock_rejection(lad):
     assert ms["n_failed"] == 3 and ms["n_rejected_attempts"] == 6
 
 
+def test_truncation_last_allowed_retry_and_none(lad, monkeypatch):
+    """nu_cut_attempts = 100 is the total, attempt 0 included: only retry 99 passing is accepted with the seed
+    trunc_joint + 1000 s + 99; a pass only at a 101st attempt (retry 100) is never reached: truncation failed."""
+    des = _des(lad)
+    seeds = lad["P"]["nu_mock_seeds"]
+    tau, s = 0.12, 7
+
+    def only_call(n_ok):
+        calls = {"n": 0}
+
+        def fake(eps, b, des_, cut):
+            calls["n"] += 1
+            return calls["n"] == n_ok
+        return fake, calls
+    fake, calls = only_call(100)                     # attempt 0 is call 1, retry 99 is call 100
+    monkeypatch.setattr(nu, "passes_cut", fake)
+    eps, b, k = nu.trunc_draw(s, tau, des, seeds, 3.5, 100)
+    assert k == 99 and calls["n"] == 100
+    rng = np.random.default_rng(1_000_000 + 1000 * s + 99)
+    assert np.array_equal(eps, rng.standard_normal(des["n_a"]))
+    assert np.allclose(b, tau * math.sqrt(1 / 3) * rng.standard_t(3, des["n_g"]), rtol=1e-13, atol=0)
+    fake, calls = only_call(101)
+    monkeypatch.setattr(nu, "passes_cut", fake)
+    assert nu.trunc_draw(s, tau, des, seeds, 3.5, 100) == (None, None, None) and calls["n"] == 100
+    monkeypatch.setattr(nu, "passes_cut", lambda eps, b, des_, cut: False)
+    rec = nu.run_mocks("trunc", [s], tau, des, dict(lad["P"], nu_cut_attempts=100), lad["fns"]["reml_tau"])
+    assert rec["failed"] == [s] and rec["s"] == []
+
+
 # ---------------------------------------------------------------- rules (pure)
 def _est(tau, lo, hi, bound=False):
     return {"tau_hat": tau, "interval_68": [lo, hi], "at_upper_bound": bound}

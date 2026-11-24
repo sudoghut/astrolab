@@ -511,16 +511,17 @@ def passes_cut(eps, b, des, cut):
     return bool(np.all(np.abs(r) <= float(cut) * des["sig_hf"]))
 
 
-def trunc_draw(s, tau, des, seeds, cut, attempts):
-    """Whole-mock rejection: attempt 0 is the plain t_3 mock (eps_s, t_s); attempts k = 1, ..., attempts - 1 draw eps
-    (n_a values) then t (n_g values, standard_t(3)) from default_rng(trunc_joint + 1000 s + k). Returns (eps, b, k)
-    of the first passing attempt, or (None, None, None)."""
+def trunc_draw(s, tau, des, seeds, cut, max_total_attempts):
+    """Whole-mock rejection. max_total_attempts (PARAMS nu_cut_attempts, 100) is the total number of attempts,
+    attempt 0 included: attempt 0 is the plain t_3 mock (eps_s, t_s); the retries k = 1, ..., max_total_attempts - 1
+    (99 of them) draw eps (n_a values) then t (n_g values, standard_t(3)) from default_rng(trunc_joint + 1000 s + k).
+    Returns (eps, b, k) of the first passing attempt, or (None, None, None) ("truncation failed")."""
     s3 = math.sqrt(t_scale2(tau, 3))
     eps = eps_draw(seeds["eps"], s, des["n_a"])
     b = mock_b("t3", s, tau, des, seeds)
     if passes_cut(eps, b, des, cut):
         return eps, b, 0
-    for k in range(1, int(attempts)):
+    for k in range(1, int(max_total_attempts)):           # retries 1, ..., max_total_attempts - 1
         rng = np.random.default_rng(int(seeds["trunc_joint"]) + 1000 * int(s) + k)
         eps = rng.standard_normal(des["n_a"])
         b = s3 * rng.standard_t(3, des["n_g"])
@@ -942,7 +943,8 @@ def run_full(L, y, C, rows_a, hf_rows, calib_groups, P, fns, log, grid_m2l, cid_
     out["stage1"] = {k: s1[k] for k in ("tau_hat_HF", "interval_68", "upper_end", "ratio_to_tau_obs",
                                         "scale_reference_inside_interval", "delta_m2l_at_zero")}
     inside = s1["scale_reference_inside_interval"]
-    assert isinstance(inside, bool), inside       # set once the gate passed (README amendment 2: never undetermined)
+    if not isinstance(inside, bool):              # set once the gate passed (README amendment 2: never undetermined)
+        raise RuntimeError(f"R2-RE-NU: the scale flag of a check record that passed the gate is {inside!r}, not a bool")
     des, u, tau = cx["des"], cx["u"], cx["tau"]
     q = float(P["nu_q_prior_frac"])
     # Stage 2 on the data, with one escalation
