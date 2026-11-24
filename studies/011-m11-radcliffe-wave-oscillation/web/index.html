@@ -253,6 +253,19 @@
     document.getElementById('posthoc-sec').hidden = false;
   }
 
+  // R-DIAG consistency table: status and reason in both languages (diag011.membership)
+  function rdiagStatus(v) {
+    const z = {pass: '通过', fallback: '回退', absorbed: '被吸收'};
+    return z[v] ? L(esc(v), z[v]) : esc(v);
+  }
+  function rdiagReason(v) {
+    v = String(v);
+    if (v === 'no candidates') return L(esc(v), '没有候选');
+    if (v === 'mean of the kept sightlines outside max(spread, floor)') return L(esc(v), '保留视线的平均在 max(spread, floor) 之外');
+    const m = v.match(/^absorbed by (.*)$/);
+    if (m) return L(esc(v), `被 ${esc(m[1])} 吸收`);
+    return esc(v);
+  }
   function renderDiag(rd) {
     const el = document.getElementById('rdiag');
     if (!rd) {
@@ -300,7 +313,7 @@
     const pb = rd.part_b;
     h += `<details><summary>${L('Part B: the reconstructed sample S', 'B 部分：重建的样本 S')} (${pb.samples.S.n_points} ${L('points', '个点')}: ${pb.n_kept_sightlines} ${L('Zucker sightlines', '条 Zucker 视线')}, ${L('fallback rows', '回退行')} ${pb.fallback_rows.length ? esc(pb.fallback_rows.join(', ')) : '–'}, ${L('absorbed', '被吸收')} ${Object.keys(pb.absorbed_rows).length ? esc(Object.entries(pb.absorbed_rows).map(([a, b]) => `${a} → ${b.join(', ')}`).join('; ')) : '–'})</summary>` +
       `<div class="wrap"><table><tr><th>${L('row', '行')}</th><th>${L('candidates / kept', '候选 / 保留')}</th><th>${L('mean − p (pc)', '均值 − p（pc）')}</th><th>${L('SD / spread', '标准差 / spread')}</th><th>${L('status', '状态')}</th><th>${L('summed weight in S', 'S 中的权重和')}</th><th>${L('weight in the 79-row fit', '79 行拟合中的权重')}</th></tr>` +
-      pb.consistency_table.map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.n_candidates} / ${r.n_kept}</td><td class="num">${r.mean_minus_p ? r.mean_minus_p.map(x => f(x, 1)).join(', ') : '–'}</td><td class="num">${r.sd_over_spread ? r.sd_over_spread.map(x => f(x, 2)).join(', ') : '–'}</td><td>${esc(r.status)}${r.reason ? ` <span class="muted">(${esc(r.reason)})</span>` : ''}</td><td class="num">${f(r.summed_weight_in_S, 2)}</td><td class="num">${f(r.weight_in_79_row_fit, 2)}</td></tr>`).join('') + '</table></div></details>';
+      pb.consistency_table.map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.n_candidates} / ${r.n_kept}</td><td class="num">${r.mean_minus_p ? r.mean_minus_p.map(x => f(x, 1)).join(', ') : '–'}</td><td class="num">${r.sd_over_spread ? r.sd_over_spread.map(x => f(x, 2)).join(', ') : '–'}</td><td>${rdiagStatus(r.status)}${r.reason ? ` <span class="muted">(${rdiagReason(r.reason)})</span>` : ''}</td><td class="num">${f(r.summed_weight_in_S, 2)}</td><td class="num">${f(r.weight_in_79_row_fit, 2)}</td></tr>`).join('') + '</table></div></details>';
     const pa = rd.part_a;
     const topT = (c, en, zh) => `<p>${L(en, zh)}: ${L('share of the positive sum carried by the ten', '前十个所占正和的比例')} ${f(c.share_of_positive_sum, 2)}; ${L('named rows', '命名行')} ${f(c.sum_named, 1)}, ${L('bridges', '连接视线')} ${f(c.sum_bridges, 1)}</p><p class="num">` +
       c.top.map(t => `${esc(t.name)} ${f(t.delta, 2)}`).join('; ') + '</p>';
