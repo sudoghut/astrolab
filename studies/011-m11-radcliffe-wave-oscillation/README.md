@@ -580,7 +580,8 @@ to `Mon_R2`; `NorthAmerica` and `NorthAmericaNebula` to `North_America`; `Northe
 - **S, the reconstructed sample (primary).** For a named row r with position p_r and spreads σ_r,a (a = x, y, z), the
   tolerance is t_r,a = 3 max(σ_r,a, 5 pc). The candidates of r are the sightlines of its mapped name with |x_a − p_r,a| ≤
   t_r,a on every axis. A sightline that is a candidate of two rows goes to the row with the smaller maxₐ |x_a −
-  p_r,a|/t_r,a (ties to the row listed first in the ¹²CO table). **Gate per row:** a row that had candidates but keeps
+  p_r,a|/t_r,a, compared as computed in double precision with no tolerance (exact ties to the row listed first in the
+¹²CO table). **Gate per row:** a row that had candidates but keeps
   none because all of them went to another row is **absorbed** by that row: it is dropped and listed ("absorbed by
   <row>"). Every other row passes if it keeps at least one sightline and the mean of its sightlines lies within
   max(σ_r,a, 5 pc) of p_r on every axis; a row that fails (no candidates at all, or the mean outside) enters S as its own
@@ -588,7 +589,8 @@ to `Mon_R2`; `NorthAmerica` and `NorthAmericaNebula` to `North_America`; `Northe
   bridging sightlines (from the bridging table). On the real tables the rule gives 95 sightlines, no fallback row and
   one absorbed row (`NorthAmericaNebula` by `NorthAmerica`), so S has 149 points (gate-1 round 2, disclosed above); the
   run recomputes and reports it.
-- **S_all** (reported): every sightline of the mapped names plus the 54 bridges, 169 points.
+- **S_all** (reported): every distinct Zucker sightline of the mapped names (115; the Zucker table has no bridging
+  sightlines, so nothing is duplicated) plus the 54 bridging sightlines, 169 points.
 - **S+PT** (reported): S plus all Perseus (18) and Taurus (10) sightlines (177 points), which K24 may have kept in the
   spatial fit.
 - **Consistency table** (reported): for each named row, the number of its candidates and kept sightlines, the mean of the
@@ -598,10 +600,12 @@ to `Mon_R2`; `NorthAmerica` and `NorthAmericaNebula` to `North_America`; `Northe
 *Fits.* For S, S_all and S+PT the column-(3) MCMC exactly as section 4.2 (L-F-W, σ = 47 pc fixed, B = 1, ω₀t = 0), with
 kernel weights from each point's s on the formal curve at K24's column-(6) medians (bandwidth 100 pc, normalised to the
 sample size, as section 4.1). Chain seeds by the `mcmc` rule of `run.py` with the names `rdiag_S`, `rdiag_Sall`,
-`rdiag_SPT` (the integer drawn from `rng_for(seed, "mcmc_<name>")`); walkers start around K24's column-(3) medians. For
-each: T1's column-(3) count (how many of A, p, δ, s₀, γ, φ have their posterior median inside K24's 16–84% interval), the
-σ-scaled differences of the 12 shape and anchor parameters, their sum of absolute values over the six counted ones
-(D₆) and the largest (M₆), the width ratio (section 4.10, amendment 5), σ_P at the posterior median (reported, not
+`rdiag_SPT` (the integer drawn from `rng_for(seed, "mcmc_<name>")`). Walkers are placed as in the formal run
+(`fit011.init_walkers`): K24's column-(3) medians plus 0.05 × each parameter's scale (its prior σ; 100 pc for c in Part D)
+× a standard normal draw from the chain's seed, redrawn until the log posterior is finite (at most 200 × 48 draws, else
+the run stops); the same for every chain of this addendum. For each: T1's column-(3) count (how many of A, p, δ, s₀, γ, φ have their posterior median inside K24's 16–84% interval), the
+σ-scaled differences of the 12 shape and anchor parameters, D₆ = the sum of the absolute σ-scaled differences of A, p,
+δ, s₀, γ and φ (all six, whether inside or not) and M₆ = the largest of these six, the width ratio (section 4.10, amendment 5), σ_P at the posterior median (reported, not
 used), and the label by R-CONV's thresholds: **"column (3) reproduced with sample <S | S_all | S+PT>"** if the count is
 ≥ 5 and the width ratio lies in [2/3, 3/2]; **"column (3) partly reproduced with sample <…>"** if the count is 3–4, or
 ≥ 5 with the width ratio outside that range; **"column (3) not reproduced with sample <…>"** if the count is ≤ 2. Each
@@ -614,16 +618,19 @@ curve in x–y (the projection depends only on the anchors and the baseline conv
 point is the first or last valid grid point (as in section 4.9, item 8) is excluded, separately for the x–y and the 3-D
 nearest point; both counts are reported. Reported for the rest: median, 95th percentile and maximum of the x–y and
 3-D distances, the median absolute v_z difference at the 3-D nearest point, and our s of the published curve's first and
-last points. Label (from the x–y distances): **"matches K24's published curve"** if the median is ≤ 5 pc and the 95th
+last points (percentiles by `numpy.percentile` with its default linear interpolation). Label (from the x–y
+distances): **"matches K24's published curve"** if the median is ≤ 5 pc and the 95th
 percentile ≤ 15 pc; **"approximately matches"** if the median is ≤ 20 pc; otherwise **"differs from K24's published
 curve"**; if more than 10% of the 1,500 points are excluded in x–y, the label is followed by "(more than 10% of the
 points lie beyond our curve's ends)". The 3-D numbers are reported next to it (z depends on which posterior point was
 published). (ii) A
 least-squares fit of our curve to the published points: the 12 shape and anchor parameters plus the origin shift c
 (below), B = 1 and ω₀t = 0, minimising the sum over the published points (ends excluded as in (i)) of the squared 3-D
-distance to our curve (the 3-D exclusion set of (i), fixed during the fit), started at K24's column-(6) medians with
-c = 0, Nelder–Mead then L-BFGS-B as section 4.2; c is
-bounded to [−400, 400] pc. Reported: the fitted parameters, c, their differences from K24's column-(6) medians in K24's σ,
+distance to our curve (the 3-D exclusion set of (i), fixed during the fit). At every evaluation each kept point is
+matched to its nearest valid grid point of that evaluation's curve (2,000 points, validity p − γs′ > 0); a vector with no
+usable curve scores 10¹². One start, K24's column-(6) medians with c = 0, then `fit011.optimise`'s Nelder–Mead (initial
+steps 0.5 × each parameter's scale, 100 pc for c) and L-BFGS-B; the anchors, A, p, s₀ and φ are unbounded, δ and γ are
+fitted as ln δ and ln γ (unbounded), and c is bounded to [−400, 400] pc. Reported: the fitted parameters, c, their differences from K24's column-(6) medians in K24's σ,
 and the RMS distance; read in section 5, without a label.
 
 *Part D, conventions R-CONV did not vary (R-ORIG).* On the 79 ¹²CO rows, the formal column-(3) setup with one change
@@ -635,8 +642,8 @@ each:
   puts the origin before the grid's start, which is allowed. Walkers start around c = 0 with a ball scale of 100 pc.
   Because the data fix s₀ + c near the envelope's peak (about 500 pc in our fit), the N(680, 200) prior on s₀ induces a
   prior on c of roughly N(−180, 200) pc. So a reference chain **(c-ref)** is run with the same setup but s₀ flat in
-  U(−1,000, 3,000) pc, and c is read as **"data-driven"** if c-ref's 16–84% half-width of c is at most 100 pc (half of
-  that induced prior width), otherwise as **"prior-dominated"**; both chains' c posteriors are reported. c-ref's count and labels are not
+  U(−1,000, 3,000) pc, and c is read as **"data-driven"** if c-ref's 16–84% half-width of c is at most 100 pc (a chosen
+  threshold: about half the width of that induced prior, and well below the 272 pc of U(−400, 400) itself), otherwise as **"prior-dominated"**; both chains' c posteriors are reported. c-ref's count and labels are not
   reported or used (it is not a third variant); its walkers start as in (c), around K24's column-(3) medians with c = 0.
 - **(z☉)** every cloud's z increased by 20.8 pc (the model has no free vertical offset, so A and φ absorb it).
 MCMC as section 4.2 (13 free parameters for (c) and c-ref), seeds by the `mcmc` rule with the names `rdiag_c`,
