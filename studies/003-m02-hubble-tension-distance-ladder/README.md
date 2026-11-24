@@ -1482,8 +1482,8 @@ above is changed.
 
 ### Addendum 2026-11-24: R2-RE-NU, an outside constraint on the tail weight ν from the Hubble-flow supernovae (T-062), pre-registered before any of these fits
 
-Revised the same day after the gate-1 review (SN grouping, misspecification injections, a defensive importance
-proposal, the p_int bounds, a scale-agreement condition), still before any Hubble-flow residual was computed.
+Revised the same day after two rounds of gate-1 review (SN grouping, misspecification injections, a defensive importance
+proposal, the p_int bounds, a scale-agreement condition, a whole-mock rejection for the truncated mocks), still before any Hubble-flow residual was computed.
 
 *Why.* R2-RE-GTP (T-060) found that whether G excludes diffuse host scatter depends on the tail weight ν of the host
 effects: the calibrated p_cal is at most 0.031 for ν ≥ 6, 0.051 at ν = 4 and 0.078 at ν = 3. Its referee (section 6,
@@ -1532,7 +1532,13 @@ Hubble-flow rows specifically, everything already recorded or seen:
    0.45 and 13 above 0.5 (largest 0.751); the connected components of the graph "correlation > 0.3" number 242 (largest
    3 rows), of "> 0.45" 261. The Hubble-flow rows are correlated in C with all 77 calibrator SN rows and with no other
    row. M has one eigenvalue at zero (−7.6 × 10⁻¹⁴, next 7.46, largest 194.4). The coupling numbers of M1 above. Timings
-   of the code paths below on synthetic inputs only.
+   of the code paths below on synthetic inputs only. *Validation of the grouping on the calibrator rows* (C, L and the
+   host labelling only): the 77 calibrator SN rows belong to 42 SNe; at "> 0.3" they form 41 components, with 2
+   cross-host pairs above 0.3 (largest 0.327), i.e. false merges; at "> 0.45" they form 49 components and no component
+   spans two hosts (the grouping errs by splitting); N5584's four light curves of SN 2007af correlate at 0.34–0.69. The
+   two errors act in opposite directions: a false merge forces one b on two SNe (fewer, larger effects), a false split
+   gives the duplicates of one SN independent b's, so their common offset is read as several effects and the fit drifts
+   towards heavy tails; the 0.45 sensitivity brackets the split side.
 4. From the cached `Pantheon+SH0ES.dat` (0.58 MB, fetched on 2026-11-14 for another purpose), only the columns CID,
    IDSURVEY, zHD and USED_IN_SH0ES_HF were read: 277 rows have USED_IN_SH0ES_HF = 1, with 238 distinct CID (zHD 0.0234 to
    0.1490, sorted). Matching these rows to the Hubble-flow rows of y, L and C in file order fails: none of the 41 pairs
@@ -1551,7 +1557,7 @@ Hubble-flow rows specifically, everything already recorded or seen:
 7. From the recorded p_cal (`r2_re_gtp.json`), **the possible range of p_int below is already known**: it lies between
    the smallest and largest p_cal(ν, τ̂_obs), 0.0165 (ν = ∞) and 0.0768 (ν = 3). With weights equal to the prior (the
    Hubble flow says nothing about ν) p_int = 0.0352 (flat) and 0.0364 (uniform in 1/ν); with the maximum over τ, 0.0359
-   and 0.0372. **The light-tail label implies p_int ≤ 0.032** (at most 0.05 of the weight at ν = 3, the rest at ν = 6);
+   and 0.0372. **The light-tail label implies p_int < 0.0324** (at most 0.05 of the weight at ν = 3, the rest at ν = 6);
    **under the heavy-tail label p_int ≥ 0.0487** (at least 0.95 at ν = 4, the rest at ν = ∞) **and is above 0.05 unless
    almost all the weight is on ν = 4**. Under "weakly constrained" either side of 0.05 is possible: a weight of 0.556 on
    ν = 3 with the rest on ν = ∞ already gives 0.05, while weight spread like the prior inside {3, 4} and inside {6, 10,
@@ -1576,7 +1582,9 @@ treated exactly as R2-RE's REML treats it.
   Stage-2 weights reported only). Every row of a group gets the same effect b_g. *Count check:* the number of groups
   n_g is compared with the number of distinct CID among the USED_IN_SH0ES_HF = 1 rows of the cached `Pantheon+SH0ES.dat`
   (read through `ctx.http`, columns CID and USED_IN_SH0ES_HF only); the check passes if |n_g − n_CID| ≤ 0.05·n_CID
-  (rounded down). (Matching rows to CID, the preferred route, is impossible without a magnitude or error column, item 4.)
+  (rounded down). It applies to the main 0.3 grouping only; the 0.45 grouping is reported without a check. The main
+  check is already known to pass (242 against 238, item 3 and 4), so it is a regression guard, not a test. (Matching
+  rows to CID, the preferred route, is impossible without a magnitude or error column, item 4.)
 - Z is the 3,489 × n_g group design (Z_{r,g} = 1 if Hubble-flow row r is in group g). V = C + Z D Zᵀ with D =
   diag(d_g). No calibrator host effect is included in the main fit (C as is on every other row).
 
@@ -1637,7 +1645,7 @@ expected (more than one is label 1, "design"). Given b, u ~ N(M b, M), so the Ga
   grid values): π = 0.125 (ν = 3), 0.25 (4), 0.225 (6), 0.20 (10), 0.15 (30), 0.05 (∞). The summary quantity is
   **P(ν ≤ 4) = w(3) + w(4)** (prior value 1/3 flat, 0.375 in 1/ν). ν ≤ 4 is where GTP's crossover lies (between 4 and 6),
   chosen after R2-RE-GTP (post hoc).
-- **Sensitivities (reported only).** (i) Profile: Λ(ν, m·τ̂_HF) for m ∈ {0.5, 0.75, 1, 1.5, 2} (same N and check; seeds
+- **Sensitivities (reported only, with the check outcome; no escalation).** (i) Profile: Λ(ν, m·τ̂_HF) for m ∈ {0.5, 0.75, 1, 1.5, 2} (same N and check; seeds
   770,000 + 100k + 10j + r for the k-th m other than 1), L_prof(ν) = max_m, and P(ν ≤ 4) from it. (ii) The V(τ̂_obs) base
   (M1): u and M recomputed with the calibrator host effect at τ̂_obs in the base covariance, τ̂_HF refitted on it, and
   P(ν ≤ 4) with the same N and check (seeds 820,000 + 10j + r). (iii) The 0.45 grouping: P(ν ≤ 4) with seeds 830,000 +
@@ -1655,9 +1663,13 @@ with u_s = B ε_s + M b_s, B = ZᵀP K_C (K_C the lower Cholesky factor of C on 
   under C with all global parameters refitted, r = C_a P (K_C ε_s + Z b_s) on `rows_a` (the same projection as the data
   fit), and σ_i = √C_ii, on the Hubble-flow rows; a group fails the cut if any of its rows has |r_i| > 3.5σ_i. The t
   values of the failing groups are redrawn (in group order, from one `default_rng(790_000 + s)` stream of `standard_t(3)`
-  draws) and the cut is applied again, up to 100 rounds; a mock that still has a failing group after 100 rounds is
-  "truncation failed" and left out (more than 10 such mocks: label 3, "selection"). This keeps the design fixed and
-  mimics a sample from which SNe beyond 3.5σ were removed; it uses the SH0ES-system residual and C's diagonal, not
+  draws) and the cut is applied again, up to 100 rounds. If a group still exceeds 3.5σ after these rounds (the noise
+  alone can exceed it: a design-only estimate gives a probability of about 0.12 per mock), the whole mock is rejected
+  and redrawn: attempt k = 0, 1, …, 99 draws ε (3,489 values) and then t (n_g values, `standard_t(3)`) from one
+  `default_rng(1_000_000 + 1_000·s + k)` and is accepted if no group exceeds 3.5σ (no t redraws inside an attempt).
+  Only a mock with no accepted attempt after these 100 is "truncation failed" and left out (more than 10 such mocks:
+  "ν not determinable (selection)"). This keeps the design fixed and mimics a sample from which SNe beyond 3.5σ were
+  removed (rejection at the level of the whole mock); it uses the SH0ES-system residual and C's diagonal, not
   Pantheon+'s own fit and uncertainties, so it approximates the cut of item 6.
 In each mock: τ̂_s refitted by the reduced form (`reml_tau(f, 0.5, 0.01, interval=False)`, the zero rule), then L_s(ν)
 at τ̂_s for the six ν with one stream of N = 2,000 and the same estimator (seeds 750,000 + 10s + j for t₃, 760,000 + 10s
@@ -1666,13 +1678,14 @@ every L_s = 1 and P_s = 1/3). No accuracy check per mock; the fraction of mocks 
 reported (M5).
 **Pass rule, fixed now.** (a) The heavy-tail label (P_s > 0.95) in at most 10 of the 200 t₁₀ mocks, and the light-tail
 label (P_s < 0.05) in at most 10 of the 200 t₃ mocks. (b) Δ_b = mean P_s(t₃) − mean P_s(t₁₀) ≥ 0.10. (c) The heavy-tail
-label in at most 10 of the 200 heteroscedastic mocks (i). (d) |mean P_s(t₃ truncated) − mean P_s(t₃)| ≤ Δ_b (the
-truncated mean is over the mocks not "truncation failed"). If (a), (b) or (c) fails, the outcome is **"ν not
-determinable by this method"** with the failing part named ((a): mislabels; (b): no power at this τ_HF; (c):
-heteroscedasticity); if only (d) fails, **"ν not determinable (selection)"**. In all these cases L(ν) on the data and
-p_int are not computed. Reported: the four mean P_s, the label counts per injection, the fraction of t₃ mocks with
+label in at most 10 of the 200 heteroscedastic mocks (i). Then, only if (a)–(c) hold, the truncated mocks (ii), over
+those not "truncation failed": (d) |mean P_s(t₃ truncated) − mean P_s(t₃)| ≤ Δ_b; (e) the light-tail label (P_s < 0.05)
+in at most 10 of them. If (a), (b) or (c) fails, the outcome is **"ν not determinable by this method"** with the failing
+part named ((a): mislabels; (b): no power at this τ_HF; (c): heteroscedasticity); otherwise, if (d) or (e) fails or more
+than 10 truncated mocks failed, **"ν not determinable (selection)"**. In all these cases L(ν) on the data and p_int
+are not computed. Reported: the four mean P_s, the label counts per injection, the fraction of t₃ mocks with
 P_s > 0.95 (M5), the quantiles of P_s and τ̂_s, the fraction of mocks that would pass the Stage-1 gate, the number of
-redraw rounds and of "truncation failed" mocks, and the ESS and k̂ quantiles.
+redraw rounds, of whole-mock rejections and of "truncation failed" mocks, and the ESS and k̂ quantiles.
 
 *Integrated p (computed only when label 4, 5 or 6 is reached).* p_int = Σ_ν w(ν)·p_cal(ν, τ) with the recorded
 R2-RE-GTP values, never recomputed: **primary at τ̂_obs**, p_cal from `r2_re_gtp.json` `refit.<ν>.tau_obs.p_cal.p`
@@ -1719,7 +1732,8 @@ outcome is final and the full stage only writes `r2_re_nu.json` with that label 
 stands; a rerun needs a reason also present in log.md.
 
 *Data and runtime.* Cache only, no download (the three FITS files of section 3, and `Pantheon+SH0ES.dat` already in the
-cache, 0.58 MB, read through `ctx.http`: only CID and USED_IN_SH0ES_HF are used). Timed on synthetic inputs, single
+cache, 0.58 MB, read through `ctx.http`, which may download it again if the cache has evicted it; the code reads it
+with `usecols` = CID and USED_IN_SH0ES_HF only, and a test asserts that no other column is read). Timed on synthetic inputs, single
 thread: `reml_m2l` on `rows_a` with 277 single-row groups 0.47 s per evaluation (about the same with the grouped design),
 so Stage 1 (about 70 evaluations with the refinement and the interval) about 35 s per covariance and grouping (three:
 main, 0.45, V(τ̂_obs) base); one importance evaluation g(D) about 0.9 ms at 277 × 277, somewhat less at n_g ≈ 240.
@@ -1734,7 +1748,9 @@ on a synthetic factorised system (diagonal C on the Hubble-flow rows, single-row
 per-SN one-dimensional quadrature of the Gaussian–t convolution (log Λ within three Monte Carlo standard errors, at ν = 3
 and 10); ν = 10⁶ against the Gaussian closed form; the k̂ estimator against known generalized Pareto samples; the
 variance matching (sample variance of b = τ²) and the heteroscedastic scaling (mean d_g = τ²); the grouping (connected
-components) and its count check; the truncation loop (no residual beyond 3.5σ after it; the round limit); the 1/ν
+components) and its count check (main grouping only); the truncation loop (the t redraws, then the whole-mock
+rejection with its seeds; no residual beyond 3.5σ in an accepted mock; both limits and the "truncation failed" count);
+the `usecols` read of `Pantheon+SH0ES.dat` (no other column is read); the 1/ν
 weights listed above; the gate, the label order, the scale condition, the pass rule and the p_int arithmetic from the
 recorded keys; the check record contains no L(ν), weights, label or p_int computed on the data. On the real data before
 the formal run, nothing beyond the checks above (no τ_HF).
@@ -1744,11 +1760,12 @@ then "full", only for the formal runs, back afterwards with dated notes in log.m
 run, which copies `R2_RE_NU` from an existing `r2_re_nu.json`), `"nu_grid": [3, 4, 6, 10, 30, "inf"]`, `"nu_tau_gate":
 0.02`, `"nu_group_corr": 0.3`, `"nu_group_corr_sens": 0.45`, `"nu_q_prior_frac": 0.1`, `"nu_n_is": 4_000`,
 `"nu_n_is_escalate": 32_000`, `"nu_is_seed": 730_000`, `"nu_is_seed_escalate": 740_000`, `"nu_n_mocks": 200`,
-`"nu_n_is_mock": 2_000`, `"nu_cut_sigma": 3.5`, `"nu_cut_rounds": 100`, `"nu_mock_seeds": {"eps": 700_000, "t3": 710_000,
-"t10": 720_000, "het": 780_000, "trunc": 790_000, "is_t3": 750_000, "is_t10": 760_000, "is_het": 800_000, "is_trunc":
-810_000}`, `"nu_profile_m": [0.5, 0.75, 1, 1.5, 2]`, `"nu_profile_seed": 770_000`, `"nu_vbase_seed": 820_000`,
-`"nu_group_sens_seed": 830_000`, `"nu_rerun_reason": ""`. Seeds 700,000–839,999 collide with none used before
-(R2-RE-GTP's list plus 430,000–469,999, 613,000 and 614,000). A formal run uses one thread (`OMP_NUM_THREADS`,
+`"nu_n_is_mock": 2_000`, `"nu_cut_sigma": 3.5`, `"nu_cut_rounds": 100`, `"nu_cut_attempts": 100`, `"nu_mock_seeds":
+{"eps": 700_000, "t3": 710_000, "t10": 720_000, "het": 780_000, "trunc": 790_000, "trunc_joint": 1_000_000, "is_t3":
+750_000, "is_t10": 760_000, "is_het": 800_000, "is_trunc": 810_000}`, `"nu_profile_m": [0.5, 0.75, 1, 1.5, 2]`,
+`"nu_profile_seed": 770_000`, `"nu_vbase_seed": 820_000`, `"nu_group_sens_seed": 830_000`, `"nu_rerun_reason": ""`.
+Seeds 700,000–839,999 and 1,000,000–1,199,099 collide with none used before (R2-RE-GTP's list plus 430,000–469,999,
+613,000 and 614,000). A formal run uses one thread (`OMP_NUM_THREADS`,
 `MKL_NUM_THREADS`, `OPENBLAS_NUM_THREADS` = 1) and refuses to start unless the `nu_*` values equal those above. Results
 `results/r2_re_nu_check.json` and `results/r2_re_nu.json` (each below 1 MB); a new module or a block appended to
 `shape.py` (no change to earlier functions or results), tests, a conclusion check, a web section and section 8 knobs.
