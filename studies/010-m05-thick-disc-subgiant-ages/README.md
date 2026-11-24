@@ -1806,6 +1806,111 @@ New files: `r1_errcal.json`, `provenance_errcal.json` and `run_info_errcal.json`
     heuristic upper value (2.0), and Shariat, El-Badry & Bhattacharjee 2025 find the quoted errors
     consistent with 11 wide pairs.
 
+### 5.5 R1-ERRMM: mismatched-f null and bootstrap of the data's d at f = 2.81 (T-064; run 2026-11-23/24)
+
+Pre-registered in section 2.9 (2026-11-23). Run with `"parts": ["errmm"]` (`python -m astrolab run 010`) with the
+default thread settings, in two sessions. The first (2026-11-23, evening) ran while study 012's run was also
+running; Claude Code ended it because the system ran short of memory (neither the 16 h stop rule nor a program
+error). By then 1,942 mocks were checkpointed: the resumed session's first projection counts 72 replayed plus
+1,870 more checkpointed (`log.md` first gave 1,934, the count at the last progress line; corrected there). With
+the user's consent (2026-11-24) the stale lock was deleted, after checking that no study-010 process was running,
+and the run resumed at 12:25 from the checkpoints with the same PARAMS, alone on the machine. Check (a) passed
+again, and the run finished at 16:04 (13,143 s, `runtime_h` 3.65). Mocks and replicates took 7.28 h in all
+(`mocks.elapsed_h_total`, against 2.9's estimate of 6.5–8.5 h). That is 6.25 s per mock on average (9.57 s
+for S15 term E, 4.88 s for term N, 4.31 s for Full; `per_set[].mean_s_per_mock`) and 4.04 s per replicate fit
+(`mocks.boot_mean_s`). Peak memory was 3,742 MB in part A and 5,144 MB in part B (`memory_peak_mb`). Cache
+only, no download.
+
+As for R1-ERRCAL, `mocks.resumed` is false and `mocks.resumes` is empty, because they record only stops by the
+16 h rule, and `threads` holds the last session's settings (referee, point 8). The interruption is recorded
+here and in `log.md`.
+
+New files: `r1_errmm.json` (755 kB), `provenance_errmm.json` and `run_info_errmm.json`. The four files read
+(`r1_sel.json`, `r1_selfit.json`, `r1_err.json`, `r1_errcal.json`; SHA-256 in `inputs_sha256`) and every
+recorded label are unchanged.
+
+- **Checks (2.9): all passed.** (a) The fits at 1.5 reproduce R1-ERR's companion refits and the star counts
+  (`checks.input_and_fit_mismatches` is empty). All 72 sets have 50 mocks; no generator failure (`gen_fail` 0),
+  no non-finite result and no star dropped by the redraw limit. Part B: no failed replicate in any variant.
+- **Label: R1-ERRMM (S15 term E, primary) is "nulls drawn at f = 1.0: not reproduced; nulls drawn at
+  f = 1.5: not reproduced"** (`label`). Term N and Full both read "nulls drawn at f = 1.0: reproduced; nulls
+  drawn at f = 1.5: reproduced" (`labels`). Reading A: "unchanged" for term E; "robust to an f mismatch" for
+  term N and Full at both g. 2.9 guessed that term N and Full would keep "reproduced" at g = 1.5 and possibly
+  lose it at 1.0; they kept it at both.
+- **Why.** Four bins are resolvable in every case (power at d*_mm 0.90–1.00: the three metal-poor bins and
+  [−0.1, 0.1) from R1-SEL-FIT). d*_mm falls below the cap 0.25 only in bin [−0.7, −0.5) at g = 1.0, where the
+  skew-normal null sets give valleys with q_s 0.224–0.261. There the data's d is far lower, so nothing changes.
+  In the other two bins d*_mm is the cap. The verdicts are therefore R1-ERRCAL's at 2.81:
+
+| g | Variant | d*_mm: [−0.7, −0.5) / [−0.5, −0.3) / [−0.3, −0.1) | Data d at 2.81 | d*_mm − data d | Almost disjoint | Median young-side edge (Gyr) | Verdict | Reading A |
+|---|---|---|---|---|---|---|---|---|
+| 1.0 | S15 term E | 0.243 / 0.25 / 0.25 | 0.057 / **0.271** / 0.160 | +0.186 / **−0.021** / +0.090 | 2 | 9.275 | not reproduced | unchanged |
+| 1.5 | S15 term E | 0.25 / 0.25 / 0.25 | 0.057 / **0.271** / 0.160 | +0.193 / **−0.021** / +0.090 | 2 | 9.275 | not reproduced | unchanged |
+| 1.0 | S15 term N | 0.238 / 0.25 / 0.25 | 0.063 / 0.242 / 0.145 | +0.175 / +0.008 / +0.105 | 3 | 9.375 | **reproduced** | robust to an f mismatch |
+| 1.5 | S15 term N | 0.25 / 0.25 / 0.25 | 0.063 / 0.242 / 0.145 | +0.187 / +0.008 / +0.105 | 3 | 9.375 | **reproduced** | robust to an f mismatch |
+| 1.0 | Full | 0.224 / 0.25 / 0.25 | 0.054 / 0.232 / 0.142 | +0.170 / +0.018 / +0.108 | 3 | 9.325 | **reproduced** | robust to an f mismatch |
+| 1.5 | Full | 0.25 / 0.25 / 0.25 | 0.054 / 0.232 / 0.142 | +0.196 / +0.018 / +0.108 | 3 | 9.325 | **reproduced** | robust to an f mismatch |
+
+- **Per-set numbers (descriptive, part A).**
+  - Bin [−0.7, −0.5): 96–100% of the null mocks have a valley; q_s is 0.224–0.353 at g = 1.0 and 0.281–0.435
+    at 1.5; a valley with d < 0.25 occurs in 0–12% (g = 1.0) and 0–2% (1.5) of the mocks of a set. Their median
+    valley ages are 9.35–9.55 Gyr; the data's at 2.81 are 10.93–10.98 Gyr.
+  - Bin [−0.5, −0.3): valleys in 28–60% (g = 1.0) and 6–44% (1.5) of the mocks; q_s 0.651–0.899; no null
+    valley with d < 0.25. Median valley ages 8.7–9.05 Gyr; the data's 10.18–10.23 Gyr.
+  - Bin [−0.3, −0.1): valleys in 0–1 of 50 mocks per set; q_s is undefined (cap).
+  - No null mock in any set has a valley with d below the data's d in its bin and variant
+    (`frac_valley_d_lt_data` 0 in all 72 sets); the smallest d among the 1,576 null mocks with a valley is 0.180.
+  - Width floor: the chosen fit has a component at σ = 0.1 Gyr in 10–32% (g = 1.0) and 2–16% (1.5) of the
+    mocks of a set in bin [−0.7, −0.5), 0–4% in [−0.5, −0.3) and none in [−0.3, −0.1) (5.4% of all
+    3,600). A component at μ = 25 Gyr: 0–4%.
+  - The fit chose K = 4 in 3,295 mocks and K = 3 in 305. No mock's NLL rises with K after the better-fit rule;
+    under fit (o) alone it does in 10.
+- **Part B: bootstrap of the data's d at 2.81 (100 replicates per bin, shared by the variants).**
+
+| Variant | R1-ERRCAL at 2.81 | Replicates with the same verdict | Reading B | Bin [−0.5, −0.3): d 16th / 50th / 84th percentile | Replicates with a valley and d < 0.25 in that bin |
+|---|---|---|---|---|---|
+| S15 term E | not reproduced | 93 of 100 | **stable under resampling** | 0.256 / 0.271 / 0.285 | 7 |
+| S15 term N | reproduced | 69 of 100 | **unstable** | 0.228 / 0.243 / 0.256 | 71 |
+| Full | reproduced | 91 of 100 | **stable under resampling** | 0.216 / 0.232 / 0.244 | 93 |
+
+  - Replicate 100 (the unresampled data, fitted by the mock procedure) gives R1-ERRCAL's verdict in all three
+    variants; its d equals R1-ERRCAL's data d within 1.2·10⁻⁴.
+  - Other bins (16th–84th percentile of d): [−0.7, −0.5) 0.044–0.076 (term E), 0.012–0.074 (term N),
+    0.036–0.069 (Full); [−0.3, −0.1) 0.150–0.166, 0.137–0.153, 0.135–0.150. A valley with d < 0.25 occurs in
+    97–100% of the replicates of these bins. The recorded `d_sd` is not quoted: it counts d = 1 for the 2–3
+    replicates without a valley in some of these bins, which inflates it to 0.12–0.15 (referee, point 7).
+  - In every bin and variant 96–100% of the replicates have a component at σ = 0.1 Gyr; in bin [−0.7, −0.5)
+    28–33% also have one at μ = 25 Gyr. Every replicate chose K = 4. Fit (i) was used in 0–1 replicates
+    in bin [−0.5, −0.3), in 32–39 in [−0.7, −0.5) and in 5–15 in [−0.3, −0.1).
+- **Reading (post hoc, 2026-11-24, after the referee; no verdict on XR22's claim).**
+  - As registered, R1-ERRCAL's 2.81 verdicts hold against the mismatched-f null. Fitting the skew-normal and
+    split-normal null families with F = 2.81 when they were drawn with the quoted errors (or 1.5 times them)
+    does not create dips as deep as the data's: no null mock reaches the data's d in any bin.
+  - The null families limit what this shows (referee, point 1). Every data fit at 2.81 (section 5.4) and
+    96–100% of the bootstrap replicates have a component at the width floor σ = 0.1 Gyr, against 0–32% of the
+    null mocks. The nulls are smooth and peak young; none has a sharp old edge. A unimodal latent distribution
+    with a sharp old cutoff, from star formation that stops or from an isochrone-age pile-up, could be
+    over-deconvolved into a floor-width spike with a trough beside it. "Robust to an f mismatch" therefore
+    holds for smooth unimodal latents only. The referee widened only the floor component of the recorded
+    2.81 fits (an illustration, not a refit; not saved): with σ = 0.2 Gyr bin [−0.5, −0.3) would give
+    d 0.293 (term N) and 0.282 (Full), above 0.25. If a refit confirms this, term N's and Full's "reproduced
+    at 2.81" depends on the σ = 0.1 Gyr floor of `m0.fit_mixture`, a fit bound and not a physical scale.
+    A refit with a wider floor and a null with a sharp-edged latent are registered as T-067.
+  - In the deciding bin [−0.5, −0.3) the null does no work (referee, point 2): d*_mm is the cap in every
+    case (null q_s ≥ 0.651). Term N's and Full's verdicts rest on data d < 0.25, with margins of 0.008 and
+    0.018, and should be read with reading B. In term N 29% of the resamples cross 0.25 and its 16th–84th
+    percentile range (0.228–0.256) straddles it, so its "reproduced at 2.81" is unstable. Full's crosses in
+    7%.
+  - The bootstrap spread is a lower bound (referee, point 4). The replicates start from the data's 2.81 fit
+    and stay in its basin (fit (i) used in 0–1 replicates of bin [−0.5, −0.3), K = 4 in all), and the fit sits
+    at a parameter bound, where the bootstrap is not reliable. Full's "stable" (0.91) is therefore not firm.
+    Term E's "not reproduced" is stable (0.93). 2.9's guess that all three would be unstable held for term N
+    only.
+  - The nulls calibrate d at other ages than where the data dip (referee, point 3): null valleys at
+    9.35–9.55 Gyr and 8.7–9.05 Gyr against the data's 10.93–10.98 Gyr (last cells of the 5–11 Gyr window, in
+    every replicate with a valley between 10.58 and 10.98 Gyr) and 10.18–10.23 Gyr. In bin [−0.7, −0.5) the 95th percentile
+    of the replicates' young-side edge reaches 9.475 Gyr (term E), next to the 9.5 Gyr limit.
+
 ## 6. Referee notes
 
 Independent referee, 2026-11-16 (a subagent that saw README sections 1-4, the code, the results, the
@@ -1900,6 +2005,28 @@ resumed. It recomputed every label from the per-set d values and the data fits. 
 | 9 | Literature: Bovy, Hogg & Roweis 2011 (arXiv:0905.2979, extreme deconvolution) as the standard reference for mixture components collapsing towards zero width when errors are overestimated (the referee's recollection, unverified); arXiv:2510.10092 reports ages about 12.9% younger than XR22 with 10.8% scatter (found, not read) | not verified | Noted; not used |
 | 10 | Most important additional test: a mismatched-f null. Draw the skew-normal and split-normal null mocks with f = 1 (and 1.5), fit them with f = 2.81 (and 2.0) by the same procedure, and record d, the valley rate and how often a component hits σ = 0.1 Gyr or μ = 25. If that over-deconvolution gives valleys with d < 0.25, the "reproduced at 2.81" readings come from the assumed f, not the data. Cheap companion: a bootstrap of the data's d in bin [−0.5, −0.3) at f = 2.81 | – | Registered as T-064 (backlog) |
 
+### Referee of R1-ERRMM (2026-11-24)
+
+The independent referee was a subagent. It saw README sections 1–4 (2.1 and 2.7–2.9 in particular), the code
+(`run.py`, `selaux.py`, `test_errmm.py`) and the results files (`r1_errmm.json` and the four it reads), but not
+sections 5–8 or `log.md`. It was told that the run had been interrupted and resumed. Because another study
+was running it made only short read-only checks. It recomputed every label, reading and bootstrap fraction
+from the per-set and per-replicate records and found each as recorded. Triage:
+
+| # | Point | Verified | Action |
+|---|---|---|---|
+| 1 | The null family cannot produce the feature that makes the data's dips. Every data fit at 2.81 has its old component at the width floor σ = 0.10 Gyr, and so do 96–100% of the bootstrap replicates, against 0–32% of the mismatched null mocks (bin [−0.7, −0.5)) and 0–4% (the other bins). A unimodal latent with a sharp old cutoff, over-deconvolved with too large an F, can give a floor-width spike and a trough beside it; the smooth, young-peaked nulls never contain such an edge. Widening only the floor component of the recorded 2.81 fits (σ = 0.2 Gyr) gives d 0.293 (term N) and 0.282 (Full) in bin [−0.5, −0.3) | yes for the floor fractions (`frac_n_sig_lo`; section 5.4 for the data fits); the widening is the referee's illustration, not repeated by us | **Accepted limitation** (post hoc, section 5.5): "robust to an f mismatch" holds for smooth unimodal latents only; term N's and Full's 2.81 verdicts may depend on the σ floor. Floor refit and sharp-edged null registered as T-067 |
+| 2 | In the deciding bin [−0.5, −0.3) the mismatched null does no work: d*_mm is the cap (null q_s ≥ 0.651), so "robust" there only means data d < 0.25, with margins 0.008 (term N) and 0.018 (Full); resampling crosses 0.25 in 29% and 7% | yes | **Accepted**; section 5.5 reports reading A together with reading B |
+| 3 | Valley positions and the edge rule sit near fixed limits: the data valley of bin [−0.7, −0.5) is at 10.93–10.98 Gyr (last cells of the 5–11 Gyr window), and at 10.58–10.98 Gyr in every replicate with a valley; null valleys at 9.35–9.55 Gyr; about 30% of that bin's replicates have a component at μ = 25 Gyr; its edge reaches 9.475 Gyr at the 95th percentile | yes (μ = 25 in 28–33%) | **Accepted limitation**; section 5.5 |
+| 4 | The bootstrap is anchored (fit (i) used in 0–1 of 100 replicates in bin [−0.5, −0.3), K = 4 in all) and the estimator sits on a parameter bound (the σ floor), where the nonparametric bootstrap is not consistent; its spread (about 0.014) is a lower bound, and Full's 0.91 could fall below 0.80 with a larger spread | yes (`i_used_any`, K counts); the consistency point is the referee's (Andrews 2000) | **Accepted**; section 5.5: Full's "stable" is not firm; the design was registered with the anchoring caveat (2.9) |
+| 5 | Power is reused from R1-ERRCAL (≥ 0.90 at every d*_mm); its idealised split has no floor-width ridge | yes | No change; as registered (2.9) |
+| 6 | One f for all stars: if the quoted errors depend on age or [Fe/H] (e.g. overestimated for old stars), a uniform F over-deconvolves exactly the old ridge; neither g explores this | not testable from the results | **Accepted limitation**; section 7 |
+| 7 | `errmm_evaluate_b`'s `d_sd` counts d = 1 for replicates without a valley, so it overstates the spread 5–10 times in bins [−0.7, −0.5) and [−0.3, −0.1) | yes (0.12–0.15 against 16th–84th ranges of about 0.03) | **Fixed in the report**: `d_sd` is not quoted; section 5.5 gives percentile ranges. The code is not changed after the run (as registered) |
+| 8 | Records: the resume is not in `r1_errmm.json` (`resumed` false, only `elapsed_h_total` 7.28 against `runtime_h` 3.65 hints at it); the first projection counts 1,942 checkpointed mocks, not the 1,934 of `log.md`; `threads` holds the last session's settings | yes | **Fixed in the records**: section 5.5 and a correction line in `log.md` |
+| 9 | Resume: no bias or duplication (no repeated d within or across sets, none shared with R1-ERRCAL's mocks; streams per (k, j); the fits at 1.5 compared exactly; the bootstrap resample regenerated per variant; set 38, split across the sessions, shows no break). All labels, readings and fractions recompute | the referee's checks; the labels and fractions also by us | No action |
+| 10 | Literature: Bovy, Hogg & Roweis 2011 (arXiv:0905.2979, extreme deconvolution; components collapse when errors are overestimated); Andrews 2000 (Econometrica 68, 399; bootstrap at a parameter bound); Silverman 1981 and Hartigan & Hartigan 1985 (multimodality tests against a smooth or unimodal null) | not verified (the referee's recollection) | Noted; not used |
+| 11 | Most important additional test: a null with a sharp-edged unimodal latent matched to the data (the data's 2.81 fit with the gap filled monotonically up to the old ridge, then a cliff; or a log-concave latent), drawn at g = 1.0 and 1.5 and fitted with 2.81, recording the floor rate and valleys with d ≤ 0.24 near 10.2 Gyr. A cheap first step: refit the nine 2.81 data fits with the width floor at 0.2 and 0.3 Gyr | – | Registered as T-067 (backlog) |
+
 ## 7. Open questions
 
 - **A selection term consistent with the error mechanism (T-031, done).** Re-tested in section 5.1
@@ -1930,12 +2057,22 @@ resumed. It recomputed every label from the per-set d values and the data fits. 
   margins of 0.01–0.02 in d. Open: whether fitting with too large an f creates dips from smooth latents (the
   data fits at f, 15 of 18, have a component at the width bound), and the data's d has no uncertainty. A mismatched-f null
   with a bootstrap of the data's d is registered as T-064.
+  **Tested by R1-ERRMM (T-064, 2026-11-24, section 5.5).** Smooth unimodal nulls drawn with the quoted errors (or
+  1.5 times them) and fitted with 2.81 never dip as deep as the data, so the 2.81 verdicts stand against that
+  null; the bootstrap finds term E's "not reproduced" and Full's "reproduced" stable and term N's unstable.
+- **The width floor and sharp-edged latents (T-067).** Every data fit at 2.81 and nearly every bootstrap
+  replicate has a component at the width floor σ = 0.1 Gyr, which the smooth nulls rarely reach. Whether term
+  N's and Full's "reproduced at 2.81" survives a wider floor, and whether a unimodal latent with a sharp old
+  edge, over-deconvolved, gives such dips, is registered as T-067 (refit the nine 2.81 data fits with the floor
+  at 0.2 and 0.3 Gyr; then a sharp-edged null matched to the data, as a new pre-registration).
 - **Which error generator is right.** Open points from section 5.1, readings 2–4:
   - Term N fails recovery only under the τ-keyed generator, whose pools carry the age dependence
     of the pass fraction that the errors themselves create.
   - Catalogue errors that depend on Teff or M_K at fixed observed age are not mocked.
   - The intrinsic-SEL label holds only for an error scale f ≳ 0.83, which nothing here bounds.
   - An old component with tails heavier than Gaussian was not tested.
+  - One error scale f is applied to every star. Errors that depend on age or [Fe/H], for example
+    overestimated for old stars, are not mocked (R1-ERRMM referee, point 6).
 - **Limitations noted by the referee.** Mock fits start from the data fit with 3 starts while data
   fits use 40; f_max = 2.81 (dominated by the true late-phase age spread and by σ_sel) is not a
   usable error scale; latent peaks pile up at the 20 Gyr grid edge in metal-rich bins, which affects
