@@ -854,15 +854,15 @@ run took about 10.5 hours (paused at 10 h as pre-registered and resumed); number
   tightly as K24's prior does; that prior (centred on 91) pulls the result to 71, close to K24's 67.7. So in our fit with
   the divisor fixed, prior and data weigh about equally; with B = 1 fixed, ω₀ mainly tracks the clusters' ratio of
   velocity to height amplitude, so it is not a clean measure of the local density.
-- *Update 2026-11-24 (T-061, post hoc).* **The cloud sample is part of the story.** K24 fitted the clouds at the
-  positions of individual sightlines (Zucker et al. 2020 and Alves et al. 2020), whereas our 79 rows merge several
+- *Update 2026-11-24 (T-061, post hoc).* **The cloud sample is part of the story.** K24 most likely fitted the clouds at
+  the positions of individual sightlines (Zucker et al. 2020 and Alves et al. 2020), whereas our 79 rows merge several
   sightlines into one point per cloud. Rebuilding K24's sample by a pre-registered membership rule (149 points), the
   clouds-only fit moves from two to three of six shape parameters inside K24's ranges (four with Perseus and Taurus),
   mostly through the envelope width δ; the phase φ and the first anchor stay off. Part of this gain may simply be
   the larger total weight of 149 points against the priors (a control is registered, T-065). Letting the origin of s
   float cannot help: the referee showed it is exactly equivalent to changing p, γ, φ and s₀, so it only reflects the
   priors, and that label was withdrawn. Shifting the Sun's height by 20.8 pc makes the fit worse. Our curve at K24's
-  medians matches the curve K24 published to under 1 pc in the plane, so the model code is not the problem; most of
+  medians matches the curve K24 published to under 1 pc in the plane, so our curve geometry (baseline, anchors, Λ) agrees with K24's; most of
   the remaining difference sits in the bridging sightlines, which are the same in both samples.
 
 ### Glossary
@@ -1278,7 +1278,7 @@ K24 在扣除银河系自转后拟合一个刚体的盘面内速度：v_x,plane 
 - *T8。* 撤回（独立审稿，事后）：ω₀ 自由时，在 K24 有界的离群函数下，σ 固定的 v_z/ω₀ 使似然对 ω₀ 是病态的（ill-posed；缺少 ln ω₀ 归一化项，加上后 ω₀ → 0 时似然无界增大；在探索的众数搜索中，宽先验下后验跑到上限，加上归一化后跑到下限）。除数固定时 ω₀ = 71（+10/−8）km s⁻¹ kpc⁻¹，接近 K24 的 67.7（只在 K24 先验下拟合）。
 - *这意味着什么。* K24 的数据与模型确实给出 B ≈ 0.84 和似然对行波的偏好，但这一偏好依赖少数星团（主要是猎户座区域）与核加权；直接的相位检验与 b̂ 检验无法判定。论文明说的"星团的 v_z 图样显示行波"（第二部分环节 C）只在这种不稳健的形式下得到支持。
 - *2026-11-22 更新（T-056，事后）。* **对 K24 方法部分的任何读法都不能复现他们只用云的拟合：** 十六种约定（弯曲基线的四种形式，σ 固定为 47 pc 或由云的平方距离的离散得到，权重固定或重算）都使六个参数中同样两个落在 K24 的范围内（包络峰值的位置 s₀，以及波长缩短的快慢 γ），偏移也相同（包络宽度 δ 约短 2σ，相位 φ 约大 3–4σ，第一个锚点约偏 2σ）。所以差别是它们共有的：在数据、似然，或者它们都没有改变的某个约定中（s = 0 在曲线上的位置、太阳的竖直偏移）；K24 与我们一样只拟合有速度测量的云，云是否相同是下一步要核对的（T-061）。**速度除数固定时（T8-P），ω₀ "由先验决定"：** 在宽先验下数据偏好 59 (+12/−10) km s⁻¹ kpc⁻¹，约束与 K24 的先验相当；该先验（中心 91）把结果拉到 71，接近 K24 的 67.7。所以在我们除数固定的拟合中，先验与数据分量相当；固定 B = 1 时，ω₀ 主要跟随星团速度与高度振幅之比，不是局部密度的干净量度。
-- *2026-11-24 更新（T-061，事后）。* **云的样本是原因的一部分。** K24 用的是单条视线（sightline）的位置（Zucker 等 2020 与 Alves 等 2020），而我们的 79 行把同一个云的几条视线合并成一个点。按预注册的成员规则重建 K24 的样本（149 个点）后，只用云的拟合中落在 K24 范围内的形状参数从 6 个中 2 个增加到 3 个（加上 Perseus 与 Taurus 为 4 个），主要来自包络宽度 δ；相位 φ 与第一个锚点仍然偏离。这一改善可能有一部分只是 149 个点相对先验的更大总权重（对照检验已登记，T-065）。让 s 的起点自由无济于事：审稿人证明它与改变 p、γ、φ、s₀ 精确等价，所以只反映先验，该标签已撤回。把太阳的高度平移 20.8 pc 使拟合更差。我们的曲线在 K24 中位数处与 K24 公布的曲线在银道面内相差不到 1 pc，所以模型代码不是问题；剩下的差别大部分在连接视线（bridging sightlines）中，而它们在两个样本中相同。
+- *2026-11-24 更新（T-061，事后）。* **云的样本是原因的一部分。** K24 很可能用的是单条视线（sightline）的位置（Zucker 等 2020 与 Alves 等 2020），而我们的 79 行把同一个云的几条视线合并成一个点。按预注册的成员规则重建 K24 的样本（149 个点）后，只用云的拟合中落在 K24 范围内的形状参数从 6 个中 2 个增加到 3 个（加上 Perseus 与 Taurus 为 4 个），主要来自包络宽度 δ；相位 φ 与第一个锚点仍然偏离。这一改善可能有一部分只是 149 个点相对先验的更大总权重（对照检验已登记，T-065）。让 s 的起点自由无济于事：审稿人证明它与改变 p、γ、φ、s₀ 精确等价，所以只反映先验，该标签已撤回。把太阳的高度平移 20.8 pc 使拟合更差。我们的曲线在 K24 中位数处与 K24 公布的曲线在银道面内相差不到 1 pc，所以我们的曲线几何（基线、锚点、Λ）与 K24 的一致；剩下的差别大部分在连接视线（bridging sightlines）中，而它们在两个样本中相同。
 
 ### 术语表
 
