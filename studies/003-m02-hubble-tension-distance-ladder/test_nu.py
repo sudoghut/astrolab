@@ -501,7 +501,8 @@ def test_gate_and_label_1_order():
 def test_scale_condition_and_labels():
     assert nu.scale_inside([0.05, 0.08]) is True and nu.scale_inside([0.03, 0.07]) is False
     assert nu.scale_inside([0.08, 0.2]) is False and nu.scale_inside([0.05, "> 0.5"]) is True
-    assert nu.scale_inside([0.05, "not determined"]) is None
+    # README amendment 2 (2026-11-24): an undetermined upper end counts as open, [lower end, inf)
+    assert nu.scale_inside([0.05, "not determined"]) is True and nu.scale_inside([0.09, "not determined"]) is False
     c = nu.COND
     assert nu.label_from_p(0.049, True) == (nu.LBL_LIGHT + c, False)
     assert nu.label_from_p(0.951, True) == (nu.LBL_HEAVY + c, False)

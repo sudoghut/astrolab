@@ -1779,6 +1779,15 @@ one respect: the route (Hubble flow), the gate threshold, the grouping threshold
 after all of R2-RE-GTP's results and after seeing the structure of C on the Hubble-flow rows (items 3 and 4), though
 before any Hubble-flow residual.
 
+*Amendments before any R2-RE-NU computation on the data (2026-11-24).* Two points the addendum left open, fixed while
+writing the code (`nu.py`) and before anything was computed from the Hubble-flow rows of y; no rule, threshold or label
+above changes.
+1. **Profile seeds.** In "770,000 + 100k + 10j + r for the k-th m other than 1", k is counted from 0, like j and r: k = 0,
+   1, 2, 3 for m = 0.5, 0.75, 1.5, 2.
+2. **Upper end of τ̂_HF's interval not determined.** If the root search for the upper end fails, the interval is taken as
+   [lower end, ∞) for the scale condition (0.0767 counts as inside if it is at least the lower end), and this is reported
+   as `upper_end: "not determined"`. A lower end that is not determined is label 1, as registered.
+
 ## 3. Data (with size estimate)
 
 | Input | Source (service / URL) | Selection | Est. rows / size |
