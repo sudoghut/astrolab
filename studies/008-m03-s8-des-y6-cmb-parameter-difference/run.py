@@ -108,7 +108,7 @@ PARAMS = {
     # R6-SHUF-KA2 (README 2.10, T-063): the same test on a surrogate of the data (Gaussian mixtures fitted to the two
     # chains, committed as surrogate_t063.json, never refitted). r6_ka2 True only for the formal run (R6, R6-NOMNU,
     # R6-SHUF and R6-SHUF-KA read, not rerun).
-    "r6_ka2": False, "r6_ka2_seeds": [25, 26, 27, 28, 29, 30, 31, 32, 33, 34],
+    "r6_ka2": True, "r6_ka2_seeds": [25, 26, 27, 28, 29, 30, 31, 32, 33, 34],
     "r6_ka2_file": "surrogate_t063.json",
     "r6_ka2_sha256": "ba050dc4b15c945c2185398c21b97d0c8116208afc872bd71c842592323aff76",
     "r6_ka2_exact": {"n6": 1.3768, "S": 0.6678, "n5": 0.3341},
