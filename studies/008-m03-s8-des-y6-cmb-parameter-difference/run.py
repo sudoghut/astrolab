@@ -540,9 +540,9 @@ def main(ctx):
     shuf_path = ctx.study.results_dir / "r6_shuf.json"       # README 2.9 reuse: the recorded file
     if P["r6_ka"] and P["r6_shuf_retrain"]:
         raise ValueError("r6_ka reads the recorded R6-SHUF: r6_shuf_retrain must be false (README 2.9)")
-    if P["r6_ka2"] and (P["r6_shuf_retrain"] or P["r6_ka"]):
-        raise ValueError("r6_ka2 reads the recorded R6-SHUF and R6-SHUF-KA: r6_shuf_retrain and r6_ka must be "
-                         "false (README 2.10)")
+    if P["r6_ka2"] and (P["r6_shuf_retrain"] or P["r6_ka"] or P["r6_retrain"] or P["r6_nomnu_retrain"]):
+        raise ValueError("r6_ka2 reads the recorded R6, R6-NOMNU, R6-SHUF and R6-SHUF-KA: r6_retrain, "
+                         "r6_nomnu_retrain, r6_shuf_retrain and r6_ka must be false (README 2.10)")
     if P["r6_shuf"] and not P["r6_shuf_retrain"]:
         # README 2.9 amendment 1: R6-SHUF is not rerun; its recorded file is read (never rewritten)
         if shuf_path.exists():
@@ -626,7 +626,7 @@ def main(ctx):
                 "r6_nomnu_retrain", "r6_shuf_retrain", "r6_ka")
         settings = {k: P[k] for k in keys}
         exact = None
-        if sur["ok"]:
+        if sur["ok"] and rec6["ok"] and recs["ok"]:      # the records first: the exact values take minutes
             exact = r6ka2.exact_values(sur, flowshift)
             ctx.log(f"R6-SHUF-KA2: exact n6 {exact['n6']:.4f}, nS {exact['S']:.4f}, n5 {exact['n5']:.4f}, "
                     f"phi {exact['phi']:.4f}")
@@ -644,6 +644,7 @@ def main(ctx):
                                   functools.partial(r6ka2.plan, expected=(rec6, recs)))
         ka2 = r6ka2.assemble(res, rec6, recs, rec_ka, sur, exact, P["r6_ka2_exact"], P["r6_ka2_seeds"],
                              P["r6_shuf_e_min"], P["r6_shuf_s_max"], P["r6_shuf_band"], settings)
+        ka2["data_flow_values"] = r6ka2.data_values(r6_path, shuf_path, nomnu_path)   # README 2.10, descriptive
         ctx.log(f"R6-SHUF-KA2: {ka2['label']} ({ka2['reason']}); qualifier: {ka2['summary'].get('qualifier')}; "
                 f"comparison: {ka2['summary'].get('comparison')}")
         ctx.save("r6_ka2", ka2)

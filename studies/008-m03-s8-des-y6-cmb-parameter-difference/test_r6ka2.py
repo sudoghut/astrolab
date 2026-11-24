@@ -155,13 +155,32 @@ def test_ds_rows_have_the_product_distribution():
 
 
 def test_exact_values_reproduce_the_registered_ones():
-    """The formal computation (2,000,000 rows) reproduces the registered values bit for bit with the design
-    output; here a 200,000-row version checks the code path and agrees within its Monte Carlo error."""
+    """A 200,000-row version checks the code path and agrees within its Monte Carlo error. (The formal 2,000,000-row
+    computation was run once offline on 2026-11-24 from the committed file and gave the design output's values bit
+    for bit, in 127 s; rule 1 checks it again in the run. See also the opt-in slow test below.)"""
     e = ka2.exact_values(SUR, fs, n=200_000)
     assert abs(e["n6"] - EXACT["n6"]) < 0.01 and abs(e["S"] - EXACT["S"]) < 0.01 and abs(e["n5"] - EXACT["n5"]) < 0.01
     c = ka2.exact_check({"n6": 1.3768, "S": 0.6678, "n5": 0.3341, "phi": PHI_EXACT}, EXACT)
     assert c["ok"]
     assert not ka2.exact_check({"n6": 1.3768, "S": 0.6738, "n5": 0.3341, "phi": PHI_EXACT}, EXACT)["ok"]
+
+
+@pytest.mark.skipif(not __import__("os").environ.get("STUDY008_SLOW"), reason="slow (about 2 min): STUDY008_SLOW=1")
+def test_exact_values_full_size_bit_for_bit():
+    d = json.loads((HERE / "surrogate_t063.json").read_text(encoding="utf-8"))["exact_design"]
+    e = ka2.exact_values(SUR, fs)
+    assert (e["n6"], e["S"], e["n5"], e["phi"]) == (d["6"], d["S"], d["5"], d["phi"])
+
+
+def test_data_values(tmp_path):
+    p6, ps, p5 = tmp_path / "a.json", tmp_path / "b.json", tmp_path / "c.json"
+    p6.write_text(json.dumps({"flows": {"main": {"n_bar": 1.7}}}), encoding="utf-8")
+    ps.write_text(json.dumps({"means": {"S": {"n_bar": 0.9}}}), encoding="utf-8")
+    assert ka2.data_values(p6, ps, p5) == {"n6": 1.7, "S": 0.9, "n5": None}
+    res = HERE / "results"
+    if (res / "r6.json").exists():
+        v = ka2.data_values(res / "r6.json", res / "r6_shuf.json", res / "r6_nomnu.json")
+        assert abs(v["n6"] - 1.6985) < 1e-4 and abs(v["S"] - 0.9092) < 1e-4 and abs(v["n5"] - 0.5236) < 1e-4
 
 
 def test_run_job_ka2(tmp_path, monkeypatch):
@@ -411,6 +430,11 @@ def test_run_params_and_paths():
     assert P["r6_ka2"] is False and P["r6_ka"] is False and P["r6_ka2_seeds"] == SEEDS
     assert P["r6_ka2_exact"] == EXACT and P["r6_ka2_seed_offsets"] == [8000, 9000] and P["r6_ka2_sha256"] == SHA
     assert P["r6_ka2_file"] == "surrogate_t063.json"
+    assert 'ctx.study.path / P["r6_ka2_file"]' in src
+    guard = [n for n in ast.walk(tree) if isinstance(n, ast.If) and ast.unparse(n.test).startswith("P['r6_ka2'] and (")]
+    assert len(guard) == 1 and all(f"P['{k}']" in ast.unparse(guard[0].test)
+                                   for k in ("r6_shuf_retrain", "r6_ka", "r6_retrain", "r6_nomnu_retrain"))
+    assert isinstance(guard[0].body[0], ast.Raise)
     used_tf = set(range(0, 5)) | {10, 11, 12} | set(range(15, 25))
     assert not used_tf & set(SEEDS)
     used_rng = ({k + o for k in range(5) for o in (0, 1000, 2000, 3000)} | {1010, 1011, 1012, 999, 1000, 7000, 7001}

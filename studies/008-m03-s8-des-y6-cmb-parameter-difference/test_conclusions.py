@@ -362,6 +362,7 @@ def test_r6_ka_rule():
 
 KA2_SEEDS = list(range(25, 35))
 KA2_EXACT = {"n6": 1.3768, "S": 0.6678, "n5": 0.3341}
+KA2_SHA = "ba050dc4b15c945c2185398c21b97d0c8116208afc872bd71c842592323aff76"
 
 
 def check_r6_ka2(x):
@@ -372,7 +373,10 @@ def check_r6_ka2(x):
     if x["label"].startswith("not evaluable"):
         assert "qualifier" not in x and "comparison" not in x
         return
-    assert x["surrogate"]["ok"]
+    assert x["surrogate"]["ok"] and x["surrogate"]["sha256"] == KA2_SHA
+    assert x["environment"]["ok"] and x["records"]["r6"]["ok"]
+    assert x["records"]["r6_shuf"]["ok"] and x["records"]["r6_shuf"]["label"] == (
+        "what Σmν adds is mainly through its correlations with the other DES parameters")
     ex = x["exact"]
     assert ex["ok"] and all(abs(ex["recomputed"][k] - KA2_EXACT[k]) <= 0.005 for k in KA2_EXACT)
     fl = x["flows"]
@@ -427,4 +431,5 @@ def test_r6_ka2_rule():
         assert rs["phi_bar"] == shuf["quantities"]["phi"]["mean"] and rs["s_phi"] == shuf["quantities"]["phi"]["s"]
     if rk.get("ok"):
         assert rk["b_bar"] == ka["numbers"]["b_bar"] and rk["s_b"] == ka["numbers"]["s_b"]
+        assert rk["n"] == len(ka["settings"]["r6_ka_seeds"])
     check_r6_ka2(x)
