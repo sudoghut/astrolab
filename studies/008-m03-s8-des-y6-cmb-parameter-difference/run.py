@@ -27,6 +27,7 @@ import numpy as np
 
 import r6flow
 import r6ka
+import r6ka2
 import r6nomnu
 import r6shuf
 import s8diff
@@ -104,6 +105,14 @@ PARAMS = {
                      "boxes": [[-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05], [-0.6, 1.4, 0.05]]},
     "r6_ka_exact": {"n6": 1.8087, "S": 0.9263, "n5": 0.3652},
     "r6_ka_seed_offsets": [5000, 6000],          # D6 rows default_rng(5000 + k); (S) permutation default_rng(6000 + k)
+    # R6-SHUF-KA2 (README 2.10, T-063): the same test on a surrogate of the data (Gaussian mixtures fitted to the two
+    # chains, committed as surrogate_t063.json, never refitted). r6_ka2 True only for the formal run (R6, R6-NOMNU,
+    # R6-SHUF and R6-SHUF-KA read, not rerun).
+    "r6_ka2": False, "r6_ka2_seeds": [25, 26, 27, 28, 29, 30, 31, 32, 33, 34],
+    "r6_ka2_file": "surrogate_t063.json",
+    "r6_ka2_sha256": "ba050dc4b15c945c2185398c21b97d0c8116208afc872bd71c842592323aff76",
+    "r6_ka2_exact": {"n6": 1.3768, "S": 0.6678, "n5": 0.3341},
+    "r6_ka2_seed_offsets": [8000, 9000],         # D6 rows default_rng(8000 + k); (S) permutation default_rng(9000 + k)
 }
 
 # The user's one-off exception to the 50 MB per-download cap (2026-11-15; log.md, README section 3),
@@ -531,6 +540,9 @@ def main(ctx):
     shuf_path = ctx.study.results_dir / "r6_shuf.json"       # README 2.9 reuse: the recorded file
     if P["r6_ka"] and P["r6_shuf_retrain"]:
         raise ValueError("r6_ka reads the recorded R6-SHUF: r6_shuf_retrain must be false (README 2.9)")
+    if P["r6_ka2"] and (P["r6_shuf_retrain"] or P["r6_ka"]):
+        raise ValueError("r6_ka2 reads the recorded R6-SHUF and R6-SHUF-KA: r6_shuf_retrain and r6_ka must be "
+                         "false (README 2.10)")
     if P["r6_shuf"] and not P["r6_shuf_retrain"]:
         # README 2.9 amendment 1: R6-SHUF is not rerun; its recorded file is read (never rewritten)
         if shuf_path.exists():
@@ -601,6 +613,44 @@ def main(ctx):
         # a run without r6_ka keeps the recorded R6-SHUF-KA summary (the file is read, never rewritten)
         ka = json.loads((ctx.study.results_dir / "r6_ka.json").read_text(encoding="utf-8"))
 
+    # ----------------------------------------------------------- R6-SHUF-KA2 ----
+    ka2 = None
+    if P["r6_ka2"]:
+        import flowshift                 # numpy/scipy helpers only (sur_exact); no TensorFlow at module level
+        rec6 = r6shuf.check_r6(r6_path)
+        recs = r6ka2.check_shuf(shuf_path)
+        rec_ka = r6ka2.check_ka(ctx.study.results_dir / "r6_ka.json")
+        sur = r6ka2.load_surrogate(ctx.study.path / P["r6_ka2_file"], P["r6_ka2_sha256"])
+        keys = ("r6_ka2", "r6_ka2_seeds", "r6_ka2_file", "r6_ka2_sha256", "r6_ka2_exact", "r6_ka2_seed_offsets",
+                "r6_shuf_e_min", "r6_shuf_s_max", "r6_shuf_band", "r6_n", "r6_estimate", "r6_retrain",
+                "r6_nomnu_retrain", "r6_shuf_retrain", "r6_ka")
+        settings = {k: P[k] for k in keys}
+        exact = None
+        if sur["ok"]:
+            exact = r6ka2.exact_values(sur, flowshift)
+            ctx.log(f"R6-SHUF-KA2: exact n6 {exact['n6']:.4f}, nS {exact['S']:.4f}, n5 {exact['n5']:.4f}, "
+                    f"phi {exact['phi']:.4f}")
+        if not sur["ok"]:
+            res = {"status": f"not run ({sur['reason']})"}
+        elif not (rec6["ok"] and recs["ok"]):
+            res = {"status": "not run (R6 or R6-SHUF record not reusable)"}
+        elif not r6ka2.exact_check(exact, P["r6_ka2_exact"])["ok"]:
+            res = {"status": "not run (a recomputed exact value differs from the registered one)"}
+        else:
+            cfg = r6ka2.config(P["r6_ka2_seeds"], P["r6_n"], P["r6_estimate"], sur, P["r6_ka2_seed_offsets"])
+            ctx.log(f"R6-SHUF-KA2: {3 * len(P['r6_ka2_seeds'])} flows on the surrogate (about 5-6.5 hours)")
+            # the input array only keys the job folder (the 'ka2' jobs draw their own rows)
+            res = r6flow.run_jobs({"ka2": np.zeros(1)}, cfg, ctx.log,
+                                  functools.partial(r6ka2.plan, expected=(rec6, recs)))
+        ka2 = r6ka2.assemble(res, rec6, recs, rec_ka, sur, exact, P["r6_ka2_exact"], P["r6_ka2_seeds"],
+                             P["r6_shuf_e_min"], P["r6_shuf_s_max"], P["r6_shuf_band"], settings)
+        ctx.log(f"R6-SHUF-KA2: {ka2['label']} ({ka2['reason']}); qualifier: {ka2['summary'].get('qualifier')}; "
+                f"comparison: {ka2['summary'].get('comparison')}")
+        ctx.save("r6_ka2", ka2)
+    elif (ctx.study.results_dir / "r6_ka2.json").exists():
+        # a run without r6_ka2 keeps the recorded R6-SHUF-KA2 summary (the file is read, never rewritten)
+        ka2 = json.loads((ctx.study.results_dir / "r6_ka2.json").read_text(encoding="utf-8"))
+
     return {"r1": {k: v.get("verdict") for k, v in r1.items() if isinstance(v, dict)},
             "r2": {t: r2[t]["verdict"] for t in ("1d", "2d") if t in r2},
             "r2_nsigma": {t: r2[t]["n_sigma"] for t in ("1d", "2d") if t in r2},
@@ -608,4 +658,5 @@ def main(ctx):
             "r6": r6_summary,
             **({"r6_nomnu": nomnu["summary"]} if nomnu else {}),
             **({"r6_shuf": shuf["summary"]} if shuf else {}),
-            **({"r6_ka": ka["summary"]} if ka else {})}
+            **({"r6_ka": ka["summary"]} if ka else {}),
+            **({"r6_ka2": ka2["summary"]} if ka2 else {})}
