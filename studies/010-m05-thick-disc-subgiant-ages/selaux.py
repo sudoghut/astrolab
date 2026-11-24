@@ -419,7 +419,7 @@ def _jsonable_result(res):
 
 
 def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print, cut=None, name="R-SEL",
-                  rule="README 2.5 SEL-8"):
+                  rule="README 2.5 SEL-8", extra_s=None):
     """SEL-8 mock loop: the first mock of every set (timing), then each set in k order. Finished mocks
     come from the checkpoints; new ones are computed with make_rng(k, j) and checkpointed. After the
     first-mock pass and after every set, the projection is checked against the stop limit (a limit
@@ -433,6 +433,8 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print, cut=
     checkpoint cuts in the same way, so a resumed run makes the same cuts; on a resume, the cuts recorded
     in the checkpoints are also applied to the projection from the start (before their mocks are replayed),
     so sets cut in an earlier session are never projected as remaining work.
+    extra_s (README 2.9; None for the other parts): a callable known_state -> seconds of work that follows
+    these sets under the same stop clock (R1-ERRMM's part B), added to every projection.
     Returns results (k -> list of dicts in mock order), state (times) and the projection log."""
     results = {s["k"]: [] for s in sets}
     cuts = []
@@ -485,13 +487,15 @@ def run_mock_sets(sets, nmock, store, run_one, make_rng, stop_h, log=print, cut=
         limit = store.limit_h if store.limit_h is not None else float(stop_h)
         el = store.elapsed_s()
         known = known_state()
-        proj = projection_h(el, known, nmock)
+        extra = float(extra_s(known)) / 3600.0 if extra_s is not None else 0.0
+        proj = projection_h(el, known, nmock) + extra
         done = sum(len(v) for v in results.values())
         finished = (sum(len(v["times"]) for v in known.values())
                     + sum(len(results[s["k"]]) for s in sets if s["k"] not in known))   # cut sets: what ran
         left = sum(max(0, nmock - len(v["times"])) for v in known.values())             # cut sets: none left
         proj_log.append({"after": where, "elapsed_h": el / 3600, "projection_h": proj, "mocks_done": done,
                          "mocks_checkpointed_not_replayed": finished - done, "mocks_left": left,
+                         **({"extra_h": extra} if extra_s is not None else {}),
                          "limit_h": limit})
         log(f"{name} projection after {where}: {proj:.2f} h total (elapsed {el / 3600:.2f} h, {done} mocks done, "
             f"{finished - done} more checkpointed, {left} left; limit {limit} h)")
@@ -724,7 +728,7 @@ def errmm_reading_a(errcal_verdict, errmm_verdict):
             return "unchanged"
         if errmm_verdict == "undetermined":
             return "power lost under the null at g"
-    raise ValueError(f"README 2.9 reading A: case ({errcal_verdict!r}, {errmm_verdict!r}) cannot occur")
+    return f"case not in the README 2.9 table ({errcal_verdict}, {errmm_verdict})"   # cannot occur (2.9)
 
 
 def errmm_reading_b(verdicts, failed, ref, nboot, max_fail, threshold=0.80):

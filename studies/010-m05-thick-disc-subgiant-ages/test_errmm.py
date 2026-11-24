@@ -159,8 +159,7 @@ def test_errmm_reading_a_table():
     assert ra("not reproduced", "not reproduced") == "unchanged"
     assert ra("not reproduced", "undetermined") == "power lost under the null at g"
     assert ra("reproduced", "not evaluable (generator)") is None
-    with pytest.raises(ValueError):
-        ra("not reproduced", "reproduced")
+    assert ra("not reproduced", "reproduced").startswith("case not in the README 2.9 table")
     assert selaux.errmm_label([(1.0, 2.81), (1.5, 2.81)], {1.0: "reproduced", 1.5: "undetermined"}) == \
         "nulls drawn at f = 1.0: reproduced; nulls drawn at f = 1.5: undetermined"
     assert selaux.errmm_label([(1.0, 2.81)], {}, reproduction_ok=False) == "not evaluable (reproduction)"
@@ -362,7 +361,8 @@ def test_main_errmm_wiring(tmp_path, monkeypatch):
     saved.clear()
     out = run.main_errmm(ctx, P, store_root=tmp_path, recorded=R)
     r = saved["r1_errmm"]
-    assert r["status"] == "exploration (no label)" and r["label"].startswith("no label (exploration with 2")
+    assert r["status"] == ("exploration (part A: 2 mocks per set, no label); exploration (part B: 3 replicates, "
+                           "no reading)") and r["label"].startswith("no label (exploration with 2")
     assert len(seen) == 144 and len(r["per_set"]) == 72 and r["seed_tags"] == [64, 164, 65, 165]
     sets = selaux.errmm_sets(P["errmm_pairs"], P["errmm_bins"], P["mechs"])
     s9 = sets[9]
@@ -380,3 +380,84 @@ def test_main_errmm_wiring(tmp_path, monkeypatch):
     n_before = (len(seen), len(seen_b))
     run.main_errmm(ctx, P, store_root=tmp_path, recorded=R)               # replayed from the checkpoints
     assert (len(seen), len(seen_b)) == n_before
+    # a rerun with two part-B fits missing: only those two are computed, and checkpointed fits are never
+    # counted as left in the projection (T-046)
+    folder = next(d for d in Path(tmp_path).iterdir() if d.is_dir())
+    for j in (0, 1):
+        (folder / f"k072_j{j:02d}.json").unlink()
+    saved.clear()
+    run.main_errmm(ctx, P, store_root=tmp_path, recorded=R)
+    assert len(seen_b) == n_before[1] + 2 and len(seen) == n_before[0]
+    projs = [x for x in saved["r1_errmm"]["mocks"]["projections"] if "replicates_left" in x]
+    assert projs and all(x["replicates_left"] <= 2 for x in projs)
+    assert all("extra_h" in x for x in saved["r1_errmm"]["mocks"]["projections"] if "mocks_left" in x)
+    # a later session whose fits at g differ from the first session's is refused before any mock
+    (folder / "errmm_fits_at_g.json").write_text("{}", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="fits at g differ"):
+        run.main_errmm(ctx, P, store_root=tmp_path, recorded=R)
+    assert not (folder / "lock").exists()
+    # a star count at g that differs from r1_sel.json fails check (a)
+    rec_n = json.loads(json.dumps(rec))
+    rec_n["data_fits"]["Full_0"]["n"] += 1
+    run.main_errmm(ctx, P, store_root=tmp_path, recorded=dict(R, r1_sel=rec_n))
+    assert "Full_0@f=1.5.n" in saved["r1_errmm"]["checks"]["input_and_fit_mismatches"]
+
+
+def test_errmm_boot_left_s():
+    assert run.errmm_boot_left_s({"S15E": 2, "Full": 1}, {}, [2.0, 4.0]) == pytest.approx(9.0)
+    assert run.errmm_boot_left_s({"S15E": 2, "Full": 1, "S15N": 0}, {"S15E": [5.0], "Full": [1.0, 3.0]}, []) == \
+        pytest.approx(12.0)
+
+
+def _committed(name):
+    return json.loads((HERE / "results" / f"{name}.json").read_text(encoding="utf-8"))
+
+
+def test_errmm_reads_the_committed_results():
+    """The structures main_errmm reads exist in the committed results; with no null valley the rule gives
+    R1-ERRCAL's 2.81 verdicts, and replicates equal to the data give R1-ERRCAL's verdict in every replicate."""
+    P = dict(run.PARAMS)
+    rcal, rfit, rsel, rerr = (_committed(n) for n in ("r1_errcal", "r1_selfit", "r1_sel", "r1_err"))
+    assert rcal["status"] == "evaluated" and run.errmm_params_ok(P, rcal["params"])
+    for v in VARS:
+        for b in (0, 1, 2):
+            assert [r["bin"] for r in rerr["companion_refits"][v]["1.5"]][b] == P["r1_bins"][b]
+            x = rcal["data_fits"]["2.81"][v][b]
+            st = run.errmm_starts(x, P["kmax"])
+            assert sorted(st) == [1, 2, 3, 4, 5] and all(len(st[K]) == 3 * K - 1 for K in st)
+            recd = rsel["data_fits"][f"{v}_{b}"]
+            assert len(recd["skewnorm"]) == len(recd["splitnorm"]) == 3 and recd["n"] > 0
+    sets = selaux.errmm_sets(P["errmm_pairs"], P["errmm_bins"], P["mechs"])
+    res = _results(P, sets, lambda s: [(1.0, False)] * 50)
+    pm = {(v, b): rsel["data_fits"][f"{v}_{b}"]["power_models"]["primary"] for v in VARS for b in (0, 1, 2)}
+    dd = {(v, b): rcal["data_fits"]["2.81"][v][b]["d"] for v in VARS for b in (0, 1, 2)}
+    out = run.errmm_evaluate_a(P, sets, res, {}, rcal, rfit, pm, dd)
+    for v in VARS:
+        cal = rcal["variants"][v]["verdicts"]["2.81"]
+        assert out["variants"][v]["verdicts"] == {"1.0": cal, "1.5": cal}
+    P2 = dict(P, errmm_n_boot=4)
+    boot = {}
+    for v in VARS:
+        for b in (0, 1, 2):
+            x = rcal["data_fits"]["2.81"][v][b]
+            for j in range(5):
+                boot[(v, b, j)] = {"d": x["d"], "valley": x["valley"], "edge": x["edge"], "k": x["k"],
+                                   "pass_rate": None, "fit_fail": False}
+    ob = run.errmm_evaluate_b(P2, boot, rcal, rfit)
+    assert all(ob[v]["frac_equal"] == 1.0 and not ob[v]["unresampled_differs"] for v in VARS)
+
+
+def test_errmm_full_size_output_under_1_mb():
+    """A formal-size r1_errmm.json body (72 sets x 50 mocks with the per-mock lists; 101 replicates per bin and
+    variant) stays under 1 MB (AGENTS.md section 1.1)."""
+    out, _ = _evaluate_a(lambda s: [(0.3 + 0.001 * j, True) for j in range(50)])
+    P = dict(run.PARAMS)
+    rcal = _rcal(P)
+    boot = {(v, b, j): {"d": 0.123456789, "valley": True, "valley_t": 10.025, "edge": 9.375, "k": 4,
+                        "pass_rate": 0.8765432, "fit_fail": False, "n_sig_lo": 1, "n_sig_hi": 0, "n_mu_lo": 0,
+                        "n_mu_hi": 0, "i_used_k1": False, "i_used_k2": True, "i_used_k3": False, "i_used_k4": True,
+                        "i_used_k5": 0}
+            for v in VARS for b in (0, 1, 2) for j in range(101)}
+    out["bootstrap"] = run.errmm_evaluate_b(P, boot, rcal, _rfit())
+    size = len(json.dumps(out, default=float))
+    assert size < 1024 ** 2, size
