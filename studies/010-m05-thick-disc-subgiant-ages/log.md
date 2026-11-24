@@ -5,6 +5,7 @@
 
 ## 2026-11-24（R1-ERRMM 正式运行的续跑同意，T-064）
 
+- 正式运行完成：续跑于 12:25 开始，从检查点继续，16:04 完成（本次会话 13,143 s；`mocks.elapsed_h_total` 7.28 h，`resumed` 为 false，因为中断不是 16 小时停止；内存峰值 A 部分 3,742 MB、B 部分 5,144 MB）。检查 (a) 没有不一致。标签 R1-ERRMM（S15 E 项，主变体）"nulls drawn at f = 1.0: not reproduced; nulls drawn at f = 1.5: not reproduced"；N 项与 Full 两个 g 都是"reproduced"（解读 A："robust to an f mismatch"）。B 部分自助法：与 R1-ERRCAL 判定相同的比例 E 项 0.93、N 项 0.69（"unstable"）、Full 0.91，没有失败的重抽样。结果入库，`parts` 改回 `["err"]`。审稿与收尾随后进行。
 - 正式运行（2026-11-23 晚开始）在 A 部分 1,934/3,600 个模拟处因 Claude Code 的内存压力被终止（与研究 012 的运行同时进行；不是 16 小时停止，没有 `stopped.json`），检查点保留在 `s010_errmm_mocks/<key>`，另有一个残留的 `lock` 文件。用户于 2026-11-24 在对话中明确同意续跑（"恢复 T-064"）。为避免再次因内存被终止，续跑排在研究 012 本段运行暂停之后单独进行（一次只跑一个研究）；续跑前删除残留的 `lock`（确认没有研究 010 的进程在运行），用同一 PARAMS 从检查点继续。
 
 ## 2026-11-23（R1-ERRMM 预注册，T-064）
