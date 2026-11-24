@@ -351,6 +351,40 @@ CPU 运行错开；不取数据（链来自缓存）。PARAMS：`"r6_nomnu": Tru
 4. 若 R6 或 R6-SHUF 的记录不能复用，或某个重新计算的精确值相差超过 0.005，则不训练任何流（由规则 1 判为"not evaluable"）；若环境与记录的不同，只运行 `meta` 任务。流任务崩溃时记为失败、运行继续（与 R6-SHUF 相同），由规则 2 判定；此后任务文件夹被删除，重跑（需要在 log.md 中写明理由）会重新训练全部 30 个流。
 5. 流任务的文件夹与 R6 一样，以一个占位的输入数组、配置、`flowshift.py` 与 TF 环境的软件包为键；`ka` 任务自行抽取数据行。
 
+### 2.10 补充 2026-11-24：R6-SHUF-KA2，在数据的替代分布上对 φ 做已知答案检验（T-063）
+
+写于 R6-SHUF-KA（第 2.9 节）、其结果（第 5 节）与其独立审稿（第 6 节）之后，在下面的替代分布（surrogate）上训练任何流之前。它不改变上面的任何内容：R6、R6-NOMNU、R6-SHUF 与 R6-SHUF-KA 的标签以及 R6-SHUF-KA 的限定语按记录保留，也不重新训练任何东西。**它是对 φ 的估计方法的第二个已知答案检验，用的是由数据自身两条链构建的分布，与 R6-SHUF 的标签和 R6-SHUF-KA 的限定语并列报告；它不是对 D26 的判定。**
+
+*为什么。* R6-SHUF-KA 在一个合成分布族上没有检出 φ 的偏差（b̄ = +0.020，I_b = [−0.006, 0.045]），但那里的流把每个 n_σ 都读低了 0.07–0.12σ，b̄ ≈ 0 是这些偏移在比值中大部分相互抵消后的残差；修正后区间的下端只比 0.60 高 0.010。它的审稿（第 6 节，R6-SHUF-KA 第 1、3、7 点）要求在数据自身 6 维差值的替代分布上做这个检验，并按 R6-SHUF 的方式构建 (S)（置换 DES 的 Σmν 列，保留 CMB 链的相关），因为分布族的 n₅、它通过单个潜变量的耦合，以及它的 DS（打破 u 的全部相关）都与数据不同。
+
+*本补充之前已看过的内容。* 第 5–7 节与 log.md 的全部内容，特别是 R6-SHUF 与 R6-SHUF-KA 的逐种子值与概要。起草时（没有流）：`explore/t063_surrogate_design.py`（在同一改动中加入）先写好下面的拟合设置、K 的范围与选择规则，然后运行了一次（1,059 秒）；读过它的输出：两条链 K = 1–8 的 BIC（贝叶斯信息准则，Bayesian information criterion；两条链每一步都在下降，所以都选了范围上端 K = 8）、有效样本量（ESS, effective sample size；DES 10,472，CMB 10,401）与下面的精确值。看到这些之后没有做任何改动；特别是虽然 BIC 在 K = 8 仍在下降，K 的范围没有扩大（链的 ESS 约 10,000，重抽样的 100,000 行中很多重复，这有利于更多分量；范围是事先固定的，以限制精确值的计算成本）。
+
+*替代分布。* 对每条链（DES 3x2pt 与 CMB；R6 的六个参数，按 R6 的顺序 A_s·10⁹、h₀、Σmν、n_s、Ω_b、Ω_m；行与权重同 R6，这两条嵌套采样（nested sampling）链不去掉预烧期（burn-in））：各列用 DES 链的加权均值与标准差标准化（两条链用同一个仿射变换，所以替代分布的差值是 R6 单位下差值的仿射像，每个 n_σ 都不受这个变换影响）；按权重有放回地抽取 100,000 行（DES 用 `default_rng(7000)`，CMB 用 `default_rng(7001)`）；用 scikit-learn 1.5.1 的 `GaussianMixture`（n_init 4，max_iter 2000，tol 10⁻⁵，reg_covar 10⁻⁶，random_state 0）对 K = 1–8 拟合全协方差高斯混合（Gaussian mixture）；保留 BIC 最小的 K（两条链都是 K = 8）。拟合得到的权重、均值、Cholesky 因子与标准化参数入库为 `surrogate_t063.json`（从设计输出复制；以 `\n` 换行时其字节的 SHA-256 为 `ba050dc4b15c945c2185398c21b97d0c8116208afc872bd71c842592323aff76`），所以运行时从不重新拟合。三个变体，都是有闭合形式密度的高斯混合，在标准化单位下：
+- **D6**：a − c，a 从 DES 混合抽取，c 从 CMB 混合抽取（64 个分量）；
+- **DS**：同 D6，但 a 的 Σmν 与 a 的其他五个参数独立抽取（DES 混合的 Σmν 边缘分布乘以其五参数边缘分布，64 个分量，再与 CMB 混合卷积：512 个分量）；CMB 一侧保留它的全部相关，与 R6-SHUF 的 (S) 相同；它的行是 D6 的行在取差之前置换 DES 的 Σmν 列，与 R6-SHUF 的 (S) 相同（渐近地给出上述乘积）；
+- **D5**：去掉 Σmν（D6 的五参数边缘分布）。
+抽样：从一个生成器抽取一块行时，先抽全部 DES 行，再抽全部 CMB 行；每次混合抽样是每行一个均匀数决定分量（在累积权重上 `searchsorted`），然后一个 (n, 6) 的标准正态块，用分量的均值与 Cholesky 因子变换。精确值：n_σ = √2 erf⁻¹(P(log p(X) > log p(0)))，用 `default_rng(999)` 的 2,000,000 行，DS 用同样的行并以 `default_rng(1000).permutation` 置换 DES 的 Σmν 列：**n₆ = 1.3768，n_S = 0.6678，n₅ = 0.3341，φ_exact = 0.6800**。用种子 998/997 时为 1.3798、0.6684、0.3348（差别在约 0.002 的蒙特卡洛标准误差以内；这不是下面规则的精度）。运行时用同样的代码与生成器从入库的文件重新计算；任何一个相差超过 0.005 即为规则 1。
+
+*替代分布与数据有多接近（现在写明，不是规则）。* 替代分布的精确 n₆、n_S 与 n₅（1.38、0.67、0.33）低于流在数据上的值（1.70、0.91、0.52），而 φ_exact（0.68）接近 R6-SHUF 的 φ̄（0.67）。可能是混合把链平滑了（例如 Σmν 在 0.06 eV 处的先验边界，任何高斯都复现不了），从而缩短了差值；也可能是流把数据读高了；或者两者都有；本补充无法区分。所以替代分布在结构上（两条链、DES 一侧与 CMB 一侧的相关、按 R6-SHUF 的方式构建的 (S)）比 R6-SHUF-KA 的分布族更接近数据，但 n_σ 的值并不接近；特别是 n₅，两个检验都没有匹配上（0.33 与 0.37，对 0.52）。
+
+*方法。* 种子 k = 25–34（十个种子；作为 TensorFlow 种子，它们与 R6、R6-NOMNU、R6-SHUF、R6-SHUF-KA 或各门控用过的 0–4、10–12、15–24 都不重叠）。对种子 k：从 `default_rng(8000 + k)` 抽取 N = 100,000 行 D6（先 DES 块，再 CMB 块，同上），逐列乘以标准化的尺度（这样流看到的是 R6 的单位；中心在差值中抵消）；DS 的行是同样的抽样，在取差之前用 `default_rng(9000 + k).permutation(N)` 置换 DES 的 Σmν 列；D5 的行是 D6 的行去掉 Σmν。每个变体用 R6 的设置与调用训练一个流（tensiometer 默认值，不传 `pop_size`，`estimate_shift(tol=0.02, max_iter=1000, step=100000)`，TensorFlow 用 k 作种子），得到 n̂₆,k、n̂_S,k、n̂₅,k；φ̂_k = (n̂₆,k − n̂_S,k)/(n̂₆,k − n̂₅,k)；b_k = φ̂_k − φ_exact。环境同 R6-SHUF-KA：版本与流的设置必须等于 `results/r6.json`、`results/r6_shuf.json` 与 `results/r6_ka.json` 中记录的。限定语的输入：`results/r6_shuf.json` 中未舍入的 φ̄_R6 与 s_φ,R6，其标签必须是记录的那一个；比较用的输入：`results/r6_ka.json` 中的 b̄_KA 与 s_b,KA，其标签必须是记录的那一个。
+
+*标签 R6-SHUF-KA2（规则按顺序；第一条适用的决定）。*
+1. 版本或流的设置与记录的不同；`surrogate_t063.json` 的哈希与上面的不同；某个精确值与上面的数字相差超过 0.005；或 `results/r6_shuf.json` 或 `results/r6_ka.json` 不存在或其标签与记录的不同 → "not evaluable"（无法评估）。
+2. 任何一次训练失败、非有限、没有收敛或是下限 → "not evaluable"。
+3. 任何 Ê_k = n̂₆,k − n̂₅,k ≤ 0.20，或 s_b > 0.30 → "not evaluable"（R6-SHUF 的限值）。
+4. 否则 I_b = b̄ ± 2 s_b/√10：I_b ⊂ (0, ∞) → **"flows overestimate φ on the surrogate (bias b̄)"**（流在替代分布上高估 φ）；I_b ⊂ (−∞, 0) → **"flows underestimate φ on the surrogate (bias b̄)"**（流在替代分布上低估 φ）；否则 → **"no bias of φ detected on the surrogate (I_b = [..])"**（在替代分布上未检出 φ 的偏差）。
+
+*R6-SHUF 的限定语（报告的；现在固定）。* 规则 1–3 以外，与第 2.9 节的完全相同，只是用本检验的 b̄ 与 s_b：w = 2√(s_φ,R6²/5 + s_b²/10)，I_φ,corr = (φ̄_R6 − b̄) ± w，按顺序读取：⊂ [0.60, ∞) → "R6-SHUF's label holds after the surrogate correction"（替代分布修正后 R6-SHUF 的标签成立）；⊂ (−∞, 0.40] → "R6-SHUF's label reverses after the surrogate correction"（修正后标签反转）；否则，若 φ̄_R6 − w < 0.60 → "surrogate correction not decisive (test too noisy: w = ..)"（替代分布修正不具决定性（检验太噪））；否则 → "R6-SHUF's label is not decided after the surrogate correction"（修正后标签无法判定）。它与 R6-SHUF 的标签和 R6-SHUF-KA 的限定语并列报告，后两者按记录保留。
+
+*与 R6-SHUF-KA 的比较（报告的；现在固定）。* 规则 1–3 以外：Δb = b̄ − b̄_KA，标准误差 σ_Δ = √(s_b²/10 + s_b,KA²/10)（两组种子相互独立）：|Δb| > 2σ_Δ → "the bias of φ differs between the family and the surrogate (Δb = ..)"（φ 的偏差在分布族与替代分布之间不同）；否则 → "no difference in the bias of φ detected between the family and the surrogate (Δb = .. ± ..)"（未检出分布族与替代分布之间 φ 的偏差有差别）。（R6-SHUF-KA 的审稿建议把 b̄ 移动 ≳ 0.01 读作依赖于分布；每个检验 s_b ≈ 0.04 时 σ_Δ ≈ 0.018，十个种子分辨不了 0.01 的移动，所以不用它作阈值。）
+
+*报告的、描述性的。* 逐种子的 n̂₆,k、n̂_S,k、n̂₅,k、Ê_k、φ̂_k、b_k 与训练时间；平均偏移 n̄_v − n_v,exact 及 s，以及与 R6-SHUF-KA 的（−0.073、−0.116、−0.098）的比较；s_b；I_b；w；I_φ,corr；Δb 与 σ_Δ；替代分布的精确值与数据上流的值并列。
+
+*预期结果（现在写明）。* R6-SHUF-KA 的 s_b = 0.040 提示这里 s_b 也约为 0.04（I_b 半宽约 0.025，w ≈ 0.041；"test too noisy"一支需要 s_b ≳ 0.10）。在替代分布的精确点处（E = n₆ − n₅ = 1.04，小于分布族的 1.44）∂φ/∂n₆ ≈ 0.31，∂φ/∂n_S ≈ −0.96，∂φ/∂n₅ ≈ 0.65，所以同样的偏移在这里的权重比在分布族上大。线性化后，R6-SHUF-KA 的平均偏移（−0.073、−0.116、−0.098）给出 b ≈ +0.025，R6 门控的偏移（n₆ +0.025，n_S −0.028，n₅ +0.009）给出 b ≈ +0.040；两者都为正，主要来自 n_S。我们的猜测：标签为"no bias of φ detected on the surrogate"或"flows overestimate φ"，可能性大致相当，b̄ 为百分之几；限定语在 b̄ ≲ 0.03 时为"holds"，超过时为"not decided"（φ̄_R6 − 0.60 − w ≈ 0.030）；比较为"no difference detected"。
+
+*运行时间。* R6-SHUF-KA 的 30 次训练用了 18,812 秒（5.2 小时；每次 421–1,214 秒）；这里 30 次训练在 venv-tf 中约 5–6.5 小时（`TF_USE_LEGACY_KERAS=1`，与 R6 一样通过项目 venv 的子进程运行），加上精确值（设计脚本的拟合与两组精确值共用 1,059 秒），在没有其他研究运行时进行。不下载数据；这一部分不读取链（由替代分布文件代替）。PARAMS：`"r6_ka2": False`（只在正式运行时单独设为 true；R1–R5 照常运行；R6、R6-NOMNU、R6-SHUF 与 R6-SHUF-KA 只读取、不重跑），`"r6_ka2_seeds": [25, …, 34]`，`"r6_ka2_file": "surrogate_t063.json"`，`"r6_ka2_sha256": "ba050dc4…aff76"`（完整值），`"r6_ka2_exact": {"n6": 1.3768, "S": 0.6678, "n5": 0.3341}`，`"r6_ka2_seed_offsets": [8000, 9000]`；输出 `results/r6_ka2.json`，以及运行概要中的键 `r6_ka2`。正式运行前的代码检查（不训练流）：混合密度与高斯密度直接求和比较，DS 密度的边缘分布与 DES 混合的比较；DS 的行具有乘积形式的边缘分布；在 TF 环境的 numpy（2.5.5）与项目环境的 numpy（1.26.4）下抽样相同；规则顺序、限定语与比较。除设计脚本外，这些代码都尚不存在。
+
 ## 3. 数据（附大小估计）
 
 | 输入 | 来源（服务 / URL） | 选择 | 估计行数 / 大小 |
