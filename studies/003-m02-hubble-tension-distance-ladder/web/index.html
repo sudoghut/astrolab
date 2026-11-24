@@ -332,6 +332,13 @@ const NU_LBL = {
 const NU_PART_ZH = {'mislabels': '错标', 'no power at this τ_HF': '在此 τ_HF 下没有功效', 'heteroscedasticity': '异方差', 'Monte Carlo': '蒙特卡罗', 'selection': '选择效应'};
 const NU_REASON_ZH = {'bound': '到达上界', 'row classes': '行的类别', 'grouping count check': '分组计数检查', 'pointwise check': '逐点检查',
   'reduced form': '约化形式', 'check-stage reproduction': '检查阶段的复现', "τ̂_HF interval's lower end not determined": 'τ̂_HF 区间下端无法确定'};
+// free-text label-1 reasons: a Chinese gloss for the prefix, the detail kept as written
+const NU_REASON_PREFIX_ZH = [['R2-RE reproduction: ', 'R2-RE 复现：'], ['fit: ', '拟合：'], ['design: ', '设计：'],
+  ['the Cholesky factor of C failed: ', 'C 的 Cholesky 分解失败：']];
+function nuReasonZh(r) {
+  for (const [en, zh] of NU_REASON_PREFIX_ZH) if (r.startsWith(en)) return zh + r.slice(en.length);
+  return r;
+}
 function nuLabel(v) {
   if (!v) return '';
   let en = String(v), rest = en, zh = '';
@@ -345,7 +352,7 @@ function nuLabel(v) {
     let m = rest.match(/^ν not determinable by this method \((.*)\)$/);
     if (m) zh = `本方法无法确定 ν（${m[1].split('; ').map(p => NU_PART_ZH[p] || p).join('；')}）`;
     m = rest.match(/^ν not evaluable \((.*)\)$/);
-    if (m) zh = `ν 不可评估（${NU_REASON_ZH[m[1]] || m[1]}）`;
+    if (m) zh = `ν 不可评估（${NU_REASON_ZH[m[1]] || nuReasonZh(m[1])}）`;
   }
   if (!zh) return en;
   return L(en, zh + (hasCond ? NU_COND_ZH : '') + (hasScale ? '（尺度不同：不支持迁移）' : ''));
