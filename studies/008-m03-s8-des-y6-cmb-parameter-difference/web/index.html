@@ -316,6 +316,13 @@ function renderR6K2(x) {
   const nums = x.numbers || {};
   let h = `<tr><th>${L('seed', '种子')}</th><th>n̂₆</th><th>n̂_S</th><th>n̂₅</th><th>φ̂</th><th>b = φ̂ − φ_exact</th></tr>`;
   h += `<tr><td>${L('exact (surrogate)', '精确值（替代分布）')}</td><td>${f(ex.n6)}</td><td>${f(ex.S)}</td><td>${f(ex.n5)}</td><td>${f(ex.phi)}</td><td>—</td></tr>`;
+  const dv = x.data_flow_values || {};
+  h += `<tr><td>${L('flows on the data (R6, R6-SHUF, R6-NOMNU)', '数据上的流（R6、R6-SHUF、R6-NOMNU）')}</td><td>${f(dv.n6)}</td><td>${f(dv.S)}</td><td>${f(dv.n5)}</td><td>—</td><td>—</td></tr>`;
+  const off = x.offsets || {}, offk = x.offsets_ka || {};
+  if (off['6']) {
+    h += `<tr><td>${L('mean offset n̄ − exact (s)', '平均偏移 n̄ − 精确值（s）')}</td>` + ['6', 'S', '5'].map(v => `<td>${f((off[v] || {}).mean)} (${f((off[v] || {}).s)})</td>`).join('') + '<td>—</td><td>—</td></tr>';
+    h += `<tr><td>${L('R6-SHUF-KA mean offset (family)', 'R6-SHUF-KA 的平均偏移（分布族）')}</td>` + ['6', 'S', '5'].map(v => `<td>${f(offk[v])}</td>`).join('') + '<td>—</td><td>—</td></tr>';
+  }
   for (const [k, r] of Object.entries(x.per_seed || {})) {
     const phi = (nums.phi || {})[k];
     h += `<tr><td>${k}</td><td>${f(r['6'])}</td><td>${f(r.S)}</td><td>${f(r['5'])}</td><td>${f(phi)}</td><td>${phi === undefined || phi === null ? '—' : f(phi - ex.phi)}</td></tr>`;
@@ -325,11 +332,13 @@ function renderR6K2(x) {
   note.innerHTML = L(
     `Label (pre-registered): <b>${r6k2Label(x.label)}</b>` + (ib.length ? ` (b̄ = ${f(nums.b_bar)}, s_b = ${f(nums.s_b)}, I_b = [${f(ib[0])}, ${f(ib[1])}]).` : ` (${esc(x.reason || '')}).`)
       + (q.qualifier ? ` Qualifier of R6-SHUF: <b>${r6k2Label(q.qualifier)}</b> (corrected φ ${f(q.phi_corrected)} ± ${f(q.w)}).` : '')
-      + (c.reading ? ` Comparison with R6-SHUF-KA: <b>${r6k2Label(c.reading)}</b>.` : '')
+      + (nums.interval_b_t ? ` With a t quantile (descriptive): [${f(nums.interval_b_t[0])}, ${f(nums.interval_b_t[1])}].` : '')
+      + (c.reading ? ` Comparison with R6-SHUF-KA: <b>${r6k2Label(c.reading)}</b>` + (c.sigma !== undefined ? ` (Δb = ${f(c.delta_b)}, σ_Δ = ${f(c.sigma)}).` : '.') : '')
       + ' The surrogate is a Gaussian mixture fitted to each chain; its n_σ (1.38, 0.67, 0.33) are lower than the flows read on the data (1.70, 0.91, 0.52), so the bias is transferred, not measured, for the data; earlier labels stay as recorded.',
     `标签（预注册）：<b>${r6k2Label(x.label)}</b>` + (ib.length ? `（b̄ = ${f(nums.b_bar)}，s_b = ${f(nums.s_b)}，I_b = [${f(ib[0])}, ${f(ib[1])}]）。` : `（${esc(x.reason || '')}）。`)
       + (q.qualifier ? `R6-SHUF 的限定语：<b>${r6k2Label(q.qualifier)}</b>（修正后的 φ ${f(q.phi_corrected)} ± ${f(q.w)}）。` : '')
-      + (c.reading ? `与 R6-SHUF-KA 的比较：<b>${r6k2Label(c.reading)}</b>。` : '')
+      + (nums.interval_b_t ? `用 t 分位数（描述性）：[${f(nums.interval_b_t[0])}, ${f(nums.interval_b_t[1])}]。` : '')
+      + (c.reading ? `与 R6-SHUF-KA 的比较：<b>${r6k2Label(c.reading)}</b>` + (c.sigma !== undefined ? `（Δb = ${f(c.delta_b)}，σ_Δ = ${f(c.sigma)}）。` : '。') : '')
       + '替代分布是对每条链拟合的高斯混合；它的 n_σ（1.38、0.67、0.33）低于流在数据上读出的值（1.70、0.91、0.52），所以对数据而言偏差是迁移过来的，而不是测得的；之前的标签按记录保留。');
 }
 

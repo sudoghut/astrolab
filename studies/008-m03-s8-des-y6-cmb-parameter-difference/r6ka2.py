@@ -81,6 +81,22 @@ def check_ka(path):
             "offsets": {v: (off.get(v) or {}).get("mean") for v in VARIANTS}}
 
 
+def data_values(r6_path, shuf_path, nomnu_path):
+    """README 2.10 (descriptive): the flows' mean values on the data, next to the surrogate's exact values:
+    n6 from results/r6.json (flows.main.n_bar), n_S from results/r6_shuf.json (means.S.n_bar), n5 from
+    results/r6_nomnu.json (flows.nomnu.n_bar)."""
+    def get(path, keys):
+        try:
+            d = json.loads(Path(path).read_text(encoding="utf-8"))
+            for k in keys:
+                d = d[k]
+            return float(d)
+        except (OSError, ValueError, KeyError, TypeError):
+            return None
+    return {"n6": get(r6_path, ("flows", "main", "n_bar")), "S": get(shuf_path, ("means", "S", "n_bar")),
+            "n5": get(nomnu_path, ("flows", "nomnu", "n_bar"))}
+
+
 # ------------------------------------------------------------------ configuration, exact values, plan ----
 def config(seeds, n, estimate, sur, offsets):
     """Job configuration for r6flow.run_jobs (no 'pop_size': flow_from_chain is called as in R6)."""
