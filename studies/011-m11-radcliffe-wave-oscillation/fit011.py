@@ -256,9 +256,16 @@ def _bounds(model: W.Model):
     return b
 
 
-def optimise(model: W.Model, start, *, nm_maxfev, lbfgs_maxfun=3000, objective="like"):
-    """Nelder-Mead then L-BFGS-B from one start; w0t periodic (wrapped), B in [0, 1]."""
-    fn = model.loglike if objective == "like" else model.logpost
+def optimise(model: W.Model, start, *, nm_maxfev, lbfgs_maxfun=3000, objective="like", bounds=None):
+    """Nelder-Mead then L-BFGS-B from one start; w0t periodic (wrapped), B in [0, 1].
+
+    objective: "like" (log likelihood), "post" (log posterior) or a callable theta -> value to maximise
+    (README 4.11 Part C's curve fit); a non-finite value scores 1e12. bounds: per free parameter (lo, hi)
+    with None for unbounded, replacing the default (only B bounded)."""
+    if callable(objective):
+        fn = objective
+    else:
+        fn = model.loglike if objective == "like" else model.logpost
     n_eval = [0]
 
     def f(th):
@@ -268,7 +275,7 @@ def optimise(model: W.Model, start, *, nm_maxfev, lbfgs_maxfun=3000, objective="
         return -val if np.isfinite(val) else 1e12
 
     x0 = np.array(start, float)
-    bnds = _bounds(model)
+    bnds = _bounds(model) if bounds is None else [tuple(b) for b in bounds]
     for i, (lo, hi) in enumerate(bnds):
         if lo is not None:
             x0[i] = min(max(x0[i], lo), hi)

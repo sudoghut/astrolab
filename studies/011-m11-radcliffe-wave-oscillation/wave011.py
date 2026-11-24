@@ -30,8 +30,11 @@ PC_PER_KMS_MYR = 0.977792          # 1 pc / (km/s) in Myr
 
 # Parameter vector (internal): lengths in pc, ln_delta = ln(delta/pc), ln_gamma = ln(gamma),
 # ln_omega0 = ln(omega0 / (km/s/pc)), ln_mu0 = ln(mu0 / kpc^-1), r0 in pc.
+# s_origin (README 4.11, R-DIAG Part D): the origin shift c of s in pc, s' = s - c wherever s enters the
+# model (Lambda, zeta, the validity mask p - gamma s' > 0). It is 0 in every other fit, and then the model is
+# computed exactly as before (no subtraction is made), so all earlier results reproduce bit for bit.
 NAMES = ("x0", "y0", "x1", "y1", "x2", "y2", "A", "p", "ln_delta", "s0", "ln_gamma", "phi",
-         "w0t", "B", "ln_omega0", "ln_mu0", "r0")
+         "w0t", "B", "ln_omega0", "ln_mu0", "r0", "s_origin")
 IDX = {n: i for i, n in enumerate(NAMES)}
 SHAPE_NAMES = ("x0", "y0", "x1", "y1", "x2", "y2", "A", "p", "ln_delta", "s0", "ln_gamma", "phi")
 
@@ -106,8 +109,11 @@ def default_vector() -> np.ndarray:
 
 
 def physical(v: np.ndarray) -> dict:
-    """Readable values: delta, gamma, omega0 (km/s/kpc), mu0 (kpc^-1) instead of their logs."""
-    d = {n: float(v[IDX[n]]) for n in NAMES}
+    """Readable values: delta, gamma, omega0 (km/s/kpc), mu0 (kpc^-1) instead of their logs.
+
+    The origin shift s_origin is left out (the records written before README 4.11 keep their keys); R-DIAG
+    reports c separately."""
+    d = {n: float(v[IDX[n]]) for n in NAMES if n != "s_origin"}
     d["delta"] = math.exp(d.pop("ln_delta"))
     d["gamma"] = math.exp(d.pop("ln_gamma"))
     d["omega0_kms_kpc"] = 1000.0 * math.exp(d.pop("ln_omega0"))
@@ -243,7 +249,8 @@ def baseline(v, grid: Grid, u1_mode: str = "half"):
 def wave_on_grid(v, grid: Grid, u1_mode: str = "half"):
     """Model curve: dict with x, y, z, vz, omega, s, Lambda, zeta, valid mask; None if unusable.
 
-    Grid points with p - gamma s <= 0 are excluded (valid False). Unbound (mu0 z_max >= 1/sqrt 2)
+    s is the x-y arc length from anchor 0 (unshifted); the model uses s' = s - s_origin (README 4.11), so
+    with s_origin = 0 nothing changes. Grid points with p - gamma s' <= 0 are excluded (valid False). Unbound (mu0 z_max >= 1/sqrt 2)
     on any valid point -> None (zero likelihood, README 4.1)."""
     if not np.all(np.isfinite(v)) or np.any(np.abs(v[[IDX["ln_delta"], IDX["ln_gamma"], IDX["ln_omega0"],
                                                        IDX["ln_mu0"]]]) > 30.0):
@@ -252,14 +259,16 @@ def wave_on_grid(v, grid: Grid, u1_mode: str = "half"):
     if b is None:
         return None
     x, y, s = b
+    c = v[IDX["s_origin"]]
+    sm = s if c == 0.0 else s - c                     # README 4.11: s' = s - c in the model; c = 0: s itself
     p, gamma = v[IDX["p"]], math.exp(v[IDX["ln_gamma"]])
-    den = p - gamma * s
+    den = p - gamma * sm
     valid = den > 0
     if valid.sum() < 3:
         return None
-    lam = np.where(valid, s / np.where(valid, den, 1.0), np.nan)
+    lam = np.where(valid, sm / np.where(valid, den, 1.0), np.nan)
     A, s0, delta = v[IDX["A"]], v[IDX["s0"]], math.exp(v[IDX["ln_delta"]])
-    zeta = -A / (1.0 + ((s - s0) / delta) ** 2)
+    zeta = -A / (1.0 + ((sm - s0) / delta) ** 2)
     omega0 = math.exp(v[IDX["ln_omega0"]])
     mu0 = math.exp(v[IDX["ln_mu0"]]) * 1e-3
     r = np.hypot(R_SUN - x, y)
@@ -364,6 +373,12 @@ class Setup:
     sigma_mode: str = "fixed"                     # fixed | per_eval (README 4.10 P; clouds-only fits only)
     weights_mode: str = "fixed"                   # fixed | recompute (README 4.10 R; needs `bandwidth`)
     bandwidth: float | None = None                # kernel bandwidth (pc) for weights_mode = recompute
+    # README 4.11 (R-DIAG): the origin shift c of s (pc), used unless "s_origin" is free; flat priors
+    # U(lo, hi) that replace a parameter's Gaussian prior (needed for a free s_origin; c-ref's flat s0); and
+    # step sizes for simplices and walker balls that replace the prior sigma (100 pc for s_origin).
+    s_origin: float = 0.0
+    uniform: dict = field(default_factory=dict)   # name -> (lo, hi)
+    scales: dict = field(default_factory=dict)    # name -> scale
 
 
 class Model:
@@ -375,6 +390,8 @@ class Model:
         self.data = data
         self.grid = grid
         self.base = default_vector() if base is None else np.array(base, float)
+        if setup.s_origin != 0.0:
+            self.base[IDX["s_origin"]] = setup.s_origin
         for k, val in setup.fixed.items():
             self.base[IDX[k]] = val
         self.free_idx = np.array([IDX[n] for n in setup.free], int)
@@ -393,6 +410,14 @@ class Model:
             raise ValueError(f"unknown weights_mode {setup.weights_mode!r}")
         if setup.weights_mode == "recompute" and setup.bandwidth is None:
             raise ValueError("weights_mode 'recompute' needs the kernel bandwidth")
+        for name in setup.free:
+            if name not in PRIOR_GAUSS and name not in ("w0t", "B") and name not in setup.uniform:
+                raise ValueError(f"free parameter {name!r} needs a flat prior in Setup.uniform")
+            if name not in PRIOR_GAUSS and name not in ("w0t", "B") and name not in setup.scales:
+                raise ValueError(f"free parameter {name!r} needs a step size in Setup.scales")
+        for name, (lo, hi) in setup.uniform.items():
+            if not lo < hi:
+                raise ValueError(f"flat prior of {name!r} needs lo < hi")
 
     # parameter vectors ---------------------------------------------------------------------
     def full(self, theta):
@@ -475,8 +500,12 @@ class Model:
 
     def logprior(self, theta):
         lp = 0.0
+        uni = self.setup.uniform
         for name, val in zip(self.setup.free, theta):
-            if name == "w0t":
+            if name in uni:                         # README 4.11: flat prior U(lo, hi)
+                if not (uni[name][0] <= val <= uni[name][1]):
+                    return -np.inf
+            elif name == "w0t":
                 if not (W0T_PRIOR[0] <= val <= W0T_PRIOR[1]):
                     return -np.inf
             elif name == "B":
@@ -511,7 +540,9 @@ class Model:
     def prior_draw(self, rng, w0t_range=W0T_PRIOR):
         th = np.empty(len(self.setup.free))
         for i, name in enumerate(self.setup.free):
-            if name == "w0t":
+            if name in self.setup.uniform:
+                th[i] = rng.uniform(*self.setup.uniform[name])
+            elif name == "w0t":
                 th[i] = rng.uniform(*w0t_range)
             elif name == "B":
                 th[i] = rng.uniform(*B_PRIOR)
@@ -530,7 +561,9 @@ class Model:
         """A step size per free parameter (for simplices and walker balls)."""
         out = []
         for name in self.setup.free:
-            if name == "w0t":
+            if name in self.setup.scales:
+                out.append(float(self.setup.scales[name]))
+            elif name == "w0t":
                 out.append(0.3)
             elif name == "B":
                 out.append(0.1)

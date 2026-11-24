@@ -372,7 +372,7 @@ def test_t8p_label():
 def test_standalone_summary_keys():
     s = load("summary")
     # a rerun of the full pipeline rewrites summary.json without these keys: an existing result file must keep its key
-    for f, key in (("rconv", "R_CONV"), ("t8p", "T8_P")):
+    for f, key in (("rconv", "R_CONV"), ("t8p", "T8_P"), ("rdiag", "R_DIAG")):
         if (RESULTS / f"{f}.json").exists():
             assert key in s, f"results/{f}.json exists but summary.json has no {key}: rerun part {f!r} (README section 8)"
     if "R_CONV" in s:
@@ -383,5 +383,117 @@ def test_standalone_summary_keys():
     if "T8_P" in s:
         t = load("t8p")
         assert s["T8_P"]["label"] == t["label"] and s["T8_P"]["at_bound"] == t["at_bound"]
-    if "R_CONV" not in s and "T8_P" not in s:
-        pytest.skip("R-CONV and T8-P have not been run (README 4.10)")
+    if "R_DIAG" in s:
+        rd = load("rdiag")
+        assert s["R_DIAG"]["reading"] == rd["reading"] and s["R_DIAG"]["labels"] == rd["labels"]
+    if "R_CONV" not in s and "T8_P" not in s and "R_DIAG" not in s:
+        pytest.skip("R-CONV, T8-P and R-DIAG have not been run (README 4.10, 4.11)")
+
+
+# ---------------------------------------------------------------------------------------------
+# R-DIAG (README 4.11, T-061, post hoc)
+
+def _rdiag_status(count, ratio):
+    if count <= 2:
+        return "not reproduced"
+    return "reproduced" if count >= 5 and 2 / 3 <= ratio <= 1.5 else "partly reproduced"
+
+
+def _rdiag_step(fit, d6_max=8.781, m6_max=3.192):
+    if fit["status"] == "reproduced":
+        return 2
+    return 1 if fit["status"] == "partly reproduced" and fit["D6"] <= d6_max and fit["M6"] <= m6_max else 0
+
+
+def test_rdiag_fits_and_labels():
+    rd = load("rdiag")
+    k24 = {k: v for k, v in load("rconv")["k24_column3"].items()} if (RESULTS / "rconv.json").exists() else None
+    zname = f"z☉ = {rd['part_d']['zsun_pc']:g} pc"
+    fits = dict(rd["part_b"]["fits"]) | {"c": rd["part_d"]["c"], "zsun": rd["part_d"]["zsun"]}
+    whats = {"S": "with sample S", "S_all": "with sample S_all", "S+PT": "with sample S+PT",
+             "c": "with the origin free", "zsun": f"with {zname}"}
+    for key, f in fits.items():
+        n = sum(f["inside"][k] for k in COUNTED)
+        assert n == f["count"]
+        d = f["sigma_scaled_differences"]
+        assert f["D6"] == pytest.approx(sum(abs(d[k]) for k in COUNTED), rel=1e-12)
+        assert f["M6"] == pytest.approx(max(abs(d[k]) for k in COUNTED), rel=1e-12)
+        if k24:
+            ratios = []
+            for k in COUNTED:
+                o, t = f["parameters"][k], k24[k]
+                assert f["inside"][k] == (t["median"] - t["minus"] <= o["median"] <= t["median"] + t["plus"])
+                ratios.append(0.5 * (o["p84"] - o["p16"]) / (0.5 * (t["plus"] + t["minus"])))
+            assert f["width_ratio"] == pytest.approx(_median(ratios), rel=1e-9)
+        st = _rdiag_status(f["count"], f["width_ratio"])
+        assert f["status"] == st and f["label"] == f"column (3) {st} {whats[key]}, post hoc"
+        assert rd["labels"][key] == f["label"]
+    n = {k: v["n_points"] for k, v in rd["part_b"]["samples"].items()}
+    assert n["S_all"] == 169 and n["S+PT"] - n["S"] == 28
+    for k, v in rd["part_b"]["samples"].items():
+        assert len(v["points"]) == v["n_points"] and sum(p["weight"] for p in v["points"]) == pytest.approx(v["n_points"])
+        assert sum(p["source"] == "bridging" for p in v["points"]) == 54
+    assert rd["part_b"]["fits"]["S"]["n_points"] == n["S"]
+
+
+def test_rdiag_reading():
+    rd = load("rdiag")
+    fr = rd["formal_reference"]
+    assert fr["count"] == 2 and round(fr["D6"], 3) == 9.781 and round(fr["M6"], 3) == 3.692
+    assert fr["D6_max"] == pytest.approx(fr["D6"] - 1.0, abs=5e-4) and fr["M6_max"] == pytest.approx(fr["M6"] - 0.5, abs=5e-4)
+    cref = rd["part_d"]["c_ref"]["c_posterior"]
+    half = 0.5 * (cref["c"]["p84"] - cref["c"]["p16"])
+    assert half == pytest.approx(cref["halfwidth_pc"])
+    c_read = "data-driven" if half <= 100.0 else "prior-dominated"
+    assert rd["part_d"]["c_reading"] == c_read == rd["labels"]["c_reading"]
+    s = rd["part_b"]["fits"]["S"]
+    st_s = _rdiag_step(s)
+    if st_s == 2:
+        want = ("column (3) is reproduced with the reconstructed sightline sample: the difference is consistent with "
+                "the input sample")
+    elif st_s == 1:
+        want = "the reconstructed sightline sample accounts for part of the column-(3) difference"
+    else:
+        zname = f"z☉ = {rd['part_d']['zsun_pc']:g} pc"
+        steps = {"the origin of s free": _rdiag_step(rd["part_d"]["c"]) if c_read == "data-driven" else 0,
+                 zname: _rdiag_step(rd["part_d"]["zsun"])}
+        best = max(steps.values())
+        names = [k for k, v in steps.items() if v == best]
+        if best == 0:
+            want = "the column-(3) difference remains unexplained (input sample, origin and the Sun's height tested)"
+        else:
+            base = ("the column-(3) difference comes from the origin of s or the Sun's height" if best == 2 else
+                    "the origin of s or the Sun's height accounts for part of the column-(3) difference")
+            want = f"{base} ({'variant' if len(names) == 1 else 'variants'}: {' and '.join(names)})"
+    assert rd["reading"] == want
+
+
+def test_rdiag_curve_and_part_a():
+    rd = load("rdiag")
+    c = rd["part_c"]["comparison"]
+    med, p95 = c["xy"]["median"], c["xy"]["p95"]
+    want = ("matches K24's published curve" if med <= 5.0 and p95 <= 15.0 else
+            ("approximately matches" if med <= 20.0 else "differs from K24's published curve"))
+    if c["n_excluded_xy"] > 0.1 * c["n_points"]:
+        want += " (more than 10% of the points lie beyond our curve's ends)"
+    assert c["label"] == want == rd["part_c"]["label"] == rd["labels"]["curve"]
+    assert c["n_points"] == 1500 and -400.0 <= rd["part_c"]["lsq_fit"]["c_pc"] <= 400.0
+    a = rd["part_a"]
+    assert len(a["objects"]) == 79 and a["map"]["n_starts"] == 2 + rd["params"]["rdiag_map_prior_draws"]
+    if rd["params"]["parts"] == ["diag"] and rd["params"]["rdiag_map_prior_draws"] == 19:
+        assert a["map"]["n_starts"] == 21
+    for k in ("K", "P", "M"):
+        v = a["vectors"][k]
+        assert v["sum_terms"] == pytest.approx(-v["lnL"] - v["constant"], rel=1e-9)
+        assert v["ln_posterior"] == pytest.approx(v["lnL"] + v["ln_prior"], rel=1e-12)
+    # the MAP is the best ln posterior of the three vectors (it starts from v_K and v_P)
+    assert a["vectors"]["M"]["ln_posterior"] >= max(a["vectors"]["K"]["ln_posterior"], a["vectors"]["P"]["ln_posterior"]) - 1e-6
+    for comp, (x, y) in (("K_minus_M", ("t_K", "t_M")), ("K_minus_P", ("t_K", "t_P"))):
+        delta = [o[x] - o[y] for o in a["objects"]]
+        r = a["comparisons"][comp]
+        top = sorted(range(79), key=lambda i: -delta[i])[:10]
+        assert [t["name"] for t in r["top"]] == [a["objects"][i]["name"] for i in top]
+        pos = sum(max(dd, 0.0) for dd in delta)
+        if pos > 0:
+            assert r["share_of_positive_sum"] == pytest.approx(sum(max(delta[i], 0.0) for i in top) / pos)
+        assert r["sum_named"] + r["sum_bridges"] == pytest.approx(sum(delta), abs=1e-9)

@@ -55,6 +55,12 @@
     <div id="posthoc"></div>
   </section>
 
+  <section id="rdiag-sec">
+    <h2><span class="en">Post-hoc diagnostic (README 4.11, T-061): R-DIAG</span><span class="zh">事后诊断（README 4.11，T-061）：R-DIAG</span></h2>
+    <p class="legend"><span class="en">Added after the formal, R-CONV and T8-P results were seen, so everything here is post hoc. It asks where the clouds-only column-(3) difference comes from: (A) which clouds carry the likelihood difference between K24's medians and our fit; (B) refits on a sightline sample reconstructed from the Zucker et al. 2020 and Alves et al. 2020 catalogues (S, primary; S_all and S+PT reported); (C) how close our model curve is to K24's published best-fit curve; (D) refits with the origin of s free and with the Sun 20.8 pc above the midplane. The reading uses S only; the formal labels above stay as recorded.</span><span class="zh">这些是在看到正式、R-CONV 与 T8-P 结果之后加的，所以这里全部是事后（post hoc）的。它问只用云的第 (3) 列差别从何而来：(A) 在 K24 中位数与我们的拟合之间，哪些云承担了似然差；(B) 用从 Zucker 等 2020 与 Alves 等 2020 星表重建的视线样本重拟合（S 为主，S_all 与 S+PT 只报告）；(C) 我们的模型曲线与 K24 公布的最佳拟合曲线有多接近；(D) 让 s 的起点自由，以及让太阳位于中面以上 20.8 pc 时重拟合。解读只用 S；上面的正式标签保持不变。</span></p>
+    <div id="rdiag"><span class="en">loading…</span><span class="zh">加载中……</span></div>
+  </section>
+
   <section id="skylinks" class="card" hidden></section>
 </main>
 <script src="../../../atlas/web/skylinks.js"></script>
@@ -246,6 +252,68 @@
     document.getElementById('posthoc').innerHTML = h;
     document.getElementById('posthoc-sec').hidden = false;
   }
+
+  function renderDiag(rd) {
+    const el = document.getElementById('rdiag');
+    if (!rd) {
+      el.innerHTML = `<p>${L('Not yet run. The R-DIAG pre-registration (README 4.11) is fixed; results will appear here after its formal run (parts = ["diag"]).', '尚未运行。R-DIAG 的预注册（README 4.11）已固定；其正式运行（parts = ["diag"]）之后结果将显示在这里。')}</p>`;
+      return;
+    }
+    const zhSt = {"reproduced": "复现", "partly reproduced": "部分复现", "not reproduced": "未复现"};
+    const zhWhat = w => w.replace('with sample ', '用样本 ').replace('with the origin free', '在 s 起点自由时').replace(/^with (z☉ = .*)$/, '在 $1 时');
+    const fitLab = f => {
+      const cls = f.status === 'reproduced' ? 'good' : (f.status === 'partly reproduced' ? 'mid' : 'bad');
+      return `<span class="lab ${cls}">${L(esc(f.label), `第 (3) 列${esc(zhWhat(f.what))} ${zhSt[f.status] || esc(f.status)}（事后）`)}</span>`;
+    };
+    const RZ = {
+      "column (3) is reproduced with the reconstructed sightline sample: the difference is consistent with the input sample": "用重建的视线样本复现了第 (3) 列：差别与输入样本相符",
+      "the reconstructed sightline sample accounts for part of the column-(3) difference": "重建的视线样本解释了第 (3) 列差别的一部分",
+      "the column-(3) difference comes from the origin of s or the Sun's height": "第 (3) 列的差别来自 s 的起点或太阳的高度",
+      "the origin of s or the Sun's height accounts for part of the column-(3) difference": "s 的起点或太阳的高度解释了第 (3) 列差别的一部分",
+      "the column-(3) difference remains unexplained (input sample, origin and the Sun's height tested)": "第 (3) 列的差别仍未得到解释（已检验输入样本、起点与太阳高度）",
+    };
+    const readingZh = r => {
+      const m = String(r).match(/^(.*?)(?: \((variants?): (.*)\))?$/);
+      const base = RZ[m[1]] || m[1];
+      return m[3] ? `${base}（${m[3].replace('the origin of s free', 's 起点自由').replace(' and ', '与')}）` : base;
+    };
+    const det = rd.reading_detail || {};
+    const rcls = det.from === 'S' || det.from === 'D' ? 'mid' : 'bad';
+    let h = `<p><b>${L('Reading', '解读')}:</b> <span class="lab ${rcls}">${L(esc(rd.reading), esc(readingZh(rd.reading)))}</span> <span class="muted">(${L('post hoc', '事后')})</span></p>`;
+    const fr = rd.formal_reference;
+    const fits = [['S', rd.part_b.fits.S], ['S_all', rd.part_b.fits.S_all], ['S+PT', rd.part_b.fits['S+PT']],
+      ['(c)', rd.part_d.c], ['(z☉)', rd.part_d.zsun]];
+    h += `<div class="wrap"><table><tr><th>${L('fit', '拟合')}</th><th>${L('points', '点数')}</th><th>${L('count (of 6)', '计数（6 个中）')}</th><th>D₆</th><th>M₆</th><th>${L('width ratio', '宽度比')}</th><th>${L('label', '标签')}</th><th>${L('chain', '链')}</th></tr>` +
+      `<tr><td>${L('formal L-F-W (79 rows)', '正式 L-F-W（79 行）')}</td><td class="num">79</td><td class="num">${fr.count}</td><td class="num">${f(fr.D6, 3)}</td><td class="num">${f(fr.M6, 3)} (${esc(fr.M6_parameter)})</td><td class="num">${f(fr.width_ratio, 2)}</td><td>${L('not reproduced (R-CONV)', '未复现（R-CONV）')}</td><td></td></tr>` +
+      fits.map(([k, x]) => `<tr><td>${esc(k)}</td><td class="num">${x.n_points || 79}</td><td class="num">${x.count}</td><td class="num">${f(x.D6, 3)}</td><td class="num">${f(x.M6, 3)} (${esc(x.M6_parameter)})</td><td class="num">${f(x.width_ratio, 2)}</td><td>${fitLab(x)}${x.reason ? ` <span class="muted">(${esc(x.reason)})</span>` : ''}</td><td>${x.chain.chain_short ? L('short', '过短') : L('ok', '正常')}</td></tr>`).join('') + '</table></div>';
+    h += `<p class="muted">${L(`Count: how many of A, p, δ, s₀, γ, φ have the posterior median inside K24's column-(3) 16–84% interval. D₆: the sum of their absolute σ-scaled differences, M₆ the largest. A partial reproduction counts towards the reading only with D₆ ≤ ${f(fr.D6_max, 3)} and M₆ ≤ ${f(fr.M6_max, 3)} (the formal fit's values less margins of 1 and 0.5).`, `计数：A、p、δ、s₀、γ、φ 中后验中位数落在 K24 第 (3) 列 16–84% 区间内的个数。D₆：它们按 σ 标度的差的绝对值之和，M₆：其中最大者。部分复现只有在 D₆ ≤ ${f(fr.D6_max, 3)} 且 M₆ ≤ ${f(fr.M6_max, 3)}（正式拟合的值减去余量 1 与 0.5）时才计入解读。`)}</p>`;
+    const cp = rd.part_d.c.c_posterior, cr = rd.part_d.c_ref.c_posterior;
+    const zhC = {"data-driven": "由数据决定", "prior-dominated": "由先验主导"};
+    h += `<h3>${L('Part D: the origin of s free (c)', 'D 部分：s 的起点自由（c）')}</h3><p class="num">c = ${f(cp.c.median, 0)} +${f(cp.c.plus, 0)}/−${f(cp.c.minus, 0)} pc; ${L('reference chain c-ref (s₀ flat)', '参照链 c-ref（s₀ 平坦）')}: c = ${f(cr.c.median, 0)} +${f(cr.c.plus, 0)}/−${f(cr.c.minus, 0)} pc, ${L('half-width', '半宽')} ${f(cr.halfwidth_pc, 0)} pc ${L('(limit', '（上限')} ${f(rd.part_d.c_ref.halfwidth_max_pc, 0)}${L(')', '）')} → <span class="lab ${rd.part_d.c_reading === 'data-driven' ? 'good' : 'mid'}">${L(esc(rd.part_d.c_reading), zhC[rd.part_d.c_reading] || esc(rd.part_d.c_reading))}</span>; ${L('correlations of c with', 'c 与以下参数的相关')} s₀ ${f(cp.correlations.s0, 2)}, p ${f(cp.correlations.p, 2)}, γ ${f(cp.correlations.gamma, 2)}</p>`;
+    const pc = rd.part_c, cc = pc.comparison, lf = pc.lsq_fit;
+    const zhCurve = s => String(s).replace("matches K24's published curve", '与 K24 公布的曲线吻合').replace('approximately matches', '大致吻合')
+      .replace("differs from K24's published curve", '与 K24 公布的曲线不同').replace(" (more than 10% of the points lie beyond our curve's ends)", '（超过 10% 的点落在我们曲线的端点之外）');
+    h += `<h3>${L("Part C: K24's published curve", 'C 部分：K24 公布的曲线')}</h3><p><span class="lab ${pc.label.startsWith('matches') ? 'good' : (pc.label.startsWith('approx') ? 'mid' : 'bad')}">${L(esc(pc.label), esc(zhCurve(pc.label)))}</span></p><p class="num">` +
+      `${L('our curve at K24\'s column-(6) medians vs the 1,500 published points', '我们在 K24 第 (6) 列中位数处的曲线对 1,500 个公布的点')}: x–y ${L('median', '中位数')} ${f(cc.xy.median, 2)}, p95 ${f(cc.xy.p95, 2)}, max ${f(cc.xy.max, 2)} pc; 3-D ${L('median', '中位数')} ${f(cc['3d'].median, 1)}, p95 ${f(cc['3d'].p95, 1)} pc; ${L('median |Δv_z|', '|Δv_z| 中位数')} ${f(cc.median_abs_dvz_3d, 2)} km/s; ${L('excluded at our curve\'s ends', '在我们曲线端点处排除')}: x–y ${cc.n_excluded_xy}, 3-D ${cc.n_excluded_3d}; ${L('our s of the published first and last points', '公布曲线首末点在我们曲线上的 s')} ${f(cc.first_point.s_xy, 0)}, ${f(cc.last_point.s_xy, 0)} pc<br>` +
+      `${L('least-squares fit of our curve (12 parameters + c)', '我们曲线的最小二乘拟合（12 个参数 + c）')}: RMS ${f(lf.rms_start_pc, 1)} → ${f(lf.rms_pc, 2)} pc, c = ${f(lf.c_pc, 0)} pc; ${L('differences from K24\'s column-(6) medians (σ)', '与 K24 第 (6) 列中位数之差（σ）')}: ` +
+      Object.entries(lf.sigma_scaled_differences_from_k24_col6).map(([k, x]) => `${esc(k)} ${f(x, 2)}`).join(', ') + '</p>';
+    const pb = rd.part_b;
+    h += `<details><summary>${L('Part B: the reconstructed sample S', 'B 部分：重建的样本 S')} (${pb.samples.S.n_points} ${L('points', '个点')}: ${pb.n_kept_sightlines} ${L('Zucker sightlines', '条 Zucker 视线')}, ${L('fallback rows', '回退行')} ${pb.fallback_rows.length ? esc(pb.fallback_rows.join(', ')) : '–'}, ${L('absorbed', '被吸收')} ${Object.keys(pb.absorbed_rows).length ? esc(Object.entries(pb.absorbed_rows).map(([a, b]) => `${a} → ${b.join(', ')}`).join('; ')) : '–'})</summary>` +
+      `<div class="wrap"><table><tr><th>${L('row', '行')}</th><th>${L('candidates / kept', '候选 / 保留')}</th><th>${L('mean − p (pc)', '均值 − p（pc）')}</th><th>${L('SD / spread', '标准差 / spread')}</th><th>${L('status', '状态')}</th><th>${L('summed weight in S', 'S 中的权重和')}</th><th>${L('weight in the 79-row fit', '79 行拟合中的权重')}</th></tr>` +
+      pb.consistency_table.map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.n_candidates} / ${r.n_kept}</td><td class="num">${r.mean_minus_p ? r.mean_minus_p.map(x => f(x, 1)).join(', ') : '–'}</td><td class="num">${r.sd_over_spread ? r.sd_over_spread.map(x => f(x, 2)).join(', ') : '–'}</td><td>${esc(r.status)}${r.reason ? ` <span class="muted">(${esc(r.reason)})</span>` : ''}</td><td class="num">${f(r.summed_weight_in_S, 2)}</td><td class="num">${f(r.weight_in_79_row_fit, 2)}</td></tr>`).join('') + '</table></div></details>';
+    const pa = rd.part_a;
+    const topT = (c, en, zh) => `<p>${L(en, zh)}: ${L('share of the positive sum carried by the ten', '前十个所占正和的比例')} ${f(c.share_of_positive_sum, 2)}; ${L('named rows', '命名行')} ${f(c.sum_named, 1)}, ${L('bridges', '连接视线')} ${f(c.sum_bridges, 1)}</p><p class="num">` +
+      c.top.map(t => `${esc(t.name)} ${f(t.delta, 2)}`).join('; ') + '</p>';
+    h += `<details><summary>${L('Part A: per-cloud terms on the 79 rows (descriptive)', 'A 部分：79 行上的逐云项（描述性）')}</summary><p class="num">` +
+      ['K', 'P', 'M'].map(k => `v_${k}: ln L ${f(pa.vectors[k].lnL, 2)}, ln ${L('prior', '先验')} ${f(pa.vectors[k].ln_prior, 2)}, ln ${L('posterior', '后验')} ${f(pa.vectors[k].ln_posterior, 2)}, σ_P ${f(pa.vectors[k].sigma_P_pc, 1)} pc`).join('<br>') + '</p>' +
+      topT(pa.comparisons.K_minus_M, "Δᵢ = tᵢ(K24's medians) − tᵢ(our MAP), largest ten", "Δᵢ = tᵢ（K24 中位数）− tᵢ（我们的最大后验点），最大的十个") +
+      topT(pa.comparisons.K_minus_P, "Δᵢ = tᵢ(K24's medians) − tᵢ(our posterior medians), largest ten", "Δᵢ = tᵢ（K24 中位数）− tᵢ（我们的后验中位数），最大的十个") + '</details>';
+    if (rd.chain_short && rd.chain_short.length) h += `<p class="muted">${L('Chains flagged short: ', '被标为过短的链：')}${esc(rd.chain_short.join(', '))}</p>`;
+    el.innerHTML = h;
+  }
+  opt('rdiag').then(renderDiag).catch(e => {
+    document.getElementById('rdiag').innerHTML = L('R-DIAG results could not be shown: ', 'R-DIAG 结果无法显示：') + esc(e.message || e);
+  });
 
   get('summary').then(async s => {
     if (s.status !== 'complete') {

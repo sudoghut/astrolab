@@ -11,7 +11,8 @@ folder (astrolab cache dir / PARAMS["checkpoint_subdir"] / <key>), so an interru
 and code. Results are written only when every requested part has finished.
 
 The post-hoc parts of README 4.10 (T-056) run alone: PARAMS["parts"] = ["conv"] (R-CONV) or ["t8p"] (T8-P)
-write rconv.json / t8p.json and only the R_CONV / T8_P keys of summary.json (main_standalone).
+write rconv.json / t8p.json and only the R_CONV / T8_P keys of summary.json (main_standalone). So does README
+4.11's R-DIAG (T-061): PARAMS["parts"] = ["diag"] writes rdiag.json and the R_DIAG key.
 """
 import hashlib
 import json
@@ -19,18 +20,24 @@ import re
 import math
 import time
 import zlib
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize_scalar
 
+import diag011 as D
 import fit011 as F
 import stats011 as S
 import wave011 as W
 
 CLUSTERS_URL = "https://dataverse.harvard.edu/api/access/datafile/7211931"
 CLOUDS_URL = "https://dataverse.harvard.edu/api/access/datafile/7211929"
+# README 4.11 (R-DIAG only): Zucker et al. 2020 Table A.1, Alves et al. 2020 bridging sightlines, K24's curve
+HANDBOOK_URL = "https://dataverse.harvard.edu/api/access/datafile/4361456"
+BRIDGING_URL = "https://dataverse.harvard.edu/api/access/datafile/4361453"
+BESTFIT_URL = "https://dataverse.harvard.edu/api/access/datafile/8954305"
 HERE = Path(__file__).resolve().parent
 
 # Tunable knobs (AGENTS.md section 2). Read them inside main() at call time, never into
@@ -107,9 +114,28 @@ PARAMS = {
     "conv_repro_count": 5,
     "conv_width_range": [0.6666666666666666, 1.5],
     "t8p_bound_frac": 0.05,                   # broad-prior median within 5% of a bound -> at the bound
+    # R-DIAG (README 4.11, T-061, post hoc); run alone with parts ["diag"]
+    "rdiag_member_k": 3.0,                    # Part B tolerance t = k max(spread, floor) per axis
+    "rdiag_member_floor_pc": 5.0,             # ... and the gate on the mean: max(spread, floor)
+    "rdiag_pt_names": ["Perseus", "Taurus"],  # S+PT adds all sightlines of these Zucker names
+    "rdiag_s_all_n": 169,                     # the run stops unless S_all has 169 points
+    "rdiag_pt_n": 28,                         # ... and S+PT has 28 more than S
+    "rdiag_map_prior_draws": 19,              # Part A MAP: v_K, v_P and 19 prior draws (21 starts)
+    "rdiag_top_n": 10,                        # Part A: the ten largest Delta_i
+    "rdiag_c_prior_pc": [-400.0, 400.0],      # Part D (c): c ~ U(-400, 400) pc; also Part C (ii)'s bound on c
+    "rdiag_c_scale_pc": 100.0,                # c's walker-ball and simplex scale
+    "rdiag_cref_s0_prior_pc": [-1000.0, 3000.0],   # c-ref: s0 flat
+    "rdiag_c_halfwidth_max_pc": 100.0,        # c data-driven if c-ref's 16-84% half-width <= 100 pc
+    "rdiag_zsun_pc": 20.8,                    # Part D (z_sun): every cloud's z + 20.8 pc
+    "rdiag_d6_max": 8.781,                    # reading: D6 <= 9.781 - 1 (formal L-F-W, rconv.json convention 0)
+    "rdiag_m6_max": 3.192,                    # ... and M6 <= 3.692 - 0.5
+    "rdiag_curve_match_median_pc": 5.0,       # Part C label: "matches" if median <= 5 and p95 <= 15 pc
+    "rdiag_curve_match_p95_pc": 15.0,
+    "rdiag_curve_approx_median_pc": 20.0,     # "approximately matches" if median <= 20 pc
+    "rdiag_curve_excl_frac": 0.10,            # suffix when more than 10% of the points are excluded in x-y
     # load check (README 3)
     "load_check_max_abs_vz": 3.0,
-    # running ("conv" and "t8p" are standalone parts, README 4.10 and section 8)
+    # running ("conv", "t8p" and "diag" are standalone parts, README 4.10, 4.11 and section 8)
     "parts": ["t1t2", "t3", "t4", "t5", "t6", "t7", "t8"],
     "timing_evals": 100,
     "stop_after_hours": 10.0,                 # pause (checkpointed) after this long; 0 = no limit
@@ -861,8 +887,8 @@ def compare_variants(main_labels, main_reduced, variants):
 # the v_z divisor fixed at 74). Standalone parts: run alone, write rconv.json / t8p.json and only the
 # R_CONV / T8_P keys of summary.json; every other results file is left untouched.
 
-STANDALONE = ("conv", "t8p")
-STANDALONE_KEYS = {"conv": ("rconv", "R_CONV"), "t8p": ("t8p", "T8_P")}
+STANDALONE = ("conv", "t8p", "diag")
+STANDALONE_KEYS = {"conv": ("rconv", "R_CONV"), "t8p": ("t8p", "T8_P"), "diag": ("rdiag", "R_DIAG")}
 
 
 def conv_seed(P, index):
@@ -1051,6 +1077,318 @@ def t8p_summary(t8p):
             "chain_short": t8p["chain_short"]}
 
 
+# =============================================================================================
+# README 4.11 (T-061, post hoc): R-DIAG, where the column-(3) difference comes from. Standalone part "diag":
+# Part A (per-object terms on the 79 rows), Part B (the reconstructed sightline sample S, with S_all and S+PT),
+# Part C (K24's published curve), Part D (the origin of s free, with the reference chain c-ref; z_sun), reading.
+
+def load_diag_tables(ctx):
+    """The three R-DIAG files via ctx.http (55,870 + 9,894 + 47,253 bytes)."""
+    ph = ctx.http(HANDBOOK_URL, label="Zucker et al. 2020 Table A.1 (Dataverse doi:10.7910/DVN/07L7YZ, file 4361456)")
+    pb = ctx.http(BRIDGING_URL, label="Alves et al. 2020 bridging sightlines (doi:10.7910/DVN/K16GQX, file 4361453)")
+    pf = ctx.http(BESTFIT_URL, label="K24 best-fit model curve (doi:10.7910/DVN/F98QHY, file 8954305)")
+    hb = pd.read_csv(ph, sep=r"\s+")
+    br = pd.read_csv(pb, sep=r"\s+")
+    bf = pd.read_csv(pf, sep="\t")
+    for nm, df, need in (("Zucker", hb, ["name", "x", "y", "z"]), ("bridging", br, ["name", "x", "y", "z"]),
+                         ("K24 curve", bf, ["x", "y", "z", "vz"])):
+        miss = [c for c in need if c not in df.columns]
+        if miss:
+            raise ValueError(f"{nm} table: missing columns {miss}")
+    shas = [hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in (ph, pb, pf)]
+    return {"zucker": hb, "bridging": br, "curve": bf, "shas": shas,
+            "rows": {"zucker": len(hb), "bridging": len(br), "curve": len(bf)}}
+
+
+def diag_inputs(P, co, tables, ctx):
+    """README 4.11 Part B: the named rows, the membership rule, S, S_all and S+PT. Stops (RuntimeError) unless
+    S_all has rdiag_s_all_n points and S+PT has rdiag_pt_n more than S."""
+    hb, br = tables["zucker"], tables["bridging"]
+    bridge_names = set(br["name"].astype(str))
+    named, bridge_rows = [], []
+    for i, r in co.reset_index(drop=True).iterrows():
+        nm = str(r["name"])
+        if nm in D.NAME_MAP:
+            named.append({"name": nm, "p": (float(r["x"]), float(r["y"]), float(r["z"])),
+                          "sig": (float(r["xspread"]), float(r["yspread"]), float(r["zspread"])), "co_index": int(i)})
+        elif nm in bridge_names:
+            bridge_rows.append(i)
+        else:
+            raise RuntimeError(f"12CO row {nm!r} is neither in the name map nor a bridging sightline (README 4.11)")
+    missing = sorted(set(D.NAME_MAP.values()) - set(hb["name"].astype(str)))
+    if missing:
+        raise RuntimeError(f"mapped Zucker names absent from the table: {missing}")
+    members = D.membership(named, hb, k=P["rdiag_member_k"], floor=P["rdiag_member_floor_pc"])
+    samples = D.build_samples(named, hb, br, members, pt_names=tuple(P["rdiag_pt_names"]))
+    n = {k: int(len(v["x"])) for k, v in samples.items()}
+    # agreement of the 12CO bridge rows with the bridging table (README 4.11: within 1 pc), reported only
+    bt = br.set_index(br["name"].astype(str))
+    dev = [float(np.max(np.abs(np.array([co.loc[i, a] for a in ("x", "y", "z")], float)
+                                - bt.loc[str(co.loc[i, "name"]), ["x", "y", "z"]].to_numpy(float))))
+           for i in bridge_rows]
+    out = {"co_names": [str(x) for x in co["name"]], "n_named_rows": len(named),
+           "n_bridge_rows_12co": len(bridge_rows), "n_points": n,
+           "n_kept_sightlines": int(sum(len(m["kept"]) for m in members if m["status"] == "pass")),
+           "fallback_rows": [m["name"] for m in members if m["status"] == "fallback"],
+           "absorbed_rows": {m["name"]: m["absorbed_by"] for m in members if m["status"] == "absorbed"},
+           "bridge_rows_max_abs_diff_pc": max(dev) if dev else None,
+           "named": named, "members": members, "samples": samples}
+    ctx.log(f"R-DIAG samples: S {n['S']} ({out['n_kept_sightlines']} sightlines, fallback {out['fallback_rows']}, "
+            f"absorbed {out['absorbed_rows']}), S_all {n['S_all']}, S+PT {n['S+PT']}")
+    if n["S_all"] != int(P["rdiag_s_all_n"]) or n["S+PT"] - n["S"] != int(P["rdiag_pt_n"]):
+        raise RuntimeError(f"R-DIAG sample check failed: S_all has {n['S_all']} points (want {P['rdiag_s_all_n']}), "
+                           f"S+PT - S = {n['S+PT'] - n['S']} (want {P['rdiag_pt_n']}); nothing is fitted (README 4.11)")
+    return out
+
+
+def diag_formal_reference(P, rconv_path):
+    """The formal L-F-W column-(3) fit (rconv.json convention 0): count, D6, M6, and v_P (posterior medians)."""
+    rconv_path = Path(rconv_path)
+    if not rconv_path.exists():
+        raise RuntimeError(f"R-DIAG needs {rconv_path.name} (R-CONV, README 4.10): run part 'conv' first")
+    rc = json.loads(rconv_path.read_text(encoding="utf-8"))
+    row = [r for r in rc["conventions"] if r["index"] == 0]
+    if not row or row[0]["name"] != "L-F-W":
+        raise RuntimeError("rconv.json has no convention 0 (L-F-W)")
+    row = row[0]
+    d6, m6, m6_name = D.d6_m6(row["sigma_scaled_differences"])
+    v = W.k24_vector(3)
+    par = row["parameters"]
+    for n in ("x0", "y0", "x1", "y1", "x2", "y2", "A", "p", "s0", "phi"):
+        v[W.IDX[n]] = par[n]["median"]
+    v[W.IDX["ln_delta"]] = math.log(par["delta"]["median"])
+    v[W.IDX["ln_gamma"]] = math.log(par["gamma"]["median"])
+    return {"convention": "L-F-W", "count": int(row["count"]), "D6": d6, "M6": m6, "M6_parameter": m6_name,
+            "width_ratio": row["width_ratio"], "D6_max": P["rdiag_d6_max"], "M6_max": P["rdiag_m6_max"],
+            "v_P": v, "source": "results/rconv.json, convention 0"}
+
+
+def diag_sample_data(sample):
+    e = np.zeros(0)
+    return W.Data(cx=e, cy=e, cz=e, cvz=e, csig=np.zeros((0, 4)), ox=np.asarray(sample["x"], float),
+                  oy=np.asarray(sample["y"], float), oz=np.asarray(sample["z"], float))
+
+
+def diag_fit_row(P, model, res, what):
+    """One R-DIAG column-(3) chain: T1 count, sigma-scaled differences, D6, M6, width ratio, sigma_P, label."""
+    t1 = t1_column(model, res, 3)
+    k24 = W.K24_TABLE2[3]
+    ours = {n: (t1["parameters"][n]["ours"]["p16"], t1["parameters"][n]["ours"]["p84"]) for n in T1_KEYS}
+    theirs = {n: (k24[n][1], k24[n][2]) for n in T1_KEYS}
+    diffs = {n: t1["parameters"][n]["sigma_scaled_difference"] for n in T1_KEYS + ANCHORS}
+    d6, m6, m6_name = D.d6_m6(diffs)
+    ratio = S.width_ratio(ours, theirs)
+    status, reason = D.fit_status(t1["n_inside_of_6"], ratio, repro_count=P["conv_repro_count"],
+                                  min_count=P["conv_min_count"], ratio_range=tuple(P["conv_width_range"]))
+    med = F.posterior_median_vector(model, res["samples"])
+    return {"what": what, "count": t1["n_inside_of_6"], "inside": {n: t1["parameters"][n]["inside_k24_1sigma"] for n in T1_KEYS},
+            "sigma_scaled_differences": diffs, "D6": d6, "M6": m6, "M6_parameter": m6_name, "width_ratio": ratio,
+            "halfwidth_ratios": {n: S.half_width(*ours[n]) / (0.5 * sum(theirs[n])) for n in T1_KEYS},
+            "parameters": {n: t1["parameters"][n]["ours"] for n in T1_KEYS + ANCHORS},
+            "sigma_P_at_median_pc": sigma_p_of(model, med), "status": status, "reason": reason,
+            "label": D.fit_label(status, what), "chain": chain_meta(res)}
+
+
+def diag_part_a(P, store, model, v_P, names, named_mask, ctx):
+    """README 4.11 Part A on the 79 rows (formal L-F-W column-(3) setup): v_K, v_P and the MAP v_M."""
+    v_K = W.k24_vector(3)
+
+    def go():
+        rng = rng_for(P["seed"], "ml_rdiag_map")
+        starts = [model.theta_of(v_K), model.theta_of(v_P)]
+        starts += [model.prior_draw(rng) for _ in range(int(P["rdiag_map_prior_draws"]))]
+        best, vals, n_eval = None, [], 0
+        t0 = time.time()
+        for st in starts:
+            r = F.optimise(model, st, nm_maxfev=P["ml_nm_maxfev"], lbfgs_maxfun=P["ml_lbfgs_maxfun"], objective="post")
+            vals.append(r["value"])
+            n_eval += r["n_eval"]
+            if best is None or r["value"] > best["value"]:
+                best = r
+        ctx.log(f"R-DIAG MAP: ln posterior {best['value']:.3f} ({len(starts)} starts, {time.time() - t0:.0f} s)")
+        return {"theta": best["theta"], "logpost": best["value"], "start_values": vals, "n_eval": n_eval,
+                "n_starts": len(starts)}
+
+    mp = store.cached("rdiag_map", go)
+    vecs = {"K": v_K, "P": np.asarray(v_P, float), "M": model.full(mp["theta"])}
+    at, terms = {}, {}
+    for k, v in vecs.items():
+        tm = D.object_terms(model, v)
+        th = model.theta_of(v)
+        lp = model.logprior(th)
+        terms[k] = tm
+        at[k] = {"parameters": W.physical(v), "lnL": tm["lnL"], "ln_prior": float(lp), "ln_posterior": float(tm["lnL"] + lp),
+                 "sigma_P_pc": sigma_p_of(model, v), "sum_terms": float(tm["t"].sum()), "constant": tm["constant"]}
+    objects = [{"name": str(names[i]), "named_row": bool(named_mask[i]), "weight": float(terms["K"]["w"][i]),
+                **{f"s_{k}": float(terms[k]["s"][i]) for k in vecs}, **{f"d2_{k}": float(terms[k]["d2"][i]) for k in vecs},
+                **{f"t_{k}": float(terms[k]["t"][i]) for k in vecs}} for i in range(len(names))]
+    n = int(P["rdiag_top_n"])
+    comp = {"K_minus_M": D.top_contributors(names, terms["K"]["t"] - terms["M"]["t"], named_mask, n),
+            "K_minus_P": D.top_contributors(names, terms["K"]["t"] - terms["P"]["t"], named_mask, n)}
+    return {"vectors": at, "map": {"logpost": mp["logpost"], "start_values": mp["start_values"],
+                                   "n_starts": mp["n_starts"], "n_eval": mp["n_eval"]},
+            "comparisons": comp, "objects": objects,
+            "note": "descriptive, no label (README 4.11 Part A); t_i = w_i d_i^2 / (2 sigma^2), sigma = 47 pc"}
+
+
+def diag_part_c(P, store, grid, curve_df, ctx):
+    """README 4.11 Part C: (i) our curve at K24's column-(6) medians against K24's published curve; (ii) a least-
+    squares fit of our curve (12 shape and anchor parameters plus c) to the published points."""
+    v6 = W.k24_vector(6)
+    wv = W.wave_on_grid(v6, grid, "half")
+    cur = D.valid_curve(wv)
+    pub = curve_df[["x", "y", "z", "vz"]].to_numpy(float)
+    cmp = D.curve_compare(cur, pub)
+    summ = D.curve_summary(cmp, match_median=P["rdiag_curve_match_median_pc"], match_p95=P["rdiag_curve_match_p95_pc"],
+                           approx_median=P["rdiag_curve_approx_median_pc"], excl_frac=P["rdiag_curve_excl_frac"])
+    keep3 = ~cmp["end_3d"]
+    model = D.lsq_model(grid, v6, c_bounds=P["rdiag_c_prior_pc"], c_scale=P["rdiag_c_scale_pc"])
+
+    def go():
+        t0 = time.time()
+        r = D.curve_lsq(model, pub[keep3, :3], nm_maxfev=P["ml_nm_maxfev"], lbfgs_maxfun=P["ml_lbfgs_maxfun"])
+        ctx.log(f"R-DIAG curve fit: RMS {r['rms_start_pc']:.2f} -> {r['rms_pc']:.2f} pc ({r['n_eval']} evaluations, "
+                f"{time.time() - t0:.0f} s)")
+        return r
+
+    lsq = store.cached("rdiag_curve_lsq", go)
+    phys = W.physical(lsq["vector"])
+    k6 = W.K24_TABLE2[6]
+    fit = {"parameters": {n: phys[n] for n in D.SHAPE_PHYS}, "c_pc": float(lsq["vector"][W.IDX["s_origin"]]),
+           "sigma_scaled_differences_from_k24_col6": {n: D.sigma_scaled(phys[n], k6[n]) for n in D.SHAPE_PHYS},
+           "rms_pc": lsq["rms_pc"], "rms_start_pc": lsq["rms_start_pc"], "n_points": lsq["n_points"],
+           "n_eval": lsq["n_eval"], "c_bounds_pc": list(P["rdiag_c_prior_pc"]),
+           "note": "read in README section 5, without a label (README 4.11 Part C (ii))"}
+    ctx.log(f"R-DIAG Part C: {summ['label']} (x-y median {summ['xy']['median']}, p95 {summ['xy']['p95']} pc; "
+            f"excluded x-y {summ['n_excluded_xy']}, 3-D {summ['n_excluded_3d']})")
+    return {"comparison": summ, "lsq_fit": fit, "label": summ["label"],
+            "note": "x-y nearest points decide the label; the 3-D numbers depend on which posterior point K24 published"}
+
+
+def diag_models_d(P, data, grid, wo):
+    """README 4.11 Part D setups on the 79 rows: (c) the origin free, c-ref (s0 flat), (z_sun) z + 20.8 pc."""
+    base = setups(P)["col3"]
+    cset = replace(base, free=SHAPE + ("s_origin",), uniform={"s_origin": tuple(P["rdiag_c_prior_pc"])},
+                   scales={"s_origin": float(P["rdiag_c_scale_pc"])})
+    crset = replace(cset, uniform={"s_origin": tuple(P["rdiag_c_prior_pc"]), "s0": tuple(P["rdiag_cref_s0_prior_pc"])})
+    dz = replace(data, oz=np.asarray(data.oz, float) + float(P["rdiag_zsun_pc"]))
+    # weights of the shifted clouds as the formal rule defines them (each object's s at K24's column-(6) medians),
+    # recomputed for the variant's data as README 4.9 item 9 does for the variants
+    _, wz = W.fixed_weights(dz, grid, P["bandwidth_pc"])
+    return {"c": W.Model(cset, data, grid, None, wo), "cref": W.Model(crset, data, grid, None, wo),
+            "zsun": W.Model(base, dz, grid, None, wz), "w_zsun": wz}
+
+
+def diag_c_posterior(model, res):
+    f = model.setup.free
+    sam = np.asarray(res["samples"], float)
+    c = sam[:, f.index("s_origin")]
+    pc = S.percentiles(c)
+    other = {"s0": sam[:, f.index("s0")], "p": sam[:, f.index("p")], "gamma": np.exp(sam[:, f.index("ln_gamma")])}
+    return {"c": pc, "halfwidth_pc": 0.5 * (pc["p84"] - pc["p16"]),
+            "correlations": {k: float(np.corrcoef(c, x)[0, 1]) for k, x in other.items()},
+            "s0": S.percentiles(other["s0"])}
+
+
+def diag_timing(P, m79, mS):
+    n = max(int(P["timing_evals"]), 5)
+    out = {}
+    for k, m in (("rows_79", m79), ("S", mS)):
+        th = m.theta_of(W.k24_vector(3))
+        m.loglike(th)
+        t0 = time.perf_counter()
+        for _ in range(n):
+            m.loglike(th)
+        out[k] = round((time.perf_counter() - t0) / n * 1e3, 3)
+    return {"ms_per_loglike": out, "n_points": {"rows_79": m79.data.n_clouds, "S": mS.data.n_clouds}}
+
+
+def diag_run(P, store, data, grid, mods, tables, inputs, formal, ctx):
+    """README 4.11: Parts A-D and the reading."""
+    bw = P["bandwidth_pc"]
+    m79 = mods["col3"]
+    names = inputs["co_names"]
+    named_mask = np.array([n in D.NAME_MAP for n in names])
+    samples = inputs["samples"]
+    smods, sw = {}, {}
+    for key in ("S", "S_all", "S+PT"):
+        ds = diag_sample_data(samples[key])
+        _, wo = W.fixed_weights(ds, grid, bw)
+        sw[key] = wo
+        smods[key] = W.Model(setups(P)["col3"], ds, grid, None, wo)
+    timing = diag_timing(P, m79, smods["S"])
+    ctx.log(f"R-DIAG timing: one column-(3) likelihood {timing['ms_per_loglike']} ms")
+
+    part_a = diag_part_a(P, store, m79, formal["v_P"], names, named_mask, ctx)
+    part_c = diag_part_c(P, store, grid, tables["curve"], ctx)
+
+    w79 = {n: float(w) for n, w in zip(names, m79.w_co)}
+    table = D.consistency_table(inputs["members"], tables["zucker"], w_s=sw["S"], s_rows=samples["S"]["row"], w79=w79)
+    fits = {}
+    for key, chain in (("S", "rdiag_S"), ("S_all", "rdiag_Sall"), ("S+PT", "rdiag_SPT")):
+        res = mcmc(P, store, chain, smods[key], W.k24_vector(3), ctx)
+        fits[key] = diag_fit_row(P, smods[key], res, f"with sample {key}")
+        fits[key]["n_points"] = int(smods[key].data.n_clouds)
+        ctx.log(f"R-DIAG {key}: {fits[key]['label']} (count {fits[key]['count']}, D6 {fits[key]['D6']:.3f}, "
+                f"M6 {fits[key]['M6']:.3f}, width ratio {fits[key]['width_ratio']:.3f})")
+    part_b = {"samples": {k: {"n_points": int(len(v["x"])), "points": [
+        {"source": s, "row": r, "id": i, "x": float(x), "y": float(y), "z": float(z), "weight": float(w)}
+        for s, r, i, x, y, z, w in zip(v["source"], v["row"], v["id"], v["x"], v["y"], v["z"], sw[k])]}
+        for k, v in samples.items()},
+        "n_kept_sightlines": inputs["n_kept_sightlines"], "fallback_rows": inputs["fallback_rows"],
+        "absorbed_rows": inputs["absorbed_rows"], "n_named_rows": inputs["n_named_rows"],
+        "bridge_rows_max_abs_diff_pc": inputs["bridge_rows_max_abs_diff_pc"],
+        "consistency_table": table, "fits": fits,
+        "rule": {"k": P["rdiag_member_k"], "floor_pc": P["rdiag_member_floor_pc"], "name_map": D.NAME_MAP,
+                 "pt_names": list(P["rdiag_pt_names"])}}
+
+    dm = diag_models_d(P, data, grid, m79.w_co)
+    zname = f"z☉ = {float(P['rdiag_zsun_pc']):g} pc"
+    rc = mcmc(P, store, "rdiag_c", dm["c"], W.k24_vector(3), ctx)
+    rcr = mcmc(P, store, "rdiag_cref", dm["cref"], W.k24_vector(3), ctx)
+    rz = mcmc(P, store, "rdiag_zsun", dm["zsun"], W.k24_vector(3), ctx)
+    fc = diag_fit_row(P, dm["c"], rc, "with the origin free")
+    fc["c_posterior"] = diag_c_posterior(dm["c"], rc)
+    fz = diag_fit_row(P, dm["zsun"], rz, f"with {zname}")
+    fz["weights_max_abs_change"] = float(np.max(np.abs(dm["w_zsun"] - m79.w_co)))
+    cref = diag_c_posterior(dm["cref"], rcr)
+    c_read = D.c_reading(cref["halfwidth_pc"], P["rdiag_c_halfwidth_max_pc"])
+    part_d = {"c": fc, "zsun": fz,
+              "c_ref": {"c_posterior": cref, "c_reading": c_read, "halfwidth_max_pc": P["rdiag_c_halfwidth_max_pc"],
+                        "s0_prior_pc": list(P["rdiag_cref_s0_prior_pc"]), "chain": chain_meta(rcr),
+                        "note": "reference chain: its count and labels are not reported or used (README 4.11)"},
+              "c_reading": c_read, "c_prior_pc": list(P["rdiag_c_prior_pc"]), "zsun_pc": P["rdiag_zsun_pc"]}
+    ctx.log(f"R-DIAG (c): {fc['label']}; c = {fc['c_posterior']['c']['median']:.0f} pc; c-ref half-width "
+            f"{cref['halfwidth_pc']:.0f} pc -> c {c_read}; (z_sun): {fz['label']}")
+
+    rd = D.reading(fits["S"], fc, fz, c_read, d6_max=P["rdiag_d6_max"], m6_max=P["rdiag_m6_max"],
+                   c_name="the origin of s free", z_name=zname)
+    ctx.log(f"R-DIAG reading: {rd['reading']}")
+    chains = {"S": fits["S"], "S_all": fits["S_all"], "S+PT": fits["S+PT"], "c": fc, "zsun": fz}
+    short = [k for k, r in chains.items() if r["chain"]["chain_short"]] + (["c_ref"] if rcr["chain_short"] else [])
+    fr = {k: v for k, v in formal.items() if k != "v_P"}
+    return {"post_hoc": True, "reading": rd["reading"], "reading_detail": rd, "formal_reference": fr,
+            "v_P": W.physical(formal["v_P"]), "part_a": part_a, "part_b": part_b, "part_c": part_c, "part_d": part_d,
+            "labels": {"S": fits["S"]["label"], "S_all": fits["S_all"]["label"], "S+PT": fits["S+PT"]["label"],
+                       "c": fc["label"], "zsun": fz["label"], "c_reading": c_read, "curve": part_c["label"]},
+            "chain_short": short, "timing": timing,
+            "input_rows": tables["rows"],
+            "note": "post hoc (README 4.11); the formal labels, the overall reading, T6, R-CONV and T8-P stay as recorded"}
+
+
+def diag_summary(rd):
+    pb = rd["part_b"]
+    return {"reading": rd["reading"], "labels": rd["labels"],
+            "n_points": {k: v["n_points"] for k, v in pb["samples"].items()},
+            "counts": {k: pb["fits"][k]["count"] for k in pb["fits"]} | {"c": rd["part_d"]["c"]["count"],
+                                                                        "zsun": rd["part_d"]["zsun"]["count"]},
+            "D6": {k: pb["fits"][k]["D6"] for k in pb["fits"]} | {"c": rd["part_d"]["c"]["D6"],
+                                                                 "zsun": rd["part_d"]["zsun"]["D6"]},
+            "c_median_pc": rd["part_d"]["c"]["c_posterior"]["c"]["median"],
+            "c_ref_halfwidth_pc": rd["part_d"]["c_ref"]["c_posterior"]["halfwidth_pc"],
+            "chain_short": rd["chain_short"]}
+
+
 def _dump(o):
     from astrolab.results import to_jsonable
     return json.dumps(to_jsonable(o), indent=1, ensure_ascii=False)
@@ -1081,19 +1419,20 @@ def standalone_tag(parts):
 
 
 def check_standalone(P, parts, formal):
-    """README 4.10: 'conv' and 't8p' run alone; a formal run takes one of them, R-CONV with all 16 conventions."""
+    """README 4.10, 4.11: 'conv', 't8p' and 'diag' run alone; a formal run takes one of them, R-CONV with all 16
+    conventions."""
     other = sorted(set(parts) - set(STANDALONE))
     if other:
-        raise ValueError(f"parts {sorted(set(STANDALONE) & set(parts))} run alone (README 4.10), not with {other}")
+        raise ValueError(f"parts {sorted(set(STANDALONE) & set(parts))} run alone (README 4.10, 4.11), not with {other}")
     if formal and len(parts) != 1:
-        raise ValueError("a formal run takes one standalone part at a time: parts ['conv'] or ['t8p']")
+        raise ValueError("a formal run takes one standalone part at a time: parts ['conv'], ['t8p'] or ['diag']")
     if formal and "conv" in parts and sorted(int(i) for i in P["conv_indices"]) != list(range(16)):
         raise ValueError("the formal R-CONV run uses all 16 conventions (conv_indices = 0..15)")
 
 
 def main_standalone(ctx, P, parts):
-    """README 4.10: parts 'conv' and/or 't8p' (one at a time in a formal run). Other parts' results are read,
-    never written; summary.json changes only in its R_CONV / T8_P key."""
+    """README 4.10, 4.11: parts 'conv', 't8p' and/or 'diag' (one at a time in a formal run). Other parts' results
+    are read, never written; summary.json changes only in its R_CONV / T8_P / R_DIAG key."""
     from astrolab import config
 
     formal = is_formal_run(ctx)
@@ -1110,6 +1449,10 @@ def main_standalone(ctx, P, parts):
 
     cl, co, shas = load_tables(ctx)
     check_columns(cl, co)
+    diag_tables = diag_in = diag_formal = None
+    if "diag" in parts:                          # README 4.11: the three files of R-DIAG (113,017 bytes)
+        diag_tables = load_diag_tables(ctx)
+        shas = shas + diag_tables["shas"]
     grid = W.Grid(int(P["grid_n"]), float(P["u_min"]), float(P["u_max"]))
     data = make_data(cl, co)
     mods, wc, wo = models_for(P, data, grid, P["bandwidth_pc"])
@@ -1117,8 +1460,12 @@ def main_standalone(ctx, P, parts):
     ctx.log(f"load check: weighted mean v_z = {lc['weighted_mean_vz']:.2f} km/s -> {'pass' if lc['passed'] else 'FAIL'}")
     if not lc["passed"]:
         raise RuntimeError("load check failed (README 3); nothing is written")
+    if diag_tables is not None:                  # the sample checks stop the run before any fit (README 4.11)
+        diag_in = diag_inputs(P, co, diag_tables, ctx)
+        diag_formal = diag_formal_reference(P, HERE / "results" / "rconv.json")
     key = F.checkpoint_key({k: v for k, v in P.items() if k not in _RUN_ONLY} | {"standalone_parts": tag},
-                           [HERE / "run.py", HERE / "wave011.py", HERE / "fit011.py", HERE / "stats011.py"], shas)
+                           [HERE / "run.py", HERE / "wave011.py", HERE / "fit011.py", HERE / "stats011.py",
+                            HERE / "diag011.py"], shas)
     stop = float(P["stop_after_hours"]) * 3600 if P["stop_after_hours"] else None
     store = F.Store(checkpoint_root(config.cache_dir(), P, ctx) / tag, key, stop)
     ctx.log(f"checkpoints ({'formal run' if formal else 'exploration'}, {tag}): {store.dir}")
@@ -1128,12 +1475,15 @@ def main_standalone(ctx, P, parts):
             files["rconv"] = conv_run(P, store, data, grid, ctx)
         if "t8p" in parts:
             files["t8p"] = t8p_run(P, store, mods, ctx)
+        if "diag" in parts:
+            files["rdiag"] = diag_run(P, store, data, grid, mods, diag_tables, diag_in, diag_formal, ctx)
     except F.Paused as e:
         ctx.log(f"PAUSED: {e}")
         ctx.record_suffix = "_" + tag + "paused"     # keep the records of the last complete run
         return {"status": "paused", "reason": str(e), "checkpoints": str(store.dir)}
     values = {"rconv": conv_summary(files["rconv"]) if "rconv" in files else None,
-              "t8p": t8p_summary(files["t8p"]) if "t8p" in files else None}
+              "t8p": t8p_summary(files["t8p"]) if "t8p" in files else None,
+              "rdiag": diag_summary(files["rdiag"]) if "rdiag" in files else None}
     if sum_path.exists():
         text = sum_path.read_text(encoding="utf-8")
         new = None
