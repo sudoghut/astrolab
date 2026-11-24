@@ -1482,6 +1482,9 @@ above is changed.
 
 ### Addendum 2026-11-24: R2-RE-NU, an outside constraint on the tail weight ν from the Hubble-flow supernovae (T-062), pre-registered before any of these fits
 
+Revised the same day after the gate-1 review (SN grouping, misspecification injections, a defensive importance
+proposal, the p_int bounds, a scale-agreement condition), still before any Hubble-flow residual was computed.
+
 *Why.* R2-RE-GTP (T-060) found that whether G excludes diffuse host scatter depends on the tail weight ν of the host
 effects: the calibrated p_cal is at most 0.031 for ν ≥ 6, 0.051 at ν = 4 and 0.078 at ν = 3. Its referee (section 6,
 R2-RE-GTP point 8) asked for a constraint on ν from data not used in G, and for p_cal integrated over that ν. This
@@ -1497,150 +1500,217 @@ sub-label, gloss or statement of R2 through R2-RE-GTP, and R2-RE's row stays the
   divergence between t₃ and t₁₀ effects at τ = 0.077 with Gaussian errors; no data) needs about 120–145 hosts at
   σ = 0.05 mag to separate the two, so this route has essentially no power. Not used.
 - *Leave-N5584-out residuals* of the other 36 hosts are the denominator of G (Σ_j z_j²): not independent of G. Not used.
-- **Used: the Hubble-flow SN rows already in the cache** (R22's 277 SNe; `row_classes`' `hflow`: a non-zero in columns
-  42 and 46 and in no host column). They are not in G, their residuals are on the SN side only, and no download is
-  needed. **The transfer assumption, stated now:** the per-SN excess scatter of Hubble-flow SNe beyond C has the same
-  tail shape ν as the calibrator host effects. This is an assumption, not a result: the calibrator effects are host-level
+- **Used: the Hubble-flow SN rows already in the cache** (277 rows; `row_classes`' `hflow`: a non-zero in columns 42
+  and 46 and in no host column). They are not in G, their residuals are on the SN side only, and no download is needed.
+  **The transfer assumption, stated now:** the per-SN excess scatter of Hubble-flow SNe beyond C has the same tail shape
+  ν as the calibrator host effects. This is an assumption, not a result: the calibrator effects are host-level
   SN-minus-Cepheid offsets (either side can contribute; section 6), whereas Hubble-flow residuals include peculiar
-  velocities and the Hubble-flow selection, and calibrator SNe may differ systematically from Hubble-flow SNe (Wojtak &
-  Hjorth 2022, arXiv:2206.08160, as verified by the R2-RE referee, section 6: a calibrator-specific candidate). Every label
-  below is conditional on this assumption and says so.
+  velocities and the Hubble-flow selection (including an outlier cut, item 6 below), and calibrator SNe may differ
+  systematically from Hubble-flow SNe (Wojtak & Hjorth 2022, arXiv:2206.08160, as verified by the R2-RE referee,
+  section 6: a calibrator-specific candidate). Every label below is conditional on this assumption and says so.
+- **Not independent of the calibrators (M1).** The Hubble-flow rows are coupled to the calibrator SN rows through C
+  (Pantheon+ systematics) and through the shared M⁰_B. Computed from C and L only (277 ungrouped rows, NGC 4258-only
+  system): the canonical correlations between the Hubble-flow and the calibrator-row contrasts (blocks of P, below)
+  are 0.78, 0.69, 0.63, 0.46 (on C's raw blocks 0.81, 0.74, 0.65, 0.48). Calibrator host effects at τ̂_obs = 0.0767
+  would add to Cov(u) (u below) a matrix of trace 9.0 and top eigenvalue 3.75, against 612 and 15.1 for Hubble-flow
+  effects at the gate value τ_HF = 0.02 (τ²·tr(M²) and τ²·λ_max²). The leakage is small but not zero; Stages 1 and 2
+  are therefore repeated with the calibrator host effect at τ̂_obs in the base covariance (reported only).
 
 *Seen before this addendum.* Everything in sections 5–7 and log.md, in particular all of R2-RE-GTP's results. On the
-Hubble-flow rows specifically, everything already recorded:
+Hubble-flow rows specifically, everything already recorded or seen:
 1. R1's baseline fit on all 3,492 rows (the 277 Hubble-flow rows included): χ²/dof = 3552.8/3445 = 1.031 (section 5;
    `r1.json` `chi2`, `chi2_dof`), matching R22's printed 1.03. This is a whole-fit number, not split by row class; it
    shows no gross excess over C in the system as a whole.
-2. R22's statements as recorded in this README: 277 Hubble-flow SNe (section 4) and the baseline χ²/dof of 1.03 (R1's
-   secondary target). The observed count is 277 rows (`summary.json` `validity.row_counts.hflow`), so one row per SN is
-   assumed (R22's count).
+2. R22's statements as recorded in this README: 277 Hubble-flow SNe (section 4; R22's count) and the baseline χ²/dof of
+   1.03 (R1's secondary target). The observed number of rows is 277 (`summary.json` `validity.row_counts.hflow`), but
+   the rows are **not** one per SN: like the calibrator rows (77 rows for 42 SNe), they include duplicate light curves
+   of the same SN (items 3 and 4).
 3. The structure of L and C on these rows (inspected for this addendum from the cache, without y): each Hubble-flow row
    has exactly two non-zeros in L, +1 in column 42 (M⁰_B) and −1 in column 46 (5 log H0); C's Hubble-flow block is dense
    (99.6% of off-diagonal entries non-zero), with diagonal σ from 0.085 to 0.367 mag (median 0.133; 5–95%: 0.103–0.211)
-   and off-diagonal correlations mostly small (1–99%: −0.083 to 0.092; largest 0.75); the Hubble-flow rows are correlated
-   in C with all 77 calibrator SN rows and with no other row. Timings of the code paths below on synthetic inputs only.
-4. The R2-RE referee's point 4 (section 6): if τ came from SN intrinsic scatter it should also appear in the Hubble
+   and off-diagonal correlations mostly small (1–99%: −0.083 to 0.092); 41 pairs have a correlation above 0.3, 19 above
+   0.45 and 13 above 0.5 (largest 0.751); the connected components of the graph "correlation > 0.3" number 242 (largest
+   3 rows), of "> 0.45" 261. The Hubble-flow rows are correlated in C with all 77 calibrator SN rows and with no other
+   row. M has one eigenvalue at zero (−7.6 × 10⁻¹⁴, next 7.46, largest 194.4). The coupling numbers of M1 above. Timings
+   of the code paths below on synthetic inputs only.
+4. From the cached `Pantheon+SH0ES.dat` (0.58 MB, fetched on 2026-11-14 for another purpose), only the columns CID,
+   IDSURVEY, zHD and USED_IN_SH0ES_HF were read: 277 rows have USED_IN_SH0ES_HF = 1, with 238 distinct CID (zHD 0.0234 to
+   0.1490, sorted). Matching these rows to the Hubble-flow rows of y, L and C in file order fails: none of the 41 pairs
+   with correlation > 0.3 shares a CID, and the 48 same-CID pairs have correlations between −0.04 and 0.3. No other
+   allowed key exists (L is identical on all Hubble-flow rows; the remaining columns are magnitudes, errors or residuals),
+   so the SN identity of each row cannot be read without a magnitude or error column, and the grouping below uses C.
+5. The R2-RE referee's point 4 (section 6): if τ came from SN intrinsic scatter it should also appear in the Hubble
    flow; whether C holds a within-SN term was not inspected (section 7).
-5. From the recorded p_cal (`r2_re_gtp.json`), **the possible range of p_int below is already known**: it lies between
-   the smallest and largest p_cal(ν, τ̂_obs), 0.0165 (ν = ∞) and 0.0768 (ν = 3). With weights that equal the prior
-   (the Hubble flow says nothing about ν) p_int = 0.0352 (flat) and 0.0364 (uniform in 1/ν); with the maximum over τ,
-   0.0359 and 0.0372. With the prior's split inside {3, 4} and inside {6, 10, 30, ∞}, p_int reaches 0.05 only when
-   P(ν ≤ 4) is about 0.7 or more (0.6 gives 0.047, 0.7 gives 0.051). So the light-tail label below implies p_int < 0.05
-   and the heavy-tail label p_int > 0.05; only inside "weakly constrained" is the side of 0.05 open.
+6. **Pantheon+'s outlier cut and scatter model.** "The sample includes a 3.5σ Hubble residual outlier cut to remove 5
+   potential contaminants" (Brout et al. 2022, arXiv:2202.04077, section III.1.1). Its distance uncertainties include a
+   scatter term from the BS21 dust-based intrinsic-scatter model, whose parameters "have been fit to the observed scatter
+   in the dataset" (section III.3.3), and a gray floor determined to bring the Hubble diagram's reduced χ² to unity
+   (section II.1), found to be zero for BS21 (section IV.1). [V] 2026-11-24, read in the arXiv HTML version through a
+   summary (the first quotation verbatim). Hubble-residual figures published by R22 and Pantheon+ have been seen
+   (general familiarity, not studied for this addendum).
+7. From the recorded p_cal (`r2_re_gtp.json`), **the possible range of p_int below is already known**: it lies between
+   the smallest and largest p_cal(ν, τ̂_obs), 0.0165 (ν = ∞) and 0.0768 (ν = 3). With weights equal to the prior (the
+   Hubble flow says nothing about ν) p_int = 0.0352 (flat) and 0.0364 (uniform in 1/ν); with the maximum over τ, 0.0359
+   and 0.0372. **The light-tail label implies p_int ≤ 0.032** (at most 0.05 of the weight at ν = 3, the rest at ν = 6);
+   **under the heavy-tail label p_int ≥ 0.0487** (at least 0.95 at ν = 4, the rest at ν = ∞) **and is above 0.05 unless
+   almost all the weight is on ν = 4**. Under "weakly constrained" either side of 0.05 is possible: a weight of 0.556 on
+   ν = 3 with the rest on ν = ∞ already gives 0.05, while weight spread like the prior inside {3, 4} and inside {6, 10,
+   30, ∞} needs P(ν ≤ 4) of about 0.7.
 No statistic of the Hubble-flow residuals has been computed or recorded: no τ_HF, no Hubble-flow χ² or residual
-scatter, no excess over C, no tail statistic, from the cached data or from any results file. The Hubble-flow rows enter
-every fit of this study (R2 through R2-RE-GTP keep them in every subsystem), but no saved quantity isolates them (the
-leave-one-out χ² of R2-RE covers the 77 calibrator rows only). No code for this addendum exists.
+scatter, no excess over C, no tail statistic, from the cached data or from any results file, and no magnitude, error or
+residual column of `Pantheon+SH0ES.dat` was read. The Hubble-flow rows enter every fit of this study (R2 through
+R2-RE-GTP keep them in every subsystem), but no saved quantity isolates them (the leave-one-out χ² of R2-RE covers the
+77 calibrator rows only). No code for this addendum exists.
 
-*Expected outcome (stated now).* C's SN block comes from Pantheon+, whose SN uncertainties are built to include an
-intrinsic-scatter term fitted on the Hubble diagram (our reading of the Pantheon+ analysis, [U], not verified for this
-addendum and used only for this expectation). So little excess beyond C is expected: **"ν not evaluable (no excess
-scatter in the Hubble flow)" is the most likely outcome**, and if Stage 1 passes, **"ν weakly constrained"** is next:
-at a per-SN scale of a few hundredths of a magnitude against σ ≈ 0.13 mag, 277 residuals carry little information on
-the tail shape. A constrained label would be a surprise.
+*Expected outcome (stated now).* Pantheon+'s scatter model was fitted to the observed Hubble-diagram scatter (item 6),
+and C's SN block comes from Pantheon+, so little excess beyond C is expected: **"ν not evaluable (no excess scatter in
+the Hubble flow)" is the most likely outcome**, and if Stage 1 passes, **"ν weakly constrained"** is next: at a per-SN
+scale of a few hundredths of a magnitude against σ ≈ 0.13 mag, about 240 SNe carry little information on the tail
+shape, and the 3.5σ cut removes the far tail. A constrained label would be a surprise.
 
 *Design.* The NGC 4258-only system of R2-RE (`rows_a`, 3,489 rows; all 277 Hubble-flow rows are in it), with the fitted
 columns X of L on those rows (`infer.gls`'s `kept`), so every global parameter (including M⁰_B and 5 log H0) is free and
-treated exactly as R2-RE's REML treats it. Z is the 3,489 × 277 indicator of the Hubble-flow rows. A per-SN effect b_i
-is added to Hubble-flow row i: V = C + Z D Zᵀ with D = diag(d_i). No calibrator host effect is included (C as is on
-every other row; a sensitivity below adds it).
+treated exactly as R2-RE's REML treats it.
+- **SN groups (S1).** The Hubble-flow rows are grouped into SNe as the connected components of the graph whose edges
+  join two Hubble-flow rows with a correlation in C above **0.3** (main; above 0.45 as a sensitivity, Stage 1 and the
+  Stage-2 weights reported only). Every row of a group gets the same effect b_g. *Count check:* the number of groups
+  n_g is compared with the number of distinct CID among the USED_IN_SH0ES_HF = 1 rows of the cached `Pantheon+SH0ES.dat`
+  (read through `ctx.http`, columns CID and USED_IN_SH0ES_HF only); the check passes if |n_g − n_CID| ≤ 0.05·n_CID
+  (rounded down). (Matching rows to CID, the preferred route, is impossible without a magnitude or error column, item 4.)
+- Z is the 3,489 × n_g group design (Z_{r,g} = 1 if Hubble-flow row r is in group g). V = C + Z D Zᵀ with D =
+  diag(d_g). No calibrator host effect is included in the main fit (C as is on every other row).
 
 *Stage 1 (excess scatter in the Hubble flow).*
-- **Model.** d_i = τ_HF² for all i (a Gaussian per-SN effect; V adds τ_HF² to the diagonal of C's Hubble-flow block
-  only).
-- **Estimate and interval.** τ̂_HF by R2-RE's REML procedure, unchanged: `reml_m2l` on `rows_a` with the 277 single-row
-  groups of the Hubble-flow rows, `reml_tau(f, 0.5, 0.01)` (grid 0, 0.01, …, 0.50 mag, bounded refinement, xatol
-  10⁻⁵), with R2-RE's 68% interval (the crossing of min + 1 by `brentq`; lower end 0 when −2ℓ_R(0) is within 1 of the
-  minimum), zero rule (τ̂ < 10⁻³) and bound rule (τ̂ > 0.5 − 10⁻³: not evaluable (bound)).
+- **Model.** d_g = τ_HF² for all groups (a Gaussian per-SN effect, shared by the light curves of one SN).
+- **Estimate and interval.** τ̂_HF by R2-RE's REML procedure, unchanged: `reml_m2l` on `rows_a` with the n_g Hubble-flow
+  groups, `reml_tau(f, 0.5, 0.01)` (grid 0, 0.01, …, 0.50 mag, bounded refinement, xatol 10⁻⁵), with R2-RE's 68%
+  interval (the crossing of min + 1 by `brentq`; lower end 0 when −2ℓ_R(0) is within 1 of the minimum), zero rule
+  (τ̂ < 10⁻³) and bound rule.
 - **Gate, fixed now.** If the interval's lower end is 0, or τ̂_HF < **0.02 mag**, the outcome is **"ν not evaluable (no
   excess scatter in the Hubble flow)"** and Stage 2, the known-answer check and p_int are not computed. *Why 0.02 mag:*
   the median Hubble-flow σ in C is 0.133 mag, so at τ_HF = 0.02 the effects add 2.3% to a typical SN's variance and
-  their scale is 0.15 of the noise; the tail shape of effects that small cannot be read from 277 residuals. It is also
+  their scale is 0.15 of the noise; the tail shape of effects that small cannot be read from about 240 SNe. It is also
   about a quarter of the calibrators' τ̂ = 0.077 (one sixteenth of the variance). The threshold was chosen after seeing
-  C's Hubble-flow σ (item 3 above), before any residual.
+  C's Hubble-flow σ (item 3), before any residual. If the lower end is "not determined" (the `brentq` search fails),
+  the outcome is label 1 (below).
 - **Reported with it:** τ̂_HF with its interval; the ratio τ̂_HF/τ̂_obs (τ̂_obs = 0.0766988, R2-RE) and whether 0.0767
-  lies inside τ̂_HF's 68% interval (descriptive, no rule); Δ(−2ℓ_R) at τ = 0; and, as a sensitivity, τ̂_HF with the
-  calibrator host effect at τ̂_obs added to C (V(τ̂_obs) of R2-RE as the base covariance), reported only.
+  lies inside τ̂_HF's 68% interval (used by label 4/5's scale condition, below); Δ(−2ℓ_R) at τ = 0; τ̂_HF under the 0.45
+  grouping; and τ̂_HF with the calibrator host effect at τ̂_obs added to C (V(τ̂_obs) of R2-RE as the base covariance),
+  reported only.
 
-*Reduced form (used by Stage 2 and the mocks).* With P = C⁻¹ − C⁻¹X(XᵀC⁻¹X)⁻¹XᵀC⁻¹ on `rows_a`, u = ZᵀP y (277) and
-M = ZᵀP Z (277 × 277), the REML criterion relative to D = 0 is exactly
+*Reduced form (used by Stage 2 and the mocks).* With P = C⁻¹ − C⁻¹X(XᵀC⁻¹X)⁻¹XᵀC⁻¹ on `rows_a`, u = ZᵀP y (n_g) and
+M = ZᵀP Z (n_g × n_g), the REML criterion relative to D = 0 is exactly
 g(D) = log det(I + D^½ M D^½) − uᵀ D^½ (I + D^½ M D^½)⁻¹ D^½ u, i.e. −2ℓ_R(V) = −2ℓ_R(C) + g(D) (the determinant
-lemma and the Woodbury identity; the same reduction as R2-RE-G's f(τ; u), which g equals for D = τ²I). M has rank 276
-(5 log H0 enters only the Hubble-flow rows, with −1 in each, so the common shift of all Hubble-flow rows is absorbed):
-one eigenvalue is expected at zero and clipped as in R2-RE-G (an eigenvalue below −10⁻¹⁰·max, or more than one below
-10⁻¹⁰·max, makes the block "not evaluable (design)"). Given b, u ~ N(M b, M), so the Gaussian posterior of b under
-d_i = τ² has Σ = (τ⁻² I + M)⁻¹ and mean μ = Σ u.
+lemma and the Woodbury identity; the same reduction as R2-RE-G's f(τ; u), which g equals for D = τ²I). g is computed
+from the Cholesky factor of I + D^½ M D^½ (log det from its diagonal). M has rank n_g − 1 (5 log H0 enters only the
+Hubble-flow rows, with −1 in each, so the common shift of all Hubble-flow rows is absorbed). Eigenvalues are treated as
+in R2-RE-G (`shape.EIG_RTOL` = 10⁻¹⁰): an eigenvalue below −`EIG_RTOL`·λ_max raises an error (a bug, as R2-RE-G
+amendment 6 and `shape.design`); the eigenvalues with |λ| < `EIG_RTOL`·λ_max are set to zero, and exactly one is
+expected (more than one is label 1, "design"). Given b, u ~ N(M b, M), so the Gaussian posterior of b under d_g = τ² has
+Σ = (τ⁻² I + M)⁻¹ and mean μ = Σ u.
 
 *Stage 2 (shape, run only if Stage 1 passes the gate).*
-- **Family.** b_i = s·t_i with t_i ~ t_ν independent, s = τ√((ν − 2)/ν) (variance τ², as in R2-RE-GT/GTP), ν ∈ {3, 4,
-  6, 10, 30, ∞} (the GTP grid; ∞ Gaussian). As a scale mixture, b_i | w_i ~ N(0, s²/w_i), w_i ~ Gamma(ν/2, rate ν/2).
-- **Likelihood of ν.** Λ(ν, τ) = E_w[exp(−½ g(diag(s²/w_i)))] (the restricted likelihood relative to C, with the global
-  parameters handled exactly as in Stage 1, the correlated C included through M). **Primary: refitted, variance-matched
-  scale**, L(ν) = Λ(ν, τ̂_HF), as R2-RE-GT/GTP tie the t scale to the REML τ̂. ν = ∞: Λ = exp(−½ g(τ̂_HF² I)), exact.
-- **Method for finite ν: importance sampling over w.** Proposal q(w) = Π_i Gamma(shape (ν + 1)/2, rate (ν + m_i/s²)/2)
-  with m_i = μ_i² + Σ_ii from the Gaussian posterior at τ̂_HF (one deterministic step, no tuning on the result). Weights
-  log ω = Σ_i [log Gamma(w_i; ν/2, ν/2) − log q_i(w_i)] − ½ g(diag(s²/w)); log Λ̂ = logsumexp(log ω) − log N; the
-  effective sample size ESS = (Σω)²/Σω². Draws `numpy.random.default_rng(seed).gamma(shape, 1/rate, (N, 277))`.
-  **N = 4,000 per stream, two streams** per ν: seeds 730,000 + 10j + r (j = 0, …, 4 for ν = 3, 4, 6, 10, 30; r = 0, 1).
-  **Accuracy check:** for every finite ν, |log Λ̂_r=0 − log Λ̂_r=1| ≤ 0.1 and ESS ≥ 200 in each stream; the result is the
-  pooled estimate (N = 8,000). If the check fails for any ν, all five ν are redone once with N = 32,000 per stream (seeds
-  740,000 + 10j + r) and the same check; if it fails again the outcome is **"ν not determinable by this method (Monte
-  Carlo)"**.
-- **Weights.** w(ν) ∝ L(ν) over the six grid points (flat prior on the grid), the primary. Sensitivity (reported): prior
-  weights uniform in 1/ν, i.e. each grid point weighted by the length of its cell in 1/ν ∈ [0, 1/3] (cell edges at the
-  midpoints between grid values): π = 0.125 (ν = 3), 0.25 (4), 0.225 (6), 0.20 (10), 0.15 (30), 0.05 (∞). The summary
-  quantity is **P(ν ≤ 4) = w(3) + w(4)** (prior value 1/3 flat, 0.375 in 1/ν). ν ≤ 4 is where GTP's crossover lies
-  (between 4 and 6), chosen after R2-RE-GTP (post hoc).
-- **Profile sensitivity (reported only).** Λ(ν, m·τ̂_HF) for m ∈ {0.5, 0.75, 1, 1.5, 2} (same N and check; seeds
-  770,000 + 100k + 10j + r for the k-th m other than 1), L_prof(ν) = max_m, and P(ν ≤ 4) from it.
+- **Family.** b_g = s·t_g with t_g ~ t_ν independent, s = τ√((ν − 2)/ν) (variance τ², as in R2-RE-GT/GTP), ν ∈ {3, 4,
+  6, 10, 30, ∞} (the GTP grid; ∞ Gaussian). As a scale mixture, b_g | w_g ~ N(0, s²/w_g), w_g ~ Gamma(ν/2, rate ν/2).
+- **Likelihood of ν.** Λ(ν, τ) = E_w[exp(−½ g(diag(s²/w_g)))] (the restricted likelihood relative to C, with the global
+  parameters handled exactly as in Stage 1, the correlated C included through M). **Primary: L(ν) = Λ(ν, τ̂_HF)**, the
+  scale tied to the Gaussian REML τ̂_HF by variance matching, as R2-RE-GT/GTP tie the t scale to the REML τ̂. **L(ν) is
+  a variance-matched plug-in: neither a profile likelihood over the scale nor a likelihood marginal over it; the
+  procedure as a whole is calibrated only by the known-answer check below (M4).** ν = ∞: Λ = exp(−½ g(τ̂_HF² I)), exact.
+- **Method for finite ν: importance sampling over w (S3).** Per group, a defensive mixture proposal q_g(w) = 0.1·Gamma(w;
+  ν/2, rate ν/2) + 0.9·Gamma(w; (ν + 1)/2, rate (ν + m_g/s²)/2), with m_g = μ_g² + Σ_gg from the Gaussian posterior **at the
+  τ being evaluated** (τ̂_HF for the primary, m·τ̂_HF in the profile, τ̂_s in a mock; one deterministic step, no tuning
+  on the result). Each coordinate is drawn from the prior component with probability 0.1 (a Bernoulli draw, then the
+  component's Gamma draw), from one `numpy.random.default_rng(seed)` per stream in a fixed order (the component
+  indicators for all N × n_g coordinates, then the prior-component Gammas, then the posterior-component Gammas, each
+  in row-major order). Log weights log ω = Σ_g [log Gamma(w_g; ν/2, ν/2) − log q_g(w_g)] − ½ g(diag(s²/w)), all in log
+  space; log Λ̂ = logsumexp(log ω) − log N (the plain importance estimate); ESS = (Σω)²/Σω²; and the Pareto shape k̂ of
+  the largest weights (Pareto-smoothed importance sampling diagnostic, Vehtari et al., arXiv:1507.02646: a generalized
+  Pareto fit to the largest min(0.2N, 3√N) weights by the Zhang–Stephens estimator; used as a diagnostic only, the
+  estimate is not smoothed). **N = 4,000 per stream, two streams** per ν: seeds 730,000 + 10j + r (j = 0, …, 4 for ν =
+  3, 4, 6, 10, 30; r = 0, 1). **Accuracy check:** for every finite ν, |log Λ̂_r=0 − log Λ̂_r=1| ≤ 0.1, ESS ≥ 200 and
+  k̂ < 0.7 in each stream; the result is the pooled estimate (N = 8,000). If the check fails for any ν, all five ν are
+  redone once with N = 32,000 per stream (seeds 740,000 + 10j + r) and the same check; if it fails again the outcome is
+  **"ν not determinable by this method (Monte Carlo)"**.
+- **Weights.** w(ν) ∝ π(ν)·L(ν) over the six grid points. Primary: π flat on the grid. Sensitivity (reported): π uniform
+  in 1/ν, i.e. each grid point weighted by the length of its cell in 1/ν ∈ [0, 1/3] (cell edges at the midpoints between
+  grid values): π = 0.125 (ν = 3), 0.25 (4), 0.225 (6), 0.20 (10), 0.15 (30), 0.05 (∞). The summary quantity is
+  **P(ν ≤ 4) = w(3) + w(4)** (prior value 1/3 flat, 0.375 in 1/ν). ν ≤ 4 is where GTP's crossover lies (between 4 and 6),
+  chosen after R2-RE-GTP (post hoc).
+- **Sensitivities (reported only).** (i) Profile: Λ(ν, m·τ̂_HF) for m ∈ {0.5, 0.75, 1, 1.5, 2} (same N and check; seeds
+  770,000 + 100k + 10j + r for the k-th m other than 1), L_prof(ν) = max_m, and P(ν ≤ 4) from it. (ii) The V(τ̂_obs) base
+  (M1): u and M recomputed with the calibrator host effect at τ̂_obs in the base covariance, τ̂_HF refitted on it, and
+  P(ν ≤ 4) with the same N and check (seeds 820,000 + 10j + r). (iii) The 0.45 grouping: P(ν ≤ 4) with seeds 830,000 +
+  10j + r.
 
-*Known-answer check (before L(ν) is computed on the data; only if Stage 1 passes).* Mocks at the data's τ̂_HF: u_s =
-B ε_s + M b_s, with B = ZᵀP K_C (K_C the lower Cholesky factor of C on `rows_a`), ε_s =
-`default_rng(700_000 + s).standard_normal(3489)` (common to both injections), b_s = s_ν·t_s with s_ν = τ̂_HF√((ν − 2)/ν)
-and t_s = `default_rng(710_000 + s).standard_t(3, 277)` for t₃ and `default_rng(720_000 + s).standard_t(10, 277)` for
-t₁₀, **s = 0, …, 199 per injection (400 mocks)**. In each mock: τ̂_s refitted by the reduced form (`reml_tau(f, 0.5, 0.01,
-interval=False)`, the zero rule), then L_s(ν) at τ̂_s for the six ν with one stream of N = 2,000 (seeds 750,000 + 10s + j
-for the t₃ mocks, 760,000 + 10s + j for the t₁₀ mocks; no accuracy check per mock; ESS recorded), and P_s(ν ≤ 4) with
-flat weights (if τ̂_s < 10⁻³, every L_s = 1 and P_s = 1/3). **Pass rule, fixed now:** (a) the heavy-tail label (P_s > 0.95)
-in at most 10 of the 200 t₁₀ mocks, and the light-tail label (P_s < 0.05) in at most 10 of the 200 t₃ mocks; and (b)
-mean P_s over the t₃ mocks minus mean P_s over the t₁₀ mocks ≥ 0.10. If (a) or (b) fails, the outcome is **"ν not
-determinable by this method"** with the failing part named ((a): mislabels; (b): no power at this τ_HF), and L(ν) on the
-data and p_int are not computed. Reported: the two mean P_s, the label counts, the quantiles of P_s and τ̂_s, the
-fraction of mocks that would pass the Stage-1 gate, and the ESS quantiles.
+*Known-answer check (before L(ν) is computed on the data; only if Stage 1 passes).* All mocks are at the data's τ̂_HF
+with u_s = B ε_s + M b_s, B = ZᵀP K_C (K_C the lower Cholesky factor of C on `rows_a`), ε_s =
+`default_rng(700_000 + s).standard_normal(3489)` (common to all four injections), **s = 0, …, 199 per injection**:
+- **t₃** and **t₁₀**: b_s = s_ν·t_s, s_ν = τ̂_HF√((ν − 2)/ν), t_s = `default_rng(710_000 + s).standard_t(3, n_g)` and
+  `default_rng(720_000 + s).standard_t(10, n_g)`.
+- **(i) Heteroscedastic Gaussian (S2):** b_g ~ N(0, d_g) with d_g ∝ c_g, c_g the mean of C_ii over group g's rows, scaled
+  so that the mean of d_g over the groups is τ̂_HF² (variance-matched); draws `default_rng(780_000 + s).standard_normal(n_g)`
+  times √d_g.
+- **(ii) t₃ truncated at 3.5σ (S2):** start from the t₃ mock's ε_s and t_s. The residual is the GLS residual of the mock
+  under C with all global parameters refitted, r = C_a P (K_C ε_s + Z b_s) on `rows_a` (the same projection as the data
+  fit), and σ_i = √C_ii, on the Hubble-flow rows; a group fails the cut if any of its rows has |r_i| > 3.5σ_i. The t
+  values of the failing groups are redrawn (in group order, from one `default_rng(790_000 + s)` stream of `standard_t(3)`
+  draws) and the cut is applied again, up to 100 rounds; a mock that still has a failing group after 100 rounds is
+  "truncation failed" and left out (more than 10 such mocks: label 3, "selection"). This keeps the design fixed and
+  mimics a sample from which SNe beyond 3.5σ were removed; it uses the SH0ES-system residual and C's diagonal, not
+  Pantheon+'s own fit and uncertainties, so it approximates the cut of item 6.
+In each mock: τ̂_s refitted by the reduced form (`reml_tau(f, 0.5, 0.01, interval=False)`, the zero rule), then L_s(ν)
+at τ̂_s for the six ν with one stream of N = 2,000 and the same estimator (seeds 750,000 + 10s + j for t₃, 760,000 + 10s
++ j for t₁₀, 800,000 + 10s + j for (i), 810,000 + 10s + j for (ii)), and P_s(ν ≤ 4) with flat weights (if τ̂_s < 10⁻³,
+every L_s = 1 and P_s = 1/3). No accuracy check per mock; the fraction of mocks with ESS < 200 or k̂ ≥ 0.7 in any ν is
+reported (M5).
+**Pass rule, fixed now.** (a) The heavy-tail label (P_s > 0.95) in at most 10 of the 200 t₁₀ mocks, and the light-tail
+label (P_s < 0.05) in at most 10 of the 200 t₃ mocks. (b) Δ_b = mean P_s(t₃) − mean P_s(t₁₀) ≥ 0.10. (c) The heavy-tail
+label in at most 10 of the 200 heteroscedastic mocks (i). (d) |mean P_s(t₃ truncated) − mean P_s(t₃)| ≤ Δ_b (the
+truncated mean is over the mocks not "truncation failed"). If (a), (b) or (c) fails, the outcome is **"ν not
+determinable by this method"** with the failing part named ((a): mislabels; (b): no power at this τ_HF; (c):
+heteroscedasticity); if only (d) fails, **"ν not determinable (selection)"**. In all these cases L(ν) on the data and
+p_int are not computed. Reported: the four mean P_s, the label counts per injection, the fraction of t₃ mocks with
+P_s > 0.95 (M5), the quantiles of P_s and τ̂_s, the fraction of mocks that would pass the Stage-1 gate, the number of
+redraw rounds and of "truncation failed" mocks, and the ESS and k̂ quantiles.
 
-*Integrated p (computed only when a ν label below is reached).* p_int = Σ_ν w(ν)·p_cal(ν, τ) with the recorded
+*Integrated p (computed only when label 4, 5 or 6 is reached).* p_int = Σ_ν w(ν)·p_cal(ν, τ) with the recorded
 R2-RE-GTP values, never recomputed: **primary at τ̂_obs**, p_cal from `r2_re_gtp.json` `refit.<ν>.tau_obs.p_cal.p`
 (0.0768, 0.0504, 0.0300, 0.0208, 0.0166, 0.0165 for ν = 3, 4, 6, 10, 30, ∞); **bound** with the maximum over the three
 τ, `p_cal_max_over_tau.<ν>` (0.0783, 0.0510, 0.0303, 0.0216, 0.0178, 0.0165), labelled "at the three checked τ only".
-Both are reported with the flat weights (primary) and the 1/ν weights, next to the prior-only values (item 5 above).
+Both are reported with the flat weights (primary) and the 1/ν weights, next to the prior-only values (item 7).
 p_int is a weighted average of calibrated p values, not itself a calibrated p value for a composite null; it inherits
 R2-RE-GTP's caveats (three τ, coarse grid that stops at ν = 3).
 
 *Labels, fixed now (exactly one applies, in this order).*
-1. **"ν not evaluable (<reason>)"**: a check fails (below), or Stage 1's τ̂_HF is at the upper bound.
+1. **"ν not evaluable (<reason>)"**: a check fails (below; the reason names it), the τ̂_HF interval's lower end is "not
+   determined", or Stage 1's τ̂_HF is at the upper bound (reason "bound").
 2. **"ν not evaluable (no excess scatter in the Hubble flow)"**: Stage 1's gate.
-3. **"ν not determinable by this method (<part>)"**: the known-answer check fails, or the Monte Carlo accuracy check
-   fails twice.
+3. **"ν not determinable by this method (<part>)"** or **"ν not determinable (selection)"**: the known-answer check
+   fails, or the Monte Carlo accuracy check fails twice (part "Monte Carlo").
 4. **"ν constrained to the light-tail side (P(ν ≤ 4) < 0.05)"**; 5. **"ν constrained to the heavy-tail side (P(ν ≤ 4) >
    0.95)"**; 6. **"ν weakly constrained"** otherwise. Each of 4–6 is written with "(if Hubble-flow and calibrator effects
-   share ν)" and reports p_int.
-- *Reading of p_int against 0.05, fixed now.* Under labels 4 and 5, p_int (primary) is stated as "below 0.05" or "at or
-  above 0.05": below 0.05 reads "integrated over the Hubble-flow-informed ν, diffuse host scatter of R2-RE's size is
-  excluded by G at the 5% level (reported, non-decisive)"; at or above reads "not excluded". Under label 6, p_int is
-  reported with the prior-only reference value (0.0352) and is **not** read against 0.05: the weights there reflect the
-  grid prior as much as the data (item 5). The bound and the 1/ν version are reported in every case and are not read.
+   share ν)" and reports p_int. **Scale condition (S5):** under 4 or 5, if 0.0767 lies outside τ̂_HF's 68% interval, the
+   label gets "(scale differs: transfer not supported)" appended.
+- *Reading of p_int against 0.05, fixed now.* Under labels 4 and 5 without the scale suffix, p_int (primary) is stated as
+  "below 0.05" or "at or above 0.05": below 0.05 reads "integrated over the Hubble-flow-informed ν, diffuse host scatter
+  of R2-RE's size is excluded by G at the 5% level (reported, non-decisive)"; at or above reads "not excluded". Under 4
+  or 5 with the scale suffix, and under label 6, p_int is reported but **not** read against 0.05 (under 6 next to the
+  prior-only reference value 0.0352: the weights there reflect the grid prior as much as the data, item 7). The bound
+  and the 1/ν version are reported in every case and are not read.
 - The labels attach to R2-RE-GTP's statement as its outside constraint; R2-RE-GT's sub-label and gloss, R2-RE-GTP's
   statement, R2-RE's headline row, `summary.json` `R2_host` and the claim's verdict do not change.
 
 *Checks (a failure gives label 1 with the reason).* Row classes: 277 Hubble-flow rows, all in `rows_a` (3,489 rows);
-R2-RE's reproduction on the data (τ̂_obs within 10⁻⁶ relative, the recorded REML grid within 10⁻⁸); the reduced form
-against `reml_m2l`: g(τ²I) equals reml_m2l(τ) − reml_m2l(0) within 10⁻⁶ at τ = 0.01, 0.05 and τ̂_HF; M's rank rule
-above; the Cholesky factor of C; for the first three t₃ mocks, y_s built in full (ŷ + K_C ε_s + Z b_s on `rows_a`) and
-τ̂_s from `reml_m2l` with the 277 groups within 2 × 10⁻⁵ of the reduced-form τ̂_s.
+the grouping count check (above); R2-RE's reproduction on the data with R2-RE-G's tolerances by name (τ̂_obs within
+`shape.TAU_OBS_ATOL`, the recorded REML grid differences within `shape.GRID_ATOL`); the reduced form against
+`reml_m2l`: g(τ²I) equals reml_m2l(τ) − reml_m2l(0) within `shape.GRID_ATOL` at τ = 0.01, 0.05 and τ̂_HF; M's eigenvalue
+rule above; the Cholesky factor of C; for the first three t₃ mocks, y_s built in full (ŷ + K_C ε_s + Z b_s on `rows_a`)
+and τ̂_s from `reml_m2l` with the n_g groups within `shape.TAU_OBS_ATOL` of the reduced-form τ̂_s.
 
 *Order and stages (as R2-RE-GT's power and full stages).* A **check stage** runs the checks, Stage 1 and, if the gate
 passes, the known-answer check, and writes `results/r2_re_nu_check.json` (τ̂_HF, the gate, the mock summary and per-mock
-τ̂_s, P_s, ESS); it never computes L(ν) on the data. One line with τ̂_HF, the gate and the known-answer outcome is
+τ̂_s, P_s, ESS, k̂); it never computes L(ν) on the data. One line with τ̂_HF, the gate and the known-answer outcome is
 written into log.md and committed **before** the full stage starts. The **full stage** recomputes the checks, Stage 1
 and the first 20 mocks of each injection (all must equal the check record exactly), then computes L(ν), the weights,
 the label and p_int, and writes `results/r2_re_nu.json` (under 1 MB) with the key `R2_RE_NU` in `summary.json` (every
@@ -1648,38 +1718,47 @@ other key byte-identical). If Stage 1's gate gives label 2, or the known-answer 
 outcome is final and the full stage only writes `r2_re_nu.json` with that label (no L(ν)). The first formal outcome
 stands; a rerun needs a reason also present in log.md.
 
-*Data and runtime.* Cache only, no download (the three FITS files of section 3). Timed on synthetic inputs, single
-thread: `reml_m2l` on `rows_a` with the 277 single-row groups 0.47 s per evaluation, so Stage 1 (about 70 evaluations
-with the refinement and the interval) about 35 s, and the sensitivity with V(τ̂_obs) as much again; one importance
-evaluation g(D) on 277 × 277 about 0.9 ms. Known-answer check: 400 mocks × 5 finite ν × 2,000 draws ≈ 4 × 10⁶
-evaluations, about 60 min; data Stage 2 (5 × 8,000) under 1 min, the profile sensitivity (4 more m) about 3 min, an
-escalation about 5 min; the three pointwise mocks about 2 min; data loading and host identification 2–3 min. Check
-stage about 70 min, full stage about 15 min, up to twice that with a shared CPU.
+*Data and runtime.* Cache only, no download (the three FITS files of section 3, and `Pantheon+SH0ES.dat` already in the
+cache, 0.58 MB, read through `ctx.http`: only CID and USED_IN_SH0ES_HF are used). Timed on synthetic inputs, single
+thread: `reml_m2l` on `rows_a` with 277 single-row groups 0.47 s per evaluation (about the same with the grouped design),
+so Stage 1 (about 70 evaluations with the refinement and the interval) about 35 s per covariance and grouping (three:
+main, 0.45, V(τ̂_obs) base); one importance evaluation g(D) about 0.9 ms at 277 × 277, somewhat less at n_g ≈ 240.
+Known-answer check: 800 mocks × 5 finite ν × 2,000 draws ≈ 8 × 10⁶ evaluations, about 1.5–2 h; data Stage 2 (5 × 8,000)
+under 1 min, the sensitivities about 6 min, an escalation about 5 min; the three pointwise mocks about 2 min; data
+loading and host identification 2–3 min. Check stage about 2 h, full stage about 20 min, up to twice that with a
+shared CPU.
 
 *Code checks before the formal run (synthetic data only).* g(D) against direct REML on a synthetic system with V = C +
-Z D Zᵀ for random D (10⁻⁸); the importance sampler on a synthetic factorised system (diagonal C on the Hubble-flow
-rows, no cross terms) against per-SN one-dimensional quadrature of the Gaussian–t convolution (log Λ within three Monte
-Carlo standard errors); ν = 10⁶ against the Gaussian closed form; the variance matching (sample variance of b = τ²); the
-1/ν weights listed above; the gate, the label order, the pass rule and the p_int arithmetic from the recorded keys; the
-check record contains no L(ν), weights, label or p_int computed on the data. On the real data before the formal run,
-nothing beyond the checks above (no τ_HF).
+Z D Zᵀ for random D and a grouped Z (10⁻⁸); the importance sampler, **with the same defensive estimator and diagnostics**,
+on a synthetic factorised system (diagonal C on the Hubble-flow rows, single-row groups, no cross terms) against
+per-SN one-dimensional quadrature of the Gaussian–t convolution (log Λ within three Monte Carlo standard errors, at ν = 3
+and 10); ν = 10⁶ against the Gaussian closed form; the k̂ estimator against known generalized Pareto samples; the
+variance matching (sample variance of b = τ²) and the heteroscedastic scaling (mean d_g = τ²); the grouping (connected
+components) and its count check; the truncation loop (no residual beyond 3.5σ after it; the round limit); the 1/ν
+weights listed above; the gate, the label order, the scale condition, the pass rule and the p_int arithmetic from the
+recorded keys; the check record contains no L(ν), weights, label or p_int computed on the data. On the real data before
+the formal run, nothing beyond the checks above (no τ_HF).
 
 *Switch and code.* `PARAMS["nu_check"]` (false by default; true with `nu_only` = true, first with `nu_stage` "check",
 then "full", only for the formal runs, back afterwards with dated notes in log.md; the block never runs in a full study
 run, which copies `R2_RE_NU` from an existing `r2_re_nu.json`), `"nu_grid": [3, 4, 6, 10, 30, "inf"]`, `"nu_tau_gate":
-0.02`, `"nu_n_is": 4_000`, `"nu_n_is_escalate": 32_000`, `"nu_is_seed": 730_000`, `"nu_is_seed_escalate": 740_000`,
-`"nu_n_mocks": 200`, `"nu_n_is_mock": 2_000`, `"nu_mock_seeds": {"eps": 700_000, "t3": 710_000, "t10": 720_000,
-"is_t3": 750_000, "is_t10": 760_000}`, `"nu_profile_m": [0.5, 0.75, 1, 1.5, 2]`, `"nu_profile_seed": 770_000`,
-`"nu_rerun_reason": ""`. Seeds 700,000–779,999 collide with none used before (R2-RE-GTP's list plus 430,000–469,999,
-613,000 and 614,000). A formal run uses one thread (`OMP_NUM_THREADS`, `MKL_NUM_THREADS`, `OPENBLAS_NUM_THREADS` = 1)
-and refuses to start unless the `nu_*` values equal those above. Results `results/r2_re_nu_check.json` and
-`results/r2_re_nu.json` (each below 1 MB); a new module or a block appended to `shape.py` (no change to earlier
-functions or results), tests, a conclusion check, a web section and section 8 knobs. None of this exists yet.
+0.02`, `"nu_group_corr": 0.3`, `"nu_group_corr_sens": 0.45`, `"nu_q_prior_frac": 0.1`, `"nu_n_is": 4_000`,
+`"nu_n_is_escalate": 32_000`, `"nu_is_seed": 730_000`, `"nu_is_seed_escalate": 740_000`, `"nu_n_mocks": 200`,
+`"nu_n_is_mock": 2_000`, `"nu_cut_sigma": 3.5`, `"nu_cut_rounds": 100`, `"nu_mock_seeds": {"eps": 700_000, "t3": 710_000,
+"t10": 720_000, "het": 780_000, "trunc": 790_000, "is_t3": 750_000, "is_t10": 760_000, "is_het": 800_000, "is_trunc":
+810_000}`, `"nu_profile_m": [0.5, 0.75, 1, 1.5, 2]`, `"nu_profile_seed": 770_000`, `"nu_vbase_seed": 820_000`,
+`"nu_group_sens_seed": 830_000`, `"nu_rerun_reason": ""`. Seeds 700,000–839,999 collide with none used before
+(R2-RE-GTP's list plus 430,000–469,999, 613,000 and 614,000). A formal run uses one thread (`OMP_NUM_THREADS`,
+`MKL_NUM_THREADS`, `OPENBLAS_NUM_THREADS` = 1) and refuses to start unless the `nu_*` values equal those above. Results
+`results/r2_re_nu_check.json` and `results/r2_re_nu.json` (each below 1 MB); a new module or a block appended to
+`shape.py` (no change to earlier functions or results), tests, a conclusion check, a web section and section 8 knobs.
+None of this exists yet.
 
 *What changes in section 5.* A new subsection "R2-RE-NU" with the numbers and the label; the R2-RE-GTP reading gains one
 sentence with the label and p_int; the open question of section 7 on ν is answered accordingly. Post hoc throughout in
-one respect: the route (Hubble flow), the gate threshold and the summary P(ν ≤ 4) were chosen after all of R2-RE-GTP's
-results and after seeing the structure of C on the Hubble-flow rows (item 3), though before any Hubble-flow residual.
+one respect: the route (Hubble flow), the gate threshold, the grouping thresholds and the summary P(ν ≤ 4) were chosen
+after all of R2-RE-GTP's results and after seeing the structure of C on the Hubble-flow rows (items 3 and 4), though
+before any Hubble-flow residual.
 
 ## 3. Data (with size estimate)
 
