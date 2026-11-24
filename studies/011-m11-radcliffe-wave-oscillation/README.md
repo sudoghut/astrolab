@@ -80,6 +80,9 @@ not to K24's.
 |---|---|---|---|
 | K24 young-cluster table `Radcliffe_Wave_stellar_clusters_Konietzka2024.tab` | Harvard Dataverse doi:10.7910/DVN/XSCB9N, file id 7211931, via `ctx.http` (`https://dataverse.harvard.edu/api/access/datafile/7211931`) | all rows | 125 rows, 10,888 bytes |
 | K24 ¹²CO cloud table `Radcliffe_Wave_CO_analysis_Konietzka2024.tab` | Harvard Dataverse doi:10.7910/DVN/Q7F4PC, file id 7211929, via `ctx.http` | all rows | 79 rows, 5,286 bytes |
+| *Added 2026-11-24 (section 4.11, T-061, R-DIAG only):* Zucker et al. 2020 Table A.1 `Handbook_Distances_Zucker2020.dat` | Harvard Dataverse doi:10.7910/DVN/07L7YZ, file id 4361456, via `ctx.http` | all rows | 326 rows, 55,870 bytes |
+| *Added 2026-11-24 (R-DIAG):* Alves et al. 2020 bridging sightlines `Bridging_Sightlines_Alves_2020.dat` | doi:10.7910/DVN/K16GQX, file id 4361453, via `ctx.http` | all rows | 54 rows, 9,894 bytes |
+| *Added 2026-11-24 (R-DIAG):* K24 best-fit model curve `Radcliffe_Wave_best_fit_model_Konietzka2024.tab` | doi:10.7910/DVN/F98QHY, file id 8954305, via `ctx.http` | all rows | 1,500 rows, 47,253 bytes |
 
 The two tables come to about 16 KB, far below the 200 MB study budget. Nothing else is fetched.
 
@@ -503,6 +506,132 @@ changes.
    Checkpoints go to `s011_checkpoints/<conv|t8p>/<key>`, so a finished part never deletes the other's. An exploration
    may fit a subset of the conventions (`conv_indices`); then `rconv.json` says `complete_set: false` and the choice is
    over that subset.
+
+### 4.11 Addendum 2026-11-24: R-DIAG, where the column-(3) difference comes from (T-061), pre-registered before any of these fits
+
+*Why.* R-CONV (section 5.1) found that none of 16 conventions reproduces column (3): all give the same two parameters
+inside and four outside, so the cause is common to them. Its referee (section 6, points 1, 2 and 9) proposed a per-cloud
+diagnostic at K24's column-(3) medians against our best point, and refits with the origin of s shifted by ±200 pc and
+with the Sun 20.8 pc above the midplane, and asked whether our 79 clouds are K24's sample. **Everything in this addendum
+is post hoc**: it is added after the formal, R-CONV and T8-P results were seen.
+
+*K24's text and the public data, rechecked (2026-11-24).*
+- K24 Methods, "Modeling the Spatial Molecular Cloud Distribution": the cloud component is "described by the
+  corresponding 3D cloud positions from the Major Cloud Catalog and the Tenuous Connections Catalog", keeping "only those
+  molecular clouds for which we can obtain a radial velocity measurement". "Line-of-sight Gas Velocities": a ¹²CO
+  spectrum is computed "for each set of spatial cloud coordinates"; 9% of the clouds have no usable ¹²CO and are
+  excluded; for Extended Data Fig. 3a the measurements of a single cloud are combined "into a single data point". That
+  figure's caption says Perseus and Taurus (outliers in the cluster fit) are not shown. K24 print no count of the clouds
+  in the column-(3) fit; in their Extended Data Fig. 1 the clouds appear as many more points than 79.
+- The Major Cloud Catalog is Zucker et al. 2020 Table A.1 (Harvard Dataverse doi:10.7910/DVN/07L7YZ, file
+  `Handbook_Distances_Zucker2020.dat`, id 4361456, 55,870 bytes, CC0): 326 sightlines in 94 named clouds, one row per
+  sightline with name, l, b, distance percentiles and x, y, z. The Tenuous Connections Catalog is Alves et al. 2020's
+  bridging sightlines (doi:10.7910/DVN/K16GQX, `Bridging_Sightlines_Alves_2020.dat`, id 4361453, 9,894 bytes, CC0): 54
+  sightlines with the same columns.
+- Our 79-row ¹²CO table has columns name, x, y, z, xspread, yspread, zspread, l, b, d, vr, vr16, vr84. Its rows are the
+  54 bridging sightlines (by name) and 25 rows named after 23 major clouds (two names appear in two spellings: `MonR2`
+  and `Mon_R2`, `NorthAmerica` and `NorthAmericaNebula`); Perseus and Taurus are absent. The `spread` columns suggest
+  that each named row combines several sightlines. So our column-(3) fit used **one point per cloud** where K24's fit
+  most likely used **one point per sightline**, with many sightlines in Orion, Cepheus or Cygnus X. This is our reading;
+  K24 do not say it in these words.
+- K24's best-fit model curve is public (doi:10.7910/DVN/F98QHY, `Radcliffe_Wave_best_fit_model_Konietzka2024.tab`, id
+  8954305, 47,253 bytes, CC0): 1,500 points with x, y, z (pc) and v_z (km/s). The Dataverse description says it was
+  "derived from" the cloud and cluster observations, so we take it as the column-(6) fit; whether it is the median, the
+  maximum or another point of the posterior is not stated.
+- Bennett & Bovy 2019 (MNRAS 482, 1417; arXiv:1809.03507) measure the Sun's height above the local midplane as
+  z☉ = 20.8 ± 0.3 pc. K24 (Methods, cluster fit) refit with z☉ free in U(−10, 25) pc and found shifts below a third of
+  the 1σ uncertainties, so we expect little from this variant.
+
+*Seen before this addendum.* All of sections 5–7 and log.md. On 2026-11-24 an exploration (`explore/t061_inputs.py`,
+output not committed) fetched the three new files and printed their row counts, column headers, the first two rows of
+each and the sightline names and their counts per cloud, and matched the ¹²CO names to the sightline names. No sightline
+position was compared with any model curve, the published curve was not compared with our model, and nothing was fitted.
+
+*Part A, per-object diagnostic on the 79 (descriptive).* The formal column-(3) setup (L-F-W, σ = 47 pc, the formal fixed
+weights). Two parameter vectors: K24's column-(3) medians v_K (the free parameters from Extended Data Table 2,
+B = 1, ω₀t = 0) and our maximum a posteriori point v_M (section 4.2's optimiser on the log posterior, the best of 20
+starts: v_K and 19 prior draws from (`seed`, `rdiag_map`)). At both: ln L, ln prior, ln posterior, σ_P (section 4.10);
+for each object its name, s, weight, d² and term w·d²/(2σ²), and the per-object difference Δᵢ = term(v_K) − term(v_M).
+Reported: the ten objects with the largest Δᵢ; the share of Σ max(Δᵢ, 0) they carry; the sums over the 25 named rows and
+the 54 bridges. Label: **"concentrated"** if the ten largest carry at least 50% of Σ max(Δᵢ, 0), otherwise
+**"diffuse"**.
+
+*Part B, the input sample (R-SAMP).* Two sightline samples, positions from each table's x, y, z columns (heliocentric
+Galactic Cartesian, as in our ¹²CO table):
+- **S** (the primary reading of K24's text): every Zucker et al. 2020 sightline whose cloud name maps to a named row of
+  our ¹²CO table, plus all 54 bridging sightlines. The map is fixed now: CB29, CMa_OB1, Cam, Cepheus, CygnusX, IC5146,
+  L1228, L1228D, L1251, L1265, L1333, L1617, L1622, L977, L988, Lacerta, Orion, Orion_Lam, Polaris, S106 map to the same
+  name; `MonR2` and `Mon_R2` to `Mon_R2`; `NorthAmerica` and `NorthAmericaNebula` to `North_America`;
+  `NorthernCoalsack` to `Northern_Coalsack`. That is 115 + 54 = 169 sightlines (counts from the names; if the run counts
+  differently, it stops).
+- **S+PT**: S plus the Perseus (18) and Taurus (10) sightlines, 197 in all (K24 may have kept them in the spatial fit).
+
+*Consistency check (descriptive, before the fits).* For each of the 25 named ¹²CO rows, the mean x, y, z of its mapped
+sightlines minus the row's x, y, z, in pc and in units of the row's spread; for the bridges, the ¹²CO row minus the
+bridging row. This shows whether a named row is the mean of all its sightlines; it changes no sample.
+
+*Fits.* For each sample the column-(3) MCMC exactly as section 4.2 (L-F-W, σ = 47 pc fixed, B = 1, ω₀t = 0), with
+kernel weights from each sightline's s on the curve at K24's column-(6) medians (bandwidth 100 pc, normalised to the
+sample size, as section 4.1). Seeds from (`seed`, `rdiag_S`) and (`seed`, `rdiag_SPT`); walkers start around K24's
+column-(3) medians. For each: T1's column-(3) count (how many of A, p, δ, s₀, γ, φ have their posterior median inside K24's
+16–84% interval), the σ-scaled differences of the 12 shape and anchor parameters, the width ratio (section 4.10,
+amendment 5), σ_P at the posterior median (reported, not used), and the label by R-CONV's thresholds: **"column (3)
+reproduced with sample <S | S+PT>"** if the count is ≥ 5 and the width ratio lies in [2/3, 3/2]; **"column (3) partly
+reproduced with sample <…>"** if the count is 3–4, or ≥ 5 with the width ratio outside that range; **"column (3) not
+reproduced with sample <…>"** if the count is ≤ 2. Each label ends with "post hoc".
+
+*Part C, K24's published curve (R-CURVE, descriptive with one label).* (i) Our model curve at K24's column-(6) medians
+(the formal L baseline, grid and extent, B = 1, ω₀t = 0, divisor 74): for each of the 1,500 published points, the 3-D
+distance to the nearest valid grid point of our curve and the v_z difference there; reported: median, 95th percentile
+and maximum of the distance, the median absolute v_z difference, and our s of the published curve's first and last
+points (they show where K24's curve starts and ends in our convention). Label: **"matches K24's published curve"** if the
+median distance is ≤ 5 pc and the 95th percentile ≤ 15 pc; **"approximately matches"** if the median is ≤ 20 pc;
+otherwise **"differs from K24's published curve"**. Because the published point of the posterior is not stated, a
+difference of a few pc can come from medians against a best fit and is not read as a convention error. (ii) A
+least-squares fit of our curve to the published points: the 12 shape and anchor parameters, B = 1 and ω₀t = 0, minimising
+the sum over the 1,500 points of the squared 3-D distance to our curve (positions only), started at K24's column-(6)
+medians, Nelder–Mead then L-BFGS-B as section 4.2. Reported: the fitted parameters, their differences from K24's column-(6)
+medians in K24's σ, and the RMS distance. If the RMS is at most 5 pc, our parametrisation can represent K24's curve, and
+any parameter more than 1σ from K24's medians points to a convention difference; this is read, not labelled.
+
+*Part D, conventions R-CONV did not vary (R-ORIG).* On the 79 ¹²CO rows, the formal column-(3) setup with one change
+each: (−200) the origin of s moved 200 pc before anchor 0, i.e. s′ = s + 200 pc; (+200) moved 200 pc after it, s′ = s −
+200 pc; (z☉) every cloud's z increased by 20.8 pc. s′ replaces s wherever s enters the model (Λ and ζ); the priors, the
+grid, the curve's extent and the fixed weights are unchanged (the weights depend on s only through differences). MCMC
+as section 4.2, seeds from (`seed`, `rdiag_m200`), (`seed`, `rdiag_p200`), (`seed`, `rdiag_zsun`); count, differences,
+width ratio and labels as in Part B ("… with the origin at −200 pc / +200 pc / with z☉ = 20.8 pc, post hoc").
+
+*Reading (post hoc, fixed now).* **"the column-(3) difference comes from the input sample"** if S's label is
+"reproduced" or "partly reproduced"; otherwise **"the column-(3) difference comes from the origin of s or the Sun's
+height"** if any Part-D label is "reproduced" or "partly reproduced"; otherwise **"the column-(3) difference remains
+unexplained (input sample, origin and the Sun's height tested)"**. S+PT, Part A and Part C are reported next to it and do
+not enter it. Nothing else is rerun: the formal labels, the overall reading, T6, R-CONV and T8-P stay as recorded; if S
+reproduces column (3), rerunning T1 for columns (4) and (6) and T5 with sightlines is a separate, later decision.
+
+*Expected outcome (stated now).* Sample S gives Orion (24 sightlines), Cepheus (28) and Cygnus X (13) far more weight
+than our one row each, except where the kernel weights compensate; we expect it to move the anchors and φ, and give an
+even chance that column (3) is at least partly reproduced. Part C most likely "matches" or "approximately matches";
+Part A more likely "diffuse". Part D: z☉ changes little (K24's own test); the origin shifts may move φ, p and γ by about
+1σ, but are unlikely to reach a count of 3.
+
+*Data and cost.* Three new files of 55,870, 9,894 and 47,253 bytes (113,017 in all) via `ctx.http`, far below the
+budget; added to section 3's table. Part A about a minute; Part B two column-(3) chains on 169 and 197 points (about 2–2.5
+times the 79-row cost per evaluation, so about 25–50 minutes each with the doubling); Part C a few minutes; Part D three
+chains of 10–20 minutes. In all about 1.5–2.5 hours on one core, with the pause and checkpointed resume of section 4.9,
+item 13. Run alone, after the other studies' runs.
+
+*Code checks before the run (synthetic data only, except the counts).* The name map yields 169 and 197 sightlines; the
+origin shift s′ = s − c equals evaluating the formal model with s₀ + c in ζ and Λ(s − c) (a direct check on a
+synthetic vector); with c = 0 and no z change the formal likelihood is reproduced to the bit; the per-object terms sum to −ln L
+minus the constant; the curve-distance code returns 0 for a curve compared with itself and the right distance for a
+curve displaced by a known vector; the least-squares fit recovers a synthetic vector from its own curve to under 1 pc RMS.
+
+*Switch and code.* A new part `"diag"` in `PARAMS["parts"]`, standalone like `"conv"` (section 4.10, amendment 9): it
+refuses to start unless `summary.json` exists and re-serialises byte-identically, writes `results/rdiag.json` (below 1 MB)
+with the load check and `params`, and puts `R_DIAG` into `summary.json` before `overall`; records `_diag` and
+`_diagpaused`; checkpoints in `s011_checkpoints/diag/<key>`. `wave011.py` gains the origin shift as a setup option
+(default 0, so all other results reproduce). Tests, conclusion checks, a web section and section 8 knobs. None of this
+exists yet.
 
 ## 5. Results
 

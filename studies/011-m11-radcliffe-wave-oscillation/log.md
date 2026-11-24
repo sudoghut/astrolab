@@ -3,6 +3,12 @@
 按时间倒序追加：做了什么、发现什么、走过哪些死路（dead ends）、下一步。
 术语第一次出现时，在括号中注明英文原文。
 
+## 2026-11-24（R-DIAG 预注册，T-061）
+
+- 重读 K24 方法部分（arXiv PDF）：云的空间拟合用 Major Cloud Catalog（Zucker 等 2020）与 Tenuous Connections Catalog（Alves 等 2020）中的三维位置，只保留有视向速度的云；¹²CO 速度按"每一组空间云坐标"测量，9% 的云被排除；Extended Data 图 3a 把同一云的测量合并成一个点，且不画 Perseus 与 Taurus。K24 没有给出第 (3) 列的云数。
+- 查到两个星表与 K24 最佳拟合曲线在 Harvard Dataverse 上公开（55,870、9,894、47,253 字节，CC0；只读元数据）。探索 `explore/t061_inputs.py`（输出不入库）获取这三个文件，只看行数、列名、前两行与名称：我们的 79 行 = 54 条连接视线（bridging sightlines）+ 23 个主要云的 25 个命名行（带 spread 列，像是按云合并），没有 Perseus 与 Taurus；对应的 Zucker 2020 视线有 115 条。所以我们的第 (3) 列拟合是每云一点，K24 很可能是每视线一点。这是 R-CONV 审稿第 1 点的另一种来源（输入样本），先前"不接受为已证明"的判断需要检验。
+- 写入 README 第 4.11 节（中英文）预注册 R-DIAG（全部事后）：A 部分逐对象诊断（K24 中位数对我们的最大后验点）；B 部分视线样本 S（169 条）与 S+PT（197 条）的第 (3) 列重拟合；C 部分与 K24 公布曲线比较并做最小二乘拟合；D 部分 s 起点 ±200 pc 与太阳高度 z☉ = 20.8 pc（Bennett 与 Bovy 2019，arXiv:1809.03507，已核实摘要）。第 3 节数据表加入三个新文件。
+
 ## 2026-11-22（R-CONV 与 T8-P 正式运行，T-056）
 
 - R-CONV：`parts` 设为 ["conv"]（提交 a66b454），单线程，仅用缓存，9,167 秒。16 种约定都是"计数 2/6"（s₀ 与 γ 在内），宽度比 1.07–1.20，所以选择规则 (iii)："column (3) not reproduced under any candidate convention"，A 部分到此为止。每条第 (3) 列链都带"chain short"标记（τ_max 176–217）。结果提交。
