@@ -1093,3 +1093,132 @@ def test_r2_re_gtp_profile():
                 sims[f"{a}_{b}"] = load(f"r2_re_gtp_sims_{a}_{b}")
     reused = {a: {b: load(prefix + key)["k"] for b, key in keys.items()} for a, (prefix, keys) in GTP_REUSED.items()}
     check_r2_re_gtp(out, sims, reused, load("summary")["R2_RE_GTP"], sizes)
+
+
+# ---------------------------------------------------------------- R2-RE-NU (addendum 2026-11-24, T-062)
+NU_KEYS = ["3", "4", "6", "10", "30", "inf"]
+NU_PRIOR_INV = [0.125, 0.25, 0.225, 0.20, 0.15, 0.05]
+NU_FORBIDDEN = ("L_nu", "log_L", "log_L_nu", "weights", "P_le4", "p_int", "label", "p_int_reading", "stage2",
+                "sensitivities")
+NU_LIGHT = "ν constrained to the light-tail side (P(ν ≤ 4) < 0.05)"
+NU_HEAVY = "ν constrained to the heavy-tail side (P(ν ≤ 4) > 0.95)"
+NU_WEAK = "ν weakly constrained"
+NU_COND = " (if Hubble-flow and calibrator effects share ν)"
+NU_SCALE = " (scale differs: transfer not supported)"
+NU_NO_EXCESS = "ν not evaluable (no excess scatter in the Hubble flow)"
+
+
+def _nu_weights(log_l, prior):
+    import math
+    lp = [math.log(p) + v for p, v in zip(prior, log_l)]
+    m = max(lp)
+    e = [math.exp(v - m) for v in lp]
+    return [v / sum(e) for v in e]
+
+
+def check_r2_re_nu(chk, out, s, gtp):
+    """R2-RE-NU (README section 2, addendum 2026-11-24): the check record holds no L(ν), weights, label or p_int; the
+    gate follows Stage 1; the known-answer rules (a)-(e) follow the per-mock P_s; the full stage's weights, P(ν ≤ 4),
+    label, scale suffix, p_int and its reading follow its log L(ν) and R2-RE-GTP's recorded p_cal; the summary key.
+    Reported only: nothing here concerns a verdict of R2 through R2-RE-GTP."""
+    assert chk["stage"] == "check"
+    assert not (set(_keys_of(chk)) & set(NU_FORBIDDEN))
+    outcome = chk.get("outcome")
+    assert outcome is None or outcome.startswith("ν not evaluable (") or outcome.startswith("ν not determinable")
+    s1 = chk.get("stage1")
+    if s1 is not None and "gate" in chk:
+        est, lo = s1["main"], s1["interval_68"][0]
+        if est["at_upper_bound"]:
+            assert chk["gate"] == "bound" and outcome == "ν not evaluable (bound)"
+        elif lo == "not determined":
+            assert chk["gate"] == "lower end not determined"
+        elif lo == 0.0 or s1["tau_hat_HF"] < chk["settings"]["nu_tau_gate"]:
+            assert chk["gate"] == "gate" and outcome == NU_NO_EXCESS
+        else:
+            assert chk["gate"] == "passed"
+    if "known_answer" in chk:
+        m = chk["mocks"]
+        n_heavy = lambda a: sum(1 for p in a if p > 0.95)
+        n_light = lambda a: sum(1 for p in a if p < 0.05)
+        mean = lambda a: sum(a) / len(a)
+        for kind, rec in m.items():
+            assert abs(chk["mock_summary"][kind]["mean_P"] - mean(rec["P"])) < 1e-12
+        r = chk["known_answer"]["rules_abc"]
+        assert r["heavy_in_t10"] == n_heavy(m["t10"]["P"]) and r["light_in_t3"] == n_light(m["t3"]["P"])
+        assert r["heavy_in_het"] == n_heavy(m["het"]["P"])
+        assert abs(r["delta_b"] - (mean(m["t3"]["P"]) - mean(m["t10"]["P"]))) < 1e-12
+        a = r["heavy_in_t10"] <= 10 and r["light_in_t3"] <= 10
+        b = r["delta_b"] >= 0.10
+        c = r["heavy_in_het"] <= 10
+        assert (r["a"], r["b"], r["c"]) == (a, b, c)
+        if not (a and b and c):
+            assert outcome.startswith("ν not determinable by this method (") and "trunc" not in m
+        else:
+            d = chk["known_answer"]["rules_de"]
+            pt = m["trunc"]["P"]
+            assert d["n_failed"] == len(m["trunc"]["failed"]) and d["light_in_trunc"] == n_light(pt)
+            ok = (bool(pt) and abs(mean(pt) - mean(m["t3"]["P"])) <= r["delta_b"] and d["light_in_trunc"] <= 10
+                  and d["n_failed"] <= 10)
+            assert (outcome is None) == ok
+            if not ok:
+                assert outcome == "ν not determinable (selection)"
+    if out is None:
+        return
+    exp_s = {"status": out.get("status"), "label": out.get("label")}
+    for k in ("P_le4", "P_le4_inv_nu"):
+        if k in out:
+            exp_s[k] = out[k]
+    if "p_int" in out:
+        exp_s.update(p_int=out["p_int"]["primary"], p_int_bound=out["p_int"]["bound"],
+                     p_int_reading=out["p_int_reading"]["reading"])
+    if (out.get("stage1") or {}).get("tau_hat_HF") is not None:
+        exp_s.update(tau_hat_HF=out["stage1"]["tau_hat_HF"], interval_68=out["stage1"].get("interval_68"))
+    assert s == exp_s
+    if out["status"] == "final from the check stage":
+        assert out["label"] == outcome and "log_L_nu" not in out and "p_int" not in out
+        return
+    if "log_L_nu" not in out:
+        assert out["label"].startswith("ν not evaluable (") or out["label"].startswith("ν not determinable")
+        assert "p_int" not in out
+        return
+    assert outcome is None and out["checks"]["check_stage_reproduced"]
+    log_l = [out["log_L_nu"][k] for k in NU_KEYS]
+    wf, wi = _nu_weights(log_l, [1 / 6] * 6), _nu_weights(log_l, NU_PRIOR_INV)
+    assert all(abs(out["weights"]["flat"][k] - v) < 1e-12 for k, v in zip(NU_KEYS, wf))
+    assert all(abs(out["weights"]["inv_nu"][k] - v) < 1e-12 for k, v in zip(NU_KEYS, wi))
+    p = wf[0] + wf[1]
+    assert abs(out["P_le4"] - p) < 1e-12 and abs(out["P_le4_inv_nu"] - (wi[0] + wi[1])) < 1e-12
+    inside = out["stage1"]["scale_reference_inside_interval"]
+    if p < 0.05 or p > 0.95:
+        base = NU_LIGHT if p < 0.05 else NU_HEAVY
+        suffix = inside is False
+        assert out["label"] == base + NU_COND + (NU_SCALE if suffix else "")
+    else:
+        suffix = False
+        assert out["label"] == NU_WEAK + NU_COND
+    assert out["scale_suffix"] == suffix
+    pc = [gtp["refit"][k]["tau_obs"]["p_cal"]["p"] for k in NU_KEYS]
+    pm = [gtp["p_cal_max_over_tau"][k] for k in NU_KEYS]
+    assert abs(out["p_int"]["primary"] - sum(a * b for a, b in zip(wf, pc))) < 1e-12
+    assert abs(out["p_int"]["bound"] - sum(a * b for a, b in zip(wf, pm))) < 1e-12
+    assert abs(out["p_int"]["inv_nu"] - sum(a * b for a, b in zip(wi, pc))) < 1e-12
+    rd = out["p_int_reading"]["reading"]
+    if out["label"].startswith(NU_WEAK) or suffix:
+        assert rd == "not read"
+    else:
+        assert rd == ("below 0.05" if out["p_int"]["primary"] < 0.05 else "at or above 0.05")
+
+
+def test_r2_re_nu():
+    """README section 2, addendum 2026-11-24 (R2-RE-NU). Skips until the check stage has run."""
+    cp = RESULTS / "r2_re_nu_check.json"
+    if not cp.exists():
+        pytest.skip("r2_re_nu_check.json missing; the R2-RE-NU check stage has not run")
+    assert cp.stat().st_size < 1_000_000
+    chk = load("r2_re_nu_check")
+    fp = RESULTS / "r2_re_nu.json"
+    if not fp.exists():
+        check_r2_re_nu(chk, None, None, None)
+        return
+    assert fp.stat().st_size < 1_000_000
+    check_r2_re_nu(chk, load("r2_re_nu"), load("summary")["R2_RE_NU"], load("r2_re_gtp"))
