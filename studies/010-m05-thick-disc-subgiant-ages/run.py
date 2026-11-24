@@ -2557,7 +2557,9 @@ def errmm_boot_left_s(b_left, a_times, b_times):
     mean time of the part-B fits known so far, or, before any, times the variant's mean part-A mock time."""
     if b_times:
         return sum(b_left.values()) * float(np.mean(b_times))
-    return sum(n * float(np.mean(a_times[v])) for v, n in b_left.items() if n and a_times.get(v))
+    alltimes = [t for ts in a_times.values() for t in ts]
+    mean_all = float(np.mean(alltimes)) if alltimes else 0.0      # a variant without times (all sets cut)
+    return sum(n * (float(np.mean(a_times[v])) if a_times.get(v) else mean_all) for v, n in b_left.items() if n)
 
 
 def errmm_params_ok(P, rec_params):
