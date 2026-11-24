@@ -860,7 +860,7 @@ density. The withdrawn T8 stays withdrawn.
 
 ### 5.2 R-DIAG (post hoc, addendum 4.11, T-061; run 2026-11-24)
 
-A standalone run (`parts` ["diag"], commit ed915e7; set back to the default with the results, commit 028fc1f), threads
+A standalone run (`parts` ["diag"], commit 48f6e4f; set back to the default with the results, commit d5da96d), threads
 not limited, cache only: 6,617 s (1.8 h). Load check passed (weighted mean v_z −2.18 km/s). Samples as registered: S 149
 points (95 sightlines, no fallback row, NorthAmericaNebula absorbed by NorthAmerica), S_all 169, S+PT 177. Numbers:
 `results/rdiag.json`, `summary.json` key `R_DIAG`. All post hoc; the formal labels, the overall reading, T6 and R-CONV
