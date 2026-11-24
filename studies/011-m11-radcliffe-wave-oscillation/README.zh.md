@@ -35,6 +35,9 @@ Konietzka 等 2024（Nature 628, 62；arXiv:2402.12596；下称 K24）用阻尼�
 |---|---|---|---|
 | K24 年轻星团表 `Radcliffe_Wave_stellar_clusters_Konietzka2024.tab` | Harvard Dataverse doi:10.7910/DVN/XSCB9N，文件编号 7211931，经 `ctx.http`（`https://dataverse.harvard.edu/api/access/datafile/7211931`） | 全部行 | 125 行，10,888 字节 |
 | K24 ¹²CO 云表 `Radcliffe_Wave_CO_analysis_Konietzka2024.tab` | Harvard Dataverse doi:10.7910/DVN/Q7F4PC，文件编号 7211929，经 `ctx.http` | 全部行 | 79 行，5,286 字节 |
+| *2026-11-24 加入（第 4.11 节，T-061，仅用于 R-DIAG）：* Zucker 等 2020 表 A.1 `Handbook_Distances_Zucker2020.dat` | Harvard Dataverse doi:10.7910/DVN/07L7YZ，文件编号 4361456，经 `ctx.http` | 全部行 | 326 行，55,870 字节 |
+| *2026-11-24 加入（R-DIAG）：* Alves 等 2020 连接视线 `Bridging_Sightlines_Alves_2020.dat` | doi:10.7910/DVN/K16GQX，文件编号 4361453，经 `ctx.http` | 全部行 | 54 行，9,894 字节 |
+| *2026-11-24 加入（R-DIAG）：* K24 最佳拟合模型曲线 `Radcliffe_Wave_best_fit_model_Konietzka2024.tab` | doi:10.7910/DVN/F98QHY，文件编号 8954305，经 `ctx.http` | 全部行 | 1,500 行，47,253 字节 |
 
 合计约 16 KB，远低于 200 MB 的研究预算。不取其他数据。各列含义按如下理解：`x, y, z` 为日心银道直角坐标位置（pc），按原值使用，不做太阳高度的偏移（与 K24 相同）；`vx, vy, vz` 为经 K24 太阳运动 (10.0, 15.4, 7.8) km/s 改正后相对于本地静止标准（LSR, local standard of rest）的速度（km/s），即 v_LSR = v_日心 + (u☉, v☉, w☉）；`sigma*` 为其标准误差；`age`（百万年）；`inlier` 为 K24 的标记。云表：`x, y, z`（pc）、`l, b`（度）、`d`（pc），`vr` 为 ¹²CO 的 LSR 速度，`vr16`、`vr84` 为其百分位。载入检查：星团 v_z 的加权平均须满足 |平均 v_z| < 3 km/s（日心速度的表会给出约 −7.8）；不满足时，运行在任何拟合之前停止，先以带日期的修订确定对表的理解。
 
@@ -172,6 +175,43 @@ R-CONV 或 T8-P 对数据的拟合之前固定的；上面的规则、阈值与�
    `_t8p`；暂停的尝试为 `_convpaused`、`_t8ppaused`）。断点放在 `s011_checkpoints/<conv|t8p>/<key>`，所以一个部分完成时
    不会删除另一个部分的断点。探索可以只拟合部分约定（`conv_indices`）；这时 `rconv.json` 写明 `complete_set: false`，
    选择只在这部分约定中进行。
+
+### 4.11 补充 2026-11-24：R-DIAG，第 (3) 列的差别从何而来（T-061），在这些拟合之前预注册
+
+*原因。* R-CONV（第 5.1 节）发现 16 种约定都不能复现第 (3) 列：它们都给出同样的两个参数在内、四个在外，所以原因是它们共有的。其独立审稿（第 6 节第 1、2、9 点）建议在 K24 第 (3) 列中位数处与我们的最佳点处做逐云诊断，并在 s 的起点平移 ±200 pc、太阳高于中面 20.8 pc 的条件下重新拟合，还问我们的 79 个云是否就是 K24 的样本。**本补充的全部内容都是事后（post hoc）的**：它是在看过正式运行、R-CONV 与 T8-P 的结果之后加入的。
+
+*重新核对 K24 原文与公开数据（2026-11-24）。*
+- K24 方法部分"Modeling the Spatial Molecular Cloud Distribution"：云的成分由"Major Cloud Catalog 与 Tenuous Connections Catalog 中相应的三维云位置"描述，只保留"能得到视向速度测量的分子云"。"Line-of-sight Gas Velocities"：对"每一组空间云坐标"计算一条 ¹²CO 谱；9% 的云没有可用的 ¹²CO，被排除；为 Extended Data 图 3a，同一个云的测量被合并"成单个数据点"。该图说明写明 Perseus 与 Taurus（星团拟合中的离群者）没有画出。K24 没有给出第 (3) 列拟合中云的数目；在其 Extended Data 图 1 中，云显示为比 79 多得多的点。
+- Major Cloud Catalog 是 Zucker 等 2020 的表 A.1（Harvard Dataverse doi:10.7910/DVN/07L7YZ，文件 `Handbook_Distances_Zucker2020.dat`，编号 4361456，55,870 字节，CC0）：94 个命名云中的 326 条视线（sightline），每条视线一行，含名称、l、b、距离百分位与 x、y、z。Tenuous Connections Catalog 是 Alves 等 2020 的连接视线（bridging sightlines，doi:10.7910/DVN/K16GQX，`Bridging_Sightlines_Alves_2020.dat`，编号 4361453，9,894 字节，CC0）：54 条视线，列相同。
+- 我们的 79 行 ¹²CO 表的列为 name、x、y、z、xspread、yspread、zspread、l、b、d、vr、vr16、vr84。它的行是 54 条连接视线（按名称）和以 23 个主要云命名的 25 行（两个名称有两种拼写：`MonR2` 与 `Mon_R2`、`NorthAmerica` 与 `NorthAmericaNebula`）；没有 Perseus 与 Taurus。`spread` 列说明每个命名行合并了若干条视线。所以我们的第 (3) 列拟合**每个云一个点**，而 K24 的拟合很可能**每条视线一个点**，Orion、Cepheus 或 Cygnus X 各有许多条视线。这是我们的理解；K24 没有这样明说。
+- K24 的最佳拟合模型曲线是公开的（doi:10.7910/DVN/F98QHY，`Radcliffe_Wave_best_fit_model_Konietzka2024.tab`，编号 8954305，47,253 字节，CC0）：1,500 个点，含 x、y、z（pc）与 v_z（km/s）。Dataverse 的说明称它"由"云与星团的观测"导出"，所以我们把它当作第 (6) 列的拟合；它是后验的中位数、最大值还是别的点，没有说明。
+- Bennett 与 Bovy 2019（MNRAS 482, 1417；arXiv:1809.03507）测得太阳高于本地中面 z☉ = 20.8 ± 0.3 pc。K24（方法部分，星团拟合）让 z☉ 在 U(−10, 25) pc 中自由重新拟合，发现变化小于 1σ 不确定度的三分之一，所以我们预计这个变体作用不大。
+
+*本补充之前已看过的内容。* 第 5–7 节与 log.md 的全部内容。2026-11-24 的一次探索（`explore/t061_inputs.py`，输出不入库）获取了三个新文件，打印了它们的行数、列名、每个文件的前两行、各个云的视线名称与条数，并把 ¹²CO 名称与视线名称对应起来。没有把任何视线位置与模型曲线比较，没有把公布的曲线与我们的模型比较，也没有做任何拟合。
+
+*A 部分：79 个对象的逐对象诊断（描述性）。* 正式的第 (3) 列设置（L-F-W，σ = 47 pc，正式的固定权重）。两个参数向量：K24 的第 (3) 列中位数 v_K（Extended Data 表 2 的自由参数，B = 1，ω₀t = 0）与我们的最大后验点（MAP, maximum a posteriori）v_M（第 4.2 节的优化器作用于对数后验，20 个起点中最好的一个：v_K 与从 (`seed`, `rdiag_map`) 抽取的 19 个先验样本）。在两处报告：ln L、ln 先验、ln 后验、σ_P（第 4.10 节）；每个对象的名称、s、权重、d² 与项 w·d²/(2σ²)，以及逐对象差 Δᵢ = 项(v_K) − 项(v_M)。报告：Δᵢ 最大的十个对象；它们占 Σ max(Δᵢ, 0) 的份额；25 个命名行与 54 条连接视线各自的和。标签：十个最大者占 Σ max(Δᵢ, 0) 的至少 50% 时为 **"concentrated"（集中）**，否则为 **"diffuse"（分散）**。
+
+*B 部分：输入样本（R-SAMP）。* 两个视线样本，位置取各表的 x、y、z 列（日心银道直角坐标，与我们的 ¹²CO 表相同）：
+- **S**（对 K24 原文的主要理解）：云名对应到我们 ¹²CO 表某个命名行的每一条 Zucker 等 2020 视线，加上全部 54 条连接视线。对应关系现在固定：CB29、CMa_OB1、Cam、Cepheus、CygnusX、IC5146、L1228、L1228D、L1251、L1265、L1333、L1617、L1622、L977、L988、Lacerta、Orion、Orion_Lam、Polaris、S106 对应同名；`MonR2` 与 `Mon_R2` 对应 `Mon_R2`；`NorthAmerica` 与 `NorthAmericaNebula` 对应 `North_America`；`NorthernCoalsack` 对应 `Northern_Coalsack`。共 115 + 54 = 169 条视线（按名称计数；运行时计数不同则停止）。
+- **S+PT**：S 加上 Perseus（18 条）与 Taurus（10 条）的视线，共 197 条（K24 可能在空间拟合中保留了它们）。
+
+*一致性检查（描述性，在拟合之前）。* 对 25 个命名的 ¹²CO 行，各自对应视线的平均 x、y、z 减去该行的 x、y、z，以 pc 与该行 spread 为单位；对连接视线，¹²CO 行减去连接视线表中的行。这显示命名行是否为其全部视线的平均；它不改变任何样本。
+
+*拟合。* 对每个样本做第 4.2 节的第 (3) 列 MCMC（L-F-W，σ = 47 pc 固定，B = 1，ω₀t = 0），核权重由每条视线在 K24 第 (6) 列中位数曲线上的 s 计算（带宽 100 pc，归一化到样本大小，同第 4.1 节）。种子取自 (`seed`, `rdiag_S`) 与 (`seed`, `rdiag_SPT`)；行走者（walkers）在 K24 第 (3) 列中位数附近起步。对每个样本报告：T1 的第 (3) 列计数（A、p、δ、s₀、γ、φ 中后验中位数落在 K24 16–84% 区间内的个数）、12 个形状与锚点参数按 σ 缩放的差、宽度比（第 4.10 节修订 5）、后验中位数处的 σ_P（只报告，不使用），以及按 R-CONV 阈值得出的标签：计数 ≥ 5 且宽度比在 [2/3, 3/2] 内时为 **"column (3) reproduced with sample <S | S+PT>"（用样本 … 复现第 (3) 列）**；计数为 3–4，或 ≥ 5 但宽度比在该范围之外时为 **"column (3) partly reproduced with sample <…>"（部分复现）**；计数 ≤ 2 时为 **"column (3) not reproduced with sample <…>"（未复现）**。每个标签以"post hoc"结尾。
+
+*C 部分：K24 公布的曲线（R-CURVE，描述性，带一个标签）。* (i) 我们在 K24 第 (6) 列中位数处的模型曲线（正式的 L 基线、格点与范围，B = 1，ω₀t = 0，除数 74）：对公布的 1,500 个点，各自到我们曲线上最近有效格点的三维距离以及该处 v_z 的差；报告距离的中位数、第 95 百分位与最大值、v_z 差绝对值的中位数，以及公布曲线首末两点在我们约定下的 s（它们显示 K24 的曲线在我们的约定中从哪里开始、到哪里结束）。标签：距离中位数 ≤ 5 pc 且第 95 百分位 ≤ 15 pc 时为 **"matches K24's published curve"（与 K24 公布的曲线一致）**；中位数 ≤ 20 pc 时为 **"approximately matches"（大致一致）**；否则为 **"differs from K24's published curve"（与之不同）**。由于没有说明公布的是后验中的哪个点，几个 pc 的差别可能来自中位数与最佳拟合之别，不解读为约定错误。(ii) 把我们的曲线以最小二乘拟合到公布的点：12 个形状与锚点参数，B = 1，ω₀t = 0，最小化 1,500 个点到我们曲线的三维距离平方和（只用位置），从 K24 第 (6) 列中位数起步，按第 4.2 节先 Nelder–Mead 后 L-BFGS-B。报告：拟合的参数、它们与 K24 第 (6) 列中位数之差（以 K24 的 σ 为单位）以及均方根（RMS）距离。RMS 不超过 5 pc 时，我们的参数化能表示 K24 的曲线，任何离 K24 中位数超过 1σ 的参数都指向约定上的差别；这一点只做解读，不给标签。
+
+*D 部分：R-CONV 没有改变的约定（R-ORIG）。* 在 79 个 ¹²CO 行上，正式的第 (3) 列设置，每次只改一处：(−200) s 的起点移到锚点 0 之前 200 pc，即 s′ = s + 200 pc；(+200) 移到其后 200 pc，s′ = s − 200 pc；(z☉) 每个云的 z 加 20.8 pc。s′ 在模型中凡用到 s 之处（Λ 与 ζ）替代 s；先验、格点、曲线范围与固定权重不变（权重只通过 s 的差依赖于 s）。MCMC 按第 4.2 节，种子取自 (`seed`, `rdiag_m200`)、(`seed`, `rdiag_p200`)、(`seed`, `rdiag_zsun`)；计数、差、宽度比与标签同 B 部分（"… with the origin at −200 pc / +200 pc / with z☉ = 20.8 pc, post hoc"）。
+
+*解读（事后，现在固定）。* S 的标签为"复现"或"部分复现"时，为 **"the column-(3) difference comes from the input sample"（第 (3) 列的差别来自输入样本）**；否则，D 部分任一标签为"复现"或"部分复现"时，为 **"the column-(3) difference comes from the origin of s or the Sun's height"（来自 s 的起点或太阳高度）**；否则为 **"the column-(3) difference remains unexplained (input sample, origin and the Sun's height tested)"（差别仍无法解释，已检验输入样本、起点与太阳高度）**。S+PT、A 部分与 C 部分在旁边报告，不进入解读。不重跑其他内容：正式标签、总体判读、T6、R-CONV 与 T8-P 保持记录不变；如果 S 复现了第 (3) 列，用视线重跑第 (4)、(6) 列的 T1 与 T5 是另一个、以后的决定。
+
+*预期结果（现在写明）。* 样本 S 给 Orion（24 条视线）、Cepheus（28 条）与 Cygnus X（13 条）的分量远大于我们各一行，除非核权重加以补偿；我们预计它会移动锚点与 φ，第 (3) 列至少部分复现的可能约为一半。C 部分最可能为"一致"或"大致一致"；A 部分更可能"分散"。D 部分：z☉ 改变不大（K24 自己的检验）；起点平移可能使 φ、p、γ 移动约 1σ，但不太可能使计数达到 3。
+
+*数据与开销。* 三个新文件，55,870、9,894 与 47,253 字节（共 113,017 字节），经 `ctx.http` 获取，远低于预算；已加入第 3 节的表。A 部分约一分钟；B 部分在 169 与 197 个点上各一条第 (3) 列链（每次求值约为 79 行的 2–2.5 倍，加上加倍规则每条约 25–50 分钟）；C 部分几分钟；D 部分三条链各 10–20 分钟。合计单核约 1.5–2.5 小时，带第 4.9 节第 13 条的暂停与检查点续跑。单独运行，排在其他研究的运行之后。
+
+*运行前的代码检查（只用合成数据，计数除外）。* 名称对应得到 169 与 197 条视线；起点平移 s′ = s − c 等于在 ζ 中用 s₀ + c、在 Λ 中用 Λ(s − c) 求正式模型（在一个合成向量上直接检查）；c = 0 且 z 不变时逐位复现正式似然；逐对象的项之和等于 −ln L 减去常数；曲线距离代码对曲线与自身给出 0，对平移已知向量的曲线给出正确距离；最小二乘拟合能从合成向量自身的曲线把它恢复到 RMS 小于 1 pc。
+
+*开关与代码。* `PARAMS["parts"]` 新增部分 `"diag"`，与 `"conv"` 一样单独运行（第 4.10 节修订 9）：`summary.json` 不存在或不能逐字节重新序列化时拒绝启动；写出 `results/rdiag.json`（小于 1 MB，含载入检查与 `params`），并把 `R_DIAG` 放入 `summary.json` 的 `overall` 之前；记录为 `_diag` 与 `_diagpaused`；检查点在 `s011_checkpoints/diag/<key>`。`wave011.py` 增加起点平移这一设置选项（默认 0，因此其他结果都能复现）。测试、结论检查、网页一节与第 8 节的调节项。这些都还不存在。
 
 ## 5. 结果
 
