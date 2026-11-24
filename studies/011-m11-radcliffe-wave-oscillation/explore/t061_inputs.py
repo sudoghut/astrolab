@@ -3,8 +3,8 @@
 Fetches (via ctx.http, about 113 KB in all) the Zucker et al. 2020 sightline distance table (Major Cloud
 Catalog, Dataverse doi:10.7910/DVN/07L7YZ), the Alves et al. 2020 bridging sightlines ("Tenuous
 Connections", doi:10.7910/DVN/K16GQX) and K24's best-fit model curve (doi:10.7910/DVN/F98QHY), and reads the
-cached K24 12CO table. Prints row counts, column layout and how the 12CO cloud names match the sightline
-names; it prints no fitted quantity and fits nothing.
+cached K24 12CO table. Prints row counts, column layout, the Zucker names with their sightline counts and how
+the 12CO names match them (normalised names; README 4.11 fixes the map by hand); it fits nothing.
 """
 import re
 from pathlib import Path
@@ -19,11 +19,6 @@ CLOUDS_URL = "https://dataverse.harvard.edu/api/access/datafile/7211929"
 
 def norm(name):
     return re.sub(r"[^a-z0-9]", "", str(name).lower())
-
-
-def base(name):
-    """Cloud name without a trailing sightline index such as '_1' or ' 2'."""
-    return re.sub(r"[\s_-]*\d+$", "", str(name).strip())
 
 
 def main(ctx):
@@ -41,20 +36,17 @@ def main(ctx):
     hb = pd.read_csv(ph, sep=r"\s+", comment="#", engine="python")
     br = pd.read_csv(pb, sep=r"\s+", comment="#", engine="python")
     out.append(f"handbook columns {list(hb.columns)}; bridging columns {list(br.columns)}")
-    names = list(hb.iloc[:, 0].astype(str)) + list(br.iloc[:, 0].astype(str))
-    out.append(f"sightline names: {len(names)}; distinct bases {len(set(base(n) for n in names))}")
-    nb = {}
-    for n in names:
-        nb.setdefault(norm(base(n)), []).append(n)
-    hits, miss = 0, []
+    counts = hb["name"].astype(str).value_counts()
+    out.append(f"Zucker sightlines: {len(hb)} in {len(counts)} names; bridging: {len(br)}")
+    out.append("Zucker names with counts: " + "; ".join(f"{k}:{v}" for k, v in sorted(counts.items())))
+    bridges = set(br["name"].astype(str))
+    zn = {norm(k): k for k in counts.index}
+    rows = []
     for n in co["name"].astype(str):
-        k = norm(base(n))
-        if k in nb:
-            hits += 1
+        if n in bridges:
+            rows.append(f"{n}=bridge")
         else:
-            miss.append(n)
-    out.append(f"12CO names matched to a sightline base: {hits} of {len(co)}; unmatched: {miss}")
-    out.append("12CO names: " + ", ".join(co["name"].astype(str)))
-    out.append("sightline bases: " + ", ".join(sorted(set(base(n) for n in names))))
+            rows.append(f"{n}->{zn.get(norm(n), '?')}")
+    out.append("12CO names (exact bridge match, or normalised Zucker name): " + ", ".join(rows))
     for ln in out:
         ctx.log(ln[:2000])
