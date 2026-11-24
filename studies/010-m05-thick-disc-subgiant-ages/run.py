@@ -23,6 +23,9 @@ R1-ERR  error-scale power test of R1-SEL-FIT: power mocks of the metal-poor bins
 R1-ERRCAL  calibration of R1 under enlarged age errors with the error scale in the fit: data, null and
     power mocks drawn with true errors f x e_Age and fitted with f (README 2.8, T-059;
     PARAMS["parts"] = ["errcal"], results r1_errcal.json, records provenance_errcal/run_info_errcal).
+R1-ERRMM  checks of R1-ERRCAL at f = 2.81: null mocks drawn with true errors g x e_Age (g = 1.0, 1.5) and
+    fitted with 2.81 (mismatched-f null), and a bootstrap of the data's valley depth (README 2.9, T-064;
+    PARAMS["parts"] = ["errmm"], results r1_errmm.json, records provenance_errmm/run_info_errmm).
 """
 from __future__ import annotations
 
@@ -78,7 +81,8 @@ PARAMS = {
     # which pipeline runs: "orig" (README 2.0-2.4; r1/r2/r34/r56/r7/summary.json), "sel"
     # (README 2.5 R-SEL re-test, T-031; r1_sel/r34_sel/sel.json) or "selfit" alone (README 2.6
     # R1-SEL-FIT, T-049; r1_selfit.json) alone, or "err" alone (README 2.7 R1-ERR, T-054; r1_err.json),
-    # or "errcal" alone (README 2.8 R1-ERRCAL, T-059; r1_errcal.json); no part overwrites another part's files
+    # or "errcal" alone (README 2.8 R1-ERRCAL, T-059; r1_errcal.json), or "errmm" alone (README 2.9 R1-ERRMM,
+    # T-064; r1_errmm.json); no part overwrites another part's files
     "parts": ["err"],
     # R-SEL (README 2.5): pass tables (SEL-0), power floor and edge loop (SEL-3), mocks and stop (SEL-8)
     "sel_slices": [[-1.2, -0.6], [-0.6, 0.0], [0.0, 0.5]], "sel_pass_width": 1.0,
@@ -94,6 +98,11 @@ PARAMS = {
     # results r1_errcal.json
     "errcal_f": [2.0, 2.81], "errcal_bins": [0, 1, 2], "errcal_n_mock": 50, "errcal_seed_tag": 59,
     "errcal_seed_tag_indep": 159, "errcal_stop_h": 16.0,
+    # R1-ERRMM (README 2.9, T-064): (g, F) pairs, metal-poor bins, mocks per set, stream tags, bootstrap
+    # replicates, scale and stream tags, allowed failed replicates, stop limit; results r1_errmm.json
+    "errmm_pairs": [[1.0, 2.81], [1.5, 2.81]], "errmm_bins": [0, 1, 2], "errmm_n_mock": 50,
+    "errmm_seed_tag": 64, "errmm_seed_tag_indep": 164, "errmm_n_boot": 100, "errmm_boot_f": 2.81,
+    "errmm_boot_tag": 65, "errmm_boot_tag_indep": 165, "errmm_boot_max_fail": 5, "errmm_stop_h": 16.0,
 }
 
 
@@ -427,9 +436,9 @@ def fit_mixB(C, model, seq=None, th=None, rng=None):
 def main(ctx):
     P = dict(PARAMS)
     parts = list(P["parts"])
-    if not parts or any(x not in ("orig", "sel", "selfit", "err", "errcal") for x in parts):
-        raise ValueError("PARAMS['parts'] must be a non-empty subset of ['orig', 'sel', 'selfit', 'err', 'errcal'], "
-                         f"got {parts}")
+    if not parts or any(x not in ("orig", "sel", "selfit", "err", "errcal", "errmm") for x in parts):
+        raise ValueError("PARAMS['parts'] must be a non-empty subset of ['orig', 'sel', 'selfit', 'err', 'errcal', "
+                         f"'errmm'], got {parts}")
     if "selfit" in parts and len(parts) > 1:
         raise ValueError("PARAMS['parts'] = ['selfit'] runs alone (it reads r1_sel.json and keeps its own records)")
     if "err" in parts and len(parts) > 1:
@@ -438,6 +447,9 @@ def main(ctx):
     if "errcal" in parts and len(parts) > 1:
         raise ValueError("PARAMS['parts'] = ['errcal'] runs alone (it reads r1_sel.json, r1_selfit.json and r1_err.json "
                          "and keeps its own records)")
+    if "errmm" in parts and len(parts) > 1:
+        raise ValueError("PARAMS['parts'] = ['errmm'] runs alone (it reads r1_sel.json, r1_selfit.json, r1_err.json and "
+                         "r1_errcal.json and keeps its own records)")
     out = {}
     if "orig" in parts:
         out = main_orig(ctx, P)
@@ -450,6 +462,8 @@ def main(ctx):
         out = main_err(ctx, P)
     if "errcal" in parts:
         out = main_errcal(ctx, P)
+    if "errmm" in parts:
+        out = main_errmm(ctx, P)
     return out
 
 
@@ -1618,6 +1632,8 @@ def selfit_fits(C, D, cat, par, rngs, nstart, f=1.0):
     nll = {K: float(fits[K][1]) for K in fits}
     return {"d": float(v["d"]), "valley": bool(v["valley"]), "k": int(kb),
             "valley_t": (float(v["t"]) if v["t"] is not None else None),
+            # README 2.9 (added fields; no other number changes): young-side edge, components at the bounds
+            "edge": (float(v["edge"]) if v.get("edge") is not None else None), **mixture_bounds(fits[kb][0], kb),
             "o_d": float(v_o["d"]), "o_valley": bool(v_o["valley"]), "o_k": int(v_o["k"]),
             **{f"i_used_k{K}": use[K] == "i" for K in range(1, kmax + 1)},
             "i_used_k5": {None: -1, "o": 0, "i": 1}[use5],          # -1: no K = 5 fit (K = 4 not chosen)
@@ -2447,3 +2463,485 @@ def main_errcal(ctx, P, store_root=None, recorded=None, recorded_fit=None, recor
     ctx.save("r1_errcal", out)
     return {"R1-ERRCAL": out["label"], "S15N": out["labels"]["S15N"], "Full": out["labels"]["Full"],
             "status": out["status"]}
+
+
+# =============================================================================================
+# R1-ERRMM (README 2.9, T-064): mismatched-f null (part A) and bootstrap of the data's d (part B)
+# =============================================================================================
+ERRMM_READ = ("r1_sel", "r1_selfit", "r1_err", "r1_errcal")
+
+
+def mixture_bounds(th, K, tol=1e-6):
+    """README 2.9: components of a K-component mixture theta (means, log widths, logits; m0.fit_mixture) at
+    each bound: log sigma within tol of ln 0.1 or ln 10, mu within tol of -5 or 25 Gyr."""
+    th = np.asarray(th, float)
+    mu, ls = th[:K], th[K:2 * K]
+    return {"n_sig_lo": int(np.sum(np.abs(ls - np.log(0.1)) <= tol)),
+            "n_sig_hi": int(np.sum(np.abs(ls - np.log(10.0)) <= tol)),
+            "n_mu_lo": int(np.sum(np.abs(mu + 5.0) <= tol)), "n_mu_hi": int(np.sum(np.abs(mu - 25.0) <= tol))}
+
+
+def errmm_rngs(seed, P, k, j):
+    """README 2.9 streams of part-A mock j of set k: catalogue and fit (o) from default_rng([seed, 64, k, j]),
+    fit (i) from default_rng([seed, 164, k, j])."""
+    return (selaux.mock_rng(seed, P["errmm_seed_tag"], k, j),
+            np.random.default_rng([int(seed), int(P["errmm_seed_tag_indep"]), int(k), int(j)]))
+
+
+def errmm_boot_rngs(seed, P, b, j, variant):
+    """README 2.9 streams of bootstrap replicate j of bin b: the resample from default_rng([seed, 65, b, j])
+    (shared by the three variants); the variant's fit (o) from default_rng([seed, 65, b, j, 1 + code_v]) and
+    fit (i) from default_rng([seed, 165, b, j, 1 + code_v])."""
+    c = 1 + selaux.R1_CODES[variant]
+    t, ti = int(P["errmm_boot_tag"]), int(P["errmm_boot_tag_indep"])
+    return (np.random.default_rng([int(seed), t, int(b), int(j)]),
+            np.random.default_rng([int(seed), t, int(b), int(j), c]),
+            np.random.default_rng([int(seed), ti, int(b), int(j), c]))
+
+
+def errmm_cut(s, res):
+    """README 2.9 (as 2.8): after a generator failure no further mock of that pair and variant is run."""
+    if res.get("gen_fail"):
+        g0, F0, v0 = s["g"], s["F"], s["variant"]
+        return lambda s2: s2["g"] == g0 and s2["F"] == F0 and s2["variant"] == v0
+    return None
+
+
+def errmm_mock(C, D, kind, mech, rngs, pools, nstart, g, F):
+    """One part-A mock (README 2.9): a null of D (the null parameters at g) drawn with true errors g x e by
+    R1-ERR's generator and fitted with F by R1-ERRCAL's procedure (fit (o) from D["_starts"], the data fit at
+    F). With g = F and D of R1-ERRCAL this is run.r1_mock_errcal."""
+    return mock_scaled(C, D, kind, mech, rngs, pools, nstart, g, F)
+
+
+def errmm_resample(n_parent, j, nboot, rng):
+    """README 2.9 part B: the rows of replicate j (catalogue row order of the bin's parent). j < nboot draws
+    rng.integers(0, n_parent, n_parent); j = nboot is the unresampled data (all rows in order, no draw)."""
+    if j == nboot:
+        return np.arange(n_parent)
+    return rng.integers(0, n_parent, n_parent)
+
+
+def errmm_boot_fit(C, D, Ap, Ep, variant, rngs_fit, nstart, f):
+    """Fit one bootstrap replicate (README 2.9 part B): Ap, Ep the replicate's parent (bin stars with finite
+    Age, e_Age > 0, finite [Fe/H]); the S15 sample is e/A < cut with A > 0; term E's pass table comes from the
+    replicate's parent (selfit_fits); fitted with f by the mock procedure. The pass rate is the S15 size over
+    the parent size (None for Full). A RuntimeError of the fits is returned as fit_fail = True."""
+    P = C.P
+    if variant == "Full":
+        cat, par = {"A": Ap, "e": Ep}, None
+        n_used = len(Ap)
+    else:
+        with np.errstate(divide="ignore", invalid="ignore"):
+            m = (Ep / Ap < P["cut"]) & (Ap > 0)
+        cat, par = {"A": Ap[m], "e": Ep[m]}, {"A": Ap, "e": Ep}
+        n_used = int(m.sum())
+    D2 = dict(D, _n=n_used)
+    try:
+        with np.errstate(divide="ignore", invalid="ignore"):          # e/A of Age <= 0 rows in term E's table
+            res = selfit_fits(C, D2, cat, par, rngs_fit, nstart, f=f)
+    except RuntimeError:
+        return {"fit_fail": True, "d": None, "valley": None, "k": None, "pass_rate": None, "n": n_used}
+    res["pass_rate"] = (n_used / len(Ap)) if variant != "Full" else None
+    res.update({"fit_fail": False, "n": n_used})
+    return res
+
+
+def _sha256(path):
+    import hashlib
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def errmm_params_ok(P, rec_params):
+    """README 2.9 check (a): r1_errcal.json's params equal the current PARAMS except parts and errmm_* keys."""
+    keep = lambda d: {k: v for k, v in d.items() if k != "parts" and not k.startswith("errmm_")}
+    return json.dumps(keep(json.loads(json.dumps(P, default=float))), sort_keys=True) == \
+        json.dumps(keep(rec_params), sort_keys=True)
+
+
+def errmm_starts(x, kmax):
+    """Fit (o) starts from a recorded R1-ERRCAL data fit (r1_errcal.json data_fits["2.81"][variant][bin]):
+    'fits' keys "1".."4" as K = 1..4 and 'k5' as K = 5."""
+    st = {int(K): np.asarray(th, float) for K, th in x["fits"].items()}
+    if x.get("k5") is not None:
+        st[kmax + 1] = np.asarray(x["k5"], float)
+    return st
+
+
+def _verdict_bins(P, rb, names, metal_poor):
+    """Five-bin input of the 2.1 verdict: metal_poor: bin -> dict(resolvable, almost_disjoint, edge, d, ...);
+    the metal-rich bins from R1-SEL-FIT's record (never almost disjoint), as in 2.8."""
+    out = []
+    for b in range(len(P["r1_bins"])):
+        if b in metal_poor:
+            out.append(metal_poor[b])
+        else:
+            B = rb[b]
+            out.append({"bin": list(P["r1_bins"][b]), "bin_name": names[b], "source": "r1_selfit.json",
+                        "resolvable": bool(B["resolvable"]), "almost_disjoint": False, "edge": B.get("edge"),
+                        "d": B.get("d")})
+    return out
+
+
+def errmm_evaluate_a(P, sets, results, times, rcal, rfit, pmodels, data_d):
+    """README 2.9 decision rule A, reading A and the per-set reports. rcal: r1_errcal.json; rfit: r1_selfit.json;
+    pmodels: (variant, bin) -> primary power model; data_d: (variant, bin) -> data d at F (for the report).
+    Pure: no fits, no files."""
+    nmock = int(P["errmm_n_mock"])
+    bins, mechs = [int(b) for b in P["errmm_bins"]], list(P["mechs"])
+    pairs = [(float(g), float(F)) for g, F in P["errmm_pairs"]]
+    kmax, qrank, nbins = int(P["kmax"]), int(P["sel_q_rank"]), len(P["r1_bins"])
+    names = {b: bin_name(P, b) for b in range(nbins)}
+    pw = {(r["variant"], r["bin"], r["mech"], float(r["f"])): r for r in rcal["per_set"] if r["kind"] == "power"}
+    per_set = []
+    for s in sets:
+        rr = results.get(s["k"], [])
+        ok = [r for r in rr if not r.get("gen_fail")]
+        dd = data_d[(s["variant"], s["bin"])]
+        row = {**{k: s[k] for k in ("k", "g", "F", "variant", "bin", "kind", "mech")}, "bin_name": names[s["bin"]],
+               "n_run": len(rr), "complete": len(rr) == nmock, "gen_fail": sum(1 for r in rr if r.get("gen_fail")),
+               "d": [r["d"] for r in rr], "valley": [r["valley"] for r in rr], "data_d": dd}
+        if ok:
+            n = float(len(ok))
+            vt = [r["valley_t"] for r in ok if r["valley"] and r.get("valley_t") is not None]
+            row.update({
+                "frac_valley": sum(1 for r in ok if r["valley"]) / n,
+                "frac_valley_d_lt_cap": sum(1 for r in ok if r["valley"] and r["d"] < P["d_cap"]) / n,
+                "frac_valley_d_lt_data": sum(1 for r in ok if r["valley"] and r["d"] < dd) / n,
+                "d_pct_5_50_80_95": _pct([r["d"] for r in ok], ERR_PCT_D),
+                "d_pct_5_50_80_95_valley_only": _pct([r["d"] for r in ok if r["valley"]], ERR_PCT_D),
+                "k_chosen": {str(K): sum(1 for r in ok if r["k"] == K) for K in range(1, kmax + 1)},
+                "i_used_by_k": {str(K): sum(1 for r in ok if r.get(f"i_used_k{K}")) for K in range(1, kmax + 1)},
+                "i_used_k5": sum(1 for r in ok if r.get("i_used_k5") == 1),
+                "nonmonotone": sum(1 for r in ok if (r.get("nonmonotone") or 0) > 0),
+                "o_nonmonotone": sum(1 for r in ok if (r.get("o_nonmonotone") or 0) > 0),
+                "median_valley_t_mocks": float(np.median(vt)) if vt else None,
+                "mean_pass_rate": (float(np.mean([r["pass_rate"] for r in ok]))
+                                   if s["variant"] != "Full" and all(r.get("pass_rate") is not None for r in ok)
+                                   else None),
+                **{f"frac_{b_}": sum(1 for r in ok if (r.get(b_) or 0) > 0) / n
+                   for b_ in ("n_sig_lo", "n_sig_hi", "n_mu_lo", "n_mu_hi")},
+            })
+        row["dropped_by_redraw_limit"] = sum(int(r.get("dropped") or 0) for r in rr)
+        tt = times.get(s["k"], [])
+        row["mean_s_per_mock"] = float(np.mean(tt)) if tt else None
+        per_set.append(row)
+    ps = {r["k"]: r for r in per_set}
+    by = {(s["g"], s["F"], s["variant"], s["bin"], s["kind"], s["mech"]): s["k"] for s in sets}
+    variants = {}
+    for v in selaux.R1_VARIANTS:
+        rb = rfit["variants"][v]["bins"]
+        per_pair, verdicts, readings = {}, {}, {}
+        for g, F in pairs:
+            key = selaux.ffmt(g)
+            cal_v = rcal["variants"][v]["verdicts"][selaux.ffmt(F)]
+            ks = [by[(g, F, v, b, kind, m)] for b in bins for kind in selaux.ERRMM_KINDS for m in mechs]
+            if sum(ps[k]["gen_fail"] for k in ks):
+                verdicts[g] = selaux.ERRCAL_GENERATOR
+                per_pair[key] = {"status": selaux.ERRCAL_GENERATOR, "verdict": selaux.ERRCAL_GENERATOR,
+                                 "gen_fail": sum(ps[k]["gen_fail"] for k in ks)}
+                readings[key] = None
+                continue
+            for k in ks:
+                if not ps[k]["complete"]:
+                    raise RuntimeError(f"R1-ERRMM set k={k} (g={g}, {v}) has {ps[k]['n_run']} of {nmock} mocks")
+            if any(selaux.nonfinite({fld: r.get(fld) for fld in USED_FIELDS}) for k in ks for r in results[k]):
+                verdicts[g] = selaux.ERRCAL_NONFINITE
+                per_pair[key] = {"status": selaux.ERRCAL_NONFINITE, "verdict": selaux.ERRCAL_NONFINITE, "gen_fail": 0}
+                readings[key] = None
+                continue
+            dfits = {b: rcal["data_fits"][selaux.ffmt(F)][v][i] for i, b in enumerate(rcal["bins"])}
+            mp, brows = {}, []
+            for b in bins:
+                D_ = dfits[b]
+                shape = {"d": D_["d"], "valley": D_["valley"], "edge": D_.get("edge"), "t": D_.get("valley_t")}
+                res = {(kind, m): results[by[(g, F, v, b, kind, m)]] for kind in selaux.ERRMM_KINDS for m in mechs}
+                for m in mechs:
+                    pr = pw[(v, b, m, F)]
+                    res[("power", m)] = [{"d": d, "valley": vv} for d, vv in zip(pr["d"], pr["valley"])]
+                dec = r1_decide(P, {"shape": shape}, res, nmock, qrank=qrank)
+                pm = pmodels[(v, b)]
+                dec["resolvable_by_power"] = dec["resolvable"]
+                dec["power_model_invalid"] = not pm["valid"]
+                dec["resolvable"] = bool(dec["resolvable"] and pm["valid"])
+                dec.update({"bin": D_["bin"], "bin_name": names[b], "source": "R1-ERRMM", "k": D_["k"],
+                            "valley": D_["valley"], "d_star_mm": dec["d_star"],
+                            "d_star_mm_le_data_d": bool(dec["d_star"] <= D_["d"]),
+                            "sets": {f"{kind}_{m}": by[(g, F, v, b, kind, m)]
+                                     for kind in selaux.ERRMM_KINDS for m in mechs}})
+                for kind in selaux.ERRMM_KINDS:
+                    for m in mechs:
+                        row = ps[by[(g, F, v, b, kind, m)]]
+                        row["d_star_mm"] = dec["d_star"]
+                        row["q_s"] = dec["q"][f"{kind}_{m}"]
+                        row["fpr_at_d_star_mm"] = dec["fpr"][f"{kind}_{m}"]
+                mp[b] = dec
+                brows.append(dec)
+            verdict, med = selaux.r1_verdict(_verdict_bins(P, rb, names, mp), P["min_bins"], P["edge_range"])
+            verdicts[g] = verdict
+            reading = selaux.errmm_reading_a(cal_v, verdict)
+            readings[key] = reading
+            per_pair[key] = {
+                "status": "evaluated", "g": g, "F": F, "verdict": verdict, "median_edge": med,
+                "errcal_verdict": cal_v, "reading": reading,
+                "n_resolvable": sum(1 for x in _verdict_bins(P, rb, names, mp) if x["resolvable"]),
+                "n_almost_disjoint": sum(1 for x in mp.values() if x["resolvable"] and x["almost_disjoint"]),
+                "bins_d_star_mm_le_data_d": [x["bin_name"] for x in brows if x["d_star_mm_le_data_d"]],
+                "bins_unresolvable": [x["bin_name"] for x in brows if not x["resolvable"]],
+                "bins": brows}
+        variants[v] = {"per_pair": per_pair, "verdicts": {selaux.ffmt(g): verdicts[g] for g, _ in pairs},
+                       "readings": readings, "label": selaux.errmm_label(pairs, verdicts)}
+    return {"pairs": [[g, F] for g, F in pairs], "bins": bins, "bin_names": [names[b] for b in bins],
+            "d_cap": float(P["d_cap"]), "variants": variants, "per_set": per_set,
+            "label": variants["S15E"]["label"], "labels": {v: variants[v]["label"] for v in selaux.R1_VARIANTS}}
+
+
+def errmm_evaluate_b(P, boot, rcal, rfit):
+    """README 2.9 reading B and the bootstrap reports. boot: (variant, bin, j) -> replicate result, j = 0..nboot
+    (j = nboot the unresampled data). Pure."""
+    nboot = int(P["errmm_n_boot"])
+    bins = [int(b) for b in P["errmm_bins"]]
+    Fb = selaux.ffmt(P["errmm_boot_f"])
+    names = {b: bin_name(P, b) for b in range(len(P["r1_bins"]))}
+    used = lambda r: not r.get("fit_fail") and not selaux.nonfinite({f: r.get(f) for f in USED_FIELDS})
+    out = {}
+    for v in selaux.R1_VARIANTS:
+        rb = rfit["variants"][v]["bins"]
+        cal = {x["bin_name"]: x for x in rcal["variants"][v]["per_f"][Fb]["bins"]}
+        cal_v = rcal["variants"][v]["verdicts"][Fb]
+
+        def verdict(j):
+            rs = {b: boot[(v, b, j)] for b in bins}
+            if not all(used(r) for r in rs.values()):
+                return None
+            mp = {}
+            for b in bins:
+                c, r = cal[names[b]], rs[b]
+                mp[b] = {"bin": list(P["r1_bins"][b]), "bin_name": names[b], "resolvable": bool(c["resolvable"]),
+                         "almost_disjoint": bool(r["valley"] and r["d"] < c["d_star"]), "edge": r.get("edge"),
+                         "d": r["d"]}
+            return selaux.r1_verdict(_verdict_bins(P, rb, names, mp), P["min_bins"], P["edge_range"])[0]
+        vj = [verdict(j) for j in range(nboot)]
+        failed = [x is None for x in vj]
+        frac, reading = selaux.errmm_reading_b(vj, failed, cal_v, nboot, int(P["errmm_boot_max_fail"]))
+        v100 = verdict(nboot)
+        frac100 = None
+        if v100 is not None and v100 != cal_v and reading != selaux.ERRMM_FITS:
+            frac100, _ = selaux.errmm_reading_b(vj, failed, v100, nboot, int(P["errmm_boot_max_fail"]))
+        per_bin = []
+        for b in bins:
+            rr = [boot[(v, b, j)] for j in range(nboot)]
+            ok = [r for r in rr if used(r)]
+            ds = [r["d"] for r in ok]
+            per_bin.append({
+                "bin": list(P["r1_bins"][b]), "bin_name": names[b], "n_used": len(ok),
+                "n_fit_fail": sum(1 for r in rr if r.get("fit_fail")),
+                "d_pct_16_50_84": _pct(ds, [16, 50, 84]), "d_sd": float(np.std(ds, ddof=1)) if len(ds) > 1 else None,
+                "frac_valley_d_lt_cap": (sum(1 for r in ok if r["valley"] and r["d"] < P["d_cap"]) / len(ok)) if ok else None,
+                "i_used_any": sum(1 for r in ok if any(r.get(f"i_used_k{K}") for K in range(1, int(P["kmax"]) + 1))),
+                **{f"frac_{b_}": (sum(1 for r in ok if (r.get(b_) or 0) > 0) / len(ok)) if ok else None
+                   for b_ in ("n_sig_lo", "n_sig_hi", "n_mu_lo", "n_mu_hi")},
+                "replicates": {k_: [r.get(k_) for r in rr] for k_ in ("d", "valley", "valley_t", "edge", "k")},
+                "unresampled": {k_: boot[(v, b, nboot)].get(k_) for k_ in ("d", "valley", "valley_t", "edge", "k",
+                                                                          "fit_fail", "n")},
+                "errcal_data_d": cal[names[b]]["d"]})
+        out[v] = {"errcal_verdict": cal_v, "replicate_verdicts": vj, "n_failed": sum(failed),
+                  "frac_equal": frac, "reading": reading, "unresampled_verdict": v100,
+                  "unresampled_failed": v100 is None,
+                  "unresampled_differs": (v100 is not None and v100 != cal_v),
+                  "frac_equal_unresampled": frac100, "bins": per_bin}
+    return out
+
+
+def main_errmm(ctx, P, store_root=None, recorded=None):
+    """R1-ERRMM (README 2.9, T-064). Writes r1_errmm.json; r1_sel.json, r1_selfit.json, r1_err.json and
+    r1_errcal.json are read, never written. recorded (tests): name -> dict in place of results/<name>.json."""
+    t_start = time.time()
+    if hasattr(ctx, "record_suffix"):
+        ctx.record_suffix = "_errmm"             # provenance_errmm.json, run_info_errmm.json
+    C = Ctx(P)
+    df = load(ctx, P)
+    Fl = flags(df, P)
+    A_all, E_all = df["age"].to_numpy(), df["eage"].to_numpy()
+    feh = df["feh"].to_numpy()
+    assert len(df) == P["n_rows"], f"row count {len(df)} != {P['n_rows']}"
+    with np.errstate(divide="ignore", invalid="ignore"):
+        rel_all = E_all / A_all
+    Fl = dict(Fl, s15=Fl["s15"] & (A_all > 0))   # as R1-ERR and R1-ERRCAL
+    bins = [int(b) for b in P["errmm_bins"]]
+    pairs = [(float(g), float(F)) for g, F in P["errmm_pairs"]]
+    nmock, nboot = int(P["errmm_n_mock"]), int(P["errmm_n_boot"])
+    nstart, seed, kmax = int(P["selfit_nstart"]), int(P["seed"]), int(P["kmax"])
+    Fb = float(P["errmm_boot_f"])
+    if recorded is not None:
+        R = recorded
+        hashes = {n: None for n in ERRMM_READ}
+    else:
+        R = {n: json.loads((HERE / "results" / f"{n}.json").read_text(encoding="utf-8")) for n in ERRMM_READ}
+        hashes = {n: _sha256(HERE / "results" / f"{n}.json") for n in ERRMM_READ}
+    rec, rfit, rerr, rcal = R["r1_sel"], R["r1_selfit"], R["r1_err"], R["r1_errcal"]
+    pools, coefs, parent = {}, {}, {}
+    for b in bins:
+        lo, hi = P["r1_bins"][b]
+        mask = Fl["valid"] & (feh >= lo) & (feh < hi)
+        tab = _pass_table(P, A_all[mask], rel_all[mask], None, 1)
+        coefs[b] = m0.pass_coefs(tab)
+        pools[b] = _pools(tab, rel_all[mask])
+        parent[b] = (A_all[mask], E_all[mask])
+    out = {"status": None, "n_mock": nmock, "n_boot": nboot,
+           "seed_tags": [int(P["errmm_seed_tag"]), int(P["errmm_seed_tag_indep"]), int(P["errmm_boot_tag"]),
+                         int(P["errmm_boot_tag_indep"])],
+           "inputs_sha256": hashes,
+           "threads": {**{k: os.environ.get(k) for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")},
+                       "cpu_count": os.cpu_count(),
+                       "note": "environment variables of the last session (null: the libraries chose their own "
+                               "thread counts); every session of a run must use the same settings"}}
+    # ---- check (a): the inputs, then the K = 1-4 fits at g != 1 against R1-ERR's companion refits
+    bad = []
+    if rcal.get("status") != "evaluated":
+        bad.append(f"r1_errcal.status={rcal.get('status')!r}")
+    if not errmm_params_ok(P, rcal.get("params", {})):
+        bad.append("r1_errcal.params")
+    if selaux.ffmt(Fb) not in rcal.get("data_fits", {}):
+        bad.append(f"r1_errcal.data_fits.{selaux.ffmt(Fb)}")
+    pmodels, nulls, fits_g, data_d, starts = {}, {}, {}, {}, {}
+    if not bad:
+        for v in selaux.R1_VARIANTS:
+            for i, b in enumerate(rcal["bins"]):
+                if b in bins:
+                    x = rcal["data_fits"][selaux.ffmt(Fb)][v][i]
+                    starts[(v, b)] = errmm_starts(x, kmax)
+                    data_d[(v, b)] = float(x["d"])
+        for g in sorted({g for g, _ in pairs}):
+            for v in selaux.R1_VARIANTS:
+                for b in bins:
+                    recd = rec["data_fits"][f"{v}_{b}"]
+                    pmodels[(v, b)] = recd["power_models"]["primary"]
+                    if g == 1.0:
+                        nulls[(g, v, b)] = {"skewnorm": list(recd["skewnorm"]), "splitnorm": list(recd["splitnorm"]),
+                                            "n": int(recd["n"])}
+                        continue
+                    x = r1_data_refit(C, df, Fl, b, v, coefs[b], g, nulls=True)
+                    if x["n"] != recd["n"]:
+                        bad.append(f"{v}_{b}@f={selaux.ffmt(g)}.n")
+                    bad += errcal_data_check(x, rerr, P, b)
+                    nulls[(g, v, b)] = {"skewnorm": x["skewnorm"], "splitnorm": x["splitnorm"], "n": int(x["n"])}
+                    fits_g[(g, v, b)] = _clean(x)
+                    ctx.log(f"R1-ERRMM fit f={g} {v} bin {b}: K={x['k']} d={x['d']:.3f} "
+                            f"skewnorm={x['skewnorm']} splitnorm={x['splitnorm']}")
+    out["checks"] = {"input_and_fit_mismatches": bad}
+    out["null_params"] = {selaux.ffmt(g): {v: [nulls.get((g, v, b)) for b in bins] for v in selaux.R1_VARIANTS}
+                          for g in sorted({g for g, _ in pairs})} if not bad else {}
+    out["fits_at_g"] = {selaux.ffmt(g): {v: [fits_g[(g, v, b)] for b in bins] for v in selaux.R1_VARIANTS}
+                        for g in sorted({g for g, _ in pairs}) if g != 1.0} if not bad else {}
+    if bad:
+        out["status"] = "not evaluable (reproduction): inputs or fits at g differ from the recorded results"
+        out["label"] = selaux.errmm_label(pairs, {}, reproduction_ok=False)
+        out["labels"] = {v: out["label"] for v in selaux.R1_VARIANTS}
+        out.update({"runtime_h": (time.time() - t_start) / 3600, "params": P})
+        ctx.save("r1_errmm", out)
+        return {"R1-ERRMM": out["label"], "status": out["status"]}
+    sets = selaux.errmm_sets(pairs, bins, P["mechs"])
+    import hashlib
+    base = _sel_key(P, df)
+    key = hashlib.sha256((base + json.dumps(hashes, sort_keys=True)).encode()).hexdigest()[:24]
+    root = _store_root(ctx, store_root, "s010_errmm_mocks")
+    store = selaux.MockStore(root, key, name="R1-ERRMM", rule="README 2.9")
+    ctx.log(f"R1-ERRMM checkpoints: {store.dir} ({'resumed with consent' if store.resumed else 'new or continued'})")
+    side = Path(store.dir) / "errmm_fits_at_g.json"           # README 2.9 (as 2.8 amendment 11)
+    cur = json.dumps({"null_params": out["null_params"], "fits_at_g": out["fits_at_g"]}, sort_keys=True, default=float)
+    if side.exists():
+        if side.read_text(encoding="utf-8") != cur:
+            store.release()
+            raise RuntimeError("R1-ERRMM refused: the fits at g differ from the first session's (the same thread "
+                               "settings are required in every session, README 2.9)")
+    else:
+        side.write_text(cur, encoding="utf-8")
+    D = {(g, v, b): {"variant": v, "_n": nulls[(g, v, b)]["n"], "_starts": starts[(v, b)],
+                     "skewnorm": nulls[(g, v, b)]["skewnorm"], "splitnorm": nulls[(g, v, b)]["splitnorm"]}
+         for g, _ in pairs for v in selaux.R1_VARIANTS for b in bins}
+    memory = {}
+
+    def run_one(s, rngs):
+        return errmm_mock(C, D[(s["g"], s["variant"], s["bin"])], s["kind"], s["mech"], rngs, pools[s["bin"]],
+                          nstart, s["g"], s["F"])
+
+    def make_rng(k, j):
+        return errmm_rngs(seed, P, k, j)
+    kb0 = len(sets)                                   # part B checkpoints: k = kb0 + 3 * bin index + variant index
+    try:
+        results, state, proj_log = selaux.run_mock_sets(sets, nmock, store, run_one, make_rng, P["errmm_stop_h"],
+                                                        ctx.log, cut=errmm_cut, name="R1-ERRMM", rule="README 2.9")
+        memory["part_a"] = selaux.peak_memory_mb()
+        ctx.log(f"R1-ERRMM part A done; peak memory {memory['part_a']} MB")
+        # ---- part B: per bin, per replicate j = nboot, 0, ..., nboot - 1, per variant; one stop clock
+        boot, btimes = {}, []
+        Pd = {v: {"variant": v} for v in selaux.R1_VARIANTS}
+        order = [nboot] + list(range(nboot))
+        nb_total = len(bins) * len(order) * 3
+        done_b = 0
+        limit = lambda: store.limit_h if store.limit_h is not None else float(P["errmm_stop_h"])
+        for ib, b in enumerate(bins):
+            Ab, Eb = parent[b]
+            for j in order:
+                idx = None
+                for iv, v in enumerate(selaux.R1_VARIANTS):
+                    k = kb0 + 3 * ib + iv
+                    recb = store.get(k, j)
+                    if recb is None:
+                        rs, ro, ri = errmm_boot_rngs(seed, P, b, j, v)
+                        if idx is None:
+                            idx = errmm_resample(len(Ab), j, nboot, rs)
+                        t = time.time()
+                        res = selaux._jsonable_result(errmm_boot_fit(C, dict(Pd[v], _starts=starts[(v, b)]),
+                                                                     Ab[idx], Eb[idx], v, (ro, ri), nstart, Fb))
+                        dt = time.time() - t
+                        store.put(k, j, res, dt)
+                        recb = {"result": res, "seconds": dt}
+                    boot[(v, b, j)] = recb["result"]
+                    btimes.append(float(recb["seconds"]))
+                    done_b += 1
+                if j % 10 == 9 or j == nboot - 1:
+                    el = store.elapsed_s()
+                    left = nb_total - done_b
+                    proj = (el + left * float(np.mean(btimes))) / 3600
+                    proj_log.append({"after": f"bootstrap bin {b} j={j}", "elapsed_h": el / 3600,
+                                     "projection_h": proj, "replicates_left": left, "limit_h": limit()})
+                    ctx.log(f"R1-ERRMM bootstrap bin {b} j={j}: projection {proj:.2f} h (elapsed {el / 3600:.2f} h, "
+                            f"{left} replicate fits left; limit {limit()} h)")
+                    if left > 0 and proj > limit():
+                        store.stop({"projection_h": proj, "elapsed_h": el / 3600, "replicates_left": left,
+                                    "after": f"bootstrap bin {b} j={j}", "limit_h": limit(),
+                                    "stopped_at": time.time()})
+                        raise selaux.StopRun(
+                            f"R1-ERRMM runtime projection {proj:.2f} h exceeds {limit()} h (README 2.9): stopped "
+                            f"with {left} bootstrap fits left; checkpoints in {store.dir}. Resuming needs the user's "
+                            f"explicit consent, recorded in log.md; then create {store.dir / 'resume_consent.txt'} "
+                            f"and rerun.")
+        memory["part_b"] = selaux.peak_memory_mb()
+        mock_info = {"n_sets": len(sets), "projections": proj_log, "elapsed_h_total": store.elapsed_s() / 3600,
+                     "resumed": store.resumed, "resumes": store.resumes(),
+                     "stop_limit_h": store.limit_h if store.limit_h is not None else P["errmm_stop_h"],
+                     "boot_mean_s": float(np.mean(btimes)) if btimes else None}
+    except selaux.StopRun:
+        raise
+    finally:
+        store.release()
+    ev = errmm_evaluate_a(P, sets, results, {k: st["times"] for k, st in state.items()}, rcal, rfit, pmodels, data_d)
+    out.update(ev)
+    out["bootstrap"] = errmm_evaluate_b(P, boot, rcal, rfit)
+    if nmock != 50:                                # as 2.8: the label needs 50 mocks in every set
+        out["computed_labels_not_used"] = ev["labels"]
+        out["label"] = f"no label (exploration with {nmock} mocks per set; the label needs 50)"
+        out["labels"] = {v: out["label"] for v in selaux.R1_VARIANTS}
+    if nboot != 100:                               # README 2.9: reading B needs 100 replicates
+        for v in selaux.R1_VARIANTS:
+            out["bootstrap"][v]["computed_reading_not_used"] = out["bootstrap"][v]["reading"]
+            out["bootstrap"][v]["reading"] = f"no reading (exploration with {nboot} replicates; the reading needs 100)"
+    out["status"] = "evaluated" if (nmock == 50 and nboot == 100) else "exploration (no label)"
+    out["mocks"] = mock_info
+    out["memory_peak_mb"] = memory
+    out.update({"runtime_h": (time.time() - t_start) / 3600, "params": P})
+    ctx.save("r1_errmm", out)
+    return {"R1-ERRMM": out["label"], "S15N": out["labels"]["S15N"], "Full": out["labels"]["Full"],
+            "bootstrap": {v: out["bootstrap"][v]["reading"] for v in selaux.R1_VARIANTS}, "status": out["status"]}
