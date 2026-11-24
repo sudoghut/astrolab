@@ -1970,13 +1970,16 @@ How a coding agent answers "what if" questions about this study without touching
 | `r2_feh`, `r2_jphi` | R2 sample window and J_φ cut | ±0.1 dex around −1; 0–1000 | cache only |
 | `f_min` | error-scale sensitivity value | 0.6–1.0 | cache only |
 | `grid_step` | latent grid step (Gyr) | 0.02–0.1 | cache only |
-| `parts` | which pipeline runs: `["orig"]` (sections 2.0–2.4; `r1/r2/r34/r56/r7/summary.json`) and/or `["sel"]` (section 2.5 R-SEL; `r1_sel/r34_sel/sel.json`), or `["selfit"]` alone (section 2.6 R1-SEL-FIT; `r1_selfit.json`, records `provenance_selfit.json`, `run_info_selfit.json`; reads `r1_sel.json`), or `["err"]` alone (section 2.7 R1-ERR; `r1_err.json`, records `provenance_err.json`, `run_info_err.json`; reads `r1_sel.json` and `r1_selfit.json`), or `["errcal"]` alone (section 2.8 R1-ERRCAL; `r1_errcal.json`, records `provenance_errcal.json`, `run_info_errcal.json`; reads `r1_sel.json`, `r1_selfit.json` and `r1_err.json`); the committed value is `["err"]` (T-054) | either or both of orig/sel; selfit alone; err alone; errcal alone | cache only |
+| `parts` | which pipeline runs: `["orig"]` (sections 2.0–2.4; `r1/r2/r34/r56/r7/summary.json`) and/or `["sel"]` (section 2.5 R-SEL; `r1_sel/r34_sel/sel.json`), or `["selfit"]` alone (section 2.6 R1-SEL-FIT; `r1_selfit.json`, records `provenance_selfit.json`, `run_info_selfit.json`; reads `r1_sel.json`), or `["err"]` alone (section 2.7 R1-ERR; `r1_err.json`, records `provenance_err.json`, `run_info_err.json`; reads `r1_sel.json` and `r1_selfit.json`), or `["errcal"]` alone (section 2.8 R1-ERRCAL; `r1_errcal.json`, records `provenance_errcal.json`, `run_info_errcal.json`; reads `r1_sel.json`, `r1_selfit.json` and `r1_err.json`), or `["errmm"]` alone (section 2.9 R1-ERRMM; `r1_errmm.json`, records `provenance_errmm.json`, `run_info_errmm.json`; reads `r1_sel.json`, `r1_selfit.json`, `r1_err.json` and `r1_errcal.json`); the committed value is `["err"]` (T-054) | either or both of orig/sel; selfit alone; err alone; errcal alone; errmm alone | cache only |
 | `selfit_seed_tag`, `selfit_nstart`, `selfit_stop_h` | R1-SEL-FIT: stream tag of the data-independent starts, starts per K, stop limit (h) | 45 and 8 are pre-registered; 12 h | cache only |
 | `err_f`, `err_bins`, `err_n_mock` | R1-ERR (section 2.7): error-scale ladder, R1 bins run, mocks per set | pre-registered [1.2, 1.5, 2.0, 2.81], [0, 1, 2], 50 (2 for a quick run; the label needs 50) | cache only |
 | `err_reach_frac`, `err_min_bins` | R1-ERR: fraction of mocks reaching the data d that makes a bin explainable; bins needed for "sensitive" | 0.05 and 2 are pre-registered | cache only |
 | `err_seed_tag`, `err_seed_tag_indep`, `err_stop_h` | R1-ERR: stream tags of the catalogue and fit (o), and of fit (i); stop limit (h) | 54 and 154 are pre-registered; 16 h | cache only |
 | `errcal_f`, `errcal_bins`, `errcal_n_mock` | R1-ERRCAL (section 2.8): error scales (fitted with f), R1 bins run, mocks per set | pre-registered [2.0, 2.81], [0, 1, 2], 50 (2 for a quick run; the label needs 50) | cache only |
 | `errcal_seed_tag`, `errcal_seed_tag_indep`, `errcal_stop_h` | R1-ERRCAL: stream tags of the catalogue and fit (o), and of fit (i); stop limit (h) | 59 and 159 are pre-registered; 16 h | cache only |
+| `errmm_pairs`, `errmm_bins`, `errmm_n_mock` | R1-ERRMM (section 2.9): (g, F) pairs (drawn with g, fitted with F), R1 bins run, mocks per set | pre-registered [[1.0, 2.81], [1.5, 2.81]], [0, 1, 2], 50 (2 for a quick run; the label needs 50) | cache only |
+| `errmm_n_boot`, `errmm_boot_f`, `errmm_boot_max_fail` | R1-ERRMM: bootstrap replicates per bin, fit scale, failed replicates allowed per variant | pre-registered 100, 2.81, 5 (3 for a quick run; the reading needs 100) | cache only |
+| `errmm_seed_tag`, `errmm_seed_tag_indep`, `errmm_boot_tag`, `errmm_boot_tag_indep`, `errmm_stop_h` | R1-ERRMM: stream tags of the part-A catalogue and fit (o), of fit (i), of the resample and bootstrap fit (o), of bootstrap fit (i); stop limit (h) | 64, 164, 65, 165 are pre-registered; 16 h | cache only |
 | `sel_n_mock` | R-SEL mocks per set (verdicts need 50) | 2–50 | cache only |
 | `sel_power_floor`, `sel_power_floor_sens` | R1-SEL power-model floor and its sensitivity value | 0.10–0.30 | cache only |
 | `sel_pass_width`, `sel_n_min` | pass-bin width (Gyr) and minimum parent count per pass bin (SEL-0) | 0.5–2; 100–500 | cache only |
@@ -1984,7 +1987,7 @@ How a coding agent answers "what if" questions about this study without touching
 - Exploration checkpoints: since 2026-11-22 (T-058) R-SEL and R1-SEL-FIT explorations, like R1-ERR's
   since T-054, keep their mock checkpoints under a sibling root (`s010_sel_mocks_explore`,
   `s010_selfit_mocks_explore`, `s010_err_mocks_explore`, each under `<date>-<tag>`; R1-ERRCAL's under
-  `s010_errcal_mocks_explore`, T-059), never in the formal folders, so pruning exploration checkpoints cannot touch the formal ones.
+  `s010_errcal_mocks_explore`, T-059; R1-ERRMM's under `s010_errmm_mocks_explore`, T-064), never in the formal folders, so pruning exploration checkpoints cannot touch the formal ones.
 - Rerun with an override: `python -m astrolab explore 010-m05-thick-disc-subgiant-ages --tag <topic> --set KEY=VALUE`
   (outputs in `explore/<date>-<topic>/`, not committed). The original pipeline needs
   `--set 'parts=["orig"]'`; without mocks
@@ -2050,6 +2053,17 @@ How a coding agent answers "what if" questions about this study without touching
   metal-rich bins from `r1_selfit.json`); `per_set`; `mocks` with the projections) and the records
   `provenance_errcal.json`, `run_info_errcal.json`. `--set errcal_n_mock=2` gives no label and takes about
   1 h (the 18 data fits run in full).
+- R1-ERRMM (section 2.9): the formal run is `"parts": ["errmm"]` (run alone; the committed default stays
+  `["err"]`), with the default thread settings, on an otherwise idle machine: about 15 min of fits at
+  f = 1.5, 3,600 mocks and 909 bootstrap fits, about 6.5–8.5 h in all. Checkpoints go to the cache folder
+  `s010_errmm_mocks` (explorations: `s010_errmm_mocks_explore/<date>-<tag>`); the part-B checkpoints are
+  k = 72 + 3 × bin index + variant index, j = replicate (100 = unresampled). It writes `r1_errmm.json`
+  (`status`; `label` and `labels.<variant>`; `checks.input_and_fit_mismatches`; `null_params.<g>`; `fits_at_g`;
+  `variants.<variant>.per_pair.<g>` with `verdict`, `reading`, `errcal_verdict`, the named bins and per-bin
+  `d_star_mm`, `q`, `power`, `resolvable`, `almost_disjoint`; `per_set` with the valley fractions, q_s and
+  bound fractions; `bootstrap.<variant>` with `frac_equal`, `reading`, `replicate_verdicts`, the unresampled
+  verdict and per-bin d percentiles; `mocks`; `memory_peak_mb`) and the records `provenance_errmm.json`,
+  `run_info_errmm.json`. `--set errmm_n_mock=2 --set errmm_n_boot=3` gives no label or reading.
 - Example questions: "Does the R1 valley survive a stricter error cut?" → `--set cut=0.10`.
   "Is the 13 Gyr mean sensitive to the J_φ cut?" → `--set r2_jphi=300` (R2 also reports 300 and 700).
   "What if the selection term conditioned on relative error instead of e?" → an `explore/` script

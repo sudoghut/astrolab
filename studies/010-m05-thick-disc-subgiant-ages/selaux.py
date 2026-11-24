@@ -89,6 +89,25 @@ def errcal_sets(fs, bins, mechs):
     return sets
 
 
+ERRMM_KINDS = ("null_sn", "null_sp")
+
+
+def errmm_sets(pairs, bins, mechs):
+    """README 2.9 (R1-ERRMM part A): the mismatched null sets, numbered k = 0, 1, ... in the loop nest pair
+    (g, F) (in the given order) > variant (S15E, S15N, Full) > bin > set (skew-normal r*tau, r*A,
+    split-normal r*tau, r*A). The projection group is the (variant, g, F) triple."""
+    sets = []
+    for g, F in pairs:
+        for v in R1_VARIANTS:
+            for b in bins:
+                for kind in ERRMM_KINDS:
+                    for mech in mechs:
+                        sets.append({"k": len(sets), "tag": "ERRMM", "g": float(g), "F": float(F), "variant": v,
+                                     "bin": int(b), "kind": kind, "mech": mech,
+                                     "group": f"{v}@g={float(g)},F={float(F)}"})
+    return sets
+
+
 def better_fit(nll_o, nll_i, tol=0.01):
     """README 2.6: the data-independent fit (i) replaces the original (o) only if its NLL is finite and
     lower by more than tol (the 2.0 start-selection tie rule); returns "i" or "o"."""
@@ -195,7 +214,7 @@ class StopRun(RuntimeError):
     """Raised when the runtime projection exceeds the stop limit (SEL-8)."""
 
 
-NO_KEY_PARAMS = ("parts", "sel_stop_h", "selfit_stop_h", "err_stop_h", "errcal_stop_h")   # change no mock: not in the checkpoint key
+NO_KEY_PARAMS = ("parts", "sel_stop_h", "selfit_stop_h", "err_stop_h", "errcal_stop_h", "errmm_stop_h")   # change no mock: not in the checkpoint key
 _PARAMS_RE = re.compile(r"^PARAMS = \{\n.*?^\}\n", re.S | re.M)
 
 
@@ -680,3 +699,39 @@ def errcal_label(fs, verdicts, reproduction_ok=True):
     if not reproduction_ok:
         return ERRCAL_REPRODUCTION
     return "; ".join(f"at f = {ffmt(f)}: {verdicts[float(f)]}" for f in fs)
+
+
+ERRMM_FITS = "not evaluable (fits)"
+
+
+def errmm_label(pairs, verdicts, reproduction_ok=True):
+    """README 2.9 label of one variant: "nulls drawn at f = 1.0: <verdict at F>; nulls drawn at f = 1.5:
+    <verdict at F>" (pairs in the given order; verdicts: g -> the verdict or a "not evaluable (...)"
+    replacement). The whole label is "not evaluable (reproduction)" if check (a) failed."""
+    if not reproduction_ok:
+        return ERRCAL_REPRODUCTION
+    return "; ".join(f"nulls drawn at f = {ffmt(g)}: {verdicts[float(g)]}" for g, _F in pairs)
+
+
+def errmm_reading_a(errcal_verdict, errmm_verdict):
+    """README 2.9 reading A (table): from R1-ERRCAL's verdict at F and R1-ERRMM's verdict at g."""
+    if errmm_verdict not in ("reproduced", "not reproduced", "undetermined"):
+        return None                                  # "not evaluable (...)": no reading at that g
+    if errcal_verdict == "reproduced":
+        return "robust to an f mismatch" if errmm_verdict == "reproduced" else "f-mismatch sensitive"
+    if errcal_verdict == "not reproduced":
+        if errmm_verdict == "not reproduced":
+            return "unchanged"
+        if errmm_verdict == "undetermined":
+            return "power lost under the null at g"
+    raise ValueError(f"README 2.9 reading A: case ({errcal_verdict!r}, {errmm_verdict!r}) cannot occur")
+
+
+def errmm_reading_b(verdicts, failed, ref, nboot, max_fail, threshold=0.80):
+    """README 2.9 reading B of one variant: verdicts and failed flags of replicates 0..nboot-1 (a failed
+    replicate counts as not equal), ref the verdict compared with. Returns (fraction equal, reading)."""
+    nfail = sum(1 for x in failed if x)
+    if nfail > max_fail:
+        return None, ERRMM_FITS
+    frac = sum(1 for v, x in zip(verdicts, failed) if not x and v == ref) / float(nboot)
+    return frac, ("stable under resampling" if frac >= threshold - 1e-12 else "unstable")
