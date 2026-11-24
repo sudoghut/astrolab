@@ -979,6 +979,9 @@ def nu_preflight(ctx, P):
     if P["nu_stage"] not in ("check", "full"):
         raise ValueError(f"nu_stage must be 'check' or 'full', not {P['nu_stage']!r}")
     exploring = getattr(ctx, "max_save_bytes", None) is not None
+    if nu.json_like(P["nu_grid"]) != nu.PREREGISTERED["nu_grid"]:
+        # the grid is fixed in nu.NU_KEYS and R2-RE-GTP's p_cal: refused in an exploration too (gate-1 review)
+        raise ValueError(f"nu_grid must be {nu.PREREGISTERED['nu_grid']} (also in an exploration)")
     if exploring and not formal_nu_done():
         raise RuntimeError("an exploration may run R2-RE-NU only after the formal results/r2_re_nu.json is committed "
                            "(README section 8): before it, nothing may be computed from the Hubble-flow rows of y")

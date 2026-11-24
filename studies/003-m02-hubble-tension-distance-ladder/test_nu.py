@@ -611,6 +611,8 @@ def test_full_stage_record(lad, stages):
     assert out["p_int"]["primary"] == sum(a * nu.P_CAL_README[k] for a, k in zip(wf, nu.NU_KEYS))
     assert set(out["sensitivities"]) == {"profile", "vbase", "grouping_045"}
     prof = out["sensitivities"]["profile"]
+    assert prof["by_m"]["1"]["n"] == 200 and prof["by_m"]["1"]["seed_base"] == 730_000
+    assert prof["by_m"]["1"]["check_ok"] is True
     assert set(prof["by_m"]) == {"0.5", "1", "2"} and prof["by_m"]["1"]["log_L"] == [out["log_L_nu"][k]
                                                                                      for k in nu.NU_KEYS]
     assert prof["by_m"]["0.5"]["seed_base"] == 770_000 and prof["by_m"]["2"]["seed_base"] == 770_100
@@ -653,13 +655,61 @@ def test_escalation_then_monte_carlo_label(lad, stages):
     assert any("escalating" in m for m in logs)
 
 
-def test_undetermined_upper_end_stops_before_l(lad, stages):
+def _patched_interval(lad, interval):
+    """fns with reml_tau returning the given 68% interval for Stage 1's main fit (interval=True calls only)."""
+    real = lad["fns"]["reml_tau"]
+
+    def fake(f, tau_max, step, interval_=True, **kw):
+        out = real(f, tau_max, step, interval=kw.get("interval", interval_))
+        if kw.get("interval", interval_) and "interval_68" in out:
+            out = dict(out, interval_68=list(interval))
+        return out
+    return dict(lad["fns"], reml_tau=lambda f, a, b, interval=True: fake(f, a, b, interval_=interval))
+
+
+def test_undetermined_upper_end_is_open(lad):
+    """Amendment 2: interval_68 = [0.05, "not determined"] counts as [0.05, inf): 0.0767 inside, no scale suffix."""
+    fns = _patched_interval(lad, [0.05, "not determined"])
     with pytest.MonkeyPatch.context() as mp:
-        mp.setattr(nu, "scale_inside", lambda interval, ref=nu.SCALE_REF: None)
+        _open_rules(mp)
         _open_mc(mp)
-        with pytest.raises(RuntimeError, match="not covered|does not cover"):
-            _full(lad, nu.json_like(dict(stages["check"], stage1=dict(stages["check"]["stage1"],
-                                                                      scale_reference_inside_interval=None))))
+        args = (lad["L"], lad["y"], lad["C"], lad["rows_a"], lad["hf"], lad["calib"], lad["P"], fns, lambda m: None,
+                lad["grid"], lad["cid"])
+        chk = nu.run_check(*args, recorded=lad["rec"], expected=lad["exp"])
+        assert chk["outcome"] is None and chk["stage1"]["upper_end"] == "not determined"
+        assert chk["stage1"]["scale_reference_inside_interval"] is True
+        out = nu.run_full(*args, nu.json_like(chk), GTP, recorded=lad["rec"], expected=lad["exp"])
+    assert out["checks"]["check_stage_reproduced"] and out["stage1"]["scale_reference_inside_interval"] is True
+    assert out["scale_suffix"] is False and nu.SCALE_SUFFIX not in out["label"]
+    assert out["stage1"]["upper_end"] == "not determined"
+
+
+def test_undetermined_lower_end_is_label_1(lad):
+    """S1 (gate-1 review): a lower end "not determined" reaches label 1 and the record is written."""
+    fns = _patched_interval(lad, ["not determined", 0.2])
+    rec = nu.run_check(lad["L"], lad["y"], lad["C"], lad["rows_a"], lad["hf"], lad["calib"], lad["P"], fns,
+                       lambda m: None, lad["grid"], lad["cid"], recorded=lad["rec"], expected=lad["exp"])
+    assert rec["outcome"] == "ν not evaluable (τ̂_HF interval's lower end not determined)"
+    assert rec["gate"] == "lower end not determined" and "scale_reference_inside_interval" not in rec["stage1"]
+    assert rec["stage1"]["upper_end"] == 0.2 and "mocks" not in rec
+    json.dumps(nu.json_like(rec))
+
+
+def test_upper_end_report():
+    assert nu.upper_end([0.01, 0.2]) == 0.2 and nu.upper_end([0.01, "> 0.5"]) == "open (> 0.5)"
+    assert nu.upper_end([0.01, "not determined"]) == "not determined"
+
+
+def test_c_g_is_the_per_group_mean_of_c_ii(lad):
+    groups = [g for g in lad["groups"] if len(g) == 2][:2]
+    assert len(groups) == 2
+    des = _des(lad, groups=groups)
+    assert np.allclose(des["c_g"], [np.mean(np.diag(lad["C"])[g]) for g in groups], rtol=0, atol=1e-15)
+    C2 = lad["C"].copy()
+    a, b = groups[0]
+    C2[a, a], C2[b, b] = 0.01, 0.03                    # unequal rows: the mean, not either row
+    des2 = _des(lad, groups=groups, Cb=C2)
+    assert abs(des2["c_g"][0] - 0.02) < 1e-15
 
 
 def test_gate_failure_and_check_failures(lad):
@@ -685,7 +735,9 @@ def test_pointwise_failure_is_label_1(lad, monkeypatch):
 
 def test_known_answer_failure_is_label_3(lad):
     rec = _check(lad)                         # the real rules with four mocks: (b) cannot hold
-    assert rec["outcome"].startswith("ν not determinable") and rec["known_answer"]["outcome"].startswith("failed")
+    assert rec["known_answer"]["rules_abc"]["b"] is False
+    assert "no power at this τ_HF" in rec["outcome"] and rec["outcome"].startswith("ν not determinable by this method (")
+    assert rec["known_answer"]["outcome"].startswith("failed (") and "no power at this τ_HF" in rec["known_answer"]["outcome"]
     assert not (_keys(rec) & set(nu.FORBIDDEN_CHECK_KEYS))
 
 
@@ -876,3 +928,33 @@ def test_record_sizes_below_1_mb(lad):
     m["trunc"].update(attempt=[0] * 200, failed=[])
     size = len(json.dumps({"mocks": m, "stage1": {"main": {"grid_m2l": rng.random(51).tolist()}}}, indent=1))
     assert size < 1_000_000, size
+
+
+def test_nu_grid_refused_also_in_an_exploration(tmp_path, monkeypatch):
+    run = _load("run003_nu_grid")
+    ctx = _Ctx(tmp_path, 1)
+    ctx.max_save_bytes = 1_000_000
+    monkeypatch.setattr(run, "formal_nu_done", lambda path=None: True)
+    monkeypatch.setattr(run, "load", lambda c: pytest.fail("data loaded"))
+    for k, v in (("nu_check", True), ("nu_only", True), ("nu_grid", [3, 4, 6, 10, "inf"])):
+        monkeypatch.setitem(run.PARAMS, k, v)
+    with pytest.raises(ValueError, match="nu_grid must be"):
+        run.main(ctx)
+
+
+def test_sensitivity_design_fit_failure_is_recorded(lad, stages, monkeypatch):
+    """M6: a fit failure in the V-base or 0.45-grouping design is recorded as not evaluable, not raised."""
+    real = nu.hf_design
+    calls = {"n": 0}
+
+    def flaky(L, y, Cb, rows_a, groups, fns):
+        calls["n"] += 1
+        if calls["n"] > 1:                   # the main design (first call) works; the sensitivities' fail
+            raise np.linalg.LinAlgError("V is not positive definite")
+        return real(L, y, Cb, rows_a, groups, fns)
+    with pytest.MonkeyPatch.context() as mp:
+        _open_mc(mp)
+        mp.setattr(nu, "hf_design", flaky)
+        out = _full(lad, stages["check"])
+    assert out["sensitivities"]["vbase"]["status"].startswith("not evaluable (fit: ")
+    assert out["sensitivities"]["grouping_045"]["status"].startswith("not evaluable (fit: ")

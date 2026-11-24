@@ -324,12 +324,14 @@ function gtpRows() {
 const NU_COND_ZH = '（如果哈勃流效应与校准效应的 ν 相同）';
 const NU_LBL = {
   'ν not evaluable (no excess scatter in the Hubble flow)': 'ν 不可评估（哈勃流中没有超出 C 的散布）',
-  'ν not determinable (selection)': '本方法无法确定 ν（选择效应）',
+  'ν not determinable (selection)': '无法确定 ν（选择效应）',
   'ν constrained to the light-tail side (P(ν ≤ 4) < 0.05)': 'ν 被约束在轻尾一侧（P(ν ≤ 4) < 0.05）',
   'ν constrained to the heavy-tail side (P(ν ≤ 4) > 0.95)': 'ν 被约束在重尾一侧（P(ν ≤ 4) > 0.95）',
   'ν weakly constrained': 'ν 约束很弱',
 };
-const NU_PART_ZH = {'mislabels': '错标', 'no power at this τ_HF': '在此 τ_HF 下没有功效', 'heteroscedasticity': '异方差', 'Monte Carlo': '蒙特卡洛'};
+const NU_PART_ZH = {'mislabels': '错标', 'no power at this τ_HF': '在此 τ_HF 下没有功效', 'heteroscedasticity': '异方差', 'Monte Carlo': '蒙特卡罗', 'selection': '选择效应'};
+const NU_REASON_ZH = {'bound': '到达上界', 'row classes': '行的类别', 'grouping count check': '分组计数检查', 'pointwise check': '逐点检查',
+  'reduced form': '约化形式', 'check-stage reproduction': '检查阶段的复现', "τ̂_HF interval's lower end not determined": 'τ̂_HF 区间下端无法确定'};
 function nuLabel(v) {
   if (!v) return '';
   let en = String(v), rest = en, zh = '';
@@ -343,7 +345,7 @@ function nuLabel(v) {
     let m = rest.match(/^ν not determinable by this method \((.*)\)$/);
     if (m) zh = `本方法无法确定 ν（${m[1].split('; ').map(p => NU_PART_ZH[p] || p).join('；')}）`;
     m = rest.match(/^ν not evaluable \((.*)\)$/);
-    if (m) zh = `ν 不可评估（${m[1]}）`;
+    if (m) zh = `ν 不可评估（${NU_REASON_ZH[m[1]] || m[1]}）`;
   }
   if (!zh) return en;
   return L(en, zh + (hasCond ? NU_COND_ZH : '') + (hasScale ? '（尺度不同：不支持迁移）' : ''));
@@ -364,7 +366,7 @@ function nuRows() {
     const ka = c.known_answer ? c.known_answer.outcome : null;
     rows.push(['', L('Known-answer check on mocks: mean P(ν ≤ 4) for t₃, t₁₀, heteroscedastic, truncated t₃', '模拟样本上的已知答案检验：t₃、t₁₀、异方差、截断 t₃ 的平均 P(ν ≤ 4)'),
       `${mp('t3')}, ${mp('t10')}, ${mp('het')}, ${mp('trunc')}`, L('Δ ≥ 0.10', 'Δ ≥ 0.10'),
-      ka === 'passed' ? L('passed', '通过') : ka ? L(ka, ka.replace(/^failed/, '未通过')) : null, ka === 'passed' ? 'ok' : 'undetermined']);
+      ka === 'passed' ? L('passed', '通过') : ka ? L(ka, ka.replace(/^failed \((.*)\)$/, (_, p) => '未通过（' + p.split('; ').map(x => NU_PART_ZH[x] || x).join('；') + '）')) : null, ka === 'passed' ? 'ok' : 'undetermined']);
   }
   if (!g) {
     rows.push(['', L('Label', '标签'), '', '', c.outcome ? nuLabel(c.outcome) : L('check stage done; full stage not yet run', '检查阶段已完成；完整阶段尚未运行'), 'undetermined']);

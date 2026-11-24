@@ -291,7 +291,7 @@ def psis_khat(log_w):
     n = len(lw)
     m = int(math.ceil(min(0.2 * n, 3.0 * math.sqrt(n))))
     lw = lw - lw[-1]
-    cut = lw[-m - 1]
+    cut = max(lw[-m - 1], math.log(np.finfo(float).tiny))     # floored as in arXiv:1507.02646
     tail = lw[lw > cut]
     if len(tail) <= 4:
         return float("inf")
@@ -386,6 +386,14 @@ def scale_inside(interval, ref=SCALE_REF):
     if isinstance(hi, str):
         return bool(lo <= ref)
     return bool(lo <= ref <= hi)
+
+
+def upper_end(interval):
+    """The upper end as reported (README amendment 2): the number, "open (> 0.5)" or "not determined"."""
+    hi = interval[1]
+    if isinstance(hi, str):
+        return "not determined" if hi == "not determined" else f"open ({hi})"
+    return float(hi)
 
 
 def pass_rule(P_t3, P_t10, P_het):
@@ -743,7 +751,7 @@ def _core(L, y, C, rows_a, hf_rows, calib_groups, P, fns, log, grid_m2l, cid_inf
         return stop(LBL_NOT_EVAL.format("reduced form"))
     s1 = {"main": est, "tau_hat_HF": est["tau_hat"], "interval_68": est["interval_68"],
           "ratio_to_tau_obs": est["tau_hat"] / TAU_OBS_RATIO, "tau_obs_reference": TAU_OBS_RATIO,
-          "scale_reference_inside_interval": scale_inside(est["interval_68"]),
+          "upper_end": upper_end(est["interval_68"]),
           "delta_m2l_at_zero": est["delta_m2l_at_zero"], "n_groups": len(groups)}
     # reported only: the 0.45 grouping and the V(tau_obs) base
     try:
@@ -767,6 +775,8 @@ def _core(L, y, C, rows_a, hf_rows, calib_groups, P, fns, log, grid_m2l, cid_inf
     seconds["stage1"] = CLOCK() - t0
     lab, why = gate(est, P["nu_tau_gate"])
     rec["gate"] = why
+    if lab is None:          # only once the gate passed: the lower end is then a number (S1, gate-1 review)
+        s1["scale_reference_inside_interval"] = scale_inside(est["interval_68"])
     log(f"R2-RE-NU: tau_hat_HF {est['tau_hat']:.4f} mag, 68% {est['interval_68']}; gate {why}")
     if lab:
         return stop(lab)
@@ -929,13 +939,10 @@ def run_full(L, y, C, rows_a, hf_rows, calib_groups, P, fns, log, grid_m2l, cid_
         log("R2-RE-NU: " + out["label"])
         return out
     s1 = check_rec["stage1"]
-    out["stage1"] = {k: s1[k] for k in ("tau_hat_HF", "interval_68", "ratio_to_tau_obs",
+    out["stage1"] = {k: s1[k] for k in ("tau_hat_HF", "interval_68", "upper_end", "ratio_to_tau_obs",
                                         "scale_reference_inside_interval", "delta_m2l_at_zero")}
     inside = s1["scale_reference_inside_interval"]
-    if inside is None:
-        raise RuntimeError("R2-RE-NU full stage stopped before L(ν): the upper end of τ̂_HF's 68% interval is "
-                           "'not determined', a case the pre-registration's scale condition does not cover; decide and "
-                           "amend the README first")
+    assert isinstance(inside, bool), inside       # set once the gate passed (README amendment 2: never undetermined)
     des, u, tau = cx["des"], cx["u"], cx["tau"]
     q = float(P["nu_q_prior_frac"])
     # Stage 2 on the data, with one escalation
@@ -968,7 +975,8 @@ def run_full(L, y, C, rows_a, hf_rows, calib_groups, P, fns, log, grid_m2l, cid_
     prof, k = {}, 0
     for m in P["nu_profile_m"]:
         if float(m) == 1.0:
-            prof[f"{float(m):g}"] = {"tau": tau, "log_L": log_L, "check_ok": True, "from": "primary"}
+            prof[f"{float(m):g}"] = {"tau": tau, "log_L": log_L, "check_ok": bool(final["ok"]), "n": final["n"],
+                                     "seed_base": final["seed_base"], "from": "primary"}
             continue
         prof[f"{float(m):g}"] = sensitivity_p(float(m) * tau, u, des, P, int(P["nu_profile_seed"]) + 100 * k)
         prof[f"{float(m):g}"]["seed_base"] = int(P["nu_profile_seed"]) + 100 * k
@@ -979,7 +987,12 @@ def run_full(L, y, C, rows_a, hf_rows, calib_groups, P, fns, log, grid_m2l, cid_
                        "check_ok": all(v["check_ok"] for v in prof.values())}
     vb = check_rec["stage1"].get("vbase", {})
     if "tau_hat" in vb and not vb["at_upper_bound"]:
-        desv, probv = hf_design(L, y, cx["V"], rows_a, cx["groups"], fns)
+        try:
+            desv, probv = hf_design(L, y, cx["V"], rows_a, cx["groups"], fns)
+        except (np.linalg.LinAlgError, ValueError) as e:
+            if not fns["is_fit_failure"](e):
+                raise
+            desv, probv = None, f"fit: {e}"
         if probv:
             sens["vbase"] = {"status": f"not evaluable ({probv})"}
         else:
@@ -989,7 +1002,12 @@ def run_full(L, y, C, rows_a, hf_rows, calib_groups, P, fns, log, grid_m2l, cid_
         sens["vbase"] = {"status": vb.get("status", "not evaluable (bound)")}
     g45 = check_rec["stage1"].get("grouping_045", {})
     if "tau_hat" in g45 and not g45["at_upper_bound"]:
-        des45, prob45 = hf_design(L, y, C, rows_a, cx["groups_s"], fns)
+        try:
+            des45, prob45 = hf_design(L, y, C, rows_a, cx["groups_s"], fns)
+        except (np.linalg.LinAlgError, ValueError) as e:
+            if not fns["is_fit_failure"](e):
+                raise
+            des45, prob45 = None, f"fit: {e}"
         if prob45:
             sens["grouping_045"] = {"status": f"not evaluable ({prob45})"}
         else:
