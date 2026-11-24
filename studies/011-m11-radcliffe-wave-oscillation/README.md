@@ -698,6 +698,26 @@ with the load check and `params`, and puts `R_DIAG` into `summary.json` before `
 (default 0, so all other results reproduce). Tests, conclusion checks, a web section and section 8 knobs. None of this
 exists yet.
 
+*Amendments and disclosure while writing the code (2026-11-24, before the formal R-DIAG run).* No rule, threshold or
+label above changes.
+1. **Seen before the formal run.** While checking the code on the real inputs, a smoke check printed Part C (i) (x–y
+   median 0.80 pc, 95th percentile 1.30 pc, label "matches"; 3-D median 66 pc) and ln L at v_K and v_P (−913.88 and
+   −805.51). A data-path exploration with chains far too short to read (32 walkers, 200 steps; output and checkpoints
+   deleted) printed preliminary labels: S "reproduced" (count 5), S_all and S+PT "partly reproduced", (c) "reproduced"
+   with c ≈ −196 pc and a c-ref half-width of 92 pc, (z☉) "not reproduced". The formal run replaces all of these; they
+   are disclosed because they were seen.
+2. **(z☉) weights.** The fixed weights of the (z☉) fit are recomputed by the formal rule from the shifted clouds, as
+   amendment 9 of section 4.9 does for variants (largest change 0.106 against the 79-row weights; recorded as
+   `weights_max_abs_change`). For (c) and c-ref they are the formal weights, as stated above.
+3. **Membership edge cases.** A row whose candidates went to several other rows is listed as absorbed by all of them; a
+   fallback row's own sightlines stay out of S (they are not handed to another row). Neither case occurs on the real
+   tables.
+4. **Part A's ln prior** is the same unnormalised Gaussian log prior as the log posterior's; Part C (ii)'s bound on c is
+   the prior range of (c), [−400, 400] pc.
+5. **Cost.** One column-(3) likelihood takes about 0.73 ms on the 79 rows and 1.05–1.12 ms on S (about 1.5 times, not
+   2–2.3); the run should take about 1.5–2 hours.
+
+
 ## 5. Results
 
 Formal run of 2026-11-21 (`results/`, page `web/index.html`). It paused at 10 h by the pre-registered
