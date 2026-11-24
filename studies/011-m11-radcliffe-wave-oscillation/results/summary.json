@@ -306,6 +306,47 @@
    "broad"
   ]
  },
+ "R_DIAG": {
+  "reading": "the reconstructed sightline sample accounts for part of the column-(3) difference",
+  "labels": {
+   "S": "column (3) partly reproduced with sample S, post hoc",
+   "S_all": "column (3) partly reproduced with sample S_all, post hoc",
+   "S+PT": "column (3) partly reproduced with sample S+PT, post hoc",
+   "c": "column (3) partly reproduced with the origin free, post hoc",
+   "zsun": "column (3) not reproduced with z☉ = 20.8 pc, post hoc",
+   "c_reading": "prior-dominated",
+   "curve": "matches K24's published curve"
+  },
+  "n_points": {
+   "S": 149,
+   "S_all": 169,
+   "S+PT": 177
+  },
+  "counts": {
+   "S": 3,
+   "S_all": 3,
+   "S+PT": 4,
+   "c": 3,
+   "zsun": 1
+  },
+  "D6": {
+   "S": 7.659375551010429,
+   "S_all": 7.1592750507921465,
+   "S+PT": 4.73814917342809,
+   "c": 6.516233972331306,
+   "zsun": 17.598283850123472
+  },
+  "c_median_pc": -245.3141326904297,
+  "c_ref_halfwidth_pc": 136.5958679199219,
+  "chain_short": [
+   "S",
+   "S_all",
+   "S+PT",
+   "c",
+   "zsun",
+   "c_ref"
+  ]
+ },
  "overall": {
   "reading": "mixed",
   "labels": {
