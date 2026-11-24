@@ -4,10 +4,10 @@
 
 *Paper: Konietzka, Goodman, Zucker, Burkert, Alves, Foley, Swiggum, Koller, Miret-Roig 2024, "The Radcliffe Wave is oscillating", Nature 628, 62–65, doi:10.1038/s41586-024-07127-3, [arXiv:2402.12596](https://arxiv.org/abs/2402.12596). Study:
 [`studies/011-m11-radcliffe-wave-oscillation`](https://github.com/sudoghut/astrolab/tree/main/studies/011-m11-radcliffe-wave-oscillation) (web page: [online](https://sudoghut.github.io/astrolab/studies/011-m11-radcliffe-wave-oscillation/web/)).
-Status: concluded (overall reading "mixed"). Last updated: 2026-11-21 (see the changelog at the end). The source of this page lives in the main repository at
+Status: concluded (overall reading "mixed"). Last updated: 2026-11-24 (see the changelog at the end). The source of this page lives in the main repository at
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki); edit it there.*
 
-*中文标题：Radcliffe 波在振荡吗？年轻星团与银河系中的竖直振荡。状态：已结束（总体判读"混合"）。论文：Konietzka, Goodman, Zucker, Burkert, Alves, Foley, Swiggum, Koller, Miret-Roig 2024，Nature 628, 62–65，doi:10.1038/s41586-024-07127-3，[arXiv:2402.12596](https://arxiv.org/abs/2402.12596)。研究：[`studies/011-m11-radcliffe-wave-oscillation`](https://github.com/sudoghut/astrolab/tree/main/studies/011-m11-radcliffe-wave-oscillation)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/011-m11-radcliffe-wave-oscillation/web/)）。最后更新：2026-11-21（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
+*中文标题：Radcliffe 波在振荡吗？年轻星团与银河系中的竖直振荡。状态：已结束（总体判读"混合"）。论文：Konietzka, Goodman, Zucker, Burkert, Alves, Foley, Swiggum, Koller, Miret-Roig 2024，Nature 628, 62–65，doi:10.1038/s41586-024-07127-3，[arXiv:2402.12596](https://arxiv.org/abs/2402.12596)。研究：[`studies/011-m11-radcliffe-wave-oscillation`](https://github.com/sudoghut/astrolab/tree/main/studies/011-m11-radcliffe-wave-oscillation)（网页：[在线版](https://sudoghut.github.io/astrolab/studies/011-m11-radcliffe-wave-oscillation/web/)）。最后更新：2026-11-24（见文末"研究进展"）。本页源文件在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，请在那里修改。*
 
 ---
 
@@ -854,6 +854,16 @@ run took about 10.5 hours (paused at 10 h as pre-registered and resumed); number
   tightly as K24's prior does; that prior (centred on 91) pulls the result to 71, close to K24's 67.7. So in our fit with
   the divisor fixed, prior and data weigh about equally; with B = 1 fixed, ω₀ mainly tracks the clusters' ratio of
   velocity to height amplitude, so it is not a clean measure of the local density.
+- *Update 2026-11-24 (T-061, post hoc).* **The cloud sample is part of the story.** K24 fitted the clouds at the
+  positions of individual sightlines (Zucker et al. 2020 and Alves et al. 2020), whereas our 79 rows merge several
+  sightlines into one point per cloud. Rebuilding K24's sample by a pre-registered membership rule (149 points), the
+  clouds-only fit moves from two to three of six shape parameters inside K24's ranges (four with Perseus and Taurus),
+  mostly through the envelope width δ; the phase φ and the first anchor stay off. Part of this gain may simply be
+  the larger total weight of 149 points against the priors (a control is registered, T-065). Letting the origin of s
+  float cannot help: the referee showed it is exactly equivalent to changing p, γ, φ and s₀, so it only reflects the
+  priors, and that label was withdrawn. Shifting the Sun's height by 20.8 pc makes the fit worse. Our curve at K24's
+  medians matches the curve K24 published to under 1 pc in the plane, so the model code is not the problem; most of
+  the remaining difference sits in the bridging sightlines, which are the same in both samples.
 
 ### Glossary
 
@@ -874,6 +884,7 @@ run took about 10.5 hours (paused at 10 h as pre-registered and resumed); number
 
 Newest first.
 
+- 2026-11-24: R-DIAG (T-061, post hoc): with K24's per-sightline cloud sample column (3) is partly reproduced (3–4 of 6; part may be the larger total weight, T-065); the origin of s is exactly degenerate and its label withdrawn; our curve matches K24's published curve; part 3 updated; independent referee done.
 - 2026-11-22: R-CONV and T8-P (T-056, post hoc): column (3) not reproduced under any of 16 conventions; T8-P prior-driven (data 59 km/s/kpc); part 3 updated; independent referee done; per-cloud diagnostic registered (T-061).
 - 2026-11-21: formal run and close-out: part 3 results added (overall reading "mixed"; T3's exclusion of the standing wave fragile; T4, T5 undetermined; T8 withdrawn after the independent referee found the free-ω₀ likelihood ill-posed in ω₀; follow-ups T-056).
 - 2026-11-21: part 3 drafted (eight tests T1–T8 and three explorations; the two public tables' columns and row counts read, no fit; gate-1 review: T3 recast as nested profile-likelihood tests, because with ω₀t free a standing wave has one more effective parameter; T4 noise on all four components, a circular statistic on 2φ_k and a power check; T5 takes Λ(s) from the clouds-only fit and frees each wavelength); round 2: B is not folded (B and 1 − B travel in opposite directions), B = 1 is referred to χ² with two degrees of freedom (ω₀t merges into φ there) and bootstrapped, T4 recomputes each mock's closest point, T5 reports the amplitude ratio and uses no velocity in its cluster set; round 3: T5 labels get an undetermined band, so a wide interval cannot count as support, T4 closest points on the B = 0.5 curve, ω at the reference s; round 4: T5 reads b̂ = 2B − 1 from the singular values of the (z, v_z) phase–amplitude matrix (so K24's B = 0.84 is not judged against pure B = 1) with non-overlapping labels, T4's conservativeness explained correctly; round 5: b̂ from a fit with one shared wavelength (not applicable when the wavelengths differ), A ≥ 0, a known-answer check; gate-1 passed (round 6, minors: pass rule of the known-answer check, labels directional, Δ and ρ constants of the fit); gate-2 (Codex) round 1: proposed thresholds for T1, T3, T4, T7 and T8 and 95% intervals in T5; its claim that b̂ depends on ω₀t was checked numerically and rejected (the v_z row of the matrix is (−sin ω₀t, (2B − 1) cos ω₀t), so the singular values are 1 and |2B − 1| for any ω₀t); round 2: Codex agreed with the derivation; the known-answer check at B = 1 asks for the label, not coverage, since b̂ is bounded by 1; σ in T8 defined; round 3: no serious issues (passed the dual gate; minor: the known-answer aggregation rule stated); pre-registration review: T5's cluster set is chosen by position (all 125 as a variant), matching README section 4.4; w☉ = 7.8 km/s attributed to Kerr & Lynden-Bell 1986 as cited by K24 (was Schönrich et al. 2010).
@@ -1267,6 +1278,7 @@ K24 在扣除银河系自转后拟合一个刚体的盘面内速度：v_x,plane 
 - *T8。* 撤回（独立审稿，事后）：ω₀ 自由时，在 K24 有界的离群函数下，σ 固定的 v_z/ω₀ 使似然对 ω₀ 是病态的（ill-posed；缺少 ln ω₀ 归一化项，加上后 ω₀ → 0 时似然无界增大；在探索的众数搜索中，宽先验下后验跑到上限，加上归一化后跑到下限）。除数固定时 ω₀ = 71（+10/−8）km s⁻¹ kpc⁻¹，接近 K24 的 67.7（只在 K24 先验下拟合）。
 - *这意味着什么。* K24 的数据与模型确实给出 B ≈ 0.84 和似然对行波的偏好，但这一偏好依赖少数星团（主要是猎户座区域）与核加权；直接的相位检验与 b̂ 检验无法判定。论文明说的"星团的 v_z 图样显示行波"（第二部分环节 C）只在这种不稳健的形式下得到支持。
 - *2026-11-22 更新（T-056，事后）。* **对 K24 方法部分的任何读法都不能复现他们只用云的拟合：** 十六种约定（弯曲基线的四种形式，σ 固定为 47 pc 或由云的平方距离的离散得到，权重固定或重算）都使六个参数中同样两个落在 K24 的范围内（包络峰值的位置 s₀，以及波长缩短的快慢 γ），偏移也相同（包络宽度 δ 约短 2σ，相位 φ 约大 3–4σ，第一个锚点约偏 2σ）。所以差别是它们共有的：在数据、似然，或者它们都没有改变的某个约定中（s = 0 在曲线上的位置、太阳的竖直偏移）；K24 与我们一样只拟合有速度测量的云，云是否相同是下一步要核对的（T-061）。**速度除数固定时（T8-P），ω₀ "由先验决定"：** 在宽先验下数据偏好 59 (+12/−10) km s⁻¹ kpc⁻¹，约束与 K24 的先验相当；该先验（中心 91）把结果拉到 71，接近 K24 的 67.7。所以在我们除数固定的拟合中，先验与数据分量相当；固定 B = 1 时，ω₀ 主要跟随星团速度与高度振幅之比，不是局部密度的干净量度。
+- *2026-11-24 更新（T-061，事后）。* **云的样本是原因的一部分。** K24 用的是单条视线（sightline）的位置（Zucker 等 2020 与 Alves 等 2020），而我们的 79 行把同一个云的几条视线合并成一个点。按预注册的成员规则重建 K24 的样本（149 个点）后，只用云的拟合中落在 K24 范围内的形状参数从 6 个中 2 个增加到 3 个（加上 Perseus 与 Taurus 为 4 个），主要来自包络宽度 δ；相位 φ 与第一个锚点仍然偏离。这一改善可能有一部分只是 149 个点相对先验的更大总权重（对照检验已登记，T-065）。让 s 的起点自由无济于事：审稿人证明它与改变 p、γ、φ、s₀ 精确等价，所以只反映先验，该标签已撤回。把太阳的高度平移 20.8 pc 使拟合更差。我们的曲线在 K24 中位数处与 K24 公布的曲线在银道面内相差不到 1 pc，所以模型代码不是问题；剩下的差别大部分在连接视线（bridging sightlines）中，而它们在两个样本中相同。
 
 ### 术语表
 
@@ -1287,6 +1299,7 @@ K24 在扣除银河系自转后拟合一个刚体的盘面内速度：v_x,plane 
 
 按时间倒序。
 
+- 2026-11-24：R-DIAG（T-061，事后）：用 K24 逐条视线的云样本时第 (3) 列部分复现（6 个中 3–4 个；可能部分来自更大的总权重，T-065）；s 的起点精确简并，其标签撤回；我们的曲线与 K24 公布的曲线吻合；更新第三部分；独立审稿已做。
 - 2026-11-22：R-CONV 与 T8-P（T-056，事后）：16 种约定下第 (3) 列都未复现；T8-P 由先验决定（数据偏好 59 km/s/kpc）；更新第三部分；独立审稿已做；逐云诊断登记为 T-061。
 - 2026-11-21：正式运行与收尾：第三部分补写结果（总体判读"混合"；T3 排除驻波但不稳健；T4、T5 无法判定；独立审稿发现 ω₀ 自由的似然对 ω₀ 病态，T8 撤回；后续 T-056）。
 - 2026-11-21：第三部分初稿（八项检验 T1–T8 与三项探索；读取了两张公开表的列与行数，未做拟合；闸门 1 审查：T3 改为嵌套模型的剖面似然检验，因为 ω₀t 自由时驻波多一个有效参数；T4 的噪声加在全部四个分量上，用 2φ_k 的圆统计量并检查功效；T5 的 Λ(s) 取自只用云的拟合，两个波长各自放开；第二轮：B 不折叠（B 与 1 − B 向相反方向传播），B = 1 按 2 个自由度的 χ² 分布（那里 ω₀t 并入 φ）并做自助法检查，T4 对每个模拟重新求最近点，T5 报告振幅比且星团选择不含速度；第三轮：T5 的标签增加"无法判定"，宽区间不能算作支持，T4 在 B = 0.5 的曲线上求最近点，ω 在参考 s 处计算；第四轮：T5 由 (z, v_z) 相位—振幅矩阵的奇异值读出 b̂ = 2B − 1（不再拿 K24 的 B = 0.84 对照纯 B = 1），标签互不重叠，T4 的保守性改为正确的理由；第五轮：b̂ 取自共用一个波长的拟合（波长不同时不适用），A ≥ 0，加已知答案检验；闸门 1 通过（第六轮，小问题：已知答案检验的通过条件，标签带方向，Δ 与 ρ 为拟合常数）；闸门 2（Codex）第一轮：给 T1、T3、T4、T7 与 T8 补上建议阈值，T5 用 95% 区间；它认为 b̂ 依赖 ω₀t，经数值检验不成立（矩阵中 v_z 一行为 (−sin ω₀t, (2B − 1) cos ω₀t)，奇异值对任何 ω₀t 都是 1 与 |2B − 1|）；第二轮：Codex 同意这个推导；B = 1 处的已知答案检验改为检查标签而不是覆盖，因为 b̂ 以 1 为上界；T8 的 σ 已定义；第三轮：没有严重问题（通过双闸；小问题：写明已知答案检验的汇总规则）；预注册审查：T5 的星团集合按位置选择（全部 125 个作为变体），与 README 第 4.4 节一致）；w☉ = 7.8 km/s 改为 K24 引用的 Kerr & Lynden-Bell 1986（原误作 Schönrich 等 2010）。
