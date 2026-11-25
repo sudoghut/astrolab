@@ -5,6 +5,7 @@
 
 ## 2026-11-24（R6-SHUF-KA2 预注册，T-063）
 
+- 正式运行完成：16:05–20:39，16,409 秒（预估 5–6.5 小时），每次训练 449–597 秒；30 次训练全部完成。重算的精确值与登记值相差在 5·10⁻⁵ 以内（n₆ 1.37677、n_S 0.66778、n₅ 0.33414，φ_exact 0.68000）。R1–R5 的结果不变（只有行尾不同）。标签"flows underestimate φ on the surrogate (bias -0.052)"（b̄ = −0.052，s_b = 0.033，I_b = [−0.073, −0.031]）；限定语"R6-SHUF's label holds after the surrogate correction"（w = 0.039，修正后区间 [0.684, 0.762]）；与 R6-SHUF-KA 的比较"the bias of φ differs between the family and the surrogate (Δb = −0.071)"。结果入库，`r6_ka2` 改回 false。审稿与收尾随后进行。
 - 正式运行开始：分支变基到 main 之后，`r6_ka2` 设为 true（其余 PARAMS 为预注册值），默认线程；研究 010 的 R1-ERRMM 正式运行已于 16:04 结束，机器上没有其他研究运行（研究 012 仍暂停）。运行结束后开关改回 false。
 - 用户 2026-11-24 在对话中同意为 T-063 重装 venv-tf（原文："当然同意"），配方与 2026-11-16 相同（tensorflow 2.21.0、tensiometer 1.1.0、getdist 1.7.7、numpy 2.5.5），基础环境与项目 venv 不变。
 - README 第 2.10 节（中英文）预注册 R6-SHUF-KA2：在数据自身两条链的替代分布（surrogate）上对 φ 做已知答案检验（known-answer test）。替代分布是对 DES 3x2pt 与 CMB 链分别拟合的全协方差高斯混合（Gaussian mixture），K 在 1–8 中按 BIC（贝叶斯信息准则，Bayesian information criterion）选取；(S) 按 R6-SHUF 的方式构建（置换 DES 的 Σmν 列，保留 CMB 一侧的相关）。起草时 `explore/t063_surrogate_design.py` 先写好设置再运行一次（1,059 秒，只读缓存中的链，不训练流）：两条链的 BIC 一直下降到 K = 8（范围上端，按事先的规则不扩大），精确值 n₆ = 1.3768、n_S = 0.6678、n₅ = 0.3341、φ_exact = 0.6800；拟合结果入库为 `surrogate_t063.json`，运行时不重新拟合。替代分布的 n_σ 低于流在数据上的值（1.70、0.91、0.52），第 2.10 节写明这一点。种子 25–34，30 次训练约 5–6.5 小时，在研究 012 的正式运行结束、机器上没有其他研究运行时进行。
