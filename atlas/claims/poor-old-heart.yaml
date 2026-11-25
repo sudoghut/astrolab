@@ -1,0 +1,31 @@
+id: poor-old-heart
+title: "A metal-poor, ancient, centrally concentrated heart of the Milky Way"
+title_zh: "银河系贫金属、古老且向中心集中的核心"
+statement: >
+  Gaia DR3 XP metallicities of about 2 million bright giants within 30 degrees of the Galactic Centre
+  reveal about 18,000 stars with -2.7 < [M/H] < -1.5, at least about 5e7 solar masses, with a Gaussian
+  extent of about 2.7 kpc around the Centre; stars below [M/H] = -2 show no net rotation and those near
+  -1 are rotation dominated; the population most likely predates the oldest disc (z of about 5 or more)
+  and is the most ancient proto-Galactic component.
+statement_zh: "约 200 万颗银心 30 度以内亮巨星的 Gaia DR3 XP 金属丰度显示约 18,000 颗 −2.7 < [M/H] < −1.5 的星，质量至少约 5×10⁷ 太阳质量，绕银心的高斯尺度约 2.7 kpc；[M/H] < −2 的星没有净旋转，−1 附近的星以旋转为主；这一族群很可能早于最老的银盘（z 约 5 或更高），是最古老的原银河系成分。"
+level: L3
+grade: contested
+sources:
+  - cite: "Rix et al. 2022, ApJ 941, 45"
+    arxiv: "2209.02722"
+  - cite: "Ardern-Arentsen et al. 2024, PIGS VIII (rotation of very metal-poor inner-Galaxy stars)"
+    arxiv: "2312.03847"
+reproduction:
+  status: partial
+  study: 012-m12-poor-old-heart
+  quantities:
+    - {name: "stars with -2.7 < [M/H] < -1.5 (abstract)", paper: "about 18,000", ours: "30,589 (public file; not reproduced; R22's 18,000 may refer to an R_GC < 4 kpc subset, referee, post hoc, only partly supported: the Fig. 4 caption gives about 20,000 for the entire 1.7 million sample, and the file has 30,589, or 32,769 scaled to 1.7 million)"}
+    - {name: "spherical Gaussian extent sigma_RGC (R22 eq. 1)", paper: "about 2.7 kpc", ours: "2.704 kpc [2.678, 2.730] (reproduced); population sigma undetermined: the estimator recovers 2.21 kpc from 2.7 kpc mocks"}
+    - {name: "J_phi/J_tot below [M/H] = -2", paper: "no net rotation (abstract; Section III.3: some, albeit small)", ours: "0.125 [0.089, 0.157], net rotation"}
+    - {name: "J_phi/J_tot at -1.1 < [M/H] < -0.9", paper: "rotation dominated", ours: "0.542 [0.534, 0.551], rotation dominated; flips under a +0.1 dex metallicity shift"}
+    - {name: "fraction with apocentre < 5 kpc ([M/H] < -1.5)", paper: "most", ours: "0.410 [0.402, 0.417] (kinematics subsample, 49%; probably selection-driven, referee)"}
+    - {name: "stellar mass with R22's choices", paper: ">= about 5e7 Msun", ours: "6.1e7 Msun with our count (range 1.8e7-1.5e8 over the conversion choices)"}
+open_questions:
+  - "What is the population's true extent? A sigma-calibrated known-answer grid with a posterior-predictive check of the mocks (T-069) decides the extent and the 'most within 5 kpc' fraction."
+  - "Why does the public file's J_phi/J_tot curve lie 0.1-0.2 below R22's numbers near [M/H] = -1, and do R22's counts refer to an R_GC < 4 kpc subset (T-070)?"
+notes: "Milestone M12, study 012 concluded 2026-11-25 (T-021). Mechanical readings: reproduction 'not reproduced' (T1, T3 (a)); robustness 'challenged' (T4, T5 a5). Post hoc (referee, 2026-11-25): our net rotation below -2 agrees with R22's own Section III.3 and contradicts only the abstract and Section IV; R22's 18,000 may refer to the R_GC < 4 kpc subset of Fig. 4 (only partly supported: the same caption gives about 20,000 for the entire sample, which the file does not match either); T4 is a threshold effect; a5 is probably biased low by the RVS and parallax selection of the kinematics file. reproduction.status is 'partial' rather than 'failed' because T2a version (i) (2.704 kpc) and T3 (b) (rotation dominated) reproduce. Grade 'contested': the inner-Galaxy rotation at low metallicity (Ardern-Arentsen et al. 2024) and the proto-Galactic reading are debated."

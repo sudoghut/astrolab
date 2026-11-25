@@ -1,0 +1,211 @@
+{
+ "samples": {
+  "primary": {
+   "n": 14972,
+   "g": 0.13718942025113545,
+   "g_interval": [
+    0.13211327811915577,
+    0.1433358936681806
+   ],
+   "g_label": "moderate",
+   "a5": 0.4100988511888859,
+   "a5_interval": [
+    0.4018818461127438,
+    0.41717873363612074
+   ],
+   "a5_label": "not confirmed",
+   "mh_range": [
+    -99.0,
+    -1.5
+   ]
+  },
+  "-1.9_-1.2": {
+   "n": 27710,
+   "g": 0.12493684590400578,
+   "g_interval": [
+    0.12111151208949837,
+    0.12905088415734392
+   ],
+   "g_label": "moderate",
+   "a5": 0.4745218332731866,
+   "a5_interval": [
+    0.4687450378924576,
+    0.47989895344640926
+   ],
+   "a5_label": "not confirmed",
+   "mh_range": [
+    -1.9,
+    -1.2
+   ]
+  },
+  "-99.0_-1.2": {
+   "n": 31879,
+   "g": 0.12773299036983593,
+   "g_interval": [
+    0.1239977728285078,
+    0.1311835377521252
+   ],
+   "g_label": "moderate",
+   "a5": 0.45584867781298033,
+   "a5_interval": [
+    0.4503568179679413,
+    0.46124721603563473
+   ],
+   "a5_label": "not confirmed",
+   "mh_range": [
+    -99.0,
+    -1.2
+   ]
+  }
+ },
+ "g_label": "moderate",
+ "a5_label": "not confirmed",
+ "g": 0.13718942025113545,
+ "note": "R22's RVS, plx/err >= 5 and dv_RVS < 5 km/s selection favours the near side of the Centre and biases R_apo (README 4.7)",
+ "params": {
+  "first_download": false,
+  "t2_missing_ok": false,
+  "gaia_addition": true,
+  "seed": 20261121,
+  "subsample_seed": 12012,
+  "R0_kpc": 8.2,
+  "plx_zp_mas": 0.02,
+  "t2_mh_range": [
+   -99.0,
+   -1.5
+  ],
+  "grid_nodes": 300,
+  "grid_dmin_kpc": 0.2,
+  "grid_dmax_kpc": 30.0,
+  "grid_d1_i_kpc": 1.0,
+  "grid_check_tol_kpc": 0.01,
+  "grid_max_nodes": 1200,
+  "sigma_bounds_kpc": [
+   0.5,
+   10.0
+  ],
+  "bound_tol_kpc": 0.05,
+  "sigma_true_kpc": 2.7,
+  "t2a_boot": 200,
+  "t2a_mocks": 100,
+  "t2a_bias_max_kpc": 0.1,
+  "ref_bins": [
+   [
+    -1.5,
+    -1.0
+   ],
+   [
+    -1.0,
+    -0.5
+   ]
+  ],
+  "ref_max_stars": 50000,
+  "lf_snr_min": 10.0,
+  "lf_mh_max": -1.0,
+  "lf_min_stars": 500,
+  "ext_a_grid": [
+   0.0,
+   5.0,
+   0.05
+  ],
+  "ext_bd_grid_deg": [
+   1.0,
+   20.0,
+   0.5
+  ],
+  "t2b_bmin_deg": 5.0,
+  "t2b_bmin_variants_deg": [
+   3.0,
+   8.0
+  ],
+  "t2b_boot": 200,
+  "t2b_mocks": 100,
+  "t2b_starts": 5,
+  "t2b_q_power": 0.5,
+  "t2b_pass_of_100": 80,
+  "t2b_second_fp_kpc": 0.2,
+  "control_mh": [
+   -1.0,
+   -0.5
+  ],
+  "t3_rapo_kpc": [
+   3.0,
+   7.0
+  ],
+  "t3_boot": 1000,
+  "t3_w0_mocks": 100,
+  "t3_w0_blur_dex": [
+   0.1,
+   0.15,
+   0.2
+  ],
+  "t3_delta": 0.05,
+  "t3_bin_centers": [
+   -2.0,
+   -1.8,
+   -1.6,
+   -1.4,
+   -1.2,
+   -1.0,
+   -0.8,
+   -0.6
+  ],
+  "t3_bin_width": 0.2,
+  "t3_R0_variants_kpc": [
+   8.0,
+   8.4
+  ],
+  "t4_shift_dex": 0.1,
+  "t4_noise_dex": [
+   0.1,
+   0.2
+  ],
+  "t4_realisations": 10,
+  "t4_trim_pct": [
+   [
+    1.0,
+    99.0
+   ],
+   [
+    5.0,
+    95.0
+   ]
+  ],
+  "t4_bin_dex": 0.25,
+  "t4_boot": 1000,
+  "t5_boot": 1000,
+  "t5_variants": [
+   [
+    -1.9,
+    -1.2
+   ],
+   [
+    -99.0,
+    -1.2
+   ]
+  ],
+  "t6_m_giant": [
+   800.0,
+   1000.0,
+   2000.0
+  ],
+  "t6_f": [
+   1.0,
+   2.5
+  ],
+  "t6_snr_min": 5.0,
+  "t6_mg_max": 0.5,
+  "t6_target_msun": 50000000.0,
+  "parts": [
+   "t1",
+   "t2",
+   "t3",
+   "t4",
+   "t5",
+   "t6"
+  ],
+  "timing_evals": 5,
+  "stop_after_hours": 10.0,
+  "checkpoint_subdir": "s012_checkpoints"
+ }
+}
