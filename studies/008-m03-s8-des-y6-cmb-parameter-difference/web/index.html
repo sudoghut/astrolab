@@ -334,12 +334,14 @@ function renderR6K2(x) {
       + (q.qualifier ? ` Qualifier of R6-SHUF: <b>${r6k2Label(q.qualifier)}</b> (corrected φ ${f(q.phi_corrected)} ± ${f(q.w)}).` : '')
       + (nums.interval_b_t ? ` With a t quantile (descriptive): [${f(nums.interval_b_t[0])}, ${f(nums.interval_b_t[1])}].` : '')
       + (c.reading ? ` Comparison with R6-SHUF-KA: <b>${r6k2Label(c.reading)}</b>` + (c.sigma !== undefined ? ` (Δb = ${f(c.delta_b)}, σ_Δ = ${f(c.sigma)}).` : '.') : '')
-      + ' The surrogate is a Gaussian mixture fitted to each chain; its n_σ (1.38, 0.67, 0.33) are lower than the flows read on the data (1.70, 0.91, 0.52), so the bias is transferred, not measured, for the data; earlier labels stay as recorded.',
+      + ' The surrogate is a Gaussian mixture fitted to each chain; its n_σ (1.38, 0.67, 0.33) are lower than the flows read on the data (1.70, 0.91, 0.52), so the bias is transferred, not measured, for the data; earlier labels stay as recorded.'
+      + ' Post hoc (2026-11-24, after the independent referee; not a label): the two known-answer tests disagree (b̄ = +0.020 on the family, −0.052 on the surrogate), so the flows\' bias of φ depends on the distribution and is not determined for the data to better than about ±0.05–0.07; R6-SHUF\'s label holds under both measured corrections and would be lost only if the flows overestimated φ on the data by more than about +0.03. The surrogate has no hard Σmν prior edge; a test on one that keeps it is registered (T-068).',
     `标签（预注册）：<b>${r6k2Label(x.label)}</b>` + (ib.length ? `（b̄ = ${f(nums.b_bar)}，s_b = ${f(nums.s_b)}，I_b = [${f(ib[0])}, ${f(ib[1])}]）。` : `（${esc(x.reason || '')}）。`)
       + (q.qualifier ? `R6-SHUF 的限定语：<b>${r6k2Label(q.qualifier)}</b>（修正后的 φ ${f(q.phi_corrected)} ± ${f(q.w)}）。` : '')
       + (nums.interval_b_t ? `用 t 分位数（描述性）：[${f(nums.interval_b_t[0])}, ${f(nums.interval_b_t[1])}]。` : '')
       + (c.reading ? `与 R6-SHUF-KA 的比较：<b>${r6k2Label(c.reading)}</b>` + (c.sigma !== undefined ? `（Δb = ${f(c.delta_b)}，σ_Δ = ${f(c.sigma)}）。` : '。') : '')
-      + '替代分布是对每条链拟合的高斯混合；它的 n_σ（1.38、0.67、0.33）低于流在数据上读出的值（1.70、0.91、0.52），所以对数据而言偏差是迁移过来的，而不是测得的；之前的标签按记录保留。');
+      + '替代分布是对每条链拟合的高斯混合；它的 n_σ（1.38、0.67、0.33）低于流在数据上读出的值（1.70、0.91、0.52），所以对数据而言偏差是迁移过来的，而不是测得的；之前的标签按记录保留。'
+      + '事后（2026-11-24，独立审稿之后；不是标签）：两个已知答案检验不一致（分布族上 b̄ = +0.020，替代分布上 −0.052），所以流对 φ 的偏差依赖于分布，对数据而言不确定性不小于约 ±0.05–0.07；R6-SHUF 的标签在两种测得的修正下都成立，只有当流在数据上把 φ 高估超过约 +0.03 时才会失去。替代分布没有 Σmν 的先验硬边界；在保留它的替代分布上的检验已登记（T-068）。');
 }
 
 let data = null;

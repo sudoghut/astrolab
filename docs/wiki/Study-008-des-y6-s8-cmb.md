@@ -389,6 +389,17 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
   independent referee noted that the transfer to the data rests on that cancellation and that the
   margin is 0.01. A test on a surrogate of the data's own difference is registered (T-063). Numbers:
   [`results/r6_ka.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_ka.json).
+- **Update 2026-11-24, R6-SHUF-KA2 (T-063, pre-registered): flows underestimate φ on a surrogate of the data.** A
+  Gaussian mixture was fitted to each chain (exact values n₆ 1.38, n_S 0.67, n₅ 0.33, φ = 0.680), and the same flow
+  pipeline, ten seeds × three variants, recovers φ with b̄ = −0.052 and I_b = [−0.073, −0.031], below 0, mostly because
+  the flows read the shuffled variant high there. Corrected by this, R6-SHUF's φ interval is [0.684, 0.762], so its label
+  holds again (the pre-registered qualifier). But the two known-answer tests disagree (+0.020 on the family, −0.052 on
+  the surrogate; 4.3σ, the pre-registered comparison), so the flows' bias of φ depends on the distribution. The
+  independent referee (post hoc) concluded that the bias on the data is not determined to better than about ±0.05–0.07:
+  the label holds under both measured corrections and would be lost only if the flows overestimated φ on the data by
+  more than about +0.03. The referee's kNN check puts the surrogate's own n_σ about 0.2σ below the data's, and the
+  surrogate has no hard Σmν prior edge at 0.06 eV, which the data have; a test on a surrogate that keeps the edge is
+  registered (T-068). Numbers: [`results/r6_ka2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_ka2.json).
 - **"Easing", measured on one ruler.** Against the same CMB chain, the previous generation sits at
   1.4–3.1σ (DES Y3 2.83σ, KiDS-1000 2.92–3.14σ, HSC Y3 2023 1.44–1.93σ) and the other current probes
   at 0.2–1.7σ (KiDS-Legacy 1.04σ, HSC Y3 2025 1.74σ, ACT lensing 0.18σ, eROSITA 1.51σ above the CMB);
@@ -423,6 +434,10 @@ Details: [study README section 5](https://github.com/sudoghut/astrolab/blob/main
 
 Newest first.
 
+- 2026-11-24: R6-SHUF-KA2 (T-063, pre-registered): known-answer test of φ on a Gaussian-mixture surrogate of the two
+  chains; flows underestimate φ (b̄ = −0.052); R6-SHUF's label holds after that correction ([0.684, 0.762]); the bias
+  differs from the family's (Δb = −0.071, 4.3σ); referee (post hoc): the bias on the data is not determined to better
+  than about ±0.05–0.07; T-068 registered (part 3 updated).
 - 2026-11-22: R6-SHUF-KA (T-047 flow part, pre-registered): known-answer test of φ; no bias detected
   (I_b = [−0.006, 0.045]); R6-SHUF's label holds after the correction; referee: transfer rests on
   cancellation of per-variant offsets; T-063 registered (part 3 updated).
@@ -650,6 +665,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 - **2026-11-20 更新，R6-SHUF（T-044，预注册）：主要是 DES 自身 Σmν 的相关。** 用相同的 6 维流、逐种子与 R6 配对，分别在打乱 DES 的 Σmν 列（保留它的分布，切断它与 DES 其他参数的联系）和把 DES 的 Σmν 换成先验抽样的情形下训练。打乱使差异从 1.70σ 降到 0.91σ；换成先验降到 0.55σ，接近不含 Σmν 的 0.52σ。Σmν 增加的部分中，比例 φ = 0.67（预注册区间 0.64–0.70）随打乱而去：预注册标签为"Σmν 增加的部分主要通过它与其他 DES 参数的相关"。约三分之一来自 DES 的 Σmν 分布相对其先验的差别，DES 的 Σmν 取先验后只剩约 0.03σ（这一余项把 CMB 链的 Σmν、第六维与其他残差合在一起）。独立审稿（事后，我们已复核）发现标签对训练离散稳健，但接近已知答案门控所能保证的边缘（按门控的均值偏差修正后区间为 0.60–0.67）；由哪些 DES 参数承担这种相关，没有检验。φ 的已知答案检验已登记（T-047）。数字见 [`results/r6_shuf.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_shuf.json)。
 - **2026-11-20 更新，条件均值（T-047 第一部分，探索，事后；不训练流）。** 我们按 Σmν 分箱（DES 的五分位数），比较两条链中其他五个参数的条件均值。在 DES 链中 Σmν 与其他五个参数共同线性相关（R² = 0.87），尽管除 Ωm 外两两相关系数都很小，所以打乱它破坏的是联合关系，而不是某一对。在 CMB 权重所在处（Σmν < 0.24 eV，95%），Ωm（−0.21σ，边缘分布 +0.34σ）与 A_s（−0.67σ 对 −0.75σ）的均值偏移以及 (A_s, Ωm) 的高斯二维偏移（0.33σ 对 0.32σ）都与边缘分布的相近。更高的 Σmν 处偏移增大，CMB 的 Ωm、h、Ωb 条件均值变化比 DES 大（A_s 两者都在变），而那里 CMB 尾部样本很少。这些是均值与高斯概括，只作描述，不检验 φ；φ 的已知答案检验需要流的环境，等待用户同意。数字见研究 README 第 5 节。
 - **2026-11-22 更新，R6-SHUF-KA（T-047 流的部分，预注册）：未检测到 φ 的偏差。** 在一个精确值已知的 6 维合成分布族上（n₆ 1.81、n_S 0.93、n₅ 0.37，φ = 0.611；一列类似 Σmν 的量通过潜变量与弯曲的一对耦合），用与 R6-SHUF 相同的流流程、十个种子 × 三个变体，回收的 φ 偏差 b̄ = +0.020，I_b = [−0.006, 0.045]，包含 0。以此修正后，R6-SHUF 的 φ 区间为 [0.610, 0.693]，所以它的标签成立（预注册的限定语）。流在这个族上把每个 n_σ 低估 0.07–0.12σ，这些偏移在 φ 中大部分抵消；独立审稿指出迁移到数据依赖于这种抵消，余量为 0.01。在数据自身差异的替代分布上的检验已登记（T-063）。数字见 [`results/r6_ka.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_ka.json)。
+- **2026-11-24 更新，R6-SHUF-KA2（T-063，预注册）：流在数据的替代分布上低估 φ。** 对每条链拟合一个高斯混合（精确值 n₆ 1.38、n_S 0.67、n₅ 0.33，φ = 0.680），用相同的流流程、十个种子 × 三个变体，回收的 φ 偏差 b̄ = −0.052，I_b = [−0.073, −0.031]，低于 0，主要因为流在那里把打乱的变体读高。以此修正后，R6-SHUF 的 φ 区间为 [0.684, 0.762]，所以它的标签同样成立（预注册的限定语）。但两个已知答案检验不一致（分布族上 +0.020，替代分布上 −0.052；4.3σ，预注册的比较），所以流对 φ 的偏差依赖于分布。独立审稿（事后）认为对数据而言偏差的不确定性不小于约 ±0.05–0.07：标签在两种测得的修正下都成立，只有当流在数据上把 φ 高估超过约 +0.03 时才会失去。审稿人的 kNN 检查显示替代分布自身的 n_σ 比数据低约 0.2σ，而且替代分布没有数据在 0.06 eV 处的 Σmν 先验硬边界；在保留边界的替代分布上的检验已登记（T-068）。数字见 [`results/r6_ka2.json`](https://github.com/sudoghut/astrolab/blob/main/studies/008-m03-s8-des-y6-cmb-parameter-difference/results/r6_ka2.json)。
 - **用同一把尺子量"减弱"。** 对同一条 CMB 链，上一代为 1.4–3.1σ（DES Y3 2.83σ，KiDS-1000 2.92–3.14σ，HSC Y3 2023 1.44–1.93σ），当前其他探针为 0.2–1.7σ（KiDS-Legacy 1.04σ，HSC Y3 2025 1.74σ，ACT 透镜 0.18σ，eROSITA 在 CMB 之上 1.51σ）；DES Y6 3x2pt 为 2.67σ。逐个巡天看：KiDS 移动很大（2.9–3.1σ 到 1.0σ），DES 移动很小（2.83σ 到 2.67σ），HSC 几乎没动（1.4–1.9σ 到 1.74σ）。所以"减弱"主要是 KiDS 的结果，而不是所有巡天的普遍变化。（若较早的论文给出的是众数（mode，最可能值）而不是均值，KiDS-1000 3x2pt 为 2.93σ 而不是 3.14σ。）
 
 ### 术语表
@@ -676,6 +692,7 @@ DES 的基准 3x2pt 链文件为 144 MB，超过本项目单次下载 50 MB 的�
 
 按时间倒序。
 
+- 2026-11-24：R6-SHUF-KA2（T-063，预注册）：在两条链的高斯混合替代分布上对 φ 做已知答案检验；流低估 φ（b̄ = −0.052）；经这一修正后 R6-SHUF 的标签成立（[0.684, 0.762]）；偏差与分布族上的不同（Δb = −0.071，4.3σ）；审稿（事后）：对数据而言偏差的不确定性不小于约 ±0.05–0.07；登记 T-068（第三部分更新）。
 - 2026-11-22：R6-SHUF-KA（T-047 流的部分，预注册）：φ 的已知答案检验；未检测到偏差（I_b = [−0.006, 0.045]）；经修正后 R6-SHUF 的标签成立；审稿：迁移依赖于各变体偏移的抵消；登记 T-063（第三部分更新）。
 - 2026-11-20：T-047 第一部分（探索，事后）：Σmν 分箱中的条件均值；DES 的 Σmν 与其他五个参数共同线性相关（R² = 0.87），最低 Σmν 箱中 (A_s, Ωm) 的均值偏移与边缘分布的相近（第三部分更新）。
 - 2026-11-20：R6-SHUF（T-044）：打乱 DES 的 Σmν 使 6 维流的值降到 0.91σ，换成先验降到 0.55σ；φ = 0.67，"主要通过它与其他 DES 参数的相关"；审稿（事后）：接近门控标定的边缘；登记 T-047（第三部分更新）。
