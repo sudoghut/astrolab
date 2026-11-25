@@ -854,7 +854,7 @@ The formal run finished on 2026-11-24 (three sessions from checkpoints, 23.3 h o
   - T3 (a) tests the abstract, but R22's own Section III.3 says "starting already at [M/H]<−2 there is some,
     albeit small, net J_phi/J_tot", which is what we find.
   - The Fig. 4 caption calls the R_GC < 4 kpc subset "the focus of our analysis", and R22's counts may
-    refer to it.
+    refer to it (referee; only partly supported: the same caption gives ∼20,000 for the entire sample).
   - The T4 flip is a threshold effect, enlarged because our J_φ/J_tot curve lies 0.1–0.2 below R22's
     numbers near −1.
   - a₅ is probably biased low by the selection of the kinematics file (49% of the stars, near side favoured).
@@ -1359,7 +1359,7 @@ exact ⟨m, c, a, pg⟩
 - 标签都能精确重算，没有错误。读法的依据比它们显示的弱：
   - T3 (a) 检验的是摘要，但 R22 自己的第 III.3 节说"starting already at [M/H]<−2 there is some, albeit small,
     net J_phi/J_tot"，正是我们得到的结果。
-  - 图 4 图注把 R_GC < 4 kpc 的子集称为"the focus of our analysis"，R22 的计数可能指这个子集。
+  - 图 4 图注把 R_GC < 4 kpc 的子集称为"the focus of our analysis"，R22 的计数可能指这个子集（审稿；只得到部分支持：同一图注给出全样本约 20,000 颗）。
   - T4 的翻转是阈值效应，又因为我们的 J_φ/J_tot 曲线在 −1 附近比 R22 的数字低 0.1–0.2 而被放大。
   - a₅ 很可能被运动学文件的选择压低（只有 49% 的星，偏向近侧）。
 - R22 的核心数字，即总体的尺度与"大多数在 5 kpc 以内"，仍无法判定。若方法偏差在数据附近也成立，
