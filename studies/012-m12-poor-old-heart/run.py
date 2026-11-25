@@ -905,8 +905,8 @@ def main(ctx):
         ctx.log(f"PAUSED: {e}")
         if formal:
             ctx.record_suffix = "_paused"
-        return {"status": "paused", "reason": str(e), "checkpoints": str(store.dir), "timing": timing}
-    files["summary"] |= {"timing": timing, "checkpoints": str(store.dir)}
+        return {"status": "paused", "reason": str(e), "checkpoints": checkpoint_label(store.dir), "timing": timing}
+    files["summary"] |= {"timing": timing, "checkpoints": checkpoint_label(store.dir)}
     ctx.save("load", load | {"params": P})
     for name, obj in files.items():
         ctx.save(name, obj | {"params": P})
@@ -996,6 +996,15 @@ def is_formal_run(ctx):
     """True for `astrolab run` (writes results/), False for `astrolab explore` (explore/<date>-<tag>/)."""
     return (getattr(ctx, "max_save_bytes", None) is None
             and Path(ctx.results).resolve() == (HERE / "results").resolve())
+
+
+def checkpoint_label(path):
+    """The checkpoint folder relative to the astrolab cache directory, as recorded in results/:
+    an absolute path would put the local user name into committed files (tests/test_site.py)."""
+    try:
+        return Path(path).relative_to(Path(_cache_dir())).as_posix()
+    except ValueError:
+        return Path(path).name
 
 
 def checkpoint_root(cache_dir, P, ctx):
