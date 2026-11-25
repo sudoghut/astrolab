@@ -1241,7 +1241,7 @@ files, not retrained; numbers in `results/r6_ka2.json`). Each flow training took
 - **Comparison with R6-SHUF-KA (pre-registered): "the bias of φ differs between the family and the surrogate
   (Δb = -0.071)".** Δb = −0.0517 − 0.0197 = −0.0714, σ_Δ = √(0.0334²/10 + 0.0400²/10) = 0.0165; |Δb| = 4.3 σ_Δ > 2 σ_Δ.
 - **Against the expected outcome (section 2.10).** Neither guessed label occurred: section 2.10 guessed "no bias
-  detected" or "flows overestimate φ" with b̄ of a few hundredths, positive; b̄ is negative. The qualifier is the
+  detected" or "flows overestimate φ" with b̄ of a few hundredths (its linearised estimates positive); b̄ is negative. The qualifier is the
   guessed "holds"; the comparison is not the guessed "no difference detected". s_b = 0.033 is a little below the
   expected 0.04–0.06. The mean offsets are n₆ +0.032 (s 0.058), n_S +0.059 (s 0.023) and n₅ −0.010 (s 0.022), against
   the family's −0.073, −0.116 and −0.098: here the flows read n_S high, there all three low. Linearised at the
@@ -1253,9 +1253,10 @@ files, not retrained; numbers in `results/r6_ka2.json`). Each flow training took
   values on the data (1.70, 0.91, 0.52), as section 2.10 stated before the run. The referee's flow-free check (kNN,
   the study's own estimator, on surrogate training rows of seeds 25 and 26, k = 20 and 100; not repeated by us) gives
   n₆ 1.31–1.38, n_S 0.72–0.84, n₅ 0.18–0.40, against 1.51–1.57, 0.80–0.91 and 0.47–0.54 for kNN on the data
-  (`results/r6_shuf.json`, k = 100; our check). So the gap of about 0.2σ is in the distribution itself (the mixture
-  smooths the chains), not mainly the flows reading the data high: the bias is measured about 0.2–0.3σ away from the
-  data's operating point. This answers, post hoc and by a descriptive estimator, the question section 2.10 left open.
+  (`results/r6_shuf.json`, k = 100; our check). So for n_S and n₅ the gap is mostly in the distribution itself (the
+  mixture smooths the chains); for n₆ about half of it is (kNN on the data 1.51–1.57 against the flows' 1.70; the kNN
+  estimator is uncalibrated). The bias is measured about 0.2–0.3σ away from the data's operating point. This partly
+  answers, post hoc and by a descriptive estimator, the question section 2.10 left open.
 - **Reading (post hoc, 2026-11-24, after the referee; not a label).** The two known-answer tests disagree (b̄ = +0.020
   on the family, −0.052 on the surrogate; 4.3σ_Δ), so the flows' bias of φ depends on the distribution by 0.05–0.07,
   more than the qualifiers' half-widths (w = 0.039 and 0.041). Neither test measures the bias on the data, and the two
@@ -1264,7 +1265,8 @@ files, not retrained; numbers in `results/r6_ka2.json`). Each flow training took
   lost (lower end below 0.60) only if the flows overestimated φ on the data by more than φ̄_R6 − w − 0.60 = +0.032
   (+0.030 with R6-SHUF-KA's w = 0.041), that is 0.012 (0.010) more than the family's b̄. Treating the two tests as two
   draws of the data's bias (the referee's illustration: mean −0.016, standard deviation 0.051), the corrected φ is
-  0.687 with an interval of about [0.586, 0.788] (our computation), which would read "not decided". The pre-registered
+  0.687 with an interval of about [0.581, 0.793] (our computation: ±2√(0.051² + s_φ,R6²/5), the two-draw spread
+  combined with R6-SHUF's seed scatter, s_φ,R6 = 0.0366), which would read "not decided". The pre-registered
   label, qualifier and comparison stand as recorded; this reading is reported beside them. A test on a surrogate that
   keeps the data's hard Σmν prior edge is registered as T-068.
 
@@ -1383,8 +1385,8 @@ written. Triage:
 
 | # | Point | Verified | Action |
 |---|---|---|---|
-| 1 | **The correction does not transfer: the two known-answer tests contradict each other.** The family gave b̄ = +0.020, the surrogate −0.052 (4.3σ_Δ), so the bias of φ depends on the distribution by 0.05–0.07, more than w = 0.039. Uncorrected, φ̄_R6 − w = 0.632; if the data's bias exceeded about +0.032 (0.012 beyond the family's), the interval would fall below 0.60. Taking the two tests as two draws (mean −0.016, sd 0.051) gives a corrected φ of about 0.69 with an interval of about [0.58, 0.79], "not decided" | yes (our recomputation: threshold +0.032, +0.030 with R6-SHUF-KA's w; the illustration gives 0.687, [0.586, 0.788]) | **Accepted** (post hoc, section 5): the qualifier stays as registered and is reported with this caveat wherever it appears (section 5, root tables, `STATUS.md`, claim, wiki, web page); T-068 registered. |
-| 2 | **The surrogate differs from the data by 4–10 times the bias being measured.** Exact 1.38, 0.67, 0.33 against the flows' 1.70, 0.91, 0.52 on the data. kNN (the study's estimator) on surrogate training rows (seeds 25, 26; k = 20/100): n₆ 1.31–1.38, n_S 0.72–0.84, n₅ 0.18–0.40; on the data (k = 100) 1.51–1.57, 0.79–0.91, 0.47–0.54; so the gap is in the distribution (mixture smoothing), not the flows reading the data high | partly (the data's kNN values from `results/r6_shuf.json`: 1.51–1.57, 0.80–0.91, 0.47–0.54; the surrogate kNN not repeated) | **Accepted** (post hoc, section 5): the bias is measured about 0.2–0.3σ from the data's operating point; the kNN estimator stays descriptive. |
+| 1 | **The correction does not transfer: the two known-answer tests contradict each other.** The family gave b̄ = +0.020, the surrogate −0.052 (4.3σ_Δ), so the bias of φ depends on the distribution by 0.05–0.07, more than w = 0.039. Uncorrected, φ̄_R6 − w = 0.632; if the data's bias exceeded about +0.032 (0.012 beyond the family's), the interval would fall below 0.60. Taking the two tests as two draws (mean −0.016, sd 0.051) gives a corrected φ of about 0.69 with an interval of about [0.58, 0.79], "not decided" | yes (our recomputation: threshold +0.032, +0.030 with R6-SHUF-KA's w; the illustration gives 0.687, [0.581, 0.793] with R6-SHUF's seed scatter s_φ²/5 included) | **Accepted** (post hoc, section 5): the qualifier stays as registered and is reported with this caveat wherever it appears (section 5, root tables, `STATUS.md`, claim, wiki, web page); T-068 registered. |
+| 2 | **The surrogate differs from the data by 4–10 times the bias being measured.** Exact 1.38, 0.67, 0.33 against the flows' 1.70, 0.91, 0.52 on the data. kNN (the study's estimator) on surrogate training rows (seeds 25, 26; k = 20/100): n₆ 1.31–1.38, n_S 0.72–0.84, n₅ 0.18–0.40; on the data (k = 100) 1.51–1.57, 0.79–0.91, 0.47–0.54; so the gap is in the distribution (mixture smoothing), not the flows reading the data high | partly (the data's kNN values from `results/r6_shuf.json`: 1.51–1.57, 0.80–0.91, 0.47–0.54; the referee's lower end 0.79 is the SS variant's 0.789; by kNN the gap is mostly in the distribution for n_S and n₅, about half for n₆, the kNN estimator being uncalibrated; the surrogate kNN not repeated) | **Accepted** (post hoc, section 5): the bias is measured about 0.2–0.3σ from the data's operating point; the kNN estimator stays descriptive. |
 | 3 | **b̄ comes almost entirely from n_S, whose offset changes sign between the tests** (+0.059, s 0.023, t = 7.9 here; −0.116 on the family). The family has hard box edges, the surrogate none; the data have the Σmν prior edge at 0.06 eV (the DES mixture puts 4.2% of its Σmν mass outside [0.06, 0.6], the CMB mixture 0.8% and has excess kurtosis +3.0 there); the DES mixture's h₀ and n_s marginals are flat-topped (excess kurtosis −0.74 and −0.63); (S) is where DES's box-like Σmν becomes an independent factor (P(ΔΣmν < 0) ≈ 6% in the surrogate). Failure scenario: on the data the flows behave as on the family at the edge, read n_S low, and the true bias is positive. Also (unverified): tensiometer's `prior_bijector='ranges'` takes the sample ranges, so it behaves differently with hard-edged rows | partly (our linearisation: contributions +0.010, −0.056, −0.007; the 4.2% and 0.8% are in section 2.10; the kurtosis values and the 6% not repeated) | **Accepted** as the main limitation (post hoc, section 5); the edge-preserving test is T-068. |
 | 4 | The data's rows are discrete (each DES row appears about ten times; ESS about 10,000), so the flows' 10% validation split shares near-duplicates with training and early stopping cannot detect overfitting on the data; on the surrogate validation rows are new. This could bias the data in a way the surrogate cannot show | yes (as section 2.10 discloses; R6-FLOW referee point 5) | Accepted limitation; not testable with this surrogate. |
 | 5 | The surrogate's own uncertainty is not explored: one mixture fit on one resample (`default_rng(7000)`/`(7001)`), K = 8 at the top of the range with the BIC still falling; since point 1 shows the bias depends on the distribution, another K or resample could move b̄ by a few hundredths; w covers only seed scatter | yes (section 2.10) | Accepted limitation (section 5). |
@@ -1414,7 +1416,7 @@ written. Triage:
    (referee); a known-answer test on a surrogate of the data's own difference is T-063. R6-SHUF-KA2 (T-063,
    2026-11-24, pre-registered) finds the flows underestimate φ on a Gaussian-mixture surrogate of the two chains
    (b̄ = −0.052), and R6-SHUF's label holds after that correction ([0.684, 0.762]); but the two known-answer tests
-   disagree (Δb = −0.071, 4.3σ), so the bias for the data is not determined to better than about ±0.05–0.07 (post hoc,
+   disagree (Δb = −0.071, 4.3σ_Δ), so the bias for the data is not determined to better than about ±0.05–0.07 (post hoc,
    referee): the label would be lost if the data's bias exceeded about +0.03. The surrogate has no hard Σmν prior edge;
    a test on one that keeps it is T-068.
 2. How much does the S8 difference change with a lensing-inclusive or Planck-PR4-based CMB
