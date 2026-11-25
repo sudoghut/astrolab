@@ -27,7 +27,7 @@ walkthrough of the paper, its argument checked step by step in Lean, and what as
 - [Is the Milky Way light? The Keplerian decline of its rotation curve](Study-009-mw-rotation-curve-decline) (Gaia DR3 rotation curve; study 009, reproduced under J23's prior; the mass is set by the halo shape)
 - [When did the Milky Way's disc begin? Ages of a quarter of a million subgiants](Study-010-thick-disc-early-formation) (LAMOST/Gaia subgiant ages; study 010: 13 Gyr mean reproduced, split and sequence undetermined)
 - [Is the Radcliffe Wave waving? Young clusters and a Galactic oscillation](Study-011-radcliffe-wave-oscillation) (Gaia DR3/APOGEE young clusters, ¹²CO; study 011, concluded: mixed)
-- [The poor old heart of the Milky Way: metal-poor stars at the Galactic Centre](Study-012-poor-old-heart) (Gaia DR3 XP metallicities; study 012, planned)
+- [The poor old heart of the Milky Way: metal-poor stars at the Galactic Centre](Study-012-poor-old-heart) (Gaia DR3 XP metallicities; study 012, concluded: not reproduced and challenged, with post-hoc qualifications)
 
 The sources of these pages are kept in the main repository under
 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) and reviewed there
@@ -54,6 +54,6 @@ Atlas 与每个研究的交互网页在线发布于 [sudoghut.github.io/astrolab
 - [银河系很轻吗？其旋转曲线的开普勒式下降](Study-009-mw-rotation-curve-decline#中文)（Gaia DR3 旋转曲线；研究 009，在 J23 的先验下复现；质量由晕的形状决定）
 - [银河系的盘何时开始形成？二十五万颗亚巨星的年龄](Study-010-thick-disc-early-formation#中文)（LAMOST/Gaia 亚巨星年龄；研究 010：13 Gyr 均值复现，分界与序列无法判定）
 - [Radcliffe 波在振荡吗？年轻星团与银河系中的竖直振荡](Study-011-radcliffe-wave-oscillation#中文)（Gaia DR3/APOGEE 年轻星团、¹²CO；研究 011，已结束：混合）
-- [银河系贫而老的核心：银心附近的贫金属星](Study-012-poor-old-heart#中文)（Gaia DR3 XP 金属丰度；研究 012，计划中）
+- [银河系贫而老的核心：银心附近的贫金属星](Study-012-poor-old-heart#中文)（Gaia DR3 XP 金属丰度；研究 012，已结束：未复现且受到挑战，附事后限定）
 
 这些页面的源文件保存在主仓库的 [`docs/wiki/`](https://github.com/sudoghut/astrolab/tree/main/docs/wiki) 中，在那里审查后再发布到这里。

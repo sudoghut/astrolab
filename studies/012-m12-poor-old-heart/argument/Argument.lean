@@ -16,9 +16,10 @@ Part (4)'s wording is from Section IV, hedged ("fits a picture in which"); the a
 "forging the proto-Milky Way".
 
 The chain:
-  Stage A: the XP metallicities are precise to about 0.1 dex; [gap] the metal-poor tail is not
-      dominated by metal-richer stars with underestimated [M/H] (R22 asks how pure it is); a
-      precise and pure selection is genuine (standard) -> the counted metal-poor stars are real
+  Stage A: the XP metallicities are precise to about 0.1 dex; the metal-poor tail is not
+      severely contaminated by metal-richer stars with underestimated [M/H] (stated qualitatively,
+      no contamination estimate; R22 also ask how pure it is); a precise and pure selection is
+      genuine (standard) -> the counted metal-poor stars are real
   Stage B: about 18,000 such stars; M4 gives one giant per 800 Msun; [gap] that conversion applies
       to this sample -> about 2e7 Msun at face value; crowding and dust make the sample incomplete,
       a conservative factor 2.5 -> at least about 5e7 Msun
@@ -114,15 +115,15 @@ structure Vocab where
 inductive Field where
   /-- STAT [stated: "a remarkably precise (≲0.1 in the median)"] Section II.3 (against about 17,000 APOGEE stars that were in the training set; Appendix A.2: about 0.1 dex against LAMOST, GALAH, GSP-Spec, with a slight increase in scatter towards low [M/H]) -/
   | stat_prec
-  /-- GAP [reconstructed] the XP-selected tail below [M/H] = -1.5 is pure enough: R22 asks how pure the XP selected samples in this regime are (Section IV) and gives no contamination estimate; the sample has about 100 stars above -1.5 for each one below, the APOGEE training set only extended to -2.5, and Chen et al. 2025 (arXiv:2511.18901) find that ten Gaia XP metallicity catalogues give metal-poor tails with slopes from about 0.6 to 2.0 -/
-  | gap_pure
+  /-- STAT [stated: "is not severely contaminated by spurious"] Section III.2 (subject: the low-metallicity portion of the metallicity distribution; continues: estimates from some of the far more numerous stars of higher (true) metallicity; the two arguments given are the APOGEE validation, on stars of the training set, and the parallax distribution; Section II.3 also says a selection of metal-poor objects appears to be nearly pure). The statement is qualitative: R22 give no contamination estimate and still ask how pure the XP selected samples in this regime are (Section IV); the sample has about 100 stars above -1.5 for each one below, the APOGEE training set only extended to -2.5, and Chen et al. 2025 (arXiv:2511.18901) find that ten Gaia XP metallicity catalogues give metal-poor tails with slopes from about 0.6 to 2.0. Reclassified from GAP on 2026-11-25 after the independent referee of study 012; the body (not dominated) is weaker than the quote (not severely contaminated) -/
+  | stat_pure
   /-- MOD [implied] standard selection logic: stars selected by an estimated quantity below a cut are genuine members when the estimator is precise and the contamination is small (Ivezic, Connolly, VanderPlas and Gray 2014, Statistics, Data Mining, and Machine Learning in Astronomy, Princeton University Press, bibcode 2014sdmm.book.....I); close to definitional: it only names what precise and pure jointly give -/
   | mod_tail
   /-- OBS [stated: "that includes ∼18,000 stars"] Abstract (with -2.7 to -1.5 in [M/H]; Section III.2 also about 18,000, Fig. 4 and Section IV about 20,000) -/
   | obs_count
   /-- MOD [stated: "per 800 M⊙ of total stellar population mass"] Section III.2 (about 35 giants with M_G below 0.5 beyond M4 half-mass radius, M4 total mass 7e4 Msun) -/
   | mod_m4
-  /-- GAP [reconstructed] the M4 conversion applies to the sample: the sample cut keeps stars to a colour-corrected M_G of about 0.9, not 0.5; M4 age and mass function stand for the whole population; and the 800 Msun per giant does not follow from the quoted M4 numbers by our arithmetic (35 giants beyond the half-mass radius and half of 7e4 Msun give about 1,000); the count also includes stars R22 identify as Gaia-Sausage-Enceladus stars passing pericentre (eccentricity 0.75 or more, apocentre 10 kpc or more), not removed; together these change the mass by a factor of up to about 2 -/
+  /-- GAP [reconstructed] the M4 conversion applies to the sample (R22 adopt M4 explicitly as their template, mod_m4; what is reconstructed is its application to this sample): the sample cut keeps stars to a colour-corrected M_G of about 0.9, not 0.5; M4 age and mass function stand for the whole population; and the 800 Msun per giant does not follow from the quoted M4 numbers by our arithmetic (35 giants beyond the half-mass radius and half of 7e4 Msun give about 1,000); the count also includes stars R22 identify as Gaia-Sausage-Enceladus stars passing pericentre (eccentricity 0.75 or more, apocentre 10 kpc or more), not removed; together these change the mass by a factor of up to about 2 -/
   | gap_template
   /-- MOD [stated: "At face value, this implies"] Section III.2 (continues: about 2e7 Msun for [M/H] below -1.5); encoded with the genuine tail and the template as extra antecedents (weaker than the quote) -/
   | mod_face
@@ -166,7 +167,7 @@ inductive Field where
 
 def prov : Field → Prov
   | .stat_prec => .stated
-  | .gap_pure => .reconstructed
+  | .stat_pure => .stated
   | .mod_tail => .implied
   | .obs_count => .stated
   | .mod_m4 => .stated
@@ -193,7 +194,7 @@ def prov : Field → Prov
 
 def prem : Field → Vocab → Prop
   | .stat_prec, v => v.Precise
-  | .gap_pure, v => v.Pure
+  | .stat_pure, v => v.Pure
   | .mod_tail, v => v.Precise → v.Pure → v.TailReal
   | .obs_count, v => v.CountMP
   | .mod_m4, v => v.M4Ratio
@@ -242,7 +243,7 @@ def full : Vocab :=
 theorem final : ∀ v, Premises v → Conclusion v := by
   intro v p
   -- Stage A: the metal-poor tail is real (Section II.3; Appendix A)
-  have t : v.TailReal := p .mod_tail (p .stat_prec) (p .gap_pure)                     -- GAP
+  have t : v.TailReal := p .mod_tail (p .stat_prec) (p .stat_pure)
   -- Stage B: counts and mass (Section III.2)
   have fm : v.FaceMass := p .mod_face t (p .obs_count) (p .mod_m4) (p .gap_template)  -- GAP
   have m : v.Massive := p .mod_corr fm (p .obs_incomplete)
@@ -276,7 +277,7 @@ theorem stat_prec_needed : ¬ ∀ v, Without .stat_prec v → Conclusion v := fu
                    Central := False, Predates := False, Ancient := False, NotDistant := False, ProtoGal := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).1
 
-theorem gap_pure_needed : ¬ ∀ v, Without .gap_pure v → Conclusion v := fun h =>
+theorem stat_pure_needed : ¬ ∀ v, Without .stat_pure v → Conclusion v := fun h =>
   (h { full with Pure := False, TailReal := False, FaceMass := False, Massive := False,
                    Central := False, Predates := False, Ancient := False, NotDistant := False, ProtoGal := False }
     (by intro f hf; cases f <;> simp_all [prem, full])).1
@@ -387,10 +388,9 @@ theorem stated_insufficient : ¬ ∀ v, Stated v → Conclusion v := fun h =>
                    Central := False, Predates := False, Ancient := False, NotDistant := False, ProtoGal := False }
     (by intro f hf; cases f <;> simp_all [prov, prem, full])).1
 
-/-- Standard knowledge does not close the argument: five gaps remain. -/
+/-- Standard knowledge does not close the argument: four gaps remain. -/
 theorem explicit_insufficient : ¬ ∀ v, Explicit v → Conclusion v := fun h =>
-  (h { full with Pure := False, TailReal := False, FaceMass := False, Massive := False,
-                   Central := False, Predates := False, Ancient := False, NotDistant := False, ProtoGal := False }
-    (by intro f hf; cases f <;> simp_all [prov, prem, full])).1
+  (h { full with ProtoGal := False }
+    (by intro f hf; cases f <;> simp_all [prov, prem, full])).2.2.2
 
 end Argument

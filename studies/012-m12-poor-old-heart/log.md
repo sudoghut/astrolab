@@ -3,6 +3,12 @@
 按时间倒序追加：做了什么、发现什么、走过哪些死路（dead ends）、下一步。
 术语第一次出现时，在括号中注明英文原文。
 
+## 2026-11-25（结果、审稿与收尾，T-021）
+
+- 结果写入 README 第 5 节（中英文）。机械读法：复现"not reproduced"（T1、T3 (a)），稳健性"challenged"（T4、T5 a₅）。T1：−1.5 以下 30,589 颗，对比摘要约 18,000；T2a 版本 (i) σ̂ = 2.704 kpc [2.678, 2.730]，复现；版本 (ii) 2.713 kpc，已知答案模拟在 2.7 kpc 时恢复 2.21 kpc（偏差 −0.49 kpc），无法判定（方法偏差）；T2b 假阳性检查 0/100，形状无法判定，f₅ = 0.672 无法判定；T3 (a) 0.125 [0.089, 0.157] 有净旋转，(b) 0.542 [0.534, 0.551] 以旋转为主，(c) 宽度 1.35 dex 渐变；T4 敏感（平移 +0.1 dex 使 T3 (b) 变为不以旋转为主）；T5 g = 0.137 中等，a₅ = 0.410 未确认；T6 按 R22 的取法 6.12·10⁷ M☉。五段会话（下载并在 L2 停止；ESA 停机页面；三段完整运行合计 83,819 s）。`provenance.json`（9.9 MB）未入库，等用户决定，完整副本在 `%LOCALAPPDATA%\astrolab\Cache\s012_provenance_full\`。
+- 独立审稿（referee，子智能体，只看第 1–4 节、代码、结果与 Lean 对照表）：重算全部标签与两个读法一致，没有改变标签的错误，没有改动判据。主要意见（第 6 节，事后）：T3 (a) 检验的是摘要，而 R22 第 III.3 节自己写了 −2 以下"some, albeit small, net"旋转（已逐字核对 arXiv v1）；T1 可能比较的是不同样本（图 4 图注说 R_GC < 4 kpc 的子集是"the focus of our analysis"）；T2a 的偏差决定 f₅（若真实 σ 约 3.2 kpc，f₅ 约 0.51，审稿）；T2b 的假阳性检查在 N = 30,000 时必然失败；T5 a₅ 很可能由运动学文件的选择驱动；T4 的"敏感"是阈值效应，且我们的 J_φ/J_tot 曲线低于 R22 的数字。"Gaia 补充用了 Data Lab 镜像"一点不接受：4.13 第 8 条已记录。按 σ 校准的 T2 登记为 T-069，曲线与计数定义登记为 T-070。
+- Lean：审稿指出 R22 第 III.2 节明说低金属丰度部分"not severely contaminated"，所以 `gap_pure` 改为 `stat_pure`（STAT [stated]，注明是定性的论断）；`explicit_insufficient` 现在有四个缺口；`gap_template` 的注释改为只说模板对本样本的适用性是我们补上的。`tests/test_lean_arguments.py -k 012` 通过。Wiki 第二部分同步修改，第三部分补上实际结果。
+
 ## 2026-11-24
 
 - 23:24 正式运行完成（本段 9,823 s，从检查点续跑：t2b 自助法 165–200 与其余阶段；状态 complete，检查点已按规则删除，暂停时的记录文件已由运行删除）。标签：T1 "not reproduced"（摘要比例 disagrees）；T2a 复现 "reproduced"、总体 "undetermined (method bias)"；T2b 形状 "undetermined (checks failed)"、f5 "undetermined (method bias)"；T3 (a) net rotation、(b) rotation dominated、(c) gradual（w0 0.262）；T4 "sensitive"（shift +0.1 改变 T3 (b)）；T5 g moderate、a5 "not confirmed"；T6 R22 ≥ 5e7 为真。复现读法 "not reproduced"（T1、T3 (a)），稳健性读法 "challenged"（T4、T5 a5）。其余结果文件入库；`provenance.json` 为 9.9 MB（Gaia DR3 补充查询的 235 个 source_id 列表，已是模板压缩格式），超过结果文件 1 MB 的约定，暂不入库，副本存在系统缓存目录，如何处理等用户决定。审稿与收尾随后进行。

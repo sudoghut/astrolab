@@ -408,29 +408,30 @@ so there are no `NUM` premises.
 
 *Overview.* Everything downstream counts, maps and follows stars selected by their XP metallicity.
 The selection is genuine if the estimates are precise and the tail is not filled with stars that
-are really more metal-rich. R22 establish the first (validation, Appendix A) and raise the second as
-an open question.
+are really more metal-rich. R22 establish the first (validation, Appendix A); the second they state
+qualitatively (Section III.2) and also raise as an open question (Section IV). *(Revised 2026-11-25
+after the study's independent referee: this premise was first encoded as the gap `gap_pure`.)*
 
 **Premises.**
 
 | Premise (Lean constructor) | Tag | Provenance | Source in paper |
 |---|---|---|---|
 | `stat_prec`: XP [M/H] agree with APOGEE and other surveys to about 0.1 dex | STAT | stated: "a remarkably precise (≲0.1 in the median)" | Section II.3 (APOGEE stars in the training set); Appendix A.2 |
-| `gap_pure`: the tail below −1.5 is not dominated by metal-richer stars with underestimated [M/H] | GAP | reconstructed | R22 asks "How pure are the XP selected samples in this regime?" (Section IV); Chen et al. 2025, arXiv:2511.18901 |
+| `stat_pure`: the tail below −1.5 is not dominated by metal-richer stars with underestimated [M/H] | STAT | stated: "is not severely contaminated by spurious" | Section III.2 (the low-[M/H] portion; two arguments: the APOGEE validation, on training-set stars, and the parallax distribution; Section II.3: "appears to be nearly pure"); qualitative, no contamination estimate, and Section IV still asks "How pure are the XP selected samples in this regime?"; Chen et al. 2025, arXiv:2511.18901 |
 | `mod_tail`: precise + pure ⇒ the metal-poor stars are genuine | MOD | implied: standard selection logic (Ivezić et al. 2014, *Statistics, Data Mining, and Machine Learning in Astronomy*, 2014sdmm.book.....I); close to definitional | — |
 
 **Rival explanations.**
 
 | Alternative | Excluded by premise | Excluded explicitly by the paper? |
 |---|---|---|
-| The tail is partly metal-richer stars scattered low by the regression (dust, crowding, low S/N) | `gap_pure` | no: the question is raised, not answered; validation below −2 is thin (GSP-Spec does not reach there; the APOGEE check uses training stars) |
+| The tail is partly metal-richer stars scattered low by the regression (dust, crowding, low S/N) | `stat_pure` | asserted qualitatively (Section III.2), not quantified, and raised again as an open question (Section IV); validation below −2 is thin (GSP-Spec does not reach there; the APOGEE check uses training stars) |
 | The floor near −2.5 is an artefact of the training range | (shapes the tail, not encoded) | no: R22 say it needs follow-up ("the APOGEE training set for XGBoost only extended to [M/H]=−2.5") |
 | SkyMapper-style systematics (0.28 dex offset, 1 dex spread near −1.5) | `stat_prec` | yes, by comparison, attributed to SkyMapper |
 
 **Inference (Lean excerpt).**
 
 ```lean
-have t : v.TailReal := p .mod_tail (p .stat_prec) (p .gap_pure)                     -- GAP
+have t : v.TailReal := p .mod_tail (p .stat_prec) (p .stat_pure)
 ```
 
 **Critique.** A median precision of 0.1 dex over the bulk says little about the 1% tail, and the
@@ -442,7 +443,7 @@ return values below its training labels, and regression estimators in general pu
 towards the bulk; both effects shape the tail, in opposite directions (fewer stars appear below
 −2.5, some stars from −1.3 may appear below −1.5). Chen et al. 2025 find that ten XP metallicity
 catalogues disagree on the slope of the tail below [Fe/H] = −2 (k ≈ 0.6–2.0). Purity is therefore
-the first gap, and every part of the conclusion depends on it.
+stated but not quantified, and every part of the conclusion depends on it.
 
 #### 2.2 Stage B · How many stars and how much mass
 
@@ -674,24 +675,25 @@ combination, and it rests on `gap_proto`.
 
 #### 2.8 What the Lean check found
 
-1. **Headline: `explicit_insufficient`, with five gaps.** Even with the two standard rules added
-   (`mod_tail`, `mod_amr`), the conclusion does not follow without: the purity of the metal-poor tail
-   (`gap_pure`), the applicability of the M4 conversion (`gap_template`), the absence of distortion by
+1. **Headline: `explicit_insufficient`, with four gaps** (five until 2026-11-25, when the study's
+   referee pointed out that R22 state the purity of the tail, Section III.2; it is now `stat_pure`).
+   Even with the two standard rules added
+   (`mod_tail`, `mod_amr`), the conclusion does not follow without: the applicability of the M4 conversion (`gap_template`), the absence of distortion by
    the unmodelled selection (`gap_sel`), one chemically connected system for the age ordering
    (`gap_onezone`) and the proto-Galactic interpretation (`gap_proto`: the bulk of the population
    formed in or with the early-coalescing main pieces, our formalisation of a hedged reading).
 2. **`stated_insufficient`**: what R22 write is not enough even before the gaps. The argument also
    uses two standard rules it does not write out: a precise and pure selection gives genuine
    members (`mod_tail`), and in one system metallicity rises with time (`mod_amr`).
-3. **Where the gaps sit.** `gap_pure` reaches all four parts (mass, concentration and age all use the
+3. **Where the gaps sit.** The stated but unquantified purity (`stat_pure`) reaches all four parts (mass, concentration and age all use the
    genuine tail; the interpretation uses all three). Part (1), the mass, adds `gap_template`; part
    (2), the concentration, adds `gap_sel`; part (3), the age, adds `gap_onezone`; part (4), the
    proto-Galaxy, adds `gap_proto` and inherits every other gap. Two of the gaps (`gap_onezone`,
-   `gap_proto`) are steps R22 themselves hedge ("most likely", "fits a picture"); the other three
-   are steps R22 take without comment (`gap_template`) or flag as future work (`gap_pure`,
-   `gap_sel`).
-4. **Ranking.** `gap_pure` matters most (it reaches everything and the paper gives no number for
-   it); then `gap_onezone` (the age claim is the paper's headline); `gap_proto` is largely
+   `gap_proto`) are steps R22 themselves hedge ("most likely", "fits a picture"); the other two
+   are steps R22 take without comment (`gap_template`; R22 adopt M4 as their template, the gap is its
+   application to this sample) or flag as future work (`gap_sel`).
+4. **Ranking.** Purity (`stat_pure`, stated without a number) still matters most, as it reaches everything;
+   among the gaps, `gap_onezone` (the age claim is the paper's headline); `gap_proto` is largely
    interpretive; `gap_sel` affects the number σ ≈ 2.7 kpc more than the qualitative concentration;
    `gap_template` affects the mass by a factor of up to about 2.
 5. **All 25 premises are needed** in this encoding; none is redundant (each sits on a single chain).
@@ -713,7 +715,7 @@ combination, and it rests on `gap_proto`.
 
 ### Part 3 · What astrolab can test or explore
 
-Interactive page: [sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/](https://sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/) (not built yet).
+Interactive page: [sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/](https://sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/).
 
 This part was written before any data were read (2026-11-21). It is the source of the study's
 pre-registration (README sections 1–4). The thresholds marked "proposed" are carried into the
@@ -824,6 +826,45 @@ fallback is named in the row; if there is none, the label is "undetermined (data
 - *Ages* (absolute or relative), the 12.5 Gyr of the oldest disc, and the age–metallicity relation of
   the early Galaxy: outside this study's data.
 
+*Note (2026-11-25):* `gap_pure` in the table and in the lists above is now `stat_pure` (part 2, stage A);
+the table is kept as written before the run.
+
+#### Results (written after the run, 2026-11-25)
+
+The formal run finished on 2026-11-24 (three sessions from checkpoints, 23.3 h of computing; study
+[README section 5](https://github.com/sudoghut/astrolab/blob/main/studies/012-m12-poor-old-heart/README.md#5-results)). Labels as pre-registered, mechanically:
+
+- **T1, recount: not reproduced.** The public file has 30,589 stars below [M/H] = −1.5 (none below
+  −2.7), against the abstract's ∼18,000; 5,606 below −2 (Section III.2's ">4,000" agrees); 100,458 below −1.
+- **T2a, extent: reproduced as written** (σ̂ = 2.704 kpc, 95% [2.678, 2.730]), but the **population's σ is
+  undetermined (method bias)**: the same likelihood recovers 2.21 kpc from mocks built at 2.7 kpc.
+- **T2b, shape: undetermined (checks failed).** The data prefer strong flattening (q = 0.40), but all
+  100 mocks with q = 1 and a completeness that falls towards the plane also came out "flattened"
+  (median q̂ 0.71). f₅ = 0.67 inherits T2a's undetermined label.
+- **T3, rotation:** net rotation below −2 (J_φ/J_tot = 0.125 [0.089, 0.157]); rotation dominated near −1
+  (0.542 [0.534, 0.551]); a gradual transition (10–90% width 1.35 dex).
+- **T4: sensitive.** A +0.1 dex shift of all metallicities turns T3 (b) into "not rotation dominated";
+  σ and the mass barely move.
+- **T5:** GSE-like stars g = 0.137 (moderate); apocentres below 5 kpc a₅ = 0.410 (**not confirmed**).
+- **T6:** with R22's choices and our count, 6.1×10⁷ M☉ (≥ 5×10⁷; range 1.8×10⁷–1.5×10⁸ over the choices).
+- **Readings:** reproduction **"not reproduced"** (T1, T3 (a)); robustness **"challenged"** (T4, T5 a₅).
+
+*Independent referee (post hoc, 2026-11-25; [README section 6](https://github.com/sudoghut/astrolab/blob/main/studies/012-m12-poor-old-heart/README.md#6-referee-notes)).*
+- The labels recompute exactly, with no bug. The readings rest on weaker ground than they suggest:
+  - T3 (a) tests the abstract, but R22's own Section III.3 says "starting already at [M/H]<−2 there is some,
+    albeit small, net J_phi/J_tot", which is what we find.
+  - The Fig. 4 caption calls the R_GC < 4 kpc subset "the focus of our analysis", and R22's counts may
+    refer to it.
+  - The T4 flip is a threshold effect, enlarged because our J_φ/J_tot curve lies 0.1–0.2 below R22's
+    numbers near −1.
+  - a₅ is probably biased low by the selection of the kinematics file (49% of the stars, near side favoured).
+- R22's central numbers, the population's extent and "most within 5 kpc", stay undetermined. If the
+  method's bias held near the data, σ would be about 3.2 kpc and f₅ about 0.51 (referee's estimate).
+- Follow-ups: T-069 (σ-calibrated T2 with a posterior-predictive check) and T-070 (the J_φ/J_tot curve and
+  the count definition).
+- In the Lean decomposition, `gap_pure` became `stat_pure` (R22 Section III.2: the low-[M/H] portion "is
+  not severely contaminated by spurious [M/H] estimates"), so four gaps remain.
+
 ### Glossary
 
 | Term | Meaning |
@@ -846,6 +887,10 @@ fallback is named in the row; if there is none, the label is "undetermined (data
 
 Newest first.
 
+- 2026-11-25: results added to part 3 (T1–T6, readings "not reproduced" and "challenged", the
+  referee's post-hoc qualifications); part 2: `gap_pure` became `stat_pure` (R22 state the tail's purity
+  in Section III.2) and `gap_template`'s note now says only its application to this sample is
+  reconstructed; four gaps remain. Follow-ups T-069, T-070.
 - 2026-11-21: pre-registration review, round 2: T2b in part 3 brought in line with the pre-registration
   (scope of the false-positive check and its second mock set at the fitted σ; the q profile-likelihood
   interval and its construction).
@@ -1053,31 +1098,31 @@ Lean 检查什么：结论能否由这些前提推出（`final`）且不是恒�
 
 #### 2.1 环节 A · 贫金属尾巴是真实的
 
-*概述。* 后面的一切都是对按 XP 金属丰度选出的星做计数、作图与轨道分析。如果估计精确、而且尾巴没有被实际上更富金属的星填满，这种选择就是真实的。R22 证实了前者（验证，附录 A），把后者作为开放问题提出。
+*概述。* 后面的一切都是对按 XP 金属丰度选出的星做计数、作图与轨道分析。如果估计精确、而且尾巴没有被实际上更富金属的星填满，这种选择就是真实的。R22 证实了前者（验证，附录 A）；后者他们定性地陈述（第 III.2 节），又在第 IV 节作为开放问题提出。*（2026-11-25 经本研究的独立审稿修改：这一前提最初编码为缺口 `gap_pure`。）*
 
 **前提。**
 
 | 前提（Lean 构造子） | 标签 | 出处性质 | 论文出处 |
 |---|---|---|---|
 | `stat_prec`：XP [M/H] 与 APOGEE 及其他巡天符合到约 0.1 dex | STAT | stated: "a remarkably precise (≲0.1 in the median)" | 第 II.3 节（APOGEE 星在训练集中）；附录 A.2 |
-| `gap_pure`：−1.5 以下的尾巴没有被 [M/H] 被低估的较富金属星主导 | GAP | reconstructed | R22 问"How pure are the XP selected samples in this regime?"（第 IV 节）；Chen 等 2025，arXiv:2511.18901 |
+| `stat_pure`：−1.5 以下的尾巴没有被 [M/H] 被低估的较富金属星主导 | STAT | stated: "is not severely contaminated by spurious" | 第 III.2 节（低 [M/H] 部分；两条论据：APOGEE 验证，用的是训练集的星，以及视差分布；第 II.3 节："appears to be nearly pure"）；定性的，没有污染估计，第 IV 节仍问"How pure are the XP selected samples in this regime?"；Chen 等 2025，arXiv:2511.18901 |
 | `mod_tail`：精确 + 纯净 ⇒ 贫金属星是真实的 | MOD | implied：标准的选择逻辑（Ivezić 等 2014，*Statistics, Data Mining, and Machine Learning in Astronomy*，2014sdmm.book.....I）；近乎定义 | — |
 
 **竞争解释。**
 
 | 替代解释 | 由哪个前提排除 | 论文是否明确排除？ |
 |---|---|---|
-| 尾巴中部分是被回归模型散射到低值的较富金属星（尘埃、拥挤、低信噪比） | `gap_pure` | 否：只提出了问题，没有回答；−2 以下的验证很薄弱（GSP-Spec 达不到那里；APOGEE 检验用的是训练星） |
+| 尾巴中部分是被回归模型散射到低值的较富金属星（尘埃、拥挤、低信噪比） | `stat_pure` | 定性地断言（第 III.2 节），没有量化，又在第 IV 节作为开放问题提出；−2 以下的验证很薄弱（GSP-Spec 达不到那里；APOGEE 检验用的是训练星） |
 | −2.5 附近的下限是训练范围造成的假象 | （影响尾巴形状，未编码） | 否：R22 说需要后续工作（"the APOGEE training set for XGBoost only extended to [M/H]=−2.5"） |
 | SkyMapper 式的系统误差（−1.5 附近偏差 0.28 dex、弥散 1 dex） | `stat_prec` | 是，通过比较，归因于 SkyMapper |
 
 **推理（Lean 摘录）。**
 
 ```lean
-have t : v.TailReal := p .mod_tail (p .stat_prec) (p .gap_pure)                     -- GAP
+have t : v.TailReal := p .mod_tail (p .stat_prec) (p .stat_pure)
 ```
 
-**评析。** 主体的中位精度 0.1 dex 对占 1% 的尾巴说明不了多少，而与 APOGEE 的比较用 R22 的话说是"a validation on a small subset of the full training set, not a pure cross-validation"（在全部训练集的一个小子集上的验证，不是纯粹的交叉验证；第 II.3 节）。样本中每颗 [M/H] < −1.5 的星对应约 100 颗更富金属的星；−1.3 到 −1 之间的星只要有 1% 被估错，就已经是尾巴中相当大的一部分。XGBoost 这样的树回归模型不能给出低于训练标签的值，而一般的回归估计会把极端值拉向主体；两种效应以相反的方向塑造尾巴（−2.5 以下的星变少，−1.3 附近的一些星可能出现在 −1.5 以下）。Chen 等 2025 发现十个 XP 金属丰度星表对 [Fe/H] = −2 以下尾巴的斜率看法不一（k ≈ 0.6–2.0）。所以纯度是第一个缺口，结论的每一部分都依赖它。
+**评析。** 主体的中位精度 0.1 dex 对占 1% 的尾巴说明不了多少，而与 APOGEE 的比较用 R22 的话说是"a validation on a small subset of the full training set, not a pure cross-validation"（在全部训练集的一个小子集上的验证，不是纯粹的交叉验证；第 II.3 节）。样本中每颗 [M/H] < −1.5 的星对应约 100 颗更富金属的星；−1.3 到 −1 之间的星只要有 1% 被估错，就已经是尾巴中相当大的一部分。XGBoost 这样的树回归模型不能给出低于训练标签的值，而一般的回归估计会把极端值拉向主体；两种效应以相反的方向塑造尾巴（−2.5 以下的星变少，−1.3 附近的一些星可能出现在 −1.5 以下）。Chen 等 2025 发现十个 XP 金属丰度星表对 [Fe/H] = −2 以下尾巴的斜率看法不一（k ≈ 0.6–2.0）。所以纯度是有陈述而没有量化的，结论的每一部分都依赖它。
 
 #### 2.2 环节 B · 多少颗星、多少质量
 
@@ -1240,10 +1285,10 @@ exact ⟨m, c, a, pg⟩
 
 #### 2.8 Lean 检查发现的问题
 
-1. **核心结论：`explicit_insufficient`，有五个缺口。** 即使加上两条标准规则（`mod_tail`、`mod_amr`），没有以下各条结论仍推不出：贫金属尾巴的纯度（`gap_pure`）、M4 换算的适用性（`gap_template`）、未建模的选择没有造成扭曲（`gap_sel`）、年龄排序所需的同一个化学上相连的系统（`gap_onezone`）以及原银河系解释（`gap_proto`：族群的主体形成于很早并合的主要团块之中或与之一同形成，这是我们对一个有保留的解读的形式化）。
+1. **核心结论：`explicit_insufficient`，有四个缺口**（2026-11-25 之前为五个；本研究的审稿指出 R22 在第 III.2 节陈述了尾巴的纯度，现为 `stat_pure`）。即使加上两条标准规则（`mod_tail`、`mod_amr`），没有以下各条结论仍推不出：M4 换算的适用性（`gap_template`）、未建模的选择没有造成扭曲（`gap_sel`）、年龄排序所需的同一个化学上相连的系统（`gap_onezone`）以及原银河系解释（`gap_proto`：族群的主体形成于很早并合的主要团块之中或与之一同形成，这是我们对一个有保留的解读的形式化）。
 2. **`stated_insufficient`**：即使不计缺口，R22 写出的内容也不够。论证还用到两条它没有写出的标准规则：精确而纯净的选择给出真实成员（`mod_tail`），以及在一个系统中金属丰度随时间上升（`mod_amr`）。
-3. **缺口在哪里。** `gap_pure` 影响全部四部分（质量、集中度与年龄都用到真实的尾巴；解释用到这三者）。第（1）部分质量加上 `gap_template`；第（2）部分集中度加上 `gap_sel`；第（3）部分年龄加上 `gap_onezone`；第（4）部分原银河系加上 `gap_proto` 并继承其他所有缺口。其中两个缺口（`gap_onezone`、`gap_proto`）是 R22 自己有保留的步骤（"most likely"、"fits a picture"）；另外三个是 R22 未加评论就采用的步骤（`gap_template`）或标为后续工作的步骤（`gap_pure`、`gap_sel`）。
-4. **排序。** `gap_pure` 最重要（影响一切，论文没有给出任何数字）；其次是 `gap_onezone`（年龄是论文的标题结论）；`gap_proto` 主要是解释性的；`gap_sel` 对 σ ≈ 2.7 kpc 这个数字的影响大于对定性集中度的影响；`gap_template` 影响质量最多约 2 倍。
+3. **缺口在哪里。** 有陈述而未量化的纯度（`stat_pure`）影响全部四部分（质量、集中度与年龄都用到真实的尾巴；解释用到这三者）。第（1）部分质量加上 `gap_template`；第（2）部分集中度加上 `gap_sel`；第（3）部分年龄加上 `gap_onezone`；第（4）部分原银河系加上 `gap_proto` 并继承其他所有缺口。其中两个缺口（`gap_onezone`、`gap_proto`）是 R22 自己有保留的步骤（"most likely"、"fits a picture"）；另外两个是 R22 未加评论就采用的步骤（`gap_template`；R22 采用 M4 作为模板，缺口是它对本样本的适用性）或标为后续工作的步骤（`gap_sel`）。
+4. **排序。** 纯度（`stat_pure`，有陈述但没有数字）仍最重要，因为它影响一切；缺口中首先是 `gap_onezone`（年龄是论文的标题结论）；`gap_proto` 主要是解释性的；`gap_sel` 对 σ ≈ 2.7 kpc 这个数字的影响大于对定性集中度的影响；`gap_template` 影响质量最多约 2 倍。
 5. **在本编码中 25 个前提都是必要的**，没有多余的（每个都在单一链条上）。环节 D 的四条事实只通过解释性步骤（`mod_confined`、`mod_deepwell`、`gap_proto`）才是必要的。
 6. **相容性**（`consistent`）在这里分量很弱：没有否定形式的前提，全真模型平凡地满足它们。
 7. **编码与引文的差别。** `mod_face`、`mod_central` 与 `mod_ancient`（带 `DiscAge`）带有额外前件（比引文弱）；`mod_confined` 转述其主语（"confined to R_GC < R☉, or tightly bound"，局限在太阳圆以内，或束缚很紧），并用更强的前件（向中心集中与远心距小）。`mod_ancient` 把 R22 的一个条件句按条件句编码。含 "[M/H]" 的引文在括号前或后截断，截掉的内容写在各出处栏中。有保留的步骤是缺口，不是写明的蕴含式。
@@ -1251,7 +1296,7 @@ exact ⟨m, c, a, pg⟩
 
 ### 第三部分 · 本项目可检验或探索的环节
 
-交互网页：[sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/](https://sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/)（尚未建立）。
+交互网页：[sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/](https://sudoghut.github.io/astrolab/studies/012-m12-poor-old-heart/web/)。
 
 本部分写于读取任何数据之前（2026-11-21），是研究预注册（README 第 1–4 节）的来源。标为"proposed"（建议）的阈值会带入预注册；预注册只能在运行之前、写明日期与理由后修改它们。
 
@@ -1290,6 +1335,39 @@ exact ⟨m, c, a, pg⟩
 - *完整的选择函数*（尘埃图、拥挤、Gaia XP 的完备性）以及质量背后的恒星族群模型：超出本研究范围。
 - *年龄*（绝对或相对）、最老的盘的 12.5 Gyr，以及早期银河系的年龄—金属丰度关系：超出本研究的数据。
 
+*注（2026-11-25）：* 表中与上面列表中的 `gap_pure` 现为 `stat_pure`（第二部分环节 A）；表格保持运行之前写的样子。
+
+#### 结果（运行之后写，2026-11-25）
+
+正式运行于 2026-11-24 完成（从检查点续跑三段，计算 23.3 小时；研究
+[README 第 5 节](https://github.com/sudoghut/astrolab/blob/main/studies/012-m12-poor-old-heart/README.zh.md#5-结果)）。按预注册机械得出的标签：
+
+- **T1，重新计数：未复现。** 公开文件中 [M/H] = −1.5 以下有 30,589 颗（−2.7 以下没有），摘要为约 18,000；
+  −2 以下 5,606 颗（第 III.2 节的">4,000"相符）；−1 以下 100,458 颗。
+- **T2a，尺度：按原文复现**（σ̂ = 2.704 kpc，95% [2.678, 2.730]），但**总体的 σ 无法判定（方法偏差）**：
+  同一个似然从 2.7 kpc 生成的模拟中恢复出 2.21 kpc。
+- **T2b，形状：无法判定（检查未通过）。** 数据偏好很强的扁平（q = 0.40），但 q = 1、完备性向银道面递减的
+  100 个模拟也全部是"扁平"（q̂ 中位数 0.71）。f₅ = 0.67 承袭 T2a 的无法判定。
+- **T3，旋转：** −2 以下有净旋转（J_φ/J_tot = 0.125 [0.089, 0.157]）；−1 附近以旋转为主
+  （0.542 [0.534, 0.551]）；转变是渐变的（10–90% 宽度 1.35 dex）。
+- **T4：敏感。** 所有金属丰度平移 +0.1 dex 时，T3 (b) 变为"不以旋转为主"；σ 与质量几乎不变。
+- **T5：** 类 GSE 星 g = 0.137（中等）；远心距小于 5 kpc 的 a₅ = 0.410（**未确认**）。
+- **T6：** 按 R22 的取法与我们的计数，6.1×10⁷ M☉（≥ 5×10⁷；各种取法下为 1.8×10⁷–1.5×10⁸）。
+- **读法：** 复现**"未复现"**（T1、T3 (a)）；稳健性**"受到挑战"**（T4、T5 a₅）。
+
+*独立审稿（事后，2026-11-25；[README 第 6 节](https://github.com/sudoghut/astrolab/blob/main/studies/012-m12-poor-old-heart/README.zh.md#6-审稿意见referee-notes)）。*
+- 标签都能精确重算，没有错误。读法的依据比它们显示的弱：
+  - T3 (a) 检验的是摘要，但 R22 自己的第 III.3 节说"starting already at [M/H]<−2 there is some, albeit small,
+    net J_phi/J_tot"，正是我们得到的结果。
+  - 图 4 图注把 R_GC < 4 kpc 的子集称为"the focus of our analysis"，R22 的计数可能指这个子集。
+  - T4 的翻转是阈值效应，又因为我们的 J_φ/J_tot 曲线在 −1 附近比 R22 的数字低 0.1–0.2 而被放大。
+  - a₅ 很可能被运动学文件的选择压低（只有 49% 的星，偏向近侧）。
+- R22 的核心数字，即总体的尺度与"大多数在 5 kpc 以内"，仍无法判定。若方法偏差在数据附近也成立，
+  σ 约为 3.2 kpc，f₅ 约为 0.51（审稿人的估计）。
+- 后续：T-069（按 σ 校准的 T2，加后验预测检查）与 T-070（J_φ/J_tot 曲线与计数的定义）。
+- 在 Lean 拆解中，`gap_pure` 改为 `stat_pure`（R22 第 III.2 节：低 [M/H] 部分"is not severely contaminated
+  by spurious [M/H] estimates"），剩下四个缺口。
+
 ### 术语表
 
 | 术语 | 含义 |
@@ -1312,6 +1390,7 @@ exact ⟨m, c, a, pg⟩
 
 按时间倒序。
 
+- 2026-11-25：第三部分补上结果（T1–T6，读法"未复现"与"受到挑战"，审稿的事后限定）；第二部分：`gap_pure` 改为 `stat_pure`（R22 在第 III.2 节陈述了尾巴的纯度），`gap_template` 的注释改为只有它对本样本的适用性是我们补上的；剩下四个缺口。后续 T-069、T-070。
 - 2026-11-21：预注册审查第 2 轮：第三部分的 T2b 与预注册一致（假阳性检查的范围及其在拟合 σ 处的第二组模拟；q 的剖面似然区间及其构造）。
 - 2026-11-21：预注册审查：T2 的选择项与版本（i）的范围写明。
 - 2026-11-21：第三部分闸门 2（Codex）：没有严重问题；两个小问题（T2b 模拟通过次数的二项分布不确定度，属粗略校准；T2a 的模拟偏差分布报告在标签旁）。

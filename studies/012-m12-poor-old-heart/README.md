@@ -352,7 +352,8 @@ cannot be tested here).
 
 ### 4.11 Systematics we know about but do not test
 
-- Purity of the metal-poor tail against independent spectroscopy (`gap_pure`): no unbiased
+- Purity of the metal-poor tail against independent spectroscopy (`gap_pure`; renamed `stat_pure` on
+  2026-11-25 after the referee, section 6 point 12): no unbiased
   spectroscopic subset is available (APOGEE is the training set; PIGS was pre-selected as metal-poor;
   GSP-Spec does not reach low [M/H]).
 - The full selection function (dust map, crowding, XP completeness) beyond the latitude cut and the
@@ -523,13 +524,130 @@ Sections 1–4.12 are unchanged except as stated here.
 
 ## 5. Results
 
-Filled after running. Link to `web/index.html` and key numbers in `results/`.
+Formal run of 2026-11-23/24 (`python -m astrolab run 012`, the PARAMS of sections 3–4.13; web page
+`web/index.html`). Every number below is in `results/` (`summary.json`, `t1.json`–`t6.json`, `load.json`,
+`run_info.json`).
+
+**Run history.** Five sessions, all with the same PARAMS:
+- (1) 2026-11-23: downloaded the two Zenodo files (98,513,191 and 115,266,771 bytes; L1 MD5s match) and
+  stopped at L2 as pre-registered (column `mh_xgboost_rgb` not a candidate; no parallaxes or photometry),
+  which led to amendment 4.13. 74 s.
+- (2) The same day: stopped at the first TAP query, because the ESA archive returned its downtime page, not a
+  VOTable. This led to 4.13 item 8 (Data Lab mirror).
+- (3)–(5): the full run from checkpoints under the 10 h stop rule (`stop_after_hours`):
+  - (3) paused at `t2b_boot_24` after 37,790 s;
+  - (4) 2026-11-24 00:30–10:30, paused at `t2b_boot_164` after 36,206 s;
+  - (5) 20:41–23:24, completed after 9,823 s, and the checkpoints were removed as the code does on
+    completion.
+- Together (3)–(5) took 83,819 s (23.3 h), inside the 20.4–30.4 h projected from measured evaluation times.
+- The memory-pressure stop of 2026-11-24 hit study 010's run, not this one. Each resume reads the same
+  checkpoint key (a hash of PARAMS, code and the data MD5s), and every unit has its own named random stream,
+  so a resumed unit is the one a single session would have computed.
+
+**Budget and provenance.**
+- 19.8 MB (19,794,952 bytes) were charged to the 200 MB budget, mostly the 235 Gaia DR3 queries of the
+  addition: 469,041 rows for 469,041 ids, none unmatched.
+- The two Zenodo files (213.8 MB) are exempt under the user's consent of 2026-11-21.
+- `provenance.json` is 9.9 MB, mostly the 469,041 `source_id`s of the 235 queries, and is already in the
+  templated format. That is above the 1 MB guideline for results files (AGENTS.md 1.1), so it is **not
+  committed**; whether and how to commit it waits for the user's decision. The full file is kept outside
+  the project at `%LOCALAPPDATA%\astrolab\Cache\s012_provenance_full\provenance_2026-11-24.json`.
+
+**Load checks (`load.json`).**
+- L1: both MD5s match.
+- L2: the mapping of 4.13 item 1.
+- L3: 1,586,888 metallicity rows and 1,250,764 kinematics rows, no duplicated `source_id`.
+- L4: join fraction 1.0000.
+- L5: the median J_φ is negative (−1,059), so J_φ is flipped to positive = prograde, as section 4.1
+  prescribes.
+- L6: no parallax-dependent cut (ϖ/σ_ϖ < 1 for 2.7% of the stars below −0.5).
+- L7: [M/H] spans −2.616 to 0.603; the 0.1th percentile is −2.214, and 29 stars lie below −2.5.
+
+**Overall readings** (section 2, mechanical):
+- **Reproduction: "not reproduced"** (T1, T3 (a)).
+- **Robustness of R22's picture: "challenged"** (T4, T5 a₅).
+
+Section 6 qualifies both readings (post hoc). They stand as labels.
+
+| Test | Label | Key numbers |
+|---|---|---|
+| T1 recount | **not reproduced** (abstract count disagrees; fraction label disagrees) | N(−2.7 < [M/H] < −1.5) = N(< −1.5) = 30,589 against ∼18,000 (no star is below −2.7). N(< −2) = 5,606 (">4,000" agrees; "∼5,000" disagrees). N(< −1) = 100,458 ("almost 100,000" disagrees, since the window is 90,000–99,999; "∼70,000" disagrees). Total 1,586,888. Pairs: 18,000/20,000 → neither; >4,000/5,000 → first; 100,000/70,000 → neither |
+| T2a σ, reproduction (version (i)) | **reproduced** | σ̂ = 2.704 kpc, 95% [2.678, 2.730]; not at a bound; grid converged (300 nodes, change 2·10⁻⁷ kpc on doubling) |
+| T2a σ of the population (version (ii)) | **undetermined (method bias)** | σ̂ = 2.713 kpc [2.687, 2.738]. Known-answer mocks at σ = 2.7 kpc recover 2.211 kpc (median; bias −0.489 ± 0.001 kpc; version (i): 2.198, −0.502), far beyond the 0.1 kpc gate. (ii) − (i) = 0.009 kpc. Reference fits (50,000-star subsamples): 2.587/2.596 kpc for −1.5 to −1.0 and 2.828/2.832 kpc for −1.0 to −0.5 |
+| T2b shape | **undetermined (checks failed)** | False-positive check 0 of 100: all 100 mocks with q = 1 and the falling completeness gave "flattened preferred", median q̂ 0.71. Power check 100 of 100: median q̂ 0.41 for a true 0.5. On the data (29,995 stars at \|b\| ≥ 5°): flattened σ = 3.74 kpc, q = 0.397, profile 95% [0.395, 0.401], bootstrap [0.389, 0.406], 2ΔlnL = 7,942. Power law: r_c = 1.39 kpc, α = 4.56, q = 0.23 (ΔBIC 9,539 over the flattened Gaussian, reported; step 2 not run because a check failed). Latitude variants 3° and 8°: q 0.399–0.402 and 0.369–0.375 |
+| T2b f₅ (spherical model, as the shape is undetermined) | **undetermined (method bias)**, inherited from T2a (ii) | f₅ = 0.672 [0.663, 0.679]; flattened 0.555 [0.546, 0.565]; power law 0.885 [0.851, 0.938] (reported) |
+| T3 (a) J_φ/J_tot, [M/H] < −2 | **net rotation** | 0.125, 95% [0.089, 0.157] (primary sample 3 < R_apo < 7 kpc); mean v_φ 18.0 km/s (file) |
+| T3 (b) −1.1 < [M/H] < −0.9 | **rotation dominated** | 0.542 [0.534, 0.551]; mean v_φ 88.9 km/s |
+| T3 (c) transition width | **gradual** | 10–90% width 1.35 dex [1.14, 1.61] against w₀ = 0.262 dex (0.1 dex blur; 0.379 and 0.493 at 0.15 and 0.2 dex), so the threshold max(0.4, w₀ + 0.1) = 0.4 dex. Bin means from −2.0 to −0.6: 0.168, 0.215, 0.283, 0.341, 0.419, 0.542, 0.695, 0.818 |
+| T3 all-R_apo variant | (a) net rotation; (b) **not rotation dominated**; (c) gradual | 0.085 [0.063, 0.109]; 0.461 [0.455, 0.468]; width 1.18 [1.06, 1.32] dex (reported, not in the readings) |
+| T4 metallicity scale | **sensitive** (shift +0.1 dex → T3 (b)) | Under the +0.1 shift, T3 (b) becomes "not rotation dominated". Every other variant keeps both T3 labels. σ (version (ii)) stays within 2.685–2.737 kpc (≤ 0.03 kpc from 2.713), and the mass with R22's choices within 4.63–7.94·10⁷ M☉ (factor ≤ 1.32 from 6.12·10⁷). N(< −1.5) is 23,140 / 39,675 under ±0.1 dex and 31,469 / 34,040 (medians) under 0.1 / 0.2 dex noise. The elasticities match the slope-only prediction, and no count is dominated by scatter from above |
+| T5 g (GSE-like, e ≥ 0.75 and R_apo ≥ 10 kpc) | **moderate** | 0.137 [0.132, 0.143] (14,972 kinematics stars with [M/H] < −1.5, i.e. 49% of the 30,589); variants 0.125 (−1.9 to −1.2) and 0.128 (< −1.2) |
+| T5 a₅ (R_apo < 5 kpc) | **not confirmed** | 0.410 [0.402, 0.417]; variants 0.475 [0.469, 0.480] (−1.9 to −1.2) and 0.456 [0.450, 0.461] (< −1.2) |
+| T6 mass (no label) | R22's choices give ≥ 5·10⁷ M☉: **yes** | 30,589 × 800 M☉ × 1 × 2.5 = 6.12·10⁷ M☉. The table spans 1.81·10⁷ to 1.53·10⁸ M☉ over m_giant 800/1,000/2,000 M☉, f_bright 1 or 0.857 (computed on 21,003 stars with ϖ/σ_ϖ > 5), f 1 or 2.5, and N or N(1 − g) |
+
+**What the labels say, before the referee's points.**
+- The public metallicity file contains about 1.7 times the abstract's count of stars below −1.5.
+- The spherical extent reproduces R22's 2.7 kpc to within 0.01 kpc. But the same estimator recovers 2.2 kpc
+  from mocks built at 2.7 kpc, so the population's σ cannot be read from it. The bias test was run at
+  σ = 2.7 kpc only.
+- The flattening test cannot tell a flattened population from the specified falling completeness.
+- The stars below −2 rotate a little; those near −1 are rotation dominated; the transition is gradual.
+- Rotation domination near −1 depends on a 0.1 dex shift of the metallicity scale.
+- Only 41% of the kinematic metal-poor stars have apocentres below 5 kpc.
+- R22's mass arithmetic, applied to our count, gives 6.1·10⁷ M☉.
 
 ## 6. Referee notes
 
-Independent critique: selection effects, systematics, alternative explanations.
+Independent referee (2026-11-25; a subagent given sections 1–4, the code, the results and the Lean
+quote–type–content table, not our conclusions). It recomputed every label and both readings from the
+results files and found them correct, and it found no label-changing bug and no moved goalpost. Its
+points were triaged against the files and R22's arXiv v1. The quotes below were checked verbatim on
+arxiv.org/html/2209.02722v1.
+
+Every interpretation in this section is **post hoc, 2026-11-25**: none changes a label or a reading of
+section 5. Numbers marked "(referee)" are the referee's own computations, not repeated by us.
+
+| # | Point | Status |
+|---|---|---|
+| 1 | **T3 (a) tests R22's abstract, which contradicts R22's own body.** The abstract says "Stars with [M/H] < −2 show no net rotation" and Section IV says "J_phi/J_tot(M/H<−2)≈0", but Section III.3 says "starting already at [M/H]<−2 there is some, albeit small, net J_phi/J_tot" and "some modest net rotation is present in the population well below [M/H]<−1.5". Our 0.125 [0.089, 0.157] agrees with III.3; under our δ = 0.05 rule R22's own Fig. 6 would also read "net rotation" (referee). Contamination from above shifts the bin's true [M/H] upward (count slope 2.1 dex per dex at −2, `t4.json`), which inflates the value but does not create it: the mean v_φ is 18.0 km/s (file); median ratio 0.20 and 58% prograde (referee). | Accepted (post hoc): T3 (a)'s contribution to "not reproduced" contradicts the abstract and Section IV, not the paper as a whole. The pre-registration took the abstract as R22's claim (stated as such in Lean `stat_norot`, which flags III.3). |
+| 2 | **T1 may compare different samples.** The Fig. 4 caption shows the whole sample ("∼20,000 stars with [M/H]<−1.5") and a subset "with presumed Galactocentric radii R_GC<4 kpc (in green), which are the focus of our analysis"; Section III.2 gives "∼18,000 with [M/H]<−1.5" without naming a sample. Applying the kinematics file's R_GC < 4 kpc fraction to the full counts gives about 18,500 below −1.5 for 3D r < 4 kpc, and 4,185 / 22,967 / 75,782 below −2 / −1.5 / −1 for cylindrical R < 4 kpc (referee; crude, the kinematics file favours the near side). R22's own numbers are inconsistent: 18,000 × 800 × 2.5 = 3.6·10⁷ M☉, below the stated ≳5·10⁷. | Accepted as a possible explanation, not verified; registered as T-070. T1's label follows the pre-registered rule (the abstract names the 2 million sample, not an R_GC cut). |
+| 3 | **The T2a bias decides f₅.** The mocks recover 2.21 kpc for 2.7 kpc with a 16–84% spread of ±0.01 kpc, so if the bias holds near the data, the true σ is about 3.2 kpc and the spherical f₅ falls from 0.67 to about 0.51 (0.57 at σ = 3.0, 0.49 at 3.3; referee). R22's eq. 1 conditions only on direction and ignores the BP < 15.5 flux limit acting through the luminosity function. The mocks' realism is unproven: extinction fit SSD 0.32 over eight colour statistics (a = 3.6 mag, b_d = 2.5°), parallax errors resampled by G only, bias measured at one σ, no comparison of the mocks' observed ϖ, G, BP − RP and \|b\| with the data. σ is stable across latitude cuts (2.695–2.697 kpc) and T4 variants. | Accepted: "undetermined (method bias)" is the honest label, and the size of the bias is model-dependent. The σ-calibrated grid with a posterior-predictive check is registered as T-069. |
+| 4 | **T2b's false-positive check fails by construction at this N.** All 100 q = 1 mocks with the falling completeness give q̂ ≈ 0.71, and the power mocks recover 0.41 for 0.5, so the data's 0.40 maps roughly to a true q of about 0.5 (referee), which is still flattened and close to Kurbatov et al. 2024 (arXiv:2410.22250, not re-verified here). With 2ΔlnL ≈ 7,900 and q intervals 0.005 wide, the "2ΔlnL > 10" test has no power to protect against a misspecified model at N = 30,000; the checks correctly overrode it. The power-law slope α = 4.56 is close to the Aurora slope 4.5 quoted in section 4.4. | Accepted (post hoc reading only). |
+| 5 | **T5 a₅ is very likely selection-driven.** The kinematics file holds 49% of the [M/H] < −1.5 stars (14,972 of 30,589; it needs RVS and ϖ/σ_ϖ ≥ 5), favouring the near side, and distance errors inflate R_apo (R22 say so). 88% of these stars lie at r < 5 kpc but only 41% have R_apo < 5; among stars at r < 3 kpc, 66% do (referee). In R22's own range (−1.9 to −1.2), a₅ = 0.475 [0.469, 0.480], so the median apocentre is about 5 kpc against R22's mean of about 4 kpc. | Accepted (post hoc): the "challenged" reading leans on this label. |
+| 6 | **T4 "sensitive" is a threshold effect.** T3 (b) = 0.542 [0.534, 0.551]; the bin means rise by about 0.6 per dex near −1, so a 0.1 dex shift moves the value by about 0.06 and crosses 0.5. Nothing else changes: σ by ≤ 0.03 kpc, the mass by a factor ≤ 1.32. Related, and not tested by any label: our J_φ/J_tot curve lies below R22's numbers (Section IV: 0.25 at −1.5 and about 0.9 at −0.8; the referee read about 0.68 at −1.0 and 0.95 at −0.6 from Fig. 6), against our 0.28–0.34 near −1.5, 0.542 at −1.0, 0.695 at −0.8 and 0.818 at −0.6. With R22's curve, T3 (b) would not be near the threshold. | Accepted (post hoc). The curve mismatch is registered as T-070. |
+| 7 | **XP at the metal-poor end.** XGBoost cannot extrapolate beyond its labels: the minimum is −2.616 and the 0.1th percentile −2.214, so the [M/H] < −2 bin is compressed. R22's precision is measured on training-set stars. The T4 trims show no concentration of the tail at the T_eff–log g edges (the 5–95% trim removes 16% of the tail against 14% overall, referee). Crowding-blended XP spectra are untested. | Accepted limitation (section 4.11). |
+| 8 | **T1 rule brittleness.** 100,458 counts as "disagrees" with "almost 100,000" (window 90,000–99,999), so the 100,000/70,000 pair reports "neither" although the file supports 100,000. | Accepted; the rule is applied as written and does not affect the readings. |
+| 9 | **T3 (c) fit shape.** The logistic's upper asymptote is 1.05, above the physical maximum of 1, and the centre (−0.91) sits near the top of the bin range, so the plateau is barely sampled and the width is partly extrapolated; the w₀ mocks have their plateau inside the range. "Gradual" (1.35 dex against the 0.4 dex threshold) probably survives. | Accepted (reported only; T3 (c) is not in the readings). |
+| 10 | **The Gaia addition ran on the Data Lab mirror, not the ESA archive named in 4.13 item 3.** | Rejected: 4.13 item 8 (2026-11-23, before the formal run) records the switch to Data Lab's `gaia_dr3.gaia_source` and says it replaces item 3's table. |
+| 11 | **Resume.** Named random streams per unit, one checkpoint key (hash of PARAMS, code and data MD5s), 237 distinct provenance entries; no sign of bias or duplication. The checkpoint folder was deleted on completion, so per-session reuse cannot be audited directly. | No change. |
+| 12 | **Lean: `gap_pure` is not a pure gap.** R22 Section III.2: "the low-[M/H] portion of n_*([M/H]) is not severely contaminated by spurious [M/H] estimates from some of the far more numerous stars of higher (true) metallicity"; Section II.3: a selection by [M/H]_XP "appears to be nearly pure". Our atom `Pure` ("not dominated") is weaker than that. | Fixed: renamed `stat_pure`, STAT [stated] with the III.2 quote and a note that the claim is qualitative, rests on training-set validation and the parallax distribution, and that Section IV still asks "How pure are the XP selected samples in this regime?". `explicit_insufficient` now rests on four gaps; `stated_insufficient` is unchanged. Lean test passes. |
+| 13 | **Lean: `gap_template` overstates the gap.** R22 adopt M4 explicitly as their template (`mod_m4`). | Fixed: the note now says what is reconstructed is the template's application to this sample (luminosity cut, population, 800 M☉ arithmetic, GSE stars). The other gaps (`gap_sel`, `gap_onezone`, `gap_proto`) were found honest, and every [stated] quote was verified against the arXiv text and found no stronger than the Lean body. |
+| 14 | **Literature** (referee, not verified here): Arentsen et al. 2020 (arXiv:1910.06337) and Ardern-Arentsen et al. 2024 (arXiv:2312.03847) find rotation persisting at low metallicity in the inner Galaxy, in line with T3 (a); Belokurov & Kravtsov 2022 (arXiv:2203.04980) find a sharp spin-up of in-situ stars, while our "gradual" fits a mixture with g ≈ 13% GSE-like stars; Chen et al. 2025 (arXiv:2511.18901) on the spread between XP metal-poor tails. | Noted. |
+| 15 | **Most important next test:** a σ-calibrated known-answer grid for T2 (mocks at σ = 2.7, 3.0, 3.3, 3.6 kpc and q = 0.5, 0.7, 1), mapping the data's σ̂ and q̂ to true values and recomputing f₅, with a posterior-predictive check of the mocks' observed ϖ, G, BP − RP and \|b\| against the data; or the empirical luminosity function and BP < 15.5 limit inside the likelihood. | Registered as T-069. |
+
+**Post-hoc summary (2026-11-25).** The mechanical readings stand: "not reproduced" and "challenged".
+Their grounds are weaker than the labels suggest:
+- **"Not reproduced"** rests on two tests:
+  - T1, where R22 probably counted a subsample whose definition the abstract does not give;
+  - T3 (a), where our net rotation agrees with R22's own Section III.3 and contradicts only the abstract
+    and Section IV.
+- **"Challenged"** rests on two tests:
+  - T4, where a 0.1 dex shift crosses the 0.5 threshold of T3 (b), a threshold effect enlarged by our curve
+    lying below R22's;
+  - T5 a₅, which the RVS and parallax selection of the kinematics file probably biases low.
+- The quantities R22 put most weight on remain undetermined because of method bias: the population's
+  extent and the "most within 5 kpc" fraction.
 
 ## 7. Open questions
+
+- **T-069: a σ-calibrated T2.** A known-answer grid in σ and q, plus a posterior-predictive check of the
+  mocks against the data's observed ϖ, G, colour and latitude distributions; or a likelihood that includes
+  the luminosity function and the BP < 15.5 limit. This decides T2a's population label, f₅ and "most within
+  5 kpc" (section 6, points 3 and 15).
+- **T-070: the J_φ/J_tot curve and the count definition.** Why our curve lies 0.1–0.2 below R22's numbers
+  near −1 (column `mh_xgboost_rgb` against R22's figure, averaging, actions), and whether R22's counts
+  refer to an R_GC < 4 kpc subset (section 6, points 2 and 6).
+- **Purity against independent spectroscopy** stays untested (section 4.11; Lean `stat_pure`).
 
 ## 8. Exploring via chat
 
