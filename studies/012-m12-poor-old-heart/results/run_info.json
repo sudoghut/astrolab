@@ -1,0 +1,36 @@
+{
+ "study": "012-m12-poor-old-heart",
+ "finished_at": "2026-11-25T04:24:55+00:00",
+ "seconds": 9822.75,
+ "outputs": [
+  "load.json",
+  "t2.json",
+  "t1.json",
+  "t3.json",
+  "t5.json",
+  "t6.json",
+  "t4.json",
+  "summary.json"
+ ],
+ "bytes_charged": 19794952,
+ "budget_bytes": 209715200,
+ "bytes_exempt": 213779962,
+ "budget_exempt": [
+  {
+   "url": "https://zenodo.org/records/7035810/files/xp_gc_mh.csv?download=1",
+   "label": "R22 metallicity file xp_gc_mh.csv (Zenodo 7035810, CC BY 4.0)",
+   "bytes": 98513191,
+   "sha256": "bb44cc8ecece0253bba8b9fe2bcabdcc1cf8250acdcf08a72af9e0331526570b",
+   "consent": "user consent 2026-11-21 (TODO.md T-021, studies/012 log.md 2026-11-21): R22's two Zenodo files are kept out of the study budget, downloaded once",
+   "from_cache": true
+  },
+  {
+   "url": "https://zenodo.org/records/7035810/files/xp_gc_kinematics.csv?download=1",
+   "label": "R22 kinematics file xp_gc_kinematics.csv (Zenodo 7035810, CC BY 4.0)",
+   "bytes": 115266771,
+   "sha256": "1e8230c085f9a689172993c7d1886f74e4e1ec07aac90c834cb0244101feb3a9",
+   "consent": "user consent 2026-11-21 (TODO.md T-021, studies/012 log.md 2026-11-21): R22's two Zenodo files are kept out of the study budget, downloaded once",
+   "from_cache": true
+  }
+ ]
+}

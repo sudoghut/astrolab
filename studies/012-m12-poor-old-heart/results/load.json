@@ -1,0 +1,368 @@
+{
+ "L1": {
+  "mh": {
+   "md5": "7257c98622573a4a625571fc973859c5",
+   "expected": "7257c98622573a4a625571fc973859c5",
+   "match": true
+  },
+  "kin": {
+   "md5": "b220c27aacff1f2f03d5a1f2b5fca147",
+   "expected": "b220c27aacff1f2f03d5a1f2b5fca147",
+   "match": true
+  },
+  "passed": true
+ },
+ "L2": {
+  "columns_mh": [
+   "source_id",
+   "ra",
+   "dec",
+   "teff_xgboost",
+   "logg_xgboost",
+   "mh_xgboost_rgb"
+  ],
+  "columns_kin": [
+   "source_id",
+   "x",
+   "y",
+   "z",
+   "v_x",
+   "v_y",
+   "v_z",
+   "j_r",
+   "j_phi",
+   "j_z",
+   "r_apo",
+   "ecc"
+  ],
+  "mapping_mh": {
+   "source_id": "source_id",
+   "mh": "mh_xgboost_rgb",
+   "mh_err": null,
+   "teff": "teff_xgboost",
+   "logg": "logg_xgboost",
+   "l": null,
+   "b": null,
+   "ra": "ra",
+   "dec": "dec",
+   "parallax": null,
+   "parallax_error": null,
+   "g": null,
+   "bp_rp": null,
+   "bp": null
+  },
+  "mapping_kin": {
+   "source_id": "source_id",
+   "jr": "j_r",
+   "jphi": "j_phi",
+   "jz": "j_z",
+   "ecc": "ecc",
+   "rapo": "r_apo",
+   "x": "x",
+   "y": "y",
+   "z": "z",
+   "vx": "v_x",
+   "vy": "v_y",
+   "vz": "v_z",
+   "vphi": null,
+   "ra": null,
+   "dec": null,
+   "parallax": null,
+   "pmra": null,
+   "pmdec": null,
+   "rv": null
+  },
+  "present_mh": {
+   "l": false,
+   "b": false,
+   "ra": true,
+   "dec": true,
+   "parallax": false,
+   "parallax_error": false,
+   "g": false,
+   "bp_rp": false,
+   "bp": false,
+   "mh_err": false,
+   "teff": true,
+   "logg": true
+  },
+  "t2_columns_missing": [],
+  "kin_missing_t3": [],
+  "kin_missing_t5": [],
+  "addition": {
+   "consent": "user consent 2026-11-23 (studies/012 log.md 2026-11-23; README 4.13)",
+   "service": "datalab",
+   "table": "gaia_dr3.gaia_source",
+   "mh_max": -0.5,
+   "chunk": 2000,
+   "quantities": [
+    "parallax",
+    "parallax_error",
+    "g",
+    "bp_rp",
+    "bp"
+   ],
+   "columns": [
+    "parallax",
+    "parallax_error",
+    "phot_g_mean_mag",
+    "bp_rp",
+    "phot_bp_mean_mag"
+   ],
+   "n_ids": 469041,
+   "n_queries": 235,
+   "n_rows": 469041,
+   "n_unmatched": 0,
+   "n_finite": {
+    "parallax": 469041,
+    "parallax_error": 469041,
+    "g": 469041,
+    "bp_rp": 469041,
+    "bp": 469041
+   }
+  },
+  "t2_columns_missing_in_file": [
+   "parallax",
+   "parallax_error",
+   "g",
+   "bp_rp",
+   "bp"
+  ]
+ },
+ "L3_mh": {
+  "rows": 1586888,
+  "duplicated_source_ids": 0,
+  "duplicated_fraction": 0.0,
+  "rows_dropped": 0
+ },
+ "L3_kin": {
+  "rows": 1250764,
+  "duplicated_source_ids": 0,
+  "duplicated_fraction": 0.0,
+  "rows_dropped": 0
+ },
+ "L4": {
+  "kin_rows": 1250764,
+  "matched": 1250764,
+  "fraction": 1.0,
+  "note": ""
+ },
+ "L5": {
+  "n_metal_rich": 964066,
+  "jphi_flipped": true,
+  "median_jphi": -1058.7150000000001,
+  "median_rapo": 6.04
+ },
+ "L6": {
+  "declared": {},
+  "snr_below_1_rule": {
+   "fraction_below_1": 0.027076524227093154,
+   "declared": false
+  },
+  "parallax_dependent_cut": false,
+  "records": {
+   "parallax": {
+    "n": 469041,
+    "outside_query_range": 0,
+    "min": -11.409067403348512,
+    "max": 0.9999675687685083
+   },
+   "parallax_over_error": {
+    "n": 469041,
+    "outside_query_range": 0,
+    "min": -17.104338363705963,
+    "max": 82.94086576855605
+   },
+   "bp": {
+    "n": 469041,
+    "outside_query_range": 0,
+    "min": 7.389675140380859,
+    "max": 15.499996185302734
+   },
+   "bp_rp": {
+    "n": 469041,
+    "outside_query_range": 0,
+    "min": 1.0000569820404053,
+    "max": 3.4999899864196777
+   },
+   "l": {
+    "n": 1586888,
+    "outside_query_range": 0,
+    "min": -29.999954898532906,
+    "max": 29.999997906839468
+   },
+   "b": {
+    "n": 1586888,
+    "outside_query_range": 0,
+    "min": -29.998828140291323,
+    "max": 29.999676328904343
+   }
+  },
+  "present": [
+   "b",
+   "bp",
+   "bp_rp",
+   "l",
+   "parallax",
+   "parallax_over_error"
+  ]
+ },
+ "L7": {
+  "min": -2.616,
+  "max": 0.603,
+  "p0_1": -2.214,
+  "n_below_m2p5": 29,
+  "n_finite": 1586888
+ },
+ "rows": {
+  "mh": 1586888,
+  "kin": 1250764,
+  "joined": 1250764
+ },
+ "params": {
+  "first_download": false,
+  "t2_missing_ok": false,
+  "gaia_addition": true,
+  "seed": 20261121,
+  "subsample_seed": 12012,
+  "R0_kpc": 8.2,
+  "plx_zp_mas": 0.02,
+  "t2_mh_range": [
+   -99.0,
+   -1.5
+  ],
+  "grid_nodes": 300,
+  "grid_dmin_kpc": 0.2,
+  "grid_dmax_kpc": 30.0,
+  "grid_d1_i_kpc": 1.0,
+  "grid_check_tol_kpc": 0.01,
+  "grid_max_nodes": 1200,
+  "sigma_bounds_kpc": [
+   0.5,
+   10.0
+  ],
+  "bound_tol_kpc": 0.05,
+  "sigma_true_kpc": 2.7,
+  "t2a_boot": 200,
+  "t2a_mocks": 100,
+  "t2a_bias_max_kpc": 0.1,
+  "ref_bins": [
+   [
+    -1.5,
+    -1.0
+   ],
+   [
+    -1.0,
+    -0.5
+   ]
+  ],
+  "ref_max_stars": 50000,
+  "lf_snr_min": 10.0,
+  "lf_mh_max": -1.0,
+  "lf_min_stars": 500,
+  "ext_a_grid": [
+   0.0,
+   5.0,
+   0.05
+  ],
+  "ext_bd_grid_deg": [
+   1.0,
+   20.0,
+   0.5
+  ],
+  "t2b_bmin_deg": 5.0,
+  "t2b_bmin_variants_deg": [
+   3.0,
+   8.0
+  ],
+  "t2b_boot": 200,
+  "t2b_mocks": 100,
+  "t2b_starts": 5,
+  "t2b_q_power": 0.5,
+  "t2b_pass_of_100": 80,
+  "t2b_second_fp_kpc": 0.2,
+  "control_mh": [
+   -1.0,
+   -0.5
+  ],
+  "t3_rapo_kpc": [
+   3.0,
+   7.0
+  ],
+  "t3_boot": 1000,
+  "t3_w0_mocks": 100,
+  "t3_w0_blur_dex": [
+   0.1,
+   0.15,
+   0.2
+  ],
+  "t3_delta": 0.05,
+  "t3_bin_centers": [
+   -2.0,
+   -1.8,
+   -1.6,
+   -1.4,
+   -1.2,
+   -1.0,
+   -0.8,
+   -0.6
+  ],
+  "t3_bin_width": 0.2,
+  "t3_R0_variants_kpc": [
+   8.0,
+   8.4
+  ],
+  "t4_shift_dex": 0.1,
+  "t4_noise_dex": [
+   0.1,
+   0.2
+  ],
+  "t4_realisations": 10,
+  "t4_trim_pct": [
+   [
+    1.0,
+    99.0
+   ],
+   [
+    5.0,
+    95.0
+   ]
+  ],
+  "t4_bin_dex": 0.25,
+  "t4_boot": 1000,
+  "t5_boot": 1000,
+  "t5_variants": [
+   [
+    -1.9,
+    -1.2
+   ],
+   [
+    -99.0,
+    -1.2
+   ]
+  ],
+  "t6_m_giant": [
+   800.0,
+   1000.0,
+   2000.0
+  ],
+  "t6_f": [
+   1.0,
+   2.5
+  ],
+  "t6_snr_min": 5.0,
+  "t6_mg_max": 0.5,
+  "t6_target_msun": 50000000.0,
+  "parts": [
+   "t1",
+   "t2",
+   "t3",
+   "t4",
+   "t5",
+   "t6"
+  ],
+  "timing_evals": 5,
+  "stop_after_hours": 10.0,
+  "checkpoint_subdir": "s012_checkpoints"
+ }
+}

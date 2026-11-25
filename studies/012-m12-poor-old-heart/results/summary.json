@@ -1,0 +1,232 @@
+{
+ "status": "complete",
+ "parts": [
+  "t1",
+  "t2",
+  "t3",
+  "t4",
+  "t5",
+  "t6"
+ ],
+ "labels": {
+  "T1": "not reproduced",
+  "T1_abstract_fraction": "disagrees",
+  "T2a_reproduction": "reproduced",
+  "T2a_population": "undetermined (method bias)",
+  "T2b_shape": "undetermined (checks failed)",
+  "T2b_f5": "undetermined (method bias)",
+  "T3a": "net rotation",
+  "T3b": "rotation dominated",
+  "T3c": "gradual",
+  "T4": "sensitive",
+  "T5_g": "moderate",
+  "T5_a5": "not confirmed",
+  "T6_r22_at_least_5e7": true
+ },
+ "reading_reproduction": {
+  "label": "not reproduced",
+  "tests": [
+   "T1",
+   "T3 (a)"
+  ],
+  "pending_amendment": false
+ },
+ "reading_robustness": {
+  "label": "challenged",
+  "tests": [
+   "T4",
+   "T5 a5"
+  ],
+  "pending_amendment": false
+ },
+ "pending_amendment": [],
+ "timing": {
+  "per_evaluation_s": {
+   "build_s": 0.608,
+   "i_sph_s": 0.1202,
+   "ii_sph_s": 0.1331,
+   "ii_flat_s": 0.157,
+   "ii_pow_s": 0.2008
+  },
+  "n_stars": 30589,
+  "nodes": 300,
+  "projected": {
+   "prereg_counts": {
+    "hours": {
+     "extinction_grid": 0.05,
+     "t2a": 0.53,
+     "t2b_bootstrap": 23.46,
+     "t2b_mocks_fp_power": 12.61,
+     "t2b_step2_mocks": 11.73,
+     "reference_control_latitude": 0.54,
+     "t4_sigma_fits": 0.04,
+     "total": 48.96
+    },
+    "without_step2": 37.23,
+    "with_step2_and_second_fp": 55.27
+   },
+   "measured_counts": {
+    "hours": {
+     "extinction_grid": 0.05,
+     "t2a": 0.25,
+     "t2b_bootstrap": 13.87,
+     "t2b_mocks_fp_power": 5.94,
+     "t2b_step2_mocks": 6.93,
+     "reference_control_latitude": 0.3,
+     "t4_sigma_fits": 0.02,
+     "total": 27.38
+    },
+    "without_step2": 20.44,
+    "with_step2_and_second_fp": 30.35
+   }
+  },
+  "note": "likelihood work only (T3, T5, T6 and the T3 parts of T4 add minutes); synthetic stars of the real size"
+ },
+ "checkpoints": "s012_checkpoints/57faf48a6abc94b22d82",
+ "params": {
+  "first_download": false,
+  "t2_missing_ok": false,
+  "gaia_addition": true,
+  "seed": 20261121,
+  "subsample_seed": 12012,
+  "R0_kpc": 8.2,
+  "plx_zp_mas": 0.02,
+  "t2_mh_range": [
+   -99.0,
+   -1.5
+  ],
+  "grid_nodes": 300,
+  "grid_dmin_kpc": 0.2,
+  "grid_dmax_kpc": 30.0,
+  "grid_d1_i_kpc": 1.0,
+  "grid_check_tol_kpc": 0.01,
+  "grid_max_nodes": 1200,
+  "sigma_bounds_kpc": [
+   0.5,
+   10.0
+  ],
+  "bound_tol_kpc": 0.05,
+  "sigma_true_kpc": 2.7,
+  "t2a_boot": 200,
+  "t2a_mocks": 100,
+  "t2a_bias_max_kpc": 0.1,
+  "ref_bins": [
+   [
+    -1.5,
+    -1.0
+   ],
+   [
+    -1.0,
+    -0.5
+   ]
+  ],
+  "ref_max_stars": 50000,
+  "lf_snr_min": 10.0,
+  "lf_mh_max": -1.0,
+  "lf_min_stars": 500,
+  "ext_a_grid": [
+   0.0,
+   5.0,
+   0.05
+  ],
+  "ext_bd_grid_deg": [
+   1.0,
+   20.0,
+   0.5
+  ],
+  "t2b_bmin_deg": 5.0,
+  "t2b_bmin_variants_deg": [
+   3.0,
+   8.0
+  ],
+  "t2b_boot": 200,
+  "t2b_mocks": 100,
+  "t2b_starts": 5,
+  "t2b_q_power": 0.5,
+  "t2b_pass_of_100": 80,
+  "t2b_second_fp_kpc": 0.2,
+  "control_mh": [
+   -1.0,
+   -0.5
+  ],
+  "t3_rapo_kpc": [
+   3.0,
+   7.0
+  ],
+  "t3_boot": 1000,
+  "t3_w0_mocks": 100,
+  "t3_w0_blur_dex": [
+   0.1,
+   0.15,
+   0.2
+  ],
+  "t3_delta": 0.05,
+  "t3_bin_centers": [
+   -2.0,
+   -1.8,
+   -1.6,
+   -1.4,
+   -1.2,
+   -1.0,
+   -0.8,
+   -0.6
+  ],
+  "t3_bin_width": 0.2,
+  "t3_R0_variants_kpc": [
+   8.0,
+   8.4
+  ],
+  "t4_shift_dex": 0.1,
+  "t4_noise_dex": [
+   0.1,
+   0.2
+  ],
+  "t4_realisations": 10,
+  "t4_trim_pct": [
+   [
+    1.0,
+    99.0
+   ],
+   [
+    5.0,
+    95.0
+   ]
+  ],
+  "t4_bin_dex": 0.25,
+  "t4_boot": 1000,
+  "t5_boot": 1000,
+  "t5_variants": [
+   [
+    -1.9,
+    -1.2
+   ],
+   [
+    -99.0,
+    -1.2
+   ]
+  ],
+  "t6_m_giant": [
+   800.0,
+   1000.0,
+   2000.0
+  ],
+  "t6_f": [
+   1.0,
+   2.5
+  ],
+  "t6_snr_min": 5.0,
+  "t6_mg_max": 0.5,
+  "t6_target_msun": 50000000.0,
+  "parts": [
+   "t1",
+   "t2",
+   "t3",
+   "t4",
+   "t5",
+   "t6"
+  ],
+  "timing_evals": 5,
+  "stop_after_hours": 10.0,
+  "checkpoint_subdir": "s012_checkpoints"
+ }
+}

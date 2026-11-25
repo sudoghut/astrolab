@@ -5,6 +5,7 @@
 
 ## 2026-11-24
 
+- 23:24 正式运行完成（本段 9,823 s，从检查点续跑：t2b 自助法 165–200 与其余阶段；状态 complete，检查点已按规则删除，暂停时的记录文件已由运行删除）。标签：T1 "not reproduced"（摘要比例 disagrees）；T2a 复现 "reproduced"、总体 "undetermined (method bias)"；T2b 形状 "undetermined (checks failed)"、f5 "undetermined (method bias)"；T3 (a) net rotation、(b) rotation dominated、(c) gradual（w0 0.262）；T4 "sensitive"（shift +0.1 改变 T3 (b)）；T5 g moderate、a5 "not confirmed"；T6 R22 ≥ 5e7 为真。复现读法 "not reproduced"（T1、T3 (a)），稳健性读法 "challenged"（T4、T5 a5）。其余结果文件入库；`provenance.json` 为 9.9 MB（Gaia DR3 补充查询的 235 个 source_id 列表，已是模板压缩格式），超过结果文件 1 MB 的约定，暂不入库，副本存在系统缓存目录，如何处理等用户决定。审稿与收尾随后进行。
 - 20:5x 从检查点再次恢复正式运行（日志 `run012_t021_5.log`），依据是用户此前的同意（"T21 轮到之后就跑 不需要我确认"）。10:30 那一段按 `stop_after_hours` = 10 暂停在 `t2b_boot_164_K300`；之后按耗时短的先跑，先后完成了研究 010 的 T-064（16:04 结束）与研究 008 的 T-063（20:39 结束），机器上现在没有其他研究运行。PARAMS 不变。
 - 00:30 从检查点恢复正式运行（日志 `run012_t021_4.log`），依据是用户 2026-11-23 的同意。研究 010 的 T-064 正式运行在 2026-11-24 00:2x 因系统内存不足被 Claude Code 停止（没有按约定自行重启，等待用户决定），所以研究 012 没有等它结束，机器上没有运行其他研究；恢复前空闲内存 8.2 GB。
 
