@@ -524,7 +524,7 @@ Sections 1–4.12 are unchanged except as stated here.
 
 ## 5. Results
 
-Formal run of 2026-11-23/24 (`python -m astrolab run 012`, the PARAMS of sections 3–4.13; web page
+Formal run of 2026-11-23/24 (`python -m astrolab run 012`, the PARAMS specified in sections 3–4, including amendments 4.12 and 4.13; web page
 `web/index.html`). Every number below is in `results/` (`summary.json`, `t1.json`–`t6.json`, `load.json`,
 `run_info.json`).
 

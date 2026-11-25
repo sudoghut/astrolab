@@ -209,7 +209,7 @@ README 第 8 节的入口，用 `python -m astrolab explore` 运行，不属于�
 
 ## 5. 结果
 
-正式运行于 2026-11-23/24 进行（`python -m astrolab run 012`，PARAMS 按第 3–4.13 节；网页
+正式运行于 2026-11-23/24 进行（`python -m astrolab run 012`，PARAMS 按第 3–4 节，包括修订 4.12 与 4.13；网页
 `web/index.html`）。下面每个数字都在 `results/` 中（`summary.json`、`t1.json`–`t6.json`、`load.json`、
 `run_info.json`）。
 
